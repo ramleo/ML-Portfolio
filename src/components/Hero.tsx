@@ -1,0 +1,203 @@
+"use client";
+
+export default function Hero() {
+  return (
+    <section
+      className="hero-bg"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "6rem 1.5rem 4rem",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Subtle grid overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          maxWidth: 760,
+          width: "100%",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        {/* Badge */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            padding: "0.3rem 1rem",
+            borderRadius: 9999,
+            border: "1px solid var(--border2)",
+            background: "var(--border)",
+            color: "var(--text2)",
+            fontSize: "0.75rem",
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#34d399",
+              boxShadow: "0 0 6px #34d399",
+            }}
+          />
+          Machine Learning Engineer
+        </div>
+
+        <h1
+          style={{
+            fontSize: "clamp(2.5rem, 6vw, 4rem)",
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: "-0.03em",
+            marginBottom: "1.25rem",
+            color: "var(--text)",
+          }}
+        >
+          Hi, I&apos;m{" "}
+          <span className="gradient-text">Ramleo</span>
+        </h1>
+
+        <p
+          style={{
+            fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
+            color: "var(--text2)",
+            lineHeight: 1.7,
+            maxWidth: 560,
+            margin: "0 auto 2.5rem",
+          }}
+        >
+          I build end-to-end ML pipelines — from raw data to deployed prediction APIs
+          with interactive frontends. Every project below is live and testable.
+        </p>
+
+        {/* Stats row */}
+        <div
+          style={{
+            display: "flex",
+            gap: "1.5rem",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            marginBottom: "2.5rem",
+          }}
+        >
+          {[
+            { value: "4", label: "Live Projects" },
+            { value: "3", label: "Datasets" },
+            { value: "96.7%", label: "Best Accuracy" },
+            { value: "Auto-ML", label: "Pipeline" },
+          ].map((s) => (
+            <div
+              key={s.label}
+              style={{
+                textAlign: "center",
+                padding: "0.75rem 1.25rem",
+                borderRadius: 12,
+                background: "var(--border)",
+                border: "1px solid var(--border2)",
+                minWidth: 90,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  lineHeight: 1.2,
+                }}
+              >
+                {s.value}
+              </div>
+              <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 2 }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTAs */}
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <a
+            href="#projects"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.75rem 1.75rem",
+              borderRadius: 9999,
+              background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textDecoration: "none",
+              transition: "opacity 0.15s, transform 0.15s",
+              boxShadow: "0 4px 20px rgba(99, 102, 241, 0.3)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.9";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            View Projects
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M8 3v10M3 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+          <a
+            href="https://github.com/ramleo"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.75rem 1.75rem",
+              borderRadius: 9999,
+              border: "1px solid var(--border2)",
+              background: "var(--border)",
+              color: "var(--text)",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textDecoration: "none",
+              transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--text3)")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
