@@ -78,7 +78,7 @@ export default function Hero() {
           }}
         >
           Hi, I&apos;m{" "}
-          <span className="gradient-text">Ramleo</span>
+          <span className="gradient-text">AIRaML</span>
         </h1>
 
         <p
