@@ -62,5 +62,21 @@
     "url": "https://temp-insurance.onrender.com",
     "github": "https://github.com/ramleo/Temp-Insurance",
     "accent": "#fbbf24"
+  },
+  {
+    "id": "ml-unified",
+    "title": "ML Unified Platform",
+    "description": "One app, four models. Select Iris classifier, Titanic survival predictor, Diabetes risk model, or Insurance premium estimator from a sidebar — all served from a single schema-driven FastAPI backend with dynamic forms.",
+    "model": "Multi-Model",
+    "task": "Platform",
+    "dataset": "4 Datasets · 26 Features",
+    "metric": "4",
+    "metricLabel": "Models",
+    "features": 26,
+    "classes": null,
+    "tags": ["Platform", "FastAPI", "Schema-Driven", "Classification", "Regression"],
+    "url": "https://ml-unified.onrender.com",
+    "github": "https://github.com/ramleo/ML-Unified",
+    "accent": "#e879f9"
   }
 ]
