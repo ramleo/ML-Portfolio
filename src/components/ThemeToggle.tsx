@@ -5,8 +5,15 @@ export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const dark = stored !== "light";
+    const urlTheme = new URLSearchParams(window.location.search).get("theme");
+    let dark: boolean;
+    if (urlTheme === "light" || urlTheme === "dark") {
+      dark = urlTheme === "dark";
+      localStorage.setItem("theme", urlTheme);
+    } else {
+      const stored = localStorage.getItem("theme");
+      dark = stored !== "light";
+    }
     setIsDark(dark);
     document.documentElement.classList.toggle("light", !dark);
   }, []);
