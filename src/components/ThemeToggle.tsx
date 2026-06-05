@@ -5,11 +5,15 @@ export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    const urlTheme = new URLSearchParams(window.location.search).get("theme");
+    const params   = new URLSearchParams(window.location.search);
+    const urlTheme = params.get("theme");
     let dark: boolean;
     if (urlTheme === "light" || urlTheme === "dark") {
       dark = urlTheme === "dark";
       localStorage.setItem("theme", urlTheme);
+      params.delete("theme");
+      const qs = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
     } else {
       const stored = localStorage.getItem("theme");
       dark = stored !== "light";
