@@ -77,7 +77,6 @@ export default function Hero() {
             color: "var(--text)",
           }}
         >
-          Hi, I&apos;m{" "}
           <span className="gradient-text">AIRaML</span>
         </h1>
 
@@ -105,8 +104,8 @@ export default function Hero() {
           }}
         >
           {[
-            { value: "4", label: "Live Projects" },
-            { value: "3", label: "Datasets" },
+            { value: "2", label: "Live Platforms" },
+            { value: "4", label: "Datasets" },
             { value: "96.7%", label: "Best Accuracy" },
             { value: "Auto-ML", label: "Pipeline" },
           ].map((s) => (

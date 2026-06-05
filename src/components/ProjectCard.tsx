@@ -156,10 +156,12 @@ export default function ProjectCard({ project }: { project: Project }) {
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => {
+              const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
+              const sep = url.includes("?") ? "&" : "?";
+              window.open(`${url}${sep}theme=${theme}`, "_blank");
+            }}
             style={{
               flex: 1,
               display: "flex",
@@ -172,7 +174,8 @@ export default function ProjectCard({ project }: { project: Project }) {
               color: "#fff",
               fontWeight: 600,
               fontSize: "0.82rem",
-              textDecoration: "none",
+              border: "none",
+              cursor: "pointer",
               transition: "opacity 0.15s, transform 0.15s",
             }}
             onMouseEnter={(e) => {
@@ -188,7 +191,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </a>
+          </button>
           <a
             href={github}
             target="_blank"
