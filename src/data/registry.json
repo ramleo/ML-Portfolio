@@ -11,7 +11,7 @@
     "features": 26,
     "classes": null,
     "tags": ["Platform", "FastAPI", "Schema-Driven", "Classification", "Regression"],
-    "url": "https://ml-unified.onrender.com",
+    "url": "https://ml-unified.onrender.com/?mode=ml",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#e879f9"
   },
@@ -27,7 +27,7 @@
     "features": 3,
     "classes": null,
     "tags": ["Vision", "ONNX", "Segmentation", "Detection", "Classification"],
-    "url": "https://ml-unified.onrender.com",
+    "url": "https://ml-unified.onrender.com/?mode=vision",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#a78bfa"
   }
