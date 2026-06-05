@@ -14,5 +14,21 @@
     "url": "https://ml-unified.onrender.com",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#e879f9"
+  },
+  {
+    "id": "ml-vision",
+    "title": "ML Vision Platform",
+    "description": "Three vision tasks in one app: classify images across 1000 ImageNet categories (MobileNetV2 · ResNet50 · SqueezeNet · GoogLeNet), detect objects with TinyYOLOv3 (COCO 80 classes), and segment scenes pixel-by-pixel with SegFormer-B0 (ADE20K 150 classes). All models run as ONNX on a FastAPI microservice.",
+    "model": "SegFormer-B0 · YOLOv3 · MobileNetV2",
+    "task": "Vision",
+    "dataset": "ImageNet · COCO · ADE20K",
+    "metric": "150",
+    "metricLabel": "Seg Classes",
+    "features": 3,
+    "classes": null,
+    "tags": ["Vision", "ONNX", "Segmentation", "Detection", "Classification"],
+    "url": "https://ml-unified.onrender.com",
+    "github": "https://github.com/ramleo/ML-Unified",
+    "accent": "#a78bfa"
   }
 ]
