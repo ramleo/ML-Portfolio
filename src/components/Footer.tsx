@@ -14,10 +14,9 @@ const QUICK_LINKS = [
 ];
 
 const SOCIALS = [
-  { label: "GitHub",    href: "https://github.com/ramleo",                   icon: "GH" },
-  { label: "LinkedIn",  href: "https://linkedin.com/in/WRamakrishnasai",     icon: "IN" },
-  { label: "DockerHub", href: "https://hub.docker.com/u/wram",               icon: "🐳" },
-  { label: "Email",     href: "mailto:ramleo84@gmail.com",                   icon: "✉" },
+  { label: "GitHub",    href: "https://github.com/ramleo",               icon: "GH" },
+  { label: "LinkedIn",  href: "https://linkedin.com/in/WRamakrishnasai", icon: "IN" },
+  { label: "DockerHub", href: "https://hub.docker.com/u/wram",           icon: "🐳" },
 ];
 
 export default function Footer() {
@@ -147,14 +146,9 @@ export default function Footer() {
                   </a>
                 ))}
               </div>
-              <a
-                href="mailto:ramleo84@gmail.com"
-                style={{ fontSize: "0.82rem", color: "var(--text2)", textDecoration: "none", transition: "color 0.15s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text2)")}
-              >
-                ramleo84@gmail.com
-              </a>
+              <p style={{ fontSize: "0.8rem", color: "var(--text3)", margin: 0, lineHeight: 1.5 }}>
+                Use the contact form to get in touch.
+              </p>
             </div>
           </div>
 
