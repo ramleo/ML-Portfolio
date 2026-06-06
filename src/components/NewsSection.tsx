@@ -48,7 +48,7 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
             display: "flex",
             flexDirection: "column",
             gap: "0.65rem",
-            padding: "1.25rem",
+            padding: "1.4rem 1.25rem 1.25rem",
             position: "relative",
             borderRadius: 14,
             background: "var(--bg-glass)",
@@ -78,6 +78,15 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
               pointerEvents: "none",
             }}
           />
+
+          {/* Coloured top accent bar */}
+          <div style={{
+            position: "absolute",
+            top: 0, left: 0, right: 0,
+            height: 3,
+            background: accent,
+            borderRadius: "14px 14px 0 0",
+          }} />
 
           {/* Source + date row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", position: "relative" }}>
