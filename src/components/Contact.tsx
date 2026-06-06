@@ -36,7 +36,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" style={{ background: "var(--bg)", padding: "0 0 2rem" }}>
+    <section id="contact" style={{ background: "var(--bg-section)", padding: "0 0 2rem" }}>
       <div className="section-sep" />
       <div className="section" ref={ref}>
 

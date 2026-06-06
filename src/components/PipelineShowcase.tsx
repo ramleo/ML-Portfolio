@@ -65,7 +65,7 @@ export default function PipelineShowcase() {
   const active = STAGES.find((s) => s.step === activeStage) ?? null;
 
   return (
-    <section id="pipeline" style={{ background: "var(--bg)", padding: "0 0 2rem" }}>
+    <section id="pipeline" style={{ padding: "0 0 2rem" }}>
       <div className="section-sep" />
       <div className="section" ref={ref}>
 

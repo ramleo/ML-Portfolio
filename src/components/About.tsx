@@ -27,7 +27,7 @@ export default function About() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="about" style={{ background: "var(--bg)", padding: "0 0 2rem" }}>
+    <section id="about" style={{ background: "var(--bg-section)", padding: "0 0 2rem" }}>
       <div className="section-sep" />
       <div className="section" ref={ref}>
 

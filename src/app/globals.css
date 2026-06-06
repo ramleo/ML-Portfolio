@@ -8,6 +8,7 @@
 /* ── Theme tokens ── */
 :root {
   --bg:         #0a0f1e;
+  --bg-section: rgba(10, 15, 30, 0.84);
   --bg-card:    #111827;
   --bg-nav:     rgba(10, 15, 30, 0.88);
   --text:       #f1f5f9;
@@ -20,6 +21,7 @@
 
 html.light {
   --bg:         #f0f4f8;
+  --bg-section: rgba(240, 244, 248, 0.84);
   --bg-card:    #ffffff;
   --bg-nav:     rgba(240, 244, 248, 0.92);
   --text:       #0f172a;
@@ -189,7 +191,7 @@ body {
 nav, section, footer { position: relative; z-index: 1; }
 
 /* ── Hero background ── */
-.hero-bg { background: var(--bg); }
+.hero-bg { background: var(--bg-section); }
 
 /* ── Animations ── */
 @keyframes blob1 {

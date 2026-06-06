@@ -13,21 +13,18 @@ export default function ParticleGrid() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let W = window.innerWidth;
-    let H = document.documentElement.scrollHeight;
-    canvas.width = W;
-    canvas.height = H;
-
     const GAP = 38;
     const RADIUS = 1.8;
-    const MAX_DIST = 110;
+    const MAX_DIST = 120;
 
     type Dot = { x: number; y: number; ox: number; oy: number; vx: number; vy: number };
     let dots: Dot[] = [];
+    let W = 0;
+    let H = 0;
 
     const build = () => {
       W = window.innerWidth;
-      H = document.documentElement.scrollHeight;
+      H = window.innerHeight;
       canvas.width = W;
       canvas.height = H;
       dots = [];
@@ -41,9 +38,9 @@ export default function ParticleGrid() {
 
     const tick = () => {
       ctx.clearRect(0, 0, W, H);
-      const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-      const dotColor = isDark ? "rgba(99,102,241,0.35)" : "rgba(99,102,241,0.2)";
-      const lineColor = isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.07)";
+      const isLight = document.documentElement.classList.contains("light");
+      const dotColor = isLight ? "rgba(99,102,241,0.22)" : "rgba(99,102,241,0.38)";
+      const lineColor = isLight ? "rgba(99,102,241,0.09)" : "rgba(99,102,241,0.14)";
 
       for (const d of dots) {
         const dx = mouse.current.x - d.ox;
@@ -53,7 +50,7 @@ export default function ParticleGrid() {
         if (dist < MAX_DIST) {
           const force = (MAX_DIST - dist) / MAX_DIST;
           const angle = Math.atan2(dy, dx);
-          const push = force * 28;
+          const push = force * 30;
           d.vx += -Math.cos(angle) * push * 0.08;
           d.vy += -Math.sin(angle) * push * 0.08;
         }
@@ -93,7 +90,7 @@ export default function ParticleGrid() {
     tick();
 
     const onMouseMove = (e: MouseEvent) => {
-      mouse.current = { x: e.clientX, y: e.clientY + window.scrollY };
+      mouse.current = { x: e.clientX, y: e.clientY };
     };
     const onResize = () => build();
 
@@ -117,7 +114,6 @@ export default function ParticleGrid() {
         height: "100%",
         pointerEvents: "none",
         zIndex: 0,
-        opacity: 1,
       }}
     />
   );

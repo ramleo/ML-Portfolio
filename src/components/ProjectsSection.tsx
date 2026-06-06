@@ -24,6 +24,7 @@ export default function ProjectsSection() {
         margin: "0 auto",
       }}
     >
+
       {/* Section header */}
       <div style={{ marginBottom: "2rem" }}>
         <p

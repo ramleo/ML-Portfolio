@@ -25,7 +25,7 @@ export default function Footer() {
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <footer style={{ background: "var(--bg)", borderTop: "1px solid var(--border)" }} ref={ref}>
+    <footer style={{ background: "var(--bg-section)", borderTop: "1px solid var(--border)" }} ref={ref}>
       {/* Top gradient bar */}
       <div style={{ height: 3, background: "linear-gradient(90deg, #818cf8, #38bdf8, #34d399)" }} />
 

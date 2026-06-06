@@ -91,7 +91,7 @@ export default function NewsSection() {
   const accent = tab === "papers" ? "#818cf8" : "#38bdf8";
 
   return (
-    <section id="news" style={{ background: "var(--bg)", padding: "0 0 2rem" }}>
+    <section id="news" style={{ background: "var(--bg-section)", padding: "0 0 2rem" }}>
       <div className="section-sep" />
       <div className="section" ref={ref}>
 
