@@ -6,7 +6,7 @@ import { motion, useInView } from "framer-motion";
 const EXPERIENCE = [
   {
     company: "Capgemini",
-    role: "Data Engineer",
+    role: "Consultant B2",
     period: "Dec 2025 – Present",
     accent: "#38bdf8",
     current: true,

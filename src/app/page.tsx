@@ -8,10 +8,12 @@ import NewsSection from "@/components/NewsSection";
 import Timeline from "@/components/Timeline";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import ParticleGridClient from "@/components/ParticleGridClient";
 
 export default function Home() {
   return (
     <>
+      <ParticleGridClient />
       <Navbar />
       <Hero />
       <About />

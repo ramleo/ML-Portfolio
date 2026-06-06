@@ -1,7 +1,10 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, Suspense, lazy } from "react";
 import { useInView } from "framer-motion";
+import MagneticButton from "./MagneticButton";
+
+const NeuralNetwork3D = lazy(() => import("./NeuralNetwork3D"));
 
 function useTypewriter(text: string, speed = 110) {
   const [displayed, setDisplayed] = useState("");
@@ -110,6 +113,13 @@ export default function Hero() {
         overflow: "hidden",
       }}
     >
+      {/* 3D Neural Network — full hero backdrop */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        <Suspense fallback={null}>
+          <NeuralNetwork3D />
+        </Suspense>
+      </div>
+
       {/* Animated gradient blobs */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
         <div style={{
@@ -242,6 +252,7 @@ export default function Hero() {
 
         {/* CTAs */}
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <MagneticButton>
           <a
             href="#projects"
             style={{
@@ -272,6 +283,8 @@ export default function Hero() {
               <path d="M8 3v10M3 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </a>
+          </MagneticButton>
+          <MagneticButton>
           <a
             href="https://github.com/ramleo"
             target="_blank"
@@ -298,6 +311,7 @@ export default function Hero() {
             </svg>
             GitHub
           </a>
+          </MagneticButton>
         </div>
       </div>
 

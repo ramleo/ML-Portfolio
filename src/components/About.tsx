@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense, lazy } from "react";
 import { motion, useInView } from "framer-motion";
+
+const DataCube3D = lazy(() => import("./DataCube3D"));
 
 const COMPETENCIES = [
   "Machine Learning", "Deep Learning", "Generative AI", "Computer Vision",
@@ -153,6 +155,19 @@ export default function About() {
                     {c}
                   </motion.span>
                 ))}
+              </div>
+
+              {/* Rotating data cube */}
+              <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem" }}>
+                <Suspense fallback={null}>
+                  <DataCube3D />
+                </Suspense>
+                <div>
+                  <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Key Metrics</p>
+                  <p style={{ fontSize: "0.72rem", color: "var(--text3)", lineHeight: 1.6 }}>
+                    Drag to rotate · each face shows a<br />live project stat
+                  </p>
+                </div>
               </div>
 
               {/* Highlights */}

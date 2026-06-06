@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ items: [], noKey: true });
     }
 
-    const newsUrl = `https://newsapi.org/v2/everything?q=%22artificial+intelligence%22+OR+%22machine+learning%22+OR+%22LLM%22&language=en&sortBy=publishedAt&pageSize=9&apiKey=${key}`;
+    const newsUrl = `https://newsapi.org/v2/everything?q=%22artificial+intelligence%22+OR+%22machine+learning%22+OR+%22deep+learning%22+OR+%22large+language+model%22+OR+%22generative+AI%22+OR+%22neural+network%22+OR+%22MLOps%22&language=en&sortBy=publishedAt&pageSize=9&apiKey=${key}`;
     const res = await fetch(newsUrl, { next: { revalidate: 3600 } });
     const data = await res.json();
 

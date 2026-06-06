@@ -185,6 +185,9 @@ body {
 }
 .form-input::placeholder { color: var(--text3); }
 
+/* ── Layer content above particle grid ── */
+nav, section, footer { position: relative; z-index: 1; }
+
 /* ── Hero background ── */
 .hero-bg { background: var(--bg); }
 
