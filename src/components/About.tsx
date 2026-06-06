@@ -1,87 +1,196 @@
-const TECH_STACK = [
-  { category: "Languages", items: ["Python", "TypeScript", "SQL"] },
-  { category: "ML / Data", items: ["Scikit-learn", "Pandas", "NumPy", "XGBoost", "LightGBM"] },
-  { category: "Backend", items: ["FastAPI", "Uvicorn", "REST APIs"] },
-  { category: "Frontend", items: ["Next.js", "React", "Tailwind CSS", "Vanilla JS"] },
-  { category: "DevOps", items: ["Docker", "Render", "Vercel", "GitHub Actions"] },
+"use client";
+
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+
+const COMPETENCIES = [
+  "Machine Learning", "Deep Learning", "Generative AI", "Computer Vision",
+  "Natural Language Processing", "Model Deployment", "Data Visualization",
+  "Statistical Analysis", "Business Intelligence", "Web Scraping",
+  "Docker & Containers", "Cloud (GCP)",
 ];
 
+const CONTACTS = [
+  { label: "Email",     value: "ramleo84@gmail.com",              href: "mailto:ramleo84@gmail.com",                  icon: "✉" },
+  { label: "LinkedIn",  value: "WRamakrishnasai",                 href: "https://linkedin.com/in/WRamakrishnasai",    icon: "in" },
+  { label: "GitHub",    value: "github.com/ramleo",               href: "https://github.com/ramleo",                  icon: "gh" },
+  { label: "DockerHub", value: "hub.docker.com/u/wram",           href: "https://hub.docker.com/u/wram",              icon: "🐳" },
+  { label: "Location",  value: "Hyderabad, India",                href: "#",                                          icon: "📍" },
+];
+
+const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
+
 export default function About() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
   return (
-    <section
-      id="about"
-      style={{
-        padding: "5rem 1.5rem 6rem",
-        maxWidth: 900,
-        margin: "0 auto",
-      }}
-    >
-      {/* Section header */}
-      <div style={{ marginBottom: "3rem" }}>
-        <p style={{ fontSize: "0.75rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
-          About
-        </p>
-        <h2
-          style={{
-            fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
-            fontWeight: 800,
-            color: "var(--text)",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.2,
-            margin: 0,
-          }}
+    <section id="about" style={{ background: "var(--bg)", padding: "0 0 2rem" }}>
+      <div className="section-sep" />
+      <div className="section" ref={ref}>
+
+        <motion.div
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
-          Building ML from scratch
-          <br />
-          <span className="gradient-text">to production</span>
-        </h2>
-      </div>
+          {/* Label + heading */}
+          <motion.p className="section-label" variants={fade}>About</motion.p>
+          <motion.h2 className="section-heading" variants={fade}>
+            Building ML — <span className="gradient-text">end to end</span>
+          </motion.h2>
+          <motion.p
+            variants={fade}
+            style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginBottom: "3rem" }}
+          >
+            From raw data to deployed prediction APIs — every system built, tested, and live.
+          </motion.p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "2rem",
-          alignItems: "start",
-        }}
-      >
-        {/* Bio */}
-        <div>
-          <p style={{ fontSize: "0.95rem", color: "var(--text2)", lineHeight: 1.8, marginBottom: "1rem" }}>
-            I&apos;m a machine learning engineer focused on building complete, deployable ML systems —
-            not just notebooks. Each project here runs a full pipeline: data preprocessing,
-            feature engineering, model selection, training, and a REST API served with FastAPI.
-          </p>
-          <p style={{ fontSize: "0.95rem", color: "var(--text2)", lineHeight: 1.8 }}>
-            The frontends are live, interactive, and dark/light themed. The Auto-ML pipeline
-            bootstrapper generates new project templates from any CSV dataset in seconds.
-          </p>
-        </div>
+          {/* Two-column grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "start" }}>
 
-        {/* Tech stack */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {TECH_STACK.map((group) => (
-            <div key={group.category}>
-              <p
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--text3)",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                {group.category}
+            {/* Left — Avatar + bio */}
+            <motion.div variants={fade} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
+              {/* Avatar */}
+              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                <div
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #818cf8, #38bdf8, #34d399)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.6rem",
+                    fontWeight: 800,
+                    color: "#fff",
+                    flexShrink: 0,
+                    boxShadow: "0 0 0 4px var(--border2)",
+                    animation: "float 4s ease-in-out infinite",
+                  }}
+                >
+                  RW
+                </div>
+                <div>
+                  <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Ramakrishnasai Wuppalapati</div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginTop: 2 }}>ML Engineer · Data Scientist · AI Builder</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: 6 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399", display: "inline-block" }} />
+                    <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>Available for ML roles</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <p style={{ fontSize: "0.92rem", color: "var(--text2)", lineHeight: 1.8 }}>
+                Achievement-driven ML professional with a PG Diploma in Data Science from IIIT-Bangalore (3.7/4).
+                I build complete systems — not just notebooks — covering data ingestion, EDA, feature engineering,
+                model training, evaluation, and deployment via REST APIs.
               </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                {group.items.map((item) => (
-                  <span key={item} className="tag">{item}</span>
+              <p style={{ fontSize: "0.92rem", color: "var(--text2)", lineHeight: 1.8 }}>
+                My work spans classical ML, deep learning (CNN/RNN/Transfer Learning), NLP, computer vision,
+                and Generative AI (RAG, Agents, LangChain). Every project here is live and interactive.
+              </p>
+
+              {/* Contact links */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {CONTACTS.map((c) => (
+                  <a
+                    key={c.label}
+                    href={c.href}
+                    target={c.href.startsWith("http") ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                      textDecoration: "none",
+                      color: "var(--text2)",
+                      fontSize: "0.82rem",
+                      transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text2)")}
+                  >
+                    <span
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        background: "var(--border)",
+                        border: "1px solid var(--border2)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {c.icon}
+                    </span>
+                    {c.value}
+                  </a>
                 ))}
               </div>
-            </div>
-          ))}
-        </div>
+            </motion.div>
+
+            {/* Right — Competencies */}
+            <motion.div variants={fade}>
+              <p className="section-label" style={{ marginBottom: "1rem" }}>Core Competencies</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "2.5rem" }}>
+                {COMPETENCIES.map((c, i) => (
+                  <motion.span
+                    key={c}
+                    className="tag"
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={inView ? { opacity: 1, scale: 1 } : {}}
+                    transition={{ delay: 0.3 + i * 0.04, duration: 0.3 }}
+                    style={{ fontSize: "0.78rem", padding: "4px 12px" }}
+                  >
+                    {c}
+                  </motion.span>
+                ))}
+              </div>
+
+              {/* Highlights */}
+              <p className="section-label" style={{ marginBottom: "1rem" }}>Education</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {[
+                  { degree: "PG Diploma in Data Science", spec: "Specialization in Deep Learning", institution: "IIIT-Bangalore × upGrad", year: "2021", grade: "3.7 / 4.0" },
+                  { degree: "Bachelor of Commerce", spec: "Accounts & Economics", institution: "Mumbai University", year: "2005", grade: "62%" },
+                ].map((e) => (
+                  <div
+                    key={e.degree}
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 12,
+                      padding: "0.9rem 1.1rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: "1rem",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>{e.degree}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text2)", marginTop: 2 }}>{e.spec}</div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginTop: 2 }}>{e.institution}</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#818cf8" }}>{e.grade}</div>
+                      <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 2 }}>{e.year}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+          </div>
+        </motion.div>
       </div>
     </section>
   );

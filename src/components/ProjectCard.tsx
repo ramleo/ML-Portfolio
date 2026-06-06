@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 interface Project {
   id: string;
   title: string;
@@ -19,27 +21,55 @@ interface Project {
 
 export default function ProjectCard({ project }: { project: Project }) {
   const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent } = project;
-
   const isClassification = task === "Classification";
+
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hovering, setHovering] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) / rect.width - 0.5;
+    const cy = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: cy * -10, y: cx * 10 });
+  };
+
+  const handleMouseEnter = () => setHovering(true);
+  const handleMouseLeave = () => {
+    setHovering(false);
+    setTilt({ x: 0, y: 0 });
+  };
 
   return (
     <div
       className="card"
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
         borderRadius: 16,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        height: "100%",
+        transform: hovering
+          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-4px)`
+          : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
+        transition: hovering
+          ? "transform 0.08s ease, box-shadow 0.25s ease, border-color 0.25s ease"
+          : "transform 0.4s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+        boxShadow: hovering
+          ? `0 0 0 1px ${accent}44, 0 16px 48px ${accent}28, 0 4px 16px rgba(0,0,0,0.3)`
+          : "var(--shadow)",
+        borderColor: hovering ? `${accent}44` : undefined,
       }}
     >
-      {/* Accent bar */}
+      {/* Colored top border */}
       <div style={{ height: 4, background: accent, flexShrink: 0 }} />
 
       <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
           <div>
-            {/* Task badge */}
             <span
               style={{
                 display: "inline-block",
@@ -90,7 +120,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
 
-        {/* Description */}
+        {/* Description — flex:1 so cards equalize height */}
         <p
           style={{
             fontSize: "0.85rem",
@@ -104,13 +134,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         </p>
 
         {/* Meta row */}
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
           {[
             { icon: "◎", label: "Model", value: model },
             { icon: "⊞", label: "Features", value: String(features) },

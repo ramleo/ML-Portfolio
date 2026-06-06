@@ -1,6 +1,102 @@
 "use client";
 
+import { useRef, useEffect, useState } from "react";
+import { useInView } from "framer-motion";
+
+function useTypewriter(text: string, speed = 110) {
+  const [displayed, setDisplayed] = useState("");
+  useEffect(() => {
+    setDisplayed("");
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, speed]);
+  return displayed;
+}
+
+function useCountUp(target: number, inView: boolean, duration = 1400) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    setValue(0);
+    let elapsed = 0;
+    const interval = 16;
+    const id = setInterval(() => {
+      elapsed += interval;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(target * eased);
+      if (progress >= 1) clearInterval(id);
+    }, interval);
+    return () => clearInterval(id);
+  }, [inView, target, duration]);
+  return value;
+}
+
+const STATS = [
+  { target: 2,    suffix: "",   label: "Live Platforms" },
+  { target: 4,    suffix: "",   label: "Datasets" },
+  { target: 96.7, suffix: "%",  label: "Best Accuracy" },
+  { target: null, label: "Pipeline", static: "Auto-ML" },
+] as const;
+
+function StatCard({ stat, inView }: { stat: typeof STATS[number]; inView: boolean }) {
+  const count = useCountUp(
+    "target" in stat && stat.target !== null ? stat.target : 0,
+    inView
+  );
+
+  let display: string;
+  if ("static" in stat && stat.static) {
+    display = stat.static;
+  } else if ("target" in stat && stat.target !== null) {
+    const t = stat.target;
+    display = Number.isInteger(t)
+      ? `${Math.round(count)}${stat.suffix}`
+      : `${count.toFixed(1)}${stat.suffix}`;
+  } else {
+    display = "";
+  }
+
+  return (
+    <div
+      style={{
+        textAlign: "center",
+        padding: "0.9rem 1.5rem",
+        borderRadius: 14,
+        background: "var(--border)",
+        border: "1px solid var(--border2)",
+        minWidth: 100,
+      }}
+    >
+      <div
+        style={{
+          fontSize: "2rem",
+          fontWeight: 800,
+          color: "var(--text)",
+          lineHeight: 1.1,
+          letterSpacing: "-0.02em",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {display}
+      </div>
+      <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 4 }}>
+        {stat.label}
+      </div>
+    </div>
+  );
+}
+
 export default function Hero() {
+  const statsRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(statsRef, { once: true, margin: "-80px" });
+  const typed = useTypewriter("AIRaML");
+
   return (
     <section
       className="hero-bg"
@@ -14,6 +110,25 @@ export default function Hero() {
         overflow: "hidden",
       }}
     >
+      {/* Animated gradient blobs */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+        <div style={{
+          position: "absolute", width: "65%", height: "65%", top: "5%", left: "0%",
+          background: "radial-gradient(ellipse, rgba(99,102,241,0.13) 0%, transparent 70%)",
+          animation: "blob1 9s ease-in-out infinite",
+        }} />
+        <div style={{
+          position: "absolute", width: "55%", height: "55%", top: "15%", right: "0%",
+          background: "radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 70%)",
+          animation: "blob2 11s ease-in-out infinite 2s",
+        }} />
+        <div style={{
+          position: "absolute", width: "45%", height: "45%", bottom: "10%", left: "35%",
+          background: "radial-gradient(ellipse, rgba(52,211,153,0.07) 0%, transparent 70%)",
+          animation: "blob3 13s ease-in-out infinite 4s",
+        }} />
+      </div>
+
       {/* Subtle grid overlay */}
       <div
         style={{
@@ -67,17 +182,33 @@ export default function Hero() {
           Machine Learning Engineer
         </div>
 
+        {/* Headline with typewriter */}
         <h1
           style={{
-            fontSize: "clamp(2.5rem, 6vw, 4rem)",
+            fontSize: "clamp(4rem, 9vw, 6rem)",
             fontWeight: 800,
-            lineHeight: 1.1,
-            letterSpacing: "-0.03em",
+            lineHeight: 1.05,
+            letterSpacing: "-0.04em",
             marginBottom: "1.25rem",
             color: "var(--text)",
+            minHeight: "1.1em",
           }}
         >
-          <span className="gradient-text">AIRaML</span>
+          <span className="gradient-text">
+            {typed}
+            <span
+              style={{
+                display: "inline-block",
+                width: "0.05em",
+                height: "0.85em",
+                background: "currentColor",
+                marginLeft: "0.06em",
+                verticalAlign: "middle",
+                animation: "blink 1s step-end infinite",
+                opacity: typed.length < "AIRaML".length ? 1 : 0,
+              }}
+            />
+          </span>
         </h1>
 
         <p
@@ -93,47 +224,19 @@ export default function Hero() {
           with interactive frontends. Every project below is live and testable.
         </p>
 
-        {/* Stats row */}
+        {/* Stats row with count-up */}
         <div
+          ref={statsRef}
           style={{
             display: "flex",
-            gap: "1.5rem",
+            gap: "1rem",
             justifyContent: "center",
             flexWrap: "wrap",
             marginBottom: "2.5rem",
           }}
         >
-          {[
-            { value: "2", label: "Live Platforms" },
-            { value: "4", label: "Datasets" },
-            { value: "96.7%", label: "Best Accuracy" },
-            { value: "Auto-ML", label: "Pipeline" },
-          ].map((s) => (
-            <div
-              key={s.label}
-              style={{
-                textAlign: "center",
-                padding: "0.75rem 1.25rem",
-                borderRadius: 12,
-                background: "var(--border)",
-                border: "1px solid var(--border2)",
-                minWidth: 90,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "1.25rem",
-                  fontWeight: 700,
-                  color: "var(--text)",
-                  lineHeight: 1.2,
-                }}
-              >
-                {s.value}
-              </div>
-              <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 2 }}>
-                {s.label}
-              </div>
-            </div>
+          {STATS.map((s) => (
+            <StatCard key={s.label} stat={s} inView={inView} />
           ))}
         </div>
 
@@ -197,6 +300,19 @@ export default function Hero() {
           </a>
         </div>
       </div>
+
+      {/* Dark gradient at bottom — prevents hard edge blending into page */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 140,
+          background: "linear-gradient(to bottom, transparent, var(--bg))",
+          pointerEvents: "none",
+        }}
+      />
     </section>
   );
 }
