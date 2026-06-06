@@ -13,11 +13,10 @@ const COMPETENCIES = [
 ];
 
 const CONTACTS = [
-  { label: "Email",     value: "ramleo84@gmail.com",              href: "mailto:ramleo84@gmail.com",                  icon: "✉" },
-  { label: "LinkedIn",  value: "WRamakrishnasai",                 href: "https://linkedin.com/in/WRamakrishnasai",    icon: "in" },
-  { label: "GitHub",    value: "github.com/ramleo",               href: "https://github.com/ramleo",                  icon: "gh" },
-  { label: "DockerHub", value: "hub.docker.com/u/wram",           href: "https://hub.docker.com/u/wram",              icon: "🐳" },
-  { label: "Location",  value: "Hyderabad, India",                href: "#",                                          icon: "📍" },
+  { label: "LinkedIn",  value: "WRamakrishnasai",       href: "https://linkedin.com/in/WRamakrishnasai", icon: "in" },
+  { label: "GitHub",    value: "github.com/ramleo",     href: "https://github.com/ramleo",               icon: "gh" },
+  { label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram",           icon: "🐳" },
+  { label: "Location",  value: "Hyderabad, India",      href: "#",                                       icon: "📍" },
 ];
 
 const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };

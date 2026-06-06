@@ -4,11 +4,10 @@ import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 
 const LINKS = [
-  { icon: "✉", label: "Email",     value: "ramleo84@gmail.com",         href: "mailto:ramleo84@gmail.com" },
-  { icon: "in", label: "LinkedIn",  value: "WRamakrishnasai",            href: "https://linkedin.com/in/WRamakrishnasai" },
-  { icon: "gh", label: "GitHub",    value: "github.com/ramleo",          href: "https://github.com/ramleo" },
-  { icon: "🐳", label: "DockerHub", value: "hub.docker.com/u/wram",      href: "https://hub.docker.com/u/wram" },
-  { icon: "📍", label: "Location",  value: "Hyderabad, India",           href: "#" },
+  { icon: "in", label: "LinkedIn",  value: "WRamakrishnasai",       href: "https://linkedin.com/in/WRamakrishnasai" },
+  { icon: "gh", label: "GitHub",    value: "github.com/ramleo",     href: "https://github.com/ramleo" },
+  { icon: "🐳", label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram" },
+  { icon: "📍", label: "Location",  value: "Hyderabad, India",      href: "#" },
 ];
 
 const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
