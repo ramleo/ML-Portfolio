@@ -6,7 +6,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ML Portfolio | AIRaML",
+  title: "AIRaML | ML Engineer Portfolio",
   description: "End-to-end machine learning projects — classification, regression, and prediction apps deployed on Render.",
 };
 
