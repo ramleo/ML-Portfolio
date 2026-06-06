@@ -85,12 +85,14 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: 0.15 + ci * 0.09, duration: 0.45 }}
+      style={{ height: "100%" }}
     >
     <div
       onMouseMove={onMove}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
       style={{
+        height: "100%",
         position: "relative",
         borderRadius: 16,
         overflow: "hidden",

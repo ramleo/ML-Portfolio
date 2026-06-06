@@ -62,7 +62,7 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
               ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
               : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
             boxShadow: hovering
-              ? `0 0 0 1px ${accent}30, 0 16px 48px ${accent}18, 0 6px 20px rgba(0,0,0,0.3)`
+              ? `0 0 0 1px ${accent}55, 0 16px 48px ${accent}35, 0 6px 20px rgba(0,0,0,0.35)`
               : "0 4px 20px rgba(0,0,0,0.2)",
           }}
         >
