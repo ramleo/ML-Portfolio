@@ -41,7 +41,6 @@ export default function ProjectCard({ project }: { project: Project }) {
 
   return (
     <div
-      className="card"
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -51,22 +50,41 @@ export default function ProjectCard({ project }: { project: Project }) {
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        position: "relative",
+        background: "var(--bg-glass)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        border: `1px solid ${hovering ? accent + "44" : "var(--border)"}`,
         transform: hovering
-          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-4px)`
+          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
           : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
         transition: hovering
-          ? "transform 0.08s ease, box-shadow 0.25s ease, border-color 0.25s ease"
-          : "transform 0.4s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+          ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
+          : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
         boxShadow: hovering
-          ? `0 0 0 1px ${accent}44, 0 16px 48px ${accent}28, 0 4px 16px rgba(0,0,0,0.3)`
-          : "var(--shadow)",
-        borderColor: hovering ? `${accent}44` : undefined,
+          ? `0 0 0 1px ${accent}33, 0 20px 60px ${accent}22, 0 8px 24px rgba(0,0,0,0.35)`
+          : "0 4px 24px rgba(0,0,0,0.25)",
       }}
     >
-      {/* Colored top border */}
-      <div style={{ height: 4, background: accent, flexShrink: 0 }} />
+      {/* Shimmer overlay — follows tilt angle */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 16,
+          background: hovering
+            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
+            : "none",
+          pointerEvents: "none",
+          zIndex: 0,
+          transition: "background 0.08s ease",
+        }}
+      />
 
-      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {/* Colored top border */}
+      <div style={{ height: 3, background: accent, flexShrink: 0, position: "relative", zIndex: 1 }} />
+
+      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem", position: "relative", zIndex: 1 }}>
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
           <div>

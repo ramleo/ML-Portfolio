@@ -10,6 +10,7 @@
   --bg:         #0a0f1e;
   --bg-section: rgba(10, 15, 30, 0.84);
   --bg-card:    #111827;
+  --bg-glass:   rgba(17, 24, 39, 0.60);
   --bg-nav:     rgba(10, 15, 30, 0.88);
   --text:       #f1f5f9;
   --text2:      #94a3b8;
@@ -23,6 +24,7 @@ html.light {
   --bg:         #f0f4f8;
   --bg-section: rgba(240, 244, 248, 0.84);
   --bg-card:    #ffffff;
+  --bg-glass:   rgba(255, 255, 255, 0.60);
   --bg-nav:     rgba(240, 244, 248, 0.92);
   --text:       #0f172a;
   --text2:      #475569;
