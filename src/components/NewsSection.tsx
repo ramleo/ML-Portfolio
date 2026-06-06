@@ -15,48 +15,121 @@ interface NewsItem {
 
 const fade = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
-function NewsCard({ item, accent }: { item: NewsItem; accent: string }) {
+function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; delay: number }) {
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hovering, setHovering] = useState(false);
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) / rect.width - 0.5;
+    const cy = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: cy * -8, y: cx * 8 });
+  };
+
   return (
-    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-      <div className="news-card" style={{ height: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" }}>
-          <span
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.35 }}
+      style={{ height: "100%" }}
+    >
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ textDecoration: "none", display: "flex", height: "100%" }}
+      >
+        <div
+          onMouseMove={onMove}
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.65rem",
+            padding: "1.25rem",
+            position: "relative",
+            borderRadius: 14,
+            background: "var(--bg-glass)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            border: `1px solid ${hovering ? accent + "44" : "var(--border)"}`,
+            transform: hovering
+              ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-5px)`
+              : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
+            transition: hovering
+              ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
+              : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
+            boxShadow: hovering
+              ? `0 0 0 1px ${accent}30, 0 16px 48px ${accent}18, 0 6px 20px rgba(0,0,0,0.3)`
+              : "0 4px 20px rgba(0,0,0,0.2)",
+          }}
+        >
+          {/* Shimmer */}
+          <div
             style={{
-              fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase",
-              letterSpacing: "0.08em", color: accent,
-              background: `${accent}18`, border: `1px solid ${accent}35`,
-              borderRadius: 4, padding: "2px 7px",
+              position: "absolute",
+              inset: 0,
+              borderRadius: 14,
+              background: hovering
+                ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.06) 0%, transparent 65%)`
+                : "none",
+              pointerEvents: "none",
             }}
-          >
-            {item.source}
-          </span>
-          <span style={{ fontSize: "0.68rem", color: "var(--text3)" }}>{item.published}</span>
-        </div>
+          />
 
-        <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.45, margin: 0, flex: 1 }}>
-          {item.title}
-        </p>
+          {/* Source + date row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", position: "relative" }}>
+            <span
+              style={{
+                fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase",
+                letterSpacing: "0.08em", color: accent,
+                background: `${accent}18`, border: `1px solid ${accent}35`,
+                borderRadius: 4, padding: "2px 7px", flexShrink: 0,
+              }}
+            >
+              {item.source}
+            </span>
+            <span style={{ fontSize: "0.68rem", color: "var(--text3)", whiteSpace: "nowrap" }}>{item.published}</span>
+          </div>
 
-        {item.summary && (
-          <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.6, margin: 0 }}>
-            {item.summary.slice(0, 180)}{item.summary.length > 180 ? "…" : ""}
+          {/* Title */}
+          <p style={{
+            fontSize: "0.85rem", fontWeight: 600, color: "var(--text)",
+            lineHeight: 1.45, margin: 0, flex: 1, position: "relative",
+          }}>
+            {item.title}
           </p>
-        )}
 
-        {item.authors && (
-          <p style={{ fontSize: "0.7rem", color: "var(--text3)", margin: 0 }}>
-            {item.authors}
-          </p>
-        )}
+          {/* Summary */}
+          {item.summary && (
+            <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.6, margin: 0, position: "relative" }}>
+              {item.summary.slice(0, 160)}{item.summary.length > 160 ? "…" : ""}
+            </p>
+          )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", color: accent, fontSize: "0.75rem", fontWeight: 600 }}>
-          Read more
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {/* Authors */}
+          {item.authors && (
+            <p style={{ fontSize: "0.7rem", color: "var(--text3)", margin: 0, position: "relative" }}>
+              {item.authors}
+            </p>
+          )}
+
+          {/* Read more */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "0.3rem",
+            color: accent, fontSize: "0.75rem", fontWeight: 600,
+            position: "relative", marginTop: "auto",
+          }}>
+            Read more
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         </div>
-      </div>
-    </a>
+      </a>
+    </motion.div>
   );
 }
 
@@ -109,7 +182,7 @@ export default function NewsSection() {
             {(["papers", "news"] as const).map((t) => (
               <button
                 key={t}
-                onClick={() => { setTab(t); }}
+                onClick={() => setTab(t)}
                 style={{
                   padding: "0.4rem 1.1rem", borderRadius: 9999, fontSize: "0.8rem", fontWeight: 600,
                   border: tab === t ? "none" : "1px solid var(--border2)",
@@ -124,23 +197,22 @@ export default function NewsSection() {
             ))}
           </motion.div>
 
-          {/* Content */}
+          {/* States */}
           {loading && (
             <div style={{ textAlign: "center", padding: "4rem", color: "var(--text3)" }}>
               <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⟳</div>
               Loading…
             </div>
           )}
-
           {error && (
             <div style={{ textAlign: "center", padding: "4rem", color: "var(--text3)" }}>
               Could not load at this time. Try again later.
             </div>
           )}
-
           {noKey && (
             <div style={{
-              background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: 14,
+              background: "var(--bg-glass)", backdropFilter: "blur(14px)",
+              border: "1px solid var(--border2)", borderRadius: 14,
               padding: "2rem", textAlign: "center",
             }}>
               <div style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>🔑</div>
@@ -152,25 +224,18 @@ export default function NewsSection() {
             </div>
           )}
 
+          {/* Cards grid — align-items stretch keeps card heights equal in each row */}
           {!loading && !error && !noKey && items.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}
-            >
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1rem",
+              alignItems: "stretch",
+            }}>
               {items.map((item, i) => (
-                <motion.div
-                  key={item.url}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.35 }}
-                  style={{ display: "flex", flexDirection: "column" }}
-                >
-                  <NewsCard item={item} accent={accent} />
-                </motion.div>
+                <NewsCard key={item.url} item={item} accent={accent} delay={i * 0.05} />
               ))}
-            </motion.div>
+            </div>
           )}
         </motion.div>
       </div>
