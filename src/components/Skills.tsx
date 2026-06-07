@@ -191,7 +191,7 @@ export default function Skills() {
             End-to-end capabilities — from raw data through classical ML, deep learning, NLP, computer vision, and Generative AI to production deployment.
           </motion.p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.25rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: "1.25rem" }}>
             {CATEGORIES.map((cat, ci) => (
               <SkillCard key={cat.title} cat={cat} ci={ci} inView={inView} />
             ))}

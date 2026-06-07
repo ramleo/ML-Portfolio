@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const EXPERIENCE = [
   {
@@ -59,6 +60,7 @@ const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, trans
 export default function Timeline() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const isMobile = useIsMobile();
 
   return (
     <section id="timeline" style={{ background: "var(--bg-section)", padding: "0 0 2rem" }}>
@@ -75,8 +77,8 @@ export default function Timeline() {
           </motion.p>
 
           {/* Timeline */}
-          <div style={{ position: "relative", maxWidth: 700, margin: "0 auto" }}>
-            {/* Center line */}
+          <div style={{ position: "relative", maxWidth: 700, margin: "0 auto", paddingLeft: isMobile ? "2rem" : 0 }}>
+            {/* Center line (desktop) / Left line (mobile) */}
             <div className="timeline-line" />
 
             {EXPERIENCE.map((exp, i) => {
@@ -84,12 +86,12 @@ export default function Timeline() {
               return (
                 <motion.div
                   key={exp.company}
-                  initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  initial={{ opacity: 0, x: isMobile ? 0 : (isLeft ? -40 : 40), y: isMobile ? 20 : 0 }}
+                  animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}
                   transition={{ delay: 0.2 + i * 0.1, duration: 0.5, ease: "easeOut" }}
                   style={{
                     display: "flex",
-                    justifyContent: isLeft ? "flex-start" : "flex-end",
+                    justifyContent: isMobile ? "flex-start" : (isLeft ? "flex-start" : "flex-end"),
                     marginBottom: "2.5rem",
                     position: "relative",
                   }}
@@ -97,7 +99,7 @@ export default function Timeline() {
                   {/* Card */}
                   <div
                     style={{
-                      width: "calc(50% - 2rem)",
+                      width: isMobile ? "100%" : "calc(50% - 2rem)",
                       background: "var(--bg-card)",
                       border: `1px solid ${exp.current ? exp.accent + "60" : "var(--border)"}`,
                       borderRadius: 14,
@@ -129,13 +131,13 @@ export default function Timeline() {
                     <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>{exp.description}</p>
                   </div>
 
-                  {/* Dot on center line */}
+                  {/* Dot */}
                   <div
                     style={{
                       position: "absolute",
-                      left: "50%",
+                      left: isMobile ? "-1.6rem" : "50%",
                       top: "1.2rem",
-                      transform: "translateX(-50%)",
+                      transform: isMobile ? "none" : "translateX(-50%)",
                       width: 14,
                       height: 14,
                       borderRadius: "50%",

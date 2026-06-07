@@ -49,7 +49,7 @@ export default function Navbar() {
       </a>
 
       {/* Desktop links */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+      <div className="nav-links">
         {NAV_LINKS.map((link) => (
           <a
             key={link.href}
@@ -78,7 +78,8 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 4, display: "none" }}
+          className="nav-hamburger"
+          style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 4 }}
           aria-label="Toggle menu"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
