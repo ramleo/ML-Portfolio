@@ -44,7 +44,7 @@ async function callGemini(key: string, systemPrompt: string, messages: ChatMessa
   if (!res.ok) {
     const err = await res.text();
     console.error('[chat/gemini]', res.status, err);
-    throw new Error('Gemini error');
+    throw new Error(`Gemini ${res.status}: ${err.slice(0, 120)}`);
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
@@ -120,7 +120,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply });
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     console.error('[chat] unhandled error:', e);
-    return NextResponse.json({ reply: "Something went wrong. Please try again." });
+    return NextResponse.json({ reply: `[debug] ${msg}` });
   }
 }
