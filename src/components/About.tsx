@@ -61,7 +61,7 @@ export default function About() {
                     width: 80,
                     height: 80,
                     borderRadius: "50%",
-                    background: "linear-gradient(135deg, #818cf8, #38bdf8, #34d399)",
+                    background: "var(--brand-gradient)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

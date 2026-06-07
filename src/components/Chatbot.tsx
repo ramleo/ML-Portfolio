@@ -60,9 +60,9 @@ function SendIcon({ size = 16 }: { size?: number }) {
 function SparkIcon({ size = 12 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke="#818cf8" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      stroke="var(--accent-from)" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2L14 9.5L22 12L14 14.5L12 22L10 14.5L2 12L10 9.5L12 2Z"
-        fill="#818cf8" fillOpacity={0.2} />
+        fill="var(--accent-from)" fillOpacity={0.2} />
     </svg>
   );
 }
@@ -182,7 +182,7 @@ export default function Chatbot() {
             {/* Header */}
             <div style={{
               height: 3,
-              background: "linear-gradient(90deg, #818cf8, #38bdf8, #34d399)",
+              background: "linear-gradient(90deg, var(--accent-from), var(--accent-via), var(--accent-to))",
               flexShrink: 0,
             }} />
             <div style={{
@@ -195,7 +195,7 @@ export default function Chatbot() {
             }}>
               <span style={{
                 width: 30, height: 30, borderRadius: 9,
-                background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+                background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
@@ -293,7 +293,7 @@ export default function Chatbot() {
                     fontSize: "0.82rem",
                     lineHeight: 1.55,
                     background: msg.role === "user"
-                      ? "linear-gradient(135deg, #6366f1, #38bdf8)"
+                      ? "linear-gradient(135deg, var(--accent), var(--accent-via))"
                       : "var(--bg-card)",
                     color: msg.role === "user" ? "#fff" : "var(--text2)",
                     border: msg.role === "user" ? "none" : "1px solid var(--border)",
@@ -354,7 +354,7 @@ export default function Chatbot() {
                   outline: "none",
                   transition: "border-color 0.15s",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#818cf8")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-from)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
               />
               <button
@@ -363,7 +363,7 @@ export default function Chatbot() {
                 style={{
                   width: 36, height: 36, borderRadius: 10, flexShrink: 0,
                   background: input.trim() && !loading
-                    ? "linear-gradient(135deg, #6366f1, #38bdf8)"
+                    ? "linear-gradient(135deg, var(--accent), var(--accent-via))"
                     : "var(--border)",
                   border: "none", cursor: input.trim() && !loading ? "pointer" : "not-allowed",
                   color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
@@ -394,7 +394,7 @@ export default function Chatbot() {
           width: 52,
           height: 52,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+          background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
           border: "none",
           cursor: "pointer",
           color: "#fff",

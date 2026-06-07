@@ -159,7 +159,7 @@ export default function Contact() {
                     style={{
                       padding: "0.75rem 1.75rem",
                       borderRadius: 9999,
-                      background: status === "sending" ? "var(--border)" : "linear-gradient(135deg, #6366f1, #38bdf8)",
+                      background: status === "sending" ? "var(--border)" : "linear-gradient(135deg, var(--accent), var(--accent-via))",
                       color: "#fff",
                       fontWeight: 700,
                       fontSize: "0.9rem",

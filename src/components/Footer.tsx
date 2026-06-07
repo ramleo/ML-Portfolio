@@ -27,7 +27,7 @@ export default function Footer() {
   return (
     <footer style={{ background: "var(--bg-section)", borderTop: "1px solid var(--border)" }} ref={ref}>
       {/* Top gradient bar */}
-      <div style={{ height: 3, background: "linear-gradient(90deg, #818cf8, #38bdf8, #34d399)" }} />
+      <div style={{ height: 3, background: "linear-gradient(90deg, var(--accent-from), var(--accent-via), var(--accent-to))" }} />
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "3.5rem 1.5rem 2rem" }}>
         <motion.div
@@ -43,7 +43,7 @@ export default function Footer() {
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
                 <span style={{
                   width: 32, height: 32, borderRadius: 9,
-                  background: "linear-gradient(135deg, #818cf8, #38bdf8, #34d399)",
+                  background: "var(--brand-gradient)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "0.7rem", fontWeight: 800, color: "#fff", flexShrink: 0,
                 }}>

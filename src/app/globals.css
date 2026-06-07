@@ -5,6 +5,36 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ── Brand palette tokens (overridden per palette class) ── */
+:root {
+  --accent-from: #818cf8;
+  --accent-via:  #38bdf8;
+  --accent-to:   #34d399;
+  --accent:      #6366f1;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-sunset {
+  --accent-from: #f97316;
+  --accent-via:  #f59e0b;
+  --accent-to:   #fbbf24;
+  --accent:      #f97316;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-aurora {
+  --accent-from: #a855f7;
+  --accent-via:  #ec4899;
+  --accent-to:   #f43f5e;
+  --accent:      #a855f7;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-ocean {
+  --accent-from: #0ea5e9;
+  --accent-via:  #06b6d4;
+  --accent-to:   #10b981;
+  --accent:      #0ea5e9;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+
 /* ── Theme tokens ── */
 :root {
   --bg:              #0a0f1e;
@@ -61,7 +91,7 @@ body {
 
 /* ── Gradient text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #818cf8 0%, #38bdf8 50%, #34d399 100%);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -192,7 +222,7 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .form-input:focus {
-  border-color: #6366f1;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 .form-input::placeholder { color: var(--text3); }

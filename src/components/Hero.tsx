@@ -263,7 +263,7 @@ export default function Hero() {
               gap: "0.5rem",
               padding: "0.75rem 1.75rem",
               borderRadius: 9999,
-              background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+              background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
               color: "#fff",
               fontWeight: 600,
               fontSize: "0.95rem",

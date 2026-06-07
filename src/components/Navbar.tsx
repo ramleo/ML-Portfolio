@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
+import PalettePicker from "./PalettePicker";
 
 const NAV_LINKS = [
   { label: "About",    href: "#about" },
@@ -42,7 +43,7 @@ export default function Navbar() {
     >
       {/* Logo */}
       <a href="#" style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text)", textDecoration: "none", letterSpacing: "-0.03em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <span style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, #818cf8, #38bdf8, #34d399)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+        <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--brand-gradient)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
           AI
         </span>
         <span className="gradient-text">AIRaML</span>
@@ -67,7 +68,7 @@ export default function Navbar() {
           <a
             href="/Resume_W_Ramakrishnasai.pdf"
             download
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.35rem 0.9rem", borderRadius: 9999, background: "linear-gradient(135deg, #6366f1, #38bdf8)", color: "#fff", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.15s" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.35rem 0.9rem", borderRadius: 9999, background: "linear-gradient(135deg, var(--accent), var(--accent-via))", color: "#fff", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.15s" }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
@@ -79,6 +80,7 @@ export default function Navbar() {
         </div>
 
         {/* Theme toggle — always visible on both desktop and mobile */}
+        <PalettePicker />
         <ThemeToggle />
 
         {/* Hamburger — visible only on mobile via CSS */}
@@ -131,7 +133,7 @@ export default function Navbar() {
               display: "inline-flex", alignItems: "center", gap: "0.4rem",
               marginTop: "1rem",
               padding: "0.55rem 1.25rem", borderRadius: 9999,
-              background: "linear-gradient(135deg, #6366f1, #38bdf8)",
+              background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
               color: "#fff", fontSize: "0.85rem", fontWeight: 600,
               textDecoration: "none", alignSelf: "flex-start",
             }}
