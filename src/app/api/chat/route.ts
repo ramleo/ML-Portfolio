@@ -25,23 +25,27 @@ Do not make up information not provided here. If asked something you don't know,
 type ChatMessage = { role: string; content: string };
 
 async function callGemini(key: string, systemPrompt: string, messages: ChatMessage[]) {
-  const contents = [
-    { role: "user", parts: [{ text: systemPrompt }] },
-    { role: "model", parts: [{ text: "Understood. I'll help visitors learn about Ramakrishnasai's portfolio." }] },
-    ...messages.map((m) => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
-    })),
-  ];
+  const contents = messages.map((m) => ({
+    role: m.role === "user" ? "user" : "model",
+    parts: [{ text: m.content }],
+  }));
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 400, temperature: 0.7 } }),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+      }),
     }
   );
-  if (!res.ok) throw new Error('Gemini error');
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[chat/gemini]', res.status, err);
+    throw new Error('Gemini error');
+  }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
 }
@@ -57,7 +61,11 @@ async function callClaude(key: string, systemPrompt: string, messages: ChatMessa
       messages,
     }),
   });
-  if (!res.ok) throw new Error('Claude error');
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[chat/claude]', res.status, err);
+    throw new Error('Claude error');
+  }
   const data = await res.json();
   return data.content?.[0]?.text ?? "No response received.";
 }
@@ -73,7 +81,11 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
     }),
   });
-  if (!res.ok) throw new Error('Groq error');
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[chat/groq]', res.status, err);
+    throw new Error('Groq error');
+  }
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? "No response received.";
 }
@@ -107,7 +119,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ reply });
-  } catch {
+  } catch (e) {
+    console.error('[chat] unhandled error:', e);
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
   }
 }
