@@ -29,33 +29,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply: "No messages provided." }, { status: 400 });
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.GEMINI_API_KEY;
   if (!key) {
     return NextResponse.json({ reply: "Chatbot is not configured yet. Use the contact form to get in touch!" });
   }
 
+  const systemPrompt = buildSystemPrompt(section ?? 'hero');
+  const contents = [
+    { role: "user", parts: [{ text: systemPrompt }] },
+    { role: "model", parts: [{ text: "Understood. I'll help visitors learn about Ramakrishnasai's portfolio." }] },
+    ...messages.map((m: { role: string; content: string }) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    })),
+  ];
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        system: buildSystemPrompt(section ?? 'hero'),
-        messages,
-      }),
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+        }),
+      }
+    );
 
     if (!res.ok) {
       return NextResponse.json({ reply: "Something went wrong. Please try again." });
     }
 
     const data = await res.json();
-    const reply = data.content?.[0]?.text ?? "No response received.";
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
     return NextResponse.json({ reply });
   } catch {
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
