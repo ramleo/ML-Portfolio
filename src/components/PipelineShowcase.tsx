@@ -152,6 +152,117 @@ function IconTile({ step, accent, size = 52 }: { step: number; accent: string; s
   );
 }
 
+type Stage = typeof STAGES[number];
+
+function StageCard({
+  stage,
+  index,
+  inView,
+  active,
+  onToggle,
+}: {
+  stage: Stage;
+  index: number;
+  inView: boolean;
+  active: boolean;
+  onToggle: () => void;
+}) {
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hovering, setHovering] = useState(false);
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) / rect.width - 0.5;
+    const cy = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: cy * -10, y: cx * 10 });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay: 0.2 + index * 0.07, duration: 0.4 }}
+      style={{ position: "relative" }}
+    >
+      <div
+        onClick={onToggle}
+        onMouseMove={onMove}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
+        style={{
+          padding: "1.1rem 0.9rem",
+          textAlign: "center",
+          borderRadius: 16,
+          cursor: "pointer",
+          position: "relative",
+          overflow: "hidden",
+          background: "var(--bg-glass)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          border: `1px solid ${active ? stage.accent + "60" : hovering ? stage.accent + "44" : "var(--border)"}`,
+          boxShadow: active
+            ? `0 0 0 1px ${stage.accent}44, 0 8px 32px ${stage.accent}22`
+            : hovering
+            ? `0 0 0 1px ${stage.accent}33, 0 20px 60px ${stage.accent}18, 0 8px 24px rgba(0,0,0,0.18)`
+            : "0 4px 24px rgba(0,0,0,0.12)",
+          transform: hovering
+            ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-5px)`
+            : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
+          transition: hovering
+            ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
+            : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
+          opacity: stage.comingSoon ? 0.65 : 1,
+        }}
+      >
+        {/* Accent top bar */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0,
+          height: 3, background: stage.accent, borderRadius: "16px 16px 0 0",
+        }} />
+
+        {/* Shimmer overlay */}
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: 16,
+          background: hovering
+            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
+            : "none",
+          pointerEvents: "none",
+        }} />
+
+        {/* Coming soon badge */}
+        {stage.comingSoon && (
+          <span style={{
+            position: "absolute", top: 10, right: 6,
+            fontSize: "0.55rem", fontWeight: 700,
+            background: "#64748b22", color: "#64748b",
+            borderRadius: 4, padding: "1px 5px",
+            textTransform: "uppercase", letterSpacing: "0.06em",
+          }}>
+            Soon
+          </span>
+        )}
+
+        {/* Icon tile */}
+        <IconTile step={stage.step} accent={stage.accent} />
+
+        {/* Step badge */}
+        <div style={{
+          width: 24, height: 24, borderRadius: "50%",
+          background: `${stage.accent}20`, border: `1px solid ${stage.accent}50`,
+          color: stage.accent, fontSize: "0.65rem", fontWeight: 700,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 0.5rem",
+        }}>
+          {stage.step}
+        </div>
+        <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.3 }}>
+          {stage.title}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
 export default function PipelineShowcase() {
@@ -189,49 +300,14 @@ export default function PipelineShowcase() {
             }}
           >
             {STAGES.map((stage, i) => (
-              <motion.div
+              <StageCard
                 key={stage.step}
-                initial={{ opacity: 0, y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.2 + i * 0.07, duration: 0.4 }}
-                className="pipeline-stage"
-                onClick={() => setActiveStage(activeStage === stage.step ? null : stage.step)}
-                style={{
-                  padding: "1.1rem 0.9rem",
-                  textAlign: "center",
-                  borderColor: activeStage === stage.step ? stage.accent : undefined,
-                  boxShadow: activeStage === stage.step ? `0 0 0 1px ${stage.accent}44, 0 8px 32px ${stage.accent}22` : undefined,
-                  opacity: stage.comingSoon ? 0.6 : 1,
-                  position: "relative",
-                }}
-              >
-                {stage.comingSoon && (
-                  <span style={{
-                    position: "absolute", top: 6, right: 6, fontSize: "0.55rem", fontWeight: 700,
-                    background: "#64748b22", color: "#64748b", borderRadius: 4, padding: "1px 5px",
-                    textTransform: "uppercase", letterSpacing: "0.06em",
-                  }}>
-                    Soon
-                  </span>
-                )}
-
-                {/* Tinted icon tile */}
-                <IconTile step={stage.step} accent={stage.accent} />
-
-                {/* Step badge */}
-                <div style={{
-                  width: 24, height: 24, borderRadius: "50%",
-                  background: `${stage.accent}20`, border: `1px solid ${stage.accent}50`,
-                  color: stage.accent, fontSize: "0.65rem", fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 0.5rem",
-                }}>
-                  {stage.step}
-                </div>
-                <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.3 }}>
-                  {stage.title}
-                </div>
-              </motion.div>
+                stage={stage}
+                index={i}
+                inView={inView}
+                active={activeStage === stage.step}
+                onToggle={() => setActiveStage(activeStage === stage.step ? null : stage.step)}
+              />
             ))}
           </motion.div>
 
