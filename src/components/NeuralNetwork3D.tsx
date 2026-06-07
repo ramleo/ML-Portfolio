@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsDark } from "../hooks/useIsDark";
@@ -78,7 +78,7 @@ function NetworkNodes({ isDark }: { isDark: boolean }) {
       <lineSegments ref={linesRef} geometry={lineGeometry}>
         <lineBasicMaterial
           color={isDark ? "#6366f1" : "#4f46e5"}
-          opacity={isDark ? 0.18 : 0.32}
+          opacity={isDark ? 0.18 : 0.22}
           transparent
         />
       </lineSegments>
