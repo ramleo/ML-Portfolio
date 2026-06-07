@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const PALETTES = [
   { id: "cosmic",  label: "Cosmic",  from: "#818cf8", via: "#38bdf8", to: "#34d399" },
@@ -19,6 +19,7 @@ function applyPalette(id: string) {
 export default function PalettePicker() {
   const [active, setActive] = useState("cosmic");
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -27,6 +28,18 @@ export default function PalettePicker() {
       applyPalette(saved);
     } catch {}
   }, []);
+
+  // Close on any click outside the component
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
   const select = (id: string) => {
     setActive(id);
@@ -37,7 +50,7 @@ export default function PalettePicker() {
   const current = PALETTES.find((p) => p.id === active) ?? PALETTES[0];
 
   return (
-    <div style={{ position: "relative" }}>
+    <div ref={containerRef} style={{ position: "relative" }}>
       {/* Trigger — gradient circle */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -58,11 +71,6 @@ export default function PalettePicker() {
       {/* Dropdown */}
       {open && (
         <>
-          {/* Click-away overlay */}
-          <div
-            style={{ position: "fixed", inset: 0, zIndex: 9998 }}
-            onClick={() => setOpen(false)}
-          />
           <div style={{
             position: "absolute",
             top: "calc(100% + 0.5rem)",
