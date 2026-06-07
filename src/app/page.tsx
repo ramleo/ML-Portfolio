@@ -9,11 +9,13 @@ import Timeline from "@/components/Timeline";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
+import Chatbot from "@/components/Chatbot";
 
 export default function Home() {
   return (
     <>
       <ParticleGridClient />
+      <Chatbot />
       <Navbar />
       <Hero />
       <About />
