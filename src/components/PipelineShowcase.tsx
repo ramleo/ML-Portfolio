@@ -196,15 +196,15 @@ function StageCard({
           cursor: "pointer",
           position: "relative",
           overflow: "hidden",
-          background: "var(--bg-glass)",
+          background: "var(--glass-bg)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          border: `1px solid ${active ? stage.accent + "60" : hovering ? stage.accent + "44" : "var(--border)"}`,
+          border: `1px solid ${active ? stage.accent + "60" : hovering ? stage.accent + "44" : "var(--glass-border)"}`,
           boxShadow: active
             ? `0 0 0 1px ${stage.accent}44, 0 8px 32px ${stage.accent}22`
             : hovering
             ? `0 0 0 1px ${stage.accent}33, 0 20px 60px ${stage.accent}18, 0 8px 24px rgba(0,0,0,0.18)`
-            : "0 4px 24px rgba(0,0,0,0.12)",
+            : "var(--glass-shadow)",
           transform: hovering
             ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-5px)`
             : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",

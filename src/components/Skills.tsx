@@ -146,10 +146,10 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
         position: "relative",
         borderRadius: 16,
         overflow: "hidden",
-        background: "var(--bg-glass)",
+        background: "var(--glass-bg)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${hovering ? cat.accent + "44" : "var(--border)"}`,
+        border: `1px solid ${hovering ? cat.accent + "44" : "var(--glass-border)"}`,
         transform: hovering
           ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
           : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
@@ -158,7 +158,7 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
           : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
         boxShadow: hovering
           ? `0 0 0 1px ${cat.accent}33, 0 20px 60px ${cat.accent}18, 0 8px 24px rgba(0,0,0,0.3)`
-          : "0 4px 24px rgba(0,0,0,0.22)",
+          : "var(--glass-shadow)",
       }}
     >
       {/* Shimmer overlay */}
