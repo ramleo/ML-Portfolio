@@ -30,7 +30,7 @@ async function callGemini(key: string, systemPrompt: string, messages: ChatMessa
     parts: [{ text: m.content }],
   }));
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -120,8 +120,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
     console.error('[chat] unhandled error:', e);
-    return NextResponse.json({ reply: `[debug] ${msg}` });
+    return NextResponse.json({ reply: "Something went wrong. Please try again." });
   }
 }
