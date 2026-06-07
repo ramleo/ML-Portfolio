@@ -4,6 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = { role: "user" | "assistant"; content: string };
+type Provider = "gemini" | "claude" | "groq";
+
+const PROVIDERS: { id: Provider; label: string; color: string }[] = [
+  { id: "gemini", label: "Gemini", color: "#38bdf8" },
+  { id: "claude", label: "Claude", color: "#f59e0b" },
+  { id: "groq",   label: "Groq",   color: "#34d399" },
+];
 
 const SECTION_IDS = ["hero", "about", "skills", "projects", "pipeline", "news", "timeline", "contact"];
 
@@ -66,6 +73,7 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentSection, setCurrentSection] = useState("hero");
+  const [provider, setProvider] = useState<Provider>("gemini");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +131,7 @@ export default function Chatbot() {
         body: JSON.stringify({
           messages: next.map((m) => ({ role: m.role, content: m.content })),
           section: currentSection,
+          provider,
         }),
       });
       const data = await res.json();
@@ -195,7 +204,7 @@ export default function Chatbot() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>AIRaML Assistant</div>
                 <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: 1 }}>
-                  Powered by Claude · {currentSection} section
+                  {currentSection} section
                 </div>
               </div>
               <button
@@ -212,6 +221,37 @@ export default function Chatbot() {
               >
                 <CloseIcon size={15} />
               </button>
+            </div>
+
+            {/* Provider picker */}
+            <div style={{
+              padding: "0.5rem 0.85rem",
+              borderBottom: "1px solid var(--border)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              flexShrink: 0,
+            }}>
+              <span style={{ fontSize: "0.62rem", color: "var(--text3)", marginRight: "0.2rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>Model</span>
+              {PROVIDERS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => { setProvider(p.id); setMessages([]); }}
+                  style={{
+                    padding: "0.2rem 0.6rem",
+                    borderRadius: 999,
+                    border: `1px solid ${provider === p.id ? p.color + "88" : "var(--border)"}`,
+                    background: provider === p.id ? p.color + "18" : "transparent",
+                    color: provider === p.id ? p.color : "var(--text3)",
+                    fontSize: "0.7rem",
+                    fontWeight: provider === p.id ? 700 : 400,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
 
             {/* Messages */}

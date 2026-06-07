@@ -22,47 +22,90 @@ ${ctx}
 Do not make up information not provided here. If asked something you don't know, suggest the visitor use the contact form.`;
 }
 
+type ChatMessage = { role: string; content: string };
+
+async function callGemini(key: string, systemPrompt: string, messages: ChatMessage[]) {
+  const contents = [
+    { role: "user", parts: [{ text: systemPrompt }] },
+    { role: "model", parts: [{ text: "Understood. I'll help visitors learn about Ramakrishnasai's portfolio." }] },
+    ...messages.map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    })),
+  ];
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 400, temperature: 0.7 } }),
+    }
+  );
+  if (!res.ok) throw new Error('Gemini error');
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
+}
+
+async function callClaude(key: string, systemPrompt: string, messages: ChatMessage[]) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      system: systemPrompt,
+      messages,
+    }),
+  });
+  if (!res.ok) throw new Error('Claude error');
+  const data = await res.json();
+  return data.content?.[0]?.text ?? "No response received.";
+}
+
+async function callGroq(key: string, systemPrompt: string, messages: ChatMessage[]) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama3-8b-8192',
+      max_tokens: 400,
+      temperature: 0.7,
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
+    }),
+  });
+  if (!res.ok) throw new Error('Groq error');
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "No response received.";
+}
+
 export async function POST(req: NextRequest) {
-  const { messages, section } = await req.json();
+  const { messages, section, provider = 'gemini' } = await req.json();
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ reply: "No messages provided." }, { status: 400 });
   }
 
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    return NextResponse.json({ reply: "Chatbot is not configured yet. Use the contact form to get in touch!" });
-  }
-
   const systemPrompt = buildSystemPrompt(section ?? 'hero');
-  const contents = [
-    { role: "user", parts: [{ text: systemPrompt }] },
-    { role: "model", parts: [{ text: "Understood. I'll help visitors learn about Ramakrishnasai's portfolio." }] },
-    ...messages.map((m: { role: string; content: string }) => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
-    })),
-  ];
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
-        }),
-      }
-    );
+    let reply: string;
 
-    if (!res.ok) {
-      return NextResponse.json({ reply: "Something went wrong. Please try again." });
+    if (provider === 'claude') {
+      const key = process.env.ANTHROPIC_API_KEY;
+      if (!key) return NextResponse.json({ reply: "Claude is not configured yet. Try Gemini or Groq!" });
+      reply = await callClaude(key, systemPrompt, messages);
+
+    } else if (provider === 'groq') {
+      const key = process.env.GROQ_API_KEY;
+      if (!key) return NextResponse.json({ reply: "Groq is not configured yet. Try Gemini or Claude!" });
+      reply = await callGroq(key, systemPrompt, messages);
+
+    } else {
+      const key = process.env.GEMINI_API_KEY;
+      if (!key) return NextResponse.json({ reply: "Gemini is not configured yet. Use the contact form to get in touch!" });
+      reply = await callGemini(key, systemPrompt, messages);
     }
 
-    const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
     return NextResponse.json({ reply });
   } catch {
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
