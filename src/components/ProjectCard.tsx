@@ -201,8 +201,10 @@ export default function ProjectCard({ project }: { project: Project }) {
           <button
             onClick={() => {
               const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
+              let palette = "cosmic";
+              try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
               const sep = url.includes("?") ? "&" : "?";
-              window.open(`${url}${sep}theme=${theme}`, "_blank");
+              window.open(`${url}${sep}theme=${theme}&palette=${palette}`, "_blank");
             }}
             style={{
               flex: 1,
