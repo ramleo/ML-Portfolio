@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, Suspense, lazy } from "react";
 import { useInView } from "framer-motion";
 import MagneticButton from "./MagneticButton";
+import { useIsDark } from "../hooks/useIsDark";
 
 const NeuralNetwork3D = lazy(() => import("./NeuralNetwork3D"));
 
@@ -98,7 +99,8 @@ function StatCard({ stat, inView }: { stat: typeof STATS[number]; inView: boolea
 export default function Hero() {
   const statsRef = useRef<HTMLDivElement>(null);
   const inView = useInView(statsRef, { once: true, margin: "-80px" });
-  const typed = useTypewriter("AIRaML");
+  const typed   = useTypewriter("AIRaML");
+  const isDark  = useIsDark();
 
   return (
     <section
@@ -124,17 +126,17 @@ export default function Hero() {
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
         <div style={{
           position: "absolute", width: "65%", height: "65%", top: "5%", left: "0%",
-          background: "radial-gradient(ellipse, rgba(99,102,241,0.13) 0%, transparent 70%)",
+          background: `radial-gradient(ellipse, rgba(99,102,241,${isDark ? 0.13 : 0.22}) 0%, transparent 70%)`,
           animation: "blob1 9s ease-in-out infinite",
         }} />
         <div style={{
           position: "absolute", width: "55%", height: "55%", top: "15%", right: "0%",
-          background: "radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 70%)",
+          background: `radial-gradient(ellipse, rgba(56,189,248,${isDark ? 0.09 : 0.18}) 0%, transparent 70%)`,
           animation: "blob2 11s ease-in-out infinite 2s",
         }} />
         <div style={{
           position: "absolute", width: "45%", height: "45%", bottom: "10%", left: "35%",
-          background: "radial-gradient(ellipse, rgba(52,211,153,0.07) 0%, transparent 70%)",
+          background: `radial-gradient(ellipse, rgba(52,211,153,${isDark ? 0.07 : 0.14}) 0%, transparent 70%)`,
           animation: "blob3 13s ease-in-out infinite 4s",
         }} />
       </div>

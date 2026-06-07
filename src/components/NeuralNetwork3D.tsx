@@ -1,13 +1,16 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
+import { useIsDark } from "../hooks/useIsDark";
 
-function NetworkNodes() {
+function NetworkNodes({ isDark }: { isDark: boolean }) {
   const pointsRef = useRef<THREE.Points>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
+  const linesRef  = useRef<THREE.LineSegments>(null);
+  const autoRot   = useRef({ x: 0, y: 0 });
+  const currRot   = useRef({ x: 0, y: 0 });
 
   const { positions, linePositions } = useMemo(() => {
     const nodeCount = 120;
@@ -16,42 +19,30 @@ function NetworkNodes() {
 
     for (let i = 0; i < nodeCount; i++) {
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const r = 1.2 + Math.random() * 0.8;
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
+      const phi   = Math.acos(2 * Math.random() - 1);
+      const r     = 1.2 + Math.random() * 0.8;
+      const x     = r * Math.sin(phi) * Math.cos(theta);
+      const y     = r * Math.sin(phi) * Math.sin(theta);
+      const z     = r * Math.cos(phi);
       pos.push(x, y, z);
       nodes.push(new THREE.Vector3(x, y, z));
     }
 
     const linePts: number[] = [];
-    const threshold = 1.1;
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        if (nodes[i].distanceTo(nodes[j]) < threshold) {
-          linePts.push(nodes[i].x, nodes[i].y, nodes[i].z);
-          linePts.push(nodes[j].x, nodes[j].y, nodes[j].z);
+        if (nodes[i].distanceTo(nodes[j]) < 1.1) {
+          linePts.push(nodes[i].x, nodes[i].y, nodes[i].z,
+                       nodes[j].x, nodes[j].y, nodes[j].z);
         }
       }
     }
 
     return {
-      positions: new Float32Array(pos),
+      positions:     new Float32Array(pos),
       linePositions: new Float32Array(linePts),
     };
   }, []);
-
-  useFrame((_, delta) => {
-    if (pointsRef.current) {
-      pointsRef.current.rotation.y += delta * 0.12;
-      pointsRef.current.rotation.x += delta * 0.04;
-    }
-    if (linesRef.current) {
-      linesRef.current.rotation.y += delta * 0.12;
-      linesRef.current.rotation.x += delta * 0.04;
-    }
-  });
 
   const lineGeometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
@@ -59,25 +50,53 @@ function NetworkNodes() {
     return geo;
   }, [linePositions]);
 
+  useFrame((state, delta) => {
+    // Advance base auto-rotation
+    autoRot.current.y += delta * 0.09;
+    autoRot.current.x += delta * 0.03;
+
+    // Target = auto + mouse offset (pointer is normalized -1..1)
+    const targetY = autoRot.current.y + state.pointer.x * 0.8;
+    const targetX = autoRot.current.x - state.pointer.y * 0.5;
+
+    // Smooth lerp toward target
+    currRot.current.y += (targetY - currRot.current.y) * 0.05;
+    currRot.current.x += (targetX - currRot.current.x) * 0.05;
+
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y = currRot.current.y;
+      pointsRef.current.rotation.x = currRot.current.x;
+    }
+    if (linesRef.current) {
+      linesRef.current.rotation.y = currRot.current.y;
+      linesRef.current.rotation.x = currRot.current.x;
+    }
+  });
+
   return (
     <>
       <lineSegments ref={linesRef} geometry={lineGeometry}>
-        <lineBasicMaterial color="#6366f1" opacity={0.18} transparent />
+        <lineBasicMaterial
+          color={isDark ? "#6366f1" : "#4f46e5"}
+          opacity={isDark ? 0.18 : 0.32}
+          transparent
+        />
       </lineSegments>
       <Points ref={pointsRef} positions={positions} stride={3} frustumCulled={false}>
         <PointMaterial
           transparent
-          color="#818cf8"
-          size={0.035}
+          color={isDark ? "#818cf8" : "#6366f1"}
+          size={isDark ? 0.035 : 0.044}
           sizeAttenuation
           depthWrite={false}
+          opacity={isDark ? 1 : 0.9}
         />
       </Points>
     </>
   );
 }
 
-function PulsingCore() {
+function PulsingCore({ isDark }: { isDark: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
     if (meshRef.current) {
@@ -91,7 +110,7 @@ function PulsingCore() {
       <meshStandardMaterial
         color="#38bdf8"
         emissive="#38bdf8"
-        emissiveIntensity={1.2}
+        emissiveIntensity={isDark ? 1.2 : 0.4}
         roughness={0.1}
         metalness={0.8}
       />
@@ -100,6 +119,8 @@ function PulsingCore() {
 }
 
 export default function NeuralNetwork3D() {
+  const isDark = useIsDark();
+
   return (
     <div style={{ width: "100%", height: "100%", position: "absolute", inset: 0, pointerEvents: "none" }}>
       <Canvas
@@ -107,11 +128,11 @@ export default function NeuralNetwork3D() {
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
       >
-        <ambientLight intensity={0.4} />
-        <pointLight position={[3, 3, 3]} intensity={1.2} color="#818cf8" />
-        <pointLight position={[-3, -3, -3]} intensity={0.6} color="#38bdf8" />
-        <NetworkNodes />
-        <PulsingCore />
+        <ambientLight intensity={isDark ? 0.4 : 0.8} />
+        <pointLight position={[3, 3, 3]}   intensity={isDark ? 1.2 : 0.6} color="#818cf8" />
+        <pointLight position={[-3, -3, -3]} intensity={isDark ? 0.6 : 0.3} color="#38bdf8" />
+        <NetworkNodes isDark={isDark} />
+        <PulsingCore  isDark={isDark} />
       </Canvas>
     </div>
   );
