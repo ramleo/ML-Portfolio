@@ -3,10 +3,60 @@
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 
+function SkillIcon({ id, accent, size = 18 }: { id: string; accent: string; size?: number }) {
+  const p = {
+    viewBox: "0 0 24 24", width: size, height: size,
+    fill: "none" as const, stroke: accent, strokeWidth: 1.75,
+    strokeLinecap: "round" as const, strokeLinejoin: "round" as const,
+  };
+  switch (id) {
+    case "ml": return (
+      <svg {...p}>
+        <circle cx="12" cy="4"  r="2" fill={accent} fillOpacity={0.18} />
+        <circle cx="4"  cy="19" r="2" fill={accent} fillOpacity={0.18} />
+        <circle cx="20" cy="19" r="2" fill={accent} fillOpacity={0.18} />
+        <line x1="12" y1="6"  x2="5"  y2="17" />
+        <line x1="12" y1="6"  x2="19" y2="17" />
+        <line x1="6"  y1="19" x2="18" y2="19" />
+      </svg>
+    );
+    case "dl": return (
+      <svg {...p}>
+        <polyline points="13 2 7 13 12 13 11 22 17 11 12 11 13 2" fill={accent} fillOpacity={0.12} />
+      </svg>
+    );
+    case "genai": return (
+      <svg {...p}>
+        <path d="M12 2L14 9.5L22 12L14 14.5L12 22L10 14.5L2 12L10 9.5L12 2Z" fill={accent} fillOpacity={0.15} />
+      </svg>
+    );
+    case "nlp": return (
+      <svg {...p}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill={accent} fillOpacity={0.12} />
+        <line x1="9" y1="10" x2="15" y2="10" />
+        <line x1="9" y1="13" x2="13" y2="13" />
+      </svg>
+    );
+    case "cv": return (
+      <svg {...p}>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill={accent} fillOpacity={0.08} />
+        <circle cx="12" cy="12" r="3" fill={accent} fillOpacity={0.22} />
+      </svg>
+    );
+    case "mlops": return (
+      <svg {...p}>
+        <circle cx="12" cy="12" r="3" fill={accent} fillOpacity={0.2} />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    );
+    default: return null;
+  }
+}
+
 const CATEGORIES = [
   {
+    id: "ml",
     title: "Machine Learning",
-    icon: "🧠",
     accent: "#818cf8",
     skills: [
       "Linear Regression", "Logistic Regression", "Random Forest", "XGBoost",
@@ -16,8 +66,8 @@ const CATEGORIES = [
     ],
   },
   {
+    id: "dl",
     title: "Deep Learning",
-    icon: "⚡",
     accent: "#a78bfa",
     skills: [
       "ANN", "CNN", "RNN", "LSTM", "Transfer Learning",
@@ -26,8 +76,8 @@ const CATEGORIES = [
     ],
   },
   {
+    id: "genai",
     title: "Generative AI",
-    icon: "✨",
     accent: "#f59e0b",
     skills: [
       "Transformers", "RAG", "AI Agents", "LangChain", "LangGraph",
@@ -35,8 +85,8 @@ const CATEGORIES = [
     ],
   },
   {
+    id: "nlp",
     title: "NLP",
-    icon: "💬",
     accent: "#34d399",
     skills: [
       "Word2Vec", "LSTM", "Topic Modeling", "Sentiment Analysis",
@@ -45,8 +95,8 @@ const CATEGORIES = [
     ],
   },
   {
+    id: "cv",
     title: "Computer Vision",
-    icon: "👁",
     accent: "#38bdf8",
     skills: [
       "Image Classification", "Object Detection", "Semantic Segmentation",
@@ -55,8 +105,8 @@ const CATEGORIES = [
     ],
   },
   {
+    id: "mlops",
     title: "MLOps & Tools",
-    icon: "🛠",
     accent: "#f87171",
     skills: [
       "Python", "FastAPI", "Flask", "Docker", "GCP",
@@ -136,10 +186,10 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
               width: 36, height: 36, borderRadius: 10,
               background: `${cat.accent}20`, border: `1px solid ${cat.accent}40`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "1.1rem",
+              flexShrink: 0,
             }}
           >
-            {cat.icon}
+            <SkillIcon id={cat.id} accent={cat.accent} size={18} />
           </span>
           <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)" }}>{cat.title}</span>
         </div>

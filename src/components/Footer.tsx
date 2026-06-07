@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { SiteIcon } from "./SiteIcons";
 
 const QUICK_LINKS = [
   { label: "About",    href: "#about" },
@@ -14,9 +15,9 @@ const QUICK_LINKS = [
 ];
 
 const SOCIALS = [
-  { label: "GitHub",    href: "https://github.com/ramleo",               icon: "GH" },
-  { label: "LinkedIn",  href: "https://linkedin.com/in/WRamakrishnasai", icon: "IN" },
-  { label: "DockerHub", href: "https://hub.docker.com/u/wram",           icon: "🐳" },
+  { label: "GitHub",    href: "https://github.com/ramleo",               icon: "gh" },
+  { label: "LinkedIn",  href: "https://linkedin.com/in/WRamakrishnasai", icon: "in" },
+  { label: "DockerHub", href: "https://hub.docker.com/u/wram",           icon: "docker" },
 ];
 
 export default function Footer() {
@@ -127,8 +128,7 @@ export default function Footer() {
                       width: 36, height: 36, borderRadius: 9,
                       background: "var(--border)", border: "1px solid var(--border2)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "0.7rem", fontWeight: 700, color: "var(--text2)",
-                      textDecoration: "none",
+                      color: "var(--text2)", textDecoration: "none",
                       transition: "border-color 0.15s, color 0.15s, transform 0.15s",
                     }}
                     onMouseEnter={(e) => {
@@ -142,7 +142,7 @@ export default function Footer() {
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    {s.icon}
+                    <SiteIcon id={s.icon} size={15} />
                   </a>
                 ))}
               </div>

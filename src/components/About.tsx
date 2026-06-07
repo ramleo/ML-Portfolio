@@ -2,6 +2,7 @@
 
 import { useRef, Suspense, lazy } from "react";
 import { motion, useInView } from "framer-motion";
+import { SiteIcon } from "./SiteIcons";
 
 const DataCube3D = lazy(() => import("./DataCube3D"));
 
@@ -15,8 +16,8 @@ const COMPETENCIES = [
 const CONTACTS = [
   { label: "LinkedIn",  value: "WRamakrishnasai",       href: "https://linkedin.com/in/WRamakrishnasai", icon: "in" },
   { label: "GitHub",    value: "github.com/ramleo",     href: "https://github.com/ramleo",               icon: "gh" },
-  { label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram",           icon: "🐳" },
-  { label: "Location",  value: "Hyderabad, India",      href: "#",                                       icon: "📍" },
+  { label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram",           icon: "docker" },
+  { label: "Location",  value: "Hyderabad, India",      href: "#",                                       icon: "location" },
 ];
 
 const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
@@ -117,20 +118,13 @@ export default function About() {
                   >
                     <span
                       style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 8,
-                        background: "var(--border)",
-                        border: "1px solid var(--border2)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        flexShrink: 0,
+                        width: 28, height: 28, borderRadius: 8,
+                        background: "var(--border)", border: "1px solid var(--border2)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, color: "var(--text2)",
                       }}
                     >
-                      {c.icon}
+                      <SiteIcon id={c.icon} size={14} />
                     </span>
                     {c.value}
                   </a>

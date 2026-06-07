@@ -2,12 +2,13 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import { SiteIcon, CheckCircleIcon } from "./SiteIcons";
 
 const LINKS = [
   { icon: "in", label: "LinkedIn",  value: "WRamakrishnasai",       href: "https://linkedin.com/in/WRamakrishnasai" },
   { icon: "gh", label: "GitHub",    value: "github.com/ramleo",     href: "https://github.com/ramleo" },
-  { icon: "🐳", label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram" },
-  { icon: "📍", label: "Location",  value: "Hyderabad, India",      href: "#" },
+  { icon: "docker",   label: "DockerHub", value: "hub.docker.com/u/wram", href: "https://hub.docker.com/u/wram" },
+  { icon: "location", label: "Location",  value: "Hyderabad, India",      href: "#" },
 ];
 
 const fade = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
@@ -84,9 +85,9 @@ export default function Contact() {
                     width: 32, height: 32, borderRadius: 9,
                     background: "var(--border)", border: "1px solid var(--border2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "0.75rem", fontWeight: 700, flexShrink: 0,
+                    flexShrink: 0, color: "var(--text2)",
                   }}>
-                    {l.icon}
+                    <SiteIcon id={l.icon} size={15} />
                   </span>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{l.label}</div>
@@ -105,7 +106,7 @@ export default function Contact() {
                   background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.3)",
                   borderRadius: 14, padding: "2rem", textAlign: "center",
                 }}>
-                  <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>✅</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}><CheckCircleIcon size={36} /></div>
                   <div style={{ fontWeight: 700, color: "var(--text)" }}>Message sent!</div>
                   <div style={{ fontSize: "0.85rem", color: "var(--text2)", marginTop: 4 }}>I&apos;ll get back to you soon.</div>
                 </div>
