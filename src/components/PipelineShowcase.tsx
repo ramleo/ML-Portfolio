@@ -182,7 +182,7 @@ function StageCard({
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: 0.2 + index * 0.07, duration: 0.4 }}
-      style={{ position: "relative" }}
+      style={{ position: "relative", height: "100%" }}
     >
       <div
         onClick={onToggle}
@@ -190,6 +190,7 @@ function StageCard({
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
         style={{
+          height: "100%",
           padding: "1.1rem 0.9rem",
           textAlign: "center",
           borderRadius: 16,
