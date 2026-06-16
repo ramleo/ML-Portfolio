@@ -6,6 +6,8 @@ export type Capability = {
   accent: string;
   tags: string[];
   icon: "automl" | "optuna" | "featureeng" | "shap" | "ensemble";
+  link: string;
+  linkLabel: string;
 };
 
 const capabilities: Capability[] = [
@@ -18,6 +20,8 @@ const capabilities: Capability[] = [
     accent: "#34d399",
     tags: ["scikit-learn", "XGBoost", "LightGBM", "CatBoost"],
     icon: "automl",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try AutoML →",
   },
   {
     id: "optuna",
@@ -28,6 +32,8 @@ const capabilities: Capability[] = [
     accent: "#a78bfa",
     tags: ["Optuna", "TPE Sampler", "5-fold CV"],
     icon: "optuna",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Optuna →",
   },
   {
     id: "featureeng",
@@ -38,6 +44,8 @@ const capabilities: Capability[] = [
     accent: "#38bdf8",
     tags: ["Transforms", "Interactions", "Date Features", "Binning"],
     icon: "featureeng",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Feature Eng →",
   },
   {
     id: "shap",
@@ -48,6 +56,8 @@ const capabilities: Capability[] = [
     accent: "#f59e0b",
     tags: ["SHAP", "Feature Impact", "Classification", "Regression"],
     icon: "shap",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try SHAP →",
   },
   {
     id: "ensemble",
@@ -58,6 +68,8 @@ const capabilities: Capability[] = [
     accent: "#f472b6",
     tags: ["Voting", "Stacking", "Meta-Learner", "scikit-learn"],
     icon: "ensemble",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Ensemble →",
   },
 ];
 

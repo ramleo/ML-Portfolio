@@ -109,6 +109,7 @@ function CapabilityCard({
       style={{
         flexShrink: 0,
         width: "clamp(240px, 28vw, 300px)",
+        height: "100%",
         background: "var(--glass-bg)",
         border: "1px solid var(--glass-border)",
         borderRadius: 16,
@@ -119,7 +120,6 @@ function CapabilityCard({
         display: "flex",
         flexDirection: "column",
         transition: "transform 0.2s, box-shadow 0.2s",
-        cursor: "default",
       }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
     >
@@ -164,7 +164,7 @@ function CapabilityCard({
         </div>
 
         {/* Tags */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
           {cap.tags.map((tag) => (
             <span
               key={tag}
@@ -183,6 +183,46 @@ function CapabilityCard({
             </span>
           ))}
         </div>
+
+        {/* CTA */}
+        <button
+          onClick={() => {
+            let palette = "cosmic";
+            try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
+            const theme = document.documentElement.getAttribute("data-theme") ?? "dark";
+            window.open(`${cap.link}&theme=${theme}&palette=${palette}`, "_blank");
+          }}
+          style={{
+            marginTop: "auto",
+            width: "100%",
+            padding: "0.55rem 1rem",
+            borderRadius: 9999,
+            background: `${cap.accent}18`,
+            border: `1px solid ${cap.accent}40`,
+            color: cap.accent,
+            fontWeight: 600,
+            fontSize: "0.8rem",
+            cursor: "pointer",
+            transition: "background 0.15s, transform 0.15s",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.35rem",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `${cap.accent}30`;
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = `${cap.accent}18`;
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          {cap.linkLabel}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 10L10 2M10 2H5M10 2v5" />
+          </svg>
+        </button>
       </div>
     </motion.div>
   );
@@ -219,20 +259,20 @@ export default function MLCapabilities() {
         <div
           style={{
             display: "flex",
+            alignItems: "stretch",
             gap: "1rem",
             overflowX: "auto",
             paddingBottom: "1rem",
             scrollSnapType: "x mandatory",
             WebkitOverflowScrolling: "touch",
-            // Hide scrollbar visually while keeping scroll functional
             scrollbarWidth: "none",
           }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.cursor = "grab"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.cursor = "default"; }}
         >
-          <style>{`.cap-scroll::-webkit-scrollbar { display: none; }`}</style>
+          <style>{`#capabilities .cap-snap::-webkit-scrollbar { display: none; }`}</style>
           {capabilities.map((cap, i) => (
-            <div key={cap.id} style={{ scrollSnapAlign: "start" }}>
+            <div key={cap.id} style={{ scrollSnapAlign: "start", display: "flex" }}>
               <CapabilityCard cap={cap} index={i} />
             </div>
           ))}
