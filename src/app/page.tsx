@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Skills from "@/components/Skills";
 import ProjectsSection from "@/components/ProjectsSection";
+import MLCapabilities from "@/components/MLCapabilities";
 import PipelineShowcase from "@/components/PipelineShowcase";
 import NewsSection from "@/components/NewsSection";
 import Timeline from "@/components/Timeline";
@@ -21,6 +22,7 @@ export default function Home() {
       <About />
       <Skills />
       <ProjectsSection />
+      <MLCapabilities />
       <PipelineShowcase />
       <NewsSection />
       <Timeline />
