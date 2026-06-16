@@ -1,132 +1,26 @@
 "use client";
 
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 
-// ── Icons ────────────────────────────────────────────────────────────────────
-function CapabilityIcon({
-  id,
-  accent,
-  size = 22,
-}: {
-  id: Capability["icon"];
-  accent: string;
-  size?: number;
-}) {
-  const p = {
-    viewBox: "0 0 24 24",
-    width: size,
-    height: size,
-    fill: "none" as const,
-    stroke: accent,
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
+// ── Single card — design mirrors ProjectCard exactly ─────────────────────────
+function CapabilityCard({ cap, index }: { cap: Capability; index: number }) {
+  const ref    = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  const [tilt, setTilt]       = useState({ x: 0, y: 0 });
+  const [hovering, setHovering] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) / rect.width - 0.5;
+    const cy = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: cy * -10, y: cx * 10 });
   };
 
-  switch (id) {
-    case "automl":
-      return (
-        <svg {...p}>
-          <circle cx="5"  cy="12" r="2" fill={accent} fillOpacity={0.18} />
-          <circle cx="12" cy="5"  r="2" fill={accent} fillOpacity={0.18} />
-          <circle cx="19" cy="12" r="2" fill={accent} fillOpacity={0.18} />
-          <circle cx="12" cy="19" r="2" fill={accent} fillOpacity={0.18} />
-          <circle cx="12" cy="12" r="2.5" fill={accent} fillOpacity={0.3} />
-          <line x1="7"  y1="12" x2="10" y2="12" />
-          <line x1="14" y1="12" x2="17" y2="12" />
-          <line x1="12" y1="7"  x2="12" y2="10" />
-          <line x1="12" y1="14" x2="12" y2="17" />
-        </svg>
-      );
-    case "optuna":
-      return (
-        <svg {...p}>
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10" />
-          <polyline points="16 6 22 6 22 12" />
-          <path d="M22 6 12 16l-4-4-6 6" strokeWidth={1.5} />
-        </svg>
-      );
-    case "featureeng":
-      return (
-        <svg {...p}>
-          <rect x="2" y="3" width="6" height="6" rx="1" fill={accent} fillOpacity={0.14} />
-          <rect x="9" y="3" width="6" height="6" rx="1" fill={accent} fillOpacity={0.08} />
-          <rect x="16" y="3" width="6" height="6" rx="1" fill={accent} fillOpacity={0.08} />
-          <rect x="2" y="15" width="6" height="6" rx="1" fill={accent} fillOpacity={0.08} />
-          <rect x="9" y="15" width="6" height="6" rx="1" fill={accent} fillOpacity={0.14} />
-          <rect x="16" y="15" width="6" height="6" rx="1" fill={accent} fillOpacity={0.08} />
-          <line x1="5"  y1="9"  x2="5"  y2="15" />
-          <line x1="12" y1="9"  x2="12" y2="15" />
-          <line x1="19" y1="9"  x2="19" y2="15" />
-        </svg>
-      );
-    case "shap":
-      return (
-        <svg {...p}>
-          <line x1="4" y1="6"  x2="16" y2="6"  strokeWidth={2.5} stroke={accent} strokeOpacity={0.9} />
-          <line x1="4" y1="10" x2="13" y2="10" strokeWidth={2.5} stroke={accent} strokeOpacity={0.7} />
-          <line x1="4" y1="14" x2="10" y2="14" strokeWidth={2.5} stroke={accent} strokeOpacity={0.5} />
-          <line x1="4" y1="18" x2="7"  y2="18" strokeWidth={2.5} stroke={accent} strokeOpacity={0.3} />
-          <line x1="2" y1="4"  x2="2"  y2="20" />
-        </svg>
-      );
-    case "ensemble":
-      return (
-        <svg {...p}>
-          <circle cx="6"  cy="8"  r="2.5" fill={accent} fillOpacity={0.2} />
-          <circle cx="18" cy="8"  r="2.5" fill={accent} fillOpacity={0.2} />
-          <circle cx="12" cy="8"  r="2.5" fill={accent} fillOpacity={0.2} />
-          <circle cx="12" cy="18" r="3"   fill={accent} fillOpacity={0.3} />
-          <line x1="6"  y1="10.5" x2="11" y2="15.5" />
-          <line x1="12" y1="10.5" x2="12" y2="15"   />
-          <line x1="18" y1="10.5" x2="13" y2="15.5" />
-        </svg>
-      );
-    case "preprocessing":
-      return (
-        <svg {...p}>
-          {/* Funnel — narrows top to bottom, representing filtering/cleaning */}
-          <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill={accent} fillOpacity={0.14} />
-          <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" />
-          {/* Sparkle dot — "clean" indicator */}
-          <circle cx="19" cy="17" r="1.5" fill={accent} fillOpacity={0.6} stroke="none" />
-          <line x1="19" y1="14" x2="19" y2="15" strokeWidth={1.5} />
-          <line x1="19" y1="19" x2="19" y2="20" strokeWidth={1.5} />
-          <line x1="16.5" y1="17" x2="17.5" y2="17" strokeWidth={1.5} />
-          <line x1="20.5" y1="17" x2="21.5" y2="17" strokeWidth={1.5} />
-        </svg>
-      );
-    case "featureselect":
-      return (
-        <svg {...p}>
-          {/* Three ranked rows — each shorter than the last, with a check on the top two */}
-          <polyline points="3,6 5,8.5 7.5,4.5" strokeWidth={1.8} />
-          <line x1="10" y1="6" x2="21" y2="6" />
-          <polyline points="3,12 5,14.5 7.5,10.5" strokeWidth={1.8} />
-          <line x1="10" y1="12" x2="18" y2="12" />
-          {/* Third row — crossed out (not selected) */}
-          <line x1="3" y1="18" x2="7" y2="18" strokeOpacity={0.35} />
-          <line x1="5" y1="16" x2="5" y2="20" strokeOpacity={0.35} />
-          <line x1="10" y1="18" x2="15" y2="18" strokeOpacity={0.35} />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
-// ── Single card ──────────────────────────────────────────────────────────────
-function CapabilityCard({
-  cap,
-  index,
-}: {
-  cap: Capability;
-  index: number;
-}) {
-  const ref  = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const handleMouseEnter = () => setHovering(true);
+  const handleMouseLeave = () => { setHovering(false); setTilt({ x: 0, y: 0 }); };
 
   return (
     <motion.div
@@ -134,136 +28,232 @@ function CapabilityCard({
       initial={{ opacity: 0, y: 24 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
+      style={{ flexShrink: 0, width: "clamp(280px, 30vw, 320px)", height: "100%", display: "flex" }}
+    >
+    <div
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
-        flexShrink: 0,
-        width: "clamp(240px, 28vw, 300px)",
+        width: "100%",
         height: "100%",
-        background: "var(--glass-bg)",
-        border: "1px solid var(--glass-border)",
         borderRadius: 16,
-        boxShadow: "var(--glass-shadow)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s, box-shadow 0.2s",
+        position: "relative",
+        background: "var(--bg-glass)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        border: `1px solid ${hovering ? cap.accent + "44" : "var(--border)"}`,
+        transform: hovering
+          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
+          : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
+        transition: hovering
+          ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
+          : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
+        boxShadow: hovering
+          ? `0 0 0 1px ${cap.accent}55, 0 0 30px ${cap.accent}55, 0 20px 60px ${cap.accent}33, 0 8px 24px rgba(0,0,0,0.4)`
+          : "0 4px 24px rgba(0,0,0,0.25)",
       }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
     >
-      {/* Accent bar */}
+      {/* Shimmer overlay */}
       <div
         style={{
-          height: 3,
-          background: `linear-gradient(90deg, ${cap.accent}, ${cap.accent}55)`,
-          flexShrink: 0,
+          position: "absolute",
+          inset: 0,
+          borderRadius: 16,
+          background: hovering
+            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
+            : "none",
+          pointerEvents: "none",
+          zIndex: 0,
+          transition: "background 0.08s ease",
         }}
       />
 
-      <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem", flex: 1 }}>
-        {/* Icon */}
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: `${cap.accent}18`,
-            border: `1px solid ${cap.accent}30`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <CapabilityIcon id={cap.icon} accent={cap.accent} size={20} />
-        </div>
+      {/* Colored top border */}
+      <div style={{ height: 3, background: cap.accent, flexShrink: 0, position: "relative", zIndex: 1 }} />
 
-        {/* Text */}
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "0.65rem", color: cap.accent, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>
-            {cap.subtitle}
-          </div>
-          <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.5rem", lineHeight: 1.3 }}>
-            {cap.title}
-          </div>
-          <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>
-            {cap.description}
-          </p>
-        </div>
-
-        {/* Tags */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-          {cap.tags.map((tag) => (
+      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem", position: "relative", zIndex: 1 }}>
+        {/* Header row: badge pill + stat pill */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
+          <div>
             <span
-              key={tag}
               style={{
-                fontSize: "0.62rem",
-                fontWeight: 600,
-                padding: "0.18rem 0.55rem",
+                display: "inline-block",
+                padding: "2px 10px",
                 borderRadius: 9999,
-                background: `${cap.accent}14`,
+                fontSize: "0.65rem",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                background: `${cap.accent}22`,
                 color: cap.accent,
-                border: `1px solid ${cap.accent}28`,
-                letterSpacing: "0.01em",
+                border: `1px solid ${cap.accent}44`,
+                marginBottom: "0.5rem",
               }}
             >
-              {tag}
+              {cap.subtitle}
             </span>
+            <h3
+              style={{
+                fontSize: "1.05rem",
+                fontWeight: 700,
+                color: "var(--text)",
+                lineHeight: 1.3,
+                margin: 0,
+              }}
+            >
+              {cap.title}
+            </h3>
+          </div>
+          {/* Stat pill */}
+          <div
+            style={{
+              textAlign: "center",
+              padding: "0.4rem 0.75rem",
+              borderRadius: 10,
+              background: `${cap.accent}18`,
+              border: `1px solid ${cap.accent}33`,
+              flexShrink: 0,
+              minWidth: 64,
+            }}
+          >
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: cap.accent, lineHeight: 1.2 }}>
+              {cap.stat}
+            </div>
+            <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 1 }}>
+              {cap.statLabel}
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <p style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.65, margin: 0, flex: 1 }}>
+          {cap.description}
+        </p>
+
+        {/* Meta row */}
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          {[
+            { label: "Model", value: cap.model },
+          ].map((m) => (
+            <div key={m.label} style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {m.label}
+              </span>
+              <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text2)" }}>
+                {m.value}
+              </span>
+            </div>
           ))}
         </div>
 
-        {/* CTA */}
-        <button
-          onClick={() => {
-            let palette = "cosmic";
-            try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
-            const theme = document.documentElement.getAttribute("data-theme") ?? "dark";
-            window.open(`${cap.link}&theme=${theme}&palette=${palette}`, "_blank");
-          }}
-          style={{
-            marginTop: "auto",
-            width: "100%",
-            padding: "0.55rem 1rem",
-            borderRadius: 9999,
-            background: `${cap.accent}18`,
-            border: `1px solid ${cap.accent}40`,
-            color: cap.accent,
-            fontWeight: 600,
-            fontSize: "0.8rem",
-            cursor: "pointer",
-            transition: "background 0.15s, transform 0.15s",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.35rem",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${cap.accent}30`;
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = `${cap.accent}18`;
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          {cap.linkLabel}
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 10L10 2M10 2H5M10 2v5" />
+        {/* Input / dataset row */}
+        <div style={{ fontSize: "0.75rem", color: "var(--text3)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <ellipse cx="8" cy="5" rx="6" ry="2.5" />
+            <path d="M2 5v6c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5V5" />
+            <path d="M2 8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5" />
           </svg>
-        </button>
+          {cap.input}
+        </div>
+
+        {/* Tags */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+          {cap.tags.map((t) => (
+            <span key={t} className="tag">{t}</span>
+          ))}
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
+          <button
+            onClick={() => {
+              const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
+              let palette = "cosmic";
+              try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
+              const sep = cap.link.includes("?") ? "&" : "?";
+              window.open(`${cap.link}${sep}theme=${theme}&palette=${palette}`, "_blank");
+            }}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.4rem",
+              padding: "0.6rem 1rem",
+              borderRadius: 9999,
+              background: cap.accent,
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "0.82rem",
+              border: "none",
+              cursor: "pointer",
+              transition: "opacity 0.15s, transform 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.88";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            Launch App
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <a
+            href={cap.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 9999,
+              border: "1px solid var(--border2)",
+              background: "var(--border)",
+              color: "var(--text2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              transition: "border-color 0.15s, color 0.15s",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--text3)";
+              e.currentTarget.style.color = "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--border2)";
+              e.currentTarget.style.color = "var(--text2)";
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+          </a>
+        </div>
       </div>
+    </div>
     </motion.div>
   );
 }
 
-// ── Section ──────────────────────────────────────────────────────────────────
+// ── Section ───────────────────────────────────────────────────────────────────
 // Self-contained: import this anywhere, pass no props.
 // Card data lives in src/data/capabilities.ts.
 // Layout rule: odd count → horizontal scroll; even count ≥ 6 → 3-column grid.
 // Mobile always scrolls.
 export default function MLCapabilities() {
-  const isOdd   = capabilities.length % 2 !== 0;
-  const isSmall = capabilities.length < 6;
+  const isOdd    = capabilities.length % 2 !== 0;
+  const isSmall  = capabilities.length < 6;
   const useScroll = isOdd || isSmall;
 
   return (
@@ -282,23 +272,20 @@ export default function MLCapabilities() {
         </h2>
       </div>
 
-      {/* Cards — scroll or grid depending on count */}
       {useScroll ? (
         <div
           style={{
             display: "flex",
             alignItems: "stretch",
-            gap: "1rem",
+            gap: "1.25rem",
             overflowX: "auto",
             paddingBottom: "1rem",
             scrollSnapType: "x mandatory",
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.cursor = "grab"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.cursor = "default"; }}
         >
-          <style>{`#capabilities .cap-snap::-webkit-scrollbar { display: none; }`}</style>
+          <style>{`#capabilities div::-webkit-scrollbar { display: none; }`}</style>
           {capabilities.map((cap, i) => (
             <div key={cap.id} style={{ scrollSnapAlign: "start", display: "flex" }}>
               <CapabilityCard cap={cap} index={i} />
@@ -310,7 +297,8 @@ export default function MLCapabilities() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1rem",
+            gap: "1.25rem",
+            alignItems: "stretch",
           }}
         >
           {capabilities.map((cap, i) => (
