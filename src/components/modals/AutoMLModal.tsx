@@ -396,12 +396,12 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
     if (!trainResult?.automl) return;
     setLlmLoading(true);
     setLlmExp(null);
-    setLlmProgress(0);
+    setLlmProgress(8);
 
     // Animate progress bar while waiting for LLM
     const interval = setInterval(() => {
-      setLlmProgress(p => p < 85 ? p + Math.random() * 8 : p);
-    }, 400);
+      setLlmProgress(p => p < 85 ? p + Math.random() * 7 : p);
+    }, 500);
 
     try {
       const body: Record<string, unknown> = {
