@@ -59,7 +59,7 @@ type TrainResult = {
 
 type HistoryEntry = { ts: string; result: TrainResult };
 
-type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral";
+type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral" | "custom";
 
 const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
   { value: "gemini-2.5",   label: "Gemini 2.5 Flash" },
@@ -67,6 +67,7 @@ const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
   { value: "openai",       label: "GPT-4o Mini" },
   { value: "groq",         label: "Groq Llama 3.3" },
   { value: "groq-mixtral", label: "Mixtral 8x7B (Groq)" },
+  { value: "custom",       label: "Custom (OpenAI-compatible)" },
 ];
 
 type ModelComparisonItem = { algorithm: string; fitness_score: number; reason: string };
@@ -270,12 +271,25 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [error, setError]         = useState("");
   const [dragging, setDragging]   = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [llmProvider, setLlmProvider] = useState<LLMProvider>("gemini-2.5");
-  const [llmExp, setLlmExp]           = useState<Explanation | null>(null);
-  const [llmLoading, setLlmLoading]   = useState(false);
-  const [llmProgress, setLlmProgress] = useState(0);
-  const [userApiKey, setUserApiKey]   = useState("");
-  const [showKeyInput, setShowKeyInput] = useState(false);
+  const [llmProvider, setLlmProvider]       = useState<LLMProvider>("gemini-2.5");
+  const [llmExp, setLlmExp]                 = useState<Explanation | null>(null);
+  const [llmLoading, setLlmLoading]         = useState(false);
+  const [llmProgress, setLlmProgress]       = useState(0);
+  const [userApiKey, setUserApiKey]         = useState("");
+  const [showKeyInput, setShowKeyInput]     = useState(false);
+  const [customLLMUrl, setCustomLLMUrl]     = useState("");
+  const [customLLMModel, setCustomLLMModel] = useState("");
+  const ALL_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"] as const;
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(ALL_ML_MODELS));
+
+  const toggleModel = useCallback((m: string) => {
+    setSelectedModels(prev => {
+      const next = new Set(prev);
+      if (next.has(m)) { if (next.size > 1) next.delete(m); }
+      else next.add(m);
+      return next;
+    });
+  }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Step 1: analyze CSV ──────────────────────────────────────────────────
@@ -324,6 +338,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
       fd.append("pre_fe_sample_json",  "{}");
       fd.append("tune",                "false");
       fd.append("n_trials",            "10");
+      fd.append("selected_models",     JSON.stringify([...selectedModels]));
 
       const res = await fetch(`${API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error("Training request failed.");
@@ -408,7 +423,9 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
         automl_data: trainResult.automl,
         provider: llmProvider,
       };
-      if (userApiKey.trim()) body.user_api_key = userApiKey.trim();
+      if (userApiKey.trim())     body.user_api_key    = userApiKey.trim();
+      if (customLLMUrl.trim())   body.custom_base_url = customLLMUrl.trim();
+      if (customLLMModel.trim()) body.custom_model    = customLLMModel.trim();
 
       const res = await fetch(`${API}/explain`, {
         method: "POST",
@@ -574,6 +591,31 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.85rem", boxSizing: "border-box" }} />
               </div>
 
+              {/* ML model selection */}
+              <div>
+                <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>
+                  Models to compete
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                  {ALL_ML_MODELS.map(m => {
+                    const active = selectedModels.has(m);
+                    return (
+                      <button key={m} onClick={() => toggleModel(m)} style={{
+                        padding: "0.3rem 0.75rem", borderRadius: 9999, cursor: "pointer",
+                        fontSize: "0.75rem", fontWeight: 600,
+                        background: active ? `${ACCENT}22` : "transparent",
+                        border: `1px solid ${active ? ACCENT + "66" : "var(--border2)"}`,
+                        color: active ? ACCENT : "var(--text3)",
+                        transition: "all 0.15s",
+                      }}>{m}</button>
+                    );
+                  })}
+                </div>
+                <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.3rem 0 0" }}>
+                  {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""} selected — at least 1 required
+                </p>
+              </div>
+
               {analyzed.total_missing > 0 && (
                 <p style={{ fontSize: "0.75rem", color: "#fbbf24", margin: 0 }}>
                   {analyzed.total_missing} missing values detected — AutoML will handle them automatically.
@@ -597,8 +639,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                 Running 5-fold cross-validation on all four algorithms. This may take 1-3 minutes.
               </p>
               <ProgressBar pct={pct} label={statusMsg} />
-              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.5rem" }}>
-                {["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"].map(algo => (
+              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: `repeat(${selectedModels.size}, 1fr)`, gap: "0.5rem" }}>
+                {[...selectedModels].map(algo => (
                   <div key={algo} style={{ padding: "0.6rem", borderRadius: 10, textAlign: "center", background: `${ACCENT}08`, border: `1px solid ${ACCENT}22` }}>
                     <div style={{ fontSize: "0.68rem", color: "var(--text2)", fontWeight: 500 }}>{algo}</div>
                     <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: "0.2rem" }}>competing...</div>
@@ -697,21 +739,47 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
-                {/* Own API key input */}
-                {showKeyInput && (
-                  <div style={{ marginTop: "0.65rem" }}>
+                {/* Own API key + custom LLM fields */}
+                {(showKeyInput || llmProvider === "custom") && (
+                  <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                     <input
                       type="password"
                       value={userApiKey}
                       onChange={(e) => setUserApiKey(e.target.value)}
-                      placeholder="Paste your API key (overrides server key)"
+                      placeholder="API key (overrides server key)"
                       style={{
                         width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
                         background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
                         color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
                       }}
                     />
-                    <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.25rem 0 0" }}>
+                    {llmProvider === "custom" && (
+                      <>
+                        <input
+                          type="text"
+                          value={customLLMUrl}
+                          onChange={(e) => setCustomLLMUrl(e.target.value)}
+                          placeholder="API base URL (e.g. http://localhost:11434/v1)"
+                          style={{
+                            width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
+                            background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
+                            color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
+                          }}
+                        />
+                        <input
+                          type="text"
+                          value={customLLMModel}
+                          onChange={(e) => setCustomLLMModel(e.target.value)}
+                          placeholder="Model name (e.g. llama3, mistral, gpt-4o)"
+                          style={{
+                            width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
+                            background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
+                            color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
+                          }}
+                        />
+                      </>
+                    )}
+                    <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: 0 }}>
                       Key is used only for this request and never stored.
                     </p>
                   </div>
