@@ -11,6 +11,7 @@ export type Capability = {
   tags: string[];
   link: string;
   github: string;
+  modalEnabled?: boolean;   // true = "Run Here" button opens inline modal
 };
 
 const GITHUB = "https://github.com/ramleo/ML-Unified";
@@ -45,6 +46,7 @@ const capabilities: Capability[] = [
     tags: ["scikit-learn", "XGBoost", "LightGBM", "CatBoost"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    modalEnabled: true,
   },
   {
     id: "featureeng",

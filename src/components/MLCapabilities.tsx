@@ -3,9 +3,11 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
+import { PipelineProvider } from "@/context/PipelineContext";
+import AutoMLModal from "@/components/modals/AutoMLModal";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
-function CapabilityCard({ cap, index }: { cap: Capability; index: number }) {
+function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -168,7 +170,8 @@ function CapabilityCard({ cap, index }: { cap: Capability; index: number }) {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "auto" }}>
+          <div style={{ display: "flex", gap: "0.6rem" }}>
           <button
             onClick={() => {
               const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
@@ -239,6 +242,28 @@ function CapabilityCard({ cap, index }: { cap: Capability; index: number }) {
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
             </svg>
           </a>
+          </div>
+          {cap.modalEnabled && onRunHere && (
+            <button
+              onClick={onRunHere}
+              style={{
+                width: "100%",
+                padding: "0.5rem 1rem",
+                borderRadius: 9999,
+                background: "transparent",
+                border: `1px solid ${cap.accent}55`,
+                color: cap.accent,
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                cursor: "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = `${cap.accent}14`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
+              Run here
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -252,12 +277,16 @@ function CapabilityCard({ cap, index }: { cap: Capability; index: number }) {
 // Layout rule: odd count → horizontal scroll; even count ≥ 6 → 3-column grid.
 // Mobile always scrolls.
 export default function MLCapabilities() {
-  const isOdd    = capabilities.length % 2 !== 0;
-  const isSmall  = capabilities.length < 6;
+  const isOdd     = capabilities.length % 2 !== 0;
+  const isSmall   = capabilities.length < 6;
   const useScroll = isOdd || isSmall;
+  const [openModal, setOpenModal] = useState<string | null>(null);
 
   return (
-    <section
+    <PipelineProvider>
+      <>
+        {openModal === "automl" && <AutoMLModal onClose={() => setOpenModal(null)} />}
+        <section
       id="capabilities"
       style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}
     >
@@ -288,7 +317,11 @@ export default function MLCapabilities() {
           <style>{`#capabilities div::-webkit-scrollbar { display: none; }`}</style>
           {capabilities.map((cap, i) => (
             <div key={cap.id} style={{ scrollSnapAlign: "start", display: "flex" }}>
-              <CapabilityCard cap={cap} index={i} />
+              <CapabilityCard
+                cap={cap}
+                index={i}
+                onRunHere={cap.modalEnabled ? () => setOpenModal(cap.id) : undefined}
+              />
             </div>
           ))}
         </div>
@@ -302,10 +335,17 @@ export default function MLCapabilities() {
           }}
         >
           {capabilities.map((cap, i) => (
-            <CapabilityCard key={cap.id} cap={cap} index={i} />
+            <CapabilityCard
+              key={cap.id}
+              cap={cap}
+              index={i}
+              onRunHere={cap.modalEnabled ? () => setOpenModal(cap.id) : undefined}
+            />
           ))}
         </div>
       )}
-    </section>
+        </section>
+      </>
+    </PipelineProvider>
   );
 }
