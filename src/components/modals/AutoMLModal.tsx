@@ -32,6 +32,8 @@ type Explanation = {
   score_analysis: string;
   key_drivers: string;
   recommendations: string[];
+  model_comparison?: ModelComparisonItem[];
+  actionable_insights?: ActionableInsight[];
 };
 
 type AutoMLResult = {
@@ -57,14 +59,18 @@ type TrainResult = {
 
 type HistoryEntry = { ts: string; result: TrainResult };
 
-type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq";
+type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral";
 
 const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
-  { value: "gemini-2.5", label: "Gemini 2.5 Flash" },
-  { value: "anthropic",  label: "Claude Haiku" },
-  { value: "openai",     label: "GPT-4o Mini" },
-  { value: "groq",       label: "Groq Llama 3.3" },
+  { value: "gemini-2.5",   label: "Gemini 2.5 Flash" },
+  { value: "anthropic",    label: "Claude Haiku" },
+  { value: "openai",       label: "GPT-4o Mini" },
+  { value: "groq",         label: "Groq Llama 3.3" },
+  { value: "groq-mixtral", label: "Mixtral 8x7B (Groq)" },
 ];
+
+type ModelComparisonItem = { algorithm: string; fitness_score: number; reason: string };
+type ActionableInsight   = { title: string; detail: string };
 
 type Step = "upload" | "config" | "training" | "results";
 
@@ -216,6 +222,36 @@ function FeatureImportanceChart({ features }: { features: FeatureImportanceItem[
   );
 }
 
+function ModelComparisonChart({ items }: { items: ModelComparisonItem[] }) {
+  const sorted = [...items].sort((a, b) => b.fitness_score - a.fitness_score);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.75rem" }}>
+      {sorted.map(item => (
+        <div key={item.algorithm}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.2rem" }}>
+            <span style={{ fontSize: "0.72rem", color: "var(--text2)", fontWeight: 500 }}>{item.algorithm}</span>
+            <span style={{ fontSize: "0.72rem", color: ACCENT, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{item.fitness_score}/100</span>
+          </div>
+          <div style={{ position: "relative", height: 6, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", width: `${item.fitness_score}%`,
+              background: item.fitness_score >= 80
+                ? `linear-gradient(90deg, ${ACCENT}88, ${ACCENT})`
+                : item.fitness_score >= 60
+                  ? `linear-gradient(90deg, #fbbf2488, #fbbf24)`
+                  : `linear-gradient(90deg, #f8717188, #f87171)`,
+              borderRadius: 9999, transition: "width 0.7s ease",
+            }} />
+          </div>
+          {item.reason && (
+            <p style={{ fontSize: "0.68rem", color: "var(--text3)", margin: "0.2rem 0 0", lineHeight: 1.4 }}>{item.reason}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main Modal ────────────────────────────────────────────────────────────────
 
 export default function AutoMLModal({ onClose }: { onClose: () => void }) {
@@ -237,6 +273,9 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [llmProvider, setLlmProvider] = useState<LLMProvider>("gemini-2.5");
   const [llmExp, setLlmExp]           = useState<Explanation | null>(null);
   const [llmLoading, setLlmLoading]   = useState(false);
+  const [llmProgress, setLlmProgress] = useState(0);
+  const [userApiKey, setUserApiKey]   = useState("");
+  const [showKeyInput, setShowKeyInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Step 1: analyze CSV ──────────────────────────────────────────────────
@@ -357,21 +396,36 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
     if (!trainResult?.automl) return;
     setLlmLoading(true);
     setLlmExp(null);
+    setLlmProgress(0);
+
+    // Animate progress bar while waiting for LLM
+    const interval = setInterval(() => {
+      setLlmProgress(p => p < 85 ? p + Math.random() * 8 : p);
+    }, 400);
+
     try {
+      const body: Record<string, unknown> = {
+        automl_data: trainResult.automl,
+        provider: llmProvider,
+      };
+      if (userApiKey.trim()) body.user_api_key = userApiKey.trim();
+
       const res = await fetch(`${API}/explain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ automl_data: trainResult.automl, provider: llmProvider }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("Explain request failed");
       const data = await res.json();
+      setLlmProgress(100);
       setLlmExp(data.explanation as Explanation);
     } catch {
       // silently fall back — rule explanation still shown
     } finally {
+      clearInterval(interval);
       setLlmLoading(false);
     }
-  }, [trainResult, llmProvider]);
+  }, [trainResult, llmProvider, userApiKey]);
 
   // ── Step indicator ────────────────────────────────────────────────────────
   const stepLabels = ["Upload", "Configure", "Training", "Results"];
@@ -543,8 +597,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                 Running 5-fold cross-validation on all four algorithms. This may take 1-3 minutes.
               </p>
               <ProgressBar pct={pct} label={statusMsg} />
-              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem" }}>
-                {["Random Forest", "XGBoost", "LightGBM", "CatBoost"].map(algo => (
+              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.5rem" }}>
+                {["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"].map(algo => (
                   <div key={algo} style={{ padding: "0.6rem", borderRadius: 10, textAlign: "center", background: `${ACCENT}08`, border: `1px solid ${ACCENT}22` }}>
                     <div style={{ fontSize: "0.68rem", color: "var(--text2)", fontWeight: 500 }}>{algo}</div>
                     <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: "0.2rem" }}>competing...</div>
@@ -597,11 +651,24 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
 
               {/* AI Analysis */}
               <div style={{ marginTop: "1.25rem", padding: "0.85rem 1rem", borderRadius: 10, background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: llmExp || llmLoading ? "0.75rem" : 0 }}>
+                {/* Header row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
                   <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
                     AI Analysis
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <button
+                      onClick={() => setShowKeyInput(v => !v)}
+                      style={{
+                        padding: "0.2rem 0.55rem", borderRadius: 6, cursor: "pointer",
+                        background: showKeyInput ? `${ACCENT}22` : "transparent",
+                        border: `1px solid ${showKeyInput ? ACCENT + "44" : "var(--border2)"}`,
+                        color: showKeyInput ? ACCENT : "var(--text3)", fontSize: "0.68rem", fontWeight: 600,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {showKeyInput ? "Hide key" : "Own key"}
+                    </button>
                     <select
                       value={llmProvider}
                       onChange={(e) => { setLlmProvider(e.target.value as LLMProvider); setLlmExp(null); }}
@@ -629,20 +696,90 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                     </button>
                   </div>
                 </div>
-                {llmLoading && (
-                  <div style={{ fontSize: "0.78rem", color: "var(--text3)", lineHeight: 1.6 }}>
-                    Asking {LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
+
+                {/* Own API key input */}
+                {showKeyInput && (
+                  <div style={{ marginTop: "0.65rem" }}>
+                    <input
+                      type="password"
+                      value={userApiKey}
+                      onChange={(e) => setUserApiKey(e.target.value)}
+                      placeholder="Paste your API key (overrides server key)"
+                      style={{
+                        width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
+                        background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
+                        color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
+                      }}
+                    />
+                    <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.25rem 0 0" }}>
+                      Key is used only for this request and never stored.
+                    </p>
                   </div>
                 )}
-                {!llmLoading && llmExp?.why_won && (
-                  <p style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>
-                    {llmExp.why_won}
-                  </p>
+
+                {/* Progress bar while loading */}
+                {llmLoading && (
+                  <div style={{ marginTop: "0.75rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+                        Asking {LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: ACCENT, fontVariantNumeric: "tabular-nums" }}>{Math.round(llmProgress)}%</span>
+                    </div>
+                    <div style={{ height: 4, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", width: `${llmProgress}%`,
+                        background: `linear-gradient(90deg, ${ACCENT}88, ${ACCENT})`,
+                        borderRadius: 9999, transition: "width 0.4s ease",
+                      }} />
+                    </div>
+                  </div>
                 )}
+
+                {/* LLM explanation text */}
+                {!llmLoading && llmExp?.why_won && (
+                  <div style={{ marginTop: "0.75rem" }}>
+                    <p style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>
+                      {llmExp.why_won}
+                    </p>
+                    {llmExp.score_analysis && (
+                      <p style={{ fontSize: "0.78rem", color: "var(--text3)", lineHeight: 1.6, margin: "0.5rem 0 0" }}>
+                        {llmExp.score_analysis}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Rule-based fallback (italic) */}
                 {!llmLoading && !llmExp && trainResult.automl.explanation?.why_won && (
-                  <p style={{ fontSize: "0.8rem", color: "var(--text3)", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>
+                  <p style={{ fontSize: "0.8rem", color: "var(--text3)", lineHeight: 1.65, margin: "0.75rem 0 0", fontStyle: "italic" }}>
                     {trainResult.automl.explanation.why_won}
                   </p>
+                )}
+
+                {/* Model comparison chart from LLM */}
+                {!llmLoading && llmExp?.model_comparison && llmExp.model_comparison.length > 0 && (
+                  <div style={{ marginTop: "1rem" }}>
+                    <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>
+                      Model fitness for this dataset
+                    </div>
+                    <ModelComparisonChart items={llmExp.model_comparison} />
+                  </div>
+                )}
+
+                {/* Actionable insights */}
+                {!llmLoading && llmExp?.actionable_insights && llmExp.actionable_insights.length > 0 && (
+                  <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                      Actionable insights
+                    </div>
+                    {llmExp.actionable_insights.map((ins, i) => (
+                      <div key={i} style={{ padding: "0.5rem 0.75rem", borderRadius: 8, background: `${ACCENT}08`, border: `1px solid ${ACCENT}1a` }}>
+                        <div style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, marginBottom: "0.15rem" }}>{ins.title}</div>
+                        <div style={{ fontSize: "0.73rem", color: "var(--text2)", lineHeight: 1.5 }}>{ins.detail}</div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
