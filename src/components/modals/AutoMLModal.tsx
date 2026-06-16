@@ -225,30 +225,66 @@ function FeatureImportanceChart({ features }: { features: FeatureImportanceItem[
 
 function ModelComparisonChart({ items }: { items: ModelComparisonItem[] }) {
   const sorted = [...items].sort((a, b) => b.fitness_score - a.fitness_score);
+  const W = 540, H = 150;
+  const padL = 28, padR = 12, padT = 20, padB = 38;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const n = sorted.length;
+  const xFor = (i: number) => padL + (n < 2 ? chartW / 2 : (i / (n - 1)) * chartW);
+  const yFor = (s: number) => padT + chartH - (s / 100) * chartH;
+  const dotColor = (s: number) => s >= 80 ? ACCENT : s >= 60 ? "#fbbf24" : "#f87171";
+  const polyline = sorted.map((item, i) => `${xFor(i)},${yFor(item.fitness_score)}`).join(" ");
+  const shortName = (name: string) => name.replace("Random Forest", "Rand. Forest");
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.75rem" }}>
-      {sorted.map(item => (
-        <div key={item.algorithm}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.2rem" }}>
-            <span style={{ fontSize: "0.72rem", color: "var(--text2)", fontWeight: 500 }}>{item.algorithm}</span>
-            <span style={{ fontSize: "0.72rem", color: ACCENT, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{item.fitness_score}/100</span>
-          </div>
-          <div style={{ position: "relative", height: 6, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
+    <div style={{ marginTop: "0.75rem" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", overflow: "visible", display: "block" }}>
+        {/* Grid lines */}
+        {[0, 25, 50, 75, 100].map(v => (
+          <g key={v}>
+            <line x1={padL} y1={yFor(v)} x2={W - padR} y2={yFor(v)}
+              stroke="var(--border2)" strokeWidth="0.6" strokeDasharray="3,3" />
+            <text x={padL - 4} y={yFor(v) + 3.5} fontSize="8" fill="var(--text3)" textAnchor="end">{v}</text>
+          </g>
+        ))}
+        {/* Connecting line */}
+        {n > 1 && (
+          <polyline points={polyline} fill="none" stroke={`${ACCENT}44`} strokeWidth="1.5"
+            strokeLinecap="round" strokeLinejoin="round" />
+        )}
+        {/* Dots + labels */}
+        {sorted.map((item, i) => {
+          const cx = xFor(i);
+          const cy = yFor(item.fitness_score);
+          const color = dotColor(item.fitness_score);
+          return (
+            <g key={item.algorithm}>
+              <text x={cx} y={cy - 9} fontSize="9" fill={color} textAnchor="middle" fontWeight="700">
+                {item.fitness_score}
+              </text>
+              <circle cx={cx} cy={cy} r={6} fill={color} opacity={0.18} />
+              <circle cx={cx} cy={cy} r={3.5} fill={color} />
+              <text x={cx} y={H - 4} fontSize="8.5" fill="var(--text3)" textAnchor="middle">
+                {shortName(item.algorithm)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      {/* Descriptions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginTop: "0.5rem" }}>
+        {sorted.map(item => (
+          <div key={item.algorithm} style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
             <div style={{
-              height: "100%", width: `${item.fitness_score}%`,
-              background: item.fitness_score >= 80
-                ? `linear-gradient(90deg, ${ACCENT}88, ${ACCENT})`
-                : item.fitness_score >= 60
-                  ? `linear-gradient(90deg, #fbbf2488, #fbbf24)`
-                  : `linear-gradient(90deg, #f8717188, #f87171)`,
-              borderRadius: 9999, transition: "width 0.7s ease",
+              width: 7, height: 7, borderRadius: "50%", flexShrink: 0, marginTop: 4,
+              background: dotColor(item.fitness_score),
             }} />
+            <p style={{ fontSize: "0.68rem", color: "var(--text3)", margin: 0, lineHeight: 1.45 }}>
+              <span style={{ fontWeight: 600, color: "var(--text2)" }}>{item.algorithm}:</span>{" "}{item.reason}
+            </p>
           </div>
-          {item.reason && (
-            <p style={{ fontSize: "0.68rem", color: "var(--text3)", margin: "0.2rem 0 0", lineHeight: 1.4 }}>{item.reason}</p>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -754,30 +790,30 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                       }}
                     />
                     {llmProvider === "custom" && (
-                      <>
-                        <input
-                          type="text"
-                          value={customLLMUrl}
-                          onChange={(e) => setCustomLLMUrl(e.target.value)}
-                          placeholder="API base URL (e.g. http://localhost:11434/v1)"
-                          style={{
-                            width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
-                            background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
-                            color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
-                          }}
-                        />
-                        <input
-                          type="text"
-                          value={customLLMModel}
-                          onChange={(e) => setCustomLLMModel(e.target.value)}
-                          placeholder="Model name (e.g. llama3, mistral, gpt-4o)"
-                          style={{
-                            width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
-                            background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
-                            color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
-                          }}
-                        />
-                      </>
+                      <input
+                        type="text"
+                        value={customLLMUrl}
+                        onChange={(e) => setCustomLLMUrl(e.target.value)}
+                        placeholder="API base URL (e.g. http://localhost:11434/v1)"
+                        style={{
+                          width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
+                          background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
+                          color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
+                        }}
+                      />
+                    )}
+                    {(showKeyInput || llmProvider === "custom") && (
+                      <input
+                        type="text"
+                        value={customLLMModel}
+                        onChange={(e) => setCustomLLMModel(e.target.value)}
+                        placeholder={llmProvider === "custom" ? "Model name (e.g. llama3, mistral)" : "Model override (optional, e.g. gpt-4o, claude-opus-4-8)"}
+                        style={{
+                          width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7,
+                          background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)",
+                          color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box",
+                        }}
+                      />
                     )}
                     <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: 0 }}>
                       Key is used only for this request and never stored.
@@ -893,7 +929,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
               {/* Action buttons */}
               <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.5rem" }}>
                 <button
-                  onClick={() => { setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null); setPct(0); }}
+                  onClick={() => { setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null); setPct(0); setLlmExp(null); setLlmProgress(0); }}
                   style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}
                 >Run Again</button>
                 <button
