@@ -3,8 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
-
-const API = "https://ml-unified.onrender.com";
+import { ML_UNIFIED_API as API } from "@/config/urls";
 const ACCENT = "#34d399";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -57,6 +56,15 @@ type TrainResult = {
 };
 
 type HistoryEntry = { ts: string; result: TrainResult };
+
+type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq";
+
+const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
+  { value: "gemini-2.5", label: "Gemini 2.5 Flash" },
+  { value: "anthropic",  label: "Claude Haiku" },
+  { value: "openai",     label: "GPT-4o Mini" },
+  { value: "groq",       label: "Groq Llama 3.3" },
+];
 
 type Step = "upload" | "config" | "training" | "results";
 
@@ -226,6 +234,9 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [error, setError]         = useState("");
   const [dragging, setDragging]   = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [llmProvider, setLlmProvider] = useState<LLMProvider>("gemini-2.5");
+  const [llmExp, setLlmExp]           = useState<Explanation | null>(null);
+  const [llmLoading, setLlmLoading]   = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Step 1: analyze CSV ──────────────────────────────────────────────────
@@ -340,6 +351,27 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
     }));
     onClose();
   }, [trainResult, file, target, taskType, setState, onClose]);
+
+  // ── Generate LLM analysis ────────────────────────────────────────────────
+  const handleGenerateAnalysis = useCallback(async () => {
+    if (!trainResult?.automl) return;
+    setLlmLoading(true);
+    setLlmExp(null);
+    try {
+      const res = await fetch(`${API}/explain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ automl_data: trainResult.automl, provider: llmProvider }),
+      });
+      if (!res.ok) throw new Error("Explain request failed");
+      const data = await res.json();
+      setLlmExp(data.explanation as Explanation);
+    } catch {
+      // silently fall back — rule explanation still shown
+    } finally {
+      setLlmLoading(false);
+    }
+  }, [trainResult, llmProvider]);
 
   // ── Step indicator ────────────────────────────────────────────────────────
   const stepLabels = ["Upload", "Configure", "Training", "Results"];
@@ -563,17 +595,56 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                 </div>
               )}
 
-              {/* Why it won */}
-              {trainResult.automl.explanation?.why_won && (
-                <div style={{ marginTop: "1.25rem", padding: "0.85rem 1rem", borderRadius: 10, background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>
-                    Why it won
+              {/* AI Analysis */}
+              <div style={{ marginTop: "1.25rem", padding: "0.85rem 1rem", borderRadius: 10, background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: llmExp || llmLoading ? "0.75rem" : 0 }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                    AI Analysis
                   </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <select
+                      value={llmProvider}
+                      onChange={(e) => { setLlmProvider(e.target.value as LLMProvider); setLlmExp(null); }}
+                      style={{
+                        fontSize: "0.72rem", color: "var(--text2)", background: "var(--border)",
+                        border: "1px solid var(--border2)", borderRadius: 6,
+                        padding: "0.25rem 0.5rem", cursor: "pointer",
+                      }}
+                    >
+                      {LLM_PROVIDERS.map(p => (
+                        <option key={p.value} value={p.value}>{p.label}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleGenerateAnalysis}
+                      disabled={llmLoading}
+                      style={{
+                        padding: "0.25rem 0.7rem", borderRadius: 6, cursor: llmLoading ? "default" : "pointer",
+                        background: `${ACCENT}22`, border: `1px solid ${ACCENT}44`,
+                        color: ACCENT, fontSize: "0.72rem", fontWeight: 600, opacity: llmLoading ? 0.6 : 1,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {llmLoading ? "Generating..." : llmExp ? "Regenerate" : "Generate"}
+                    </button>
+                  </div>
+                </div>
+                {llmLoading && (
+                  <div style={{ fontSize: "0.78rem", color: "var(--text3)", lineHeight: 1.6 }}>
+                    Asking {LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
+                  </div>
+                )}
+                {!llmLoading && llmExp?.why_won && (
                   <p style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>
+                    {llmExp.why_won}
+                  </p>
+                )}
+                {!llmLoading && !llmExp && trainResult.automl.explanation?.why_won && (
+                  <p style={{ fontSize: "0.8rem", color: "var(--text3)", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>
                     {trainResult.automl.explanation.why_won}
                   </p>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Full ranking */}
               <div style={{ marginTop: "1.25rem" }}>
@@ -634,7 +705,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
 
           {/* Footer links */}
           <div style={{ marginTop: "1.75rem", paddingTop: "1rem", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "center", gap: "1.75rem" }}>
-            <a href="https://ml-unified.onrender.com/?mode=ml" target="_blank" rel="noopener noreferrer"
+            <a href={`${API}/?mode=ml`} target="_blank" rel="noopener noreferrer"
               style={{ fontSize: "0.73rem", color: "var(--text3)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.3rem", transition: "color 0.15s" }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text3)"; }}
