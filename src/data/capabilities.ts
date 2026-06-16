@@ -5,12 +5,24 @@ export type Capability = {
   description: string;
   accent: string;
   tags: string[];
-  icon: "automl" | "optuna" | "featureeng" | "shap" | "ensemble";
+  icon: "automl" | "optuna" | "featureeng" | "featureselect" | "shap" | "ensemble" | "preprocessing";
   link: string;
   linkLabel: string;
 };
 
 const capabilities: Capability[] = [
+  {
+    id: "preprocessing",
+    title: "Data Preprocessing",
+    subtitle: "Clean before you train",
+    description:
+      "Deduplicate, impute missing values (8+ numeric strategies including KNN and MICE, 4 categorical), remove outliers via IQR / Z-score / Winsorize, fix skewness, and apply Yeo-Johnson power transform. Download a clean CSV or pipe directly into AutoML.",
+    accent: "#22d3ee",
+    tags: ["Imputation", "Outliers", "Encoding", "Power Transform"],
+    icon: "preprocessing",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Preprocessing →",
+  },
   {
     id: "automl",
     title: "AutoML Pipeline",
@@ -22,6 +34,30 @@ const capabilities: Capability[] = [
     icon: "automl",
     link: "https://ml-unified.onrender.com/?mode=ml",
     linkLabel: "Try AutoML →",
+  },
+  {
+    id: "featureeng",
+    title: "Feature Engineering",
+    subtitle: "Visual, no-code transforms",
+    description:
+      "log1p, sqrt, Yeo-Johnson, percentile rank, outlier flag, missing flag per numeric column. Plus binning, polynomial pairs, interaction terms, date extraction, and cyclical encoding — all fit on training data only.",
+    accent: "#38bdf8",
+    tags: ["Transforms", "Interactions", "Date Features", "Cyclical"],
+    icon: "featureeng",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Feature Eng →",
+  },
+  {
+    id: "featureselect",
+    title: "Feature Selection",
+    subtitle: "Keep only what matters",
+    description:
+      "Four methods — Variance Threshold, Correlation Filter (drop >0.9 correlated), RFE (Random Forest), and SelectKBest (Mutual Info) — automatically prune irrelevant or redundant features before training.",
+    accent: "#fb923c",
+    tags: ["RFE", "SelectKBest", "Variance", "Correlation"],
+    icon: "featureselect",
+    link: "https://ml-unified.onrender.com/?mode=ml",
+    linkLabel: "Try Feature Select →",
   },
   {
     id: "optuna",
@@ -36,23 +72,11 @@ const capabilities: Capability[] = [
     linkLabel: "Try Optuna →",
   },
   {
-    id: "featureeng",
-    title: "Feature Engineering",
-    subtitle: "Visual, no-code transforms",
-    description:
-      "Log, sqrt, binning, polynomial pairs, interaction terms, date extraction, and outlier flags — all configurable per-column before training.",
-    accent: "#38bdf8",
-    tags: ["Transforms", "Interactions", "Date Features", "Binning"],
-    icon: "featureeng",
-    link: "https://ml-unified.onrender.com/?mode=ml",
-    linkLabel: "Try Feature Eng →",
-  },
-  {
     id: "shap",
     title: "SHAP Explainability",
     subtitle: "Per-prediction feature impact",
     description:
-      "Every prediction comes with a SHAP bar chart showing which features drove the result and by how much. Supports classification and regression.",
+      "Every prediction comes with a SHAP bar chart showing which features drove the result and by how much. FE-derived columns are grouped back to their originals so you see source-feature impact, not transform noise.",
     accent: "#f59e0b",
     tags: ["SHAP", "Feature Impact", "Classification", "Regression"],
     icon: "shap",

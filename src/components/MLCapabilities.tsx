@@ -84,6 +84,34 @@ function CapabilityIcon({
           <line x1="18" y1="10.5" x2="13" y2="15.5" />
         </svg>
       );
+    case "preprocessing":
+      return (
+        <svg {...p}>
+          {/* Funnel — narrows top to bottom, representing filtering/cleaning */}
+          <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill={accent} fillOpacity={0.14} />
+          <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" />
+          {/* Sparkle dot — "clean" indicator */}
+          <circle cx="19" cy="17" r="1.5" fill={accent} fillOpacity={0.6} stroke="none" />
+          <line x1="19" y1="14" x2="19" y2="15" strokeWidth={1.5} />
+          <line x1="19" y1="19" x2="19" y2="20" strokeWidth={1.5} />
+          <line x1="16.5" y1="17" x2="17.5" y2="17" strokeWidth={1.5} />
+          <line x1="20.5" y1="17" x2="21.5" y2="17" strokeWidth={1.5} />
+        </svg>
+      );
+    case "featureselect":
+      return (
+        <svg {...p}>
+          {/* Three ranked rows — each shorter than the last, with a check on the top two */}
+          <polyline points="3,6 5,8.5 7.5,4.5" strokeWidth={1.8} />
+          <line x1="10" y1="6" x2="21" y2="6" />
+          <polyline points="3,12 5,14.5 7.5,10.5" strokeWidth={1.8} />
+          <line x1="10" y1="12" x2="18" y2="12" />
+          {/* Third row — crossed out (not selected) */}
+          <line x1="3" y1="18" x2="7" y2="18" strokeOpacity={0.35} />
+          <line x1="5" y1="16" x2="5" y2="20" strokeOpacity={0.35} />
+          <line x1="10" y1="18" x2="15" y2="18" strokeOpacity={0.35} />
+        </svg>
+      );
     default:
       return null;
   }
