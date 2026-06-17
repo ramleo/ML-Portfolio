@@ -358,6 +358,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [showKeyInput, setShowKeyInput]     = useState(false);
   const [customLLMUrl, setCustomLLMUrl]     = useState("");
   const [customLLMModel, setCustomLLMModel] = useState("");
+  const [analysisExpanded, setAnalysisExpanded] = useState(false);
   const availableModels = useMemo(
     () => [...SHARED_ML_MODELS, ...TASK_ML_MODELS[taskType]],
     [taskType]
@@ -367,6 +368,10 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSelectedModels(new Set(DEFAULT_ML_MODELS));
   }, [taskType]);
+
+  useEffect(() => {
+    if (llmExp) setAnalysisExpanded(true);
+  }, [llmExp]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
@@ -822,9 +827,18 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
               <div style={{ marginTop: "1.25rem", padding: "0.85rem 1rem", borderRadius: 10, background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
                 {/* Header row */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                    AI Analysis
-                  </div>
+                  <button
+                    onClick={() => setAnalysisExpanded(v => !v)}
+                    style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  >
+                    <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                      AI Analysis
+                    </div>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                      style={{ transition: "transform 0.2s", transform: analysisExpanded ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}>
+                      <polyline points="2,3 5,7 8,3" />
+                    </svg>
+                  </button>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <button
                       onClick={() => setShowKeyInput(v => !v)}
@@ -866,6 +880,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
+                {analysisExpanded && (
+                <div>
                 {/* Own API key + custom LLM fields */}
                 {(showKeyInput || llmProvider === "custom") && (
                   <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -993,6 +1009,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                       ))}
                     </div>
                   </div>
+                )}
+                </div>
                 )}
               </div>
 
