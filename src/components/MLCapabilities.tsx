@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { PipelineProvider } from "@/context/PipelineContext";
@@ -296,16 +296,23 @@ export default function MLCapabilities() {
   const [automlResult, setAutomlResult]   = useState<TrainResult | null>(null);
   const [automlHistory, setAutomlHistory] = useState<HistoryEntry[]>([]);
 
+  const handleAutomlResultChange = useCallback((r: TrainResult | null, h: HistoryEntry[]) => {
+    setAutomlResult(r); setAutomlHistory(h);
+  }, []);
+  const handleAutomlSaved = useCallback(() => {
+    setAutomlResult(null); setAutomlHistory([]);
+  }, []);
+
   return (
     <PipelineProvider>
       <>
         {openModal === "automl" && (
           <AutoMLModal
             onClose={() => setOpenModal(null)}
-            onSavedToPipeline={() => { setAutomlResult(null); setAutomlHistory([]); }}
+            onSavedToPipeline={handleAutomlSaved}
             initialResult={automlResult}
             initialHistory={automlHistory}
-            onResultChange={(r, h) => { setAutomlResult(r); setAutomlHistory(h); }}
+            onResultChange={handleAutomlResultChange}
           />
         )}
         <section

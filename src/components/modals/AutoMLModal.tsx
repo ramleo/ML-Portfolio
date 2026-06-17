@@ -408,9 +408,11 @@ export default function AutoMLModal({
     if (llmExp) setAnalysisExpanded(true);
   }, [llmExp]);
 
+  const onResultChangeRef = useRef(onResultChange);
+  onResultChangeRef.current = onResultChange;
   useEffect(() => {
-    onResultChange?.(trainResult, history);
-  }, [trainResult, history, onResultChange]);
+    onResultChangeRef.current?.(trainResult, history);
+  }, [trainResult, history]); // ref keeps callback current without making it a dep
 
   useEffect(() => {
     localStorage.setItem("automl_saved_runs", JSON.stringify(savedRuns));
