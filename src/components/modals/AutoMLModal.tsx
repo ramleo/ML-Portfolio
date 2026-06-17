@@ -350,11 +350,13 @@ function ModelComparisonChart({ items }: { items: ModelComparisonItem[] }) {
 
 export default function AutoMLModal({
   onClose,
+  onSavedToPipeline,
   initialResult,
   initialHistory,
   onResultChange,
 }: {
   onClose: () => void;
+  onSavedToPipeline?: () => void;
   initialResult?: TrainResult | null;
   initialHistory?: HistoryEntry[];
   onResultChange?: (result: TrainResult | null, history: HistoryEntry[]) => void;
@@ -570,8 +572,9 @@ export default function AutoMLModal({
         metric: automl.selection_metric as ModelResult["metric"],
       })),
     }));
+    onSavedToPipeline?.();
     onClose();
-  }, [trainResult, file, target, taskType, setState, onClose]);
+  }, [trainResult, file, target, taskType, setState, onClose, onSavedToPipeline]);
 
   // ── Generate LLM analysis ────────────────────────────────────────────────
   const handleGenerateAnalysis = useCallback(async () => {

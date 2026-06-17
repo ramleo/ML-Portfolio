@@ -302,6 +302,7 @@ export default function MLCapabilities() {
         {openModal === "automl" && (
           <AutoMLModal
             onClose={() => setOpenModal(null)}
+            onSavedToPipeline={() => { setAutomlResult(null); setAutomlHistory([]); }}
             initialResult={automlResult}
             initialHistory={automlHistory}
             onResultChange={(r, h) => { setAutomlResult(r); setAutomlHistory(h); }}
