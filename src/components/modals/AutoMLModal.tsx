@@ -410,8 +410,10 @@ export default function AutoMLModal({
   const onResultChangeRef = useRef(onResultChange);
   onResultChangeRef.current = onResultChange;
   useEffect(() => {
-    onResultChangeRef.current?.(trainResult, history);
-  }, [trainResult, history]); // ref keeps callback current without making it a dep
+    if (!isLoadedFromSaved) {
+      onResultChangeRef.current?.(trainResult, history);
+    }
+  }, [trainResult, history, isLoadedFromSaved]); // skip parent update for loaded runs — only persist fresh trains
 
   useEffect(() => {
     localStorage.setItem("automl_saved_runs", JSON.stringify(savedRuns));
