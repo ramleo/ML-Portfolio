@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
@@ -69,6 +69,21 @@ const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
   { value: "groq-mixtral", label: "Mixtral 8x7B (Groq)" },
   { value: "custom",       label: "Custom (OpenAI-compatible)" },
 ];
+
+const LLM_KEY_HINTS: Record<LLMProvider, string> = {
+  "gemini-2.5":   "Get a free key at aistudio.google.com",
+  "anthropic":    "Get a key at console.anthropic.com",
+  "openai":       "Get a key at platform.openai.com",
+  "groq":         "Get a free key at console.groq.com",
+  "groq-mixtral": "Get a free key at console.groq.com",
+  "custom":       "Leave blank if your endpoint does not require authentication",
+};
+
+const SHARED_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees", "Decision Tree", "KNN"] as const;
+const TASK_ML_MODELS: Record<"classification" | "regression", string[]> = {
+  classification: ["Logistic Regression"],
+  regression:     ["Ridge"],
+};
 
 type ModelComparisonItem = { algorithm: string; fitness_score: number; reason: string };
 type ActionableInsight   = { title: string; detail: string };
@@ -315,8 +330,15 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [showKeyInput, setShowKeyInput]     = useState(false);
   const [customLLMUrl, setCustomLLMUrl]     = useState("");
   const [customLLMModel, setCustomLLMModel] = useState("");
-  const ALL_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"] as const;
-  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(ALL_ML_MODELS));
+  const availableModels = useMemo(
+    () => [...SHARED_ML_MODELS, ...TASK_ML_MODELS[taskType]],
+    [taskType]
+  );
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(availableModels));
+
+  useEffect(() => {
+    setSelectedModels(new Set(availableModels));
+  }, [availableModels]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
@@ -632,24 +654,47 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                 <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>
                   Models to compete
                 </label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                  {ALL_ML_MODELS.map(m => {
-                    const active = selectedModels.has(m);
-                    return (
-                      <button key={m} onClick={() => toggleModel(m)} style={{
-                        padding: "0.3rem 0.75rem", borderRadius: 9999, cursor: "pointer",
-                        fontSize: "0.75rem", fontWeight: 600,
-                        background: active ? `${ACCENT}22` : "transparent",
-                        border: `1px solid ${active ? ACCENT + "66" : "var(--border2)"}`,
-                        color: active ? ACCENT : "var(--text3)",
-                        transition: "all 0.15s",
-                      }}>{m}</button>
-                    );
-                  })}
+                {/* Chips */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
+                  {[...selectedModels].map(m => (
+                    <div key={m} style={{
+                      display: "flex", alignItems: "center", gap: "0.3rem",
+                      padding: "0.2rem 0.4rem 0.2rem 0.65rem", borderRadius: 9999,
+                      background: `${ACCENT}18`, border: `1px solid ${ACCENT}44`,
+                      fontSize: "0.73rem", color: ACCENT, fontWeight: 600,
+                    }}>
+                      {m}
+                      {selectedModels.size > 1 && (
+                        <button onClick={() => toggleModel(m)} style={{
+                          background: "none", border: "none", cursor: "pointer",
+                          color: ACCENT, padding: 0, lineHeight: 1, fontSize: "0.8rem",
+                          display: "flex", alignItems: "center",
+                        }}>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <line x1="1" y1="1" x2="9" y2="9" /><line x1="9" y1="1" x2="1" y2="9" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.3rem 0 0" }}>
-                  {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""} selected — at least 1 required
-                </p>
+                {/* Add model dropdown */}
+                {availableModels.filter(m => !selectedModels.has(m)).length > 0 && (
+                  <select
+                    value=""
+                    onChange={(e) => { if (e.target.value) toggleModel(e.target.value); }}
+                    style={{
+                      fontSize: "0.75rem", color: "var(--text3)", background: "var(--border)",
+                      border: "1px solid var(--border2)", borderRadius: 7,
+                      padding: "0.3rem 0.6rem", cursor: "pointer",
+                    }}
+                  >
+                    <option value="">+ Add model</option>
+                    {availableModels.filter(m => !selectedModels.has(m)).map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {analyzed.total_missing > 0 && (
@@ -672,10 +717,10 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
           {step === "training" && (
             <div>
               <p style={{ fontSize: "0.88rem", color: "var(--text2)", marginBottom: "0.5rem", lineHeight: 1.6 }}>
-                Running 5-fold cross-validation on all four algorithms. This may take 1-3 minutes.
+                Running 5-fold cross-validation on {selectedModels.size} algorithm{selectedModels.size !== 1 ? "s" : ""}. This may take 1–3 minutes.
               </p>
               <ProgressBar pct={pct} label={statusMsg} />
-              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: `repeat(${selectedModels.size}, 1fr)`, gap: "0.5rem" }}>
+              <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: `repeat(${Math.min(selectedModels.size, 4)}, 1fr)`, gap: "0.5rem" }}>
                 {[...selectedModels].map(algo => (
                   <div key={algo} style={{ padding: "0.6rem", borderRadius: 10, textAlign: "center", background: `${ACCENT}08`, border: `1px solid ${ACCENT}22` }}>
                     <div style={{ fontSize: "0.68rem", color: "var(--text2)", fontWeight: 500 }}>{algo}</div>
@@ -745,7 +790,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {showKeyInput ? "Hide key" : "Own key"}
+                      {showKeyInput ? "Hide key" : "Use my API key"}
                     </button>
                     <select
                       value={llmProvider}
@@ -815,8 +860,11 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                         }}
                       />
                     )}
+                    <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: 0, lineHeight: 1.45 }}>
+                      {LLM_KEY_HINTS[llmProvider]}
+                    </p>
                     <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: 0 }}>
-                      Key is used only for this request and never stored.
+                      Key is used only for this request and never stored. Server key is shared and may be rate-limited — use yours for faster responses.
                     </p>
                   </div>
                 )}
@@ -864,8 +912,13 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                 {/* Model comparison chart from LLM */}
                 {!llmLoading && llmExp?.model_comparison && llmExp.model_comparison.length > 0 && (
                   <div style={{ marginTop: "1rem" }}>
-                    <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>
-                      Model fitness for this dataset
+                    <div style={{ marginBottom: "0.4rem" }}>
+                      <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                        Model fitness for this dataset
+                      </div>
+                      <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.15rem 0 0", lineHeight: 1.4 }}>
+                        LLM-rated 0–100 based on CV score and fold stability. Higher = better fit for your data.
+                      </p>
                     </div>
                     <ModelComparisonChart items={llmExp.model_comparison} />
                   </div>
