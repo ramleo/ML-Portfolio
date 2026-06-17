@@ -424,16 +424,26 @@ export default function AutoMLModal({
       ? isReg ? winnerCV.score.toFixed(4) : `${(winnerCV.score * 100).toFixed(2)}%`
       : trainResult.metric;
     const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    setSavedRuns(prev => [{
-      id: `${Date.now()}`,
-      datasetName,
-      runNumber,
-      winner: trainResult.automl.winner,
-      score,
-      task: trainResult.automl.task,
-      date,
-      result: trainResult,
-    }, ...prev]);
+    const MAX_PER_DATASET = 5;
+    setSavedRuns(prev => {
+      const newRun: SavedRun = {
+        id: `${Date.now()}`,
+        datasetName,
+        runNumber,
+        winner: trainResult.automl.winner,
+        score,
+        task: trainResult.automl.task,
+        date,
+        result: trainResult,
+      };
+      const withNew = [newRun, ...prev];
+      // Keep only the MAX_PER_DATASET most recent per dataset; evict oldest (last in array)
+      const datasetCount: Record<string, number> = {};
+      return withNew.filter(r => {
+        datasetCount[r.datasetName] = (datasetCount[r.datasetName] ?? 0) + 1;
+        return datasetCount[r.datasetName] <= MAX_PER_DATASET;
+      });
+    });
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1800);
   }, [trainResult, file, savedRuns]); // file may be null after modal reopen; falls back to trainResult.title
@@ -1146,12 +1156,21 @@ export default function AutoMLModal({
                   onClick={onClose}
                   style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}
                 >Close</button>
-                <button
-                  onClick={handleSaveVersion}
-                  disabled={savedFlash || isLoadedFromSaved}
-                  title={isLoadedFromSaved ? "Already saved — load is read-only" : undefined}
-                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: (savedFlash || isLoadedFromSaved) ? "default" : "pointer", background: savedFlash ? `${ACCENT}33` : `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: isLoadedFromSaved ? "var(--text3)" : ACCENT, fontSize: "0.82rem", fontWeight: 600, transition: "background 0.2s, color 0.2s", opacity: isLoadedFromSaved ? 0.45 : 1 }}
-                >{savedFlash ? "Saved!" : "Save Version"}</button>
+                {(() => {
+                  const dsName = file?.name ?? trainResult?.title ?? "";
+                  const dsCount = savedRuns.filter(r => r.datasetName === dsName).length;
+                  const atCap = dsCount >= 5;
+                  const blocked = savedFlash || isLoadedFromSaved || atCap;
+                  const tipText = isLoadedFromSaved ? "Already saved — load is read-only" : atCap ? "Cap reached (5/5) — delete a run first" : undefined;
+                  return (
+                    <button
+                      onClick={handleSaveVersion}
+                      disabled={blocked}
+                      title={tipText}
+                      style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: blocked ? "default" : "pointer", background: savedFlash ? `${ACCENT}33` : `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: blocked && !savedFlash ? "var(--text3)" : ACCENT, fontSize: "0.82rem", fontWeight: 600, transition: "background 0.2s, color 0.2s", opacity: blocked && !savedFlash ? 0.45 : 1 }}
+                    >{savedFlash ? "Saved!" : atCap ? "5 / 5 Full" : "Save Version"}</button>
+                  );
+                })()}
                 <button
                   onClick={handleSave}
                   style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#000", fontSize: "0.85rem", fontWeight: 700 }}
@@ -1199,7 +1218,9 @@ export default function AutoMLModal({
                               </svg>
                               <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>{dataset}</span>
                             </div>
-                            <span style={{ fontSize: "0.68rem", color: "var(--text3)" }}>{runs.length} run{runs.length !== 1 ? "s" : ""}</span>
+                            <span style={{ fontSize: "0.68rem", color: runs.length >= 5 ? "#f87171" : "var(--text3)", fontVariantNumeric: "tabular-nums" }}>
+                              {runs.length} / 5
+                            </span>
                           </button>
                           {isOpen && (
                             <div style={{ borderTop: "1px solid var(--border)" }}>
