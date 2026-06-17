@@ -409,8 +409,8 @@ export default function AutoMLModal({
   }, [savedRuns]);
 
   const handleSaveVersion = useCallback(() => {
-    if (!trainResult || !file) return;
-    const datasetName = file.name;
+    if (!trainResult) return;
+    const datasetName = file?.name ?? trainResult.title;
     const existing = savedRuns.filter(r => r.datasetName === datasetName);
     const runNumber = existing.length + 1;
     const isReg = trainResult.automl.task === "regression";
@@ -429,7 +429,7 @@ export default function AutoMLModal({
       date,
       result: trainResult,
     }, ...prev]);
-  }, [trainResult, file, savedRuns]);
+  }, [trainResult, file, savedRuns]); // file may be null after modal reopen; falls back to trainResult.title
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
