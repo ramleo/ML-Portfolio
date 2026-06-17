@@ -59,6 +59,17 @@ export type TrainResult = {
 
 export type HistoryEntry = { ts: string; result: TrainResult };
 
+type SavedRun = {
+  id: string;
+  datasetName: string;
+  runNumber: number;
+  winner: string;
+  score: string;
+  task: "classification" | "regression";
+  date: string;
+  result: TrainResult;
+};
+
 type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral" | "custom";
 
 const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
@@ -369,6 +380,12 @@ export default function AutoMLModal({
   const [customLLMUrl, setCustomLLMUrl]     = useState("");
   const [customLLMModel, setCustomLLMModel] = useState("");
   const [analysisExpanded, setAnalysisExpanded] = useState(false);
+  const [view, setView] = useState<"wizard" | "saved">("wizard");
+  const [savedRuns, setSavedRuns] = useState<SavedRun[]>(() => {
+    try { return JSON.parse(localStorage.getItem("automl_saved_runs") || "[]"); }
+    catch { return []; }
+  });
+  const [expandedDatasets, setExpandedDatasets] = useState<Set<string>>(new Set());
   const availableModels = useMemo(
     () => [...SHARED_ML_MODELS, ...TASK_ML_MODELS[taskType]],
     [taskType]
@@ -386,6 +403,33 @@ export default function AutoMLModal({
   useEffect(() => {
     onResultChange?.(trainResult, history);
   }, [trainResult, history, onResultChange]);
+
+  useEffect(() => {
+    localStorage.setItem("automl_saved_runs", JSON.stringify(savedRuns));
+  }, [savedRuns]);
+
+  const handleSaveVersion = useCallback(() => {
+    if (!trainResult || !file) return;
+    const datasetName = file.name;
+    const existing = savedRuns.filter(r => r.datasetName === datasetName);
+    const runNumber = existing.length + 1;
+    const isReg = trainResult.automl.task === "regression";
+    const winnerCV = trainResult.automl.cv_results.find(r => r.algorithm === trainResult.automl.winner);
+    const score = winnerCV
+      ? isReg ? winnerCV.score.toFixed(4) : `${(winnerCV.score * 100).toFixed(2)}%`
+      : trainResult.metric;
+    const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    setSavedRuns(prev => [{
+      id: `${Date.now()}`,
+      datasetName,
+      runNumber,
+      winner: trainResult.automl.winner,
+      score,
+      task: trainResult.automl.task,
+      date,
+      result: trainResult,
+    }, ...prev]);
+  }, [trainResult, file, savedRuns]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
@@ -592,6 +636,22 @@ export default function AutoMLModal({
             </button>
           </div>
 
+          {/* Tab switcher */}
+          <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border)" }}>
+            {(["wizard", "saved"] as const).map(v => (
+              <button key={v} onClick={() => setView(v)} style={{
+                padding: "0.4rem 1rem", background: "none", border: "none",
+                borderBottom: view === v ? `2px solid ${ACCENT}` : "2px solid transparent",
+                color: view === v ? ACCENT : "var(--text3)",
+                fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
+                marginBottom: "-1px", transition: "color 0.15s",
+              }}>
+                {v === "wizard" ? "New Run" : `Saved${savedRuns.length > 0 ? ` (${savedRuns.length})` : ""}`}
+              </button>
+            ))}
+          </div>
+
+          {view === "wizard" && <>
           {/* Step indicator */}
           <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem" }}>
             {stepKeys.map((s, i) => {
@@ -1069,7 +1129,7 @@ export default function AutoMLModal({
               )}
 
               {/* Action buttons */}
-              <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.5rem" }}>
+              <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
                 <button
                   onClick={() => { setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null); setPct(0); setLlmExp(null); setLlmProgress(0); }}
                   style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}
@@ -1079,10 +1139,100 @@ export default function AutoMLModal({
                   style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}
                 >Close</button>
                 <button
+                  onClick={handleSaveVersion}
+                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: ACCENT, fontSize: "0.82rem", fontWeight: 600 }}
+                >Save Version</button>
+                <button
                   onClick={handleSave}
                   style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#000", fontSize: "0.85rem", fontWeight: 700 }}
                 >Save to Pipeline</button>
               </div>
+            </div>
+          )}
+
+          </>}
+
+          {/* ── Saved runs view ── */}
+          {view === "saved" && (
+            <div>
+              {savedRuns.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--text3)", fontSize: "0.82rem" }}>
+                  No saved runs yet. Run AutoML and click "Save Version" to save a result.
+                </div>
+              ) : (() => {
+                const grouped = savedRuns.reduce<Record<string, SavedRun[]>>((acc, r) => {
+                  (acc[r.datasetName] ??= []).push(r);
+                  return acc;
+                }, {});
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {Object.entries(grouped).map(([dataset, runs]) => {
+                      const isOpen = expandedDatasets.has(dataset);
+                      return (
+                        <div key={dataset} style={{ borderRadius: 10, border: "1px solid var(--border)", overflow: "hidden" }}>
+                          <button
+                            onClick={() => setExpandedDatasets(prev => {
+                              const next = new Set(prev);
+                              isOpen ? next.delete(dataset) : next.add(dataset);
+                              return next;
+                            })}
+                            style={{
+                              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                              padding: "0.65rem 0.9rem", background: "var(--bg-glass)",
+                              border: "none", cursor: "pointer", gap: "0.5rem",
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                                style={{ transition: "transform 0.2s", transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0 }}>
+                                <polyline points="2,2 7,5 2,8" />
+                              </svg>
+                              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>{dataset}</span>
+                            </div>
+                            <span style={{ fontSize: "0.68rem", color: "var(--text3)" }}>{runs.length} run{runs.length !== 1 ? "s" : ""}</span>
+                          </button>
+                          {isOpen && (
+                            <div style={{ borderTop: "1px solid var(--border)" }}>
+                              {runs.map((run) => (
+                                <div key={run.id} style={{
+                                  display: "flex", alignItems: "center", gap: "0.75rem",
+                                  padding: "0.55rem 0.9rem", borderBottom: "1px solid var(--border)",
+                                  background: "transparent",
+                                }}>
+                                  <span style={{ fontSize: "0.68rem", color: "var(--text3)", width: 42, flexShrink: 0 }}>Run {run.runNumber}</span>
+                                  <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", flex: 1 }}>{run.winner}</span>
+                                  <span style={{ fontSize: "0.75rem", fontVariantNumeric: "tabular-nums", color: ACCENT, fontWeight: 600 }}>{run.score}</span>
+                                  <span style={{ fontSize: "0.65rem", color: "var(--text3)", width: 36, textAlign: "right", flexShrink: 0 }}>{run.date}</span>
+                                  <button
+                                    onClick={() => { setTrainResult(run.result); setStep("results"); setView("wizard"); }}
+                                    style={{
+                                      padding: "0.2rem 0.6rem", borderRadius: 6, cursor: "pointer", flexShrink: 0,
+                                      background: "transparent", border: `1px solid ${ACCENT}44`,
+                                      color: ACCENT, fontSize: "0.68rem", fontWeight: 600,
+                                    }}
+                                  >Load</button>
+                                  <button
+                                    onClick={() => setSavedRuns(prev => prev.filter(r => r.id !== run.id))}
+                                    style={{
+                                      background: "none", border: "none", cursor: "pointer",
+                                      color: "var(--text3)", padding: "0 2px", flexShrink: 0,
+                                    }}
+                                    title="Delete"
+                                  >
+                                    <svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                                      <line x1="1" y1="1" x2="9" y2="9" /><line x1="9" y1="1" x2="1" y2="9" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
