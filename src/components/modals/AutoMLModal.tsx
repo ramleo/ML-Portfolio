@@ -503,6 +503,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
     setLlmLoading(true);
     setLlmExp(null);
     setLlmProgress(8);
+    setAnalysisExpanded(true);
 
     // Animate progress bar while waiting for LLM
     const interval = setInterval(() => {
