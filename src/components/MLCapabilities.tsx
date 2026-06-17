@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AutoMLModal, { type TrainResult, type HistoryEntry } from "@/components/modals/AutoMLModal";
+import PreprocessingModal from "@/components/modals/PreprocessingModal";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -306,6 +307,9 @@ export default function MLCapabilities() {
   return (
     <PipelineProvider>
       <>
+        {openModal === "preprocessing" && (
+          <PreprocessingModal onClose={() => setOpenModal(null)} />
+        )}
         {openModal === "automl" && (
           <AutoMLModal
             onClose={() => setOpenModal(null)}

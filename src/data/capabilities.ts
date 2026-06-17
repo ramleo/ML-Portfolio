@@ -31,6 +31,7 @@ const capabilities: Capability[] = [
     tags: ["Imputation", "Outliers", "Encoding", "Power Transform"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    modalEnabled: true,
   },
   {
     id: "automl",
