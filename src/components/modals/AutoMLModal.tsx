@@ -5,7 +5,6 @@ import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 const ACCENT = "#818cf8";
-const ACCENT_GRAD = "linear-gradient(90deg, #818cf8, #38bdf8, #34d399)";
 const MODAL_BG = "#0b1120";
 const CARD_BG = "rgba(17,24,39,0.65)";
 
@@ -219,12 +218,12 @@ function RankingTable({ results, winner, task }: {
 function WinnerMetricsGrid({ metrics, task }: { metrics: WinnerMetrics; task: "classification" | "regression" }) {
   const entries: { label: string; value: string }[] = [];
   if (task === "regression") {
-    if (metrics.mae      != null) entries.push({ label: "MAE",       value: metrics.mae.toFixed(4) });
-    if (metrics.rmse     != null) entries.push({ label: "RMSE",      value: metrics.rmse.toFixed(4) });
+    if (metrics.mae      != null) entries.push({ label: "MAE",       value: metrics.mae.toFixed(2) });
+    if (metrics.rmse     != null) entries.push({ label: "RMSE",      value: metrics.rmse.toFixed(2) });
     if (metrics.mape     != null) entries.push({ label: "MAPE",      value: (metrics.mape * 100).toFixed(2) + "%" });
-    if (metrics.r2       != null) entries.push({ label: "R²",        value: metrics.r2.toFixed(3) });
-    if (metrics.max_error!= null) entries.push({ label: "Max Error", value: metrics.max_error.toFixed(4) });
-    if (metrics.median_ae!= null) entries.push({ label: "Median AE", value: metrics.median_ae.toFixed(4) });
+    if (metrics.r2       != null) entries.push({ label: "R²",        value: metrics.r2.toFixed(2) });
+    if (metrics.max_error!= null) entries.push({ label: "Max Error", value: metrics.max_error.toFixed(2) });
+    if (metrics.median_ae!= null) entries.push({ label: "Median AE", value: metrics.median_ae.toFixed(2) });
   } else {
     if (metrics.accuracy   != null) entries.push({ label: "Accuracy",  value: (metrics.accuracy * 100).toFixed(1) + "%" });
     if (metrics.f1_weighted!= null) entries.push({ label: "F1",        value: metrics.f1_weighted.toFixed(3) });
@@ -656,7 +655,6 @@ export default function AutoMLModal({
         border: "1px solid rgba(129,140,248,0.14)", borderRadius: 20,
         boxShadow: "0 0 0 1px rgba(129,140,248,0.07), 0 40px 100px rgba(0,0,0,0.85)",
       }}>
-        <div style={{ height: 3, background: ACCENT_GRAD, borderRadius: "20px 20px 0 0" }} />
 
         <div style={{ padding: "1.75rem 2rem 2rem" }}>
           {/* Header */}
