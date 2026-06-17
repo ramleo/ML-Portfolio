@@ -619,6 +619,23 @@ export default function AutoMLModal({
     }
   }, [trainResult, llmProvider, userApiKey]);
 
+  // ── Training time estimate ────────────────────────────────────────────────
+  const trainingEstimate = useMemo(() => {
+    const rows = analyzed?.rows ?? 1000;
+    const base = rows < 500 ? 5 : rows < 2000 ? 12 : rows < 10000 ? 25 : 50;
+    const SLOW = new Set(["XGBoost", "LightGBM", "CatBoost", "Gradient Boosting", "SVM", "SVR", "Extra Trees"]);
+    const FAST = new Set(["Naive Bayes", "Decision Tree", "Ridge", "Lasso", "ElasticNet"]);
+    let total = 0;
+    for (const m of selectedModels) {
+      total += SLOW.has(m) ? base * 1.8 : FAST.has(m) ? base * 0.6 : base;
+    }
+    total = Math.round(total * 1.2); // Render overhead buffer
+    const lo = Math.round(total * 0.8);
+    const hi = Math.round(total * 1.4);
+    const fmt = (s: number) => s < 60 ? `${s}s` : `${Math.round(s / 60 * 2) / 2} min`;
+    return lo === hi ? `~${fmt(lo)}` : `${fmt(lo)}–${fmt(hi)}`;
+  }, [analyzed, selectedModels]);
+
   // ── Step indicator ────────────────────────────────────────────────────────
   const stepLabels = ["Upload", "Configure", "Training", "Results"];
   const stepKeys   = ["upload", "config", "training", "results"] as Step[];
@@ -850,7 +867,8 @@ export default function AutoMLModal({
           {step === "training" && (
             <div>
               <p style={{ fontSize: "0.88rem", color: "var(--text2)", marginBottom: "0.5rem", lineHeight: 1.6 }}>
-                Running 5-fold cross-validation on {selectedModels.size} algorithm{selectedModels.size !== 1 ? "s" : ""}. This may take 1–3 minutes.
+                Running 5-fold cross-validation on {selectedModels.size} algorithm{selectedModels.size !== 1 ? "s" : ""}
+                {analyzed ? <> across {analyzed.rows.toLocaleString()} rows. Estimated time: <span style={{ color: ACCENT, fontWeight: 600 }}>{trainingEstimate}</span> (varies with server load).</> : ". This may take a few minutes."}
               </p>
               <ProgressBar pct={pct} label={statusMsg} />
               <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: `repeat(${Math.min(selectedModels.size, 4)}, 1fr)`, gap: "0.5rem" }}>
