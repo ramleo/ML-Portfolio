@@ -4,8 +4,8 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
+import ModalShell from "@/components/modals/ModalShell";
 const ACCENT = "#818cf8";
-const MODAL_BG = "#0b1120";
 const CARD_BG = "rgba(17,24,39,0.65)";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -643,40 +643,7 @@ export default function AutoMLModal({
   const currentIdx = stepKeys.indexOf(step);
 
   return (
-    <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position: "fixed", inset: 0, zIndex: 9000,
-        background: "rgba(2,8,22,0.92)", backdropFilter: "blur(8px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
-      }}
-    >
-      <div style={{
-        width: "100%", maxWidth: 660, maxHeight: "92vh", overflowY: "auto",
-        background: MODAL_BG,
-        border: "1px solid rgba(129,140,248,0.14)", borderRadius: 20,
-        boxShadow: "0 0 0 1px rgba(129,140,248,0.07), 0 40px 100px rgba(0,0,0,0.85)",
-      }}>
-
-        <div style={{ padding: "1.75rem 2rem 2rem" }}>
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <div>
-              <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: ACCENT, display: "block", marginBottom: "0.2rem" }}>
-                ML Capabilities
-              </span>
-              <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "var(--text)" }}>AutoML Pipeline</h2>
-            </div>
-            <button onClick={onClose} style={{
-              width: 32, height: 32, borderRadius: 9999,
-              background: "var(--border)", border: "1px solid var(--border2)",
-              color: "var(--text2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
-              </svg>
-            </button>
-          </div>
+    <ModalShell onClose={onClose} title="AutoML Pipeline" accent={ACCENT}>
 
           {/* Tab switcher */}
           <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border)" }}>
@@ -1315,8 +1282,6 @@ export default function AutoMLModal({
               </svg>
             </a>
           </div>
-        </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 }
