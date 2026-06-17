@@ -152,13 +152,13 @@ function RankingTable({ results, winner, task }: {
           : Math.round((r.score / (winnerScore || 1)) * 100);
         const opacity = barOpacities[Math.min(i, barOpacities.length - 1)];
         const scoreLabel = task === "regression"
-          ? r.score.toFixed(4)
+          ? r.score.toFixed(2)
           : (r.score * 100).toFixed(2) + "%";
         const delta = task === "regression"
           ? r.score - winnerScore
           : (r.score - winnerScore) * 100;
         const deltaLabel = task === "regression"
-          ? `+${delta.toFixed(4)}`
+          ? `+${delta.toFixed(2)}`
           : `${delta.toFixed(2)}%`;
 
         return (
@@ -226,10 +226,10 @@ function WinnerMetricsGrid({ metrics, task }: { metrics: WinnerMetrics; task: "c
     if (metrics.median_ae!= null) entries.push({ label: "Median AE", value: metrics.median_ae.toFixed(2) });
   } else {
     if (metrics.accuracy   != null) entries.push({ label: "Accuracy",  value: (metrics.accuracy * 100).toFixed(1) + "%" });
-    if (metrics.f1_weighted!= null) entries.push({ label: "F1",        value: metrics.f1_weighted.toFixed(3) });
-    if (metrics.precision  != null) entries.push({ label: "Precision", value: metrics.precision.toFixed(3) });
-    if (metrics.recall     != null) entries.push({ label: "Recall",    value: metrics.recall.toFixed(3) });
-    if (metrics.roc_auc    != null) entries.push({ label: "ROC-AUC",   value: metrics.roc_auc.toFixed(3) });
+    if (metrics.f1_weighted!= null) entries.push({ label: "F1",        value: metrics.f1_weighted.toFixed(2) });
+    if (metrics.precision  != null) entries.push({ label: "Precision", value: metrics.precision.toFixed(2) });
+    if (metrics.recall     != null) entries.push({ label: "Recall",    value: metrics.recall.toFixed(2) });
+    if (metrics.roc_auc    != null) entries.push({ label: "ROC-AUC",   value: metrics.roc_auc.toFixed(2) });
   }
   if (!entries.length) return null;
   return (
@@ -425,7 +425,7 @@ export default function AutoMLModal({
     const isReg = trainResult.automl.task === "regression";
     const winnerCV = trainResult.automl.cv_results.find(r => r.algorithm === trainResult.automl.winner);
     const score = winnerCV
-      ? isReg ? winnerCV.score.toFixed(4) : `${(winnerCV.score * 100).toFixed(2)}%`
+      ? isReg ? winnerCV.score.toFixed(2) : `${(winnerCV.score * 100).toFixed(2)}%`
       : trainResult.metric;
     const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const MAX_PER_DATASET = 5;
@@ -888,7 +888,7 @@ export default function AutoMLModal({
                 const isReg = trainResult.automl.task === "regression";
                 const winnerCV = trainResult.automl.cv_results.find(r => r.algorithm === trainResult.automl.winner);
                 const cvDisplay = winnerCV
-                  ? isReg ? winnerCV.score.toFixed(4) : `${(winnerCV.score * 100).toFixed(2)}%`
+                  ? isReg ? winnerCV.score.toFixed(2) : `${(winnerCV.score * 100).toFixed(2)}%`
                   : null;
                 const testDisplay = isReg
                   ? trainResult.metric
