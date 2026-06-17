@@ -880,9 +880,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
-                {analysisExpanded && (
-                <div>
-                {/* Own API key + custom LLM fields */}
+                {/* Own API key + custom LLM fields — always visible when toggled */}
                 {(showKeyInput || llmProvider === "custom") && (
                   <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                     <input
@@ -931,6 +929,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </div>
                 )}
 
+                {analysisExpanded && (
+                <div>
                 {/* Progress bar while loading */}
                 {llmLoading && (
                   <div style={{ marginTop: "0.75rem" }}>
