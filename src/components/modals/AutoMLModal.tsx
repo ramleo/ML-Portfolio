@@ -4,7 +4,10 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
-const ACCENT = "#34d399";
+const ACCENT = "#818cf8";
+const ACCENT_GRAD = "linear-gradient(90deg, #818cf8, #38bdf8, #34d399)";
+const MODAL_BG = "#0b1120";
+const CARD_BG = "rgba(17,24,39,0.65)";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -381,6 +384,7 @@ export default function AutoMLModal({
   const [customLLMModel, setCustomLLMModel] = useState("");
   const [analysisExpanded, setAnalysisExpanded] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [isLoadedFromSaved, setIsLoadedFromSaved] = useState(false);
   const [view, setView] = useState<"wizard" | "saved">("wizard");
   const [savedRuns, setSavedRuns] = useState<SavedRun[]>(() => {
     try { return JSON.parse(localStorage.getItem("automl_saved_runs") || "[]"); }
@@ -517,6 +521,7 @@ export default function AutoMLModal({
               if (evt.result) {
                 const r: TrainResult = evt.result;
                 setTrainResult(r);
+                setIsLoadedFromSaved(false);
                 setHistory(prev => [{ ts: new Date().toLocaleTimeString(), result: r }, ...prev].slice(0, 3));
                 setStep("results");
               }
@@ -607,17 +612,17 @@ export default function AutoMLModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 9000,
-        background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)",
+        background: "rgba(2,8,22,0.92)", backdropFilter: "blur(8px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
       }}
     >
       <div style={{
         width: "100%", maxWidth: 660, maxHeight: "92vh", overflowY: "auto",
-        background: "var(--bg-glass)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        border: `1px solid ${ACCENT}33`, borderRadius: 20,
-        boxShadow: `0 0 0 1px ${ACCENT}22, 0 40px 80px rgba(0,0,0,0.6)`,
+        background: MODAL_BG,
+        border: "1px solid rgba(129,140,248,0.14)", borderRadius: 20,
+        boxShadow: "0 0 0 1px rgba(129,140,248,0.07), 0 40px 100px rgba(0,0,0,0.85)",
       }}>
-        <div style={{ height: 3, background: ACCENT, borderRadius: "20px 20px 0 0" }} />
+        <div style={{ height: 3, background: ACCENT_GRAD, borderRadius: "20px 20px 0 0" }} />
 
         <div style={{ padding: "1.75rem 2rem 2rem" }}>
           {/* Header */}
@@ -724,7 +729,7 @@ export default function AutoMLModal({
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
                 {[{ label: "File", value: file?.name ?? "" }, { label: "Rows", value: analyzed.rows.toLocaleString() }, { label: "Columns", value: String(analyzed.columns.length) }].map(m => (
-                  <div key={m.label} style={{ padding: "0.6rem 0.85rem", borderRadius: 10, background: `${ACCENT}0a`, border: `1px solid ${ACCENT}22` }}>
+                  <div key={m.label} style={{ padding: "0.6rem 0.85rem", borderRadius: 10, background: CARD_BG, border: "1px solid rgba(129,140,248,0.14)" }}>
                     <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>{m.label}</div>
                     <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.value}</div>
                   </div>
@@ -734,7 +739,7 @@ export default function AutoMLModal({
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.4rem" }}>Target column</label>
                 <select value={target} onChange={(e) => setTarget(e.target.value)}
-                  style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}>
+                  style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "#111827", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}>
                   {analyzed.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                 </select>
               </div>
@@ -757,7 +762,7 @@ export default function AutoMLModal({
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.4rem" }}>Model name</label>
                 <input type="text" value={modelName} onChange={(e) => setModelName(e.target.value)}
-                  style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.85rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "#111827", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", boxSizing: "border-box" }} />
               </div>
 
               {/* ML model selection */}
@@ -1134,7 +1139,7 @@ export default function AutoMLModal({
               {/* Action buttons */}
               <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
                 <button
-                  onClick={() => { setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null); setPct(0); setLlmExp(null); setLlmProgress(0); }}
+                  onClick={() => { setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null); setPct(0); setLlmExp(null); setLlmProgress(0); setIsLoadedFromSaved(false); }}
                   style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}
                 >Run Again</button>
                 <button
@@ -1143,8 +1148,9 @@ export default function AutoMLModal({
                 >Close</button>
                 <button
                   onClick={handleSaveVersion}
-                  disabled={savedFlash}
-                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: savedFlash ? "default" : "pointer", background: savedFlash ? `${ACCENT}33` : `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: ACCENT, fontSize: "0.82rem", fontWeight: 600, transition: "background 0.2s" }}
+                  disabled={savedFlash || isLoadedFromSaved}
+                  title={isLoadedFromSaved ? "Already saved — load is read-only" : undefined}
+                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: (savedFlash || isLoadedFromSaved) ? "default" : "pointer", background: savedFlash ? `${ACCENT}33` : `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: isLoadedFromSaved ? "var(--text3)" : ACCENT, fontSize: "0.82rem", fontWeight: 600, transition: "background 0.2s, color 0.2s", opacity: isLoadedFromSaved ? 0.45 : 1 }}
                 >{savedFlash ? "Saved!" : "Save Version"}</button>
                 <button
                   onClick={handleSave}
@@ -1208,7 +1214,7 @@ export default function AutoMLModal({
                                   <span style={{ fontSize: "0.75rem", fontVariantNumeric: "tabular-nums", color: ACCENT, fontWeight: 600 }}>{run.score}</span>
                                   <span style={{ fontSize: "0.65rem", color: "var(--text3)", width: 36, textAlign: "right", flexShrink: 0 }}>{run.date}</span>
                                   <button
-                                    onClick={() => { setTrainResult(run.result); setStep("results"); setView("wizard"); }}
+                                    onClick={() => { setTrainResult(run.result); setStep("results"); setView("wizard"); setIsLoadedFromSaved(true); }}
                                     style={{
                                       padding: "0.2rem 0.6rem", borderRadius: 6, cursor: "pointer", flexShrink: 0,
                                       background: "transparent", border: `1px solid ${ACCENT}44`,
