@@ -79,10 +79,11 @@ const LLM_KEY_HINTS: Record<LLMProvider, string> = {
   "custom":       "Leave blank if your endpoint does not require authentication",
 };
 
-const SHARED_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees", "Decision Tree", "KNN"] as const;
+const DEFAULT_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"] as const;
+const SHARED_ML_MODELS = [...DEFAULT_ML_MODELS, "Decision Tree", "KNN"] as const;
 const TASK_ML_MODELS: Record<"classification" | "regression", string[]> = {
-  classification: ["Logistic Regression"],
-  regression:     ["Ridge"],
+  classification: ["Logistic Regression", "SVM", "Naive Bayes", "Gradient Boosting", "AdaBoost"],
+  regression:     ["Ridge", "Lasso", "ElasticNet", "SVR", "Gradient Boosting"],
 };
 
 type ModelComparisonItem = { algorithm: string; fitness_score: number; reason: string };
@@ -334,11 +335,11 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
     () => [...SHARED_ML_MODELS, ...TASK_ML_MODELS[taskType]],
     [taskType]
   );
-  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(availableModels));
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(DEFAULT_ML_MODELS));
 
   useEffect(() => {
-    setSelectedModels(new Set(availableModels));
-  }, [availableModels]);
+    setSelectedModels(new Set(DEFAULT_ML_MODELS));
+  }, [taskType]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
