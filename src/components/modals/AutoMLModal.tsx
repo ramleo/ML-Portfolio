@@ -55,6 +55,7 @@ type AutoMLResult = {
 export type TrainResult = {
   id: string;
   title: string;
+  fileName?: string;
   metric: string;
   metricLabel: string;
   automl: AutoMLResult;
@@ -417,7 +418,7 @@ export default function AutoMLModal({
 
   const handleSaveVersion = useCallback(() => {
     if (!trainResult) return;
-    const datasetName = file?.name ?? trainResult.title;
+    const datasetName = file?.name ?? trainResult.fileName ?? trainResult.title;
     const existing = savedRuns.filter(r => r.datasetName === datasetName);
     const runNumber = existing.length + 1;
     const isReg = trainResult.automl.task === "regression";
@@ -448,7 +449,8 @@ export default function AutoMLModal({
     });
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1800);
-  }, [trainResult, file, savedRuns]); // file may be null after modal reopen; falls back to trainResult.title
+    onSavedToPipeline?.();
+  }, [trainResult, file, savedRuns, onSavedToPipeline]); // file may be null after modal reopen; falls back to trainResult.fileName
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
@@ -531,7 +533,7 @@ export default function AutoMLModal({
             if (evt.done) {
               if (evt.error) throw new Error(evt.error);
               if (evt.result) {
-                const r: TrainResult = evt.result;
+                const r: TrainResult = { ...evt.result, fileName: file?.name };
                 setTrainResult(r);
                 setIsLoadedFromSaved(false);
                 setHistory(prev => [{ ts: new Date().toLocaleTimeString(), result: r }, ...prev].slice(0, 3));
