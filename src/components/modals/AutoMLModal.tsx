@@ -49,7 +49,7 @@ type AutoMLResult = {
   n_rows?: number;
 };
 
-type TrainResult = {
+export type TrainResult = {
   id: string;
   title: string;
   metric: string;
@@ -57,7 +57,7 @@ type TrainResult = {
   automl: AutoMLResult;
 };
 
-type HistoryEntry = { ts: string; result: TrainResult };
+export type HistoryEntry = { ts: string; result: TrainResult };
 
 type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral" | "custom";
 
@@ -334,10 +334,20 @@ function ModelComparisonChart({ items }: { items: ModelComparisonItem[] }) {
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
 
-export default function AutoMLModal({ onClose }: { onClose: () => void }) {
+export default function AutoMLModal({
+  onClose,
+  initialResult,
+  initialHistory,
+  onResultChange,
+}: {
+  onClose: () => void;
+  initialResult?: TrainResult | null;
+  initialHistory?: HistoryEntry[];
+  onResultChange?: (result: TrainResult | null, history: HistoryEntry[]) => void;
+}) {
   const { setState } = usePipeline();
 
-  const [step, setStep]           = useState<Step>("upload");
+  const [step, setStep]           = useState<Step>(initialResult ? "results" : "upload");
   const [file, setFile]           = useState<File | null>(null);
   const [analyzed, setAnalyzed]   = useState<AnalyzeResult | null>(null);
   const [target, setTarget]       = useState("");
@@ -345,8 +355,8 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   const [modelName, setModelName] = useState("My AutoML Model");
   const [pct, setPct]             = useState(0);
   const [statusMsg, setStatusMsg] = useState("Initializing...");
-  const [trainResult, setTrainResult] = useState<TrainResult | null>(null);
-  const [history, setHistory]     = useState<HistoryEntry[]>([]);
+  const [trainResult, setTrainResult] = useState<TrainResult | null>(initialResult ?? null);
+  const [history, setHistory]     = useState<HistoryEntry[]>(initialHistory ?? []);
   const [error, setError]         = useState("");
   const [dragging, setDragging]   = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -372,6 +382,10 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (llmExp) setAnalysisExpanded(true);
   }, [llmExp]);
+
+  useEffect(() => {
+    onResultChange?.(trainResult, history);
+  }, [trainResult, history, onResultChange]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {

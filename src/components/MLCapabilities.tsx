@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { PipelineProvider } from "@/context/PipelineContext";
-import AutoMLModal from "@/components/modals/AutoMLModal";
+import AutoMLModal, { type TrainResult, type HistoryEntry } from "@/components/modals/AutoMLModal";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -293,11 +293,20 @@ export default function MLCapabilities() {
   const isSmall   = capabilities.length < 6;
   const useScroll = isOdd || isSmall;
   const [openModal, setOpenModal] = useState<string | null>(null);
+  const [automlResult, setAutomlResult]   = useState<TrainResult | null>(null);
+  const [automlHistory, setAutomlHistory] = useState<HistoryEntry[]>([]);
 
   return (
     <PipelineProvider>
       <>
-        {openModal === "automl" && <AutoMLModal onClose={() => setOpenModal(null)} />}
+        {openModal === "automl" && (
+          <AutoMLModal
+            onClose={() => setOpenModal(null)}
+            initialResult={automlResult}
+            initialHistory={automlHistory}
+            onResultChange={(r, h) => { setAutomlResult(r); setAutomlHistory(h); }}
+          />
+        )}
         <section
       id="capabilities"
       style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}
