@@ -736,27 +736,45 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
           {step === "results" && trainResult?.automl && (
             <div>
               {/* Winner banner */}
-              <div style={{
-                padding: "1rem 1.25rem", borderRadius: 12, marginBottom: "0.75rem",
-                background: `${ACCENT}14`, border: `1px solid ${ACCENT}44`,
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-              }}>
-                <div>
-                  <div style={{ fontSize: "0.62rem", color: ACCENT, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>Winner</div>
-                  <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text)" }}>{trainResult.automl.winner}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text3)", marginTop: "0.15rem" }}>
-                    {trainResult.automl.selection_metric} — best of {trainResult.automl.cv_results.length} models, 5-fold CV
+              {(() => {
+                const isReg = trainResult.automl.task === "regression";
+                const winnerCV = trainResult.automl.cv_results.find(r => r.algorithm === trainResult.automl.winner);
+                const cvDisplay = winnerCV
+                  ? isReg ? winnerCV.score.toFixed(4) : `${(winnerCV.score * 100).toFixed(2)}%`
+                  : null;
+                const testDisplay = isReg
+                  ? trainResult.metric
+                  : `${(parseFloat(trainResult.metric) * 100).toFixed(2)}%`;
+                return (
+                  <div style={{
+                    padding: "1rem 1.25rem", borderRadius: 12, marginBottom: "0.75rem",
+                    background: `${ACCENT}14`, border: `1px solid ${ACCENT}44`,
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                  }}>
+                    <div>
+                      <div style={{ fontSize: "0.62rem", color: ACCENT, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>Winner</div>
+                      <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text)" }}>{trainResult.automl.winner}</div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginTop: "0.15rem" }}>
+                        {trainResult.automl.selection_metric} · {trainResult.automl.cv_results.length}-model competition · 5-fold CV
+                      </div>
+                      <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.1rem" }}>
+                        Test set: <span style={{ color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>{testDisplay}</span>
+                        {cvDisplay && testDisplay !== cvDisplay && (
+                          <span style={{ color: "var(--text3)", marginLeft: "0.4rem" }}>
+                            {isReg ? "(CV: " + cvDisplay + ")" : "(CV: " + cvDisplay + ")"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: ACCENT, lineHeight: 1 }}>
+                        {cvDisplay ?? testDisplay}
+                      </div>
+                      <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: "0.2rem" }}>5-fold CV · {trainResult.metricLabel}</div>
+                    </div>
                   </div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "1.6rem", fontWeight: 800, color: ACCENT, lineHeight: 1 }}>
-                    {trainResult.automl.task === "regression"
-                      ? trainResult.metric
-                      : (parseFloat(trainResult.metric) * 100).toFixed(2) + "%"}
-                  </div>
-                  <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: "0.2rem" }}>{trainResult.metricLabel}</div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Extended metrics */}
               {trainResult.automl.winner_metrics && (
@@ -889,14 +907,34 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </div>
                 )}
 
+                {/* Model comparison chart — shown first for visual impact */}
+                {!llmLoading && llmExp?.model_comparison && llmExp.model_comparison.length > 0 && (
+                  <div style={{ marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ marginBottom: "0.5rem" }}>
+                      <div style={{ fontSize: "0.65rem", color: "var(--text)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                        Model fitness for this dataset
+                      </div>
+                      <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.2rem 0 0", lineHeight: 1.5 }}>
+                        LLM-rated 0–100 for your specific data. <span style={{ color: ACCENT }}>90–100</span> = excellent fit.{" "}
+                        <span style={{ color: "#fbbf24" }}>60–89</span> = good, may benefit from tuning.{" "}
+                        <span style={{ color: "#f87171" }}>Below 60</span> = poor fit — consider more data or different features.
+                      </p>
+                    </div>
+                    <ModelComparisonChart items={llmExp.model_comparison} />
+                  </div>
+                )}
+
                 {/* LLM explanation text */}
                 {!llmLoading && llmExp?.why_won && (
-                  <div style={{ marginTop: "0.75rem" }}>
-                    <p style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>
+                  <div style={{ marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>
+                      Why {trainResult.automl.winner} won
+                    </div>
+                    <p style={{ fontSize: "0.82rem", color: "var(--text)", lineHeight: 1.7, margin: 0, fontWeight: 500 }}>
                       {llmExp.why_won}
                     </p>
                     {llmExp.score_analysis && (
-                      <p style={{ fontSize: "0.78rem", color: "var(--text3)", lineHeight: 1.6, margin: "0.5rem 0 0" }}>
+                      <p style={{ fontSize: "0.76rem", color: "var(--text2)", lineHeight: 1.6, margin: "0.6rem 0 0", paddingLeft: "0.75rem", borderLeft: `2px solid ${ACCENT}44` }}>
                         {llmExp.score_analysis}
                       </p>
                     )}
@@ -910,33 +948,23 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
                   </p>
                 )}
 
-                {/* Model comparison chart from LLM */}
-                {!llmLoading && llmExp?.model_comparison && llmExp.model_comparison.length > 0 && (
-                  <div style={{ marginTop: "1rem" }}>
-                    <div style={{ marginBottom: "0.4rem" }}>
-                      <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                        Model fitness for this dataset
-                      </div>
-                      <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.15rem 0 0", lineHeight: 1.4 }}>
-                        LLM-rated 0–100 based on CV score and fold stability. Higher = better fit for your data.
-                      </p>
-                    </div>
-                    <ModelComparisonChart items={llmExp.model_comparison} />
-                  </div>
-                )}
-
                 {/* Actionable insights */}
                 {!llmLoading && llmExp?.actionable_insights && llmExp.actionable_insights.length > 0 && (
-                  <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                    <div style={{ fontSize: "0.62rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                  <div style={{ marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                       Actionable insights
                     </div>
-                    {llmExp.actionable_insights.map((ins, i) => (
-                      <div key={i} style={{ padding: "0.5rem 0.75rem", borderRadius: 8, background: `${ACCENT}08`, border: `1px solid ${ACCENT}1a` }}>
-                        <div style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, marginBottom: "0.15rem" }}>{ins.title}</div>
-                        <div style={{ fontSize: "0.73rem", color: "var(--text2)", lineHeight: 1.5 }}>{ins.detail}</div>
-                      </div>
-                    ))}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      {llmExp.actionable_insights.map((ins, i) => (
+                        <div key={i} style={{ padding: "0.6rem 0.75rem", borderRadius: 8, background: `${ACCENT}08`, border: `1px solid ${ACCENT}22`, display: "flex", gap: "0.6rem", alignItems: "flex-start" }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT, flexShrink: 0, marginTop: 5 }} />
+                          <div>
+                            <div style={{ fontSize: "0.73rem", fontWeight: 700, color: ACCENT, marginBottom: "0.2rem" }}>{ins.title}</div>
+                            <div style={{ fontSize: "0.72rem", color: "var(--text2)", lineHeight: 1.55 }}>{ins.detail}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
