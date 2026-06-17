@@ -380,6 +380,7 @@ export default function AutoMLModal({
   const [customLLMUrl, setCustomLLMUrl]     = useState("");
   const [customLLMModel, setCustomLLMModel] = useState("");
   const [analysisExpanded, setAnalysisExpanded] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
   const [view, setView] = useState<"wizard" | "saved">("wizard");
   const [savedRuns, setSavedRuns] = useState<SavedRun[]>(() => {
     try { return JSON.parse(localStorage.getItem("automl_saved_runs") || "[]"); }
@@ -429,6 +430,8 @@ export default function AutoMLModal({
       date,
       result: trainResult,
     }, ...prev]);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1800);
   }, [trainResult, file, savedRuns]); // file may be null after modal reopen; falls back to trainResult.title
 
   const toggleModel = useCallback((m: string) => {
@@ -1140,8 +1143,9 @@ export default function AutoMLModal({
                 >Close</button>
                 <button
                   onClick={handleSaveVersion}
-                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: ACCENT, fontSize: "0.82rem", fontWeight: 600 }}
-                >Save Version</button>
+                  disabled={savedFlash}
+                  style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: savedFlash ? "default" : "pointer", background: savedFlash ? `${ACCENT}33` : `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: ACCENT, fontSize: "0.82rem", fontWeight: 600, transition: "background 0.2s" }}
+                >{savedFlash ? "Saved!" : "Save Version"}</button>
                 <button
                   onClick={handleSave}
                   style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#000", fontSize: "0.85rem", fontWeight: 700 }}
