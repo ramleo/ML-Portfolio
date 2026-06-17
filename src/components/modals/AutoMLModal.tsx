@@ -469,7 +469,7 @@ export default function AutoMLModal({ onClose }: { onClose: () => void }) {
       setError(e instanceof Error ? e.message : "Training failed.");
       setStep("config");
     }
-  }, [file, target, taskType, modelName]);
+  }, [file, target, taskType, modelName, selectedModels]);
 
   // ── Save to pipeline ─────────────────────────────────────────────────────
   const handleSave = useCallback(() => {
