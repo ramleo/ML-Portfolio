@@ -126,46 +126,73 @@ function RankingTable({ results, winner, task }: {
   const sorted = [...results].sort((a, b) =>
     task === "regression" ? a.score - b.score : b.score - a.score
   );
+  const winnerScore = sorted[0].score;
+  const barOpacities = [1, 0.65, 0.45, 0.3, 0.2];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginTop: "0.5rem" }}>
       {sorted.map((r, i) => {
         const isWinner = r.algorithm === winner;
-        const best = sorted[0].score;
         const barPct = task === "regression"
-          ? Math.max(20, 100 - ((r.score - best) / (best || 1)) * 100)
-          : Math.round((r.score / (best || 1)) * 100);
+          ? Math.max(15, 100 - ((r.score - winnerScore) / (winnerScore || 1)) * 100)
+          : Math.round((r.score / (winnerScore || 1)) * 100);
+        const opacity = barOpacities[Math.min(i, barOpacities.length - 1)];
+        const scoreLabel = task === "regression"
+          ? r.score.toFixed(4)
+          : (r.score * 100).toFixed(2) + "%";
+        const delta = task === "regression"
+          ? r.score - winnerScore
+          : (r.score - winnerScore) * 100;
+        const deltaLabel = task === "regression"
+          ? `+${delta.toFixed(4)}`
+          : `${delta.toFixed(2)}%`;
+
         return (
           <div key={r.algorithm} style={{
-            padding: "0.65rem 0.85rem", borderRadius: 10,
-            background: isWinner ? `${ACCENT}14` : "var(--bg-glass)",
+            padding: "0.55rem 0.85rem", borderRadius: 10,
+            background: isWinner ? `${ACCENT}12` : "var(--bg-glass)",
             border: `1px solid ${isWinner ? ACCENT + "44" : "var(--border)"}`,
-            display: "flex", alignItems: "center", gap: "0.75rem",
+            display: "flex", alignItems: "center", gap: "0.65rem",
           }}>
-            <span style={{ fontSize: "0.7rem", color: "var(--text3)", width: 14, fontVariantNumeric: "tabular-nums" }}>
+            <span style={{
+              fontSize: "0.68rem", fontWeight: isWinner ? 700 : 500,
+              color: isWinner ? ACCENT : "var(--text3)",
+              width: 18, flexShrink: 0, fontVariantNumeric: "tabular-nums",
+            }}>
               #{i + 1}
             </span>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.25rem" }}>
-                <span style={{ fontSize: "0.82rem", fontWeight: isWinner ? 700 : 500, color: isWinner ? ACCENT : "var(--text)" }}>
-                  {r.algorithm}
-                </span>
-                {isWinner && (
-                  <span style={{
-                    fontSize: "0.58rem", fontWeight: 700, padding: "1px 6px", borderRadius: 9999,
-                    background: ACCENT, color: "#000", letterSpacing: "0.06em", textTransform: "uppercase",
-                  }}>Winner</span>
-                )}
-              </div>
-              <div style={{ height: 4, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
-                <div style={{
-                  height: "100%", width: `${barPct}%`,
-                  background: isWinner ? ACCENT : `${ACCENT}55`,
-                  borderRadius: 9999, transition: "width 0.6s ease",
-                }} />
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", width: 140, flexShrink: 0 }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: isWinner ? 700 : 500, color: isWinner ? "var(--text)" : "var(--text2)" }}>
+                {r.algorithm}
+              </span>
+              {isWinner && (
+                <span style={{
+                  fontSize: "0.58rem", fontWeight: 700, padding: "1px 6px", borderRadius: 9999,
+                  background: `${ACCENT}22`, color: ACCENT, border: `1px solid ${ACCENT}44`,
+                  letterSpacing: "0.06em", textTransform: "uppercase", flexShrink: 0,
+                }}>WINNER</span>
+              )}
             </div>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: isWinner ? ACCENT : "var(--text2)", fontVariantNumeric: "tabular-nums", minWidth: 52, textAlign: "right" }}>
-              {task === "regression" ? r.score.toFixed(4) : (r.score * 100).toFixed(2) + "%"}
+            <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", width: `${barPct}%`,
+                background: ACCENT, opacity,
+                borderRadius: 9999, transition: "width 0.6s ease",
+              }} />
+            </div>
+            <span style={{
+              fontSize: "0.8rem", fontWeight: 600, fontVariantNumeric: "tabular-nums",
+              color: isWinner ? ACCENT : "var(--text3)",
+              width: 58, textAlign: "right", flexShrink: 0,
+            }}>
+              {scoreLabel}
+            </span>
+            <span style={{
+              fontSize: "0.7rem", fontVariantNumeric: "tabular-nums",
+              color: isWinner ? "transparent" : "var(--text3)",
+              width: 52, textAlign: "right", flexShrink: 0,
+            }}>
+              {!isWinner ? deltaLabel : ""}
             </span>
           </div>
         );
