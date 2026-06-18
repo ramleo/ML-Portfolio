@@ -2,12 +2,11 @@
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ML_UNIFIED_API as API } from "@/config/urls";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import { parseCSV, analyzeCSV, preprocessCSV } from "@/lib/preprocessing";
 
-const ACCENT    = "#22d3ee";
-const CARD_BG   = "rgba(17,24,39,0.80)";
-const PAGE_BG   = "#060d1a";
+const ACCENT  = "#22d3ee";
+const CARD_BG = "rgba(17,24,39,0.80)";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,7 +23,7 @@ type AnalyzeResult = {
 };
 
 type PrepResult = {
-  csv_b64: string;
+  csvText: string;
   preprocessed_filename: string;
   rows_before: number; rows_after: number;
   cols_before: number; cols_after: number;
@@ -884,17 +883,20 @@ export default function PreprocessingPage() {
     setter(v); setActivePreset("custom");
   }, []);
 
-  const analyze = useCallback(async (f: File) => {
+  const analyze = useCallback((f: File) => {
     setAnalyzing(true); setError(null);
-    try {
-      const fd = new FormData(); fd.append("file", f);
-      const res = await fetch(`${API}/analyze`, { method: "POST", body: fd });
-      if (!res.ok) throw new Error(await res.text());
-      const data: AnalyzeResult = await res.json();
-      setAnalyzed(data); setTarget(data.suggested_target); setStep("configure");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed");
-    } finally { setAnalyzing(false); }
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rows = parseCSV(reader.result as string);
+        const data = analyzeCSV(rows);
+        setAnalyzed(data); setTarget(data.suggested_target); setStep("configure");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Analysis failed");
+      } finally { setAnalyzing(false); }
+    };
+    reader.onerror = () => { setError("Could not read file"); setAnalyzing(false); };
+    reader.readAsText(f);
   }, []);
 
   const handleFile = useCallback((f: File) => {
@@ -907,38 +909,34 @@ export default function PreprocessingPage() {
     const f = e.dataTransfer.files[0]; if (f) handleFile(f);
   }, [handleFile]);
 
-  const handlePreprocess = useCallback(async () => {
+  const handlePreprocess = useCallback(() => {
     if (!file || !analyzed) return;
     setStep("processing"); setError(null);
-    try {
-      const csv_b64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const res = await fetch(`${API}/automl/preprocess`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name, csv_b64, target_column: target,
-          options: { remove_duplicates: removeDups, mv_num: mvNum, mv_cat: mvCat, remove_outliers: removeOutliers, fix_skewness: fixSkewness, encode_method: encodeMethod, standardize, drop_columns: [...dropCols] },
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data: PrepResult = await res.json();
-      setResult(data); setStep("results");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Preprocessing failed");
-      setStep("configure");
-    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTimeout(() => {
+        try {
+          const rows = parseCSV(reader.result as string);
+          const data = preprocessCSV(rows, {
+            remove_duplicates: removeDups, drop_columns: [...dropCols],
+            target_column: target, mv_num: mvNum, mv_cat: mvCat,
+            remove_outliers: removeOutliers, fix_skewness: fixSkewness,
+            encode_method: encodeMethod, standardize,
+          }, file.name);
+          setResult(data); setStep("results");
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Preprocessing failed");
+          setStep("configure");
+        }
+      }, 50);
+    };
+    reader.onerror = () => { setError("Could not read file"); setStep("configure"); };
+    reader.readAsText(file);
   }, [file, analyzed, target, dropCols, mvNum, mvCat, removeDups, removeOutliers, fixSkewness, encodeMethod, standardize]);
 
   const downloadCSV = useCallback(() => {
     if (!result) return;
-    const bytes = atob(result.csv_b64);
-    const arr = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-    const blob = new Blob([arr], { type: "text/csv" });
+    const blob = new Blob([result.csvText], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = result.preprocessed_filename; a.click(); URL.revokeObjectURL(url);
@@ -946,7 +944,10 @@ export default function PreprocessingPage() {
 
   const passToAutoML = useCallback(() => {
     if (!result) return;
-    try { sessionStorage.setItem("prep_handoff", JSON.stringify({ csv_b64: result.csv_b64, filename: result.preprocessed_filename })); } catch {}
+    try {
+      const csv_b64 = btoa(encodeURIComponent(result.csvText).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
+      sessionStorage.setItem("prep_handoff", JSON.stringify({ csv_b64, filename: result.preprocessed_filename }));
+    } catch {}
     router.push("/tools/automl");
   }, [result, router]);
 
@@ -1015,6 +1016,7 @@ export default function PreprocessingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
               <span style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>ML Capabilities</span>
               <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Data Preprocessing</span>
+              <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
             </div>
           </div>
           <StepIndicator step={step} />
