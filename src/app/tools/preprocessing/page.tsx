@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 
@@ -801,6 +801,55 @@ function ComparisonView({ before, result }: { before: AnalyzeResult; result: Pre
   );
 }
 
+// ── Particle background ───────────────────────────────────────────────────────
+
+function ParticleBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let animId: number;
+    let W = window.innerWidth, H = window.innerHeight;
+    canvas.width = W; canvas.height = H;
+    const N = 75;
+    const MAX_DIST = 130;
+    const pts = Array.from({ length: N }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.28, vy: (Math.random() - 0.5) * 0.28,
+      r: Math.random() * 1.2 + 0.4,
+    }));
+    const resize = () => { W = window.innerWidth; H = window.innerHeight; canvas.width = W; canvas.height = H; };
+    window.addEventListener("resize", resize);
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34,211,238,0.55)"; ctx.fill();
+      }
+      for (let i = 0; i < N; i++) {
+        for (let j = i + 1; j < N; j++) {
+          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < MAX_DIST) {
+            ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.strokeStyle = `rgba(34,211,238,${0.13 * (1 - d / MAX_DIST)})`;
+            ctx.lineWidth = 0.6; ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
+  }, []);
+  return <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} />;
+}
+
 // ── Step indicator ────────────────────────────────────────────────────────────
 
 const STEP_KEYS   = ["upload", "configure", "processing", "results"] as Step[];
@@ -966,9 +1015,25 @@ export default function PreprocessingPage() {
   const beforeScore = analyzed ? computeQualityScore(analyzed.rows, analyzed.total_missing, analyzed.columns) : 0;
   const afterScore  = result   ? computeQualityScore(result.rows_after, result.total_missing, result.columns) : 0;
 
+  // Lock body scroll in configure mode so panels scroll independently
+  useEffect(() => {
+    if (step === "configure") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [step]);
+
   return (
-    <div style={{ minHeight: "100vh", background: PAGE_BG, color: "var(--text)" }}>
+    <div style={{
+      ...(step === "configure"
+        ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }
+        : { minHeight: "100vh" }),
+      background: PAGE_BG, color: "var(--text)",
+    }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <ParticleBackground />
 
       {/* Page header */}
       <div style={{
@@ -1000,7 +1065,12 @@ export default function PreprocessingPage() {
       </div>
 
       {/* Main content */}
-      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
+      <div style={{
+        maxWidth: 1140, margin: "0 auto", width: "100%",
+        ...(step === "configure"
+          ? { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "1.25rem 1.5rem 0" }
+          : { padding: "2.5rem 1.5rem 4rem" }),
+      }}>
 
         {/* ── Upload ── */}
         {step === "upload" && (
@@ -1053,9 +1123,9 @@ export default function PreprocessingPage() {
 
         {/* ── Configure ── */}
         {step === "configure" && analyzed && (
-          <div>
+          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
             {/* Stats + Presets bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem", flexWrap: "wrap", flexShrink: 0 }}>
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 {[
                   { label: "Rows", value: analyzed.rows.toLocaleString() },
@@ -1074,7 +1144,7 @@ export default function PreprocessingPage() {
             </div>
 
             {/* Two-column layout — each panel scrolls independently */}
-            <div style={{ display: "flex", gap: "1.5rem", alignItems: "stretch", height: "calc(100vh - 14rem)", minHeight: 440 }}>
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "stretch", flex: 1, overflow: "hidden", minHeight: 0 }}>
 
               {/* Left sidebar: Smart Recommendations */}
               <div style={{ width: 280, minWidth: 250, flexShrink: 0, overflowY: "auto", paddingRight: 6 }}>
