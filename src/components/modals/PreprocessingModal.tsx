@@ -8,8 +8,8 @@ const ACCENT = "#22d3ee";
 const CARD_BG = "rgba(17,24,39,0.65)";
 
 type ColumnInfo = {
-  name: string; is_numeric: boolean; nunique: number;
-  missing: number; dtype: string; skew?: number;
+  name: string; is_numeric: boolean; nunique: number; missing: number; dtype: string;
+  skew?: number; mean?: number; std?: number; min?: number; max?: number;
 };
 
 type AnalyzeResult = {
@@ -54,18 +54,18 @@ const ENCODE_OPTIONS = [
   { value: "onehot",    label: "One-Hot Encoding" },
   { value: "ordinal",   label: "Ordinal (Label) Encoding" },
   { value: "frequency", label: "Frequency Encoding" },
+  { value: "target",    label: "Target Encoding (requires target column)" },
 ];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
-      <div
-        onClick={() => onChange(!on)}
-        style={{
-          width: 36, height: 20, borderRadius: 9999, position: "relative", flexShrink: 0,
-          background: on ? ACCENT : "var(--border2)", transition: "background 0.2s",
-        }}
-      >
+      <div onClick={() => onChange(!on)} style={{
+        width: 36, height: 20, borderRadius: 9999, position: "relative", flexShrink: 0,
+        background: on ? ACCENT : "var(--border2)", transition: "background 0.2s",
+      }}>
         <div style={{
           position: "absolute", top: 2, left: on ? 18 : 2, width: 16, height: 16,
           borderRadius: 9999, background: "#fff", transition: "left 0.2s",
@@ -75,6 +75,203 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
     </label>
   );
 }
+
+function missingColor(pct: number) {
+  return pct > 30 ? "#f87171" : pct > 10 ? "#fb923c" : "#4ade80";
+}
+
+function skewBadge(s: number) {
+  const abs = Math.abs(s);
+  if (abs >= 1)   return { label: "High skew", color: "#f87171" };
+  if (abs >= 0.5) return { label: "Moderate",  color: "#fb923c" };
+  return               { label: "Normal",     color: "#4ade80" };
+}
+
+// ── Dataset Overview Panel ────────────────────────────────────────────────────
+
+function DatasetOverview({ analyzed }: { analyzed: AnalyzeResult }) {
+  const [open, setOpen] = useState(true);
+
+  const numCols = analyzed.columns.filter(c => c.is_numeric);
+  const catCols = analyzed.columns.filter(c => !c.is_numeric);
+  const colsWithMissing = analyzed.columns.filter(c => c.missing > 0)
+    .sort((a, b) => b.missing - a.missing);
+
+  return (
+    <div style={{ borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden" }}>
+      {/* Header */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "0.65rem 1rem", background: CARD_BG, border: "none", cursor: "pointer",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Dataset Overview
+          </span>
+          <span style={{ padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600,
+            background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}33` }}>
+            {numCols.length} numeric
+          </span>
+          <span style={{ padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600,
+            background: "rgba(168,85,247,0.12)", color: "#c084fc", border: "1px solid rgba(168,85,247,0.25)" }}>
+            {catCols.length} categorical
+          </span>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}>
+          <path d="M2 4l4 4 4-4" />
+        </svg>
+      </button>
+
+      {open && (
+        <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1.1rem", background: "rgba(11,17,32,0.6)" }}>
+
+          {/* Missing values chart */}
+          {colsWithMissing.length > 0 && (
+            <div>
+              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>
+                Missing Values
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                {colsWithMissing.slice(0, 8).map(col => {
+                  const pct = Math.round((col.missing / analyzed.rows) * 100);
+                  const clr = missingColor(pct);
+                  return (
+                    <div key={col.name} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text2)", width: 110, flexShrink: 0,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {col.name}
+                      </span>
+                      <div style={{ flex: 1, height: 7, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", width: `${pct}%`, minWidth: 4,
+                          background: clr, borderRadius: 9999, transition: "width 0.4s ease",
+                        }} />
+                      </div>
+                      <span style={{ fontSize: "0.68rem", color: clr, width: 52, flexShrink: 0,
+                        fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
+                        {col.missing} ({pct}%)
+                      </span>
+                    </div>
+                  );
+                })}
+                {colsWithMissing.length > 8 && (
+                  <div style={{ fontSize: "0.68rem", color: "var(--text3)", textAlign: "center", marginTop: 2 }}>
+                    +{colsWithMissing.length - 8} more columns with missing values
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Numeric distributions */}
+          {numCols.length > 0 && (
+            <div>
+              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>
+                Numeric Distributions (min · mean · max)
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+                {numCols.slice(0, 8).map(col => {
+                  const { min = 0, max = 0, mean = 0, skew = 0 } = col;
+                  const range = max - min;
+                  const meanPct = range === 0 ? 50 : Math.max(2, Math.min(98, ((mean - min) / range) * 100));
+                  const badge = skewBadge(skew);
+                  const fmt = (v: number) => {
+                    if (Math.abs(v) >= 1000) return v.toFixed(0);
+                    if (Math.abs(v) >= 10)   return v.toFixed(1);
+                    return v.toFixed(2);
+                  };
+                  return (
+                    <div key={col.name}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--text2)", width: 110, flexShrink: 0,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {col.name}
+                        </span>
+                        <span style={{ fontSize: "0.62rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums", width: 52, flexShrink: 0 }}>
+                          {fmt(min)}
+                        </span>
+                        {/* Range bar with mean marker */}
+                        <div style={{ flex: 1, position: "relative", height: 7, borderRadius: 9999, background: "var(--border2)" }}>
+                          {/* Filled region from 0 to mean */}
+                          <div style={{
+                            position: "absolute", left: 0, top: 0, height: "100%",
+                            width: `${meanPct}%`, background: `${ACCENT}55`, borderRadius: "9999px 0 0 9999px",
+                          }} />
+                          {/* Mean dot */}
+                          <div style={{
+                            position: "absolute", top: "50%", left: `${meanPct}%`,
+                            transform: "translate(-50%, -50%)",
+                            width: 9, height: 9, borderRadius: 9999,
+                            background: ACCENT, border: "2px solid #0b1120", flexShrink: 0,
+                          }} />
+                        </div>
+                        <span style={{ fontSize: "0.62rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums", width: 52, flexShrink: 0, textAlign: "right" }}>
+                          {fmt(max)}
+                        </span>
+                        {/* Skew badge */}
+                        <span style={{
+                          fontSize: "0.58rem", padding: "1px 6px", borderRadius: 9999, flexShrink: 0,
+                          background: `${badge.color}18`, color: badge.color, border: `1px solid ${badge.color}33`,
+                        }}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      {/* Mean value label */}
+                      <div style={{
+                        marginLeft: 162 + (meanPct / 100) * 180, fontSize: "0.58rem",
+                        color: ACCENT, fontVariantNumeric: "tabular-nums",
+                        transform: "translateX(-50%)", display: "inline-block",
+                      }}>
+                        {fmt(mean)}
+                      </div>
+                    </div>
+                  );
+                })}
+                {numCols.length > 8 && (
+                  <div style={{ fontSize: "0.68rem", color: "var(--text3)", textAlign: "center" }}>
+                    +{numCols.length - 8} more numeric columns
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Categorical quick stats */}
+          {catCols.length > 0 && (
+            <div>
+              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>
+                Categorical Columns
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                {catCols.slice(0, 10).map(col => (
+                  <div key={col.name} style={{
+                    padding: "3px 10px", borderRadius: 9999, fontSize: "0.7rem",
+                    background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)", color: "#c084fc",
+                  }}>
+                    {col.name}
+                    <span style={{ opacity: 0.6, marginLeft: 4 }}>{col.nunique} unique</span>
+                  </div>
+                ))}
+                {catCols.length > 10 && (
+                  <div style={{ fontSize: "0.68rem", color: "var(--text3)", padding: "3px 6px" }}>
+                    +{catCols.length - 10} more
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export default function PreprocessingModal({ onClose }: { onClose: () => void }) {
   const [step, setStep]           = useState<Step>("upload");
@@ -86,16 +283,15 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
   const [result, setResult]       = useState<PrepResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // options
-  const [target, setTarget]         = useState("");
-  const [dropCols, setDropCols]     = useState<Set<string>>(new Set());
-  const [mvNum, setMvNum]           = useState("mean");
-  const [mvCat, setMvCat]           = useState("most_frequent");
-  const [removeDups, setRemoveDups] = useState(true);
-  const [removeOutliers, setRemoveOutliers] = useState(false);
-  const [fixSkewness, setFixSkewness]       = useState(false);
-  const [encodeMethod, setEncodeMethod]     = useState("none");
-  const [standardize, setStandardize]       = useState(false);
+  const [target, setTarget]                   = useState("");
+  const [dropCols, setDropCols]               = useState<Set<string>>(new Set());
+  const [mvNum, setMvNum]                     = useState("mean");
+  const [mvCat, setMvCat]                     = useState("most_frequent");
+  const [removeDups, setRemoveDups]           = useState(true);
+  const [removeOutliers, setRemoveOutliers]   = useState(false);
+  const [fixSkewness, setFixSkewness]         = useState(false);
+  const [encodeMethod, setEncodeMethod]       = useState("none");
+  const [standardize, setStandardize]         = useState(false);
 
   const analyze = useCallback(async (f: File) => {
     setAnalyzing(true);
@@ -139,23 +335,15 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-
       const res = await fetch(`${API}/automl/preprocess`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          filename: file.name,
-          csv_b64,
-          target_column: target,
+          filename: file.name, csv_b64, target_column: target,
           options: {
-            remove_duplicates: removeDups,
-            mv_num: mvNum,
-            mv_cat: mvCat,
-            remove_outliers: removeOutliers,
-            fix_skewness: fixSkewness,
-            encode_method: encodeMethod,
-            standardize,
-            drop_columns: [...dropCols],
+            remove_duplicates: removeDups, mv_num: mvNum, mv_cat: mvCat,
+            remove_outliers: removeOutliers, fix_skewness: fixSkewness,
+            encode_method: encodeMethod, standardize, drop_columns: [...dropCols],
           },
         }),
       });
@@ -196,6 +384,8 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
 
   const catCols = analyzed?.columns.filter(c => !c.is_numeric) ?? [];
   const hasCat  = catCols.length > 0;
+  const targetEncodingSelected = encodeMethod === "target";
+  const targetEncodingWarn = targetEncodingSelected && !target;
 
   return (
     <ModalShell onClose={onClose} title="Data Preprocessing" eyebrow="ML Capabilities" accent={ACCENT}>
@@ -221,9 +411,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
               <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: "0.25rem" }}>
-                Drop your CSV here
-              </div>
+              <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: "0.25rem" }}>Drop your CSV here</div>
               <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>or click to browse</div>
             </div>
           </div>
@@ -247,23 +435,26 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
       {/* ── Configure ────────────────────────────────────────────── */}
       {step === "configure" && analyzed && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {/* Dataset summary */}
+
+          {/* Summary cards */}
           <div style={{ display: "flex", gap: "0.75rem" }}>
             {[
-              { label: "Rows", value: analyzed.rows.toLocaleString() },
+              { label: "Rows",    value: analyzed.rows.toLocaleString() },
               { label: "Columns", value: analyzed.columns.length },
               { label: "Missing", value: analyzed.total_missing },
             ].map(s => (
               <div key={s.label} style={{
                 flex: 1, padding: "0.65rem", borderRadius: 10,
-                background: CARD_BG, border: "1px solid var(--border)",
-                textAlign: "center",
+                background: CARD_BG, border: "1px solid var(--border)", textAlign: "center",
               }}>
                 <div style={{ fontSize: "1rem", fontWeight: 700, color: ACCENT }}>{s.value}</div>
                 <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>
+
+          {/* Dataset visualization */}
+          <DatasetOverview analyzed={analyzed} />
 
           {/* Target column */}
           <div>
@@ -272,29 +463,22 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             </label>
             <select value={target} onChange={e => setTarget(e.target.value)} style={selectStyle}>
               <option value="">— none —</option>
-              {analyzed.columns.map(c => (
-                <option key={c.name} value={c.name}>{c.name}</option>
-              ))}
+              {analyzed.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
             </select>
           </div>
 
-          {/* Column list — drop toggles */}
+          {/* Column drop pills */}
           <div>
             <label style={{ fontSize: "0.72rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>
               Columns — click to drop
             </label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", maxHeight: 140, overflowY: "auto" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", maxHeight: 130, overflowY: "auto" }}>
               {analyzed.columns.map(col => {
                 const dropped = dropCols.has(col.name);
                 const missingPct = analyzed.rows > 0 ? Math.round((col.missing / analyzed.rows) * 100) : 0;
                 return (
-                  <button
-                    key={col.name}
-                    onClick={() => setDropCols(prev => {
-                      const n = new Set(prev);
-                      dropped ? n.delete(col.name) : n.add(col.name);
-                      return n;
-                    })}
+                  <button key={col.name}
+                    onClick={() => setDropCols(prev => { const n = new Set(prev); dropped ? n.delete(col.name) : n.add(col.name); return n; })}
                     style={{
                       padding: "3px 10px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 500,
                       border: `1px solid ${dropped ? "#ef4444" : col.is_numeric ? `${ACCENT}44` : "var(--border2)"}`,
@@ -305,9 +489,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
                     }}
                   >
                     {col.name}
-                    {missingPct > 0 && (
-                      <span style={{ marginLeft: 4, opacity: 0.7 }}>{missingPct}%</span>
-                    )}
+                    {missingPct > 0 && <span style={{ marginLeft: 4, opacity: 0.7 }}>{missingPct}%</span>}
                   </button>
                 );
               })}
@@ -319,7 +501,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             )}
           </div>
 
-          {/* Missing values */}
+          {/* Imputation */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
             <div>
               <label style={{ fontSize: "0.72rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.4rem" }}>
@@ -350,15 +532,23 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
               <select value={encodeMethod} onChange={e => setEncodeMethod(e.target.value)} style={selectStyle}>
                 {ENCODE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
+              {targetEncodingWarn && (
+                <div style={{ marginTop: "0.4rem", fontSize: "0.72rem", color: "#fb923c",
+                  padding: "0.4rem 0.75rem", borderRadius: 8,
+                  background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.25)" }}>
+                  Target encoding requires a target column — select one above.
+                </div>
+              )}
             </div>
           )}
 
           {/* Toggles */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem", padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
-            <Toggle on={removeDups}      onChange={setRemoveDups}      label="Remove Duplicates" />
-            <Toggle on={removeOutliers}  onChange={setRemoveOutliers}  label="Remove Outliers (IQR)" />
-            <Toggle on={fixSkewness}     onChange={setFixSkewness}     label="Fix Skewness (log1p)" />
-            <Toggle on={standardize}     onChange={setStandardize}     label="Standardize (Z-score)" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem",
+            padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
+            <Toggle on={removeDups}     onChange={setRemoveDups}     label="Remove Duplicates" />
+            <Toggle on={removeOutliers} onChange={setRemoveOutliers} label="Remove Outliers (IQR)" />
+            <Toggle on={fixSkewness}    onChange={setFixSkewness}    label="Fix Skewness (log1p)" />
+            <Toggle on={standardize}    onChange={setStandardize}    label="Standardize (Z-score)" />
           </div>
 
           {error && (
@@ -377,10 +567,16 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             }}>
               Back
             </button>
-            <button onClick={handlePreprocess} style={{
-              flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem",
-              fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none", cursor: "pointer",
-            }}>
+            <button
+              onClick={handlePreprocess}
+              disabled={targetEncodingWarn}
+              style={{
+                flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem",
+                fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none",
+                cursor: targetEncodingWarn ? "not-allowed" : "pointer",
+                opacity: targetEncodingWarn ? 0.5 : 1,
+              }}
+            >
               Preprocess Dataset
             </button>
           </div>
@@ -406,7 +602,6 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
       {/* ── Results ──────────────────────────────────────────────── */}
       {step === "results" && result && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {/* Before / After grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
             {[
               { label: "Rows",     before: result.rows_before,     after: result.rows_after },
@@ -416,23 +611,16 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             ].map(s => {
               const changed = s.before !== s.after && s.before !== "—";
               const improved = typeof s.before === "number" && typeof s.after === "number"
-                ? (s.label === "Features" ? s.after >= s.before : s.after <= s.before)
-                : true;
+                ? (s.label === "Features" ? s.after >= s.before : s.after <= s.before) : true;
               return (
-                <div key={s.label} style={{
-                  padding: "0.85rem 1rem", borderRadius: 12,
-                  background: CARD_BG, border: "1px solid var(--border)",
-                }}>
+                <div key={s.label} style={{ padding: "0.85rem 1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
                   <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.4rem" }}>
                     {s.label}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <span style={{ fontSize: "0.82rem", color: "var(--text3)" }}>{s.before}</span>
                     <span style={{ color: "var(--border2)" }}>→</span>
-                    <span style={{
-                      fontSize: "1rem", fontWeight: 700,
-                      color: changed ? (improved ? "#4ade80" : "#f87171") : ACCENT,
-                    }}>
+                    <span style={{ fontSize: "1rem", fontWeight: 700, color: changed ? (improved ? "#4ade80" : "#f87171") : ACCENT }}>
                       {s.after}
                     </span>
                   </div>
@@ -441,7 +629,6 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             })}
           </div>
 
-          {/* OHE note */}
           {result.ohe_cols_added > 0 && (
             <div style={{ fontSize: "0.78rem", color: "var(--text3)", textAlign: "center" }}>
               One-hot encoding added {result.ohe_cols_added} columns
@@ -462,8 +649,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
 
           <button onClick={reset} style={{
             padding: "0.55rem 1.2rem", borderRadius: 9999, fontSize: "0.8rem",
-            background: "none", border: "1px solid var(--border2)",
-            color: "var(--text3)", cursor: "pointer",
+            background: "none", border: "1px solid var(--border2)", color: "var(--text3)", cursor: "pointer",
           }}>
             Process Another Dataset
           </button>
