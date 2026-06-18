@@ -190,6 +190,8 @@ function MiniDistChart({ col, width = 160, dimmed = false }: { col: ColumnInfo; 
 
 // ── Smart Recommendations ─────────────────────────────────────────────────────
 
+type RecAction = { label: string; onApply: () => void; active: boolean };
+
 type Rec = {
   id: string;
   type: "drop" | "skew" | "missing" | "encoding" | "standardize" | "info";
@@ -199,6 +201,7 @@ type Rec = {
   actionLabel?: string;
   applied?: boolean;
   onApply?: () => void;
+  actions?: RecAction[];
 };
 
 function RecTypeIcon({ type }: { type: Rec["type"] }) {
@@ -278,10 +281,12 @@ function SmartRecommendations({
       list.push({
         id: `highcard-${col.name}`, type: "encoding",
         title: `High cardinality: ${col.name}`,
-        desc: `${col.nunique} unique values — one-hot would add ${col.nunique} columns. Frequency encoding is safer.`,
-        applied: encodeMethod === "frequency",
-        actionLabel: "Use Frequency",
-        onApply: () => setEncodeMethod("frequency"),
+        desc: `${col.nunique} unique values — one-hot would add ${col.nunique} columns. Frequency or Target encoding are safer options.`,
+        applied: encodeMethod === "frequency" || encodeMethod === "target",
+        actions: [
+          { label: "Use Frequency", onApply: () => setEncodeMethod("frequency"), active: encodeMethod === "frequency" },
+          { label: "Use Target Encoding", onApply: () => setEncodeMethod("target"), active: encodeMethod === "target" },
+        ],
       });
     });
 
@@ -340,18 +345,46 @@ function SmartRecommendations({
                     )}
                   </div>
                   <p style={{ fontSize: "0.67rem", color: "var(--text3)", margin: 0, lineHeight: 1.55 }}>{rec.desc}</p>
-                  {!rec.applied && rec.onApply && (
+                  {rec.actions ? (
+                    <div style={{ marginTop: "0.45rem", display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                      {rec.actions.map(a => (
+                        <button
+                          key={a.label}
+                          onClick={a.onApply}
+                          style={{
+                            padding: "2px 10px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 700, cursor: "pointer",
+                            background: a.active ? `${ACCENT}28` : `${ACCENT}14`,
+                            border: `1px solid ${a.active ? ACCENT + "80" : ACCENT + "40"}`,
+                            color: ACCENT, display: "flex", alignItems: "center", gap: "0.3rem",
+                            transition: "box-shadow 0.15s",
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 10px ${ACCENT}44`; }}
+                          onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
+                        >
+                          {a.active && (
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={ACCENT} strokeWidth="2" strokeLinecap="round">
+                              <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                            </svg>
+                          )}
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : !rec.applied && rec.onApply ? (
                     <button
                       onClick={rec.onApply}
                       style={{
                         marginTop: "0.45rem", padding: "2px 10px", borderRadius: 9999,
                         fontSize: "0.65rem", fontWeight: 700, cursor: "pointer",
                         background: `${ACCENT}18`, border: `1px solid ${ACCENT}44`, color: ACCENT,
+                        transition: "box-shadow 0.15s",
                       }}
+                      onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 10px ${ACCENT}44`; }}
+                      onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
                     >
                       {rec.actionLabel}
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -385,14 +418,18 @@ function PresetsBar({
           const p = PRESETS[key];
           const isActive = active === key;
           return (
-            <button key={key} onClick={() => onSelect(key)} style={{
-              padding: "0.35rem 1rem", borderRadius: 9999, cursor: "pointer",
-              fontSize: "0.75rem", fontWeight: 600,
-              background: isActive ? `${ACCENT}22` : "transparent",
-              border: `1px solid ${isActive ? ACCENT + "66" : "var(--border2)"}`,
-              color: isActive ? ACCENT : "var(--text2)",
-              transition: "all 0.15s",
-            }}>
+            <button key={key} onClick={() => onSelect(key)}
+              style={{
+                padding: "0.35rem 1rem", borderRadius: 9999, cursor: "pointer",
+                fontSize: "0.75rem", fontWeight: 600,
+                background: isActive ? `${ACCENT}22` : "transparent",
+                border: `1px solid ${isActive ? ACCENT + "66" : "var(--border2)"}`,
+                color: isActive ? ACCENT : "var(--text2)",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 14px ${ACCENT}33`; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
+            >
               {p.label}
             </button>
           );
@@ -907,6 +944,8 @@ export default function PreprocessingPage() {
     router.push("/tools/automl");
   }, [result, router]);
 
+  const goBackToConfigure = useCallback(() => setStep("configure"), []);
+
   const reset = useCallback(() => {
     setStep("upload"); setFile(null); setAnalyzed(null); setResult(null); setError(null);
     setDropCols(new Set()); setTarget(""); setMvNum("mean"); setMvCat("most_frequent");
@@ -1034,11 +1073,11 @@ export default function PreprocessingPage() {
               </div>
             </div>
 
-            {/* Two-column layout */}
-            <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+            {/* Two-column layout — each panel scrolls independently */}
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "stretch", height: "calc(100vh - 14rem)", minHeight: 440 }}>
 
               {/* Left sidebar: Smart Recommendations */}
-              <div style={{ width: 280, minWidth: 250, flexShrink: 0, position: "sticky", top: "5rem", alignSelf: "flex-start" }}>
+              <div style={{ width: 280, minWidth: 250, flexShrink: 0, overflowY: "auto", paddingRight: 6 }}>
                 <SmartRecommendations
                   analyzed={analyzed} target={target}
                   dropCols={dropCols} mvNum={mvNum} fixSkewness={fixSkewness}
@@ -1052,7 +1091,7 @@ export default function PreprocessingPage() {
               </div>
 
               {/* Right: config controls */}
-              <div style={{ flex: 1, minWidth: 320, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem", paddingRight: 4 }}>
 
                 <DatasetOverview analyzed={analyzed} />
 
@@ -1135,9 +1174,16 @@ export default function PreprocessingPage() {
                 {error && <div style={{ padding: "0.75rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "0.82rem" }}>{error}</div>}
 
                 <div style={{ display: "flex", gap: "0.6rem" }}>
-                  <button onClick={reset} style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, fontSize: "0.82rem", background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text2)", cursor: "pointer" }}>Back</button>
+                  <button onClick={reset}
+                    style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, fontSize: "0.82rem", background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text2)", cursor: "pointer", transition: "box-shadow 0.15s, border-color 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--text3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(255,255,255,0.06)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.boxShadow = "none"; }}
+                  >Back</button>
                   <button onClick={handlePreprocess} disabled={targetEncodingWarn}
-                    style={{ flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none", cursor: targetEncodingWarn ? "not-allowed" : "pointer", opacity: targetEncodingWarn ? 0.5 : 1 }}>
+                    style={{ flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none", cursor: targetEncodingWarn ? "not-allowed" : "pointer", opacity: targetEncodingWarn ? 0.5 : 1, transition: "box-shadow 0.15s, transform 0.15s" }}
+                    onMouseEnter={e => { if (!targetEncodingWarn) { e.currentTarget.style.boxShadow = `0 0 24px ${ACCENT}66`; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
+                  >
                     Preprocess Dataset
                   </button>
                 </div>
@@ -1197,31 +1243,61 @@ export default function PreprocessingPage() {
 
             {/* Action buttons */}
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              <button onClick={downloadCSV} style={{
-                flex: 1, padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700,
-                background: ACCENT, color: "#0b1120", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              }}>
+              <button onClick={downloadCSV}
+                style={{
+                  flex: 1, padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700,
+                  background: ACCENT, color: "#0b1120", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                  transition: "opacity 0.15s, box-shadow 0.15s, transform 0.15s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 24px ${ACCENT}66`; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 Download {result.preprocessed_filename}
               </button>
-              <button onClick={passToAutoML} style={{
-                padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700,
-                background: "rgba(129,140,248,0.15)", border: "1px solid rgba(129,140,248,0.4)",
-                color: "#818cf8", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: "0.5rem",
-              }}>
+              <button onClick={passToAutoML}
+                style={{
+                  padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700,
+                  background: "rgba(129,140,248,0.15)", border: "1px solid rgba(129,140,248,0.4)",
+                  color: "#818cf8", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "0.5rem",
+                  transition: "box-shadow 0.15s, transform 0.15s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 0 24px rgba(129,140,248,0.5)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
                 Train with AutoML
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 10L10 2M10 2H5M10 2v5" />
                 </svg>
               </button>
+              <button onClick={goBackToConfigure}
+                style={{
+                  padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 600,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.15)",
+                  color: "var(--text2)", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "0.45rem",
+                  transition: "border-color 0.15s, box-shadow 0.15s, transform 0.15s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.boxShadow = "0 0 16px rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 12L4 7l5-5" />
+                </svg>
+                Back to Configure
+              </button>
             </div>
             <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
-              <button onClick={reset} style={{ padding: "0.55rem 1.2rem", borderRadius: 9999, fontSize: "0.8rem", background: "none", border: "1px solid var(--border2)", color: "var(--text3)", cursor: "pointer" }}>
+              <button onClick={reset}
+                style={{ padding: "0.55rem 1.2rem", borderRadius: 9999, fontSize: "0.8rem", background: "none", border: "1px solid var(--border2)", color: "var(--text3)", cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--text3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(255,255,255,0.06)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.boxShadow = "none"; }}
+              >
                 Process Another Dataset
               </button>
             </div>
