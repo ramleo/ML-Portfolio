@@ -354,12 +354,14 @@ export default function AutoMLModal({
   initialResult,
   initialHistory,
   onResultChange,
+  isPage = false,
 }: {
   onClose: () => void;
   onSavedToPipeline?: () => void;
   initialResult?: TrainResult | null;
   initialHistory?: HistoryEntry[];
   onResultChange?: (result: TrainResult | null, history: HistoryEntry[]) => void;
+  isPage?: boolean;
 }) {
   const { setState } = usePipeline();
 
@@ -642,8 +644,8 @@ export default function AutoMLModal({
   const stepKeys   = ["upload", "config", "training", "results"] as Step[];
   const currentIdx = stepKeys.indexOf(step);
 
-  return (
-    <ModalShell onClose={onClose} title="AutoML Pipeline" accent={ACCENT}>
+  const inner = (
+    <>
 
           {/* Tab switcher */}
           <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border)" }}>
@@ -1282,6 +1284,13 @@ export default function AutoMLModal({
               </svg>
             </a>
           </div>
+    </>
+  );
+
+  if (isPage) return inner;
+  return (
+    <ModalShell onClose={onClose} title="AutoML Pipeline" accent={ACCENT}>
+      {inner}
     </ModalShell>
   );
 }

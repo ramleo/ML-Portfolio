@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
-import { PipelineProvider } from "@/context/PipelineContext";
-import AutoMLModal, { type TrainResult, type HistoryEntry } from "@/components/modals/AutoMLModal";
-import PreprocessingModal from "@/components/modals/PreprocessingModal";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -290,36 +288,14 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
 // Layout rule: odd count → horizontal scroll; even count ≥ 6 → 3-column grid.
 // Mobile always scrolls.
 export default function MLCapabilities() {
+  const router    = useRouter();
   const isOdd     = capabilities.length % 2 !== 0;
   const isSmall   = capabilities.length < 6;
   const useScroll = isOdd || isSmall;
-  const [openModal, setOpenModal] = useState<string | null>(null);
-  const [automlResult, setAutomlResult]   = useState<TrainResult | null>(null);
-  const [automlHistory, setAutomlHistory] = useState<HistoryEntry[]>([]);
-
-  const handleAutomlResultChange = useCallback((r: TrainResult | null, h: HistoryEntry[]) => {
-    setAutomlResult(r); setAutomlHistory(h);
-  }, []);
-  const handleAutomlSaved = useCallback(() => {
-    setAutomlResult(null); setAutomlHistory([]);
-  }, []);
 
   return (
-    <PipelineProvider>
-      <>
-        {openModal === "preprocessing" && (
-          <PreprocessingModal onClose={() => setOpenModal(null)} />
-        )}
-        {openModal === "automl" && (
-          <AutoMLModal
-            onClose={() => setOpenModal(null)}
-            onSavedToPipeline={handleAutomlSaved}
-            initialResult={automlResult}
-            initialHistory={automlHistory}
-            onResultChange={handleAutomlResultChange}
-          />
-        )}
-        <section
+    <>
+      <section
       id="capabilities"
       style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}
     >
@@ -353,7 +329,7 @@ export default function MLCapabilities() {
               <CapabilityCard
                 cap={cap}
                 index={i}
-                onRunHere={cap.modalEnabled ? () => setOpenModal(cap.id) : undefined}
+                onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
               />
             </div>
           ))}
@@ -372,13 +348,12 @@ export default function MLCapabilities() {
               key={cap.id}
               cap={cap}
               index={i}
-              onRunHere={cap.modalEnabled ? () => setOpenModal(cap.id) : undefined}
+              onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
             />
           ))}
         </div>
       )}
         </section>
-      </>
-    </PipelineProvider>
+    </>
   );
 }
