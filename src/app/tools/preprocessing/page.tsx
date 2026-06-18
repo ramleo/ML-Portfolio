@@ -1030,9 +1030,9 @@ export default function PreprocessingPage() {
       ...(step === "configure"
         ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }
         : { minHeight: "100vh" }),
-      background: PAGE_BG, color: "var(--text)",
+      color: "var(--text)",
     }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } body { background: ${PAGE_BG}; }`}</style>
       <ParticleBackground />
 
       {/* Page header */}
