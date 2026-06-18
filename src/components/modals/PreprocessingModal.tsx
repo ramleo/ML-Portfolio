@@ -26,6 +26,7 @@ type PrepResult = {
   cols_before: number; cols_after: number;
   features_before: number; features_after: number;
   ohe_cols_added: number; total_missing: number;
+  columns: ColumnInfo[];
 };
 
 type Step = "upload" | "configure" | "processing" | "results";
@@ -96,9 +97,9 @@ function fmtNum(v: number) {
 
 // ── Mini bell curve SVG ───────────────────────────────────────────────────────
 
-function MiniDistChart({ col }: { col: ColumnInfo }) {
+function MiniDistChart({ col, width = 140 }: { col: ColumnInfo; width?: number }) {
   const { min = 0, max = 0, mean = 0, std = 1, skew = 0 } = col;
-  const W = 140, H = 44;
+  const W = width, H = 44;
 
   if (min === max) {
     return (
@@ -145,6 +146,168 @@ function MiniDistChart({ col }: { col: ColumnInfo }) {
       {/* Mean line */}
       <line x1={meanX} y1={H} x2={meanX} y2={4} stroke={ACCENT} strokeWidth="1" strokeDasharray="2 2" strokeOpacity="0.7" />
     </svg>
+  );
+}
+
+// ── Before / After Comparison ────────────────────────────────────────────────
+
+function ComparisonView({ before, result }: { before: AnalyzeResult; result: PrepResult }) {
+  const [open, setOpen] = useState(true);
+
+  const beforeMap = new Map(before.columns.map(c => [c.name, c]));
+  const afterMap  = new Map(result.columns.map(c => [c.name, c]));
+
+  // Shared numeric columns that can be compared
+  const comparable = before.columns.filter(c => c.is_numeric && afterMap.has(c.name));
+  // Columns removed (dropped or encoded away)
+  const removed = before.columns.filter(c => !afterMap.has(c.name));
+  // New columns added (OHE)
+  const added = result.columns.filter(c => !beforeMap.has(c.name));
+
+  function changeTags(b: ColumnInfo, a: ColumnInfo) {
+    const tags: { label: string; color: string }[] = [];
+    if (b.missing > 0 && a.missing === 0)
+      tags.push({ label: "Missing filled", color: "#4ade80" });
+    const skewImproved = Math.abs(a.skew ?? 0) < Math.abs(b.skew ?? 0) - 0.3;
+    if (skewImproved)
+      tags.push({ label: "Skew reduced", color: ACCENT });
+    const wasStd = Math.abs(a.mean ?? 0) < 0.05 && Math.abs((a.std ?? 1) - 1) < 0.1;
+    if (wasStd && (Math.abs(b.mean ?? 0) > 1 || Math.abs((b.std ?? 1) - 1) > 0.1))
+      tags.push({ label: "Standardized", color: "#a78bfa" });
+    if (tags.length === 0)
+      tags.push({ label: "Unchanged", color: "var(--text3)" });
+    return tags;
+  }
+
+  return (
+    <div style={{ borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "0.65rem 1rem", background: CARD_BG, border: "none", cursor: "pointer",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Before vs After
+          </span>
+          <span style={{ fontSize: "0.65rem", color: "var(--text3)" }}>
+            {comparable.length} column{comparable.length !== 1 ? "s" : ""} compared
+          </span>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}>
+          <path d="M2 4l4 4 4-4" />
+        </svg>
+      </button>
+
+      {open && (
+        <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem", background: "rgba(11,17,32,0.6)" }}>
+
+          {/* Legend */}
+          <div style={{ display: "flex", gap: "1.25rem", fontSize: "0.65rem", color: "var(--text3)", marginBottom: "0.1rem" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <span style={{ display: "inline-block", width: 28, height: 2, background: `${ACCENT}55`, borderRadius: 2 }} />
+              Before
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <span style={{ display: "inline-block", width: 28, height: 2, background: ACCENT, borderRadius: 2 }} />
+              After
+            </span>
+          </div>
+
+          {/* Column comparison cards */}
+          {comparable.slice(0, 7).map(beforeCol => {
+            const afterCol = afterMap.get(beforeCol.name)!;
+            const tags = changeTags(beforeCol, afterCol);
+            const unchanged = tags.length === 1 && tags[0].label === "Unchanged";
+            return (
+              <div key={beforeCol.name} style={{
+                borderRadius: 10, border: `1px solid ${unchanged ? "var(--border)" : `${ACCENT}30`}`,
+                background: unchanged ? "rgba(11,17,32,0.4)" : `${ACCENT}06`,
+                padding: "0.65rem 0.8rem",
+              }}>
+                {/* Column name + tags */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                  <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text)" }}>
+                    {beforeCol.name}
+                  </span>
+                  <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {tags.map(t => (
+                      <span key={t.label} style={{
+                        fontSize: "0.6rem", padding: "1px 7px", borderRadius: 9999, fontWeight: 600,
+                        background: `${t.color}18`, color: t.color, border: `1px solid ${t.color}33`,
+                      }}>
+                        {t.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Side-by-side curves */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  {[
+                    { label: "Before", col: beforeCol, dim: true },
+                    { label: "After",  col: afterCol,  dim: false },
+                  ].map(({ label, col, dim }) => (
+                    <div key={label}>
+                      <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginBottom: "0.25rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                        {label}
+                      </div>
+                      {/* Bell curve — dim before, vivid after */}
+                      <div style={{ opacity: dim ? 0.45 : 1 }}>
+                        <MiniDistChart col={col} width={220} />
+                      </div>
+                      {/* Stats */}
+                      <div style={{ marginTop: "0.3rem", display: "flex", gap: "0.6rem", fontSize: "0.65rem", fontVariantNumeric: "tabular-nums" }}>
+                        <span><span style={{ color: "var(--text3)" }}>mean </span>
+                          <span style={{ color: dim ? "var(--text2)" : ACCENT, fontWeight: dim ? 400 : 700 }}>{fmtNum(col.mean ?? 0)}</span></span>
+                        <span><span style={{ color: "var(--text3)" }}>std </span>
+                          <span style={{ color: "var(--text2)" }}>{fmtNum(col.std ?? 0)}</span></span>
+                        {col.missing > 0 && (
+                          <span style={{ color: "#f87171" }}>{col.missing} missing</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {comparable.length > 7 && (
+            <div style={{ fontSize: "0.68rem", color: "var(--text3)", textAlign: "center" }}>
+              +{comparable.length - 7} more columns
+            </div>
+          )}
+
+          {/* Removed / Added columns */}
+          {(removed.length > 0 || added.length > 0) && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
+              {removed.map(c => (
+                <span key={c.name} style={{
+                  padding: "2px 9px", borderRadius: 9999, fontSize: "0.68rem",
+                  background: "rgba(239,68,68,0.1)", color: "#f87171",
+                  border: "1px solid rgba(239,68,68,0.25)", textDecoration: "line-through",
+                }}>
+                  {c.name}
+                </span>
+              ))}
+              {added.length > 0 && (
+                <span style={{
+                  padding: "2px 9px", borderRadius: 9999, fontSize: "0.68rem",
+                  background: `${ACCENT}12`, color: ACCENT, border: `1px solid ${ACCENT}30`,
+                }}>
+                  +{added.length} new column{added.length > 1 ? "s" : ""} (encoding)
+                </span>
+              )}
+            </div>
+          )}
+
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -679,10 +842,9 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             })}
           </div>
 
-          {result.ohe_cols_added > 0 && (
-            <div style={{ fontSize: "0.78rem", color: "var(--text3)", textAlign: "center" }}>
-              One-hot encoding added {result.ohe_cols_added} columns
-            </div>
+          {/* Before / After comparison */}
+          {analyzed && result.columns?.length > 0 && (
+            <ComparisonView before={analyzed} result={result} />
           )}
 
           <button onClick={downloadCSV} style={{
