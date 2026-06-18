@@ -541,18 +541,21 @@ function DatasetOverview({ analyzed }: { analyzed: AnalyzeResult }) {
         <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1.1rem", background: "rgba(11,17,32,0.6)" }}>
           {colsWithMissing.length > 0 && (
             <div>
-              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>Missing Values</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.65rem" }}>
+                Missing Values
+                <span style={{ marginLeft: "0.5rem", fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "var(--text3)", opacity: 0.7 }}>({colsWithMissing.length} column{colsWithMissing.length > 1 ? "s" : ""})</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
                 {colsWithMissing.slice(0, 10).map(col => {
                   const pct = Math.round((col.missing / analyzed.rows) * 100);
                   const clr = missingColor(pct);
                   return (
-                    <div key={col.name} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                      <span style={{ fontSize: "0.72rem", color: "var(--text2)", width: 120, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{col.name}</span>
-                      <div style={{ flex: 1, height: 7, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, minWidth: 4, background: clr, borderRadius: 9999, transition: "width 0.4s ease" }} />
+                    <div key={col.name} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <span style={{ fontSize: "0.73rem", fontWeight: 500, color: "var(--text)", width: 110, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{col.name}</span>
+                      <div style={{ flex: 1, height: 10, borderRadius: 9999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${Math.max(pct, 2)}%`, background: clr, borderRadius: 9999, transition: "width 0.5s ease", boxShadow: `0 0 6px ${clr}66` }} />
                       </div>
-                      <span style={{ fontSize: "0.68rem", color: clr, width: 60, flexShrink: 0, fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{col.missing} ({pct}%)</span>
+                      <span style={{ fontSize: "0.7rem", fontWeight: 600, color: clr, width: 68, flexShrink: 0, fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{col.missing} <span style={{ fontWeight: 400, opacity: 0.8 }}>({pct}%)</span></span>
                     </div>
                   );
                 })}
@@ -1147,7 +1150,7 @@ export default function PreprocessingPage() {
             <div style={{ display: "flex", gap: "1.5rem", alignItems: "stretch", flex: 1, overflow: "hidden", minHeight: 0 }}>
 
               {/* Left sidebar: Smart Recommendations */}
-              <div style={{ width: 280, minWidth: 250, flexShrink: 0, overflowY: "auto", paddingRight: 6 }}>
+              <div style={{ width: 280, minWidth: 250, flexShrink: 0, overflowY: "auto", paddingRight: 6, paddingBottom: "2rem" }}>
                 <SmartRecommendations
                   analyzed={analyzed} target={target}
                   dropCols={dropCols} mvNum={mvNum} fixSkewness={fixSkewness}
@@ -1161,7 +1164,7 @@ export default function PreprocessingPage() {
               </div>
 
               {/* Right: config controls */}
-              <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem", paddingRight: 4 }}>
+              <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem", paddingRight: 4, paddingBottom: "2rem" }}>
 
                 <DatasetOverview analyzed={analyzed} />
 
@@ -1186,9 +1189,9 @@ export default function PreprocessingPage() {
                           onClick={() => { setDropCols(prev => { const n = new Set(prev); dropped ? n.delete(col.name) : n.add(col.name); return n; }); setActivePreset("custom"); }}
                           style={{
                             padding: "3px 10px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 500, cursor: "pointer", transition: "all 0.15s",
-                            border: `1px solid ${dropped ? "#ef4444" : col.is_numeric ? `${ACCENT}44` : "var(--border2)"}`,
-                            background: dropped ? "rgba(239,68,68,0.12)" : col.is_numeric ? `${ACCENT}10` : "var(--border)",
-                            color: dropped ? "#f87171" : col.is_numeric ? ACCENT : "var(--text2)",
+                            border: `1px solid ${dropped ? "#ef4444" : col.is_numeric ? `${ACCENT}44` : "rgba(192,132,252,0.35)"}`,
+                            background: dropped ? "rgba(239,68,68,0.12)" : col.is_numeric ? `${ACCENT}10` : "rgba(192,132,252,0.08)",
+                            color: dropped ? "#f87171" : col.is_numeric ? ACCENT : "#c084fc",
                             textDecoration: dropped ? "line-through" : "none",
                           }}
                         >
