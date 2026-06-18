@@ -82,9 +82,70 @@ function missingColor(pct: number) {
 
 function skewBadge(s: number) {
   const abs = Math.abs(s);
-  if (abs >= 1)   return { label: "High skew", color: "#f87171" };
-  if (abs >= 0.5) return { label: "Moderate",  color: "#fb923c" };
-  return               { label: "Normal",     color: "#4ade80" };
+  if (abs >= 1)   return { label: "High skew",  color: "#f87171", desc: "Long tail — log transform recommended" };
+  if (abs >= 0.5) return { label: "Moderate",   color: "#fb923c", desc: "Slight asymmetry" };
+  return               { label: "Normal",      color: "#4ade80", desc: "Roughly symmetric" };
+}
+
+function fmtNum(v: number) {
+  if (Math.abs(v) >= 10000) return v.toFixed(0);
+  if (Math.abs(v) >= 100)   return v.toFixed(1);
+  if (Math.abs(v) >= 10)    return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+// ── Mini bell curve SVG ───────────────────────────────────────────────────────
+
+function MiniDistChart({ col }: { col: ColumnInfo }) {
+  const { min = 0, max = 0, mean = 0, std = 1, skew = 0 } = col;
+  const W = 140, H = 44;
+
+  if (min === max) {
+    return (
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+        <line x1={W / 2} y1={H} x2={W / 2} y2={4} stroke={ACCENT} strokeWidth="2" strokeLinecap="round" />
+        <circle cx={W / 2} cy={4} r={2.5} fill={ACCENT} />
+      </svg>
+    );
+  }
+
+  const N = 80;
+  const range = max - min;
+  // Dampen skew so the asymmetry is visible but not extreme
+  const skewFactor = Math.max(-0.7, Math.min(0.7, (skew ?? 0) * 0.28));
+
+  const yVals: number[] = [];
+  for (let i = 0; i <= N; i++) {
+    const x = min + (i / N) * range;
+    const isRight = x >= mean;
+    const effStd = Math.max(range * 0.001, isRight
+      ? (std || range * 0.2) * (1 + skewFactor)
+      : (std || range * 0.2) * (1 - skewFactor));
+    const z = (x - mean) / effStd;
+    yVals.push(Math.exp(-0.5 * z * z));
+  }
+
+  const maxY = Math.max(...yVals, 0.01);
+  const pts = yVals.map((y, i) => ({
+    sx: (i / N) * W,
+    sy: H - 2 - ((y / maxY) * (H - 8)),
+  }));
+
+  const fillPath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(" ")
+    + ` L${W},${H} L0,${H} Z`;
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(" ");
+
+  // Mean marker x position
+  const meanX = ((mean - min) / range) * W;
+
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+      <path d={fillPath} fill={ACCENT} fillOpacity={0.12} />
+      <path d={linePath} fill="none" stroke={ACCENT} strokeWidth="1.5" strokeLinejoin="round" />
+      {/* Mean line */}
+      <line x1={meanX} y1={H} x2={meanX} y2={4} stroke={ACCENT} strokeWidth="1" strokeDasharray="2 2" strokeOpacity="0.7" />
+    </svg>
+  );
 }
 
 // ── Dataset Overview Panel ────────────────────────────────────────────────────
@@ -167,72 +228,61 @@ function DatasetOverview({ analyzed }: { analyzed: AnalyzeResult }) {
             </div>
           )}
 
-          {/* Numeric distributions */}
+          {/* Numeric distributions — card per column */}
           {numCols.length > 0 && (
             <div>
-              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>
-                Numeric Distributions (min · mean · max)
+              <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.6rem" }}>
+                Numeric Distributions
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {numCols.slice(0, 8).map(col => {
-                  const { min = 0, max = 0, mean = 0, skew = 0 } = col;
-                  const range = max - min;
-                  const meanPct = range === 0 ? 50 : Math.max(2, Math.min(98, ((mean - min) / range) * 100));
-                  const badge = skewBadge(skew);
-                  const fmt = (v: number) => {
-                    if (Math.abs(v) >= 1000) return v.toFixed(0);
-                    if (Math.abs(v) >= 10)   return v.toFixed(1);
-                    return v.toFixed(2);
-                  };
+                  const badge = skewBadge(col.skew ?? 0);
+                  const missingPct = analyzed.rows > 0 ? Math.round((col.missing / analyzed.rows) * 100) : 0;
                   return (
-                    <div key={col.name}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                        <span style={{ fontSize: "0.72rem", color: "var(--text2)", width: 110, flexShrink: 0,
+                    <div key={col.name} style={{
+                      display: "flex", alignItems: "center", gap: "0.75rem",
+                      padding: "0.65rem 0.85rem", borderRadius: 10,
+                      background: "rgba(11,17,32,0.7)", border: "1px solid var(--border)",
+                    }}>
+                      {/* Name + meta */}
+                      <div style={{ width: 88, flexShrink: 0 }}>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text)",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {col.name}
-                        </span>
-                        <span style={{ fontSize: "0.62rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums", width: 52, flexShrink: 0 }}>
-                          {fmt(min)}
-                        </span>
-                        {/* Range bar with mean marker */}
-                        <div style={{ flex: 1, position: "relative", height: 7, borderRadius: 9999, background: "var(--border2)" }}>
-                          {/* Filled region from 0 to mean */}
-                          <div style={{
-                            position: "absolute", left: 0, top: 0, height: "100%",
-                            width: `${meanPct}%`, background: `${ACCENT}55`, borderRadius: "9999px 0 0 9999px",
-                          }} />
-                          {/* Mean dot */}
-                          <div style={{
-                            position: "absolute", top: "50%", left: `${meanPct}%`,
-                            transform: "translate(-50%, -50%)",
-                            width: 9, height: 9, borderRadius: 9999,
-                            background: ACCENT, border: "2px solid #0b1120", flexShrink: 0,
-                          }} />
                         </div>
-                        <span style={{ fontSize: "0.62rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums", width: 52, flexShrink: 0, textAlign: "right" }}>
-                          {fmt(max)}
-                        </span>
-                        {/* Skew badge */}
-                        <span style={{
-                          fontSize: "0.58rem", padding: "1px 6px", borderRadius: 9999, flexShrink: 0,
-                          background: `${badge.color}18`, color: badge.color, border: `1px solid ${badge.color}33`,
-                        }}>
-                          {badge.label}
-                        </span>
+                        <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 2 }}>
+                          {col.nunique} unique{missingPct > 0 ? ` · ${missingPct}% missing` : ""}
+                        </div>
                       </div>
-                      {/* Mean value label */}
-                      <div style={{
-                        marginLeft: 162 + (meanPct / 100) * 180, fontSize: "0.58rem",
-                        color: ACCENT, fontVariantNumeric: "tabular-nums",
-                        transform: "translateX(-50%)", display: "inline-block",
+
+                      {/* Bell curve */}
+                      <MiniDistChart col={col} />
+
+                      {/* Stats */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", gap: "0.6rem", fontSize: "0.67rem", fontVariantNumeric: "tabular-nums", flexWrap: "wrap" }}>
+                          <span><span style={{ color: "var(--text3)" }}>min </span><span style={{ color: "var(--text2)" }}>{fmtNum(col.min ?? 0)}</span></span>
+                          <span><span style={{ color: "var(--text3)" }}>mean </span><span style={{ color: ACCENT, fontWeight: 700 }}>{fmtNum(col.mean ?? 0)}</span></span>
+                          <span><span style={{ color: "var(--text3)" }}>max </span><span style={{ color: "var(--text2)" }}>{fmtNum(col.max ?? 0)}</span></span>
+                        </div>
+                        <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: "0.2rem" }}>
+                          std {fmtNum(col.std ?? 0)} · {badge.desc}
+                        </div>
+                      </div>
+
+                      {/* Skew badge */}
+                      <span style={{
+                        fontSize: "0.62rem", padding: "2px 8px", borderRadius: 9999, flexShrink: 0,
+                        background: `${badge.color}18`, color: badge.color,
+                        border: `1px solid ${badge.color}33`, fontWeight: 600,
                       }}>
-                        {fmt(mean)}
-                      </div>
+                        {badge.label}
+                      </span>
                     </div>
                   );
                 })}
                 {numCols.length > 8 && (
-                  <div style={{ fontSize: "0.68rem", color: "var(--text3)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text3)", textAlign: "center", paddingTop: "0.25rem" }}>
                     +{numCols.length - 8} more numeric columns
                   </div>
                 )}
