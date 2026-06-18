@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AutoMLModal from "@/components/modals/AutoMLModal";
+import ConstellationBackground from "@/components/ConstellationBackground";
 
 const ACCENT = "#818cf8";
 
@@ -32,7 +33,8 @@ function AutoMLPageInner() {
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#060d1a", color: "var(--text)" }}>
+    <div style={{ minHeight: "100vh", color: "var(--text)" }}>
+      <ConstellationBackground />
       {/* Page header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
