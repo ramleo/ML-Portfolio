@@ -2,20 +2,21 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 const STAGES = [
   {
     step: 1, title: "Data Ingestion", accent: "#34d399",
     tools: ["CSV Upload", "REST APIs", "Web Scraping", "Selenium", "Scrapy", "BeautifulSoup"],
     description: "Collect raw data from any source — upload CSV files, call REST APIs, or scrape websites with Selenium, Scrapy, or BeautifulSoup. This is where every ML project begins.",
-    liveLink: "https://ml-unified.onrender.com/?mode=eda",
+    liveLink: "/?mode=eda",
     liveLinkLabel: "Try EDA Explorer →",
   },
   {
     step: 2, title: "Exploratory Analysis", accent: "#38bdf8",
     tools: ["Pandas", "NumPy", "Plotly", "Distributions", "Correlations", "Outliers"],
     description: "Understand the data before touching it. Distributions, missing values, correlations, outlier detection, type inference — visualized interactively.",
-    liveLink: "https://ml-unified.onrender.com/?mode=eda",
+    liveLink: "/?mode=eda",
     liveLinkLabel: "Open EDA Explorer →",
   },
   {
@@ -28,21 +29,21 @@ const STAGES = [
     step: 4, title: "Model Training", accent: "#f59e0b",
     tools: ["Scikit-learn", "XGBoost", "LightGBM", "CatBoost", "PyTorch", "GridSearchCV", "Auto-ML"],
     description: "Select and train the right algorithm — from Linear Regression and Random Forest to XGBoost, deep learning (CNN/RNN), and Auto-ML pipelines with hyperparameter tuning.",
-    liveLink: "https://ml-unified.onrender.com/?mode=ml",
+    liveLink: "/?mode=ml",
     liveLinkLabel: "Try ML Platform →",
   },
   {
     step: 5, title: "Evaluation", accent: "#f87171",
     tools: ["Accuracy", "AUC-ROC", "Confusion Matrix", "Precision", "Recall", "F-Beta", "SHAP", "LIME"],
     description: "Measure model performance with the right metrics for the task. Interpret black-box predictions with SHAP and LIME. Validate on held-out data.",
-    liveLink: "https://ml-unified.onrender.com/?mode=ml",
+    liveLink: "/?mode=ml",
     liveLinkLabel: "See Live Results →",
   },
   {
     step: 6, title: "Deployment", accent: "#818cf8",
     tools: ["FastAPI", "Flask", "Docker", "Render", "Vercel", "GCP", "Postman"],
     description: "Serve predictions via REST API with FastAPI or Flask. Containerize with Docker. Deploy to Render (ML backends) or Vercel (frontends). Every app here is live.",
-    liveLink: "https://ml-unified.onrender.com/?mode=vision",
+    liveLink: "/?mode=vision",
     liveLinkLabel: "Try Vision Platform →",
   },
   {
@@ -363,7 +364,7 @@ export default function PipelineShowcase() {
 
                 {active.liveLink && !active.comingSoon && (
                   <a
-                    href={active.liveLink}
+                    href={ML_UNIFIED_API + active.liveLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{

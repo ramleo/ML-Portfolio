@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -243,8 +244,9 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
                 const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
                 let palette = "cosmic";
                 try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
-                const sep = cap.link.includes("?") ? "&" : "?";
-                window.open(`${cap.link}${sep}theme=${theme}&palette=${palette}`, "_blank");
+                const base = ML_UNIFIED_API + cap.link;
+                const sep = base.includes("?") ? "&" : "?";
+                window.open(`${base}${sep}theme=${theme}&palette=${palette}`, "_blank");
               }}
               style={{
                 flex: 1,

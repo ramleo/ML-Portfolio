@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { SiteIcon } from "./SiteIcons";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 const QUICK_LINKS = [
   { label: "About",    href: "#about" },
@@ -89,9 +90,9 @@ export default function Footer() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
                 {[
-                  { label: "ML Unified Platform", href: "https://ml-unified.onrender.com/?mode=ml" },
-                  { label: "EDA Explorer",         href: "https://ml-unified.onrender.com/?mode=eda" },
-                  { label: "Vision Platform",      href: "https://ml-unified.onrender.com/?mode=vision" },
+                  { label: "ML Unified Platform", href: `${ML_UNIFIED_API}/?mode=ml` },
+                  { label: "EDA Explorer",         href: `${ML_UNIFIED_API}/?mode=eda` },
+                  { label: "Vision Platform",      href: `${ML_UNIFIED_API}/?mode=vision` },
                 ].map((l) => (
                   <a
                     key={l.label}
