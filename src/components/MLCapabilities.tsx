@@ -9,6 +9,7 @@ import capabilities, { type Capability } from "@/data/capabilities";
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
+  const router = useRouter();
 
   const [tilt, setTilt]       = useState({ x: 0, y: 0 });
   const [hovering, setHovering] = useState(false);
@@ -170,7 +171,40 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-          {cap.modalEnabled && onRunHere ? (
+          {cap.internalLink ? (
+            <button
+              onClick={() => router.push(cap.internalLink!)}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.4rem",
+                padding: "0.6rem 1rem",
+                borderRadius: 9999,
+                background: cap.accent,
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "0.82rem",
+                border: "none",
+                cursor: "pointer",
+                transition: "opacity 0.15s, transform 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.88";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              Try it
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ) : cap.modalEnabled && onRunHere ? (
             <button
               onClick={onRunHere}
               style={{

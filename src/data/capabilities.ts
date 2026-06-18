@@ -12,6 +12,7 @@ export type Capability = {
   link: string;
   github: string;
   modalEnabled?: boolean;   // true = "Run Here" button opens inline modal
+  internalLink?: string;    // internal Next.js route — shows "Try it", navigates client-side
 };
 
 const GITHUB = "https://github.com/ramleo/ML-Unified";
@@ -63,6 +64,7 @@ const capabilities: Capability[] = [
     tags: ["Transforms", "Interactions", "Date Features", "Cyclical"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    internalLink: "/tools/feature-engineering",
   },
   {
     id: "featureselect",
@@ -78,6 +80,7 @@ const capabilities: Capability[] = [
     tags: ["RFE", "SelectKBest", "Variance", "Correlation"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    internalLink: "/tools/feature-selection",
   },
   {
     id: "optuna",
@@ -93,6 +96,7 @@ const capabilities: Capability[] = [
     tags: ["Optuna", "TPE Sampler", "5-fold CV"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    internalLink: "/tools/optuna",
   },
   {
     id: "shap",
@@ -108,6 +112,7 @@ const capabilities: Capability[] = [
     tags: ["SHAP", "Feature Impact", "Classification", "Regression"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    internalLink: "/tools/shap",
   },
   {
     id: "ensemble",
@@ -123,6 +128,7 @@ const capabilities: Capability[] = [
     tags: ["Voting", "Stacking", "Meta-Learner", "scikit-learn"],
     link: "https://ml-unified.onrender.com/?mode=ml",
     github: GITHUB,
+    internalLink: "/tools/ensemble",
   },
 ];
 
