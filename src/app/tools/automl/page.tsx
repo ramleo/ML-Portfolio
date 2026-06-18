@@ -61,15 +61,9 @@ function AutoMLPageInner() {
         </div>
       </div>
 
-      {/* AutoML wizard content */}
+      {/* AutoML wizard content — no wrapper card, renders directly on page background */}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
-        <div style={{
-          background: "rgba(17,24,39,0.45)", border: "1px solid rgba(129,140,248,0.18)",
-          borderRadius: 20, padding: "1.75rem 2rem 2rem",
-          backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-        }}>
-          <AutoMLModal onClose={handleBack} isPage />
-        </div>
+        <AutoMLModal onClose={handleBack} isPage />
       </div>
     </div>
   );
