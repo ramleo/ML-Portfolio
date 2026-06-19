@@ -398,6 +398,7 @@ const CARD: React.CSSProperties = {
 
 const SELECT_STYLE: React.CSSProperties = {
   flex: 1,
+  minWidth: 0,
   background: "rgba(0,0,0,0.35)",
   border: "1px solid rgba(255,255,255,0.1)",
   borderRadius: 6,
@@ -789,37 +790,36 @@ export default function FeatureEngineeringPage() {
               {/* Polynomial cross-terms */}
               <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <SideLabel>Polynomial Cross-Terms</SideLabel>
-                <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.6rem", lineHeight: 1.5 }}>Select 2+ columns — all pairwise products are generated.</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.32rem" }}>
+                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.5 }}>
+                  Generates every pairwise A×B product for the selected columns.
+                  {polyCols.length >= 2 && (
+                    <span style={{ color: ACCENT }}> → {polyCols.length * (polyCols.length - 1) / 2} new column{polyCols.length * (polyCols.length - 1) / 2 > 1 ? "s" : ""}</span>
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
                   {numCols.map(c => (
-                    <button key={c.name} onClick={() => setPolyCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
-                      style={{ padding: "3px 9px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${polyCols.includes(c.name) ? ACCENT : "rgba(255,255,255,0.12)"}`, background: polyCols.includes(c.name) ? `${ACCENT}18` : "rgba(255,255,255,0.03)", color: polyCols.includes(c.name) ? ACCENT : "var(--text3)", transition: "all 0.13s" }}>
-                      {c.name}
-                    </button>
+                    <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                      <Toggle checked={polyCols.includes(c.name)} onChange={() => setPolyCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
+                      <span style={{ fontSize: "0.78rem", color: polyCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
+                    </div>
                   ))}
                 </div>
-                {polyCols.length >= 2 && (
-                  <div style={{ marginTop: "0.5rem", fontSize: "0.72rem", color: ACCENT }}>
-                    {polyCols.length * (polyCols.length - 1) / 2} cross-term{polyCols.length > 2 ? "s" : ""} will be added
-                  </div>
-                )}
               </div>
 
               {/* Frequency Encoding */}
               {catCols.length > 0 && (
                 <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <SideLabel>Frequency Encoding</SideLabel>
-                  <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.6rem", lineHeight: 1.5 }}>Replace each category with its proportion in the column.</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.32rem" }}>
+                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.6 }}>
+                    Replaces each value with its share of total rows.<br />
+                    <span style={{ color: "var(--text2)" }}>e.g. Sex: male → 0.65, female → 0.35</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
                     {catCols.map(c => (
-                      <button key={c.name} onClick={() => setFreqCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
-                        style={{ padding: "3px 9px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer",
-                          border: `1px solid ${freqCols.includes(c.name) ? "#34d399" : "rgba(255,255,255,0.12)"}`,
-                          background: freqCols.includes(c.name) ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.03)",
-                          color: freqCols.includes(c.name) ? "#34d399" : "var(--text3)",
-                          transition: "all 0.13s" }}>
-                        {c.name}
-                      </button>
+                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                        <Toggle checked={freqCols.includes(c.name)} onChange={() => setFreqCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
+                        <span style={{ fontSize: "0.78rem", color: freqCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -952,7 +952,7 @@ export default function FeatureEngineeringPage() {
                 <>
                   {/* Apply-to-all header row — widths mirror column rows (118 name + 36 skew) */}
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingBottom: "0.65rem", marginBottom: "0.15rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                    <span style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 118 }}>Apply to all</span>
+                    <div style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 118 }}>Apply to all</div>
                     <div style={{ width: 36, flexShrink: 0 }} />
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem" }}>
                       {NUM_TRANSFORMS.map(t => {
