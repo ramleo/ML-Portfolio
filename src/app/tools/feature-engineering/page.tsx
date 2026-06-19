@@ -468,6 +468,30 @@ const SELECT_STYLE: React.CSSProperties = {
   outline: "none",
 };
 
+// ── Mini histogram (SVG, pure browser) ───────────────────────────────────────
+
+function MiniHistogram({ values, bins = 14, width = 66, height = 22, color = ACCENT }: {
+  values: (number | null)[];
+  bins?: number; width?: number; height?: number; color?: string;
+}) {
+  const valid = values.filter(v => v !== null) as number[];
+  if (valid.length === 0) return <svg width={width} height={height} />;
+  const min = Math.min(...valid), max = Math.max(...valid);
+  const range = max - min || 1;
+  const counts = new Array(bins).fill(0);
+  for (const v of valid) counts[Math.min(Math.floor(((v - min) / range) * bins), bins - 1)]++;
+  const maxCount = Math.max(...counts, 1);
+  const bw = width / bins;
+  return (
+    <svg width={width} height={height} style={{ display: "block" }}>
+      {counts.map((c, i) => {
+        const h = (c / maxCount) * height;
+        return <rect key={i} x={i * bw + 0.5} y={height - h} width={Math.max(bw - 1, 1)} height={Math.max(h, 0.5)} fill={color} rx={0.5} />;
+      })}
+    </svg>
+  );
+}
+
 // ── Small helpers ─────────────────────────────────────────────────────────────
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -668,6 +692,34 @@ export default function FeatureEngineeringPage() {
     setRatios(prev => [...prev, pair]);
     setRatioA(""); setRatioB("");
   };
+
+  // ── AI Smart Suggest ───────────────────────────────────────────────────────
+
+  const aiSuggest = useCallback(() => {
+    const n = rawRows.length - 1;
+    const next: Record<string, string[]> = {};
+    for (const col of numCols) {
+      const transforms: string[] = [];
+      const valid = col.values.filter(v => v !== null) as number[];
+      const missingPct = col.missing / n;
+      // Skew correction
+      if (col.skew > 1.5) transforms.push("log1p");
+      else if (col.skew > 0.5) transforms.push("sqrt");
+      // Missing indicator
+      if (missingPct > 0.02) transforms.push("missing_flag");
+      // Outlier detection (IQR)
+      if (valid.length >= 10) {
+        const sorted = [...valid].sort((a, b) => a - b);
+        const q1 = sorted[Math.floor(sorted.length * 0.25)];
+        const q3 = sorted[Math.floor(sorted.length * 0.75)];
+        const iqr = q3 - q1;
+        if (iqr > 0 && valid.filter(v => v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr).length / valid.length > 0.03)
+          transforms.push("winsor");
+      }
+      next[col.name] = transforms;
+    }
+    setColTransforms(next);
+  }, [numCols, rawRows.length]);
 
   // ── Apply ──────────────────────────────────────────────────────────────────
 
@@ -1038,7 +1090,17 @@ export default function FeatureEngineeringPage() {
           {/* ── Right panel — pill chip transforms + categorical ── */}
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <div style={{ ...CARD }}>
-              <SectionTitle>Numeric Column Transforms</SectionTitle>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem" }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Numeric Column Transforms
+                </div>
+                <button onClick={aiSuggest} title="Auto-select transforms based on skew, missing values, and outlier detection"
+                  style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: ACCENT, transition: "all 0.15s", flexShrink: 0 }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
+                  ✨ AI Suggest
+                </button>
+              </div>
 
               {/* Compact transform key */}
               <div style={{ fontSize: "0.61rem", color: "var(--text3)", lineHeight: 1.85, marginBottom: "0.8rem" }}>
@@ -1057,7 +1119,7 @@ export default function FeatureEngineeringPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                   <colgroup>
                     <col style={{ width: 118 }} />
-                    <col style={{ width: 44 }} />
+                    <col style={{ width: 84 }} />
                     <col />
                   </colgroup>
                   <thead>
@@ -1102,8 +1164,11 @@ export default function FeatureEngineeringPage() {
                             </div>
                             {col.missing > 0 && <div style={{ fontSize: "0.59rem", color: "#f87171" }}>{col.missing} missing</div>}
                           </td>
-                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle", textAlign: "center", fontSize: "0.69rem", fontWeight: 700, color: skewColor }}>
-                            {col.skew.toFixed(1)}
+                          <td style={{ padding: "0.4rem 0.3rem", borderBottom: border, verticalAlign: "middle", textAlign: "center" }}>
+                            <MiniHistogram values={col.values} bins={14} width={66} height={22} color={`${skewColor}99`} />
+                            <div style={{ fontSize: "0.6rem", fontWeight: 700, color: skewColor, marginTop: "0.1rem" }}>
+                              skew {col.skew.toFixed(1)}
+                            </div>
                           </td>
                           <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
@@ -1274,6 +1339,34 @@ export default function FeatureEngineeringPage() {
                 </div>
             }
           </div>
+
+          {/* New feature distributions */}
+          {result.newColumns.length > 0 && (
+            <div style={CARD}>
+              <SectionTitle>New Feature Distributions</SectionTitle>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem" }}>
+                {result.newColumns.map(colName => {
+                  const idx = result.headers.indexOf(colName);
+                  const vals = result.csv.slice(1).map(r => { const v = parseFloat(r[idx] ?? ""); return isNaN(v) ? null : v; });
+                  const valid = vals.filter(v => v !== null) as number[];
+                  if (valid.length === 0) return null;
+                  const min = Math.min(...valid), max = Math.max(...valid);
+                  return (
+                    <div key={colName} style={{ padding: "0.6rem 0.7rem", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={colName}>
+                        {colName}
+                      </div>
+                      <MiniHistogram values={vals} bins={18} width={140} height={34} color={ACCENT} />
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.57rem", color: "var(--text3)", marginTop: "0.22rem" }}>
+                        <span>{min.toFixed(2)}</span>
+                        <span>{max.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Data preview — first 5 rows */}
           {result.newColumns.length > 0 && (
