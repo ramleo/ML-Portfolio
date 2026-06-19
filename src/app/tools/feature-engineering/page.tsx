@@ -469,23 +469,6 @@ function SideLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Date column detector ──────────────────────────────────────────────────────
-
-function isLikelyDateCol(rawValues: string[]): boolean {
-  const nonEmpty = rawValues.filter(v => {
-    const lv = (v ?? "").trim().toLowerCase();
-    return lv && lv !== "nan" && lv !== "null" && lv !== "na";
-  });
-  if (nonEmpty.length === 0) return false;
-  const sample = nonEmpty.slice(0, Math.min(nonEmpty.length, 20));
-  const valid = sample.filter(v => {
-    if (v.length < 6) return false;
-    const d = new Date(v);
-    return !isNaN(d.getTime());
-  });
-  return valid.length / sample.length > 0.7;
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function FeatureEngineeringPage() {
@@ -539,7 +522,6 @@ export default function FeatureEngineeringPage() {
 
   const numCols = cols.filter(c => c.isNumeric);
   const catCols = cols.filter(c => !c.isNumeric);
-  const dateLikeCols = catCols.filter(c => isLikelyDateCol(c.rawValues));
 
   // ── File handling ──────────────────────────────────────────────────────────
 
@@ -744,62 +726,64 @@ export default function FeatureEngineeringPage() {
                 </div>
               </div>
 
-              {/* Interaction Terms (A × B) */}
+              {/* Column Combinations */}
               <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <SideLabel>Interaction Terms (A × B)</SideLabel>
-                <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.6rem" }}>
+                <SideLabel>Column Combinations</SideLabel>
+
+                {/* A × B */}
+                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
+                  Multiply (A × B) → <span style={{ color: ACCENT, fontFamily: "monospace" }}>colA_x_colB</span>
+                </div>
+                <div style={{ display: "flex", gap: "0.35rem", marginBottom: interactions.length > 0 ? "0.4rem" : "0.55rem" }}>
                   <select value={interactA} onChange={e => setInteractA(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col A</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
-                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>×</span>
+                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.85rem", flexShrink: 0 }}>×</span>
                   <select value={interactB} onChange={e => setInteractB(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col B</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
                   <button onClick={addInteraction} disabled={!interactA || !interactB || interactA === interactB}
-                    style={{ padding: "0.35rem 0.6rem", borderRadius: 6, background: ACCENT, color: "#000", border: "none", fontWeight: 700, fontSize: "0.9rem", cursor: (!interactA || !interactB || interactA === interactB) ? "not-allowed" : "pointer", opacity: (!interactA || !interactB || interactA === interactB) ? 0.35 : 1 }}>
+                    style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.08)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.12)", fontWeight: 700, fontSize: "1rem", cursor: (!interactA || !interactB || interactA === interactB) ? "not-allowed" : "pointer", opacity: (!interactA || !interactB || interactA === interactB) ? 0.3 : 1, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     +
                   </button>
                 </div>
-                {interactions.length === 0
-                  ? <div style={{ fontSize: "0.74rem", color: "var(--text3)" }}>No interactions added yet.</div>
-                  : interactions.map(([a, b], i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.25rem 0.6rem", background: `${ACCENT}0c`, borderRadius: 6, marginBottom: "0.25rem" }}>
-                      <span style={{ fontSize: "0.75rem", color: ACCENT, fontWeight: 600 }}>{a} × {b}</span>
-                      <button onClick={() => setInteractions(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
-                    </div>
-                  ))
-                }
-              </div>
+                {interactions.map(([a, b], i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.2rem 0.55rem", background: `${ACCENT}0c`, borderRadius: 5, marginBottom: "0.2rem" }}>
+                    <span style={{ fontSize: "0.72rem", color: ACCENT, fontWeight: 600 }}>{a} × {b}</span>
+                    <button onClick={() => setInteractions(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1, padding: 0 }}>×</button>
+                  </div>
+                ))}
 
-              {/* Ratio Features (A ÷ B) */}
-              <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <SideLabel>Ratio Features (A ÷ B)</SideLabel>
-                <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.6rem" }}>
+                {/* Divider */}
+                <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "0.65rem 0" }} />
+
+                {/* A ÷ B */}
+                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
+                  Divide (A ÷ B) → <span style={{ color: "#a78bfa", fontFamily: "monospace" }}>colA_div_colB</span>
+                </div>
+                <div style={{ display: "flex", gap: "0.35rem", marginBottom: ratios.length > 0 ? "0.4rem" : 0 }}>
                   <select value={ratioA} onChange={e => setRatioA(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col A</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
-                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>÷</span>
+                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.85rem", flexShrink: 0 }}>÷</span>
                   <select value={ratioB} onChange={e => setRatioB(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col B</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
                   <button onClick={addRatio} disabled={!ratioA || !ratioB || ratioA === ratioB}
-                    style={{ padding: "0.35rem 0.6rem", borderRadius: 6, background: "#a78bfa", color: "#000", border: "none", fontWeight: 700, fontSize: "0.9rem", cursor: (!ratioA || !ratioB || ratioA === ratioB) ? "not-allowed" : "pointer", opacity: (!ratioA || !ratioB || ratioA === ratioB) ? 0.35 : 1 }}>
+                    style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.08)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.12)", fontWeight: 700, fontSize: "1rem", cursor: (!ratioA || !ratioB || ratioA === ratioB) ? "not-allowed" : "pointer", opacity: (!ratioA || !ratioB || ratioA === ratioB) ? 0.3 : 1, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     +
                   </button>
                 </div>
-                {ratios.length === 0
-                  ? <div style={{ fontSize: "0.74rem", color: "var(--text3)" }}>No ratios added yet.</div>
-                  : ratios.map(([a, b], i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.25rem 0.6rem", background: "rgba(167,139,250,0.08)", borderRadius: 6, marginBottom: "0.25rem" }}>
-                      <span style={{ fontSize: "0.75rem", color: "#a78bfa", fontWeight: 600 }}>{a} ÷ {b}</span>
-                      <button onClick={() => setRatios(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
-                    </div>
-                  ))
-                }
+                {ratios.map(([a, b], i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.2rem 0.55rem", background: "rgba(167,139,250,0.08)", borderRadius: 5, marginBottom: "0.2rem" }}>
+                    <span style={{ fontSize: "0.72rem", color: "#a78bfa", fontWeight: 600 }}>{a} ÷ {b}</span>
+                    <button onClick={() => setRatios(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1, padding: 0 }}>×</button>
+                  </div>
+                ))}
               </div>
 
               {/* Polynomial cross-terms */}
@@ -841,12 +825,15 @@ export default function FeatureEngineeringPage() {
                 </div>
               )}
 
-              {/* Date extraction — only shown when date-like columns are detected */}
-              {dateLikeCols.length > 0 && (
+              {/* Date extraction */}
+              {catCols.length > 0 && (
                 <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <SideLabel>Date Extraction</SideLabel>
+                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.5 }}>
+                    Toggle columns that contain dates → extracts year, month, day etc.
+                  </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginBottom: dateCols.length > 0 ? "0.7rem" : 0 }}>
-                    {dateLikeCols.map(c => (
+                    {catCols.map(c => (
                       <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
                         <Toggle checked={dateCols.includes(c.name)} onChange={() => setDateCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
                         <span style={{ fontSize: "0.78rem", color: dateCols.includes(c.name) ? "var(--text)" : "var(--text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
