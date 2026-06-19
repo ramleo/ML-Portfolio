@@ -697,10 +697,12 @@ export default function FeatureEngineeringPage() {
   // ── AI Smart Suggest ───────────────────────────────────────────────────────
 
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const [aiSuggestError, setAiSuggestError]     = useState<string | null>(null);
 
   const aiSuggest = useCallback(async () => {
     if (aiSuggestLoading || numCols.length === 0) return;
     setAiSuggestLoading(true);
+    setAiSuggestError(null);
     const n = rawRows.length - 1;
     const colSummaries = numCols.map(col => {
       const valid = col.values.filter(v => v !== null) as number[];
@@ -746,9 +748,11 @@ Respond with ONLY a JSON object where each key is a column name and the value is
           next[col.name] = suggestions;
         }
         setColTransforms(next);
+      } else {
+        setAiSuggestError("Could not parse AI response. Check your API key in the chat settings.");
       }
-    } catch {
-      // silently fall through — user can retry
+    } catch (e) {
+      setAiSuggestError(`Request failed: ${(e as Error).message.slice(0, 80)}`);
     } finally {
       setAiSuggestLoading(false);
     }
@@ -1125,17 +1129,24 @@ Respond with ONLY a JSON object where each key is a column name and the value is
           {/* ── Right panel — pill chip transforms + categorical ── */}
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <div style={{ ...CARD }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem" }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Numeric Column Transforms
+              <div style={{ marginBottom: "0.85rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Numeric Column Transforms
+                  </div>
+                  <button onClick={aiSuggest} disabled={aiSuggestLoading}
+                    title="Use AI to suggest transforms based on column statistics"
+                    style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
+                    onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
+                    {aiSuggestLoading ? "Analysing..." : "AI Suggest"}
+                  </button>
                 </div>
-                <button onClick={aiSuggest} disabled={aiSuggestLoading}
-                  title="Use AI to suggest transforms based on column statistics"
-                  style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
-                  onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
-                  {aiSuggestLoading ? "⏳ Thinking…" : "✨ AI Suggest"}
-                </button>
+                {aiSuggestError && (
+                  <div style={{ fontSize: "0.63rem", color: "#f87171", marginTop: "0.35rem", textAlign: "right" }}>
+                    {aiSuggestError}
+                  </div>
+                )}
               </div>
 
 {numCols.length === 0 ? (

@@ -22,8 +22,7 @@ const PROVIDERS: ProviderConfig[] = [
     id: "gemini", label: "Gemini", color: "#38bdf8",
     models: [
       { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-      { id: "gemini-1.5-pro",   label: "Gemini 1.5 Pro" },
-      { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+      { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash" },
     ],
     envKeyNote: "Default key provided. Add your own for higher limits.",
   },
@@ -227,7 +226,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             background: `linear-gradient(135deg, rgba(8,15,30,1) 0%, rgba(${accentColor === "#38bdf8" ? "56,189,248" : accentColor === "#f59e0b" ? "245,158,11" : "52,211,153"},0.08) 100%)`,
           }}>
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
-              ✦ AI Assistant · {context.tool}
+              AI Assistant · {context.tool}
             </span>
             <button onClick={() => setSettings(s => !s)}
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
@@ -292,7 +291,6 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
           <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             {messages.length === 0 && (
               <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>✦</div>
                 Ask anything about your data, transforms, or ML concepts.
                 <div style={{ marginTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                   {["Which columns need normalisation?", "What does log1p do to skewed data?", "When should I use frequency encoding?"].map(q => (
@@ -320,7 +318,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             ))}
             {loading && (
               <div style={{ alignSelf: "flex-start", padding: "0.5rem 0.75rem", borderRadius: "12px 12px 12px 3px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", fontSize: "0.73rem", color: "var(--text3)" }}>
-                <span style={{ animation: "pulse 1.2s ease-in-out infinite" }}>Thinking…</span>
+                <span style={{ animation: "pulse 1.2s ease-in-out infinite" }}>Thinking...</span>
               </div>
             )}
             <div ref={bottomRef} />
