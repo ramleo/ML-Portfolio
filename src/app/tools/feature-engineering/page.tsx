@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 
@@ -705,8 +705,8 @@ export default function FeatureEngineeringPage() {
         <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", width: "100%" }}>
 
           {/* ── Left sidebar — unified card ── */}
-          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column" }}>
-            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden", flex: 1 }}>
+          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem" }}>
+            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
 
               {/* Dataset stats */}
               <div style={{ padding: "1.1rem 1.3rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -950,67 +950,58 @@ export default function FeatureEngineeringPage() {
                 <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
               ) : (
                 <>
-                  {/* Apply-to-all header row — widths mirror column rows (118 name + 36 skew) */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingBottom: "0.65rem", marginBottom: "0.15rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 118 }}>Apply to all</div>
-                    <div style={{ width: 36, flexShrink: 0 }} />
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem" }}>
+                  {/* CSS grid guarantees chip column starts at same x for every row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "118px 36px 1fr", columnGap: "0.5rem" }}>
+
+                    {/* Apply-to-all row */}
+                    <div style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", paddingBottom: "0.6rem" }}>
+                      Apply to all
+                    </div>
+                    <div style={{ paddingBottom: "0.6rem" }} />
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", paddingBottom: "0.6rem", alignContent: "center" }}>
                       {NUM_TRANSFORMS.map(t => {
                         const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
                         const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
                         return (
-                          <button
-                            key={t.key}
-                            onClick={() => toggleAllTransform(t.key, !allOn)}
-                            title={t.hint}
+                          <button key={t.key} onClick={() => toggleAllTransform(t.key, !allOn)} title={t.hint}
                             style={{
-                              padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600,
-                              cursor: "pointer",
+                              padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600, cursor: "pointer",
                               border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`,
                               background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)",
                               color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)",
                               transition: "all 0.12s",
-                            }}
-                          >
+                            }}>
                             {t.label}
                           </button>
                         );
                       })}
                     </div>
-                  </div>
 
-                  {/* Per-column rows */}
-                  <div>
+                    {/* Full-width divider */}
+                    <div style={{ gridColumn: "1 / -1", height: 1, background: "rgba(255,255,255,0.07)", marginBottom: "0.2rem" }} />
+
+                    {/* Per-column rows */}
                     {numCols.map((col, i) => {
                       const selected = colTransforms[col.name] ?? [];
                       const skewAbs = Math.abs(col.skew);
                       const skewColor = skewAbs > 1.5 ? "#f59e0b" : skewAbs > 0.5 ? "#94a3b8" : "#34d399";
+                      const border = i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none";
                       return (
-                        <div key={col.name} style={{
-                          display: "flex", alignItems: "center", gap: "0.5rem",
-                          padding: "0.52rem 0",
-                          borderBottom: i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                        }}>
-                          {/* Column name */}
-                          <div style={{ width: 118, flexShrink: 0 }}>
+                        <React.Fragment key={col.name}>
+                          <div style={{ padding: "0.52rem 0", borderBottom: border, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                             <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={col.name}>
                               {col.name}
                             </div>
                             {col.missing > 0 && <div style={{ fontSize: "0.59rem", color: "#f87171" }}>{col.missing} missing</div>}
                           </div>
-                          {/* Skew badge */}
-                          <div style={{ width: 36, flexShrink: 0, fontSize: "0.69rem", fontWeight: 700, color: skewColor, textAlign: "center" }}>
+                          <div style={{ padding: "0.52rem 0", borderBottom: border, fontSize: "0.69rem", fontWeight: 700, color: skewColor, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {col.skew.toFixed(1)}
                           </div>
-                          {/* Transform chips */}
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", flex: 1 }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", padding: "0.52rem 0", borderBottom: border, alignContent: "center" }}>
                             {NUM_TRANSFORMS.map(t => {
                               const on = selected.includes(t.key);
                               return (
-                                <button
-                                  key={t.key}
-                                  onClick={() => toggleTransform(col.name, t.key)}
-                                  title={t.hint}
+                                <button key={t.key} onClick={() => toggleTransform(col.name, t.key)} title={t.hint}
                                   style={{
                                     padding: "2px 9px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600,
                                     cursor: "pointer",
@@ -1019,14 +1010,13 @@ export default function FeatureEngineeringPage() {
                                     color: on ? ACCENT : "var(--text3)",
                                     transition: "all 0.12s",
                                     boxShadow: on ? `0 0 7px ${ACCENT}30` : "none",
-                                  }}
-                                >
+                                  }}>
                                   {t.label}
                                 </button>
                               );
                             })}
                           </div>
-                        </div>
+                        </React.Fragment>
                       );
                     })}
                   </div>
