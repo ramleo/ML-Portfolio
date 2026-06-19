@@ -11,14 +11,14 @@ const ACCENT = "#38bdf8";
 type ColInfo = {
   name: string; isNumeric: boolean; dtype: string;
   nunique: number; missing: number; skew: number;
-  values: (number | null)[];  // parsed numeric values (null = missing)
-  rawValues: string[];        // original string values for date parsing
+  values: (number | null)[];
+  rawValues: string[];
 };
 
 type Step = "upload" | "configure" | "processing" | "results";
 
 type FeResult = {
-  csv: string[][];         // rows including header
+  csv: string[][];
   headers: string[];
   colsBefore: number; colsAfter: number;
   rows: number; newColumns: string[];
@@ -86,7 +86,7 @@ function analyzeColumns(rows: string[][]): ColInfo[] {
   });
 }
 
-// ── Transform engine (all client-side) ───────────────────────────────────────
+// ── Transform engine ──────────────────────────────────────────────────────────
 
 function applyTransforms(
   rawRows: string[][],
@@ -134,6 +134,13 @@ function applyTransforms(
     }
     if (tList.includes("sqrt")) {
       addCol(`${colName}_sqrt`, vals.map(v => v === null ? null : Math.sqrt(Math.max(v, 0))));
+    }
+    if (tList.includes("zscore")) {
+      addCol(`${colName}_zscore`, vals.map(v => v === null ? null : parseFloat(((v - mean) / (std || 1)).toFixed(4))));
+    }
+    if (tList.includes("minmax")) {
+      const range = maxV - minV || 1;
+      addCol(`${colName}_minmax`, vals.map(v => v === null ? null : parseFloat(((v - minV) / range).toFixed(4))));
     }
     if (tList.includes("percentile")) {
       const sorted = [...valid].sort((a, b) => a - b);
@@ -204,7 +211,7 @@ function applyTransforms(
     }));
   }
 
-  // 4. Polynomial cross-terms (degree 2, interaction_only)
+  // 4. Polynomial cross-terms
   const validPoly = polyCols.filter(c => colMap[c]);
   if (validPoly.length >= 2) {
     for (let i = 0; i < validPoly.length; i++) {
@@ -243,13 +250,15 @@ function serializeCSV(rows: string[][]): string {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const NUM_TRANSFORMS = [
-  { key: "log1p",        label: "log1p",          hint: "log(1+x) — reduces right skew" },
-  { key: "sqrt",         label: "sqrt",            hint: "√x — milder skew reduction" },
-  { key: "percentile",   label: "Percentile rank", hint: "Rank scaled to [0,1]" },
-  { key: "outlier_flag", label: "Outlier flag",    hint: "1 if |z-score| > 3" },
-  { key: "missing_flag", label: "Missing flag",    hint: "1 if value is NaN/null" },
-  { key: "bin_equal",    label: "Bin (equal)",     hint: "5 equal-width bins" },
-  { key: "bin_quantile", label: "Bin (quantile)",  hint: "5 quantile bins" },
+  { key: "log1p",        label: "log1p",    hint: "log(1+x) — reduces right skew" },
+  { key: "sqrt",         label: "sqrt",     hint: "√x — milder skew reduction" },
+  { key: "zscore",       label: "z-score",  hint: "(x−μ)/σ — standardize to zero mean, unit variance" },
+  { key: "minmax",       label: "min-max",  hint: "Scale to [0,1]: (x−min)/(max−min)" },
+  { key: "percentile",   label: "pct rank", hint: "Rank scaled to [0,1]" },
+  { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0" },
+  { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0" },
+  { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)" },
+  { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)" },
 ];
 
 const DATE_PARTS = [
@@ -308,11 +317,21 @@ function ActionBtn({ onClick, disabled = false, children, secondary = false }: {
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
     <div onClick={onChange} style={{
-      width: 34, height: 18, borderRadius: 9999, cursor: "pointer", flexShrink: 0,
+      width: 30, height: 16, borderRadius: 9999, cursor: "pointer", flexShrink: 0,
       background: checked ? ACCENT : "rgba(255,255,255,0.12)", position: "relative",
-      transition: "background 0.2s", boxShadow: checked ? `0 0 8px ${ACCENT}55` : "none",
+      transition: "background 0.2s", boxShadow: checked ? `0 0 6px ${ACCENT}55` : "none",
     }}>
-      <div style={{ position: "absolute", top: 2, left: checked ? 18 : 2, width: 14, height: 14, borderRadius: 9999, background: "#fff", transition: "left 0.2s" }} />
+      <div style={{ position: "absolute", top: 2, left: checked ? 16 : 2, width: 12, height: 12, borderRadius: 9999, background: "#fff", transition: "left 0.2s" }} />
+    </div>
+  );
+}
+
+// ── Sidebar section header ────────────────────────────────────────────────────
+
+function SideLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>
+      {children}
     </div>
   );
 }
@@ -389,6 +408,18 @@ export default function FeatureEngineeringPage() {
     });
   };
 
+  const toggleAllTransform = (key: string, on: boolean) => {
+    setColTransforms(prev => {
+      const next = { ...prev };
+      for (const col of numCols) {
+        const cur = next[col.name] ?? [];
+        if (on && !cur.includes(key)) next[col.name] = [...cur, key];
+        if (!on) next[col.name] = cur.filter(k => k !== key);
+      }
+      return next;
+    });
+  };
+
   const addInteraction = () => {
     if (!interactA || !interactB || interactA === interactB) return;
     const pair: [string, string] = [interactA, interactB];
@@ -399,7 +430,7 @@ export default function FeatureEngineeringPage() {
 
   // ── Apply ──────────────────────────────────────────────────────────────────
 
-  const applyTransforms = useCallback(() => {
+  const applyAllTransforms = useCallback(() => {
     setStep("processing");
     setTimeout(() => {
       try {
@@ -438,7 +469,7 @@ export default function FeatureEngineeringPage() {
       <ConstellationBackground />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{ position: "sticky", top: 0, zIndex: 50, flexShrink: 0, background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <button onClick={() => router.push("/#capabilities")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0, transition: "color 0.15s" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
@@ -454,7 +485,7 @@ export default function FeatureEngineeringPage() {
           {step === "configure" && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>{totalSelected} transform{totalSelected !== 1 ? "s" : ""} selected</span>
-              <ActionBtn onClick={applyTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
+              <ActionBtn onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
             </div>
           )}
           {step === "results" && (
@@ -466,7 +497,7 @@ export default function FeatureEngineeringPage() {
         </div>
       </div>
 
-      {/* Upload */}
+      {/* ── Upload ── */}
       {step === "upload" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "4rem 1.5rem" }}>
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
@@ -490,160 +521,204 @@ export default function FeatureEngineeringPage() {
         </div>
       )}
 
-      {/* Configure */}
+      {/* ── Configure ── */}
       {step === "configure" && (
-        <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "1rem 1.5rem 0", maxWidth: 1060, margin: "0 auto", width: "100%" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", maxWidth: 1060, margin: "0 auto", width: "100%" }}>
 
-          {/* Left panel */}
-          <div style={{ width: 300, flexShrink: 0, overflowY: "auto", paddingBottom: "2rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {/* ── Left sidebar — unified card ── */}
+          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "2rem" }}>
+            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
 
-            <div style={CARD}>
-              <SectionTitle>Dataset — {filename}</SectionTitle>
-              <div style={{ display: "flex", gap: "1.5rem" }}>
-                {[
-                  { label: "rows", value: (rawRows.length - 1).toLocaleString() },
-                  { label: "columns", value: String(cols.length) },
-                  { label: "numeric", value: String(numCols.length) },
-                ].map(s => (
-                  <div key={s.label}>
-                    <div style={{ fontSize: "1.2rem", fontWeight: 800, color: ACCENT }}>{s.value}</div>
-                    <div style={{ fontSize: "0.68rem", color: "var(--text3)" }}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Interactions */}
-            <div style={CARD}>
-              <SectionTitle>Interaction Terms (A × B)</SectionTitle>
-              <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.6rem" }}>
-                <select value={interactA} onChange={e => setInteractA(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.75rem", padding: "0.35rem 0.4rem" }}>
-                  <option value="">Col A</option>
-                  {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </select>
-                <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>×</span>
-                <select value={interactB} onChange={e => setInteractB(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.75rem", padding: "0.35rem 0.4rem" }}>
-                  <option value="">Col B</option>
-                  {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </select>
-                <button onClick={addInteraction} disabled={!interactA || !interactB || interactA === interactB}
-                  style={{ padding: "0.35rem 0.65rem", borderRadius: 6, background: ACCENT, color: "#000", border: "none", fontWeight: 700, fontSize: "0.85rem", cursor: (!interactA || !interactB || interactA === interactB) ? "not-allowed" : "pointer", opacity: (!interactA || !interactB || interactA === interactB) ? 0.4 : 1 }}>
-                  +
-                </button>
-              </div>
-              {interactions.length === 0
-                ? <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>No interactions added yet.</div>
-                : interactions.map(([a, b], i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.25rem 0.6rem", background: `${ACCENT}0d`, borderRadius: 6, marginBottom: "0.25rem" }}>
-                    <span style={{ fontSize: "0.73rem", color: ACCENT, fontWeight: 600 }}>{a} × {b}</span>
-                    <button onClick={() => setInteractions(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
-                  </div>
-                ))
-              }
-            </div>
-
-            {/* Polynomial */}
-            <div style={CARD}>
-              <SectionTitle>Polynomial Cross-Terms</SectionTitle>
-              <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.65rem" }}>Select 2+ columns — all pairwise products are generated.</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-                {numCols.map(c => (
-                  <button key={c.name} onClick={() => setPolyCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
-                    style={{ padding: "2px 9px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${polyCols.includes(c.name) ? ACCENT : "rgba(255,255,255,0.15)"}`, background: polyCols.includes(c.name) ? `${ACCENT}18` : "transparent", color: polyCols.includes(c.name) ? ACCENT : "var(--text3)", transition: "all 0.15s" }}>
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-              {polyCols.length >= 2 && (
-                <div style={{ marginTop: "0.6rem", fontSize: "0.72rem", color: ACCENT }}>
-                  {polyCols.length * (polyCols.length - 1) / 2} cross-term{polyCols.length > 2 ? "s" : ""} will be added
+              {/* Dataset stats */}
+              <div style={{ padding: "1rem 1.2rem 0.9rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: "0.58rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.55rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {filename}
                 </div>
-              )}
-            </div>
-
-            {/* Date extraction */}
-            {catCols.length > 0 && (
-              <div style={CARD}>
-                <SectionTitle>Date Extraction</SectionTitle>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.75rem" }}>
-                  {catCols.map(c => (
-                    <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                      <Toggle checked={dateCols.includes(c.name)} onChange={() => setDateCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
-                      <span style={{ fontSize: "0.78rem", color: dateCols.includes(c.name) ? "var(--text)" : "var(--text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+                <div style={{ display: "flex", gap: "1.4rem" }}>
+                  {[
+                    { label: "rows",    value: (rawRows.length - 1).toLocaleString() },
+                    { label: "cols",    value: String(cols.length) },
+                    { label: "numeric", value: String(numCols.length) },
+                  ].map(s => (
+                    <div key={s.label}>
+                      <div style={{ fontSize: "1.35rem", fontWeight: 800, color: ACCENT, lineHeight: 1 }}>{s.value}</div>
+                      <div style={{ fontSize: "0.62rem", color: "var(--text3)", marginTop: "0.18rem" }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
-                {dateCols.length > 0 && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                    {DATE_PARTS.map(p => (
-                      <button key={p.key} onClick={() => setDateParts(prev => prev.includes(p.key) ? prev.filter(x => x !== p.key) : [...prev, p.key])}
-                        style={{ padding: "2px 8px", borderRadius: 9999, fontSize: "0.7rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${dateParts.includes(p.key) ? "#a78bfa" : "rgba(255,255,255,0.1)"}`, background: dateParts.includes(p.key) ? "rgba(167,139,250,0.15)" : "transparent", color: dateParts.includes(p.key) ? "#a78bfa" : "var(--text3)", transition: "all 0.15s" }}>
-                        {p.label}
-                      </button>
-                    ))}
+              </div>
+
+              {/* Interaction Terms */}
+              <div style={{ padding: "0.85rem 1.2rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <SideLabel>Interaction Terms (A × B)</SideLabel>
+                <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.5rem" }}>
+                  <select value={interactA} onChange={e => setInteractA(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.72rem", padding: "0.3rem 0.35rem", outline: "none" }}>
+                    <option value="">Col A</option>
+                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>×</span>
+                  <select value={interactB} onChange={e => setInteractB(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.72rem", padding: "0.3rem 0.35rem", outline: "none" }}>
+                    <option value="">Col B</option>
+                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                  <button onClick={addInteraction} disabled={!interactA || !interactB || interactA === interactB}
+                    style={{ padding: "0.3rem 0.55rem", borderRadius: 6, background: ACCENT, color: "#000", border: "none", fontWeight: 700, fontSize: "0.9rem", cursor: (!interactA || !interactB || interactA === interactB) ? "not-allowed" : "pointer", opacity: (!interactA || !interactB || interactA === interactB) ? 0.35 : 1 }}>
+                    +
+                  </button>
+                </div>
+                {interactions.length === 0
+                  ? <div style={{ fontSize: "0.68rem", color: "var(--text3)" }}>No interactions added yet.</div>
+                  : interactions.map(([a, b], i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.2rem 0.5rem", background: `${ACCENT}0c`, borderRadius: 6, marginBottom: "0.2rem" }}>
+                      <span style={{ fontSize: "0.7rem", color: ACCENT, fontWeight: 600 }}>{a} × {b}</span>
+                      <button onClick={() => setInteractions(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
+                    </div>
+                  ))
+                }
+              </div>
+
+              {/* Polynomial cross-terms */}
+              <div style={{ padding: "0.85rem 1.2rem", borderBottom: catCols.length > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                <SideLabel>Polynomial Cross-Terms</SideLabel>
+                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.5rem", lineHeight: 1.45 }}>Select 2+ columns — all pairwise products are generated.</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.28rem" }}>
+                  {numCols.map(c => (
+                    <button key={c.name} onClick={() => setPolyCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
+                      style={{ padding: "2px 8px", borderRadius: 9999, fontSize: "0.68rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${polyCols.includes(c.name) ? ACCENT : "rgba(255,255,255,0.12)"}`, background: polyCols.includes(c.name) ? `${ACCENT}18` : "rgba(255,255,255,0.03)", color: polyCols.includes(c.name) ? ACCENT : "var(--text3)", transition: "all 0.13s" }}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+                {polyCols.length >= 2 && (
+                  <div style={{ marginTop: "0.45rem", fontSize: "0.68rem", color: ACCENT }}>
+                    {polyCols.length * (polyCols.length - 1) / 2} cross-term{polyCols.length > 2 ? "s" : ""} will be added
                   </div>
                 )}
               </div>
-            )}
+
+              {/* Date extraction */}
+              {catCols.length > 0 && (
+                <div style={{ padding: "0.85rem 1.2rem" }}>
+                  <SideLabel>Date Extraction</SideLabel>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.32rem", marginBottom: dateCols.length > 0 ? "0.6rem" : 0 }}>
+                    {catCols.map(c => (
+                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <Toggle checked={dateCols.includes(c.name)} onChange={() => setDateCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
+                        <span style={{ fontSize: "0.74rem", color: dateCols.includes(c.name) ? "var(--text)" : "var(--text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {dateCols.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                      {DATE_PARTS.map(p => (
+                        <button key={p.key} onClick={() => setDateParts(prev => prev.includes(p.key) ? prev.filter(x => x !== p.key) : [...prev, p.key])}
+                          style={{ padding: "2px 7px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${dateParts.includes(p.key) ? "#a78bfa" : "rgba(255,255,255,0.1)"}`, background: dateParts.includes(p.key) ? "rgba(167,139,250,0.12)" : "transparent", color: dateParts.includes(p.key) ? "#a78bfa" : "var(--text3)", transition: "all 0.13s" }}>
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right panel: transform table */}
+          {/* ── Right panel — pill chip transforms ── */}
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "2rem" }}>
             <div style={CARD}>
               <SectionTitle>Numeric Column Transforms</SectionTitle>
-              {numCols.length === 0
-                ? <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
-                : (
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 580 }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: "left", fontSize: "0.65rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", padding: "0 0.5rem 0.6rem 0", minWidth: 130 }}>Column</th>
-                          <th style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", padding: "0 0.4rem 0.6rem", width: 44 }}>Skew</th>
-                          {NUM_TRANSFORMS.map(t => (
-                            <th key={t.key} title={t.hint} style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.04em", padding: "0 0.3rem 0.6rem", textAlign: "center", whiteSpace: "nowrap" }}>
-                              {t.label}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {numCols.map((col, i) => {
-                          const selected = colTransforms[col.name] ?? [];
-                          const skewColor = Math.abs(col.skew) > 1.5 ? "#f59e0b" : Math.abs(col.skew) > 0.5 ? "#94a3b8" : "#34d399";
-                          return (
-                            <tr key={col.name} style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent" }}>
-                              <td style={{ padding: "0.5rem 0.5rem 0.5rem 0", fontSize: "0.78rem", fontWeight: 600, color: "var(--text)" }}>
-                                <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 125 }} title={col.name}>{col.name}</div>
-                                {col.missing > 0 && <div style={{ fontSize: "0.62rem", color: "#f87171" }}>{col.missing} missing</div>}
-                              </td>
-                              <td style={{ textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: skewColor, padding: "0 0.4rem" }}>
-                                {col.skew.toFixed(1)}
-                              </td>
-                              {NUM_TRANSFORMS.map(t => (
-                                <td key={t.key} style={{ textAlign: "center", padding: "0 0.3rem" }}>
-                                  <div onClick={() => toggleTransform(col.name, t.key)}
-                                    style={{ width: 18, height: 18, borderRadius: 4, margin: "0 auto", cursor: "pointer", background: selected.includes(t.key) ? ACCENT : "rgba(255,255,255,0.08)", border: `1px solid ${selected.includes(t.key) ? ACCENT : "rgba(255,255,255,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: selected.includes(t.key) ? `0 0 6px ${ACCENT}55` : "none", transition: "all 0.15s" }}>
-                                    {selected.includes(t.key) && (
-                                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round"><path d="M1.5 5l2.5 2.5L8.5 2" /></svg>
-                                    )}
-                                  </div>
-                                </td>
-                              ))}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+
+              {numCols.length === 0 ? (
+                <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
+              ) : (
+                <>
+                  {/* Apply-to-all header row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingBottom: "0.65rem", marginBottom: "0.15rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    <span style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 158 }}>Apply to all</span>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem" }}>
+                      {NUM_TRANSFORMS.map(t => {
+                        const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
+                        const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
+                        return (
+                          <button
+                            key={t.key}
+                            onClick={() => toggleAllTransform(t.key, !allOn)}
+                            title={t.hint}
+                            style={{
+                              padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600,
+                              cursor: "pointer",
+                              border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`,
+                              background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)",
+                              color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)",
+                              transition: "all 0.12s",
+                            }}
+                          >
+                            {t.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                )
-              }
+
+                  {/* Per-column rows */}
+                  <div>
+                    {numCols.map((col, i) => {
+                      const selected = colTransforms[col.name] ?? [];
+                      const skewAbs = Math.abs(col.skew);
+                      const skewColor = skewAbs > 1.5 ? "#f59e0b" : skewAbs > 0.5 ? "#94a3b8" : "#34d399";
+                      return (
+                        <div key={col.name} style={{
+                          display: "flex", alignItems: "center", gap: "0.5rem",
+                          padding: "0.52rem 0",
+                          borderBottom: i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                        }}>
+                          {/* Column name */}
+                          <div style={{ width: 118, flexShrink: 0 }}>
+                            <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={col.name}>
+                              {col.name}
+                            </div>
+                            {col.missing > 0 && <div style={{ fontSize: "0.59rem", color: "#f87171" }}>{col.missing} missing</div>}
+                          </div>
+                          {/* Skew badge */}
+                          <div style={{ width: 36, flexShrink: 0, fontSize: "0.69rem", fontWeight: 700, color: skewColor, textAlign: "center" }}>
+                            {col.skew.toFixed(1)}
+                          </div>
+                          {/* Transform chips */}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", flex: 1 }}>
+                            {NUM_TRANSFORMS.map(t => {
+                              const on = selected.includes(t.key);
+                              return (
+                                <button
+                                  key={t.key}
+                                  onClick={() => toggleTransform(col.name, t.key)}
+                                  title={t.hint}
+                                  style={{
+                                    padding: "2px 9px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600,
+                                    cursor: "pointer",
+                                    border: `1px solid ${on ? ACCENT : "rgba(255,255,255,0.1)"}`,
+                                    background: on ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
+                                    color: on ? ACCENT : "var(--text3)",
+                                    transition: "all 0.12s",
+                                    boxShadow: on ? `0 0 7px ${ACCENT}30` : "none",
+                                  }}
+                                >
+                                  {t.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Processing */}
+      {/* ── Processing ── */}
       {step === "processing" && (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.25rem" }}>
           <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT}33`, borderTop: `3px solid ${ACCENT}`, borderRadius: 9999, animation: "spin 0.9s linear infinite" }} />
@@ -651,7 +726,7 @@ export default function FeatureEngineeringPage() {
         </div>
       )}
 
-      {/* Results */}
+      {/* ── Results ── */}
       {step === "results" && result && (
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
@@ -680,6 +755,40 @@ export default function FeatureEngineeringPage() {
             }
           </div>
 
+          {/* Data preview — first 5 rows */}
+          {result.newColumns.length > 0 && (
+            <div style={CARD}>
+              <SectionTitle>Preview — First 5 Rows (new columns only)</SectionTitle>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ borderCollapse: "collapse", fontSize: "0.72rem", minWidth: "max-content" }}>
+                  <thead>
+                    <tr>
+                      {result.newColumns.map(h => (
+                        <th key={h} style={{ padding: "0.35rem 0.75rem 0.35rem 0", textAlign: "left", fontWeight: 700, color: ACCENT, whiteSpace: "nowrap", paddingRight: "1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.csv.slice(1, 6).map((row, ri) => (
+                      <tr key={ri} style={{ background: ri % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent" }}>
+                        {result.newColumns.map(h => {
+                          const idx = result.headers.indexOf(h);
+                          return (
+                            <td key={h} style={{ padding: "0.3rem 1rem 0.3rem 0", color: "var(--text2)", whiteSpace: "nowrap" }}>
+                              {row[idx] ?? ""}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           <div style={{ ...CARD, borderColor: `${ACCENT}22`, background: `${ACCENT}07`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: "0.93rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.2rem" }}>Ready to download</div>
@@ -696,5 +805,4 @@ export default function FeatureEngineeringPage() {
   );
 }
 
-// Named alias to avoid recursive reference inside useCallback
 const applyTransforms_fn = applyTransforms;
