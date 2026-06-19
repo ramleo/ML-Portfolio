@@ -187,7 +187,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
         }),
       });
       const data = await res.json();
-      setMessages(m => [...m, { role: "assistant", content: data.reply ?? "No response." }]);
+      if (data.error) {
+        setMessages(m => [...m, { role: "assistant", content: `Error: ${data.error}` }]);
+      } else {
+        setMessages(m => [...m, { role: "assistant", content: data.reply ?? "No response." }]);
+      }
     } catch {
       setMessages(m => [...m, { role: "assistant", content: "Network error. Please try again." }]);
     } finally {

@@ -737,19 +737,23 @@ Respond with ONLY a JSON object where each key is a column name and the value is
         }),
       });
       const data = await res.json();
-      const raw = data.reply ?? "";
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as Record<string, string[]>;
-        const VALID_KEYS = new Set(NUM_TRANSFORMS.map(t => t.key));
-        const next: Record<string, string[]> = {};
-        for (const col of numCols) {
-          const suggestions = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
-          next[col.name] = suggestions;
-        }
-        setColTransforms(next);
+      if (data.error) {
+        setAiSuggestError(data.error);
       } else {
-        setAiSuggestError("Could not parse AI response. Check your API key in the chat settings.");
+        const raw = data.reply ?? "";
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]) as Record<string, string[]>;
+          const VALID_KEYS = new Set(NUM_TRANSFORMS.map(t => t.key));
+          const next: Record<string, string[]> = {};
+          for (const col of numCols) {
+            const suggestions = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
+            next[col.name] = suggestions;
+          }
+          setColTransforms(next);
+        } else {
+          setAiSuggestError("Could not parse AI response. Try again or switch model in chat settings.");
+        }
       }
     } catch (e) {
       setAiSuggestError(`Request failed: ${(e as Error).message.slice(0, 80)}`);
