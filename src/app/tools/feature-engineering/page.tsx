@@ -96,6 +96,15 @@ function applyTransforms(
   dateParts: string[],
   interactions: [string, string][],
   polyCols: string[],
+  freqCols: string[],
+  ratios: [string, string][],
+  sortCol: string,
+  lagCols: string[],
+  lagN: number,
+  lagDiff: boolean,
+  rollCols: string[],
+  rollN: number,
+  rollAgg: string,
 ): FeResult {
   const headers = [...rawRows[0]];
   const dataRows = rawRows.slice(1).map(r => [...r]);
@@ -161,6 +170,14 @@ function applyTransforms(
         (v === "" || v.toLowerCase() === "nan" || v.toLowerCase() === "null" || v.toLowerCase() === "na") ? 1 : 0
       ));
     }
+    if (tList.includes("winsor")) {
+      const sorted = [...valid].sort((a, b) => a - b);
+      const p1 = sorted[Math.floor(sorted.length * 0.01)] ?? minV;
+      const p99 = sorted[Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1)] ?? maxV;
+      addCol(`${colName}_winsor`, vals.map(v =>
+        v === null ? null : parseFloat(Math.min(Math.max(v, p1), p99).toFixed(4))
+      ));
+    }
     if (tList.includes("bin_equal")) {
       const range = maxV - minV || 1;
       addCol(`${colName}_bin`, vals.map(v => {
@@ -201,7 +218,7 @@ function applyTransforms(
     }
   }
 
-  // 3. Interaction terms
+  // 3. Interaction terms (A × B)
   for (const [a, b] of interactions) {
     const valsA = getNumVals(a);
     const valsB = getNumVals(b);
@@ -226,6 +243,110 @@ function applyTransforms(
           }));
         }
       }
+    }
+  }
+
+  // 5. Ratio features (A ÷ B)
+  for (const [a, b] of ratios) {
+    const valsA = getNumVals(a);
+    const valsB = getNumVals(b);
+    addCol(`${a}_div_${b}`, valsA.map((va, i) => {
+      const vb = valsB[i];
+      if (va === null || vb === null || vb === 0) return null;
+      return parseFloat((va / vb).toFixed(6));
+    }));
+  }
+
+  // 6. Frequency encoding
+  for (const colName of freqCols) {
+    const col = colMap[colName];
+    if (!col) continue;
+    const freq: Record<string, number> = {};
+    for (const v of col.rawValues) {
+      const lv = v.trim().toLowerCase();
+      if (lv && lv !== "nan" && lv !== "null" && lv !== "na") {
+        freq[v] = (freq[v] ?? 0) + 1;
+      }
+    }
+    const total = col.rawValues.length;
+    addCol(`${colName}_freq`, col.rawValues.map(v => {
+      const lv = v.trim().toLowerCase();
+      if (!lv || lv === "nan" || lv === "null" || lv === "na") return null;
+      return parseFloat(((freq[v] ?? 0) / total).toFixed(4));
+    }));
+  }
+
+  // Pre-compute sort order for time-series features
+  let sortedToOrig: number[] = [];
+  let origToRank: number[] = [];
+  if (sortCol && (lagCols.length > 0 || rollCols.length > 0)) {
+    const sIdx = headerIdx[sortCol];
+    const indices = Array.from({ length: nRows }, (_, i) => i);
+    indices.sort((a, b) => {
+      const ra = dataRows[a][sIdx] ?? "";
+      const rb = dataRows[b][sIdx] ?? "";
+      const na = parseFloat(ra), nb = parseFloat(rb);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return ra < rb ? -1 : ra > rb ? 1 : 0;
+    });
+    sortedToOrig = indices;
+    origToRank = new Array(nRows);
+    for (let r = 0; r < nRows; r++) origToRank[sortedToOrig[r]] = r;
+  }
+
+  // 7. Lag / diff features
+  if (sortCol && lagCols.length > 0) {
+    for (const colName of lagCols) {
+      const col = colMap[colName];
+      if (!col) continue;
+      const sortedVals = sortedToOrig.map(origIdx => col.values[origIdx]);
+      const lagVals: (number | null)[] = new Array(nRows).fill(null);
+      const diffVals: (number | null)[] = new Array(nRows).fill(null);
+      for (let origIdx = 0; origIdx < nRows; origIdx++) {
+        const rank = origToRank[origIdx];
+        const prevRank = rank - lagN;
+        if (prevRank >= 0) {
+          lagVals[origIdx] = sortedVals[prevRank];
+          if (lagDiff) {
+            const cur = sortedVals[rank];
+            const prev = sortedVals[prevRank];
+            if (cur !== null && prev !== null) {
+              diffVals[origIdx] = parseFloat(((cur as number) - (prev as number)).toFixed(4));
+            }
+          }
+        }
+      }
+      addCol(`${colName}_lag${lagN}`, lagVals);
+      if (lagDiff) addCol(`${colName}_diff${lagN}`, diffVals);
+    }
+  }
+
+  // 8. Rolling window aggregates
+  if (sortCol && rollCols.length > 0) {
+    for (const colName of rollCols) {
+      const col = colMap[colName];
+      if (!col) continue;
+      const sortedVals = sortedToOrig.map(origIdx => col.values[origIdx]);
+      const rollVals: (number | null)[] = new Array(nRows).fill(null);
+      for (let origIdx = 0; origIdx < nRows; origIdx++) {
+        const rank = origToRank[origIdx];
+        if (rank < rollN - 1) continue;
+        const window = (sortedVals.slice(rank - rollN + 1, rank + 1).filter(v => v !== null)) as number[];
+        if (window.length === 0) continue;
+        let agg: number;
+        switch (rollAgg) {
+          case "std": {
+            const m = window.reduce((a, b) => a + b, 0) / window.length;
+            agg = Math.sqrt(window.reduce((a, b) => a + (b - m) ** 2, 0) / window.length);
+            break;
+          }
+          case "min": agg = Math.min(...window); break;
+          case "max": agg = Math.max(...window); break;
+          default:    agg = window.reduce((a, b) => a + b, 0) / window.length;
+        }
+        rollVals[origIdx] = parseFloat(agg.toFixed(4));
+      }
+      addCol(`${colName}_roll${rollN}_${rollAgg}`, rollVals);
     }
   }
 
@@ -257,6 +378,7 @@ const NUM_TRANSFORMS = [
   { key: "percentile",   label: "pct rank", hint: "Rank scaled to [0,1]" },
   { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0" },
   { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0" },
+  { key: "winsor",       label: "winsor",   hint: "Cap values at 1st/99th percentile" },
   { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)" },
   { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)" },
 ];
@@ -272,6 +394,17 @@ const CARD: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.07)",
   borderRadius: 12,
   padding: "1.25rem 1.4rem",
+};
+
+const SELECT_STYLE: React.CSSProperties = {
+  flex: 1,
+  background: "rgba(0,0,0,0.35)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 6,
+  color: "var(--text)",
+  fontSize: "0.78rem",
+  padding: "0.35rem 0.4rem",
+  outline: "none",
 };
 
 // ── Small helpers ─────────────────────────────────────────────────────────────
@@ -366,13 +499,37 @@ export default function FeatureEngineeringPage() {
   const [result, setResult]     = useState<FeResult | null>(null);
   const [error, setError]       = useState("");
 
+  // Numeric column transforms
   const [colTransforms, setColTransforms] = useState<Record<string, string[]>>({});
-  const [dateCols, setDateCols]           = useState<string[]>([]);
-  const [dateParts, setDateParts]         = useState<string[]>(["year", "month", "day", "dayofweek"]);
-  const [interactions, setInteractions]   = useState<[string, string][]>([]);
-  const [interactA, setInteractA]         = useState("");
-  const [interactB, setInteractB]         = useState("");
-  const [polyCols, setPolyCols]           = useState<string[]>([]);
+
+  // Date extraction
+  const [dateCols, setDateCols]   = useState<string[]>([]);
+  const [dateParts, setDateParts] = useState<string[]>(["year", "month", "day", "dayofweek"]);
+
+  // Interaction terms (A × B)
+  const [interactions, setInteractions] = useState<[string, string][]>([]);
+  const [interactA, setInteractA]       = useState("");
+  const [interactB, setInteractB]       = useState("");
+
+  // Polynomial cross-terms
+  const [polyCols, setPolyCols] = useState<string[]>([]);
+
+  // Ratio features (A ÷ B)
+  const [ratios, setRatios] = useState<[string, string][]>([]);
+  const [ratioA, setRatioA] = useState("");
+  const [ratioB, setRatioB] = useState("");
+
+  // Frequency encoding
+  const [freqCols, setFreqCols] = useState<string[]>([]);
+
+  // Time-series features
+  const [sortCol, setSortCol]   = useState("");
+  const [lagCols, setLagCols]   = useState<string[]>([]);
+  const [lagN, setLagN]         = useState(1);
+  const [lagDiff, setLagDiff]   = useState(false);
+  const [rollCols, setRollCols] = useState<string[]>([]);
+  const [rollN, setRollN]       = useState(3);
+  const [rollAgg, setRollAgg]   = useState("mean");
 
   useEffect(() => {
     if (step === "configure") document.body.style.overflow = "hidden";
@@ -406,6 +563,12 @@ export default function FeatureEngineeringPage() {
       setDateCols([]);
       setInteractions([]);
       setPolyCols([]);
+      setRatios([]);
+      setRatioA(""); setRatioB("");
+      setFreqCols([]);
+      setSortCol("");
+      setLagCols([]); setLagN(1); setLagDiff(false);
+      setRollCols([]); setRollN(3); setRollAgg("mean");
       setStep("configure");
     };
     reader.readAsText(file);
@@ -446,13 +609,24 @@ export default function FeatureEngineeringPage() {
     setInteractA(""); setInteractB("");
   };
 
+  const addRatio = () => {
+    if (!ratioA || !ratioB || ratioA === ratioB) return;
+    const pair: [string, string] = [ratioA, ratioB];
+    if (ratios.some(([a, b]) => a === pair[0] && b === pair[1])) return;
+    setRatios(prev => [...prev, pair]);
+    setRatioA(""); setRatioB("");
+  };
+
   // ── Apply ──────────────────────────────────────────────────────────────────
 
   const applyAllTransforms = useCallback(() => {
     setStep("processing");
     setTimeout(() => {
       try {
-        const res = applyTransforms_fn(rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols);
+        const res = applyTransforms_fn(
+          rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
+          freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg
+        );
         setResult(res);
         setStep("results");
       } catch (e) {
@@ -460,7 +634,8 @@ export default function FeatureEngineeringPage() {
         setStep("configure");
       }
     }, 50);
-  }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols]);
+  }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
+      freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg]);
 
   const downloadResult = useCallback(() => {
     if (!result) return;
@@ -476,7 +651,10 @@ export default function FeatureEngineeringPage() {
     Object.values(colTransforms).reduce((s, v) => s + v.length, 0) +
     dateCols.length * dateParts.length +
     interactions.length +
-    (polyCols.length >= 2 ? polyCols.length * (polyCols.length - 1) / 2 : 0);
+    ratios.length +
+    (polyCols.length >= 2 ? polyCols.length * (polyCols.length - 1) / 2 : 0) +
+    freqCols.length +
+    (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0);
 
   const outerStyle: React.CSSProperties = step === "configure"
     ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" }
@@ -566,16 +744,16 @@ export default function FeatureEngineeringPage() {
                 </div>
               </div>
 
-              {/* Interaction Terms */}
+              {/* Interaction Terms (A × B) */}
               <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <SideLabel>Interaction Terms (A × B)</SideLabel>
                 <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.6rem" }}>
-                  <select value={interactA} onChange={e => setInteractA(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.78rem", padding: "0.35rem 0.4rem", outline: "none" }}>
+                  <select value={interactA} onChange={e => setInteractA(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col A</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
                   <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>×</span>
-                  <select value={interactB} onChange={e => setInteractB(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text)", fontSize: "0.78rem", padding: "0.35rem 0.4rem", outline: "none" }}>
+                  <select value={interactB} onChange={e => setInteractB(e.target.value)} style={SELECT_STYLE}>
                     <option value="">Col B</option>
                     {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
@@ -595,8 +773,37 @@ export default function FeatureEngineeringPage() {
                 }
               </div>
 
+              {/* Ratio Features (A ÷ B) */}
+              <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <SideLabel>Ratio Features (A ÷ B)</SideLabel>
+                <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.6rem" }}>
+                  <select value={ratioA} onChange={e => setRatioA(e.target.value)} style={SELECT_STYLE}>
+                    <option value="">Col A</option>
+                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.9rem" }}>÷</span>
+                  <select value={ratioB} onChange={e => setRatioB(e.target.value)} style={SELECT_STYLE}>
+                    <option value="">Col B</option>
+                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                  <button onClick={addRatio} disabled={!ratioA || !ratioB || ratioA === ratioB}
+                    style={{ padding: "0.35rem 0.6rem", borderRadius: 6, background: "#a78bfa", color: "#000", border: "none", fontWeight: 700, fontSize: "0.9rem", cursor: (!ratioA || !ratioB || ratioA === ratioB) ? "not-allowed" : "pointer", opacity: (!ratioA || !ratioB || ratioA === ratioB) ? 0.35 : 1 }}>
+                    +
+                  </button>
+                </div>
+                {ratios.length === 0
+                  ? <div style={{ fontSize: "0.74rem", color: "var(--text3)" }}>No ratios added yet.</div>
+                  : ratios.map(([a, b], i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.25rem 0.6rem", background: "rgba(167,139,250,0.08)", borderRadius: 6, marginBottom: "0.25rem" }}>
+                      <span style={{ fontSize: "0.75rem", color: "#a78bfa", fontWeight: 600 }}>{a} ÷ {b}</span>
+                      <button onClick={() => setRatios(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
+                    </div>
+                  ))
+                }
+              </div>
+
               {/* Polynomial cross-terms */}
-              <div style={{ padding: "1rem 1.3rem", borderBottom: dateLikeCols.length > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+              <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <SideLabel>Polynomial Cross-Terms</SideLabel>
                 <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.6rem", lineHeight: 1.5 }}>Select 2+ columns — all pairwise products are generated.</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.32rem" }}>
@@ -614,9 +821,29 @@ export default function FeatureEngineeringPage() {
                 )}
               </div>
 
+              {/* Frequency Encoding */}
+              {catCols.length > 0 && (
+                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <SideLabel>Frequency Encoding</SideLabel>
+                  <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.6rem", lineHeight: 1.5 }}>Replace each category with its proportion in the column.</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.32rem" }}>
+                    {catCols.map(c => (
+                      <button key={c.name} onClick={() => setFreqCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
+                        style={{ padding: "3px 9px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer",
+                          border: `1px solid ${freqCols.includes(c.name) ? "#34d399" : "rgba(255,255,255,0.12)"}`,
+                          background: freqCols.includes(c.name) ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.03)",
+                          color: freqCols.includes(c.name) ? "#34d399" : "var(--text3)",
+                          transition: "all 0.13s" }}>
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Date extraction — only shown when date-like columns are detected */}
               {dateLikeCols.length > 0 && (
-                <div style={{ padding: "1rem 1.3rem" }}>
+                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <SideLabel>Date Extraction</SideLabel>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginBottom: dateCols.length > 0 ? "0.7rem" : 0 }}>
                     {dateLikeCols.map(c => (
@@ -638,6 +865,92 @@ export default function FeatureEngineeringPage() {
                   )}
                 </div>
               )}
+
+              {/* Time-Series Features */}
+              <div style={{ padding: "1rem 1.3rem" }}>
+                <SideLabel>Time-Series Features</SideLabel>
+                <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.65rem", lineHeight: 1.5 }}>
+                  Sort rows by a column, then apply lag/diff or rolling aggregates.
+                </div>
+
+                {/* Sort column selector */}
+                <div style={{ marginBottom: "0.75rem" }}>
+                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.28rem" }}>Sort column</div>
+                  <select value={sortCol} onChange={e => { setSortCol(e.target.value); setLagCols([]); setRollCols([]); }}
+                    style={{ ...SELECT_STYLE, width: "100%" }}>
+                    <option value="">— none —</option>
+                    {cols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+
+                {sortCol && (
+                  <>
+                    {/* Lag / Diff */}
+                    <div style={{ marginBottom: "0.6rem", padding: "0.65rem", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontSize: "0.64rem", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Lag / Diff</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
+                        <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0 }}>N =</span>
+                        <input
+                          type="number" min={1} max={10} value={lagN}
+                          onChange={e => setLagN(Math.max(1, parseInt(e.target.value) || 1))}
+                          style={{ width: 42, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.78rem", padding: "0.2rem 0.3rem", outline: "none", textAlign: "center" }}
+                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.28rem", marginLeft: "auto" }}>
+                          <span style={{ fontSize: "0.71rem", color: "var(--text3)" }}>+diff</span>
+                          <Toggle checked={lagDiff} onChange={() => setLagDiff(p => !p)} />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                        {numCols.map(c => (
+                          <button key={c.name}
+                            onClick={() => setLagCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
+                            style={{ padding: "2px 7px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600, cursor: "pointer",
+                              border: `1px solid ${lagCols.includes(c.name) ? "#f59e0b" : "rgba(255,255,255,0.1)"}`,
+                              background: lagCols.includes(c.name) ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)",
+                              color: lagCols.includes(c.name) ? "#f59e0b" : "var(--text3)",
+                              transition: "all 0.13s" }}>
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Rolling Window */}
+                    <div style={{ padding: "0.65rem", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontSize: "0.64rem", fontWeight: 700, color: "#e879f9", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Rolling Window</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
+                        <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0 }}>N =</span>
+                        <input
+                          type="number" min={2} max={20} value={rollN}
+                          onChange={e => setRollN(Math.max(2, parseInt(e.target.value) || 2))}
+                          style={{ width: 42, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.78rem", padding: "0.2rem 0.3rem", outline: "none", textAlign: "center" }}
+                        />
+                        <select value={rollAgg} onChange={e => setRollAgg(e.target.value)}
+                          style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.74rem", padding: "0.22rem 0.3rem", outline: "none" }}>
+                          <option value="mean">mean</option>
+                          <option value="std">std</option>
+                          <option value="min">min</option>
+                          <option value="max">max</option>
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                        {numCols.map(c => (
+                          <button key={c.name}
+                            onClick={() => setRollCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
+                            style={{ padding: "2px 7px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600, cursor: "pointer",
+                              border: `1px solid ${rollCols.includes(c.name) ? "#e879f9" : "rgba(255,255,255,0.1)"}`,
+                              background: rollCols.includes(c.name) ? "rgba(232,121,249,0.1)" : "rgba(255,255,255,0.03)",
+                              color: rollCols.includes(c.name) ? "#e879f9" : "var(--text3)",
+                              transition: "all 0.13s" }}>
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
             </div>
           </div>
 
