@@ -430,17 +430,17 @@ function serializeCSV(rows: string[][]): string {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const NUM_TRANSFORMS = [
-  { key: "log1p",        label: "log1p",    hint: "log(1+x) — reduces right skew" },
-  { key: "sqrt",         label: "sqrt",     hint: "√x — milder skew reduction" },
-  { key: "zscore",       label: "z-score",  hint: "(x−μ)/σ — standardize to zero mean, unit variance" },
-  { key: "minmax",       label: "min-max",  hint: "Scale to [0,1]: (x−min)/(max−min)" },
-  { key: "percentile",   label: "pct rank", hint: "Rank scaled to [0,1]" },
-  { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0" },
-  { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0" },
-  { key: "winsor",       label: "winsor",   hint: "Cap values at 1st/99th percentile" },
-  { key: "above_mean",   label: "> mean",   hint: "1 if value > column mean, else 0" },
-  { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)" },
-  { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)" },
+  { key: "log1p",        label: "log1p",    hint: "log(1+x) — reduces right skew",                      desc: "log(1+x) — tames right skew" },
+  { key: "sqrt",         label: "sqrt",     hint: "√x — milder skew reduction",                          desc: "√x — milder skew fix" },
+  { key: "zscore",       label: "z-score",  hint: "(x−μ)/σ — standardize to zero mean, unit variance",   desc: "(x−μ)/σ — zero mean, unit var" },
+  { key: "minmax",       label: "min-max",  hint: "Scale to [0,1]: (x−min)/(max−min)",                   desc: "rescale to [0, 1]" },
+  { key: "percentile",   label: "pct rank", hint: "Rank scaled to [0,1]",                                desc: "rank as fraction [0, 1]" },
+  { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0",                         desc: "flag if |z-score| > 3" },
+  { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0",                      desc: "flag if null / NaN" },
+  { key: "winsor",       label: "winsor",   hint: "Cap values at 1st/99th percentile",                   desc: "clip to 1st–99th pct" },
+  { key: "above_mean",   label: "> mean",   hint: "1 if value > column mean, else 0",                    desc: "1 if above col mean" },
+  { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)",                            desc: "5 equal-width bins (0–4)" },
+  { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)",                               desc: "5 quantile bins (0–4)" },
 ];
 
 const DATE_PARTS = [
@@ -1039,6 +1039,16 @@ export default function FeatureEngineeringPage() {
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <div style={{ ...CARD }}>
               <SectionTitle>Numeric Column Transforms</SectionTitle>
+
+              {/* Transform legend */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1.5rem", fontSize: "0.62rem", marginBottom: "0.9rem", padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.02)", borderRadius: 7, border: "1px solid rgba(255,255,255,0.04)" }}>
+                {NUM_TRANSFORMS.map(t => (
+                  <div key={t.key} style={{ lineHeight: 2 }}>
+                    <span style={{ color: `${ACCENT}cc`, fontWeight: 700, marginRight: "0.3rem" }}>{t.label}</span>
+                    <span style={{ color: "var(--text3)" }}>{t.desc}</span>
+                  </div>
+                ))}
+              </div>
 
               {numCols.length === 0 ? (
                 <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
