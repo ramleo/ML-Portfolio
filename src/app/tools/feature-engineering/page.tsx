@@ -935,7 +935,8 @@ export default function FeatureEngineeringPage() {
                 <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <SideLabel>Cyclical Encoding</SideLabel>
                   <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.6 }}>
-                    Wraps a periodic number onto a circle so that the ends connect — month 12 and month 1 become neighbors, not 11 steps apart. Outputs a <span style={{ color: `${ACCENT}cc` }}>_sin</span> and <span style={{ color: `${ACCENT}cc` }}>_cos</span> column per feature. Set the period to the cycle length (e.g. 12 for months, 24 for hours, 7 for days).
+                    Wraps a periodic number onto a circle so that the ends connect — month 12 and month 1 become neighbors, not 11 steps apart. Outputs a <span style={{ color: `${ACCENT}cc` }}>_sin</span> and <span style={{ color: `${ACCENT}cc` }}>_cos</span> column per feature. Set the period to the cycle length (e.g. 12 for months, 24 for hours, 7 for days of week).
+                    <br /><span style={{ color: `${ACCENT}99`, fontStyle: "italic" }}>Use on: hour of day in taxi/energy data, month in sales forecasts, day-of-week in retail — any column where the last value wraps back to the first.</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     {numCols.map(c => {
@@ -978,7 +979,8 @@ export default function FeatureEngineeringPage() {
                 <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <SideLabel>Row Aggregates</SideLabel>
                   <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.45rem", lineHeight: 1.6 }}>
-                    Summarises multiple columns into one new value per row — e.g. the average of all health scores, or the max of all financial features. Select 2+ columns and an aggregation; outputs a single <span style={{ color: `${ACCENT}cc` }}>row_{rowAggFn}</span> column.{rowAggCols.length >= 2 && <span style={{ color: ACCENT }}> → row_{rowAggFn}</span>}
+                    Summarises multiple columns into one new value per row. Useful when individual columns matter less than their combined pattern. Select 2+ columns and an aggregation; outputs a single <span style={{ color: `${ACCENT}cc` }}>row_{rowAggFn}</span> column.{rowAggCols.length >= 2 && <span style={{ color: ACCENT }}> → row_{rowAggFn}</span>}
+                    <br /><span style={{ color: `${ACCENT}99`, fontStyle: "italic" }}>Use on: row_mean of health vitals (glucose, BMI, bp) as an overall risk score; row_sum of expense categories as total spend; row_max of test scores as peak performance.</span>
                   </div>
                   <select value={rowAggFn} onChange={e => setRowAggFn(e.target.value)}
                     style={{ ...SELECT_STYLE, width: "100%", marginBottom: "0.5rem" }}>
