@@ -1040,16 +1040,6 @@ export default function FeatureEngineeringPage() {
             <div style={{ ...CARD }}>
               <SectionTitle>Numeric Column Transforms</SectionTitle>
 
-              {/* Transform legend */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1.5rem", fontSize: "0.62rem", marginBottom: "0.9rem", padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.02)", borderRadius: 7, border: "1px solid rgba(255,255,255,0.04)" }}>
-                {NUM_TRANSFORMS.map(t => (
-                  <div key={t.key} style={{ lineHeight: 2 }}>
-                    <span style={{ color: `${ACCENT}cc`, fontWeight: 700, marginRight: "0.3rem" }}>{t.label}</span>
-                    <span style={{ color: "var(--text3)" }}>{t.desc}</span>
-                  </div>
-                ))}
-              </div>
-
               {numCols.length === 0 ? (
                 <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
               ) : (
