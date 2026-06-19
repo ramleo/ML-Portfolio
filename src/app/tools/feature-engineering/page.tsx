@@ -86,6 +86,21 @@ function analyzeColumns(rows: string[][]): ColInfo[] {
   });
 }
 
+// ── Top-value helper (for categorical distribution bars) ──────────────────────
+
+function getTopValues(col: ColInfo, limit = 6): { value: string; count: number; pct: number }[] {
+  const counts: Record<string, number> = {};
+  const total = col.rawValues.length;
+  for (const v of col.rawValues) {
+    const lv = v.trim().toLowerCase();
+    if (lv && lv !== "nan" && lv !== "null" && lv !== "na") counts[v] = (counts[v] ?? 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([value, count]) => ({ value, count, pct: count / total }));
+}
+
 // ── Transform engine ──────────────────────────────────────────────────────────
 
 function applyTransforms(
@@ -705,8 +720,7 @@ export default function FeatureEngineeringPage() {
         <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", width: "100%" }}>
 
           {/* ── Left sidebar — unified card ── */}
-          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem" }}>
-            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem", background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
 
               {/* Dataset stats */}
               <div style={{ padding: "1.1rem 1.3rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -806,53 +820,6 @@ export default function FeatureEngineeringPage() {
                 </div>
               </div>
 
-              {/* Frequency Encoding */}
-              {catCols.length > 0 && (
-                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <SideLabel>Frequency Encoding</SideLabel>
-                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.6 }}>
-                    Replaces each value with its share of total rows.<br />
-                    <span style={{ color: "var(--text2)" }}>e.g. Sex: male → 0.65, female → 0.35</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
-                    {catCols.map(c => (
-                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                        <Toggle checked={freqCols.includes(c.name)} onChange={() => setFreqCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
-                        <span style={{ fontSize: "0.78rem", color: freqCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Date extraction */}
-              {catCols.length > 0 && (
-                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <SideLabel>Date Extraction</SideLabel>
-                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.5 }}>
-                    Toggle columns that contain dates → extracts year, month, day etc.
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginBottom: dateCols.length > 0 ? "0.7rem" : 0 }}>
-                    {catCols.map(c => (
-                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                        <Toggle checked={dateCols.includes(c.name)} onChange={() => setDateCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
-                        <span style={{ fontSize: "0.78rem", color: dateCols.includes(c.name) ? "var(--text)" : "var(--text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {dateCols.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.28rem" }}>
-                      {DATE_PARTS.map(p => (
-                        <button key={p.key} onClick={() => setDateParts(prev => prev.includes(p.key) ? prev.filter(x => x !== p.key) : [...prev, p.key])}
-                          style={{ padding: "3px 8px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${dateParts.includes(p.key) ? "#a78bfa" : "rgba(255,255,255,0.1)"}`, background: dateParts.includes(p.key) ? "rgba(167,139,250,0.12)" : "transparent", color: dateParts.includes(p.key) ? "#a78bfa" : "var(--text3)", transition: "all 0.13s" }}>
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* Time-Series Features */}
               <div style={{ padding: "1rem 1.3rem" }}>
                 <SideLabel>Time-Series Features</SideLabel>
@@ -938,12 +905,11 @@ export default function FeatureEngineeringPage() {
                 )}
               </div>
 
-            </div>
           </div>
 
-          {/* ── Right panel — pill chip transforms ── */}
-          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column" }}>
-            <div style={{ ...CARD, flex: 1 }}>
+          {/* ── Right panel — pill chip transforms + categorical ── */}
+          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div style={{ ...CARD }}>
               <SectionTitle>Numeric Column Transforms</SectionTitle>
 
               {numCols.length === 0 ? (
@@ -1028,6 +994,107 @@ export default function FeatureEngineeringPage() {
                 </table>
               )}
             </div>
+
+            {/* ── Categorical Columns card ── */}
+            {catCols.length > 0 && (
+              <div style={{ ...CARD }}>
+                <SectionTitle>Categorical Columns</SectionTitle>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                  {catCols.map((col, ci) => {
+                    const topVals = getTopValues(col, 6);
+                    const isFreqOn = freqCols.includes(col.name);
+                    const isDateOn = dateCols.includes(col.name);
+                    const maxPct = topVals[0]?.pct ?? 1;
+                    const border = ci < catCols.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none";
+                    return (
+                      <div key={col.name} style={{ paddingTop: ci === 0 ? 0 : "1rem", paddingBottom: "1rem", borderBottom: border }}>
+                        {/* Column header */}
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.55rem" }}>
+                          <span style={{ fontSize: "0.83rem", fontWeight: 700, color: "var(--text)" }}>{col.name}</span>
+                          <span style={{ fontSize: "0.66rem", color: "var(--text3)" }}>
+                            {col.nunique} unique{col.missing > 0 ? ` · ${col.missing} missing` : ""}
+                          </span>
+                        </div>
+                        {/* Distribution bars */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.26rem", marginBottom: "0.7rem" }}>
+                          {topVals.map(v => (
+                            <div key={v.value} style={{ display: "grid", gridTemplateColumns: "130px 1fr 40px", gap: "0.5rem", alignItems: "center" }}>
+                              <span style={{ fontSize: "0.71rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={v.value}>
+                                {v.value}
+                              </span>
+                              <div style={{ height: 5, borderRadius: 9999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                                <div style={{
+                                  height: "100%",
+                                  width: `${(v.pct / maxPct) * 100}%`,
+                                  borderRadius: 9999,
+                                  background: isFreqOn ? ACCENT : "rgba(255,255,255,0.22)",
+                                  transition: "background 0.2s, width 0.3s",
+                                }} />
+                              </div>
+                              <span style={{ fontSize: "0.68rem", color: isFreqOn ? ACCENT : "var(--text3)", textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: isFreqOn ? 700 : 400, transition: "color 0.2s" }}>
+                                {(v.pct * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          ))}
+                          {col.nunique > 6 && (
+                            <span style={{ fontSize: "0.62rem", color: "var(--text3)", paddingLeft: "0.1rem" }}>
+                              + {col.nunique - 6} more values
+                            </span>
+                          )}
+                        </div>
+                        {/* Action chips */}
+                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <button
+                            onClick={() => setFreqCols(prev => prev.includes(col.name) ? prev.filter(x => x !== col.name) : [...prev, col.name])}
+                            style={{
+                              display: "flex", alignItems: "center", gap: "0.32rem",
+                              padding: "3px 10px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
+                              border: `1px solid ${isFreqOn ? ACCENT : "rgba(255,255,255,0.12)"}`,
+                              background: isFreqOn ? `${ACCENT}18` : "rgba(255,255,255,0.04)",
+                              color: isFreqOn ? ACCENT : "var(--text3)",
+                              transition: "all 0.13s",
+                            }}>
+                            {isFreqOn ? "✓" : "○"} Freq Encoding
+                            <span style={{ fontFamily: "monospace", fontSize: "0.63rem", opacity: 0.8 }}>→ {col.name}_freq</span>
+                          </button>
+                          <button
+                            onClick={() => setDateCols(prev => prev.includes(col.name) ? prev.filter(x => x !== col.name) : [...prev, col.name])}
+                            style={{
+                              display: "flex", alignItems: "center", gap: "0.32rem",
+                              padding: "3px 10px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
+                              border: `1px solid ${isDateOn ? "#a78bfa" : "rgba(255,255,255,0.12)"}`,
+                              background: isDateOn ? "rgba(167,139,250,0.12)" : "rgba(255,255,255,0.04)",
+                              color: isDateOn ? "#a78bfa" : "var(--text3)",
+                              transition: "all 0.13s",
+                            }}>
+                            {isDateOn ? "✓" : "○"} Date Extract
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Date parts selector — shown when any date col is active */}
+                {dateCols.length > 0 && (
+                  <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ fontSize: "0.66rem", color: "var(--text3)", marginBottom: "0.4rem" }}>Parts to extract from date columns:</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                      {DATE_PARTS.map(p => (
+                        <button key={p.key}
+                          onClick={() => setDateParts(prev => prev.includes(p.key) ? prev.filter(x => x !== p.key) : [...prev, p.key])}
+                          style={{ padding: "3px 9px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
+                            border: `1px solid ${dateParts.includes(p.key) ? "#a78bfa" : "rgba(255,255,255,0.1)"}`,
+                            background: dateParts.includes(p.key) ? "rgba(167,139,250,0.12)" : "transparent",
+                            color: dateParts.includes(p.key) ? "#a78bfa" : "var(--text3)",
+                            transition: "all 0.13s" }}>
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
