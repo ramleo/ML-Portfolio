@@ -10,6 +10,20 @@ const OPENAI_COMPAT: Record<string, string> = {
   perplexity:  "https://api.perplexity.ai",
 };
 
+function friendlyGeminiError(status: number, body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    const msg = parsed?.error?.message as string | undefined;
+    if (msg) {
+      if (status === 429) return `Quota exceeded on this API key. Check your plan at ai.google.dev, or add a different key in chat settings (gear icon).`;
+      if (status === 503) return `Gemini is currently overloaded. Retrying with gemini-3.5-flash...`;
+      if (status === 401 || status === 403) return `Invalid or unauthorized Gemini API key. Check your key in chat settings (gear icon).`;
+      return `Gemini error: ${msg.slice(0, 120)}`;
+    }
+  } catch { /* not JSON */ }
+  return `Gemini ${status} error. Try switching to a different model or provider.`;
+}
+
 // Returns the text response, or throws with a descriptive message
 async function callGemini(key: string, model: string, system: string, messages: ChatMessage[]) {
   const contents = messages.map((m) => ({
@@ -29,9 +43,9 @@ async function callGemini(key: string, model: string, system: string, messages: 
     }
   );
   if (!res.ok) {
-    const err = await res.text();
+    const body = await res.text();
     const status = res.status;
-    throw Object.assign(new Error(`Gemini ${status}: ${err.slice(0, 200)}`), { status });
+    throw Object.assign(new Error(friendlyGeminiError(status, body)), { status });
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response.";
@@ -126,7 +140,7 @@ export async function POST(req: NextRequest) {
       try {
         reply = await callGemini(key, chosenModel, system, messages);
       } catch (e) {
-        // Auto-retry with gemini-3.5-flash on 503 overload
+        // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 quota)
         const status = (e as { status?: number }).status;
         if (status === 503 && chosenModel !== "gemini-3.5-flash") {
           reply = await callGemini(key, "gemini-3.5-flash", system, messages);
