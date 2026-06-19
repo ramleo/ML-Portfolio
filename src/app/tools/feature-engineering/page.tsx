@@ -949,78 +949,83 @@ export default function FeatureEngineeringPage() {
               {numCols.length === 0 ? (
                 <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
               ) : (
-                <>
-                  {/* CSS grid guarantees chip column starts at same x for every row */}
-                  <div style={{ display: "grid", gridTemplateColumns: "118px 36px 1fr", columnGap: "0.5rem" }}>
-
-                    {/* Apply-to-all row */}
-                    <div style={{ fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", paddingBottom: "0.6rem" }}>
-                      Apply to all
-                    </div>
-                    <div style={{ paddingBottom: "0.6rem" }} />
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", paddingBottom: "0.6rem", alignContent: "center" }}>
-                      {NUM_TRANSFORMS.map(t => {
-                        const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
-                        const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
-                        return (
-                          <button key={t.key} onClick={() => toggleAllTransform(t.key, !allOn)} title={t.hint}
-                            style={{
-                              padding: "2px 8px", borderRadius: 9999, fontSize: "0.65rem", fontWeight: 600, cursor: "pointer",
-                              border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`,
-                              background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)",
-                              color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)",
-                              transition: "all 0.12s",
-                            }}>
-                            {t.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Full-width divider */}
-                    <div style={{ gridColumn: "1 / -1", height: 1, background: "rgba(255,255,255,0.07)", marginBottom: "0.2rem" }} />
-
-                    {/* Per-column rows */}
+                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                  <colgroup>
+                    <col style={{ width: 118 }} />
+                    <col style={{ width: 44 }} />
+                    <col />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: "0 0 0.6rem", textAlign: "left", fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                        Apply to all
+                      </th>
+                      <th style={{ padding: "0 0 0.6rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }} />
+                      <th style={{ padding: "0 0 0.6rem", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                          {NUM_TRANSFORMS.map(t => {
+                            const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
+                            const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
+                            return (
+                              <button key={t.key} onClick={() => toggleAllTransform(t.key, !allOn)} title={t.hint}
+                                style={{
+                                  padding: "2px 9px", borderRadius: 9999, fontSize: "0.66rem", fontWeight: 600, cursor: "pointer",
+                                  border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`,
+                                  background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)",
+                                  color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)",
+                                  transition: "all 0.12s",
+                                }}>
+                                {t.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {numCols.map((col, i) => {
                       const selected = colTransforms[col.name] ?? [];
                       const skewAbs = Math.abs(col.skew);
                       const skewColor = skewAbs > 1.5 ? "#f59e0b" : skewAbs > 0.5 ? "#94a3b8" : "#34d399";
                       const border = i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none";
                       return (
-                        <React.Fragment key={col.name}>
-                          <div style={{ padding: "0.52rem 0", borderBottom: border, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                        <tr key={col.name}>
+                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
                             <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={col.name}>
                               {col.name}
                             </div>
                             {col.missing > 0 && <div style={{ fontSize: "0.59rem", color: "#f87171" }}>{col.missing} missing</div>}
-                          </div>
-                          <div style={{ padding: "0.52rem 0", borderBottom: border, fontSize: "0.69rem", fontWeight: 700, color: skewColor, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          </td>
+                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle", textAlign: "center", fontSize: "0.69rem", fontWeight: 700, color: skewColor }}>
                             {col.skew.toFixed(1)}
-                          </div>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.22rem", padding: "0.52rem 0", borderBottom: border, alignContent: "center" }}>
-                            {NUM_TRANSFORMS.map(t => {
-                              const on = selected.includes(t.key);
-                              return (
-                                <button key={t.key} onClick={() => toggleTransform(col.name, t.key)} title={t.hint}
-                                  style={{
-                                    padding: "2px 9px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600,
-                                    cursor: "pointer",
-                                    border: `1px solid ${on ? ACCENT : "rgba(255,255,255,0.1)"}`,
-                                    background: on ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
-                                    color: on ? ACCENT : "var(--text3)",
-                                    transition: "all 0.12s",
-                                    boxShadow: on ? `0 0 7px ${ACCENT}30` : "none",
-                                  }}>
-                                  {t.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </React.Fragment>
+                          </td>
+                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                              {NUM_TRANSFORMS.map(t => {
+                                const on = selected.includes(t.key);
+                                return (
+                                  <button key={t.key} onClick={() => toggleTransform(col.name, t.key)} title={t.hint}
+                                    style={{
+                                      padding: "2px 9px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600,
+                                      cursor: "pointer",
+                                      border: `1px solid ${on ? ACCENT : "rgba(255,255,255,0.1)"}`,
+                                      background: on ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
+                                      color: on ? ACCENT : "var(--text3)",
+                                      transition: "all 0.12s",
+                                      boxShadow: on ? `0 0 7px ${ACCENT}30` : "none",
+                                    }}>
+                                    {t.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </td>
+                        </tr>
                       );
                     })}
-                  </div>
-                </>
+                  </tbody>
+                </table>
               )}
             </div>
           </div>
