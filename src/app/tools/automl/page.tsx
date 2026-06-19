@@ -56,7 +56,7 @@ function AutoMLPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>ML Capabilities</span>
+            <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#22c55e14", border: "1px solid #22c55e30" }}>Step 4</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
           </div>
         </div>
