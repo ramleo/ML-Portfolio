@@ -120,6 +120,9 @@ function applyTransforms(
   rollCols: string[],
   rollN: number,
   rollAgg: string,
+  cyclicCols: Record<string, number>,
+  rowAggCols: string[],
+  rowAggFn: string,
 ): FeResult {
   const headers = [...rawRows[0]];
   const dataRows = rawRows.slice(1).map(r => [...r]);
@@ -192,6 +195,9 @@ function applyTransforms(
       addCol(`${colName}_winsor`, vals.map(v =>
         v === null ? null : parseFloat(Math.min(Math.max(v, p1), p99).toFixed(4))
       ));
+    }
+    if (tList.includes("above_mean")) {
+      addCol(`${colName}_above_mean`, vals.map(v => v === null ? null : (v > mean ? 1 : 0)));
     }
     if (tList.includes("bin_equal")) {
       const range = maxV - minV || 1;
@@ -365,6 +371,44 @@ function applyTransforms(
     }
   }
 
+  // 9. Cyclical encoding (sin/cos pairs)
+  for (const [colName, period] of Object.entries(cyclicCols)) {
+    if (!period || period <= 0) continue;
+    const col = colMap[colName];
+    if (!col) continue;
+    const vals = col.values;
+    addCol(`${colName}_sin`, vals.map(v =>
+      v === null ? null : parseFloat(Math.sin(2 * Math.PI * (v as number) / period).toFixed(6))
+    ));
+    addCol(`${colName}_cos`, vals.map(v =>
+      v === null ? null : parseFloat(Math.cos(2 * Math.PI * (v as number) / period).toFixed(6))
+    ));
+  }
+
+  // 10. Row-wise aggregates
+  const validRowCols = rowAggCols.filter(c => colMap[c]);
+  if (validRowCols.length >= 2) {
+    const rowVals: (number | null)[] = [];
+    for (let ri = 0; ri < nRows; ri++) {
+      const vals = validRowCols.map(c => colMap[c].values[ri]).filter(v => v !== null) as number[];
+      if (vals.length === 0) { rowVals.push(null); continue; }
+      let agg: number;
+      switch (rowAggFn) {
+        case "max": agg = Math.max(...vals); break;
+        case "min": agg = Math.min(...vals); break;
+        case "sum": agg = vals.reduce((a, b) => a + b, 0); break;
+        case "std": {
+          const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+          agg = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length);
+          break;
+        }
+        default: agg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      }
+      rowVals.push(parseFloat(agg.toFixed(4)));
+    }
+    addCol(`row_${rowAggFn}`, rowVals);
+  }
+
   return {
     csv: [headers, ...dataRows],
     headers,
@@ -394,6 +438,7 @@ const NUM_TRANSFORMS = [
   { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0" },
   { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0" },
   { key: "winsor",       label: "winsor",   hint: "Cap values at 1st/99th percentile" },
+  { key: "above_mean",   label: "> mean",   hint: "1 if value > column mean, else 0" },
   { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)" },
   { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)" },
 ];
@@ -530,6 +575,13 @@ export default function FeatureEngineeringPage() {
   const [rollN, setRollN]       = useState(3);
   const [rollAgg, setRollAgg]   = useState("mean");
 
+  // Cyclical encoding (col → period)
+  const [cyclicCols, setCyclicCols] = useState<Record<string, number>>({});
+
+  // Row-wise aggregates
+  const [rowAggCols, setRowAggCols] = useState<string[]>([]);
+  const [rowAggFn, setRowAggFn]     = useState("mean");
+
   useEffect(() => {
     if (step === "configure") document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -567,6 +619,8 @@ export default function FeatureEngineeringPage() {
       setSortCol("");
       setLagCols([]); setLagN(1); setLagDiff(false);
       setRollCols([]); setRollN(3); setRollAgg("mean");
+      setCyclicCols({});
+      setRowAggCols([]); setRowAggFn("mean");
       setStep("configure");
     };
     reader.readAsText(file);
@@ -623,7 +677,8 @@ export default function FeatureEngineeringPage() {
       try {
         const res = applyTransforms_fn(
           rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
-          freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg
+          freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
+          cyclicCols, rowAggCols, rowAggFn
         );
         setResult(res);
         setStep("results");
@@ -633,7 +688,8 @@ export default function FeatureEngineeringPage() {
       }
     }, 50);
   }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
-      freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg]);
+      freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
+      cyclicCols, rowAggCols, rowAggFn]);
 
   const downloadResult = useCallback(() => {
     if (!result) return;
@@ -652,7 +708,9 @@ export default function FeatureEngineeringPage() {
     ratios.length +
     (polyCols.length >= 2 ? polyCols.length * (polyCols.length - 1) / 2 : 0) +
     freqCols.length +
-    (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0);
+    (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0) +
+    Object.keys(cyclicCols).length * 2 +
+    (rowAggCols.length >= 2 ? 1 : 0);
 
   const outerStyle: React.CSSProperties = step === "configure"
     ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" }
@@ -819,6 +877,76 @@ export default function FeatureEngineeringPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Cyclical Encoding */}
+              {numCols.length > 0 && (
+                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <SideLabel>Cyclical Encoding</SideLabel>
+                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.5 }}>
+                    sin/cos pairs for periodic columns. Set the period per column (e.g. 12 for month, 24 for hour, 7 for day-of-week).
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {numCols.map(c => {
+                      const period = cyclicCols[c.name];
+                      const isOn = period !== undefined;
+                      return (
+                        <div key={c.name}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <Toggle checked={isOn} onChange={() => setCyclicCols(prev => {
+                              if (isOn) { const n = { ...prev }; delete n[c.name]; return n; }
+                              return { ...prev, [c.name]: 12 };
+                            })} />
+                            <span style={{ fontSize: "0.78rem", color: isOn ? "var(--text)" : "var(--text3)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+                            {isOn && (
+                              <select value={period} onChange={e => setCyclicCols(prev => ({ ...prev, [c.name]: Number(e.target.value) }))}
+                                style={{ width: 72, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "var(--text)", fontSize: "0.7rem", padding: "0.18rem 0.25rem", outline: "none", flexShrink: 0 }}>
+                                <option value={7}>7 — week</option>
+                                <option value={12}>12 — month</option>
+                                <option value={24}>24 — hour</option>
+                                <option value={31}>31 — day</option>
+                                <option value={52}>52 — wk/yr</option>
+                                <option value={365}>365 — year</option>
+                              </select>
+                            )}
+                          </div>
+                          {isOn && (
+                            <div style={{ fontSize: "0.61rem", color: "var(--text3)", paddingLeft: "2.15rem", marginTop: "0.1rem" }}>
+                              → {c.name}_sin, {c.name}_cos
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Row Aggregates */}
+              {numCols.length >= 2 && (
+                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <SideLabel>Row Aggregates</SideLabel>
+                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.45rem", lineHeight: 1.5 }}>
+                    Row-wise stat across selected numeric columns.{rowAggCols.length >= 2 && <span style={{ color: ACCENT }}> → row_{rowAggFn}</span>}
+                  </div>
+                  <select value={rowAggFn} onChange={e => setRowAggFn(e.target.value)}
+                    style={{ ...SELECT_STYLE, width: "100%", marginBottom: "0.5rem" }}>
+                    <option value="mean">mean</option>
+                    <option value="max">max</option>
+                    <option value="min">min</option>
+                    <option value="std">std</option>
+                    <option value="sum">sum</option>
+                  </select>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
+                    {numCols.map(c => (
+                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                        <Toggle checked={rowAggCols.includes(c.name)} onChange={() => setRowAggCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
+                        <span style={{ fontSize: "0.78rem", color: rowAggCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {rowAggCols.length === 1 && <div style={{ fontSize: "0.62rem", color: "#f87171", marginTop: "0.4rem" }}>Select at least 2 columns</div>}
+                </div>
+              )}
 
               {/* Time-Series Features */}
               <div style={{ padding: "1rem 1.3rem" }}>
@@ -1027,7 +1155,7 @@ export default function FeatureEngineeringPage() {
                                   height: "100%",
                                   width: `${(v.pct / maxPct) * 100}%`,
                                   borderRadius: 9999,
-                                  background: isFreqOn ? ACCENT : "rgba(255,255,255,0.22)",
+                                  background: isFreqOn ? ACCENT : "rgba(99,153,219,0.45)",
                                   transition: "background 0.2s, width 0.3s",
                                 }} />
                               </div>
