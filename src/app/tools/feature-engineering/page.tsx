@@ -523,11 +523,11 @@ export default function FeatureEngineeringPage() {
 
       {/* ── Configure ── */}
       {step === "configure" && (
-        <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", maxWidth: 1060, margin: "0 auto", width: "100%" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", width: "100%" }}>
 
           {/* ── Left sidebar — unified card ── */}
-          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "2rem" }}>
-            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column" }}>
+            <div style={{ background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden", flex: 1 }}>
 
               {/* Dataset stats */}
               <div style={{ padding: "1rem 1.2rem 0.9rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -624,8 +624,8 @@ export default function FeatureEngineeringPage() {
           </div>
 
           {/* ── Right panel — pill chip transforms ── */}
-          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "2rem" }}>
-            <div style={CARD}>
+          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column" }}>
+            <div style={{ ...CARD, flex: 1 }}>
               <SectionTitle>Numeric Column Transforms</SectionTitle>
 
               {numCols.length === 0 ? (
