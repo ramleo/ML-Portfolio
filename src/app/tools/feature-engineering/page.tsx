@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#38bdf8";
 
@@ -695,31 +696,63 @@ export default function FeatureEngineeringPage() {
 
   // ── AI Smart Suggest ───────────────────────────────────────────────────────
 
-  const aiSuggest = useCallback(() => {
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+
+  const aiSuggest = useCallback(async () => {
+    if (aiSuggestLoading || numCols.length === 0) return;
+    setAiSuggestLoading(true);
     const n = rawRows.length - 1;
-    const next: Record<string, string[]> = {};
-    for (const col of numCols) {
-      const transforms: string[] = [];
+    const colSummaries = numCols.map(col => {
       const valid = col.values.filter(v => v !== null) as number[];
-      const missingPct = col.missing / n;
-      // Skew correction
-      if (col.skew > 1.5) transforms.push("log1p");
-      else if (col.skew > 0.5) transforms.push("sqrt");
-      // Missing indicator
-      if (missingPct > 0.02) transforms.push("missing_flag");
-      // Outlier detection (IQR)
-      if (valid.length >= 10) {
-        const sorted = [...valid].sort((a, b) => a - b);
-        const q1 = sorted[Math.floor(sorted.length * 0.25)];
-        const q3 = sorted[Math.floor(sorted.length * 0.75)];
-        const iqr = q3 - q1;
-        if (iqr > 0 && valid.filter(v => v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr).length / valid.length > 0.03)
-          transforms.push("winsor");
+      const sorted = [...valid].sort((a, b) => a - b);
+      const min = sorted[0] ?? 0;
+      const max = sorted[sorted.length - 1] ?? 0;
+      const mean = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+      const q1 = sorted[Math.floor(sorted.length * 0.25)] ?? 0;
+      const q3 = sorted[Math.floor(sorted.length * 0.75)] ?? 0;
+      return `${col.name}: skew=${col.skew.toFixed(2)}, missing=${((col.missing / n) * 100).toFixed(1)}%, min=${min.toFixed(2)}, max=${max.toFixed(2)}, mean=${mean.toFixed(2)}, Q1=${q1.toFixed(2)}, Q3=${q3.toFixed(2)}`;
+    }).join("\n");
+
+    const prompt = `You are a feature engineering expert. Given these numeric column statistics, suggest which transforms to apply to each column. Available transforms: log1p, sqrt, zscore, minmax, percentile, outlier_flag, missing_flag, winsor, above_mean, bin_equal, bin_quantile.
+
+Column stats:
+${colSummaries}
+
+Respond with ONLY a JSON object where each key is a column name and the value is an array of transform keys to apply. Example: {"Age": ["log1p", "missing_flag"], "Fare": ["winsor", "zscore"]}. No explanation, no markdown, just the JSON.`;
+
+    try {
+      const provider = localStorage.getItem("tools_ai_provider") ?? "gemini";
+      const model = localStorage.getItem("tools_ai_model") ?? "gemini-2.5-flash";
+      const userKey = localStorage.getItem("tools_ai_key") ?? undefined;
+      const res = await fetch("/api/ai-tools", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          provider, model,
+          userKey: userKey || undefined,
+          toolContext: "Feature Engineering — AI Suggest transform selection.",
+        }),
+      });
+      const data = await res.json();
+      const raw = data.reply ?? "";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]) as Record<string, string[]>;
+        const VALID_KEYS = new Set(NUM_TRANSFORMS.map(t => t.key));
+        const next: Record<string, string[]> = {};
+        for (const col of numCols) {
+          const suggestions = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
+          next[col.name] = suggestions;
+        }
+        setColTransforms(next);
       }
-      next[col.name] = transforms;
+    } catch {
+      // silently fall through — user can retry
+    } finally {
+      setAiSuggestLoading(false);
     }
-    setColTransforms(next);
-  }, [numCols, rawRows.length]);
+  }, [aiSuggestLoading, numCols, rawRows.length]);
 
   // ── Apply ──────────────────────────────────────────────────────────────────
 
@@ -1096,11 +1129,12 @@ export default function FeatureEngineeringPage() {
                 <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Numeric Column Transforms
                 </div>
-                <button onClick={aiSuggest} title="Auto-select transforms based on skew, missing values, and outlier detection"
-                  style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: ACCENT, transition: "all 0.15s", flexShrink: 0 }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
+                <button onClick={aiSuggest} disabled={aiSuggestLoading}
+                  title="Use AI to suggest transforms based on column statistics"
+                  style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
+                  onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
-                  ✨ AI Suggest
+                  {aiSuggestLoading ? "⏳ Thinking…" : "✨ AI Suggest"}
                 </button>
               </div>
 
@@ -1408,6 +1442,18 @@ export default function FeatureEngineeringPage() {
           </div>
         </div>
       )}
+
+      <ToolsAIChat context={{
+        tool: "Feature Engineering",
+        summary: rawRows.length > 1
+          ? [
+              `Dataset: ${rawRows.length - 1} rows, ${numCols.length} numeric cols (${numCols.map(c => c.name).join(", ")}), ${catCols.length} categorical cols (${catCols.map(c => c.name).join(", ")}).`,
+              numCols.length > 0 ? `Numeric stats: ${numCols.map(c => `${c.name} skew=${c.skew.toFixed(2)} missing=${c.missing}`).join("; ")}.` : "",
+              Object.keys(colTransforms).length > 0 ? `Selected transforms: ${Object.entries(colTransforms).filter(([,v]) => v.length > 0).map(([k,v]) => `${k}→[${v.join(",")}]`).join("; ")}.` : "No transforms selected yet.",
+              result ? `Last result: added ${result.newColumns.length} new columns (${result.newColumns.join(", ")}).` : "",
+            ].filter(Boolean).join(" ")
+          : "No dataset loaded yet.",
+      }} />
     </div>
   );
 }

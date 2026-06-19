@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AutoMLModal from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#818cf8";
 
@@ -65,6 +66,11 @@ function AutoMLPageInner() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
         <AutoMLModal onClose={handleBack} isPage />
       </div>
+
+      <ToolsAIChat context={{
+        tool: "AutoML Pipeline",
+        summary: "Automated ML wizard that trains, evaluates, and compares multiple models (XGBoost, Random Forest, LightGBM, AdaBoost, SVM, Logistic Regression) on an uploaded dataset. Includes hyperparameter tuning, SHAP explainability, and model export.",
+      }} />
     </div>
   );
 }

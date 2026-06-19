@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import { parseCSV, analyzeCSV, preprocessCSV } from "@/lib/preprocessing";
 
 const ACCENT  = "#22d3ee";
@@ -1333,6 +1334,21 @@ export default function PreprocessingPage() {
           </div>
         )}
       </div>
+
+      <ToolsAIChat context={{
+        tool: "Data Preprocessing",
+        summary: analyzed
+          ? [
+              `Dataset: ${analyzed.rows} rows, ${analyzed.columns.length} columns.`,
+              `Numeric: ${analyzed.columns.filter(c => c.is_numeric).map(c => c.name).join(", ")}.`,
+              `Categorical: ${analyzed.columns.filter(c => !c.is_numeric).map(c => c.name).join(", ")}.`,
+              analyzed.columns.some(c => c.missing > 0)
+                ? `Missing values: ${analyzed.columns.filter(c => c.missing > 0).map(c => `${c.name}(${c.missing})`).join(", ")}.`
+                : "No missing values.",
+              result ? `After preprocessing: ${result.rows_after} rows, ${result.cols_after} cols.` : "",
+            ].filter(Boolean).join(" ")
+          : "No dataset loaded yet.",
+      }} />
     </div>
   );
 }

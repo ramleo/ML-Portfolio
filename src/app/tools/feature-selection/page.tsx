@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#fb923c";
 
@@ -1007,6 +1008,19 @@ export default function FeatureSelectionPage() {
           </>
         )}
       </div>
+
+      <ToolsAIChat context={{
+        tool: "Feature Selection",
+        summary: cols.length > 0
+          ? [
+              `Dataset: ${rowCount} rows, ${cols.length} columns. Target: ${opts.targetCol || "none"}.`,
+              `Numeric features: ${cols.filter(c => c.type === "numeric").map(c => c.name).join(", ")}.`,
+              result
+                ? `Selection result: kept ${result.keptCount} features, dropped ${result.droppedCount}. Kept: ${result.features.filter(f => f.kept).map(f => f.name).join(", ")}.`
+                : "No selection run yet.",
+            ].filter(Boolean).join(" ")
+          : "No dataset loaded yet.",
+      }} />
     </div>
   );
 }

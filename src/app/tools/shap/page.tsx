@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#f59e0b";
 
@@ -271,6 +272,11 @@ export default function ShapPage() {
           </div>
         </div>
       </div>
+
+      <ToolsAIChat context={{
+        tool: "SHAP Explainability",
+        summary: "Interactive SHAP (SHapley Additive exPlanations) visualiser. Shows global feature importance (bar chart), individual prediction waterfall plots, and dependence plots to reveal feature interactions. Helps interpret why a model made a specific prediction.",
+      }} />
     </div>
   );
 }

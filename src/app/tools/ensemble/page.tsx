@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#f472b6";
 
@@ -304,6 +305,11 @@ export default function EnsemblePage() {
           </div>
         </div>
       </div>
+
+      <ToolsAIChat context={{
+        tool: "Ensemble & Stacking",
+        summary: "Ensemble learning visualiser covering soft voting, hard voting, and stacking with a meta-learner. Shows how combining diverse base models (XGBoost, Random Forest, LightGBM) reduces variance and improves AUC over any single model.",
+      }} />
     </div>
   );
 }

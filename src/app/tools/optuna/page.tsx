@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#a78bfa";
 
@@ -248,6 +249,11 @@ export default function OptunaPage() {
           </div>
         </div>
       </div>
+
+      <ToolsAIChat context={{
+        tool: "Optuna Hyperparameter Tuning",
+        summary: "Optuna-powered hyperparameter optimisation visualiser using Tree-structured Parzen Estimator (TPE). Shows trial history, parameter importance, and convergence plots. Demonstrates efficient Bayesian search vs grid/random search.",
+      }} />
     </div>
   );
 }
