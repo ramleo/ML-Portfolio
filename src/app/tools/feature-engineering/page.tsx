@@ -1104,18 +1104,7 @@ export default function FeatureEngineeringPage() {
                 </button>
               </div>
 
-              {/* Compact transform key */}
-              <div style={{ fontSize: "0.61rem", color: "var(--text3)", lineHeight: 1.85, marginBottom: "0.8rem" }}>
-                {NUM_TRANSFORMS.map((t, i) => (
-                  <React.Fragment key={t.key}>
-                    <span style={{ color: `${ACCENT}cc`, fontWeight: 700 }}>{t.label}</span>
-                    {" "}<span>{t.desc}</span>
-                    {i < NUM_TRANSFORMS.length - 1 && <span style={{ opacity: 0.35 }}> · </span>}
-                  </React.Fragment>
-                ))}
-              </div>
-
-              {numCols.length === 0 ? (
+{numCols.length === 0 ? (
                 <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
               ) : (
                 <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
