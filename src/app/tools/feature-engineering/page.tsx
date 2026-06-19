@@ -715,12 +715,25 @@ export default function FeatureEngineeringPage() {
       return `${col.name}: skew=${col.skew.toFixed(2)}, missing=${((col.missing / n) * 100).toFixed(1)}%, min=${min.toFixed(2)}, max=${max.toFixed(2)}, mean=${mean.toFixed(2)}, Q1=${q1.toFixed(2)}, Q3=${q3.toFixed(2)}`;
     }).join("\n");
 
-    const prompt = `You are a feature engineering expert. Given these numeric column statistics, suggest which transforms to apply to each column. Available transforms: log1p, sqrt, zscore, minmax, percentile, outlier_flag, missing_flag, winsor, above_mean, bin_equal, bin_quantile.
+    const prompt = `Output a single raw JSON object — no markdown, no code fences, no explanation. Keys are column names, values are arrays of transform keys from this list: log1p, sqrt, zscore, minmax, percentile, outlier_flag, missing_flag, winsor, above_mean, bin_equal, bin_quantile.
 
-Column stats:
+Column statistics:
 ${colSummaries}
 
-Respond with ONLY a JSON object where each key is a column name and the value is an array of transform keys to apply. Example: {"Age": ["log1p", "missing_flag"], "Fare": ["winsor", "zscore"]}. No explanation, no markdown, just the JSON.`;
+Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
+
+    function extractTransformJSON(raw: string): Record<string, string[]> | null {
+      const attempts = [
+        raw.trim(),
+        (raw.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [])[1]?.trim(),
+        (raw.match(/\{[\s\S]*\}/) ?? [])[0],
+      ];
+      for (const candidate of attempts) {
+        if (!candidate) continue;
+        try { return JSON.parse(candidate) as Record<string, string[]>; } catch { /* try next */ }
+      }
+      return null;
+    }
 
     try {
       const provider = localStorage.getItem("tools_ai_provider") ?? "gemini";
@@ -733,26 +746,23 @@ Respond with ONLY a JSON object where each key is a column name and the value is
           messages: [{ role: "user", content: prompt }],
           provider, model,
           userKey: userKey || undefined,
-          toolContext: "Feature Engineering — AI Suggest transform selection.",
+          toolContext: "Feature Engineering — AI Suggest transform selection. Return only raw JSON.",
         }),
       });
       const data = await res.json();
       if (data.error) {
         setAiSuggestError(data.error);
       } else {
-        const raw = data.reply ?? "";
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]) as Record<string, string[]>;
+        const parsed = extractTransformJSON(data.reply ?? "");
+        if (parsed) {
           const VALID_KEYS = new Set(NUM_TRANSFORMS.map(t => t.key));
           const next: Record<string, string[]> = {};
           for (const col of numCols) {
-            const suggestions = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
-            next[col.name] = suggestions;
+            next[col.name] = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
           }
           setColTransforms(next);
         } else {
-          setAiSuggestError("Could not parse AI response. Try again or switch model in chat settings.");
+          setAiSuggestError(`Could not read AI response. Raw reply: "${(data.reply ?? "").slice(0, 80)}"`);
         }
       }
     } catch (e) {
