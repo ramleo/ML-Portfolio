@@ -10,18 +10,18 @@ const OPENAI_COMPAT: Record<string, string> = {
   perplexity:  "https://api.perplexity.ai",
 };
 
-function friendlyGeminiError(status: number, body: string): string {
+function friendlyGeminiError(status: number, body: string, isRetry = false): string {
+  try { JSON.parse(body); } catch { /* not JSON, fall through */ }
+  if (status === 429) return `Rate limit reached — Gemini free tier allows only a few requests per minute. Wait a moment and try again, or switch to Groq (free, higher limits) in chat settings.`;
+  if (status === 503) return isRetry
+    ? `Both Gemini models are currently overloaded. Switch to Groq or Claude in chat settings (gear icon).`
+    : `Gemini is overloaded. Retrying with gemini-3.5-flash...`;
+  if (status === 401 || status === 403) return `Invalid or unauthorized Gemini API key. Check your key in chat settings (gear icon).`;
   try {
-    const parsed = JSON.parse(body);
-    const msg = parsed?.error?.message as string | undefined;
-    if (msg) {
-      if (status === 429) return `Quota exceeded on this API key. Check your plan at ai.google.dev, or add a different key in chat settings (gear icon).`;
-      if (status === 503) return `Gemini is currently overloaded. Retrying with gemini-3.5-flash...`;
-      if (status === 401 || status === 403) return `Invalid or unauthorized Gemini API key. Check your key in chat settings (gear icon).`;
-      return `Gemini error: ${msg.slice(0, 120)}`;
-    }
-  } catch { /* not JSON */ }
-  return `Gemini ${status} error. Try switching to a different model or provider.`;
+    const msg = (JSON.parse(body) as { error?: { message?: string } })?.error?.message;
+    if (msg) return `Gemini error: ${msg.slice(0, 120)}`;
+  } catch { /* ignore */ }
+  return `Gemini ${status} error. Try switching to a different provider in chat settings.`;
 }
 
 // Returns the text response, or throws with a descriptive message
@@ -45,7 +45,7 @@ async function callGemini(key: string, model: string, system: string, messages: 
   if (!res.ok) {
     const body = await res.text();
     const status = res.status;
-    throw Object.assign(new Error(friendlyGeminiError(status, body)), { status });
+    throw Object.assign(new Error(friendlyGeminiError(status, body)), { status, body });
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response.";
@@ -140,10 +140,16 @@ export async function POST(req: NextRequest) {
       try {
         reply = await callGemini(key, chosenModel, system, messages);
       } catch (e) {
-        // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 quota)
+        // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 rate limit)
         const status = (e as { status?: number }).status;
         if (status === 503 && chosenModel !== "gemini-3.5-flash") {
-          reply = await callGemini(key, "gemini-3.5-flash", system, messages);
+          try {
+            reply = await callGemini(key, "gemini-3.5-flash", system, messages);
+          } catch (e2) {
+            // Both models overloaded — show the "both overloaded" message
+            const s2 = (e2 as { status?: number; body?: string });
+            throw new Error(friendlyGeminiError(s2.status ?? 503, s2.body ?? "", true));
+          }
         } else {
           throw e;
         }
