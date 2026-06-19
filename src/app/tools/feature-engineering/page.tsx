@@ -1148,13 +1148,22 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
                   <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     Numeric Column Transforms
                   </div>
-                  <button onClick={aiSuggest} disabled={aiSuggestLoading}
-                    title="Use AI to suggest transforms based on column statistics"
-                    style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
-                    onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
-                    {aiSuggestLoading ? "Analysing..." : "AI Suggest"}
-                  </button>
+                  <div style={{ display: "flex", gap: "0.4rem" }}>
+                    <button onClick={() => { setColTransforms({}); setAiSuggestError(null); }}
+                      title="Clear all selected transforms"
+                      style={{ padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--text3)", transition: "all 0.15s", flexShrink: 0 }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text3)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; }}>
+                      Clear all
+                    </button>
+                    <button onClick={aiSuggest} disabled={aiSuggestLoading}
+                      title="Use AI to suggest transforms based on column statistics"
+                      style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
+                      onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
+                      {aiSuggestLoading ? "Analysing..." : "AI Suggest"}
+                    </button>
+                  </div>
                 </div>
                 {aiSuggestError && (
                   <div style={{ fontSize: "0.63rem", color: "#f87171", marginTop: "0.35rem", textAlign: "right" }}>
