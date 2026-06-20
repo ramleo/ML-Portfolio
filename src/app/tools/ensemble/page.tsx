@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
-import RepulsionCard from "@/components/RepulsionCard";
+
 
 const ACCENT = "#f472b6";
 
@@ -238,7 +238,7 @@ export default function EnsemblePage() {
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
         {/* Hero */}
-        <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+        <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.45rem" }}>
@@ -255,7 +255,7 @@ export default function EnsemblePage() {
               <TechPill label="OOF stacking" />
             </div>
           </div>
-        </RepulsionCard>
+        </div>
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
@@ -265,15 +265,15 @@ export default function EnsemblePage() {
             { label: "Best Ensemble AUC", value: "0.894", accent: true },
             { label: "Gain from Ensemble", value: "+0.013", accent: true },
           ].map(s => (
-            <RepulsionCard key={s.label} style={{ ...CARD, textAlign: "center" }}>
+            <div key={s.label} style={{ ...CARD, textAlign: "center" }}>
               <div style={{ fontSize: "1.6rem", fontWeight: 800, color: s.accent ? ACCENT : "var(--text)" }}>{s.value}</div>
               <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.2rem" }}>{s.label}</div>
-            </RepulsionCard>
+            </div>
           ))}
         </div>
 
         {/* View tabs */}
-        <RepulsionCard style={CARD}>
+        <div style={CARD}>
           <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", background: "rgba(0,0,0,0.25)", borderRadius: 8, padding: "0.25rem" }}>
             {(["models", "stacking", "comparison"] as View[]).map(v => (
               <button
@@ -294,17 +294,17 @@ export default function EnsemblePage() {
             ))}
           </div>
           {VIEW_CONTENT[view]}
-        </RepulsionCard>
+        </div>
 
         {/* Key insight */}
-        <RepulsionCard style={{ ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22` }}>
+        <div style={{ ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22` }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.5rem" }}>
             When to Use Stacking vs. Voting
           </div>
           <div style={{ fontSize: "0.84rem", color: "var(--text2)", lineHeight: 1.65 }}>
             Soft voting is preferable when all base models are well-calibrated and the dataset is small (meta-learner overfitting risk). Stacking wins when base models have distinct error profiles and enough data exists for 5-fold OOF generation without over-representing any single fold. In this project, stacking gained +0.005 AUC over voting — marginal but consistent across five random seeds.
           </div>
-        </RepulsionCard>
+        </div>
       </div>
 
       <ToolsAIChat context={{

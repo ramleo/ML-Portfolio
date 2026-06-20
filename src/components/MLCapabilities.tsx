@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
-import MouseTiltCard from "@/components/MouseTiltCard";
+
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -21,8 +21,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
       style={{ flexShrink: 0, width: "clamp(280px, 30vw, 320px)", height: "100%", display: "flex" }}
     >
-    <MouseTiltCard
-      glowColor={`${cap.accent}22`}
+    <div
       style={{
         width: "100%",
         height: "100%",
@@ -276,7 +275,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
           </a>
         </div>
       </div>
-    </MouseTiltCard>
+    </div>
     </motion.div>
   );
 }

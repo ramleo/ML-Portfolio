@@ -9,7 +9,7 @@ import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
 import UMAPScatter from "@/components/UMAPScatter";
 import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult, KBestMethod } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
-import RepulsionCard from "@/components/RepulsionCard";
+
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -160,6 +160,7 @@ export default function FeatureSelectionPage() {
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("variance");
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string>("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleFile = useCallback((file: File) => {
@@ -216,6 +217,7 @@ export default function FeatureSelectionPage() {
 
   const handleAISuggest = useCallback(async () => {
     if (!cols.length) return;
+    setAiError("");
     setAiLoading(true);
     try {
       const numCols = cols.filter(c => c.type === "numeric");
@@ -254,10 +256,12 @@ export default function FeatureSelectionPage() {
           try {
             const patch = JSON.parse(match[0]) as Partial<SelectionOpts>;
             setOpts(o => ({ ...o, ...patch }));
-          } catch { /* ignore parse errors */ }
+          } catch { setAiError("No valid JSON in response — try again"); }
         }
-      }
-    } catch { /* ignore network errors */ } finally {
+      } else { setAiError(`API error ${res.status}`); }
+    } catch (e) {
+      setAiError((e as Error).message?.slice(0, 80) ?? "Request failed");
+    } finally {
       setAiLoading(false);
     }
   }, [cols, rowCount, opts.targetCol]);
@@ -394,7 +398,7 @@ export default function FeatureSelectionPage() {
       }}>
 
         {/* ── Hero ── */}
-        <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+        <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
           <div style={{
             display: "flex", alignItems: "flex-start",
             justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",
@@ -416,10 +420,10 @@ export default function FeatureSelectionPage() {
               ))}
             </div>
           </div>
-        </RepulsionCard>
+        </div>
 
         {/* ── Upload ── */}
-        <RepulsionCard
+        <div
           style={{
             ...CARD, cursor: "pointer", textAlign: "center",
             borderStyle: hasFile ? "solid" : "dashed",
@@ -467,12 +471,12 @@ export default function FeatureSelectionPage() {
               </div>
             </div>
           )}
-        </RepulsionCard>
+        </div>
 
         {hasFile && (
           <>
             {/* ── Target ── */}
-            <RepulsionCard style={{ ...CARD }}>
+            <div style={{ ...CARD }}>
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                 Target Column
               </div>
@@ -505,10 +509,10 @@ export default function FeatureSelectionPage() {
                   Reset Methods
                 </button>
               </div>
-            </RepulsionCard>
+            </div>
 
             {/* ── Method config ── */}
-            <RepulsionCard style={{ ...CARD }}>
+            <div style={{ ...CARD }}>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "1rem" }}>
                 Selection Methods
               </div>
@@ -1072,7 +1076,7 @@ export default function FeatureSelectionPage() {
                   </div>
                 </div>
               )}
-            </RepulsionCard>
+            </div>
 
             {/* ── Pipeline indicator ── */}
             {(() => {
@@ -1138,6 +1142,11 @@ export default function FeatureSelectionPage() {
                 </button>
               )}
             </div>
+            {aiError && (
+              <div style={{ fontSize: "0.72rem", color: "#f87171", marginTop: "0.3rem" }}>
+                {aiError}
+              </div>
+            )}
             </div>
 
             {result && (
@@ -1155,17 +1164,17 @@ export default function FeatureSelectionPage() {
                         : "0%",
                     },
                   ].map(s => (
-                    <RepulsionCard key={s.label} style={{ ...CARD, textAlign: "center" }}>
+                    <div key={s.label} style={{ ...CARD, textAlign: "center" }}>
                       <div style={{ fontSize: "1.6rem", fontWeight: 800, color: s.accent ? ACCENT : "var(--text)" }}>
                         {s.value}
                       </div>
                       <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.2rem" }}>{s.label}</div>
-                    </RepulsionCard>
+                    </div>
                   ))}
                 </div>
 
                 {/* ── Rankings ── */}
-                <RepulsionCard style={{ ...CARD }}>
+                <div style={{ ...CARD }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                     <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -1290,7 +1299,7 @@ export default function FeatureSelectionPage() {
                       );
                     })}
                   </div>
-                </RepulsionCard>
+                </div>
 
                 {/* ── Method agreement ── */}
                 {(result.kBestActive || result.lassoActive || result.ridgeActive || result.treeActive) && (() => {
@@ -1304,7 +1313,7 @@ export default function FeatureSelectionPage() {
                   ];
                   const activeMethods = methods.filter(m => m.key === "mi" || (m.key === "fk" && result.kBestActive) || (m.key === "lasso" && result.lassoActive) || (m.key === "ridge" && result.ridgeActive) || (m.key === "tree" && result.treeActive));
                   return (
-                    <RepulsionCard style={{ ...CARD }}>
+                    <div style={{ ...CARD }}>
                       <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                         Method Agreement
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1344,29 +1353,29 @@ export default function FeatureSelectionPage() {
                           </tbody>
                         </table>
                       </div>
-                    </RepulsionCard>
+                    </div>
                   );
                 })()}
 
                 {/* ── Score comparison chart ── */}
                 {result.features.length > 0 && (
-                  <RepulsionCard style={{ ...CARD }}>
+                  <div style={{ ...CARD }}>
                     <ScoreComparisonChart features={result.features} result={result} accent={ACCENT} />
-                  </RepulsionCard>
+                  </div>
                 )}
 
                 {/* ── Correlation heatmap ── */}
                 {numericCols.filter(c => c.name !== opts.targetCol).length >= 2 && (
-                  <RepulsionCard style={{ ...CARD }}>
+                  <div style={{ ...CARD }}>
                     <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                       Correlation Heatmap
                     </div>
                     <CorrelationHeatmap cols={numericCols.filter(c => c.name !== opts.targetCol)} accent={ACCENT} />
-                  </RepulsionCard>
+                  </div>
                 )}
 
                 {/* ── Download selected ── */}
-                <RepulsionCard style={{
+                <div style={{
                   ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22`,
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   flexWrap: "wrap", gap: "1rem",
@@ -1394,14 +1403,14 @@ export default function FeatureSelectionPage() {
                   >
                     Download CSV
                   </button>
-                </RepulsionCard>
+                </div>
 
                 {/* ── PCA result card ── */}
                 {result.pcaResult != null && (() => {
                   const { components } = result.pcaResult;
                   const lastComp = components[components.length - 1];
                   return (
-                    <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                    <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                       <div style={{ marginBottom: "0.75rem" }}>
                         <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>PCA Components</span>
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1442,13 +1451,13 @@ export default function FeatureSelectionPage() {
                       >
                         Download PCA CSV
                       </button>
-                    </RepulsionCard>
+                    </div>
                   );
                 })()}
 
                 {/* ── UMAP result card ── */}
                 {result.umapResult != null && (
-                  <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                  <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                     <div style={{ marginBottom: "0.75rem" }}>
                       <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>UMAP Embedding</span>
                     </div>
@@ -1473,7 +1482,7 @@ export default function FeatureSelectionPage() {
                     >
                       Download UMAP CSV
                     </button>
-                  </RepulsionCard>
+                  </div>
                 )}
               </>
             )}
