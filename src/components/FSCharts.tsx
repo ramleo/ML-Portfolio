@@ -91,7 +91,8 @@ export function PCAScreeChart({ components, accent = "#fb923c" }: ScreeProps) {
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  const maxVar = Math.min(1, Math.max(...components.map(c => c.varianceExplained)) * 1.2);
+  const totalCumulative = components[components.length - 1]?.cumulativeVariance ?? 0;
+  const maxVar = Math.min(1, Math.max(Math.max(...components.map(c => c.varianceExplained)) * 1.2, totalCumulative * 1.05));
   const barW = Math.floor(plotW / components.length) - 6;
   const barGap = (plotW - barW * components.length) / (components.length + 1);
 

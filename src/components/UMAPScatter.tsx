@@ -272,7 +272,7 @@ function Scatter3D({ umapResult, accent, labelValues }: Props) {
         style={{ width: "100%", height: 320, borderRadius: 8, overflow: "hidden", background: "rgba(255,255,255,0.02)" }}
       />
       <div style={{ fontSize: "0.7rem", color: "var(--text3, #9ca3af)", marginTop: "0.35rem" }}>
-        Drag to rotate · Scroll to zoom · Right-drag to pan
+        Drag to rotate · Scroll to zoom · Ctrl-drag to pan
       </div>
 
       {legendEntries && legendEntries.length > 1 && (

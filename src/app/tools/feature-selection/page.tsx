@@ -12,6 +12,11 @@ import ReductionTabs from "@/components/FSPanels/ReductionTabs";
 import FSResultCards from "@/components/FSPanels/FSResultCards";
 import type { ColInfo, SelectionOpts, SelectionResult } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
+import FSControls from "@/components/FSPanels/FSControls";
+import HowItWorks from "@/components/FSPanels/FSHowItWorks";
+import FSExcludePanel from "@/components/FSPanels/FSExcludePanel";
+import FSUploadHero from "@/components/FSPanels/FSUploadHero";
+import { useFSAISuggest } from "@/hooks/useFSAISuggest";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -34,72 +39,6 @@ function Badge({ label, color }: { label: string; color: string }) {
       padding: "2px 8px", borderRadius: 9999,
       background: `${color}14`, border: `1px solid ${color}30`,
     }}>{label}</span>
-  );
-}
-
-function TechPill({ label }: { label: string }) {
-  return (
-    <span style={{
-      fontSize: "0.72rem", fontWeight: 500, color: ACCENT,
-      background: `${ACCENT}12`, border: `1px solid ${ACCENT}28`,
-      borderRadius: 6, padding: "2px 10px",
-    }}>{label}</span>
-  );
-}
-
-const HOW_IT_WORKS: Record<string, string> = {
-  variance: "Computes the variance of each numeric feature across all rows. Variance = E[(X−μ)²]. Features with variance below the threshold are constant or near-constant and carry no signal — they are dropped first. E.g. if ‘zipcode’ has variance 0.0003 and your threshold is 0.01, it gets dropped — it barely changes across rows.",
-  correlation: "Builds a Pearson r matrix between numeric features. When |r(A,B)| exceeds the threshold, the feature with lower mutual information vs. the target is discarded. This removes multicollinearity without losing predictive power. E.g. ‘height_cm’ and ‘height_in’ have r=0.99 — the one with lower MI vs. target is dropped.",
-  topk: "After variance and correlation filtering, computes mutual information (MI ≈ −0.5 log(1−r²)) between each feature and the target, then keeps only the K highest-MI features. Fast hard-cutoff for very wide datasets. E.g. with K=5 and 20 candidates, only the 5 highest-MI features survive this step.",
-  selectkbest: "Applies a univariate statistical test to each feature independently. f_regression: F(1,n−2) linear correlation. f_classif: one-way ANOVA. mi: MI approximation. Keeps the K features with the highest test score. E.g. f_regression on ‘income’ vs. ‘price’ computes F=142.3, ranking it above ‘age’ at F=8.1.",
-  kendall: "Computes Kendall’s τ rank correlation. For every pair of observations (x_i, x_j), counts concordant pairs (same order in feature and target) minus discordant pairs, divided by total pairs. Robust to outliers and non-linear monotonic relationships. E.g. ‘education_level’ (ordinal) vs. ‘salary’ gets τ=0.61 — strong monotonic association without assuming linearity.",
-  chisq: "Bins numeric features into quartiles, then applies a χ² test of independence against the (binned) target. χ² = Σ (O−E)²/E where O = observed count and E = expected under independence. Higher χ² = stronger dependence. E.g. ‘region’ binned × ‘churn’ category yields χ²=38.4 — far above the independence baseline.",
-  rfe: "Iterative backward elimination. Each round scores remaining features by MI × (1 − 0.35 × avg_redundancy_with_others) and removes the lowest-scoring one. Continues until the target count is reached. Penalises weak AND redundant features differently from pure MI. E.g. round 1 removes ‘id’ (MI=0.01, high redundancy with ‘user_id’); round 2 removes ‘tenure_days’ once ‘tenure_months’ is kept.",
-  lasso: "Coordinate descent with L1 regularisation. Soft-threshold update: w_j = sign(ρ_j) × max(|ρ_j| − α, 0) where ρ_j is the partial correlation residual. L1 penalty drives weak coefficients to exactly zero — built-in feature elimination. E.g. with α=0.05, ‘transaction_count’ weight shrinks to exactly 0 — Lasso has eliminated it.",
-  ridge: "Gradient descent with L2 regularisation. Weight update: w_j ← w_j − lr × (∂MSE/∂w_j + 2αw_j). L2 shrinks all coefficients but never to zero — features ranked by final |w_j| and the weakest are pruned. E.g. ‘age’ and ‘age_squared’ both stay but their coefficients shrink from ±1.8 to ±0.3, and ‘age_squared’ ranks lower.",
-  tree: "Random Forest-style importance. Builds N bootstrap trees; each split considers √p random features. Importance = cumulative weighted Gini (classification) or variance-reduction (regression) gain across all splits on each feature, averaged over trees. E.g. ‘glucose’ accumulates 0.38 average Gini gain across 50 trees — ranked #1 importance.",
-  forward: "Greedy wrapper. Starts with an empty set S. Each round adds the feature f* = argmax_f MI(f, target) × (1 − 0.2 × avg_corr(f, S)). The diversity penalty (0.2 × redundancy) rewards diverse, complementary features over pure top-MI selection. E.g. step 1 picks ‘glucose’ (MI=0.71); step 2 picks ‘bmi’ (MI=0.54, low corr with glucose) over ‘insulin’ (MI=0.58, high corr with glucose).",
-  exhaustive: "Enumerates all C(n,k) feature subsets of size k and scores each by avgMI(subset, target) − 0.3 × avgInterCorr(subset). Computationally infeasible for n > 15, so the algorithm automatically falls back to Forward Selection beyond that threshold. E.g. with 8 candidates and K=3, all C(8,3)=56 subsets are scored — {glucose, bmi, age} wins with score 0.61.",
-  pca: "Standardises features (z-score), computes the covariance matrix, and extracts principal components via power iteration + deflation. Each PC is a linear combination of original features ordered by variance explained (eigenvalue / total variance). E.g. 10 correlated sensor features → PC1 explains 68% variance, PC2 explains 19% — 2 components replace 10 columns.",
-  umap: "Builds a k-NN affinity graph using Gaussian kernel weights, normalises it into a symmetric Laplacian, then extracts the eigenvectors corresponding to the 2 or 3 smallest non-zero eigenvalues. This spectral embedding captures non-linear manifold structure. E.g. a dataset of 500 handwritten digits (784 features) embedded into 2D reveals 10 tight clusters — one per digit class.",
-};
-
-function HowItWorks({ tabId }: { tabId: string }) {
-  const [open, setOpen] = useState(false);
-  const text = HOW_IT_WORKS[tabId];
-  if (!text) return null;
-  return (
-    <div style={{ marginBottom: "0.75rem" }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: "flex", alignItems: "center", gap: "0.4rem",
-          background: "none", border: "none", cursor: "pointer", padding: 0,
-          fontSize: "0.72rem", fontWeight: 600, color: "var(--text3)",
-          transition: "color 0.15s",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-        onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-      >
-        <svg
-          width="10" height="10" viewBox="0 0 10 10" fill="currentColor"
-          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }}
-        >
-          <path d="M3 2l4 3-4 3z" />
-        </svg>
-        How it works
-      </button>
-      {open && (
-        <div style={{
-          marginTop: "0.45rem", padding: "0.65rem 0.9rem",
-          background: "rgba(255,255,255,0.03)", borderLeft: `2px solid ${ACCENT}`,
-          borderRadius: "0 6px 6px 0", fontSize: "0.74rem",
-          color: "var(--text3)", lineHeight: 1.65,
-        }}>
-          {text}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -143,9 +82,10 @@ export default function FeatureSelectionPage() {
   const [result, setResult] = useState<SelectionResult | null>(null);
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("variance");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string>("");
+  const { aiLoading, aiError, handleAISuggest } = useFSAISuggest(cols, rowCount, opts, setOpts);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [excludedCols, setExcludedCols] = useState<string[]>([]);
+  const [excludeOpen, setExcludeOpen] = useState(false);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
@@ -194,6 +134,8 @@ export default function FeatureSelectionPage() {
       setFileName(file.name);
       setRowCount(rows.length);
       setResult(null);
+      setExcludeOpen(false);
+      setExcludedCols([]);
       const last = analyzed[analyzed.length - 1];
       if (last && last.nunique <= 20) {
         setOpts(o => ({
@@ -215,10 +157,13 @@ export default function FeatureSelectionPage() {
     if (!cols.length) return;
     setRunning(true);
     setTimeout(() => {
-      setResult(runSelection(cols, opts));
+      const filteredCols = excludedCols.length
+        ? cols.filter(c => !excludedCols.includes(c.name))
+        : cols;
+      setResult(runSelection(filteredCols, opts));
       setRunning(false);
     }, 50);
-  }, [cols, opts]);
+  }, [cols, opts, excludedCols]);
 
   // Auto-re-run with 400 ms debounce when opts change and a result already exists
   useEffect(() => {
@@ -227,95 +172,21 @@ export default function FeatureSelectionPage() {
     debounceRef.current = setTimeout(() => {
       setRunning(true);
       setTimeout(() => {
-        setResult(runSelection(cols, opts));
+        const filteredCols = excludedCols.length
+          ? cols.filter(c => !excludedCols.includes(c.name))
+          : cols;
+        setResult(runSelection(filteredCols, opts));
         setRunning(false);
       }, 50);
     }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opts]);
+  }, [opts, excludedCols]);
 
   const handleReset = useCallback(() => {
     setResult(null);
     setOpts(o => ({ ...DEFAULT_OPTS, targetCol: o.targetCol }));
   }, []);
-
-  // AI Suggest — extract JSON by bracket depth, inject JSON-only hint into toolContext
-  const handleAISuggest = useCallback(async () => {
-    if (!cols.length) return;
-    setAiLoading(true);
-    setAiError("");
-    try {
-      const numCols = cols.filter(c => c.type === "numeric");
-      const catCols = cols.filter(c => c.type === "categorical");
-      const targetType = cols.find(c => c.name === opts.targetCol)?.type ?? "none";
-      const stats = {
-        rowCount,
-        colCount: cols.length,
-        numericCount: numCols.length,
-        categoricalCount: catCols.length,
-        targetCol: opts.targetCol,
-        targetType,
-        sampleFeatures: numCols.slice(0, 8).map(c => {
-          const finiteNums = c.nums.filter(isFinite);
-          const sorted = [...finiteNums].sort((a, b) => a - b);
-          const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
-          const skew = (c.mean - median) / (Math.sqrt(c.variance) || 1);
-          return { name: c.name, variance: c.variance, nunique: c.nunique, missing: c.missing, skew };
-        }),
-      };
-      // Inject JSON-only override at top of toolContext — it lands in the system prompt
-      const toolContext = `OVERRIDE: Your response MUST be a raw JSON object only. No explanation, no markdown, no backticks. Start with { and end with }.\n\nDataset stats: ${JSON.stringify(stats)}`;
-      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a JSON object with the fields to enable. Boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Numeric fields: varianceThreshold, corrThreshold, topK, kBestK, kendallTopK, chiSqTopK, rfeK, lassoAlpha, ridgeAlpha, treeTopK, forwardK, pcaComponents, umapComponents, umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}. Output the JSON object and nothing else.`;
-      const res = await fetch("/api/ai-tools", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          toolContext,
-          provider: "gemini",
-        }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({})) as { error?: string };
-        setAiError(errData.error ?? `API error ${res.status} — check API key in chat settings`);
-        return;
-      }
-      const data = await res.json() as { reply?: string; content?: string; error?: string };
-      if (data.error) { setAiError(data.error); return; }
-      const raw = data.reply ?? data.content ?? "";
-
-      // Bracket-depth extraction — handles JSON buried in prose or fences
-      const extractJSON = (s: string): string | null => {
-        const clean = s.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
-        const start = clean.indexOf("{");
-        if (start === -1) return null;
-        let depth = 0;
-        for (let i = start; i < clean.length; i++) {
-          if (clean[i] === "{") depth++;
-          else if (clean[i] === "}") { depth--; if (depth === 0) return clean.slice(start, i + 1); }
-        }
-        return null;
-      };
-
-      const jsonStr = extractJSON(raw);
-      if (jsonStr) {
-        try {
-          const patch = JSON.parse(jsonStr) as Partial<SelectionOpts>;
-          setOpts(o => ({ ...o, ...patch }));
-          setAiError("Done — methods updated");
-        } catch {
-          setAiError(`Malformed JSON — raw: ${raw.slice(0, 80)}`);
-        }
-      } else {
-        setAiError(`No JSON found — AI replied: "${raw.slice(0, 80)}"`);
-      }
-    } catch {
-      setAiError("Network error — check connection and try again");
-    } finally {
-      setAiLoading(false);
-    }
-  }, [cols, rowCount, opts.targetCol]);
 
   const handleDownload = useCallback(() => {
     if (!result?.csvText) return;
@@ -399,81 +270,17 @@ export default function FeatureSelectionPage() {
         display: "flex", flexDirection: "column", gap: "1.5rem",
       }}>
 
-        {/* Hero */}
-        <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
-          <div style={{
-            display: "flex", alignItems: "flex-start",
-            justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",
-          }}>
-            <div>
-              <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.45rem" }}>
-                Keeping Only What Matters
-              </div>
-              <div style={{ fontSize: "0.84rem", color: "var(--text2)", maxWidth: 560, lineHeight: 1.6 }}>
-                Upload a CSV and apply fourteen complementary methods — variance threshold, correlation filter,
-                top-K MI scoring, SelectKBest, Kendall tau, chi-squared, RFE, Lasso, Ridge, tree importance,
-                forward selection, exhaustive search, PCA, and UMAP — to reduce your feature set.
-                Download the result. Everything runs in your browser.
-              </div>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "flex-start" }}>
-              {["Variance", "Pearson r", "MI Score", "RFE", "Lasso", "PCA", "UMAP"].map(l => (
-                <TechPill key={l} label={l} />
-              ))}
-            </div>
-          </div>
-        </RepulsionCard>
-
-        {/* Upload */}
-        <RepulsionCard
-          style={{
-            ...CARD, cursor: "pointer", textAlign: "center",
-            borderStyle: hasFile ? "solid" : "dashed",
-            borderColor: hasFile ? `${ACCENT}33` : "rgba(255,255,255,0.15)",
-            transition: "border-color 0.2s",
-          }}
-          onClick={() => fileRef.current?.click()}
+        <FSUploadHero
+          hasFile={hasFile}
+          fileName={fileName}
+          rowCount={rowCount}
+          cols={cols}
+          numericCols={numericCols}
+          categoricalCols={categoricalCols}
+          fileRef={fileRef}
+          onFile={handleFile}
           onDrop={handleDrop}
-          onDragOver={e => e.preventDefault()}
-        >
-          <input
-            ref={fileRef} type="file" accept=".csv" style={{ display: "none" }}
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-          />
-          {hasFile ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 8,
-                  background: `${ACCENT}18`, border: `1px solid ${ACCENT}33`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="1.8">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                </div>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>{fileName}</div>
-                  <div style={{ fontSize: "0.73rem", color: "var(--text3)" }}>
-                    {rowCount.toLocaleString()} rows &middot; {cols.length} columns ({numericCols.length} numeric, {categoricalCols.length} categorical)
-                  </div>
-                </div>
-              </div>
-              <span style={{ fontSize: "0.75rem", color: ACCENT, fontWeight: 500 }}>Click to replace</span>
-            </div>
-          ) : (
-            <div>
-              <div style={{ fontSize: "2.2rem", marginBottom: "0.5rem", opacity: 0.25, lineHeight: 1 }}>+</div>
-              <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--text)", marginBottom: "0.25rem" }}>
-                Drop a CSV or click to upload
-              </div>
-              <div style={{ fontSize: "0.76rem", color: "var(--text3)" }}>
-                Any tabular dataset — processed entirely in your browser, never leaves this page
-              </div>
-            </div>
-          )}
-        </RepulsionCard>
+        />
 
         {hasFile && (
           <>
@@ -513,56 +320,34 @@ export default function FeatureSelectionPage() {
               </div>
             </RepulsionCard>
 
+            <FSExcludePanel
+              cols={cols}
+              targetCol={opts.targetCol}
+              excludedCols={excludedCols}
+              excludeOpen={excludeOpen}
+              setExcludeOpen={setExcludeOpen}
+              setExcludedCols={setExcludedCols}
+            />
+
             {/* Method config */}
             <RepulsionCard style={{ ...CARD }}>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "1rem" }}>
                 Selection Methods
               </div>
 
-              {/* Grouped tab bar */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginBottom: "1.25rem" }}>
-                {TAB_CATEGORIES.map(cat => {
-                  const catTabs = TABS.filter(t => t.cat === cat.label);
-                  return (
-                    <div key={cat.label} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                      <span style={{
-                        fontSize: "0.6rem", fontWeight: 700, color: cat.color,
-                        textTransform: "uppercase", letterSpacing: "0.09em",
-                        width: 58, flexShrink: 0, textAlign: "right",
-                      }}>{cat.label}</span>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.2rem", flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 7, padding: "0.2rem", borderLeft: `2px solid ${cat.color}30` }}>
-                        {catTabs.map(tab => {
-                          const active = activeTab === tab.id;
-                          return (
-                            <button
-                              key={tab.id}
-                              onClick={() => setActiveTab(tab.id)}
-                              style={{
-                                padding: "0.32rem 0.6rem", border: "none", borderRadius: 5, cursor: "pointer",
-                                fontSize: "0.74rem", fontWeight: 600, transition: "all 0.15s",
-                                background: active ? cat.color : "transparent",
-                                color: active ? "#000" : tab.enabled ? "var(--text)" : "var(--text3)",
-                                boxShadow: active ? `0 0 8px ${cat.color}44` : "none",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {tab.label}
-                              {tab.enabled && !active && (
-                                <span style={{ marginLeft: "0.3rem", display: "inline-block", width: 5, height: 5, borderRadius: 9999, background: cat.color, verticalAlign: "middle", opacity: 0.8 }} />
-                              )}
-                              {result && (
-                                <span style={{ fontSize: "0.58rem", background: "rgba(0,0,0,0.3)", borderRadius: 9999, padding: "1px 5px", marginLeft: "0.25rem", color: active ? "#000" : "var(--text3)" }}>
-                                  {result.keptCount}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <FSControls
+                tabs={TABS}
+                tabCategories={TAB_CATEGORIES}
+                activeTab={activeTab}
+                setActiveTab={(id) => setActiveTab(id as TabId)}
+                result={result}
+                running={running}
+                aiLoading={aiLoading}
+                aiError={aiError}
+                hasFile={hasFile}
+                onRun={handleRun}
+                onAISuggest={handleAISuggest}
+              />
 
               {/* How it works */}
               <HowItWorks tabId={activeTab} />
@@ -573,75 +358,6 @@ export default function FeatureSelectionPage() {
               <WrapperTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} activeTab={activeTab} />
               <ReductionTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} activeTab={activeTab} />
             </RepulsionCard>
-
-            {/* Pipeline indicator */}
-            {(() => {
-              const active = TABS.filter(t => t.enabled);
-              if (active.length === 0) return null;
-              return (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap", padding: "0.6rem 0.9rem", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginRight: "0.25rem" }}>Pipeline</span>
-                  {active.map((t, i) => {
-                    const cat = TAB_CATEGORIES.find(c => c.label === t.cat);
-                    return (
-                      <span key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                        {i > 0 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>&rarr;</span>}
-                        <span style={{ fontSize: "0.7rem", fontWeight: 600, color: cat?.color ?? ACCENT, padding: "1px 7px", borderRadius: 4, background: `${cat?.color ?? ACCENT}14`, border: `1px solid ${cat?.color ?? ACCENT}28` }}>
-                          {t.label}
-                        </span>
-                      </span>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-
-            {/* Run + AI Suggest row */}
-            <div style={{ position: "sticky", bottom: "1.5rem", zIndex: 20, alignSelf: "flex-start" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                <button
-                  onClick={handleRun}
-                  disabled={running}
-                  style={{
-                    padding: "0.75rem 2rem",
-                    background: ACCENT, border: "none", borderRadius: 8,
-                    color: "#000", fontWeight: 700, fontSize: "0.9rem",
-                    cursor: running ? "wait" : "pointer",
-                    boxShadow: `0 0 20px ${ACCENT}44`,
-                    opacity: running ? 0.6 : 1, transition: "opacity 0.15s",
-                  }}
-                >
-                  {running ? "Running..." : "Run Feature Selection"}
-                </button>
-                <button
-                  onClick={handleAISuggest}
-                  disabled={aiLoading || !hasFile}
-                  title="Let AI analyze your dataset and suggest which methods to enable"
-                  style={{
-                    display: "flex", alignItems: "center", gap: "0.45rem",
-                    padding: "0.75rem 1.25rem",
-                    background: "rgba(139,92,246,0.12)",
-                    border: "1px solid rgba(139,92,246,0.35)",
-                    borderRadius: 8,
-                    color: aiLoading ? "var(--text3)" : "#a78bfa",
-                    fontWeight: 600, fontSize: "0.84rem",
-                    cursor: aiLoading ? "wait" : "pointer",
-                    transition: "all 0.15s",
-                    opacity: aiLoading ? 0.6 : 1,
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  {aiLoading ? "Analyzing..." : "AI Suggest Methods"}
-                </button>
-              </div>
-              {aiError && (
-                <div style={{ fontSize: "0.72rem", color: aiError.startsWith("Done") ? "#4ade80" : "#f87171", marginTop: "0.35rem" }}>
-                  {aiError}
-                </div>
-              )}
-            </div>
 
             {/* Results */}
             {result !== null && (
