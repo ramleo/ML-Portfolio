@@ -5,7 +5,7 @@ import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import ModalShell from "@/components/modals/ModalShell";
-const ACCENT = "#818cf8";
+const ACCENT = "#22c55e";
 const CARD_BG = "rgba(17,24,39,0.65)";
 
 // ── Types ─────────────────────────────────────────────────────────────────────

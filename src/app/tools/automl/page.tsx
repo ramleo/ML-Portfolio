@@ -7,7 +7,7 @@ import AutoMLModal from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 
-const ACCENT = "#818cf8";
+const ACCENT = "#22c55e";
 
 // Thin page wrapper: provides the page shell + handles prep handoff from sessionStorage.
 // AutoMLModal renders its content directly (isPage=true skips ModalShell).
