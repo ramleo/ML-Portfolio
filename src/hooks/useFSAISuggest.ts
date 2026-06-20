@@ -48,6 +48,7 @@ export function useFSAISuggest(
           messages: [{ role: "user", content: prompt }],
           toolContext,
           provider: "gemini",
+          jsonMode: true,
         }),
       });
       if (!res.ok) {
