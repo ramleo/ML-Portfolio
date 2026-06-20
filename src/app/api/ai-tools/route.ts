@@ -25,7 +25,7 @@ function friendlyGeminiError(status: number, body: string, isRetry = false): str
 }
 
 // Returns the text response, or throws with a descriptive message
-async function callGemini(key: string, model: string, system: string, messages: ChatMessage[]) {
+async function callGemini(key: string, model: string, system: string, messages: ChatMessage[], jsonMode = false) {
   const contents = messages.map((m) => ({
     role: m.role === "user" ? "user" : "model",
     parts: [{ text: m.content }],
@@ -38,7 +38,7 @@ async function callGemini(key: string, model: string, system: string, messages: 
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents,
-        generationConfig: { maxOutputTokens: 800, temperature: 0.4 },
+        generationConfig: { maxOutputTokens: 800, temperature: 0.4, ...(jsonMode ? { responseMimeType: "application/json" } : {}) },
       }),
     }
   );
@@ -119,7 +119,7 @@ ${toolContext ?? "No dataset loaded yet."}`;
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, provider = "gemini", model, userKey, toolContext } = await req.json();
+  const { messages, provider = "gemini", model, userKey, toolContext, jsonMode = false } = await req.json();
 
   if (!Array.isArray(messages) || messages.length === 0)
     return NextResponse.json({ error: "No messages provided." }, { status: 400 });
@@ -138,13 +138,13 @@ export async function POST(req: NextRequest) {
     if (provider === "gemini") {
       const chosenModel = model ?? "gemini-2.5-flash";
       try {
-        reply = await callGemini(key, chosenModel, system, messages);
+        reply = await callGemini(key, chosenModel, system, messages, jsonMode);
       } catch (e) {
         // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 rate limit)
         const status = (e as { status?: number }).status;
         if (status === 503 && chosenModel !== "gemini-3.5-flash") {
           try {
-            reply = await callGemini(key, "gemini-3.5-flash", system, messages);
+            reply = await callGemini(key, "gemini-3.5-flash", system, messages, jsonMode);
           } catch (e2) {
             // Both models overloaded — show the "both overloaded" message
             const s2 = (e2 as { status?: number; body?: string });

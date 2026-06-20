@@ -3,9 +3,12 @@
 import { useEffect, useRef } from "react";
 
 const PAGE_BG = "#060d1a";
-const REPEL_RADIUS = 110;
-const REPEL_FORCE = 3.2;
-const DAMPING = 0.94;
+const N = 70;
+const MAX_DIST = 130;
+const REPEL_RADIUS = 120;
+const REPEL_PUSH = 28;
+const SPRING = 0.05;
+const DAMPING = 0.80;
 
 export default function ConstellationBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,15 +23,14 @@ export default function ConstellationBackground() {
     let W = window.innerWidth, H = window.innerHeight;
     canvas.width = W; canvas.height = H;
 
-    const N = 75;
-    const MAX_DIST = 130;
     const mouse = { x: -9999, y: -9999 };
 
-    const pts = Array.from({ length: N }, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.28, vy: (Math.random() - 0.5) * 0.28,
-      r: Math.random() * 1.2 + 0.4,
-    }));
+    // Each dot has a fixed origin it springs back to
+    const pts = Array.from({ length: N }, () => {
+      const ox = Math.random() * W;
+      const oy = Math.random() * H;
+      return { x: ox, y: oy, ox, oy, vx: 0, vy: 0, r: Math.random() * 1.2 + 0.5 };
+    });
 
     const onMouseMove = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY; };
     const onMouseLeave = () => { mouse.x = -9999; mouse.y = -9999; };
@@ -38,6 +40,11 @@ export default function ConstellationBackground() {
     const resize = () => {
       W = window.innerWidth; H = window.innerHeight;
       canvas.width = W; canvas.height = H;
+      // Reposition origins proportionally
+      for (const p of pts) {
+        p.ox = Math.random() * W; p.oy = Math.random() * H;
+        p.x = p.ox; p.y = p.oy; p.vx = 0; p.vy = 0;
+      }
     };
     window.addEventListener("resize", resize);
 
@@ -45,28 +52,28 @@ export default function ConstellationBackground() {
       ctx.clearRect(0, 0, W, H);
 
       for (const p of pts) {
-        // Push dots away from cursor
-        const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
-        const md = Math.sqrt(mdx * mdx + mdy * mdy);
-        if (md < REPEL_RADIUS && md > 0) {
-          const force = ((REPEL_RADIUS - md) / REPEL_RADIUS) * REPEL_FORCE;
-          p.vx += (mdx / md) * force;
-          p.vy += (mdy / md) * force;
+        const dx = mouse.x - p.ox;
+        const dy = mouse.y - p.oy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Repel away from cursor
+        if (dist < REPEL_RADIUS && dist > 0) {
+          const force = (REPEL_RADIUS - dist) / REPEL_RADIUS;
+          const angle = Math.atan2(dy, dx);
+          p.vx += -Math.cos(angle) * force * REPEL_PUSH * 0.08;
+          p.vy += -Math.sin(angle) * force * REPEL_PUSH * 0.08;
         }
 
+        // Spring back to origin
+        p.vx += (p.ox - p.x) * SPRING;
+        p.vy += (p.oy - p.y) * SPRING;
+
+        // Damping
         p.vx *= DAMPING;
         p.vy *= DAMPING;
 
-        // Minimum drift so dots don't stop completely after repulsion
-        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        if (speed < 0.05 && md > REPEL_RADIUS) {
-          p.vx += (Math.random() - 0.5) * 0.08;
-          p.vy += (Math.random() - 0.5) * 0.08;
-        }
-
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        p.x += p.vx;
+        p.y += p.vy;
 
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(34,211,238,0.55)"; ctx.fill();

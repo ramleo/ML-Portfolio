@@ -117,7 +117,7 @@ export default function CorrelationHeatmap({ cols, accent = "#fb923c" }: Props) 
               {/* Cell value labels */}
               {displayed.map((_, j) => {
                 const r = matrix[i][j];
-                if (i === j || Math.abs(r) <= 0.5) return null;
+                if (i === j || Math.abs(r) <= 0.4) return null;
                 return (
                   <text
                     key={`val-${i}-${j}`}
@@ -159,7 +159,7 @@ export default function CorrelationHeatmap({ cols, accent = "#fb923c" }: Props) 
       </div>
 
       <div style={{ fontSize: "0.7rem", color: "var(--text3, #9ca3af)", marginTop: "0.4rem" }}>
-        Orange = positive · Blue = negative · |r| &gt; 0.7 = multicollinearity risk
+        Orange = positive r · Blue = negative r · Values shown when |r| &gt; 0.4 · |r| &gt; 0.7 = multicollinearity risk
       </div>
     </div>
   );
