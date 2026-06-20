@@ -9,7 +9,7 @@ import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
 import UMAPScatter from "@/components/UMAPScatter";
 import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult, KBestMethod } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
-import MouseTiltCard from "@/components/MouseTiltCard";
+import RepulsionCard from "@/components/RepulsionCard";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -46,20 +46,20 @@ function TechPill({ label }: { label: string }) {
 // ── HowItWorks ────────────────────────────────────────────────────────────────
 
 const HOW_IT_WORKS: Record<string, string> = {
-  variance: "Computes the variance of each numeric feature across all rows. Variance = E[(X−μ)²]. Features with variance below the threshold are constant or near-constant and carry no signal — they are dropped first.",
-  correlation: "Builds a Pearson r matrix between numeric features. When |r(A,B)| exceeds the threshold, the feature with lower mutual information vs. the target is discarded. This removes multicollinearity without losing predictive power.",
-  topk: "After variance and correlation filtering, computes mutual information (MI ≈ −0.5 log(1−r²)) between each feature and the target, then keeps only the K highest-MI features. Fast hard-cutoff for very wide datasets.",
-  selectkbest: "Applies a univariate statistical test to each feature independently. f_regression: F(1,n−2) linear correlation. f_classif: one-way ANOVA. mi: MI approximation. Keeps the K features with the highest test score.",
-  kendall: "Computes Kendall's τ rank correlation. For every pair of observations (x_i, x_j), counts concordant pairs (same order in feature and target) minus discordant pairs, divided by total pairs. Robust to outliers and non-linear monotonic relationships.",
-  chisq: "Bins numeric features into quartiles, then applies a χ² test of independence against the (binned) target. χ² = Σ (O−E)²/E where O = observed count and E = expected under independence. Higher χ² = stronger dependence.",
-  rfe: "Iterative backward elimination. Each round scores remaining features by MI × (1 − 0.35 × avg_redundancy_with_others) and removes the lowest-scoring one. Continues until the target count is reached. Penalises weak AND redundant features differently from pure MI.",
-  lasso: "Coordinate descent with L1 regularisation. Soft-threshold update: w_j = sign(ρ_j) × max(|ρ_j| − α, 0) where ρ_j is the partial correlation residual. L1 penalty drives weak coefficients to exactly zero — built-in feature elimination.",
-  ridge: "Gradient descent with L2 regularisation. Weight update: w_j ← w_j − lr × (∂MSE/∂w_j + 2αw_j). L2 shrinks all coefficients but never to zero — features ranked by final |w_j| and the weakest are pruned.",
-  tree: "Random Forest-style importance. Builds N bootstrap trees; each split considers √p random features. Importance = cumulative weighted Gini (classification) or variance-reduction (regression) gain across all splits on each feature, averaged over trees.",
-  forward: "Greedy wrapper. Starts with an empty set S. Each round adds the feature f* = argmax_f MI(f, target) × (1 − 0.2 × avg_corr(f, S)). The diversity penalty (0.2 × redundancy) rewards diverse, complementary features over pure top-MI selection.",
-  exhaustive: "Enumerates all C(n,k) feature subsets of size k and scores each by avgMI(subset, target) − 0.3 × avgInterCorr(subset). Computationally infeasible for n > 15, so the algorithm automatically falls back to Forward Selection beyond that threshold.",
-  pca: "Standardises features (z-score), computes the covariance matrix, and extracts principal components via power iteration + deflation. Each PC is a linear combination of original features ordered by variance explained (eigenvalue / total variance).",
-  umap: "Builds a k-NN affinity graph using Gaussian kernel weights, normalises it into a symmetric Laplacian, then extracts the eigenvectors corresponding to the 2 or 3 smallest non-zero eigenvalues. This spectral embedding captures non-linear manifold structure.",
+  variance: "Computes the variance of each numeric feature across all rows. Variance = E[(X−μ)²]. Features with variance below the threshold are constant or near-constant and carry no signal — they are dropped first. E.g. if 'zipcode' has variance 0.0003 and your threshold is 0.01, it gets dropped — it barely changes across rows.",
+  correlation: "Builds a Pearson r matrix between numeric features. When |r(A,B)| exceeds the threshold, the feature with lower mutual information vs. the target is discarded. This removes multicollinearity without losing predictive power. E.g. 'height_cm' and 'height_in' have r=0.99 — the one with lower MI vs. target is dropped.",
+  topk: "After variance and correlation filtering, computes mutual information (MI ≈ −0.5 log(1−r²)) between each feature and the target, then keeps only the K highest-MI features. Fast hard-cutoff for very wide datasets. E.g. with K=5 and 20 candidates, only the 5 highest-MI features survive this step.",
+  selectkbest: "Applies a univariate statistical test to each feature independently. f_regression: F(1,n−2) linear correlation. f_classif: one-way ANOVA. mi: MI approximation. Keeps the K features with the highest test score. E.g. f_regression on 'income' vs. 'price' computes F=142.3, ranking it above 'age' at F=8.1.",
+  kendall: "Computes Kendall's τ rank correlation. For every pair of observations (x_i, x_j), counts concordant pairs (same order in feature and target) minus discordant pairs, divided by total pairs. Robust to outliers and non-linear monotonic relationships. E.g. 'education_level' (ordinal) vs. 'salary' gets τ=0.61 — strong monotonic association without assuming linearity.",
+  chisq: "Bins numeric features into quartiles, then applies a χ² test of independence against the (binned) target. χ² = Σ (O−E)²/E where O = observed count and E = expected under independence. Higher χ² = stronger dependence. E.g. 'region' binned × 'churn' category yields χ²=38.4 — far above the independence baseline.",
+  rfe: "Iterative backward elimination. Each round scores remaining features by MI × (1 − 0.35 × avg_redundancy_with_others) and removes the lowest-scoring one. Continues until the target count is reached. Penalises weak AND redundant features differently from pure MI. E.g. round 1 removes 'id' (MI=0.01, high redundancy with 'user_id'); round 2 removes 'tenure_days' once 'tenure_months' is kept.",
+  lasso: "Coordinate descent with L1 regularisation. Soft-threshold update: w_j = sign(ρ_j) × max(|ρ_j| − α, 0) where ρ_j is the partial correlation residual. L1 penalty drives weak coefficients to exactly zero — built-in feature elimination. E.g. with α=0.05, 'transaction_count' weight shrinks to exactly 0 — Lasso has eliminated it.",
+  ridge: "Gradient descent with L2 regularisation. Weight update: w_j ← w_j − lr × (∂MSE/∂w_j + 2αw_j). L2 shrinks all coefficients but never to zero — features ranked by final |w_j| and the weakest are pruned. E.g. 'age' and 'age_squared' both stay but their coefficients shrink from ±1.8 to ±0.3, and 'age_squared' ranks lower.",
+  tree: "Random Forest-style importance. Builds N bootstrap trees; each split considers √p random features. Importance = cumulative weighted Gini (classification) or variance-reduction (regression) gain across all splits on each feature, averaged over trees. E.g. 'glucose' accumulates 0.38 average Gini gain across 50 trees — ranked #1 importance.",
+  forward: "Greedy wrapper. Starts with an empty set S. Each round adds the feature f* = argmax_f MI(f, target) × (1 − 0.2 × avg_corr(f, S)). The diversity penalty (0.2 × redundancy) rewards diverse, complementary features over pure top-MI selection. E.g. step 1 picks 'glucose' (MI=0.71); step 2 picks 'bmi' (MI=0.54, low corr with glucose) over 'insulin' (MI=0.58, high corr with glucose).",
+  exhaustive: "Enumerates all C(n,k) feature subsets of size k and scores each by avgMI(subset, target) − 0.3 × avgInterCorr(subset). Computationally infeasible for n > 15, so the algorithm automatically falls back to Forward Selection beyond that threshold. E.g. with 8 candidates and K=3, all C(8,3)=56 subsets are scored — {glucose, bmi, age} wins with score 0.61.",
+  pca: "Standardises features (z-score), computes the covariance matrix, and extracts principal components via power iteration + deflation. Each PC is a linear combination of original features ordered by variance explained (eigenvalue / total variance). E.g. 10 correlated sensor features → PC1 explains 68% variance, PC2 explains 19% — 2 components replace 10 columns.",
+  umap: "Builds a k-NN affinity graph using Gaussian kernel weights, normalises it into a symmetric Laplacian, then extracts the eigenvectors corresponding to the 2 or 3 smallest non-zero eigenvalues. This spectral embedding captures non-linear manifold structure. E.g. a dataset of 500 handwritten digits (784 features) embedded into 2D reveals 10 tight clusters — one per digit class.",
 };
 
 function HowItWorks({ tabId }: { tabId: string }) {
@@ -262,6 +262,27 @@ export default function FeatureSelectionPage() {
     }
   }, [cols, rowCount, opts.targetCol]);
 
+  const handleReset = useCallback(() => {
+    setResult(null);
+    setOpts(o => ({
+      targetCol: o.targetCol,
+      useVariance: true, varianceThreshold: 0.01,
+      useCorrelation: true, corrThreshold: 0.9,
+      useTopK: false, topK: 10,
+      useSelectKBest: false, selectKBestK: 10, kBestMethod: "f_regression",
+      useKendall: false, kendallTopK: 10,
+      useChiSq: false, chiSqTopK: 10,
+      useRFE: false, rfeTargetK: 10,
+      useLasso: false, lassoAlpha: 0.01, lassoTopK: 10,
+      useRidge: false, ridgeAlpha: 1.0, ridgeTopK: 10,
+      useTree: false, treeTopK: 10, treeNTrees: 50,
+      useForward: false, forwardK: 10,
+      useExhaustive: false, exhaustiveK: 5,
+      usePCA: false, pcaComponents: 3,
+      useUMAP: false, umapComponents: 2, umapNeighbors: 15,
+    }));
+  }, []);
+
   const handleDownload = useCallback(() => {
     if (!result?.csvText) return;
     const blob = new Blob([result.csvText], { type: "text/csv" });
@@ -373,7 +394,7 @@ export default function FeatureSelectionPage() {
       }}>
 
         {/* ── Hero ── */}
-        <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+        <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
           <div style={{
             display: "flex", alignItems: "flex-start",
             justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",
@@ -395,10 +416,10 @@ export default function FeatureSelectionPage() {
               ))}
             </div>
           </div>
-        </MouseTiltCard>
+        </RepulsionCard>
 
         {/* ── Upload ── */}
-        <MouseTiltCard
+        <RepulsionCard
           style={{
             ...CARD, cursor: "pointer", textAlign: "center",
             borderStyle: hasFile ? "solid" : "dashed",
@@ -446,12 +467,12 @@ export default function FeatureSelectionPage() {
               </div>
             </div>
           )}
-        </MouseTiltCard>
+        </RepulsionCard>
 
         {hasFile && (
           <>
             {/* ── Target ── */}
-            <MouseTiltCard style={{ ...CARD }}>
+            <RepulsionCard style={{ ...CARD }}>
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                 Target Column
               </div>
@@ -481,10 +502,10 @@ export default function FeatureSelectionPage() {
                     : "No target — features ranked by normalized variance."}
                 </div>
               </div>
-            </MouseTiltCard>
+            </RepulsionCard>
 
             {/* ── Method config ── */}
-            <MouseTiltCard style={{ ...CARD }}>
+            <RepulsionCard style={{ ...CARD }}>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "1rem" }}>
                 Selection Methods
               </div>
@@ -1048,7 +1069,7 @@ export default function FeatureSelectionPage() {
                   </div>
                 </div>
               )}
-            </MouseTiltCard>
+            </RepulsionCard>
 
             {/* ── Pipeline indicator ── */}
             {(() => {
@@ -1131,27 +1152,34 @@ export default function FeatureSelectionPage() {
                         : "0%",
                     },
                   ].map(s => (
-                    <MouseTiltCard key={s.label} style={{ ...CARD, textAlign: "center" }}>
+                    <RepulsionCard key={s.label} style={{ ...CARD, textAlign: "center" }}>
                       <div style={{ fontSize: "1.6rem", fontWeight: 800, color: s.accent ? ACCENT : "var(--text)" }}>
                         {s.value}
                       </div>
                       <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.2rem" }}>{s.label}</div>
-                    </MouseTiltCard>
+                    </RepulsionCard>
                   ))}
                 </div>
 
                 {/* ── Rankings ── */}
-                <MouseTiltCard style={{ ...CARD }}>
-                  <div style={{ marginBottom: "1rem" }}>
+                <RepulsionCard style={{ ...CARD }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                     <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
-                    <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
-                      bar = MI score
-                      {result.kBestActive ? " · secondary bar = F/MI score" : ""}
-                      {result.lassoActive ? " · orange = Lasso" : ""}
-                      {result.ridgeActive ? " · purple = Ridge" : ""}
-                      {result.treeActive ? " · green = Tree" : ""}
-                      {" · high → low"}
-                    </span>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                      {[
+                        { color: ACCENT, label: "MI Score" },
+                        { color: "#a78bfa", label: "F/KBest", show: result.kBestActive },
+                        { color: "#f97316", label: "Lasso", show: result.lassoActive },
+                        { color: "#6366f1", label: "Ridge", show: result.ridgeActive },
+                        { color: "#34d399", label: "Tree", show: result.treeActive },
+                      ].filter(m => m.show !== false).map(m => (
+                        <div key={m.label} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: m.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{m.label}</span>
+                        </div>
+                      ))}
+                      <span style={{ fontSize: "0.7rem", color: "var(--text3)", marginLeft: "0.25rem" }}>high → low</span>
+                    </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
                     {result.features.map((f: FeatureScore) => {
@@ -1259,7 +1287,7 @@ export default function FeatureSelectionPage() {
                       );
                     })}
                   </div>
-                </MouseTiltCard>
+                </RepulsionCard>
 
                 {/* ── Method agreement ── */}
                 {(result.kBestActive || result.lassoActive || result.ridgeActive || result.treeActive) && (() => {
@@ -1273,7 +1301,7 @@ export default function FeatureSelectionPage() {
                   ];
                   const activeMethods = methods.filter(m => m.key === "mi" || (m.key === "fk" && result.kBestActive) || (m.key === "lasso" && result.lassoActive) || (m.key === "ridge" && result.ridgeActive) || (m.key === "tree" && result.treeActive));
                   return (
-                    <MouseTiltCard style={{ ...CARD }}>
+                    <RepulsionCard style={{ ...CARD }}>
                       <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                         Method Agreement
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1313,29 +1341,29 @@ export default function FeatureSelectionPage() {
                           </tbody>
                         </table>
                       </div>
-                    </MouseTiltCard>
+                    </RepulsionCard>
                   );
                 })()}
 
                 {/* ── Score comparison chart ── */}
                 {result.features.length > 0 && (
-                  <MouseTiltCard style={{ ...CARD }}>
+                  <RepulsionCard style={{ ...CARD }}>
                     <ScoreComparisonChart features={result.features} result={result} accent={ACCENT} />
-                  </MouseTiltCard>
+                  </RepulsionCard>
                 )}
 
                 {/* ── Correlation heatmap ── */}
                 {numericCols.filter(c => c.name !== opts.targetCol).length >= 2 && (
-                  <MouseTiltCard style={{ ...CARD }}>
+                  <RepulsionCard style={{ ...CARD }}>
                     <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                       Correlation Heatmap
                     </div>
                     <CorrelationHeatmap cols={numericCols.filter(c => c.name !== opts.targetCol)} accent={ACCENT} />
-                  </MouseTiltCard>
+                  </RepulsionCard>
                 )}
 
                 {/* ── Download selected ── */}
-                <MouseTiltCard style={{
+                <RepulsionCard style={{
                   ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22`,
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   flexWrap: "wrap", gap: "1rem",
@@ -1363,14 +1391,14 @@ export default function FeatureSelectionPage() {
                   >
                     Download CSV
                   </button>
-                </MouseTiltCard>
+                </RepulsionCard>
 
                 {/* ── PCA result card ── */}
                 {result.pcaResult != null && (() => {
                   const { components } = result.pcaResult;
                   const lastComp = components[components.length - 1];
                   return (
-                    <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                    <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                       <div style={{ marginBottom: "0.75rem" }}>
                         <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>PCA Components</span>
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1411,13 +1439,13 @@ export default function FeatureSelectionPage() {
                       >
                         Download PCA CSV
                       </button>
-                    </MouseTiltCard>
+                    </RepulsionCard>
                   );
                 })()}
 
                 {/* ── UMAP result card ── */}
                 {result.umapResult != null && (
-                  <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                  <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                     <div style={{ marginBottom: "0.75rem" }}>
                       <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>UMAP Embedding</span>
                     </div>
@@ -1442,7 +1470,7 @@ export default function FeatureSelectionPage() {
                     >
                       Download UMAP CSV
                     </button>
-                  </MouseTiltCard>
+                  </RepulsionCard>
                 )}
               </>
             )}
