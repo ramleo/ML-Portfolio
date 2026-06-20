@@ -4,451 +4,17 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import NumericTransformsPanel from "@/components/FEPanels/NumericTransformsPanel";
+import CategoricalPanel from "@/components/FEPanels/CategoricalPanel";
+import SidebarPanel from "@/components/FEPanels/SidebarPanel";
+import ResultsPanel from "@/components/FEPanels/ResultsPanel";
+import {
+  ColInfo, FeResult, Step,
+  parseCSV, analyzeColumns, serializeCSV, applyTransforms,
+  NUM_TRANSFORMS,
+} from "@/lib/feAlgorithms";
 
 const ACCENT = "#38bdf8";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type ColInfo = {
-  name: string; isNumeric: boolean; dtype: string;
-  nunique: number; missing: number; skew: number;
-  values: (number | null)[];
-  rawValues: string[];
-};
-
-type Step = "upload" | "configure" | "processing" | "results";
-
-type FeResult = {
-  csv: string[][];
-  headers: string[];
-  colsBefore: number; colsAfter: number;
-  rows: number; newColumns: string[];
-};
-
-// ── CSV parser ────────────────────────────────────────────────────────────────
-
-function parseCSV(text: string): string[][] {
-  const rows: string[][] = [];
-  let cur = "", inQ = false;
-  const row: string[] = [];
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inQ) {
-      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
-      else if (ch === '"') { inQ = false; }
-      else { cur += ch; }
-    } else {
-      if (ch === '"') { inQ = true; }
-      else if (ch === ',') { row.push(cur); cur = ""; }
-      else if (ch === '\n' || ch === '\r') {
-        if (ch === '\r' && text[i + 1] === '\n') i++;
-        row.push(cur); cur = "";
-        if (row.some(c => c !== "")) rows.push([...row]);
-        row.length = 0;
-      } else { cur += ch; }
-    }
-  }
-  row.push(cur);
-  if (row.some(c => c !== "")) rows.push(row);
-  return rows;
-}
-
-// ── Stats helpers ─────────────────────────────────────────────────────────────
-
-function computeSkew(nums: number[]): number {
-  if (nums.length < 3) return 0;
-  const n = nums.length;
-  const mean = nums.reduce((a, b) => a + b, 0) / n;
-  const std = Math.sqrt(nums.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
-  if (std === 0) return 0;
-  return nums.reduce((a, b) => a + ((b - mean) / std) ** 3, 0) / n;
-}
-
-function analyzeColumns(rows: string[][]): ColInfo[] {
-  if (rows.length < 2) return [];
-  const headers = rows[0];
-  const data = rows.slice(1);
-  return headers.map((name, ci) => {
-    const rawValues = data.map(r => (r[ci] ?? "").trim());
-    const missing = rawValues.filter(v => v === "" || v.toLowerCase() === "nan" || v.toLowerCase() === "null" || v.toLowerCase() === "na").length;
-    const nonEmpty = rawValues.filter(v => v !== "" && v.toLowerCase() !== "nan" && v.toLowerCase() !== "null" && v.toLowerCase() !== "na");
-    const nunique = new Set(nonEmpty).size;
-    const numParsed = nonEmpty.map(v => parseFloat(v));
-    const isNumeric = numParsed.length > 0 && numParsed.filter(v => isNaN(v)).length / numParsed.length < 0.05;
-    const values: (number | null)[] = rawValues.map(v => {
-      if (v === "" || v.toLowerCase() === "nan" || v.toLowerCase() === "null" || v.toLowerCase() === "na") return null;
-      const n = parseFloat(v);
-      return isNaN(n) ? null : n;
-    });
-    const validNums = values.filter(v => v !== null) as number[];
-    const skew = isNumeric ? computeSkew(validNums) : 0;
-    const dtype = isNumeric ? "float64" : "object";
-    return { name, isNumeric, dtype, nunique, missing, skew, values, rawValues };
-  });
-}
-
-// ── Top-value helper (for categorical distribution bars) ──────────────────────
-
-function getTopValues(col: ColInfo, limit = 6): { value: string; count: number; pct: number }[] {
-  const counts: Record<string, number> = {};
-  const total = col.rawValues.length;
-  for (const v of col.rawValues) {
-    const lv = v.trim().toLowerCase();
-    if (lv && lv !== "nan" && lv !== "null" && lv !== "na") counts[v] = (counts[v] ?? 0) + 1;
-  }
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([value, count]) => ({ value, count, pct: count / total }));
-}
-
-// ── Transform engine ──────────────────────────────────────────────────────────
-
-function applyTransforms(
-  rawRows: string[][],
-  cols: ColInfo[],
-  colTransforms: Record<string, string[]>,
-  dateCols: string[],
-  dateParts: string[],
-  interactions: [string, string][],
-  polyCols: string[],
-  freqCols: string[],
-  ratios: [string, string][],
-  sortCol: string,
-  lagCols: string[],
-  lagN: number,
-  lagDiff: boolean,
-  rollCols: string[],
-  rollN: number,
-  rollAgg: string,
-  cyclicCols: Record<string, number>,
-  rowAggCols: string[],
-  rowAggFn: string,
-): FeResult {
-  const headers = [...rawRows[0]];
-  const dataRows = rawRows.slice(1).map(r => [...r]);
-  const nRows = dataRows.length;
-  const newColumns: string[] = [];
-
-  const colMap = Object.fromEntries(cols.map(c => [c.name, c]));
-  const headerIdx = Object.fromEntries(headers.map((h, i) => [h, i]));
-
-  const addCol = (name: string, values: (number | string | null)[]) => {
-    newColumns.push(name);
-    headers.push(name);
-    for (let i = 0; i < nRows; i++) {
-      const v = values[i];
-      dataRows[i].push(v === null || v === undefined ? "" : String(v));
-    }
-  };
-
-  const getNumVals = (colName: string): (number | null)[] =>
-    colMap[colName]?.values ?? dataRows.map(r => { const v = parseFloat(r[headerIdx[colName]] ?? ""); return isNaN(v) ? null : v; });
-
-  // 1. Per-column numeric transforms
-  for (const [colName, tList] of Object.entries(colTransforms)) {
-    if (!tList.length) continue;
-    const col = colMap[colName];
-    if (!col) continue;
-    const vals = col.values;
-    const valid = vals.filter(v => v !== null) as number[];
-    const mean = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
-    const std = valid.length > 1 ? Math.sqrt(valid.reduce((a, b) => a + (b - mean) ** 2, 0) / valid.length) : 1;
-    const minV = valid.length ? Math.min(...valid) : 0;
-    const maxV = valid.length ? Math.max(...valid) : 1;
-
-    if (tList.includes("log1p")) {
-      addCol(`${colName}_log1p`, vals.map(v => v === null ? null : Math.log1p(Math.max(v, 0))));
-    }
-    if (tList.includes("sqrt")) {
-      addCol(`${colName}_sqrt`, vals.map(v => v === null ? null : Math.sqrt(Math.max(v, 0))));
-    }
-    if (tList.includes("zscore")) {
-      addCol(`${colName}_zscore`, vals.map(v => v === null ? null : parseFloat(((v - mean) / (std || 1)).toFixed(4))));
-    }
-    if (tList.includes("minmax")) {
-      const range = maxV - minV || 1;
-      addCol(`${colName}_minmax`, vals.map(v => v === null ? null : parseFloat(((v - minV) / range).toFixed(4))));
-    }
-    if (tList.includes("percentile")) {
-      const sorted = [...valid].sort((a, b) => a - b);
-      addCol(`${colName}_pct`, vals.map(v => {
-        if (v === null) return null;
-        const rank = sorted.filter(s => s <= v).length;
-        return parseFloat((rank / sorted.length).toFixed(4));
-      }));
-    }
-    if (tList.includes("outlier_flag")) {
-      addCol(`${colName}_outlier`, vals.map(v => {
-        if (v === null) return null;
-        return Math.abs((v - mean) / (std || 1)) > 3 ? 1 : 0;
-      }));
-    }
-    if (tList.includes("missing_flag")) {
-      addCol(`${colName}_missing`, col.rawValues.map(v =>
-        (v === "" || v.toLowerCase() === "nan" || v.toLowerCase() === "null" || v.toLowerCase() === "na") ? 1 : 0
-      ));
-    }
-    if (tList.includes("winsor")) {
-      const sorted = [...valid].sort((a, b) => a - b);
-      const p1 = sorted[Math.floor(sorted.length * 0.01)] ?? minV;
-      const p99 = sorted[Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1)] ?? maxV;
-      addCol(`${colName}_winsor`, vals.map(v =>
-        v === null ? null : parseFloat(Math.min(Math.max(v, p1), p99).toFixed(4))
-      ));
-    }
-    if (tList.includes("above_mean")) {
-      addCol(`${colName}_above_mean`, vals.map(v => v === null ? null : (v > mean ? 1 : 0)));
-    }
-    if (tList.includes("bin_equal")) {
-      const range = maxV - minV || 1;
-      addCol(`${colName}_bin`, vals.map(v => {
-        if (v === null) return null;
-        return Math.min(Math.floor(((v - minV) / range) * 5), 4);
-      }));
-    }
-    if (tList.includes("bin_quantile")) {
-      const sorted = [...valid].sort((a, b) => a - b);
-      addCol(`${colName}_qbin`, vals.map(v => {
-        if (v === null) return null;
-        const rank = sorted.filter(s => s <= v).length;
-        return Math.min(Math.floor((rank / sorted.length) * 5), 4);
-      }));
-    }
-  }
-
-  // 2. Date extraction
-  for (const colName of dateCols) {
-    const col = colMap[colName];
-    if (!col) continue;
-    for (const part of dateParts) {
-      const extracted = col.rawValues.map(v => {
-        if (!v || v === "") return null;
-        const d = new Date(v);
-        if (isNaN(d.getTime())) return null;
-        switch (part) {
-          case "year": return d.getFullYear();
-          case "month": return d.getMonth() + 1;
-          case "day": return d.getDate();
-          case "dayofweek": return d.getDay();
-          case "hour": return d.getHours();
-          case "quarter": return Math.floor(d.getMonth() / 3) + 1;
-          default: return null;
-        }
-      });
-      addCol(`${colName}_${part}`, extracted);
-    }
-  }
-
-  // 3. Interaction terms (A × B)
-  for (const [a, b] of interactions) {
-    const valsA = getNumVals(a);
-    const valsB = getNumVals(b);
-    addCol(`${a}_x_${b}`, valsA.map((va, i) => {
-      const vb = valsB[i];
-      return va === null || vb === null ? null : parseFloat((va * vb).toFixed(6));
-    }));
-  }
-
-  // 4. Polynomial cross-terms
-  const validPoly = polyCols.filter(c => colMap[c]);
-  if (validPoly.length >= 2) {
-    for (let i = 0; i < validPoly.length; i++) {
-      for (let j = i + 1; j < validPoly.length; j++) {
-        const valsA = getNumVals(validPoly[i]);
-        const valsB = getNumVals(validPoly[j]);
-        const name = `${validPoly[i]}_x_${validPoly[j]}`;
-        if (!newColumns.includes(name)) {
-          addCol(name, valsA.map((va, k) => {
-            const vb = valsB[k];
-            return va === null || vb === null ? null : parseFloat((va * vb).toFixed(6));
-          }));
-        }
-      }
-    }
-  }
-
-  // 5. Ratio features (A ÷ B)
-  for (const [a, b] of ratios) {
-    const valsA = getNumVals(a);
-    const valsB = getNumVals(b);
-    addCol(`${a}_div_${b}`, valsA.map((va, i) => {
-      const vb = valsB[i];
-      if (va === null || vb === null || vb === 0) return null;
-      return parseFloat((va / vb).toFixed(6));
-    }));
-  }
-
-  // 6. Frequency encoding
-  for (const colName of freqCols) {
-    const col = colMap[colName];
-    if (!col) continue;
-    const freq: Record<string, number> = {};
-    for (const v of col.rawValues) {
-      const lv = v.trim().toLowerCase();
-      if (lv && lv !== "nan" && lv !== "null" && lv !== "na") {
-        freq[v] = (freq[v] ?? 0) + 1;
-      }
-    }
-    const total = col.rawValues.length;
-    addCol(`${colName}_freq`, col.rawValues.map(v => {
-      const lv = v.trim().toLowerCase();
-      if (!lv || lv === "nan" || lv === "null" || lv === "na") return null;
-      return parseFloat(((freq[v] ?? 0) / total).toFixed(4));
-    }));
-  }
-
-  // Pre-compute sort order for time-series features
-  let sortedToOrig: number[] = [];
-  let origToRank: number[] = [];
-  if (sortCol && (lagCols.length > 0 || rollCols.length > 0)) {
-    const sIdx = headerIdx[sortCol];
-    const indices = Array.from({ length: nRows }, (_, i) => i);
-    indices.sort((a, b) => {
-      const ra = dataRows[a][sIdx] ?? "";
-      const rb = dataRows[b][sIdx] ?? "";
-      const na = parseFloat(ra), nb = parseFloat(rb);
-      if (!isNaN(na) && !isNaN(nb)) return na - nb;
-      return ra < rb ? -1 : ra > rb ? 1 : 0;
-    });
-    sortedToOrig = indices;
-    origToRank = new Array(nRows);
-    for (let r = 0; r < nRows; r++) origToRank[sortedToOrig[r]] = r;
-  }
-
-  // 7. Lag / diff features
-  if (sortCol && lagCols.length > 0) {
-    for (const colName of lagCols) {
-      const col = colMap[colName];
-      if (!col) continue;
-      const sortedVals = sortedToOrig.map(origIdx => col.values[origIdx]);
-      const lagVals: (number | null)[] = new Array(nRows).fill(null);
-      const diffVals: (number | null)[] = new Array(nRows).fill(null);
-      for (let origIdx = 0; origIdx < nRows; origIdx++) {
-        const rank = origToRank[origIdx];
-        const prevRank = rank - lagN;
-        if (prevRank >= 0) {
-          lagVals[origIdx] = sortedVals[prevRank];
-          if (lagDiff) {
-            const cur = sortedVals[rank];
-            const prev = sortedVals[prevRank];
-            if (cur !== null && prev !== null) {
-              diffVals[origIdx] = parseFloat(((cur as number) - (prev as number)).toFixed(4));
-            }
-          }
-        }
-      }
-      addCol(`${colName}_lag${lagN}`, lagVals);
-      if (lagDiff) addCol(`${colName}_diff${lagN}`, diffVals);
-    }
-  }
-
-  // 8. Rolling window aggregates
-  if (sortCol && rollCols.length > 0) {
-    for (const colName of rollCols) {
-      const col = colMap[colName];
-      if (!col) continue;
-      const sortedVals = sortedToOrig.map(origIdx => col.values[origIdx]);
-      const rollVals: (number | null)[] = new Array(nRows).fill(null);
-      for (let origIdx = 0; origIdx < nRows; origIdx++) {
-        const rank = origToRank[origIdx];
-        if (rank < rollN - 1) continue;
-        const window = (sortedVals.slice(rank - rollN + 1, rank + 1).filter(v => v !== null)) as number[];
-        if (window.length === 0) continue;
-        let agg: number;
-        switch (rollAgg) {
-          case "std": {
-            const m = window.reduce((a, b) => a + b, 0) / window.length;
-            agg = Math.sqrt(window.reduce((a, b) => a + (b - m) ** 2, 0) / window.length);
-            break;
-          }
-          case "min": agg = Math.min(...window); break;
-          case "max": agg = Math.max(...window); break;
-          default:    agg = window.reduce((a, b) => a + b, 0) / window.length;
-        }
-        rollVals[origIdx] = parseFloat(agg.toFixed(4));
-      }
-      addCol(`${colName}_roll${rollN}_${rollAgg}`, rollVals);
-    }
-  }
-
-  // 9. Cyclical encoding (sin/cos pairs)
-  for (const [colName, period] of Object.entries(cyclicCols)) {
-    if (!period || period <= 0) continue;
-    const col = colMap[colName];
-    if (!col) continue;
-    const vals = col.values;
-    addCol(`${colName}_sin`, vals.map(v =>
-      v === null ? null : parseFloat(Math.sin(2 * Math.PI * (v as number) / period).toFixed(6))
-    ));
-    addCol(`${colName}_cos`, vals.map(v =>
-      v === null ? null : parseFloat(Math.cos(2 * Math.PI * (v as number) / period).toFixed(6))
-    ));
-  }
-
-  // 10. Row-wise aggregates
-  const validRowCols = rowAggCols.filter(c => colMap[c]);
-  if (validRowCols.length >= 2) {
-    const rowVals: (number | null)[] = [];
-    for (let ri = 0; ri < nRows; ri++) {
-      const vals = validRowCols.map(c => colMap[c].values[ri]).filter(v => v !== null) as number[];
-      if (vals.length === 0) { rowVals.push(null); continue; }
-      let agg: number;
-      switch (rowAggFn) {
-        case "max": agg = Math.max(...vals); break;
-        case "min": agg = Math.min(...vals); break;
-        case "sum": agg = vals.reduce((a, b) => a + b, 0); break;
-        case "std": {
-          const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-          agg = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length);
-          break;
-        }
-        default: agg = vals.reduce((a, b) => a + b, 0) / vals.length;
-      }
-      rowVals.push(parseFloat(agg.toFixed(4)));
-    }
-    addCol(`row_${rowAggFn}`, rowVals);
-  }
-
-  return {
-    csv: [headers, ...dataRows],
-    headers,
-    colsBefore: rawRows[0].length,
-    colsAfter: headers.length,
-    rows: nRows,
-    newColumns,
-  };
-}
-
-// ── CSV serialiser ────────────────────────────────────────────────────────────
-
-function serializeCSV(rows: string[][]): string {
-  return rows.map(row =>
-    row.map(cell => (cell.includes(",") || cell.includes('"') || cell.includes("\n")) ? `"${cell.replace(/"/g, '""')}"` : cell).join(",")
-  ).join("\n");
-}
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const NUM_TRANSFORMS = [
-  { key: "log1p",        label: "log1p",    hint: "log(1+x) — reduces right skew",                      desc: "log(1+x) — tames right skew" },
-  { key: "sqrt",         label: "sqrt",     hint: "√x — milder skew reduction",                          desc: "√x — milder skew fix" },
-  { key: "zscore",       label: "z-score",  hint: "(x−μ)/σ — standardize to zero mean, unit variance",   desc: "(x−μ)/σ — zero mean, unit var" },
-  { key: "minmax",       label: "min-max",  hint: "Scale to [0,1]: (x−min)/(max−min)",                   desc: "rescale to [0, 1]" },
-  { key: "percentile",   label: "pct rank", hint: "Rank scaled to [0,1]",                                desc: "rank as fraction [0, 1]" },
-  { key: "outlier_flag", label: "outlier",  hint: "1 if |z-score| > 3, else 0",                         desc: "flag if |z-score| > 3" },
-  { key: "missing_flag", label: "missing",  hint: "1 if value is NaN/null, else 0",                      desc: "flag if null / NaN" },
-  { key: "winsor",       label: "winsor",   hint: "Cap values at 1st/99th percentile",                   desc: "clip to 1st–99th pct" },
-  { key: "above_mean",   label: "> mean",   hint: "1 if value > column mean, else 0",                    desc: "1 if above col mean" },
-  { key: "bin_equal",    label: "bin=",     hint: "5 equal-width bins (0–4)",                            desc: "5 equal-width bins (0–4)" },
-  { key: "bin_quantile", label: "bin~",     hint: "5 quantile bins (0–4)",                               desc: "5 quantile bins (0–4)" },
-];
-
-const DATE_PARTS = [
-  { key: "year", label: "Year" }, { key: "month", label: "Month" },
-  { key: "day", label: "Day" }, { key: "dayofweek", label: "Day of week" },
-  { key: "hour", label: "Hour" }, { key: "quarter", label: "Quarter" },
-];
 
 const CARD: React.CSSProperties = {
   background: "rgba(14,22,40,0.72)",
@@ -456,52 +22,6 @@ const CARD: React.CSSProperties = {
   borderRadius: 12,
   padding: "1.25rem 1.4rem",
 };
-
-const SELECT_STYLE: React.CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-  background: "rgba(0,0,0,0.35)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 6,
-  color: "var(--text)",
-  fontSize: "0.78rem",
-  padding: "0.35rem 0.4rem",
-  outline: "none",
-};
-
-// ── Mini histogram (SVG, pure browser) ───────────────────────────────────────
-
-function MiniHistogram({ values, bins = 14, width = 66, height = 22, color = ACCENT }: {
-  values: (number | null)[];
-  bins?: number; width?: number; height?: number; color?: string;
-}) {
-  const valid = values.filter(v => v !== null) as number[];
-  if (valid.length === 0) return <svg width={width} height={height} />;
-  const min = Math.min(...valid), max = Math.max(...valid);
-  const range = max - min || 1;
-  const counts = new Array(bins).fill(0);
-  for (const v of valid) counts[Math.min(Math.floor(((v - min) / range) * bins), bins - 1)]++;
-  const maxCount = Math.max(...counts, 1);
-  const bw = width / bins;
-  return (
-    <svg width={width} height={height} style={{ display: "block" }}>
-      {counts.map((c, i) => {
-        const h = (c / maxCount) * height;
-        return <rect key={i} x={i * bw + 0.5} y={height - h} width={Math.max(bw - 1, 1)} height={Math.max(h, 0.5)} fill={color} rx={0.5} />;
-      })}
-    </svg>
-  );
-}
-
-// ── Small helpers ─────────────────────────────────────────────────────────────
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.85rem" }}>
-      {children}
-    </div>
-  );
-}
 
 function Pill({ label, color = ACCENT }: { label: string; color?: string }) {
   return (
@@ -530,28 +50,6 @@ function ActionBtn({ onClick, disabled = false, children, secondary = false }: {
         opacity: hov && !disabled ? 0.9 : 1,
       }}
     >{children}</button>
-  );
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-  return (
-    <div onClick={onChange} style={{
-      width: 30, height: 16, borderRadius: 9999, cursor: "pointer", flexShrink: 0,
-      background: checked ? ACCENT : "rgba(255,255,255,0.12)", position: "relative",
-      transition: "background 0.2s", boxShadow: checked ? `0 0 6px ${ACCENT}55` : "none",
-    }}>
-      <div style={{ position: "absolute", top: 2, left: checked ? 16 : 2, width: 12, height: 12, borderRadius: 9999, background: "#fff", transition: "left 0.2s" }} />
-    </div>
-  );
-}
-
-// ── Sidebar section header ────────────────────────────────────────────────────
-
-function SideLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontSize: "0.67rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: "0.7rem" }}>
-      {children}
-    </div>
   );
 }
 
@@ -606,6 +104,10 @@ export default function FeatureEngineeringPage() {
   // Row-wise aggregates
   const [rowAggCols, setRowAggCols] = useState<string[]>([]);
   const [rowAggFn, setRowAggFn]     = useState("mean");
+
+  // AI Suggest
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const [aiSuggestError, setAiSuggestError]     = useState<string | null>(null);
 
   useEffect(() => {
     if (step === "configure") document.body.style.overflow = "hidden";
@@ -696,9 +198,6 @@ export default function FeatureEngineeringPage() {
 
   // ── AI Smart Suggest ───────────────────────────────────────────────────────
 
-  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
-  const [aiSuggestError, setAiSuggestError]     = useState<string | null>(null);
-
   const aiSuggest = useCallback(async () => {
     if (aiSuggestLoading || numCols.length === 0) return;
     setAiSuggestLoading(true);
@@ -778,7 +277,7 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
     setStep("processing");
     setTimeout(() => {
       try {
-        const res = applyTransforms_fn(
+        const res = applyTransforms(
           rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
           freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
           cyclicCols, rowAggCols, rowAggFn
@@ -879,485 +378,73 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
       {/* ── Configure ── */}
       {step === "configure" && (
         <div style={{ flex: 1, overflow: "hidden", display: "flex", gap: "1rem", padding: "0.5rem 1.5rem 0", width: "100%" }}>
+          <SidebarPanel
+            filename={filename}
+            rawRows={rawRows}
+            cols={cols}
+            numCols={numCols}
+            interactions={interactions}
+            interactA={interactA}
+            interactB={interactB}
+            onSetInteractA={setInteractA}
+            onSetInteractB={setInteractB}
+            onAddInteraction={addInteraction}
+            onRemoveInteraction={i => setInteractions(prev => prev.filter((_, j) => j !== i))}
+            ratios={ratios}
+            ratioA={ratioA}
+            ratioB={ratioB}
+            onSetRatioA={setRatioA}
+            onSetRatioB={setRatioB}
+            onAddRatio={addRatio}
+            onRemoveRatio={i => setRatios(prev => prev.filter((_, j) => j !== i))}
+            polyCols={polyCols}
+            onTogglePolyCols={col => setPolyCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+            cyclicCols={cyclicCols}
+            onToggleCyclicCol={col => setCyclicCols(prev => {
+              if (prev[col] !== undefined) { const n = { ...prev }; delete n[col]; return n; }
+              return { ...prev, [col]: 12 };
+            })}
+            onSetCyclicPeriod={(col, period) => setCyclicCols(prev => ({ ...prev, [col]: period }))}
+            rowAggCols={rowAggCols}
+            rowAggFn={rowAggFn}
+            onToggleRowAggCol={col => setRowAggCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+            onSetRowAggFn={setRowAggFn}
+            sortCol={sortCol}
+            onSetSortCol={col => { setSortCol(col); setLagCols([]); setRollCols([]); }}
+            lagCols={lagCols}
+            lagN={lagN}
+            lagDiff={lagDiff}
+            onToggleLagCol={col => setLagCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+            onSetLagN={setLagN}
+            onToggleLagDiff={() => setLagDiff(p => !p)}
+            rollCols={rollCols}
+            rollN={rollN}
+            rollAgg={rollAgg}
+            onToggleRollCol={col => setRollCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+            onSetRollN={setRollN}
+            onSetRollAgg={setRollAgg}
+          />
 
-          {/* ── Left sidebar — unified card ── */}
-          <div style={{ width: 278, flexShrink: 0, overflowY: "auto", paddingBottom: "1rem", background: "rgba(10,18,35,0.88)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
-
-              {/* Dataset stats */}
-              <div style={{ padding: "1.1rem 1.3rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: "0.65rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {filename}
-                </div>
-                <div style={{ display: "flex", gap: "1.6rem" }}>
-                  {[
-                    { label: "rows",    value: (rawRows.length - 1).toLocaleString() },
-                    { label: "cols",    value: String(cols.length) },
-                    { label: "numeric", value: String(numCols.length) },
-                  ].map(s => (
-                    <div key={s.label}>
-                      <div style={{ fontSize: "1.45rem", fontWeight: 800, color: ACCENT, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginTop: "0.22rem" }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Column Combinations */}
-              <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <SideLabel>Column Combinations</SideLabel>
-
-                {/* A × B */}
-                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
-                  Multiply (A × B) → <span style={{ color: ACCENT, fontFamily: "monospace" }}>colA_x_colB</span>
-                </div>
-                <div style={{ display: "flex", gap: "0.35rem", marginBottom: interactions.length > 0 ? "0.4rem" : "0.55rem" }}>
-                  <select value={interactA} onChange={e => setInteractA(e.target.value)} style={SELECT_STYLE}>
-                    <option value="">Col A</option>
-                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
-                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.85rem", flexShrink: 0 }}>×</span>
-                  <select value={interactB} onChange={e => setInteractB(e.target.value)} style={SELECT_STYLE}>
-                    <option value="">Col B</option>
-                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
-                  <button onClick={addInteraction} disabled={!interactA || !interactB || interactA === interactB}
-                    style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.08)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.12)", fontWeight: 700, fontSize: "1rem", cursor: (!interactA || !interactB || interactA === interactB) ? "not-allowed" : "pointer", opacity: (!interactA || !interactB || interactA === interactB) ? 0.3 : 1, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    +
-                  </button>
-                </div>
-                {interactions.map(([a, b], i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.2rem 0.55rem", background: `${ACCENT}0c`, borderRadius: 5, marginBottom: "0.2rem" }}>
-                    <span style={{ fontSize: "0.72rem", color: ACCENT, fontWeight: 600 }}>{a} × {b}</span>
-                    <button onClick={() => setInteractions(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1, padding: 0 }}>×</button>
-                  </div>
-                ))}
-
-                {/* Divider */}
-                <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "0.65rem 0" }} />
-
-                {/* A ÷ B */}
-                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
-                  Divide (A ÷ B) → <span style={{ color: "#a78bfa", fontFamily: "monospace" }}>colA_div_colB</span>
-                </div>
-                <div style={{ display: "flex", gap: "0.35rem", marginBottom: ratios.length > 0 ? "0.4rem" : 0 }}>
-                  <select value={ratioA} onChange={e => setRatioA(e.target.value)} style={SELECT_STYLE}>
-                    <option value="">Col A</option>
-                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
-                  <span style={{ color: "var(--text3)", alignSelf: "center", fontSize: "0.85rem", flexShrink: 0 }}>÷</span>
-                  <select value={ratioB} onChange={e => setRatioB(e.target.value)} style={SELECT_STYLE}>
-                    <option value="">Col B</option>
-                    {numCols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
-                  <button onClick={addRatio} disabled={!ratioA || !ratioB || ratioA === ratioB}
-                    style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.08)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.12)", fontWeight: 700, fontSize: "1rem", cursor: (!ratioA || !ratioB || ratioA === ratioB) ? "not-allowed" : "pointer", opacity: (!ratioA || !ratioB || ratioA === ratioB) ? 0.3 : 1, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    +
-                  </button>
-                </div>
-                {ratios.map(([a, b], i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.2rem 0.55rem", background: "rgba(167,139,250,0.08)", borderRadius: 5, marginBottom: "0.2rem" }}>
-                    <span style={{ fontSize: "0.72rem", color: "#a78bfa", fontWeight: 600 }}>{a} ÷ {b}</span>
-                    <button onClick={() => setRatios(prev => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1, padding: 0 }}>×</button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Polynomial cross-terms */}
-              <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <SideLabel>Polynomial Cross-Terms</SideLabel>
-                <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.5 }}>
-                  Generates every pairwise A×B product for the selected columns.
-                  {polyCols.length >= 2 && (
-                    <span style={{ color: ACCENT }}> → {polyCols.length * (polyCols.length - 1) / 2} new column{polyCols.length * (polyCols.length - 1) / 2 > 1 ? "s" : ""}</span>
-                  )}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
-                  {numCols.map(c => (
-                    <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                      <Toggle checked={polyCols.includes(c.name)} onChange={() => setPolyCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
-                      <span style={{ fontSize: "0.78rem", color: polyCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cyclical Encoding */}
-              {numCols.length > 0 && (
-                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <SideLabel>Cyclical Encoding</SideLabel>
-                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.55rem", lineHeight: 1.6 }}>
-                    Wraps a periodic number onto a circle so that the ends connect — month 12 and month 1 become neighbors, not 11 steps apart. Outputs a <span style={{ color: `${ACCENT}cc` }}>_sin</span> and <span style={{ color: `${ACCENT}cc` }}>_cos</span> column per feature. Set the period to the cycle length (e.g. 12 for months, 24 for hours, 7 for days of week).
-                    <br /><span style={{ color: `${ACCENT}99`, fontStyle: "italic" }}>Use on: hour of day in taxi/energy data, month in sales forecasts, day-of-week in retail — any column where the last value wraps back to the first.</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    {numCols.map(c => {
-                      const period = cyclicCols[c.name];
-                      const isOn = period !== undefined;
-                      return (
-                        <div key={c.name}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <Toggle checked={isOn} onChange={() => setCyclicCols(prev => {
-                              if (isOn) { const n = { ...prev }; delete n[c.name]; return n; }
-                              return { ...prev, [c.name]: 12 };
-                            })} />
-                            <span style={{ fontSize: "0.78rem", color: isOn ? "var(--text)" : "var(--text3)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
-                            {isOn && (
-                              <select value={period} onChange={e => setCyclicCols(prev => ({ ...prev, [c.name]: Number(e.target.value) }))}
-                                style={{ width: 72, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "var(--text)", fontSize: "0.7rem", padding: "0.18rem 0.25rem", outline: "none", flexShrink: 0 }}>
-                                <option value={7}>7 — week</option>
-                                <option value={12}>12 — month</option>
-                                <option value={24}>24 — hour</option>
-                                <option value={31}>31 — day</option>
-                                <option value={52}>52 — wk/yr</option>
-                                <option value={365}>365 — year</option>
-                              </select>
-                            )}
-                          </div>
-                          {isOn && (
-                            <div style={{ fontSize: "0.61rem", color: "var(--text3)", paddingLeft: "2.15rem", marginTop: "0.1rem" }}>
-                              → {c.name}_sin, {c.name}_cos
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Row Aggregates */}
-              {numCols.length >= 2 && (
-                <div style={{ padding: "1rem 1.3rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <SideLabel>Row Aggregates</SideLabel>
-                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.45rem", lineHeight: 1.6 }}>
-                    Summarises multiple columns into one new value per row. Useful when individual columns matter less than their combined pattern. Select 2+ columns and an aggregation; outputs a single <span style={{ color: `${ACCENT}cc` }}>row_{rowAggFn}</span> column.{rowAggCols.length >= 2 && <span style={{ color: ACCENT }}> → row_{rowAggFn}</span>}
-                    <br /><span style={{ color: `${ACCENT}99`, fontStyle: "italic" }}>Use on: row_mean of health vitals (glucose, BMI, bp) as an overall risk score; row_sum of expense categories as total spend; row_max of test scores as peak performance.</span>
-                  </div>
-                  <select value={rowAggFn} onChange={e => setRowAggFn(e.target.value)}
-                    style={{ ...SELECT_STYLE, width: "100%", marginBottom: "0.5rem" }}>
-                    <option value="mean">mean</option>
-                    <option value="max">max</option>
-                    <option value="min">min</option>
-                    <option value="std">std</option>
-                    <option value="sum">sum</option>
-                  </select>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
-                    {numCols.map(c => (
-                      <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                        <Toggle checked={rowAggCols.includes(c.name)} onChange={() => setRowAggCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])} />
-                        <span style={{ fontSize: "0.78rem", color: rowAggCols.includes(c.name) ? "var(--text)" : "var(--text3)" }}>{c.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {rowAggCols.length === 1 && <div style={{ fontSize: "0.62rem", color: "#f87171", marginTop: "0.4rem" }}>Select at least 2 columns</div>}
-                </div>
-              )}
-
-              {/* Time-Series Features */}
-              <div style={{ padding: "1rem 1.3rem" }}>
-                <SideLabel>Time-Series Features</SideLabel>
-                <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.65rem", lineHeight: 1.5 }}>
-                  Sort rows by a column, then apply lag/diff or rolling aggregates.
-                </div>
-
-                {/* Sort column selector */}
-                <div style={{ marginBottom: "0.75rem" }}>
-                  <div style={{ fontSize: "0.67rem", color: "var(--text3)", marginBottom: "0.28rem" }}>Sort column</div>
-                  <select value={sortCol} onChange={e => { setSortCol(e.target.value); setLagCols([]); setRollCols([]); }}
-                    style={{ ...SELECT_STYLE, width: "100%" }}>
-                    <option value="">— none —</option>
-                    {cols.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
-                </div>
-
-                {sortCol && (
-                  <>
-                    {/* Lag / Diff */}
-                    <div style={{ marginBottom: "0.6rem", padding: "0.65rem", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontSize: "0.64rem", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Lag / Diff</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
-                        <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0 }}>N =</span>
-                        <input
-                          type="number" min={1} max={10} value={lagN}
-                          onChange={e => setLagN(Math.max(1, parseInt(e.target.value) || 1))}
-                          style={{ width: 42, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.78rem", padding: "0.2rem 0.3rem", outline: "none", textAlign: "center" }}
-                        />
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.28rem", marginLeft: "auto" }}>
-                          <span style={{ fontSize: "0.71rem", color: "var(--text3)" }}>+diff</span>
-                          <Toggle checked={lagDiff} onChange={() => setLagDiff(p => !p)} />
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                        {numCols.map(c => (
-                          <button key={c.name}
-                            onClick={() => setLagCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
-                            style={{ padding: "2px 7px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600, cursor: "pointer",
-                              border: `1px solid ${lagCols.includes(c.name) ? "#f59e0b" : "rgba(255,255,255,0.1)"}`,
-                              background: lagCols.includes(c.name) ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)",
-                              color: lagCols.includes(c.name) ? "#f59e0b" : "var(--text3)",
-                              transition: "all 0.13s" }}>
-                            {c.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Rolling Window */}
-                    <div style={{ padding: "0.65rem", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontSize: "0.64rem", fontWeight: 700, color: "#e879f9", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Rolling Window</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
-                        <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0 }}>N =</span>
-                        <input
-                          type="number" min={2} max={20} value={rollN}
-                          onChange={e => setRollN(Math.max(2, parseInt(e.target.value) || 2))}
-                          style={{ width: 42, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.78rem", padding: "0.2rem 0.3rem", outline: "none", textAlign: "center" }}
-                        />
-                        <select value={rollAgg} onChange={e => setRollAgg(e.target.value)}
-                          style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "var(--text)", fontSize: "0.74rem", padding: "0.22rem 0.3rem", outline: "none" }}>
-                          <option value="mean">mean</option>
-                          <option value="std">std</option>
-                          <option value="min">min</option>
-                          <option value="max">max</option>
-                        </select>
-                      </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                        {numCols.map(c => (
-                          <button key={c.name}
-                            onClick={() => setRollCols(prev => prev.includes(c.name) ? prev.filter(x => x !== c.name) : [...prev, c.name])}
-                            style={{ padding: "2px 7px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600, cursor: "pointer",
-                              border: `1px solid ${rollCols.includes(c.name) ? "#e879f9" : "rgba(255,255,255,0.1)"}`,
-                              background: rollCols.includes(c.name) ? "rgba(232,121,249,0.1)" : "rgba(255,255,255,0.03)",
-                              color: rollCols.includes(c.name) ? "#e879f9" : "var(--text3)",
-                              transition: "all 0.13s" }}>
-                            {c.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-          </div>
-
-          {/* ── Right panel — pill chip transforms + categorical ── */}
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <div style={{ ...CARD }}>
-              <div style={{ marginBottom: "0.85rem" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    Numeric Column Transforms
-                  </div>
-                  <div style={{ display: "flex", gap: "0.4rem" }}>
-                    <button onClick={() => { setColTransforms({}); setAiSuggestError(null); }}
-                      title="Clear all selected transforms"
-                      style={{ padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer", border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--text3)", transition: "all 0.15s", flexShrink: 0 }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text3)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; }}>
-                      Clear all
-                    </button>
-                    <button onClick={aiSuggest} disabled={aiSuggestLoading}
-                      title="Use AI to suggest transforms based on column statistics"
-                      style={{ display: "flex", alignItems: "center", gap: "0.28rem", padding: "3px 11px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: aiSuggestLoading ? "default" : "pointer", border: `1px solid ${ACCENT}40`, background: `${ACCENT}0d`, color: aiSuggestLoading ? `${ACCENT}66` : ACCENT, transition: "all 0.15s", flexShrink: 0 }}
-                      onMouseEnter={e => { if (!aiSuggestLoading) (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}1a`; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}0d`; }}>
-                      {aiSuggestLoading ? "Analysing..." : "AI Suggest"}
-                    </button>
-                  </div>
-                </div>
-                {aiSuggestError && (
-                  <div style={{ fontSize: "0.63rem", color: "#f87171", marginTop: "0.35rem", textAlign: "right" }}>
-                    {aiSuggestError}
-                  </div>
-                )}
-              </div>
-
-{numCols.length === 0 ? (
-                <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                  <colgroup>
-                    <col style={{ width: 118 }} />
-                    <col style={{ width: 84 }} />
-                    <col />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th style={{ padding: "0 0 0.6rem", textAlign: "left", fontSize: "0.59rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                        Apply to all
-                      </th>
-                      <th style={{ padding: "0 0 0.6rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }} />
-                      <th style={{ padding: "0 0 0.6rem", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                          {NUM_TRANSFORMS.map(t => {
-                            const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
-                            const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
-                            return (
-                              <button key={t.key} onClick={() => toggleAllTransform(t.key, !allOn)} title={t.hint}
-                                style={{
-                                  padding: "2px 9px", borderRadius: 9999, fontSize: "0.66rem", fontWeight: 600, cursor: "pointer",
-                                  border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`,
-                                  background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)",
-                                  color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)",
-                                  transition: "all 0.12s",
-                                }}>
-                                {t.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {numCols.map((col, i) => {
-                      const selected = colTransforms[col.name] ?? [];
-                      const skewAbs = Math.abs(col.skew);
-                      const skewColor = skewAbs > 1.5 ? "#f59e0b" : skewAbs > 0.5 ? "#94a3b8" : "#34d399";
-                      const border = i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none";
-                      return (
-                        <tr key={col.name}>
-                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
-                            <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={col.name}>
-                              {col.name}
-                            </div>
-                            {col.missing > 0 && <div style={{ fontSize: "0.59rem", color: "#f87171" }}>{col.missing} missing</div>}
-                          </td>
-                          <td style={{ padding: "0.4rem 0.3rem", borderBottom: border, verticalAlign: "middle", textAlign: "center" }}>
-                            <MiniHistogram values={col.values} bins={14} width={66} height={22} color={`${skewColor}99`} />
-                            <div style={{ fontSize: "0.6rem", fontWeight: 700, color: skewColor, marginTop: "0.1rem" }}>
-                              skew {col.skew.toFixed(1)}
-                            </div>
-                          </td>
-                          <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                              {NUM_TRANSFORMS.map(t => {
-                                const on = selected.includes(t.key);
-                                return (
-                                  <button key={t.key} onClick={() => toggleTransform(col.name, t.key)} title={t.hint}
-                                    style={{
-                                      padding: "2px 9px", borderRadius: 9999, fontSize: "0.67rem", fontWeight: 600,
-                                      cursor: "pointer",
-                                      border: `1px solid ${on ? ACCENT : "rgba(255,255,255,0.1)"}`,
-                                      background: on ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
-                                      color: on ? ACCENT : "var(--text3)",
-                                      transition: "all 0.12s",
-                                      boxShadow: on ? `0 0 7px ${ACCENT}30` : "none",
-                                    }}>
-                                    {t.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* ── Categorical Columns card ── */}
-            {catCols.length > 0 && (
-              <div style={{ ...CARD }}>
-                <SectionTitle>Categorical Columns</SectionTitle>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-                  {catCols.map((col, ci) => {
-                    const topVals = getTopValues(col, 6);
-                    const isFreqOn = freqCols.includes(col.name);
-                    const isDateOn = dateCols.includes(col.name);
-                    const maxPct = topVals[0]?.pct ?? 1;
-                    const border = ci < catCols.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none";
-                    return (
-                      <div key={col.name} style={{ paddingTop: ci === 0 ? 0 : "1rem", paddingBottom: "1rem", borderBottom: border }}>
-                        {/* Column header */}
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.55rem" }}>
-                          <span style={{ fontSize: "0.83rem", fontWeight: 700, color: "var(--text)" }}>{col.name}</span>
-                          <span style={{ fontSize: "0.66rem", color: "var(--text3)" }}>
-                            {col.nunique} unique{col.missing > 0 ? ` · ${col.missing} missing` : ""}
-                          </span>
-                        </div>
-                        {/* Distribution bars */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.26rem", marginBottom: "0.7rem" }}>
-                          {topVals.map(v => (
-                            <div key={v.value} style={{ display: "grid", gridTemplateColumns: "130px 1fr 40px", gap: "0.5rem", alignItems: "center" }}>
-                              <span style={{ fontSize: "0.71rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={v.value}>
-                                {v.value}
-                              </span>
-                              <div style={{ height: 5, borderRadius: 9999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                                <div style={{
-                                  height: "100%",
-                                  width: `${(v.pct / maxPct) * 100}%`,
-                                  borderRadius: 9999,
-                                  background: isFreqOn ? ACCENT : "rgba(99,153,219,0.45)",
-                                  transition: "background 0.2s, width 0.3s",
-                                }} />
-                              </div>
-                              <span style={{ fontSize: "0.68rem", color: isFreqOn ? ACCENT : "var(--text3)", textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: isFreqOn ? 700 : 400, transition: "color 0.2s" }}>
-                                {(v.pct * 100).toFixed(1)}%
-                              </span>
-                            </div>
-                          ))}
-                          {col.nunique > 6 && (
-                            <span style={{ fontSize: "0.62rem", color: "var(--text3)", paddingLeft: "0.1rem" }}>
-                              + {col.nunique - 6} more values
-                            </span>
-                          )}
-                        </div>
-                        {/* Action chips */}
-                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          <button
-                            onClick={() => setFreqCols(prev => prev.includes(col.name) ? prev.filter(x => x !== col.name) : [...prev, col.name])}
-                            style={{
-                              display: "flex", alignItems: "center", gap: "0.32rem",
-                              padding: "3px 10px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
-                              border: `1px solid ${isFreqOn ? ACCENT : "rgba(255,255,255,0.12)"}`,
-                              background: isFreqOn ? `${ACCENT}18` : "rgba(255,255,255,0.04)",
-                              color: isFreqOn ? ACCENT : "var(--text3)",
-                              transition: "all 0.13s",
-                            }}>
-                            {isFreqOn ? "✓" : "○"} Freq Encoding
-                            <span style={{ fontFamily: "monospace", fontSize: "0.63rem", opacity: 0.8 }}>→ {col.name}_freq</span>
-                          </button>
-                          <button
-                            onClick={() => setDateCols(prev => prev.includes(col.name) ? prev.filter(x => x !== col.name) : [...prev, col.name])}
-                            style={{
-                              display: "flex", alignItems: "center", gap: "0.32rem",
-                              padding: "3px 10px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
-                              border: `1px solid ${isDateOn ? "#a78bfa" : "rgba(255,255,255,0.12)"}`,
-                              background: isDateOn ? "rgba(167,139,250,0.12)" : "rgba(255,255,255,0.04)",
-                              color: isDateOn ? "#a78bfa" : "var(--text3)",
-                              transition: "all 0.13s",
-                            }}>
-                            {isDateOn ? "✓" : "○"} Date Extract
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Date parts selector — shown when any date col is active */}
-                {dateCols.length > 0 && (
-                  <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div style={{ fontSize: "0.66rem", color: "var(--text3)", marginBottom: "0.4rem" }}>Parts to extract from date columns:</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                      {DATE_PARTS.map(p => (
-                        <button key={p.key}
-                          onClick={() => setDateParts(prev => prev.includes(p.key) ? prev.filter(x => x !== p.key) : [...prev, p.key])}
-                          style={{ padding: "3px 9px", borderRadius: 9999, fontSize: "0.69rem", fontWeight: 600, cursor: "pointer",
-                            border: `1px solid ${dateParts.includes(p.key) ? "#a78bfa" : "rgba(255,255,255,0.1)"}`,
-                            background: dateParts.includes(p.key) ? "rgba(167,139,250,0.12)" : "transparent",
-                            color: dateParts.includes(p.key) ? "#a78bfa" : "var(--text3)",
-                            transition: "all 0.13s" }}>
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <NumericTransformsPanel
+              numCols={numCols}
+              colTransforms={colTransforms}
+              onToggleTransform={toggleTransform}
+              onToggleAllTransform={toggleAllTransform}
+              onClearAll={() => { setColTransforms({}); setAiSuggestError(null); }}
+              onAiSuggest={aiSuggest}
+              aiSuggestLoading={aiSuggestLoading}
+              aiSuggestError={aiSuggestError}
+            />
+            <CategoricalPanel
+              catCols={catCols}
+              freqCols={freqCols}
+              dateCols={dateCols}
+              dateParts={dateParts}
+              onToggleFreqCol={col => setFreqCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+              onToggleDateCol={col => setDateCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
+              onToggleDatePart={part => setDateParts(prev => prev.includes(part) ? prev.filter(x => x !== part) : [...prev, part])}
+            />
           </div>
         </div>
       )}
@@ -1372,109 +459,12 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
 
       {/* ── Results ── */}
       {step === "results" && result && (
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            {[
-              { label: "Rows", value: result.rows.toLocaleString() },
-              { label: "Columns Before", value: String(result.colsBefore) },
-              { label: "Columns After", value: String(result.colsAfter), accent: true },
-              { label: "New Features", value: String(result.newColumns.length), accent: true },
-            ].map(s => (
-              <div key={s.label} style={{ ...CARD, textAlign: "center" }}>
-                <div style={{ fontSize: "1.6rem", fontWeight: 800, color: s.accent ? ACCENT : "var(--text)" }}>{s.value}</div>
-                <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.2rem" }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={CARD}>
-            <SectionTitle>New Columns Added ({result.newColumns.length})</SectionTitle>
-            {result.newColumns.length === 0
-              ? <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No transforms selected — go back and choose some.</div>
-              : <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                  {result.newColumns.map(c => (
-                    <span key={c} style={{ fontSize: "0.72rem", fontWeight: 500, color: ACCENT, background: `${ACCENT}10`, border: `1px solid ${ACCENT}28`, borderRadius: 6, padding: "2px 10px" }}>{c}</span>
-                  ))}
-                </div>
-            }
-          </div>
-
-          {/* New feature distributions */}
-          {result.newColumns.length > 0 && (
-            <div style={CARD}>
-              <SectionTitle>New Feature Distributions</SectionTitle>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem" }}>
-                {result.newColumns.map(colName => {
-                  const idx = result.headers.indexOf(colName);
-                  const vals = result.csv.slice(1).map(r => { const v = parseFloat(r[idx] ?? ""); return isNaN(v) ? null : v; });
-                  const valid = vals.filter(v => v !== null) as number[];
-                  if (valid.length === 0) return null;
-                  const min = Math.min(...valid), max = Math.max(...valid);
-                  return (
-                    <div key={colName} style={{ padding: "0.6rem 0.7rem", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={colName}>
-                        {colName}
-                      </div>
-                      <MiniHistogram values={vals} bins={18} width={140} height={34} color={ACCENT} />
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.57rem", color: "var(--text3)", marginTop: "0.22rem" }}>
-                        <span>{min.toFixed(2)}</span>
-                        <span>{max.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Data preview — first 5 rows */}
-          {result.newColumns.length > 0 && (
-            <div style={CARD}>
-              <SectionTitle>Preview — First 5 Rows (new columns only)</SectionTitle>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ borderCollapse: "collapse", fontSize: "0.72rem", minWidth: "max-content" }}>
-                  <thead>
-                    <tr>
-                      {result.newColumns.map(h => (
-                        <th key={h} style={{ padding: "0.35rem 0.75rem 0.35rem 0", textAlign: "left", fontWeight: 700, color: ACCENT, whiteSpace: "nowrap", paddingRight: "1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.csv.slice(1, 6).map((row, ri) => (
-                      <tr key={ri} style={{ background: ri % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent" }}>
-                        {result.newColumns.map(h => {
-                          const idx = result.headers.indexOf(h);
-                          const raw = row[idx] ?? "";
-                          const num = parseFloat(raw);
-                          const cell = raw !== "" && !isNaN(num) ? num.toFixed(2) : raw;
-                          return (
-                            <td key={h} style={{ padding: "0.3rem 1rem 0.3rem 0", color: "var(--text2)", whiteSpace: "nowrap" }}>
-                              {cell}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          <div style={{ ...CARD, borderColor: `${ACCENT}22`, background: `${ACCENT}07`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: "0.93rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.2rem" }}>Ready to download</div>
-              <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>engineered_{filename} — {result.colsAfter} columns, {result.rows.toLocaleString()} rows</div>
-            </div>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <ActionBtn secondary onClick={() => setStep("configure")}>Back to Configure</ActionBtn>
-              <ActionBtn onClick={downloadResult}>Download CSV</ActionBtn>
-            </div>
-          </div>
-        </div>
+        <ResultsPanel
+          result={result}
+          filename={filename}
+          onBackToConfigure={() => setStep("configure")}
+          onDownload={downloadResult}
+        />
       )}
 
       <ToolsAIChat context={{
@@ -1491,5 +481,3 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
     </div>
   );
 }
-
-const applyTransforms_fn = applyTransforms;
