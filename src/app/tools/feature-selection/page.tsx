@@ -235,18 +235,19 @@ export default function FeatureSelectionPage() {
           return { name: c.name, variance: c.variance, nunique: c.nunique, missing: c.missing, skew };
         }),
       };
+      const prompt = `Given this dataset (${rowCount} rows, ${numCols.length} numeric features, target="${opts.targetCol || "none"}", target type="${targetType}"), suggest which feature selection methods to enable and their settings. Respond with ONLY a valid JSON object — no explanation, no markdown fences — containing only the SelectionOpts boolean/numeric fields you recommend changing. Available boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}`;
       const res = await fetch("/api/ai-tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tool: "feature_selection_suggest",
-          context: JSON.stringify(stats),
-          prompt: `Given this dataset (${rowCount} rows, ${numCols.length} numeric features, target="${opts.targetCol || "none"}", target type="${targetType}"), suggest which feature selection methods to enable and their settings. Respond with a JSON object containing only the fields you want to change from SelectionOpts. Use boolean fields useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP and their numeric parameters.`,
+          messages: [{ role: "user", content: prompt }],
+          toolContext: JSON.stringify(stats),
+          provider: "gemini",
         }),
       });
       if (res.ok) {
-        const data = await res.json() as { result?: string };
-        const raw = data.result ?? "";
+        const data = await res.json() as { reply?: string; error?: string };
+        const raw = data.reply ?? "";
         const match = raw.match(/\{[\s\S]*\}/);
         if (match) {
           try {
