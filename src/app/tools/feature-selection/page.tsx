@@ -9,6 +9,7 @@ import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
 import UMAPScatter from "@/components/UMAPScatter";
 import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult, KBestMethod } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
+import MouseTiltCard from "@/components/MouseTiltCard";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -372,7 +373,7 @@ export default function FeatureSelectionPage() {
       }}>
 
         {/* ── Hero ── */}
-        <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+        <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
           <div style={{
             display: "flex", alignItems: "flex-start",
             justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",
@@ -394,10 +395,10 @@ export default function FeatureSelectionPage() {
               ))}
             </div>
           </div>
-        </div>
+        </MouseTiltCard>
 
         {/* ── Upload ── */}
-        <div
+        <MouseTiltCard
           style={{
             ...CARD, cursor: "pointer", textAlign: "center",
             borderStyle: hasFile ? "solid" : "dashed",
@@ -445,12 +446,12 @@ export default function FeatureSelectionPage() {
               </div>
             </div>
           )}
-        </div>
+        </MouseTiltCard>
 
         {hasFile && (
           <>
             {/* ── Target ── */}
-            <div style={{ ...CARD }}>
+            <MouseTiltCard style={{ ...CARD }}>
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                 Target Column
               </div>
@@ -480,10 +481,10 @@ export default function FeatureSelectionPage() {
                     : "No target — features ranked by normalized variance."}
                 </div>
               </div>
-            </div>
+            </MouseTiltCard>
 
             {/* ── Method config ── */}
-            <div style={{ ...CARD }}>
+            <MouseTiltCard style={{ ...CARD }}>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "1rem" }}>
                 Selection Methods
               </div>
@@ -1047,7 +1048,7 @@ export default function FeatureSelectionPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </MouseTiltCard>
 
             {/* ── Pipeline indicator ── */}
             {(() => {
@@ -1130,17 +1131,17 @@ export default function FeatureSelectionPage() {
                         : "0%",
                     },
                   ].map(s => (
-                    <div key={s.label} style={{ ...CARD, textAlign: "center" }}>
+                    <MouseTiltCard key={s.label} style={{ ...CARD, textAlign: "center" }}>
                       <div style={{ fontSize: "1.6rem", fontWeight: 800, color: s.accent ? ACCENT : "var(--text)" }}>
                         {s.value}
                       </div>
                       <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.2rem" }}>{s.label}</div>
-                    </div>
+                    </MouseTiltCard>
                   ))}
                 </div>
 
                 {/* ── Rankings ── */}
-                <div style={{ ...CARD }}>
+                <MouseTiltCard style={{ ...CARD }}>
                   <div style={{ marginBottom: "1rem" }}>
                     <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
                     <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1258,7 +1259,7 @@ export default function FeatureSelectionPage() {
                       );
                     })}
                   </div>
-                </div>
+                </MouseTiltCard>
 
                 {/* ── Method agreement ── */}
                 {(result.kBestActive || result.lassoActive || result.ridgeActive || result.treeActive) && (() => {
@@ -1272,7 +1273,7 @@ export default function FeatureSelectionPage() {
                   ];
                   const activeMethods = methods.filter(m => m.key === "mi" || (m.key === "fk" && result.kBestActive) || (m.key === "lasso" && result.lassoActive) || (m.key === "ridge" && result.ridgeActive) || (m.key === "tree" && result.treeActive));
                   return (
-                    <div style={{ ...CARD }}>
+                    <MouseTiltCard style={{ ...CARD }}>
                       <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                         Method Agreement
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1312,29 +1313,29 @@ export default function FeatureSelectionPage() {
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                    </MouseTiltCard>
                   );
                 })()}
 
                 {/* ── Score comparison chart ── */}
                 {result.features.length > 0 && (
-                  <div style={{ ...CARD }}>
+                  <MouseTiltCard style={{ ...CARD }}>
                     <ScoreComparisonChart features={result.features} result={result} accent={ACCENT} />
-                  </div>
+                  </MouseTiltCard>
                 )}
 
                 {/* ── Correlation heatmap ── */}
                 {numericCols.filter(c => c.name !== opts.targetCol).length >= 2 && (
-                  <div style={{ ...CARD }}>
+                  <MouseTiltCard style={{ ...CARD }}>
                     <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
                       Correlation Heatmap
                     </div>
                     <CorrelationHeatmap cols={numericCols.filter(c => c.name !== opts.targetCol)} accent={ACCENT} />
-                  </div>
+                  </MouseTiltCard>
                 )}
 
                 {/* ── Download selected ── */}
-                <div style={{
+                <MouseTiltCard style={{
                   ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22`,
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                   flexWrap: "wrap", gap: "1rem",
@@ -1362,14 +1363,14 @@ export default function FeatureSelectionPage() {
                   >
                     Download CSV
                   </button>
-                </div>
+                </MouseTiltCard>
 
                 {/* ── PCA result card ── */}
                 {result.pcaResult != null && (() => {
                   const { components } = result.pcaResult;
                   const lastComp = components[components.length - 1];
                   return (
-                    <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                    <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                       <div style={{ marginBottom: "0.75rem" }}>
                         <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>PCA Components</span>
                         <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
@@ -1410,13 +1411,13 @@ export default function FeatureSelectionPage() {
                       >
                         Download PCA CSV
                       </button>
-                    </div>
+                    </MouseTiltCard>
                   );
                 })()}
 
                 {/* ── UMAP result card ── */}
                 {result.umapResult != null && (
-                  <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                  <MouseTiltCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
                     <div style={{ marginBottom: "0.75rem" }}>
                       <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>UMAP Embedding</span>
                     </div>
@@ -1441,7 +1442,7 @@ export default function FeatureSelectionPage() {
                     >
                       Download UMAP CSV
                     </button>
-                  </div>
+                  </MouseTiltCard>
                 )}
               </>
             )}
