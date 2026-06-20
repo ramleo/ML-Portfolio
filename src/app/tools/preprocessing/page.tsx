@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import { parseCSV, analyzeCSV, preprocessCSV } from "@/lib/preprocessing";
+import MouseTiltCard from "@/components/MouseTiltCard";
 
 const ACCENT  = "#22d3ee";
 const CARD_BG = "rgba(17,24,39,0.80)";
@@ -448,7 +449,7 @@ function PresetsBar({
 function QualityScoreCard({ before, after }: { before: number; after: number }) {
   const diff = after - before;
   return (
-    <div style={{
+    <MouseTiltCard style={{
       padding: "1.25rem 1.5rem", borderRadius: 14,
       background: CARD_BG, border: "1px solid var(--border)",
       marginBottom: "1.25rem",
@@ -503,7 +504,7 @@ function QualityScoreCard({ before, after }: { before: number; after: number }) 
           <span style={{ fontSize: "0.65rem", color: scoreColor(after), width: 28, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{after}</span>
         </div>
       </div>
-    </div>
+    </MouseTiltCard>
   );
 }
 
@@ -1194,12 +1195,12 @@ export default function PreprocessingPage() {
                 )}
 
                 {/* Toggles */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem", padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
+                <MouseTiltCard style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem", padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
                   <Toggle on={removeDups}     onChange={v => { setRemoveDups(v); setActivePreset("custom"); }}     label="Remove Duplicates" />
                   <Toggle on={removeOutliers} onChange={v => { setRemoveOutliers(v); setActivePreset("custom"); }} label="Remove Outliers (IQR)" />
                   <Toggle on={fixSkewness}    onChange={v => { setFixSkewness(v); setActivePreset("custom"); }}    label="Fix Skewness (log1p)" />
                   <Toggle on={standardize}    onChange={v => { setStandardize(v); setActivePreset("custom"); }}    label="Standardize (Z-score)" />
-                </div>
+                </MouseTiltCard>
 
                 {error && <div style={{ padding: "0.75rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "0.82rem" }}>{error}</div>}
 
@@ -1254,14 +1255,14 @@ export default function PreprocessingPage() {
                 const improved = typeof s.before === "number" && typeof s.after === "number"
                   ? (s.label === "Features" ? s.after >= s.before : s.after <= s.before) : true;
                 return (
-                  <div key={s.label} style={{ padding: "0.85rem 1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
+                  <MouseTiltCard key={s.label} style={{ padding: "0.85rem 1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
                     <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.4rem" }}>{s.label}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <span style={{ fontSize: "0.82rem", color: "var(--text3)" }}>{s.before}</span>
                       <span style={{ color: "var(--border2)" }}>→</span>
                       <span style={{ fontSize: "1rem", fontWeight: 700, color: changed ? (improved ? "#4ade80" : "#f87171") : ACCENT }}>{s.after}</span>
                     </div>
-                  </div>
+                  </MouseTiltCard>
                 );
               })}
             </div>

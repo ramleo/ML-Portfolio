@@ -1,29 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
+import MouseTiltCard from "@/components/MouseTiltCard";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const router = useRouter();
-
-  const [tilt, setTilt]       = useState({ x: 0, y: 0 });
-  const [hovering, setHovering] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) / rect.width - 0.5;
-    const cy = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: cy * -10, y: cx * 10 });
-  };
-
-  const handleMouseEnter = () => setHovering(true);
-  const handleMouseLeave = () => { setHovering(false); setTilt({ x: 0, y: 0 }); };
 
   return (
     <motion.div
@@ -33,47 +21,22 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
       style={{ flexShrink: 0, width: "clamp(280px, 30vw, 320px)", height: "100%", display: "flex" }}
     >
-    <div
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+    <MouseTiltCard
+      glowColor={`${cap.accent}22`}
       style={{
         width: "100%",
         height: "100%",
         borderRadius: 16,
-        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         position: "relative",
         background: "var(--bg-glass)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${hovering ? cap.accent + "44" : "var(--border)"}`,
-        transform: hovering
-          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
-          : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
-        transition: hovering
-          ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
-          : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
-        boxShadow: hovering
-          ? `0 0 0 1px ${cap.accent}55, 0 0 30px ${cap.accent}55, 0 20px 60px ${cap.accent}33, 0 8px 24px rgba(0,0,0,0.4)`
-          : "0 4px 24px rgba(0,0,0,0.25)",
+        border: `1px solid var(--border)`,
+        boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
       }}
     >
-      {/* Shimmer overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 16,
-          background: hovering
-            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
-            : "none",
-          pointerEvents: "none",
-          zIndex: 0,
-          transition: "background 0.08s ease",
-        }}
-      />
 
       {/* Colored top border */}
       <div style={{ height: 3, background: cap.accent, flexShrink: 0, position: "relative", zIndex: 1 }} />
@@ -313,7 +276,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
           </a>
         </div>
       </div>
-    </div>
+    </MouseTiltCard>
     </motion.div>
   );
 }

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { ML_UNIFIED_API } from "@/config/urls";
+import MouseTiltCard from "@/components/MouseTiltCard";
 
 const STAGES = [
   {
@@ -327,6 +328,9 @@ export default function PipelineShowcase() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
+              >
+              <MouseTiltCard
+                glowColor={`${active.accent}18`}
                 style={{
                   background: "var(--bg-card)",
                   border: `1px solid ${active.accent}40`,
@@ -385,6 +389,7 @@ export default function PipelineShowcase() {
                     MLFlow integration in progress — tracking experiments, detecting data drift, automating retraining.
                   </span>
                 )}
+              </MouseTiltCard>
               </motion.div>
             )}
           </AnimatePresence>

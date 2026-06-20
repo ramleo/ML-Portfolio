@@ -5,6 +5,7 @@ import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import ModalShell from "@/components/modals/ModalShell";
+import MouseTiltCard from "@/components/MouseTiltCard";
 const ACCENT = "#22c55e";
 const CARD_BG = "rgba(17,24,39,0.65)";
 
@@ -732,10 +733,10 @@ export default function AutoMLModal({
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
                 {[{ label: "File", value: file?.name ?? "" }, { label: "Rows", value: analyzed.rows.toLocaleString() }, { label: "Columns", value: String(analyzed.columns.length) }].map(m => (
-                  <div key={m.label} style={{ padding: "0.6rem 0.85rem", borderRadius: 10, background: CARD_BG, border: "1px solid rgba(129,140,248,0.14)" }}>
+                  <MouseTiltCard key={m.label} style={{ padding: "0.6rem 0.85rem", borderRadius: 10, background: CARD_BG, border: "1px solid rgba(129,140,248,0.14)" }}>
                     <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>{m.label}</div>
                     <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.value}</div>
-                  </div>
+                  </MouseTiltCard>
                 ))}
               </div>
 
