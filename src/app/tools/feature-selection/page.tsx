@@ -4,10 +4,12 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
-
-const ACCENT = "#fb923c";
+import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult, KBestMethod } from "@/lib/fsAlgorithms";
+import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
+
+const ACCENT = "#fb923c";
 
 const CARD: React.CSSProperties = {
   background: "rgba(14,22,40,0.72)",
@@ -39,348 +41,11 @@ function TechPill({ label }: { label: string }) {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface ColInfo {
-  name: string;
-  type: "numeric" | "categorical";
-  nums: number[];
-  rawVals: string[];
-  variance: number;
-  mean: number;
-  missing: number;
-  nunique: number;
-}
-
-type KBestMethod = "mi" | "f_regression" | "f_classif";
-type TabId = "variance" | "correlation" | "topk" | "rfe" | "selectkbest";
-
-interface SelectionOpts {
-  targetCol: string;
-  useVariance: boolean;
-  varianceThreshold: number;
-  useCorrelation: boolean;
-  corrThreshold: number;
-  useTopK: boolean;
-  topK: number;
-  useRFE: boolean;
-  rfeTargetK: number;
-  useSelectKBest: boolean;
-  selectKBestK: number;
-  kBestMethod: KBestMethod;
-}
-
-interface FeatureScore {
-  name: string;
-  score: number;      // normalized MI score 0..1 — bar
-  fScore: number;     // normalized F/KBest score 0..1 — shown when SKB active
-  rfeRound: number;   // round at which RFE eliminated it (0 = not eliminated by RFE)
-  variance: number;
-  reasons: string[];
-  kept: boolean;
-}
-
-interface SelectionResult {
-  features: FeatureScore[];
-  keptCount: number;
-  droppedCount: number;
-  csvText: string;
-  kBestActive: boolean;
-  rfeActive: boolean;
-}
-
-// ── CSV ───────────────────────────────────────────────────────────────────────
-
-function parseCSV(text: string): { headers: string[]; rows: string[][] } {
-  const lines: string[] = [];
-  let cur = "", inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '"') { inQ = !inQ; cur += ch; }
-    else if (!inQ && (ch === "\n" || ch === "\r")) {
-      if (ch === "\r" && text[i + 1] === "\n") i++;
-      lines.push(cur); cur = "";
-    } else cur += ch;
-  }
-  if (cur.trim()) lines.push(cur);
-
-  function splitLine(line: string): string[] {
-    const cells: string[] = [];
-    let cell = "", inQq = false;
-    for (let i = 0; i <= line.length; i++) {
-      const ch = line[i];
-      if (i === line.length || (!inQq && ch === ",")) {
-        const t = cell.trim();
-        cells.push(t.startsWith('"') && t.endsWith('"')
-          ? t.slice(1, -1).replace(/""/g, '"') : t);
-        cell = "";
-      } else { cell += ch; if (ch === '"') inQq = !inQq; }
-    }
-    return cells;
-  }
-
-  const nonEmpty = lines.filter(l => l.trim());
-  if (nonEmpty.length < 2) return { headers: [], rows: [] };
-  return {
-    headers: splitLine(nonEmpty[0]).map(h => h.trim()),
-    rows: nonEmpty.slice(1).map(splitLine),
-  };
-}
-
-function analyzeColumns(headers: string[], rows: string[][]): ColInfo[] {
-  return headers.map((name, ci) => {
-    const rawVals = rows.map(r => (r[ci] ?? "").trim());
-    const parsed = rawVals.map(v => parseFloat(v.replace(/,/g, "")));
-    const finiteCount = parsed.filter(isFinite).length;
-    const isNumeric = rawVals.length > 0 && finiteCount / rawVals.length > 0.7;
-
-    let nums: number[];
-    if (isNumeric) {
-      nums = parsed.map(n => (isFinite(n) ? n : NaN));
-    } else {
-      const cats = [...new Set(rawVals.filter(Boolean))].sort();
-      nums = rawVals.map(v => (v ? cats.indexOf(v) : NaN));
-    }
-
-    const finite = nums.filter(isFinite);
-    const mean = finite.length ? finite.reduce((a, b) => a + b, 0) / finite.length : 0;
-    const variance = finite.length > 1
-      ? finite.reduce((s, v) => s + (v - mean) ** 2, 0) / finite.length : 0;
-    const missing = rawVals.filter(v => {
-      const lv = v.toLowerCase();
-      return v === "" || lv === "null" || lv === "na" || lv === "nan" || lv === "none";
-    }).length;
-
-    return {
-      name, type: isNumeric ? "numeric" : "categorical",
-      nums, rawVals, variance, mean, missing,
-      nunique: new Set(rawVals.filter(Boolean)).size,
-    };
-  });
-}
-
-function serializeCSV(keptCols: ColInfo[]): string {
-  const n = keptCols[0]?.rawVals.length ?? 0;
-  const q = (v: string) =>
-    v.includes(",") || v.includes('"') || v.includes("\n")
-      ? `"${v.replace(/"/g, '""')}"` : v;
-  const lines = [keptCols.map(c => q(c.name)).join(",")];
-  for (let i = 0; i < n; i++) lines.push(keptCols.map(c => q(c.rawVals[i] ?? "")).join(","));
-  return lines.join("\n");
-}
-
-// ── Statistics ────────────────────────────────────────────────────────────────
-
-function pearson(a: number[], b: number[]): number {
-  const pairs: [number, number][] = [];
-  for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    if (isFinite(a[i]) && isFinite(b[i])) pairs.push([a[i], b[i]]);
-  }
-  if (pairs.length < 3) return 0;
-  const n = pairs.length;
-  const ma = pairs.reduce((s, p) => s + p[0], 0) / n;
-  const mb = pairs.reduce((s, p) => s + p[1], 0) / n;
-  let num = 0, da = 0, db = 0;
-  for (const [x, y] of pairs) {
-    const dx = x - ma, dy = y - mb;
-    num += dx * dy; da += dx * dx; db += dy * dy;
-  }
-  if (da === 0 || db === 0) return 0;
-  return num / Math.sqrt(da * db);
-}
-
-function miScore(col: ColInfo, target: ColInfo | null): number {
-  if (!target) return col.variance;
-  const r = pearson(col.nums, target.nums);
-  return Math.max(0, -0.5 * Math.log(Math.max(1 - r * r, 1e-10)));
-}
-
-// F(1, n-2) statistic for linear association — matches sklearn f_regression
-function fRegression(col: ColInfo, target: ColInfo): number {
-  const r = pearson(col.nums, target.nums);
-  if (r === 0) return 0;
-  const pairs: number[] = [];
-  for (let i = 0; i < Math.min(col.nums.length, target.nums.length); i++) {
-    if (isFinite(col.nums[i]) && isFinite(target.nums[i])) pairs.push(1);
-  }
-  const n = pairs.length;
-  if (n < 3) return 0;
-  const r2 = r * r;
-  return Math.max(0, (r2 * (n - 2)) / Math.max(1 - r2, 1e-10));
-}
-
-// One-way ANOVA F-statistic — matches sklearn f_classif
-function fClassif(col: ColInfo, target: ColInfo): number {
-  const groups = new Map<number, number[]>();
-  let total = 0;
-  for (let i = 0; i < Math.min(col.nums.length, target.nums.length); i++) {
-    if (!isFinite(col.nums[i]) || !isFinite(target.nums[i])) continue;
-    const cat = Math.round(target.nums[i]);
-    if (!groups.has(cat)) groups.set(cat, []);
-    groups.get(cat)!.push(col.nums[i]);
-    total++;
-  }
-  if (groups.size < 2 || total < 3) return 0;
-  const k = groups.size;
-  const allVals = [...groups.values()].flat();
-  const grandMean = allVals.reduce((a, b) => a + b, 0) / total;
-  let between = 0, within = 0;
-  for (const vals of groups.values()) {
-    const gm = vals.reduce((a, b) => a + b, 0) / vals.length;
-    between += vals.length * (gm - grandMean) ** 2;
-    within += vals.reduce((s, v) => s + (v - gm) ** 2, 0);
-  }
-  if (within === 0 || total === k) return 0;
-  return Math.max(0, (between / (k - 1)) / (within / (total - k)));
-}
-
-// ── Selection ─────────────────────────────────────────────────────────────────
-
-function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionResult {
-  const targetInfo = opts.targetCol
-    ? (cols.find(c => c.name === opts.targetCol) ?? null) : null;
-
-  const candidates = cols.filter(c => c.type === "numeric" && c.name !== opts.targetCol);
-  if (candidates.length === 0) {
-    return { features: [], keptCount: 0, droppedCount: 0, csvText: "", kBestActive: false, rfeActive: false };
-  }
-
-  // Base MI scores (normalized) — used for bar display and correlation/RFE tie-breaking
-  const rawMI = Object.fromEntries(candidates.map(c => [c.name, miScore(c, targetInfo)]));
-  const maxMI = Math.max(...Object.values(rawMI), 1e-10);
-  const miNorm = Object.fromEntries(Object.entries(rawMI).map(([k, v]) => [k, v / maxMI]));
-
-  // Step 1 — Variance threshold
-  const varDropped = new Set<string>();
-  if (opts.useVariance) {
-    for (const c of candidates) if (c.variance < opts.varianceThreshold) varDropped.add(c.name);
-  }
-
-  // Step 2 — Correlation filter
-  const corrDropped = new Set<string>();
-  if (opts.useCorrelation) {
-    const eligible = candidates.filter(c => !varDropped.has(c.name));
-    for (let i = 0; i < eligible.length; i++) {
-      if (corrDropped.has(eligible[i].name)) continue;
-      for (let j = i + 1; j < eligible.length; j++) {
-        if (corrDropped.has(eligible[j].name)) continue;
-        if (Math.abs(pearson(eligible[i].nums, eligible[j].nums)) >= opts.corrThreshold) {
-          const drop = (miNorm[eligible[i].name] ?? 0) <= (miNorm[eligible[j].name] ?? 0)
-            ? eligible[i].name : eligible[j].name;
-          corrDropped.add(drop);
-          if (drop === eligible[i].name) break;
-        }
-      }
-    }
-  }
-
-  // Step 3 — Top-K by MI
-  const topKDropped = new Set<string>();
-  if (opts.useTopK) {
-    const pool = candidates
-      .filter(c => !varDropped.has(c.name) && !corrDropped.has(c.name))
-      .sort((a, b) => (miNorm[b.name] ?? 0) - (miNorm[a.name] ?? 0));
-    pool.slice(Math.max(1, opts.topK)).forEach(c => topKDropped.add(c.name));
-  }
-
-  // Step 4 — RFE: iterative backward elimination with redundancy penalty
-  const rfeDropped = new Set<string>();
-  const rfeRoundMap: Record<string, number> = {};
-  if (opts.useRFE) {
-    const pool = candidates.filter(
-      c => !varDropped.has(c.name) && !corrDropped.has(c.name) && !topKDropped.has(c.name)
-    );
-    let remaining = [...pool];
-    let round = 1;
-    while (remaining.length > Math.max(1, opts.rfeTargetK)) {
-      let minScore = Infinity;
-      let minName = "";
-      for (const col of remaining) {
-        const mi = miScore(col, targetInfo);
-        const others = remaining.filter(o => o.name !== col.name);
-        const avgR = others.length > 0
-          ? others.reduce((s, o) => s + Math.abs(pearson(col.nums, o.nums)), 0) / others.length
-          : 0;
-        // Importance = MI × (1 - redundancy_weight × avg_correlation)
-        const score = mi * (1 - 0.35 * avgR);
-        if (score < minScore) { minScore = score; minName = col.name; }
-      }
-      if (!minName) break;
-      rfeDropped.add(minName);
-      rfeRoundMap[minName] = round++;
-      remaining = remaining.filter(c => c.name !== minName);
-    }
-  }
-
-  // Step 5 — SelectKBest: univariate F-statistic or MI
-  const kBestDropped = new Set<string>();
-  const kBestScores: Record<string, number> = {};
-  const kBestActive = opts.useSelectKBest;
-  const rfeActive = opts.useRFE;
-
-  if (opts.useSelectKBest) {
-    const pool = candidates.filter(
-      c => !varDropped.has(c.name) && !corrDropped.has(c.name) &&
-           !topKDropped.has(c.name) && !rfeDropped.has(c.name)
-    );
-
-    const raw = pool.map(c => {
-      let score = 0;
-      if (!targetInfo) {
-        score = c.variance;
-      } else if (opts.kBestMethod === "f_regression") {
-        score = fRegression(c, targetInfo);
-      } else if (opts.kBestMethod === "f_classif") {
-        score = fClassif(c, targetInfo);
-      } else {
-        score = miScore(c, targetInfo);
-      }
-      return { name: c.name, score };
-    });
-
-    const maxF = Math.max(...raw.map(s => s.score), 1e-10);
-    for (const { name, score } of raw) kBestScores[name] = score / maxF;
-
-    raw.sort((a, b) => b.score - a.score);
-    raw.slice(Math.max(1, opts.selectKBestK)).forEach(s => kBestDropped.add(s.name));
-  }
-
-  // Build feature list sorted by MI score descending
-  const features: FeatureScore[] = candidates
-    .sort((a, b) => (miNorm[b.name] ?? 0) - (miNorm[a.name] ?? 0))
-    .map(c => {
-      const reasons: string[] = [];
-      if (varDropped.has(c.name)) reasons.push("low variance");
-      if (corrDropped.has(c.name)) reasons.push("high correlation");
-      if (topKDropped.has(c.name)) reasons.push("outside top-K");
-      if (rfeDropped.has(c.name)) reasons.push(`RFE round ${rfeRoundMap[c.name] ?? "?"}`);
-      if (kBestDropped.has(c.name)) reasons.push("below K best");
-      return {
-        name: c.name,
-        score: miNorm[c.name] ?? 0,
-        fScore: kBestScores[c.name] ?? 0,
-        rfeRound: rfeRoundMap[c.name] ?? 0,
-        variance: c.variance,
-        reasons,
-        kept: reasons.length === 0,
-      };
-    });
-
-  // Build output CSV: kept numeric + target + all categoricals
-  const keptNames = new Set([
-    ...features.filter(f => f.kept).map(f => f.name),
-    ...(opts.targetCol ? [opts.targetCol] : []),
-    ...cols.filter(c => c.type === "categorical" && c.name !== opts.targetCol).map(c => c.name),
-  ]);
-  const keptCols = cols.filter(c => keptNames.has(c.name));
-
-  return {
-    features,
-    keptCount: features.filter(f => f.kept).length,
-    droppedCount: features.filter(f => !f.kept).length,
-    csvText: serializeCSV(keptCols),
-    kBestActive,
-    rfeActive,
-  };
-}
+type TabId =
+  | "variance" | "correlation" | "topk" | "rfe" | "selectkbest"
+  | "forward" | "exhaustive" | "chisq" | "kendall"
+  | "lasso" | "ridge" | "tree"
+  | "pca" | "umap";
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -400,11 +65,33 @@ export default function FeatureSelectionPage() {
     corrThreshold: 0.9,
     useTopK: false,
     topK: 10,
-    useRFE: false,
-    rfeTargetK: 10,
     useSelectKBest: false,
     selectKBestK: 10,
     kBestMethod: "f_regression",
+    useKendall: false,
+    kendallTopK: 10,
+    useChiSq: false,
+    chiSqTopK: 10,
+    useRFE: false,
+    rfeTargetK: 10,
+    useLasso: false,
+    lassoAlpha: 0.01,
+    lassoTopK: 10,
+    useRidge: false,
+    ridgeAlpha: 1.0,
+    ridgeTopK: 10,
+    useTree: false,
+    treeTopK: 10,
+    treeNTrees: 50,
+    useForward: false,
+    forwardK: 10,
+    useExhaustive: false,
+    exhaustiveK: 5,
+    usePCA: false,
+    pcaComponents: 3,
+    useUMAP: false,
+    umapComponents: 2,
+    umapNeighbors: 15,
   });
 
   const [result, setResult] = useState<SelectionResult | null>(null);
@@ -459,6 +146,28 @@ export default function FeatureSelectionPage() {
     URL.revokeObjectURL(url);
   }, [result, fileName]);
 
+  const handleDownloadPCA = useCallback(() => {
+    if (!result?.pcaResult?.csvText) return;
+    const blob = new Blob([result.pcaResult.csvText], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName.replace(/\.csv$/i, "") + "_pca.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [result, fileName]);
+
+  const handleDownloadUMAP = useCallback(() => {
+    if (!result?.umapResult?.csvText) return;
+    const blob = new Blob([result.umapResult.csvText], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName.replace(/\.csv$/i, "") + "_umap.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [result, fileName]);
+
   const hasFile = cols.length > 0;
   const numericCols = cols.filter(c => c.type === "numeric");
   const categoricalCols = cols.filter(c => c.type === "categorical");
@@ -466,11 +175,20 @@ export default function FeatureSelectionPage() {
   const targetInfo = cols.find(c => c.name === opts.targetCol) ?? null;
 
   const TABS: { id: TabId; label: string; enabled: boolean }[] = [
-    { id: "variance", label: "Variance", enabled: opts.useVariance },
-    { id: "correlation", label: "Corr Filter", enabled: opts.useCorrelation },
-    { id: "topk", label: "Top-K", enabled: opts.useTopK },
-    { id: "rfe", label: "RFE", enabled: opts.useRFE },
-    { id: "selectkbest", label: "Select K Best", enabled: opts.useSelectKBest },
+    { id: "variance",    label: "Variance",   enabled: opts.useVariance },
+    { id: "correlation", label: "Corr",       enabled: opts.useCorrelation },
+    { id: "topk",        label: "Top-K",      enabled: opts.useTopK },
+    { id: "selectkbest", label: "K Best",     enabled: opts.useSelectKBest },
+    { id: "kendall",     label: "Kendall τ",  enabled: opts.useKendall },
+    { id: "chisq",       label: "Chi-sq",     enabled: opts.useChiSq },
+    { id: "rfe",         label: "RFE",        enabled: opts.useRFE },
+    { id: "lasso",       label: "Lasso",      enabled: opts.useLasso },
+    { id: "ridge",       label: "Ridge",      enabled: opts.useRidge },
+    { id: "tree",        label: "Tree",       enabled: opts.useTree },
+    { id: "forward",     label: "Forward",    enabled: opts.useForward },
+    { id: "exhaustive",  label: "Exhaustive", enabled: opts.useExhaustive },
+    { id: "pca",         label: "PCA",        enabled: opts.usePCA },
+    { id: "umap",        label: "UMAP",       enabled: opts.useUMAP },
   ];
 
   return (
@@ -531,13 +249,14 @@ export default function FeatureSelectionPage() {
                 Keeping Only What Matters
               </div>
               <div style={{ fontSize: "0.84rem", color: "var(--text2)", maxWidth: 560, lineHeight: 1.6 }}>
-                Upload a CSV and apply five complementary methods — variance threshold, correlation filter,
-                top-K MI scoring, RFE backward elimination, and univariate SelectKBest — to reduce your
-                feature set. Download the result. Everything runs in your browser.
+                Upload a CSV and apply fourteen complementary methods — variance threshold, correlation filter,
+                top-K MI scoring, SelectKBest, Kendall tau, chi-squared, RFE, Lasso, Ridge, tree importance,
+                forward selection, exhaustive search, PCA, and UMAP — to reduce your feature set.
+                Download the result. Everything runs in your browser.
               </div>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "flex-start" }}>
-              {["Variance", "Pearson r", "MI Score", "RFE", "F-stat"].map(l => (
+              {["Variance", "Pearson r", "MI Score", "RFE", "Lasso", "PCA", "UMAP"].map(l => (
                 <TechPill key={l} label={l} />
               ))}
             </div>
@@ -636,7 +355,7 @@ export default function FeatureSelectionPage() {
                 Selection Methods
               </div>
 
-              {/* Tab bar — 2 rows for 5 tabs */}
+              {/* Tab bar */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "1.25rem", background: "rgba(0,0,0,0.25)", borderRadius: 8, padding: "0.25rem" }}>
                 {TABS.map(tab => {
                   const active = activeTab === tab.id;
@@ -719,7 +438,7 @@ export default function FeatureSelectionPage() {
                       When two features have |r| above the threshold, the one with the lower MI score is dropped. Removes multicollinearity without discarding predictive signal.
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0, width: 52 }}>|r| ≥</span>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0, width: 52 }}>|r| &ge;</span>
                       <input
                         type="range" min="0.5" max="1.0" step="0.01"
                         value={opts.corrThreshold}
@@ -764,6 +483,139 @@ export default function FeatureSelectionPage() {
                 </div>
               )}
 
+              {/* ── SelectKBest tab ── */}
+              {activeTab === "selectkbest" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useSelectKBest}
+                      onChange={e => setOpts(o => ({ ...o, useSelectKBest: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Select K Best</span>
+                  </label>
+                  <div style={{ opacity: opts.useSelectKBest ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Ranks features by a univariate score and keeps the top K. Three scoring functions available — choose based on your target type.
+                    </div>
+
+                    <div style={{ marginBottom: "1rem" }}>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>Scoring function</div>
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                        {([
+                          { id: "f_regression", label: "f_regression", desc: "F(1,n-2) stat for linear association · numeric target" },
+                          { id: "f_classif",    label: "f_classif",    desc: "One-way ANOVA F-stat · categorical target" },
+                          { id: "mi",           label: "mutual_info",  desc: "MI approximation via Pearson correlation · any target" },
+                        ] as { id: KBestMethod; label: string; desc: string }[]).map(m => (
+                          <button
+                            key={m.id}
+                            onClick={() => setOpts(o => ({ ...o, kBestMethod: m.id }))}
+                            disabled={!opts.useSelectKBest}
+                            title={m.desc}
+                            style={{
+                              padding: "0.35rem 0.8rem", borderRadius: 6, cursor: "pointer",
+                              fontSize: "0.76rem", fontWeight: 600, transition: "all 0.15s",
+                              border: `1px solid ${opts.kBestMethod === m.id ? ACCENT : "rgba(255,255,255,0.12)"}`,
+                              background: opts.kBestMethod === m.id ? `${ACCENT}18` : "rgba(0,0,0,0.2)",
+                              color: opts.kBestMethod === m.id ? ACCENT : "var(--text3)",
+                            }}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: "0.71rem", color: "var(--text3)", marginTop: "0.4rem" }}>
+                        {opts.kBestMethod === "f_regression" && "F = r² × (n-2) / (1-r²) — measures linear association strength with a numeric target."}
+                        {opts.kBestMethod === "f_classif" && "One-way ANOVA: between-class SS / within-class SS — measures how well a feature separates class groups."}
+                        {opts.kBestMethod === "mi" && "MI ≈ −0.5 × log(1 − r²) — information-theoretic score, works for any target type."}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep best</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.selectKBestK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, selectKBestK: parseInt(e.target.value) }))}
+                        disabled={!opts.useSelectKBest}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.selectKBestK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                      Results show normalized F/MI scores as a secondary bar in the ranking table.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Kendall tab ── */}
+              {activeTab === "kendall" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useKendall}
+                      onChange={e => setOpts(o => ({ ...o, useKendall: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Kendall's Tau Filter</span>
+                  </label>
+                  <div style={{ opacity: opts.useKendall ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Rank correlation — counts concordant vs discordant observation pairs. Robust for monotonic non-linear relationships. |τ| close to 1 = strong association. Capped at 500 rows for performance.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep top</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.kendallTopK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, kendallTopK: parseInt(e.target.value) }))}
+                        disabled={!opts.useKendall}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.kendallTopK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                    {!opts.targetCol && (
+                      <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                        Select a target column for meaningful scores.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Chi-sq tab ── */}
+              {activeTab === "chisq" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useChiSq}
+                      onChange={e => setOpts(o => ({ ...o, useChiSq: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Chi-squared Filter</span>
+                  </label>
+                  <div style={{ opacity: opts.useChiSq ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Bins each numeric feature into quartiles and tests independence against the target using χ². Higher χ² = stronger dependence on target. Works best with a categorical target.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep top</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.chiSqTopK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, chiSqTopK: parseInt(e.target.value) }))}
+                        disabled={!opts.useChiSq}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.chiSqTopK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                    {!opts.targetCol && (
+                      <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                        Select a target column for meaningful scores.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* ── RFE tab ── */}
               {activeTab === "rfe" && (
                 <div>
@@ -796,68 +648,290 @@ export default function FeatureSelectionPage() {
                 </div>
               )}
 
-              {/* ── SelectKBest tab ── */}
-              {activeTab === "selectkbest" && (
+              {/* ── Lasso tab ── */}
+              {activeTab === "lasso" && (
                 <div>
                   <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
-                    <input type="checkbox" checked={opts.useSelectKBest}
-                      onChange={e => setOpts(o => ({ ...o, useSelectKBest: e.target.checked }))} />
-                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Select K Best</span>
+                    <input type="checkbox" checked={opts.useLasso}
+                      onChange={e => setOpts(o => ({ ...o, useLasso: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Lasso (L1)</span>
                   </label>
-                  <div style={{ opacity: opts.useSelectKBest ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                  <div style={{ opacity: opts.useLasso ? 1 : 0.4, transition: "opacity 0.15s" }}>
                     <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
-                      Ranks features by a univariate score and keeps the top K. Three scoring functions available — choose based on your target type.
+                      Coordinate descent with L1 penalty. Shrinks weak feature weights toward exactly zero — naturally sparse. Higher alpha = more features zeroed. Requires a target column. Capped at 500 rows.
                     </div>
-
-                    {/* Scoring method */}
-                    <div style={{ marginBottom: "1rem" }}>
-                      <div style={{ fontSize: "0.72rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>Scoring function</div>
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                        {([
-                          { id: "f_regression", label: "f_regression", desc: "F(1,n-2) stat for linear association · numeric target" },
-                          { id: "f_classif", label: "f_classif", desc: "One-way ANOVA F-stat · categorical target" },
-                          { id: "mi", label: "mutual_info", desc: "MI approximation via Pearson correlation · any target" },
-                        ] as { id: KBestMethod; label: string; desc: string }[]).map(m => (
-                          <button
-                            key={m.id}
-                            onClick={() => setOpts(o => ({ ...o, kBestMethod: m.id }))}
-                            disabled={!opts.useSelectKBest}
-                            title={m.desc}
-                            style={{
-                              padding: "0.35rem 0.8rem", borderRadius: 6, cursor: "pointer",
-                              fontSize: "0.76rem", fontWeight: 600, transition: "all 0.15s",
-                              border: `1px solid ${opts.kBestMethod === m.id ? ACCENT : "rgba(255,255,255,0.12)"}`,
-                              background: opts.kBestMethod === m.id ? `${ACCENT}18` : "rgba(0,0,0,0.2)",
-                              color: opts.kBestMethod === m.id ? ACCENT : "var(--text3)",
-                            }}
-                          >
-                            {m.label}
-                          </button>
-                        ))}
-                      </div>
-                      <div style={{ fontSize: "0.71rem", color: "var(--text3)", marginTop: "0.4rem" }}>
-                        {opts.kBestMethod === "f_regression" && "F = r² × (n-2) / (1-r²) — measures linear association strength with a numeric target."}
-                        {opts.kBestMethod === "f_classif" && "One-way ANOVA: between-class SS / within-class SS — measures how well a feature separates class groups."}
-                        {opts.kBestMethod === "mi" && "MI ≈ −0.5 × log(1 − r²) — information-theoretic score, works for any target type."}
-                      </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Alpha</span>
+                      <input
+                        type="range" min="0.001" max="0.2" step="0.001"
+                        value={opts.lassoAlpha}
+                        onChange={e => setOpts(o => ({ ...o, lassoAlpha: parseFloat(e.target.value) }))}
+                        disabled={!opts.useLasso}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 52, textAlign: "right" }}>
+                        {opts.lassoAlpha.toFixed(3)}
+                      </span>
                     </div>
-
-                    {/* K slider */}
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep best</span>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep top</span>
                       <input
                         type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
-                        value={Math.min(opts.selectKBestK, Math.max(candidateCount, 1))}
-                        onChange={e => setOpts(o => ({ ...o, selectKBestK: parseInt(e.target.value) }))}
-                        disabled={!opts.useSelectKBest}
+                        value={Math.min(opts.lassoTopK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, lassoTopK: parseInt(e.target.value) }))}
+                        disabled={!opts.useLasso}
                         style={{ flex: 1, accentColor: ACCENT }}
                       />
                       <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
-                        {Math.min(opts.selectKBestK, Math.max(candidateCount, 1))} features
+                        {Math.min(opts.lassoTopK, Math.max(candidateCount, 1))} features
                       </span>
                     </div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginTop: "0.5rem" }}>
-                      Results show normalized F/MI scores as a secondary bar in the ranking table.
+                    {!opts.targetCol && (
+                      <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                        Select a target column for meaningful scores.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Ridge tab ── */}
+              {activeTab === "ridge" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useRidge}
+                      onChange={e => setOpts(o => ({ ...o, useRidge: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Ridge (L2)</span>
+                  </label>
+                  <div style={{ opacity: opts.useRidge ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Gradient descent with L2 penalty. Penalises large coefficients, especially for collinear features. Features ranked by |coefficient| — nothing zeroed out. Higher alpha = more shrinkage. Capped at 500 rows.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Alpha</span>
+                      <input
+                        type="range" min="0.1" max="10" step="0.1"
+                        value={opts.ridgeAlpha}
+                        onChange={e => setOpts(o => ({ ...o, ridgeAlpha: parseFloat(e.target.value) }))}
+                        disabled={!opts.useRidge}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+                        {opts.ridgeAlpha.toFixed(1)}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep top</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.ridgeTopK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, ridgeTopK: parseInt(e.target.value) }))}
+                        disabled={!opts.useRidge}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.ridgeTopK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                    {!opts.targetCol && (
+                      <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                        Select a target column for meaningful scores.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Tree tab ── */}
+              {activeTab === "tree" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useTree}
+                      onChange={e => setOpts(o => ({ ...o, useTree: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Tree Importance</span>
+                  </label>
+                  <div style={{ opacity: opts.useTree ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      {`Random Forest-style importance: ${opts.treeNTrees} bootstrap trees, each split tries √p random features. Importance = cumulative weighted split gain (Gini for classification, variance for regression). Capped at 1000 rows.`}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>N trees</span>
+                      <input
+                        type="range" min="10" max="200" step="10"
+                        value={opts.treeNTrees}
+                        onChange={e => setOpts(o => ({ ...o, treeNTrees: parseInt(e.target.value) }))}
+                        disabled={!opts.useTree}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+                        {opts.treeNTrees}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep top</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.treeTopK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, treeTopK: parseInt(e.target.value) }))}
+                        disabled={!opts.useTree}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.treeTopK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                    {!opts.targetCol && (
+                      <div style={{ fontSize: "0.73rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+                        Select a target column for meaningful scores.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Forward tab ── */}
+              {activeTab === "forward" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useForward}
+                      onChange={e => setOpts(o => ({ ...o, useForward: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Forward Selection</span>
+                  </label>
+                  <div style={{ opacity: opts.useForward ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Greedy wrapper — starts with an empty set and adds the feature that maximises MI × (1 − 0.2 × avg redundancy with already-selected features) at each step. Prefers strong, diverse features.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Keep</span>
+                      <input
+                        type="range" min="1" max={Math.max(candidateCount, 1)} step="1"
+                        value={Math.min(opts.forwardK, Math.max(candidateCount, 1))}
+                        onChange={e => setOpts(o => ({ ...o, forwardK: parseInt(e.target.value) }))}
+                        disabled={!opts.useForward}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.forwardK, Math.max(candidateCount, 1))} features
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Exhaustive tab ── */}
+              {activeTab === "exhaustive" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useExhaustive}
+                      onChange={e => setOpts(o => ({ ...o, useExhaustive: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Exhaustive Search</span>
+                  </label>
+                  <div style={{ opacity: opts.useExhaustive ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Evaluates all C(n,k) subsets of size k and picks the one maximising avg MI − 0.3 × avg inter-feature correlation. Automatically falls back to Forward Selection when candidates &gt; 15.
+                    </div>
+                    {candidateCount > 15 && (
+                      <div style={{ fontSize: "0.76rem", color: "#fbbf24", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                        Current dataset has {candidateCount} numeric candidates — will use Forward Selection fallback (feasibility cap is 15).
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Best subset of</span>
+                      <input
+                        type="range" min="2" max={Math.min(Math.max(candidateCount, 2), 15, 12)} step="1"
+                        value={Math.min(opts.exhaustiveK, Math.min(Math.max(candidateCount, 2), 15, 12))}
+                        onChange={e => setOpts(o => ({ ...o, exhaustiveK: parseInt(e.target.value) }))}
+                        disabled={!opts.useExhaustive}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 72, textAlign: "right" }}>
+                        {Math.min(opts.exhaustiveK, Math.min(Math.max(candidateCount, 2), 15, 12))} features
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── PCA tab ── */}
+              {activeTab === "pca" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.usePCA}
+                      onChange={e => setOpts(o => ({ ...o, usePCA: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable PCA</span>
+                  </label>
+                  <div style={{ opacity: opts.usePCA ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Standardises features and projects onto principal components ordered by variance explained. Output CSV replaces numeric features with PC1, PC2, etc. Operates on all numeric candidates — does not affect the keep/drop list.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Components</span>
+                      <input
+                        type="range" min="1" max={Math.min(Math.max(candidateCount, 1), 10)} step="1"
+                        value={Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
+                        onChange={e => setOpts(o => ({ ...o, pcaComponents: parseInt(e.target.value) }))}
+                        disabled={!opts.usePCA}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+                        {Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+                      PCA and UMAP produce a separate transformed CSV downloadable below after running.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── UMAP tab ── */}
+              {activeTab === "umap" && (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={opts.useUMAP}
+                      onChange={e => setOpts(o => ({ ...o, useUMAP: e.target.checked }))} />
+                    <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable UMAP (spectral)</span>
+                  </label>
+                  <div style={{ opacity: opts.useUMAP ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "0.75rem", lineHeight: 1.55 }}>
+                      Non-linear dimensionality reduction via spectral embedding of the k-NN affinity graph (Laplacian Eigenmaps). Captures manifold structure invisible to PCA. Capped at 400 rows; remaining rows use nearest-neighbour interpolation.
+                    </div>
+                    <div style={{ marginBottom: "0.75rem" }}>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" }}>Dimensions</div>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        {([2, 3] as const).map(n => (
+                          <button
+                            key={n}
+                            onClick={() => setOpts(o => ({ ...o, umapComponents: n }))}
+                            disabled={!opts.useUMAP}
+                            style={{
+                              padding: "0.35rem 1rem", borderRadius: 6, cursor: "pointer",
+                              fontSize: "0.76rem", fontWeight: 600, transition: "all 0.15s",
+                              border: `1px solid ${opts.umapComponents === n ? ACCENT : "rgba(255,255,255,0.12)"}`,
+                              background: opts.umapComponents === n ? `${ACCENT}18` : "rgba(0,0,0,0.2)",
+                              color: opts.umapComponents === n ? ACCENT : "var(--text3)",
+                            }}
+                          >
+                            {n}D
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>k neighbours</span>
+                      <input
+                        type="range" min="5" max="30" step="1"
+                        value={opts.umapNeighbors}
+                        onChange={e => setOpts(o => ({ ...o, umapNeighbors: parseInt(e.target.value) }))}
+                        disabled={!opts.useUMAP}
+                        style={{ flex: 1, accentColor: ACCENT }}
+                      />
+                      <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+                        {opts.umapNeighbors}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+                      Browser approximation — not the full UMAP algorithm but captures similar non-linear structure.
                     </div>
                   </div>
                 </div>
@@ -910,11 +984,16 @@ export default function FeatureSelectionPage() {
                   <div style={{ marginBottom: "1rem" }}>
                     <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
                     <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
-                      bar = MI score · {result.kBestActive ? "secondary bar = F/MI score · " : ""}high → low
+                      bar = MI score
+                      {result.kBestActive ? " · secondary bar = F/MI score" : ""}
+                      {result.lassoActive ? " · orange = Lasso" : ""}
+                      {result.ridgeActive ? " · purple = Ridge" : ""}
+                      {result.treeActive ? " · green = Tree" : ""}
+                      {" · high → low"}
                     </span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
-                    {result.features.map(f => (
+                    {result.features.map((f: FeatureScore) => (
                       <div key={f.name} style={{ opacity: f.kept ? 1 : 0.45 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                           <div style={{
@@ -941,12 +1020,42 @@ export default function FeatureSelectionPage() {
                                 transition: "width 0.4s",
                               }} />
                             </div>
-                            {/* F/KBest bar — shown when SelectKBest active and has a score */}
+                            {/* F/KBest bar */}
                             {result.kBestActive && f.fScore > 0 && (
                               <div style={{ height: 4, borderRadius: 9999, background: "rgba(255,255,255,0.05)" }}>
                                 <div style={{
                                   height: "100%", width: `${Math.max(f.fScore * 100, 2)}%`,
                                   borderRadius: 9999, background: "#a78bfa",
+                                  transition: "width 0.4s",
+                                }} />
+                              </div>
+                            )}
+                            {/* Lasso bar */}
+                            {result.lassoActive && f.lassoScore > 0 && (
+                              <div style={{ height: 4, borderRadius: 9999, background: "rgba(255,255,255,0.05)" }}>
+                                <div style={{
+                                  height: "100%", width: `${Math.max(f.lassoScore * 100, 2)}%`,
+                                  borderRadius: 9999, background: "#f97316",
+                                  transition: "width 0.4s",
+                                }} />
+                              </div>
+                            )}
+                            {/* Ridge bar */}
+                            {result.ridgeActive && f.ridgeScore > 0 && (
+                              <div style={{ height: 4, borderRadius: 9999, background: "rgba(255,255,255,0.05)" }}>
+                                <div style={{
+                                  height: "100%", width: `${Math.max(f.ridgeScore * 100, 2)}%`,
+                                  borderRadius: 9999, background: "#a78bfa",
+                                  transition: "width 0.4s",
+                                }} />
+                              </div>
+                            )}
+                            {/* Tree bar */}
+                            {result.treeActive && f.treeScore > 0 && (
+                              <div style={{ height: 4, borderRadius: 9999, background: "rgba(255,255,255,0.05)" }}>
+                                <div style={{
+                                  height: "100%", width: `${Math.max(f.treeScore * 100, 2)}%`,
+                                  borderRadius: 9999, background: "#34d399",
                                   transition: "width 0.4s",
                                 }} />
                               </div>
@@ -973,7 +1082,7 @@ export default function FeatureSelectionPage() {
                   </div>
                 </div>
 
-                {/* ── Download ── */}
+                {/* ── Download selected ── */}
                 <div style={{
                   ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22`,
                   display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -1003,6 +1112,77 @@ export default function FeatureSelectionPage() {
                     Download CSV
                   </button>
                 </div>
+
+                {/* ── PCA result card ── */}
+                {result.pcaResult != null && (() => {
+                  const { components } = result.pcaResult;
+                  const lastComp = components[components.length - 1];
+                  return (
+                    <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                      <div style={{ marginBottom: "0.75rem" }}>
+                        <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>PCA Components</span>
+                        <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
+                          {components.length} components · {((lastComp?.cumulativeVariance ?? 0) * 100).toFixed(1)}% total variance explained
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
+                        {components.map((comp: PCAComponent) => (
+                          <div key={comp.index} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                            <span style={{ fontSize: "0.74rem", fontWeight: 700, color: ACCENT, width: 36, flexShrink: 0 }}>
+                              PC{comp.index}
+                            </span>
+                            <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                              <div style={{
+                                height: "100%", borderRadius: 9999,
+                                width: `${Math.max(comp.varianceExplained * 100, 1)}%`,
+                                background: ACCENT, opacity: 0.8,
+                                transition: "width 0.4s",
+                              }} />
+                            </div>
+                            <span style={{ fontSize: "0.73rem", color: "var(--text3)", width: 44, textAlign: "right", flexShrink: 0 }}>
+                              {(comp.varianceExplained * 100).toFixed(1)}%
+                            </span>
+                            <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              Top: {comp.topLoadings[0]?.name} ({comp.topLoadings[0]?.loading > 0 ? "+" : ""}{comp.topLoadings[0]?.loading.toFixed(2)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleDownloadPCA}
+                        style={{
+                          padding: "0.5rem 1.2rem", background: ACCENT, border: "none", borderRadius: 8,
+                          color: "#000", fontWeight: 700, fontSize: "0.82rem",
+                          cursor: "pointer", boxShadow: `0 0 12px ${ACCENT}44`,
+                        }}
+                      >
+                        Download PCA CSV
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* ── UMAP result card ── */}
+                {result.umapResult != null && (
+                  <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+                    <div style={{ marginBottom: "0.75rem" }}>
+                      <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>UMAP Embedding</span>
+                    </div>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "1rem", lineHeight: 1.55 }}>
+                      {result.umapResult.nComponents}D spectral embedding · All rows have coordinates (kNN interpolation for rows beyond 400-row sample)
+                    </div>
+                    <button
+                      onClick={handleDownloadUMAP}
+                      style={{
+                        padding: "0.5rem 1.2rem", background: ACCENT, border: "none", borderRadius: 8,
+                        color: "#000", fontWeight: 700, fontSize: "0.82rem",
+                        cursor: "pointer", boxShadow: `0 0 12px ${ACCENT}44`,
+                      }}
+                    >
+                      Download UMAP CSV
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </>
@@ -1018,7 +1198,7 @@ export default function FeatureSelectionPage() {
               result
                 ? `Selection result: kept ${result.keptCount} features, dropped ${result.droppedCount}. Kept: ${result.features.filter(f => f.kept).map(f => f.name).join(", ")}.`
                 : "No selection run yet.",
-            ].filter(Boolean).join(" ")
+            ].join(" ")
           : "No dataset loaded yet.",
       }} />
     </div>
