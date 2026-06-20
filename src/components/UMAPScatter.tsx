@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface UMAPResult {
   nComponents: number;
@@ -116,6 +116,7 @@ function Scatter2D({ umapResult, accent, labelValues }: Props) {
 function Scatter3D({ umapResult, accent, labelValues }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<unknown>(null);
+  const controlsRef = useRef<unknown>(null);
 
   const { points } = umapResult;
 
@@ -147,6 +148,7 @@ function Scatter3D({ umapResult, accent, labelValues }: Props) {
       camera.position.set(2.5, 2, 3);
 
       const controls = new OrbitControls(camera, renderer.domElement);
+      controlsRef.current = controls;
       controls.enableDamping = true;
       controls.dampingFactor = 0.07;
       controls.autoRotate = true;
@@ -250,11 +252,21 @@ function Scatter3D({ umapResult, accent, labelValues }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleReset = useCallback(() => {
+    const c = controlsRef.current as { reset?: () => void } | null;
+    c?.reset?.();
+  }, []);
+
   const colorMap = labelValues ? buildColorMap(labelValues) : null;
   const legendEntries = colorMap ? [...colorMap.entries()].slice(0, 10) : null;
 
   return (
     <div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.35rem" }}>
+        <button onClick={handleReset} style={{ fontSize: "0.7rem", padding: "0.25rem 0.7rem", borderRadius: 5, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text3)", cursor: "pointer" }}>
+          Reset view
+        </button>
+      </div>
       <div
         ref={canvasRef}
         style={{ width: "100%", height: 320, borderRadius: 8, overflow: "hidden", background: "rgba(255,255,255,0.02)" }}

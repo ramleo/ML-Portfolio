@@ -144,6 +144,7 @@ export default function FeatureSelectionPage() {
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("variance");
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string>("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Derived ────────────────────────────────────────────────────────────────
@@ -243,6 +244,7 @@ export default function FeatureSelectionPage() {
   const handleAISuggest = useCallback(async () => {
     if (!cols.length) return;
     setAiLoading(true);
+    setAiError("");
     try {
       const numCols = cols.filter(c => c.type === "numeric");
       const catCols = cols.filter(c => c.type === "categorical");
@@ -272,7 +274,10 @@ export default function FeatureSelectionPage() {
           provider: "gemini",
         }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setAiError(`API error ${res.status} — check API key in chat settings`);
+        return;
+      }
       const data = await res.json() as { reply?: string; content?: string; error?: string };
       // Support both `reply` and `content` response shapes; strip markdown fences
       const raw = data.reply ?? data.content ?? "";
@@ -282,9 +287,16 @@ export default function FeatureSelectionPage() {
         try {
           const patch = JSON.parse(match[0]) as Partial<SelectionOpts>;
           setOpts(o => ({ ...o, ...patch }));
-        } catch { /* ignore parse errors */ }
+          setAiError("Done — methods updated");
+        } catch {
+          setAiError("AI returned no valid JSON — try again");
+        }
+      } else {
+        setAiError("AI returned no valid JSON — try again");
       }
-    } catch { /* ignore network errors */ } finally {
+    } catch {
+      setAiError("Network error — check connection and try again");
+    } finally {
       setAiLoading(false);
     }
   }, [cols, rowCount, opts.targetCol]);
@@ -608,6 +620,11 @@ export default function FeatureSelectionPage() {
                   {aiLoading ? "Analyzing..." : "AI Suggest Methods"}
                 </button>
               </div>
+              {aiError && (
+                <div style={{ fontSize: "0.72rem", color: aiError.startsWith("Done") ? "#4ade80" : "#f87171", marginTop: "0.35rem" }}>
+                  {aiError}
+                </div>
+              )}
             </div>
 
             {/* Results */}
