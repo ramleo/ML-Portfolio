@@ -92,7 +92,7 @@ export interface SelectionResult {
   forwardActive: boolean;
   exhaustiveActive: boolean;
   pcaResult: { components: PCAComponent[]; csvText: string } | null;
-  umapResult: { nComponents: number; csvText: string } | null;
+  umapResult: { nComponents: number; csvText: string; points: number[][] } | null;
 }
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
@@ -601,7 +601,7 @@ export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: Sele
 }
 
 export function computeUMAP(candidates: ColInfo[], allCols: ColInfo[], opts: SelectionOpts, nComp: number, nNeighbors: number)
-  : { nComponents: number; csvText: string } | null {
+  : { nComponents: number; csvText: string; points: number[][] } | null {
   const p = candidates.length;
   if (p < 2) return null;
   const maxRows = 400;
@@ -722,7 +722,23 @@ export function computeUMAP(candidates: ColInfo[], allCols: ColInfo[], opts: Sel
     ...(opts.targetCol ? allCols.filter(c => c.name === opts.targetCol) : []),
     ...allCols.filter(c => c.type === "categorical" && c.name !== opts.targetCol),
   ];
-  return { nComponents: nComp, csvText: serializeCSV(keptForCSV) };
+
+  // Build row-major points array for visualization
+  const points: number[][] = Array(allRows).fill(null).map(() => Array(nComp).fill(0));
+  sIdx.forEach((origI, si) => { points[origI] = scaled.map(comp => comp[si]); });
+  const sampleSet2 = new Set(sIdx);
+  for (const origI of validIdx) {
+    if (sampleSet2.has(origI)) continue;
+    let minD = Infinity, nearSi = 0;
+    for (let si = 0; si < sIdx.length; si++) {
+      let d2 = 0;
+      for (const col of candidates) d2 += (col.nums[origI] - col.nums[sIdx[si]]) ** 2;
+      if (d2 < minD) { minD = d2; nearSi = si; }
+    }
+    points[origI] = scaled.map(comp => comp[nearSi]);
+  }
+
+  return { nComponents: nComp, csvText: serializeCSV(keptForCSV), points };
 }
 
 // ── Selection ─────────────────────────────────────────────────────────────────

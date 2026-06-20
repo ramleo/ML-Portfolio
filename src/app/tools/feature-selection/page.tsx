@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import CorrelationHeatmap from "@/components/CorrelationHeatmap";
+import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
+import UMAPScatter from "@/components/UMAPScatter";
 import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult, KBestMethod } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
 
@@ -36,6 +39,64 @@ function TechPill({ label }: { label: string }) {
       background: `${ACCENT}12`, border: `1px solid ${ACCENT}28`,
       borderRadius: 6, padding: "2px 10px",
     }}>{label}</span>
+  );
+}
+
+// ── HowItWorks ────────────────────────────────────────────────────────────────
+
+const HOW_IT_WORKS: Record<string, string> = {
+  variance: "Computes the variance of each numeric feature across all rows. Variance = E[(X−μ)²]. Features with variance below the threshold are constant or near-constant and carry no signal — they are dropped first.",
+  correlation: "Builds a Pearson r matrix between numeric features. When |r(A,B)| exceeds the threshold, the feature with lower mutual information vs. the target is discarded. This removes multicollinearity without losing predictive power.",
+  topk: "After variance and correlation filtering, computes mutual information (MI ≈ −0.5 log(1−r²)) between each feature and the target, then keeps only the K highest-MI features. Fast hard-cutoff for very wide datasets.",
+  selectkbest: "Applies a univariate statistical test to each feature independently. f_regression: F(1,n−2) linear correlation. f_classif: one-way ANOVA. mi: MI approximation. Keeps the K features with the highest test score.",
+  kendall: "Computes Kendall's τ rank correlation. For every pair of observations (x_i, x_j), counts concordant pairs (same order in feature and target) minus discordant pairs, divided by total pairs. Robust to outliers and non-linear monotonic relationships.",
+  chisq: "Bins numeric features into quartiles, then applies a χ² test of independence against the (binned) target. χ² = Σ (O−E)²/E where O = observed count and E = expected under independence. Higher χ² = stronger dependence.",
+  rfe: "Iterative backward elimination. Each round scores remaining features by MI × (1 − 0.35 × avg_redundancy_with_others) and removes the lowest-scoring one. Continues until the target count is reached. Penalises weak AND redundant features differently from pure MI.",
+  lasso: "Coordinate descent with L1 regularisation. Soft-threshold update: w_j = sign(ρ_j) × max(|ρ_j| − α, 0) where ρ_j is the partial correlation residual. L1 penalty drives weak coefficients to exactly zero — built-in feature elimination.",
+  ridge: "Gradient descent with L2 regularisation. Weight update: w_j ← w_j − lr × (∂MSE/∂w_j + 2αw_j). L2 shrinks all coefficients but never to zero — features ranked by final |w_j| and the weakest are pruned.",
+  tree: "Random Forest-style importance. Builds N bootstrap trees; each split considers √p random features. Importance = cumulative weighted Gini (classification) or variance-reduction (regression) gain across all splits on each feature, averaged over trees.",
+  forward: "Greedy wrapper. Starts with an empty set S. Each round adds the feature f* = argmax_f MI(f, target) × (1 − 0.2 × avg_corr(f, S)). The diversity penalty (0.2 × redundancy) rewards diverse, complementary features over pure top-MI selection.",
+  exhaustive: "Enumerates all C(n,k) feature subsets of size k and scores each by avgMI(subset, target) − 0.3 × avgInterCorr(subset). Computationally infeasible for n > 15, so the algorithm automatically falls back to Forward Selection beyond that threshold.",
+  pca: "Standardises features (z-score), computes the covariance matrix, and extracts principal components via power iteration + deflation. Each PC is a linear combination of original features ordered by variance explained (eigenvalue / total variance).",
+  umap: "Builds a k-NN affinity graph using Gaussian kernel weights, normalises it into a symmetric Laplacian, then extracts the eigenvectors corresponding to the 2 or 3 smallest non-zero eigenvalues. This spectral embedding captures non-linear manifold structure.",
+};
+
+function HowItWorks({ tabId }: { tabId: string }) {
+  const [open, setOpen] = useState(false);
+  const text = HOW_IT_WORKS[tabId];
+  if (!text) return null;
+  return (
+    <div style={{ marginBottom: "0.75rem" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex", alignItems: "center", gap: "0.4rem",
+          background: "none", border: "none", cursor: "pointer", padding: 0,
+          fontSize: "0.72rem", fontWeight: 600, color: "var(--text3)",
+          transition: "color 0.15s",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
+      >
+        <svg
+          width="10" height="10" viewBox="0 0 10 10" fill="currentColor"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }}
+        >
+          <path d="M3 2l4 3-4 3z" />
+        </svg>
+        How it works
+      </button>
+      {open && (
+        <div style={{
+          marginTop: "0.45rem", padding: "0.65rem 0.9rem",
+          background: "rgba(255,255,255,0.03)", borderLeft: `2px solid ${ACCENT}`,
+          borderRadius: "0 6px 6px 0", fontSize: "0.74rem",
+          color: "var(--text3)", lineHeight: 1.65,
+        }}>
+          {text}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -97,6 +158,8 @@ export default function FeatureSelectionPage() {
   const [result, setResult] = useState<SelectionResult | null>(null);
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("variance");
+  const [aiLoading, setAiLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -134,6 +197,62 @@ export default function FeatureSelectionPage() {
       setRunning(false);
     }, 50);
   }, [cols, opts]);
+
+  // Auto-re-run with 400ms debounce when opts change and a result already exists
+  useEffect(() => {
+    if (!result || !cols.length) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setRunning(true);
+      setTimeout(() => {
+        setResult(runSelection(cols, opts));
+        setRunning(false);
+      }, 50);
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opts]);
+
+  const handleAISuggest = useCallback(async () => {
+    if (!cols.length) return;
+    setAiLoading(true);
+    try {
+      const numCols = cols.filter(c => c.type === "numeric");
+      const catCols = cols.filter(c => c.type === "categorical");
+      const targetType = cols.find(c => c.name === opts.targetCol)?.type ?? "none";
+      const stats = {
+        rowCount,
+        colCount: cols.length,
+        numericCount: numCols.length,
+        categoricalCount: catCols.length,
+        targetCol: opts.targetCol,
+        targetType,
+        sampleFeatures: numCols.slice(0, 8).map(c => ({ name: c.name, variance: c.variance, nunique: c.nunique })),
+      };
+      const res = await fetch("/api/ai-tools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "feature_selection_suggest",
+          context: JSON.stringify(stats),
+          prompt: `Given this dataset (${rowCount} rows, ${numCols.length} numeric features, target="${opts.targetCol || "none"}", target type="${targetType}"), suggest which feature selection methods to enable and their settings. Respond with a JSON object containing only the fields you want to change from SelectionOpts. Use boolean fields useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP and their numeric parameters.`,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { result?: string };
+        const raw = data.result ?? "";
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            const patch = JSON.parse(match[0]) as Partial<SelectionOpts>;
+            setOpts(o => ({ ...o, ...patch }));
+          } catch { /* ignore parse errors */ }
+        }
+      }
+    } catch { /* ignore network errors */ } finally {
+      setAiLoading(false);
+    }
+  }, [cols, rowCount, opts.targetCol]);
 
   const handleDownload = useCallback(() => {
     if (!result?.csvText) return;
@@ -174,21 +293,28 @@ export default function FeatureSelectionPage() {
   const candidateCount = numericCols.filter(c => c.name !== opts.targetCol).length;
   const targetInfo = cols.find(c => c.name === opts.targetCol) ?? null;
 
-  const TABS: { id: TabId; label: string; enabled: boolean }[] = [
-    { id: "variance",    label: "Variance",   enabled: opts.useVariance },
-    { id: "correlation", label: "Corr",       enabled: opts.useCorrelation },
-    { id: "topk",        label: "Top-K",      enabled: opts.useTopK },
-    { id: "selectkbest", label: "K Best",     enabled: opts.useSelectKBest },
-    { id: "kendall",     label: "Kendall τ",  enabled: opts.useKendall },
-    { id: "chisq",       label: "Chi-sq",     enabled: opts.useChiSq },
-    { id: "rfe",         label: "RFE",        enabled: opts.useRFE },
-    { id: "lasso",       label: "Lasso",      enabled: opts.useLasso },
-    { id: "ridge",       label: "Ridge",      enabled: opts.useRidge },
-    { id: "tree",        label: "Tree",       enabled: opts.useTree },
-    { id: "forward",     label: "Forward",    enabled: opts.useForward },
-    { id: "exhaustive",  label: "Exhaustive", enabled: opts.useExhaustive },
-    { id: "pca",         label: "PCA",        enabled: opts.usePCA },
-    { id: "umap",        label: "UMAP",       enabled: opts.useUMAP },
+  const TABS: { id: TabId; label: string; enabled: boolean; cat: string }[] = [
+    { id: "variance",    label: "Variance",   enabled: opts.useVariance,    cat: "Filter" },
+    { id: "correlation", label: "Corr",       enabled: opts.useCorrelation, cat: "Filter" },
+    { id: "topk",        label: "Top-K",      enabled: opts.useTopK,        cat: "Filter" },
+    { id: "selectkbest", label: "K Best",     enabled: opts.useSelectKBest, cat: "Score" },
+    { id: "kendall",     label: "Kendall τ",  enabled: opts.useKendall,     cat: "Score" },
+    { id: "chisq",       label: "Chi-sq",     enabled: opts.useChiSq,       cat: "Score" },
+    { id: "rfe",         label: "RFE",        enabled: opts.useRFE,         cat: "Wrapper" },
+    { id: "lasso",       label: "Lasso",      enabled: opts.useLasso,       cat: "Wrapper" },
+    { id: "ridge",       label: "Ridge",      enabled: opts.useRidge,       cat: "Wrapper" },
+    { id: "tree",        label: "Tree",       enabled: opts.useTree,        cat: "Wrapper" },
+    { id: "forward",     label: "Forward",    enabled: opts.useForward,     cat: "Wrapper" },
+    { id: "exhaustive",  label: "Exhaustive", enabled: opts.useExhaustive,  cat: "Wrapper" },
+    { id: "pca",         label: "PCA",        enabled: opts.usePCA,         cat: "Reduction" },
+    { id: "umap",        label: "UMAP",       enabled: opts.useUMAP,        cat: "Reduction" },
+  ];
+
+  const TAB_CATEGORIES = [
+    { label: "Filter",    color: "#60a5fa" },
+    { label: "Score",     color: "#a78bfa" },
+    { label: "Wrapper",   color: "#34d399" },
+    { label: "Reduction", color: "#f472b6" },
   ];
 
   return (
@@ -355,32 +481,48 @@ export default function FeatureSelectionPage() {
                 Selection Methods
               </div>
 
-              {/* Tab bar */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "1.25rem", background: "rgba(0,0,0,0.25)", borderRadius: 8, padding: "0.25rem" }}>
-                {TABS.map(tab => {
-                  const active = activeTab === tab.id;
+              {/* Grouped tab bar */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginBottom: "1.25rem" }}>
+                {TAB_CATEGORIES.map(cat => {
+                  const catTabs = TABS.filter(t => t.cat === cat.label);
                   return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      style={{
-                        flex: "1 1 auto",
-                        padding: "0.4rem 0.6rem", border: "none", borderRadius: 6, cursor: "pointer",
-                        fontSize: "0.74rem", fontWeight: 600, transition: "all 0.15s",
-                        background: active ? ACCENT : "transparent",
-                        color: active ? "#000" : tab.enabled ? "var(--text)" : "var(--text3)",
-                        boxShadow: active ? `0 0 10px ${ACCENT}44` : "none",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {tab.label}
-                      {tab.enabled && !active && (
-                        <span style={{ marginLeft: "0.35rem", display: "inline-block", width: 5, height: 5, borderRadius: 9999, background: ACCENT, verticalAlign: "middle" }} />
-                      )}
-                    </button>
+                    <div key={cat.label} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      <span style={{
+                        fontSize: "0.6rem", fontWeight: 700, color: cat.color,
+                        textTransform: "uppercase", letterSpacing: "0.09em",
+                        width: 58, flexShrink: 0, textAlign: "right",
+                      }}>{cat.label}</span>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.2rem", flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 7, padding: "0.2rem", borderLeft: `2px solid ${cat.color}30` }}>
+                        {catTabs.map(tab => {
+                          const active = activeTab === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              onClick={() => setActiveTab(tab.id)}
+                              style={{
+                                padding: "0.32rem 0.6rem", border: "none", borderRadius: 5, cursor: "pointer",
+                                fontSize: "0.74rem", fontWeight: 600, transition: "all 0.15s",
+                                background: active ? cat.color : "transparent",
+                                color: active ? "#000" : tab.enabled ? "var(--text)" : "var(--text3)",
+                                boxShadow: active ? `0 0 8px ${cat.color}44` : "none",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {tab.label}
+                              {tab.enabled && !active && (
+                                <span style={{ marginLeft: "0.3rem", display: "inline-block", width: 5, height: 5, borderRadius: 9999, background: cat.color, verticalAlign: "middle", opacity: 0.8 }} />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
+
+              {/* How it works — auto-updates per active tab */}
+              <HowItWorks tabId={activeTab} />
 
               {/* ── Variance tab ── */}
               {activeTab === "variance" && (
@@ -938,22 +1080,69 @@ export default function FeatureSelectionPage() {
               )}
             </div>
 
-            {/* ── Run ── */}
-            <button
-              onClick={handleRun}
-              disabled={running}
-              style={{
-                padding: "0.75rem 2rem",
-                background: ACCENT, border: "none", borderRadius: 8,
-                color: "#000", fontWeight: 700, fontSize: "0.9rem",
-                cursor: running ? "wait" : "pointer",
-                boxShadow: `0 0 20px ${ACCENT}44`,
-                alignSelf: "flex-start",
-                opacity: running ? 0.6 : 1, transition: "opacity 0.15s",
-              }}
-            >
-              {running ? "Running..." : "Run Feature Selection"}
-            </button>
+            {/* ── Pipeline indicator ── */}
+            {(() => {
+              const active = TABS.filter(t => t.enabled);
+              if (active.length === 0) return null;
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap", padding: "0.6rem 0.9rem", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginRight: "0.25rem" }}>Pipeline</span>
+                  {active.map((t, i) => {
+                    const cat = TAB_CATEGORIES.find(c => c.label === t.cat);
+                    return (
+                      <span key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        {i > 0 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>→</span>}
+                        <span style={{ fontSize: "0.7rem", fontWeight: 600, color: cat?.color ?? ACCENT, padding: "1px 7px", borderRadius: 4, background: `${cat?.color ?? ACCENT}14`, border: `1px solid ${cat?.color ?? ACCENT}28` }}>
+                          {t.label}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* ── Run + AI Suggest row ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <button
+                onClick={handleRun}
+                disabled={running}
+                style={{
+                  padding: "0.75rem 2rem",
+                  background: ACCENT, border: "none", borderRadius: 8,
+                  color: "#000", fontWeight: 700, fontSize: "0.9rem",
+                  cursor: running ? "wait" : "pointer",
+                  boxShadow: `0 0 20px ${ACCENT}44`,
+                  opacity: running ? 0.6 : 1, transition: "opacity 0.15s",
+                }}
+              >
+                {running ? "Running..." : "Run Feature Selection"}
+              </button>
+              {hasFile && (
+                <button
+                  onClick={handleAISuggest}
+                  disabled={aiLoading || !hasFile}
+                  title="Let AI analyze your dataset and suggest which methods to enable"
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.45rem",
+                    padding: "0.75rem 1.25rem",
+                    background: "rgba(139,92,246,0.12)",
+                    border: "1px solid rgba(139,92,246,0.35)",
+                    borderRadius: 8,
+                    color: aiLoading ? "var(--text3)" : "#a78bfa",
+                    fontWeight: 600, fontSize: "0.84rem",
+                    cursor: aiLoading ? "wait" : "pointer",
+                    transition: "all 0.15s",
+                    opacity: aiLoading ? 0.6 : 1,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  {aiLoading ? "Analyzing..." : "AI Suggest Methods"}
+                </button>
+              )}
+            </div>
 
             {result && (
               <>
@@ -1082,6 +1271,23 @@ export default function FeatureSelectionPage() {
                   </div>
                 </div>
 
+                {/* ── Score comparison chart ── */}
+                {result.features.length > 0 && (
+                  <div style={{ ...CARD }}>
+                    <ScoreComparisonChart features={result.features} result={result} accent={ACCENT} />
+                  </div>
+                )}
+
+                {/* ── Correlation heatmap ── */}
+                {numericCols.filter(c => c.name !== opts.targetCol).length >= 2 && (
+                  <div style={{ ...CARD }}>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.75rem" }}>
+                      Correlation Heatmap
+                    </div>
+                    <CorrelationHeatmap cols={numericCols.filter(c => c.name !== opts.targetCol)} accent={ACCENT} />
+                  </div>
+                )}
+
                 {/* ── Download selected ── */}
                 <div style={{
                   ...CARD, background: `${ACCENT}07`, borderColor: `${ACCENT}22`,
@@ -1125,7 +1331,8 @@ export default function FeatureSelectionPage() {
                           {components.length} components · {((lastComp?.cumulativeVariance ?? 0) * 100).toFixed(1)}% total variance explained
                         </span>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
+                      <PCAScreeChart components={components} accent={ACCENT} />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem", marginTop: "1rem" }}>
                         {components.map((comp: PCAComponent) => (
                           <div key={comp.index} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                             <span style={{ fontSize: "0.74rem", fontWeight: 700, color: ACCENT, width: 36, flexShrink: 0 }}>
@@ -1171,6 +1378,14 @@ export default function FeatureSelectionPage() {
                     <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "1rem", lineHeight: 1.55 }}>
                       {result.umapResult.nComponents}D spectral embedding · All rows have coordinates (kNN interpolation for rows beyond 400-row sample)
                     </div>
+                    <UMAPScatter
+                      umapResult={result.umapResult}
+                      accent={ACCENT}
+                      labelValues={opts.targetCol
+                        ? cols.find(c => c.name === opts.targetCol)?.rawVals.map(String)
+                        : undefined}
+                    />
+                    <div style={{ marginTop: "1rem" }} />
                     <button
                       onClick={handleDownloadUMAP}
                       style={{
