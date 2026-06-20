@@ -240,7 +240,7 @@ export default function FeatureSelectionPage() {
     setOpts(o => ({ ...DEFAULT_OPTS, targetCol: o.targetCol }));
   }, []);
 
-  // AI Suggest — fixed: support both reply/content keys; strip markdown fences
+  // AI Suggest — extract JSON by bracket depth, inject JSON-only hint into toolContext
   const handleAISuggest = useCallback(async () => {
     if (!cols.length) return;
     setAiLoading(true);
@@ -264,35 +264,51 @@ export default function FeatureSelectionPage() {
           return { name: c.name, variance: c.variance, nunique: c.nunique, missing: c.missing, skew };
         }),
       };
-      const prompt = `Given this dataset (${rowCount} rows, ${numCols.length} numeric features, target="${opts.targetCol || "none"}", target type="${targetType}"), suggest which feature selection methods to enable and their settings. Respond with ONLY a valid JSON object — no explanation, no markdown fences — containing only the SelectionOpts boolean/numeric fields you recommend changing. Available boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}`;
+      // Inject JSON-only override at top of toolContext — it lands in the system prompt
+      const toolContext = `OVERRIDE: Your response MUST be a raw JSON object only. No explanation, no markdown, no backticks. Start with { and end with }.\n\nDataset stats: ${JSON.stringify(stats)}`;
+      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a JSON object with the fields to enable. Boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Numeric fields: varianceThreshold, corrThreshold, topK, kBestK, kendallTopK, chiSqTopK, rfeK, lassoAlpha, ridgeAlpha, treeTopK, forwardK, pcaComponents, umapComponents, umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}. Output the JSON object and nothing else.`;
       const res = await fetch("/api/ai-tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [{ role: "user", content: prompt }],
-          toolContext: JSON.stringify(stats),
+          toolContext,
           provider: "gemini",
         }),
       });
       if (!res.ok) {
-        setAiError(`API error ${res.status} — check API key in chat settings`);
+        const errData = await res.json().catch(() => ({})) as { error?: string };
+        setAiError(errData.error ?? `API error ${res.status} — check API key in chat settings`);
         return;
       }
       const data = await res.json() as { reply?: string; content?: string; error?: string };
-      // Support both `reply` and `content` response shapes; strip markdown fences
+      if (data.error) { setAiError(data.error); return; }
       const raw = data.reply ?? data.content ?? "";
-      const stripped = raw.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "");
-      const match = stripped.match(/\{[\s\S]*\}/);
-      if (match) {
+
+      // Bracket-depth extraction — handles JSON buried in prose or fences
+      const extractJSON = (s: string): string | null => {
+        const clean = s.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
+        const start = clean.indexOf("{");
+        if (start === -1) return null;
+        let depth = 0;
+        for (let i = start; i < clean.length; i++) {
+          if (clean[i] === "{") depth++;
+          else if (clean[i] === "}") { depth--; if (depth === 0) return clean.slice(start, i + 1); }
+        }
+        return null;
+      };
+
+      const jsonStr = extractJSON(raw);
+      if (jsonStr) {
         try {
-          const patch = JSON.parse(match[0]) as Partial<SelectionOpts>;
+          const patch = JSON.parse(jsonStr) as Partial<SelectionOpts>;
           setOpts(o => ({ ...o, ...patch }));
           setAiError("Done — methods updated");
         } catch {
-          setAiError("AI returned no valid JSON — try again");
+          setAiError(`Malformed JSON — raw: ${raw.slice(0, 80)}`);
         }
       } else {
-        setAiError("AI returned no valid JSON — try again");
+        setAiError(`No JSON found — AI replied: "${raw.slice(0, 80)}"`);
       }
     } catch {
       setAiError("Network error — check connection and try again");
