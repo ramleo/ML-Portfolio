@@ -501,6 +501,9 @@ export default function FeatureSelectionPage() {
                     ? `${targetInfo?.type === "categorical" ? "Categorical" : "Numeric"} target — MI and F-scores computed against this column.`
                     : "No target — features ranked by normalized variance."}
                 </div>
+                <button onClick={handleReset} style={{ fontSize: "0.76rem", padding: "0.3rem 0.85rem", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text3)", cursor: "pointer", marginLeft: "auto" }}>
+                  Reset Methods
+                </button>
               </div>
             </RepulsionCard>
 
@@ -821,7 +824,7 @@ export default function FeatureSelectionPage() {
                         style={{ flex: 1, accentColor: ACCENT }}
                       />
                       <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 52, textAlign: "right" }}>
-                        {opts.lassoAlpha.toFixed(3)}
+                        {opts.lassoAlpha.toFixed(2)}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -1167,18 +1170,18 @@ export default function FeatureSelectionPage() {
                     <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
                       {[
-                        { color: ACCENT, label: "MI Score" },
+                        { color: "#fb923c", label: "MI Score", show: true },
                         { color: "#a78bfa", label: "F/KBest", show: result.kBestActive },
                         { color: "#f97316", label: "Lasso", show: result.lassoActive },
                         { color: "#6366f1", label: "Ridge", show: result.ridgeActive },
                         { color: "#34d399", label: "Tree", show: result.treeActive },
-                      ].filter(m => m.show !== false).map(m => (
+                      ].filter(m => m.show).map(m => (
                         <div key={m.label} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: m.color, flexShrink: 0 }} />
                           <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{m.label}</span>
                         </div>
                       ))}
-                      <span style={{ fontSize: "0.7rem", color: "var(--text3)", marginLeft: "0.25rem" }}>high → low</span>
+                      <span style={{ fontSize: "0.7rem", color: "var(--text3)", marginLeft: "0.25rem" }}>· high → low</span>
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
@@ -1271,7 +1274,7 @@ export default function FeatureSelectionPage() {
                                 fontSize: "0.67rem", color: "var(--text3)",
                                 width: 60, textAlign: "right", flexShrink: 0,
                               }}>
-                                σ²={colVariance < 0.01 ? colVariance.toExponential(1) : colVariance.toFixed(3)}
+                                σ²={colVariance < 0.01 ? colVariance.toExponential(1) : colVariance.toFixed(2)}
                               </span>
                             )}
                             {!f.kept && (
