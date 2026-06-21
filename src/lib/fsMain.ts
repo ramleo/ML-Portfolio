@@ -6,6 +6,8 @@ import {
   forwardSelect, exhaustiveSelect,
 } from "./fsEmbedded";
 import { computePCA, computeUMAP } from "./fsReduction";
+import { computeFA } from "./fsFA";
+import { computeLDA } from "./fsLDA";
 
 export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionResult {
   const targetInfo = opts.targetCol ? (cols.find(c => c.name === opts.targetCol) ?? null) : null;
@@ -16,7 +18,7 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
     kBestActive: false, rfeActive: false, lassoActive: false, ridgeActive: false,
     treeActive: false, kendallActive: false, chiSqActive: false,
     forwardActive: false, exhaustiveActive: false,
-    pcaResult: null, umapResult: null,
+    pcaResult: null, umapResult: null, faResult: undefined, ldaResult: undefined,
   };
   if (candidates.length === 0) return EMPTY;
 
@@ -224,9 +226,11 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
       };
     });
 
-  // PCA / UMAP
+  // PCA / UMAP / FA / LDA
   const pcaResult = opts.usePCA ? computePCA(candidates, cols, opts, opts.pcaComponents) : null;
   const umapResult = opts.useUMAP ? computeUMAP(candidates, cols, opts, opts.umapComponents, opts.umapNeighbors) : null;
+  const faResult = opts.useFA ? (computeFA(candidates, opts.faFactors ?? 3) ?? undefined) : undefined;
+  const ldaResult = opts.useLDA ? (computeLDA(cols, opts.targetCol ?? "", opts.ldaComponents ?? 2) ?? undefined) : undefined;
 
   const keptNames = new Set([
     ...features.filter(f => f.kept).map(f => f.name),
@@ -250,5 +254,7 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
     exhaustiveActive: opts.useExhaustive,
     pcaResult,
     umapResult,
+    faResult,
+    ldaResult,
   };
 }

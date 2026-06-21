@@ -93,5 +93,76 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
     );
   }
 
+  if (activeTab === "fa") {
+    return (
+      <div>
+        <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+          <input type="checkbox" checked={opts.useFA}
+            onChange={e => setOpts(o => ({ ...o, useFA: e.target.checked }))} />
+          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Factor Analysis</span>
+        </label>
+        <div style={{ opacity: opts.useFA ? 1 : 0.4, transition: "opacity 0.15s" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+            <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Factors</span>
+            <input
+              type="range" min="1" max="10" step="1"
+              value={opts.faFactors}
+              onChange={e => setOpts(o => ({ ...o, faFactors: parseInt(e.target.value) }))}
+              disabled={!opts.useFA}
+              style={{ flex: 1, accentColor: ACCENT }}
+            />
+            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+              {opts.faFactors}
+            </span>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+            Finds latent factors explaining feature correlations. Uses iterated principal axis factoring on the correlation matrix.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === "lda") {
+    const targetCol = opts.targetCol;
+    return (
+      <div>
+        <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+          <input type="checkbox" checked={opts.useLDA}
+            onChange={e => setOpts(o => ({ ...o, useLDA: e.target.checked }))} />
+          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable LDA</span>
+        </label>
+        {!targetCol && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "0.4rem",
+            fontSize: "0.72rem", fontWeight: 600, color: "#fbbf24",
+            background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)",
+            borderRadius: 6, padding: "0.3rem 0.7rem", marginBottom: "0.75rem",
+          }}>
+            ⚠ LDA requires a categorical target column
+          </div>
+        )}
+        <div style={{ opacity: opts.useLDA ? 1 : 0.4, transition: "opacity 0.15s" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+            <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Components</span>
+            <input
+              type="range" min="1" max="5" step="1"
+              value={opts.ldaComponents}
+              onChange={e => setOpts(o => ({ ...o, ldaComponents: parseInt(e.target.value) }))}
+              disabled={!opts.useLDA}
+              style={{ flex: 1, accentColor: ACCENT }}
+            />
+            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+              {opts.ldaComponents}
+            </span>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+            Supervised — requires categorical target. Max components = number of classes − 1.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }

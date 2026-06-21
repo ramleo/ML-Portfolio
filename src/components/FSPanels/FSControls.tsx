@@ -66,7 +66,7 @@ export default function FSControls({
                       {tab.enabled && !active && (
                         <span style={{ marginLeft: "0.3rem", display: "inline-block", width: 5, height: 5, borderRadius: 9999, background: cat.color, verticalAlign: "middle", opacity: 0.8 }} />
                       )}
-                      {result && (
+                      {result && tab.enabled && (
                         <span style={{ fontSize: "0.58rem", background: "rgba(0,0,0,0.3)", borderRadius: 9999, padding: "1px 5px", marginLeft: "0.25rem", color: active ? "#000" : "var(--text3)" }}>
                           {result.keptCount}
                         </span>

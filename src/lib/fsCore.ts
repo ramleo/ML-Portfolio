@@ -1,4 +1,6 @@
 // ── Types ─────────────────────────────────────────────────────────────────────
+export type { FAResult } from "./fsFA";
+export type { LDAResult } from "./fsLDA";
 
 export interface ColInfo {
   name: string;
@@ -53,6 +55,10 @@ export interface SelectionOpts {
   useUMAP: boolean;
   umapComponents: number;
   umapNeighbors: number;
+  useFA: boolean;
+  faFactors: number;
+  useLDA: boolean;
+  ldaComponents: number;
 }
 
 export interface FeatureScore {
@@ -93,6 +99,8 @@ export interface SelectionResult {
   exhaustiveActive: boolean;
   pcaResult: { components: PCAComponent[]; csvText: string } | null;
   umapResult: { nComponents: number; csvText: string; points: number[][] } | null;
+  faResult?: import("./fsFA").FAResult;
+  ldaResult?: import("./fsLDA").LDAResult;
 }
 
 // ── CSV ───────────────────────────────────────────────────────────────────────

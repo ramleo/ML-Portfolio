@@ -40,7 +40,7 @@ export function useFSAISuggest(
         }),
       };
       const toolContext = `OVERRIDE: Your response MUST be a raw JSON object only. No explanation, no markdown, no backticks. Start with { and end with }.\n\nDataset stats: ${JSON.stringify(stats)}`;
-      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a JSON object with the fields to enable. Boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Numeric fields: varianceThreshold, corrThreshold, topK, selectKBestK, kendallTopK, chiSqTopK, rfeTargetK, lassoAlpha, ridgeAlpha, treeTopK, forwardK, pcaComponents, umapComponents, umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}. Output the JSON object and nothing else.`;
+      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a compact JSON object. Include ONLY the fields you want to enable (boolean true) and any non-default numeric values. Skip fields that should stay disabled or at their defaults. Boolean fields: useVariance,useCorrelation,useTopK,useSelectKBest,useKendall,useChiSq,useRFE,useLasso,useRidge,useTree,useForward,usePCA,useUMAP. Numeric fields: varianceThreshold,corrThreshold,topK,selectKBestK,kendallTopK,chiSqTopK,rfeTargetK,lassoAlpha,ridgeAlpha,treeTopK,forwardK,pcaComponents,umapComponents,umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}`;
       const res = await fetch("/api/ai-tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,6 +49,7 @@ export function useFSAISuggest(
           toolContext,
           provider: "gemini",
           jsonMode: true,
+          maxTokens: 2048,
         }),
       });
       if (!res.ok) {

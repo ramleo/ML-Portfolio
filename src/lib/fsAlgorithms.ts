@@ -5,4 +5,6 @@ export * from "./fsCore";
 export * from "./fsFilters";
 export * from "./fsEmbedded";
 export * from "./fsReduction";
+export * from "./fsFA";
+export * from "./fsLDA";
 export { runSelection } from "./fsMain";

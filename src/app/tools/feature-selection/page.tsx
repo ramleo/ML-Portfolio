@@ -10,6 +10,8 @@ import ScoreTabs from "@/components/FSPanels/ScoreTabs";
 import WrapperTabs from "@/components/FSPanels/WrapperTabs";
 import ReductionTabs from "@/components/FSPanels/ReductionTabs";
 import FSResultCards from "@/components/FSPanels/FSResultCards";
+import FSReductionResultCards from "@/components/FSPanels/FSReductionResultCards";
+import { useFSDownloads } from "@/hooks/useFSDownloads";
 import type { ColInfo, SelectionOpts, SelectionResult } from "@/lib/fsAlgorithms";
 import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
 import FSControls from "@/components/FSPanels/FSControls";
@@ -48,7 +50,7 @@ type TabId =
   | "variance" | "correlation" | "topk" | "rfe" | "selectkbest"
   | "forward" | "exhaustive" | "chisq" | "kendall"
   | "lasso" | "ridge" | "tree"
-  | "pca" | "umap";
+  | "pca" | "umap" | "fa" | "lda";
 
 // ── Default opts ──────────────────────────────────────────────────────────────
 
@@ -67,6 +69,8 @@ const DEFAULT_OPTS: Omit<SelectionOpts, "targetCol"> = {
   useExhaustive: false, exhaustiveK: 5,
   usePCA: false, pcaComponents: 3,
   useUMAP: false, umapComponents: 2, umapNeighbors: 15,
+  useFA: false, faFactors: 3,
+  useLDA: false, ldaComponents: 2,
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -83,6 +87,7 @@ export default function FeatureSelectionPage() {
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("variance");
   const { aiLoading, aiError, handleAISuggest } = useFSAISuggest(cols, rowCount, opts, setOpts);
+  const { handleDownload, handleDownloadPCA, handleDownloadUMAP, handleDownloadFA, handleDownloadLDA } = useFSDownloads(result, fileName);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [excludedCols, setExcludedCols] = useState<string[]>([]);
   const [excludeOpen, setExcludeOpen] = useState(false);
@@ -112,6 +117,8 @@ export default function FeatureSelectionPage() {
     { id: "exhaustive",  label: "Exhaustive", enabled: opts.useExhaustive,  cat: "Wrapper" },
     { id: "pca",         label: "PCA",        enabled: opts.usePCA,         cat: "Reduction" },
     { id: "umap",        label: "UMAP",       enabled: opts.useUMAP,        cat: "Reduction" },
+    { id: "fa",          label: "FA",         enabled: opts.useFA,          cat: "Reduction" },
+    { id: "lda",         label: "LDA",        enabled: opts.useLDA,         cat: "Reduction" },
   ];
 
   const TAB_CATEGORIES = [
@@ -188,38 +195,6 @@ export default function FeatureSelectionPage() {
     setOpts(o => ({ ...DEFAULT_OPTS, targetCol: o.targetCol }));
   }, []);
 
-  const handleDownload = useCallback(() => {
-    if (!result?.csvText) return;
-    const blob = new Blob([result.csvText], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName.replace(/\.csv$/i, "") + "_selected.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [result, fileName]);
-
-  const handleDownloadPCA = useCallback(() => {
-    if (!result?.pcaResult?.csvText) return;
-    const blob = new Blob([result.pcaResult.csvText], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName.replace(/\.csv$/i, "") + "_pca.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [result, fileName]);
-
-  const handleDownloadUMAP = useCallback(() => {
-    if (!result?.umapResult?.csvText) return;
-    const blob = new Blob([result.umapResult.csvText], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName.replace(/\.csv$/i, "") + "_umap.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [result, fileName]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -361,19 +336,29 @@ export default function FeatureSelectionPage() {
 
             {/* Results */}
             {result !== null && (
-              <FSResultCards
-                result={result}
-                cols={cols}
-                opts={opts}
-                numericCols={numericCols}
-                categoricalCols={categoricalCols}
-                fileName={fileName}
-                rowCount={rowCount}
-                accent={ACCENT}
-                onDownload={handleDownload}
-                onDownloadPCA={handleDownloadPCA}
-                onDownloadUMAP={handleDownloadUMAP}
-              />
+              <>
+                <FSResultCards
+                  result={result}
+                  cols={cols}
+                  opts={opts}
+                  numericCols={numericCols}
+                  categoricalCols={categoricalCols}
+                  fileName={fileName}
+                  rowCount={rowCount}
+                  accent={ACCENT}
+                  onDownload={handleDownload}
+                  onDownloadPCA={handleDownloadPCA}
+                  onDownloadUMAP={handleDownloadUMAP}
+                />
+                <FSReductionResultCards
+                  result={result}
+                  opts={opts}
+                  cols={cols}
+                  accent={ACCENT}
+                  onDownloadFA={handleDownloadFA}
+                  onDownloadLDA={handleDownloadLDA}
+                />
+              </>
             )}
           </>
         )}

@@ -19,6 +19,8 @@ const TAB_LABELS: Record<string, string> = {
   exhaustive:  "Exhaustive Search",
   pca:         "PCA",
   umap:        "UMAP",
+  fa:          "Factor Analysis",
+  lda:         "Linear Discriminant Analysis",
 };
 
 const HOW_IT_WORKS: Record<string, string> = {
@@ -36,6 +38,8 @@ const HOW_IT_WORKS: Record<string, string> = {
   exhaustive: "Enumerates all C(n,k) feature subsets of size k and scores each by avgMI(subset, target) − 0.3 × avgInterCorr(subset). Computationally infeasible for n > 15, so the algorithm automatically falls back to Forward Selection beyond that threshold. E.g. with 8 candidates and K=3, all C(8,3)=56 subsets are scored — {glucose, bmi, age} wins with score 0.61.",
   pca: "Standardises features (z-score), computes the covariance matrix, and extracts principal components via power iteration + deflation. Each PC is a linear combination of original features ordered by variance explained (eigenvalue / total variance). E.g. 10 correlated sensor features → PC1 explains 68% variance, PC2 explains 19% — 2 components replace 10 columns.",
   umap: "Builds a k-NN affinity graph using Gaussian kernel weights, normalises it into a symmetric Laplacian, then extracts the eigenvectors corresponding to the 2 or 3 smallest non-zero eigenvalues. This spectral embedding captures non-linear manifold structure. E.g. a dataset of 500 handwritten digits (784 features) embedded into 2D reveals 10 tight clusters — one per digit class.",
+  fa: "Factor Analysis finds latent variables (factors) that explain correlations between features. Unlike PCA which maximises total variance, FA models shared variance (communalities h²). Iteratively estimates loadings via principal axis factoring: replace diagonal of correlation matrix with current h²_i, extract eigenvectors, update communalities. Loadings show how strongly each feature relates to each factor. E.g. on Titanic: Factor 1 loads heavily on Fare (+0.81) and Pclass (−0.78) — both driven by latent 'wealth'. Caveat: assumes linear relationships between features and latent factors.",
+  lda: "Linear Discriminant Analysis (LDA) finds axes that maximally separate classes. Computes between-class scatter S_B and within-class scatter S_W, then extracts eigenvectors of S_W⁻¹S_B — these discriminants push different classes apart while keeping same-class points close. Unlike PCA (unsupervised), LDA is supervised: it uses your target labels. E.g. on Titanic (Survived 0/1): LD1 aligns with the Fare+Pclass direction that best separates survivors from non-survivors. Caveat: requires categorical target; assumes Gaussian class distributions; max components = nClasses − 1.",
 };
 
 export default function HowItWorks({ tabId }: { tabId: string }) {
