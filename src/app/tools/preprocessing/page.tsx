@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import { parseCSV, analyzeCSV, preprocessCSV } from "@/lib/preprocessing";
+import { parseCSVStream } from "@/lib/parseCSVStream";
 import {
   AnalyzeResult, PrepResult, Step, PresetKey, PRESETS, computeQualityScore,
 } from "@/lib/preprocessingAlgorithms";
@@ -53,18 +54,14 @@ export default function PreprocessingPage() {
 
   const analyze = useCallback((f: File) => {
     setAnalyzing(true); setError(null);
-    const reader = new FileReader();
-    reader.onload = () => {
+    parseCSVStream(f, (rows) => {
       try {
-        const rows = parseCSV(reader.result as string);
         const data = analyzeCSV(rows);
         setAnalyzed(data); setTarget(data.suggested_target); setStep("configure");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Analysis failed");
       } finally { setAnalyzing(false); }
-    };
-    reader.onerror = () => { setError("Could not read file"); setAnalyzing(false); };
-    reader.readAsText(f);
+    }, (err) => { setError(err); setAnalyzing(false); });
   }, []);
 
   const handleFile = useCallback((f: File) => {
@@ -80,11 +77,9 @@ export default function PreprocessingPage() {
   const handlePreprocess = useCallback(() => {
     if (!file || !analyzed) return;
     setStep("processing"); setError(null);
-    const reader = new FileReader();
-    reader.onload = () => {
+    parseCSVStream(file, (rows) => {
       setTimeout(() => {
         try {
-          const rows = parseCSV(reader.result as string);
           const data = preprocessCSV(rows, {
             remove_duplicates: removeDups, drop_columns: [...dropCols],
             target_column: target, mv_num: mvNum, mv_cat: mvCat,
@@ -97,9 +92,7 @@ export default function PreprocessingPage() {
           setStep("configure");
         }
       }, 50);
-    };
-    reader.onerror = () => { setError("Could not read file"); setStep("configure"); };
-    reader.readAsText(file);
+    }, (err) => { setError(err); setStep("configure"); });
   }, [file, analyzed, target, dropCols, mvNum, mvCat, removeDups, removeOutliers, fixSkewness, encodeMethod, standardize]);
 
   const downloadCSV = useCallback(() => {

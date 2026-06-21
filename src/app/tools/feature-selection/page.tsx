@@ -13,7 +13,8 @@ import FSResultCards from "@/components/FSPanels/FSResultCards";
 import FSReductionResultCards from "@/components/FSPanels/FSReductionResultCards";
 import { useFSDownloads } from "@/hooks/useFSDownloads";
 import type { ColInfo, SelectionOpts, SelectionResult } from "@/lib/fsAlgorithms";
-import { parseCSV, analyzeColumns, runSelection } from "@/lib/fsAlgorithms";
+import { analyzeColumns } from "@/lib/fsAlgorithms";
+import { parseCSVStreamFS } from "@/lib/parseCSVStream";
 import FSControls from "@/components/FSPanels/FSControls";
 import HowItWorks from "@/components/FSPanels/FSHowItWorks";
 import FSExcludePanel from "@/components/FSPanels/FSExcludePanel";
@@ -131,10 +132,7 @@ export default function FeatureSelectionPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleFile = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const text = e.target?.result as string;
-      const { headers, rows } = parseCSV(text);
+    parseCSVStreamFS(file, ({ headers, rows }) => {
       if (!headers.length) return;
       const analyzed = analyzeColumns(headers, rows);
       setCols(analyzed);
@@ -150,8 +148,7 @@ export default function FeatureSelectionPage() {
           kBestMethod: last.type === "categorical" ? "f_classif" : "f_regression",
         }));
       }
-    };
-    reader.readAsText(file);
+    }, () => {});
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -160,31 +157,32 @@ export default function FeatureSelectionPage() {
     if (file?.name.endsWith(".csv")) handleFile(file);
   }, [handleFile]);
 
-  const handleRun = useCallback(() => {
-    if (!cols.length) return;
-    setRunning(true);
-    setTimeout(() => {
-      const filteredCols = excludedCols.length
-        ? cols.filter(c => !excludedCols.includes(c.name))
-        : cols;
-      setResult(runSelection(filteredCols, opts));
+  const runSelectionWorker = useCallback((filteredCols: ColInfo[], selOpts: SelectionOpts) => {
+    const worker = new Worker(new URL("../../workers/fsSelectionWorker.ts", import.meta.url));
+    worker.onmessage = (e) => {
+      const { type, payload, message } = e.data;
+      if (type === "result") setResult(payload as SelectionResult);
+      else if (type === "error") console.error("FS worker error:", message);
       setRunning(false);
-    }, 50);
-  }, [cols, opts, excludedCols]);
+      worker.terminate();
+    };
+    worker.onerror = (err) => { console.error("FS worker error:", err.message); setRunning(false); worker.terminate(); };
+    worker.postMessage({ cols: filteredCols, opts: selOpts });
+  }, []);
+
+  const handleRun = useCallback(() => {
+    if (!cols.length || typeof window === "undefined") return;
+    setRunning(true);
+    runSelectionWorker(excludedCols.length ? cols.filter(c => !excludedCols.includes(c.name)) : cols, opts);
+  }, [cols, opts, excludedCols, runSelectionWorker]);
 
   // Auto-re-run with 400 ms debounce when opts change and a result already exists
   useEffect(() => {
-    if (!result || !cols.length) return;
+    if (!result || !cols.length || typeof window === "undefined") return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setRunning(true);
-      setTimeout(() => {
-        const filteredCols = excludedCols.length
-          ? cols.filter(c => !excludedCols.includes(c.name))
-          : cols;
-        setResult(runSelection(filteredCols, opts));
-        setRunning(false);
-      }, 50);
+      runSelectionWorker(excludedCols.length ? cols.filter(c => !excludedCols.includes(c.name)) : cols, opts);
     }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,7 +192,6 @@ export default function FeatureSelectionPage() {
     setResult(null);
     setOpts(o => ({ ...DEFAULT_OPTS, targetCol: o.targetCol }));
   }, []);
-
 
   // ── Render ────────────────────────────────────────────────────────────────
 

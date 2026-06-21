@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import { ColInfo, parseCSV, analyzeColumns } from "@/lib/feAlgorithms";
+import { ColInfo, analyzeColumns } from "@/lib/feAlgorithms";
+import { parseCSVStream } from "@/lib/parseCSVStream";
 
 interface UseFEFileLoadParams {
   setError: (e: string) => void;
@@ -41,10 +42,7 @@ export function useFEFileLoad({
     if (!file.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
     setError("");
     setFilename(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      const rows = parseCSV(text);
+    parseCSVStream(file, (rows) => {
       if (rows.length < 2) { setError("CSV must have at least 2 rows."); return; }
       const analyzed = analyzeColumns(rows);
       setRawRows(rows);
@@ -67,8 +65,7 @@ export function useFEFileLoad({
       setRowAggCols([]); setRowAggFn("mean");
       resetLDA();
       setStep("configure");
-    };
-    reader.readAsText(file);
+    }, (err) => { setError(err); });
   }, [
     setError, setFilename, setRawRows, setCols, setColTransforms,
     setDateCols, setInteractions, setPolyCols, setRatios, setRatioA, setRatioB,
