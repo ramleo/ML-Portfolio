@@ -61,7 +61,7 @@ export function ConfigurePanel({
   const hasCat  = catCols.length > 0;
 
   return (
-    <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0 }}>
       {/* Stats + Presets bar */}
       <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem", flexWrap: "wrap", flexShrink: 0 }}>
         <div style={{ display: "flex", gap: "0.75rem" }}>
