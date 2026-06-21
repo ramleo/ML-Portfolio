@@ -207,12 +207,13 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const PANEL_H = 520;
 
   return (
-    <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999, fontFamily: "inherit" }}>
+    <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999, fontFamily: "inherit", pointerEvents: "none" }}>
 
       {/* Chat panel */}
       {open && (
         <div style={{
           position: "absolute", bottom: 64, right: 0,
+          pointerEvents: "auto",
           width: PANEL_W, height: PANEL_H,
           background: "rgba(8,15,30,0.97)",
           border: `1px solid ${accentColor}33`,
@@ -365,6 +366,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
         onClick={() => { setOpen(o => !o); setSettings(false); }}
         title="AI Assistant"
         style={{
+          pointerEvents: "auto",
           width: 52, height: 52, borderRadius: "50%",
           background: open
             ? `rgba(8,15,30,0.95)`
