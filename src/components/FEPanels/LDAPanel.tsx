@@ -136,7 +136,7 @@ export default function LDAPanel({
               }}>
                 <strong style={{ color: "var(--text2)", display: "block", marginBottom: "0.4rem" }}>Full preprocessing + inference pipeline:</strong>
                 <ol style={{ margin: 0, paddingLeft: "1.1rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                  <li><strong style={{ color: ACCENT }}>Build stopword set</strong> — built-in ~60 common English words (the, a, is, are…) are always removed. If you enter custom stopwords, they are merged on top. Default stopwords apply regardless.</li>
+                  <li><strong style={{ color: ACCENT }}>Build stopword set</strong> — built-in ~320 common English words (spaCy-equivalent: the, a, is, are, also, because, during, either…) are always removed. If you enter custom stopwords, they are merged on top. Default stopwords apply regardless.</li>
                   <li><strong style={{ color: ACCENT }}>Tokenize</strong> — each text cell is lowercased, all non-alphanumeric characters stripped, split on whitespace. Tokens shorter than 2 characters are dropped. Stopwords removed here.</li>
                   <li><strong style={{ color: ACCENT }}>Stemming</strong> (optional) — if enabled, common suffixes are stripped: <em>running → runn, classification → classif, happiness → happi, moved → mov</em>. Words ≤ 4 chars are left as-is.</li>
                   <li><strong style={{ color: ACCENT }}>Build vocabulary</strong> — count global word frequency across all documents. Take the top 500 most frequent words as the working vocabulary.</li>
