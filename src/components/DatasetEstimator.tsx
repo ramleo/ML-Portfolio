@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  runBenchmark, getHardware, fmtTime, fmtMem,
+  runBenchmark, getHardware, fmtTime, fmtMem, recommendedRamMB,
   estimateFS, estimateFELDA, estimatePreprocessing, estimateAutoML,
   type AlgoEstimate, type HardwareInfo,
 } from "@/lib/hardwareEstimator";
@@ -129,7 +129,7 @@ export default function DatasetEstimator({ n, p, tool, fsOpts, ldaEnabled, ldaTo
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
           {hw && (
             <span style={{ fontSize: "0.68rem", color: "var(--text3)" }}>
-              {hw.cores} cores{hw.memGB !== null ? ` · ${hw.memGB}GB RAM` : ""}
+              {hw.cores} cores
             </span>
           )}
           {opsPerMs !== null && estimates.length > 0 && (
@@ -139,6 +139,9 @@ export default function DatasetEstimator({ n, p, tool, fsOpts, ldaEnabled, ldaTo
               </span>
               <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
                 💾 {fmtMem(totalMem)}
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
+                Recommended RAM: {fmtMem(recommendedRamMB(estimates))}
               </span>
             </>
           )}

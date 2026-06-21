@@ -4,7 +4,6 @@
 
 export interface HardwareInfo {
   cores: number;
-  memGB: number | null; // null = not available (Firefox/Safari)
 }
 
 export interface AlgoEstimate {
@@ -39,8 +38,12 @@ export async function runBenchmark(): Promise<number> {
 
 export function getHardware(): HardwareInfo {
   const cores = navigator.hardwareConcurrency ?? 2;
-  const memGB = (navigator as { deviceMemory?: number }).deviceMemory ?? null;
-  return { cores, memGB };
+  return { cores };
+}
+
+export function recommendedRamMB(estimates: AlgoEstimate[]): number {
+  if (estimates.length === 0) return 0;
+  return Math.max(...estimates.map(e => e.memoryMB)) * 3;
 }
 
 // ── Time formatter ────────────────────────────────────────────────────────────

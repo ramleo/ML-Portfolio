@@ -1,6 +1,7 @@
 "use client";
 
 import MouseTiltCard from "@/components/MouseTiltCard";
+import DatasetEstimator from "@/components/DatasetEstimator";
 import {
   ACCENT, CARD_BG,
   type AnalyzeResult,
@@ -33,6 +34,7 @@ export default function Step2Configure({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <DatasetEstimator n={analyzed.rows} p={analyzed.columns.length} tool="automl" />
       {/* Dataset meta */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
         {[

@@ -8,6 +8,7 @@ import { SmartRecommendations } from "./SmartRecommendations";
 import { PresetsBar }           from "./PresetsBar";
 import { DatasetOverview }      from "./DatasetOverview";
 import { Toggle }               from "./Toggle";
+import DatasetEstimator         from "@/components/DatasetEstimator";
 
 const ACCENT  = "#22d3ee";
 const CARD_BG = "rgba(17,24,39,0.80)";
@@ -95,6 +96,7 @@ export function ConfigurePanel({
             setStandardize={wrapSetter(setStandardize)}
             setEncodeMethod={wrapSetter(setEncodeMethod)}
           />
+          <DatasetEstimator n={analyzed.rows} p={analyzed.columns.length} tool="preprocessing" />
         </div>
 
         {/* Right: config controls — single scrollable column */}

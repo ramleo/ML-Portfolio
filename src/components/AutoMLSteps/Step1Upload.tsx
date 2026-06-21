@@ -55,9 +55,6 @@ export default function Step1Upload({
         />
       </div>
       {error && <p style={{ marginTop: "0.75rem", fontSize: "0.78rem", color: "#f87171" }}>{error}</p>}
-      <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.5rem", textAlign: "center" }}>
-        All rows processed · iteration count auto-scales with dataset size
-      </div>
     </div>
   );
 }
