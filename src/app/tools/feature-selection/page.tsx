@@ -333,7 +333,7 @@ export default function FeatureSelectionPage() {
               <FilterTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} numericCols={numericCols} activeTab={activeTab} />
               <ScoreTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} activeTab={activeTab} />
               <WrapperTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} activeTab={activeTab} />
-              <ReductionTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} activeTab={activeTab} />
+              <ReductionTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} cols={cols} activeTab={activeTab} />
             </RepulsionCard>
 
             {/* Results */}

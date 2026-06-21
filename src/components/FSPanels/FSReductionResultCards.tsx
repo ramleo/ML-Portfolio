@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import RepulsionCard from "@/components/RepulsionCard";
 import UMAPScatter from "@/components/UMAPScatter";
-import FSProjectedScatter from "@/components/FSPanels/FSProjectedScatter";
 import type { SelectionResult, SelectionOpts, ColInfo } from "@/lib/fsAlgorithms";
 
 const ACCENT = "#fb923c";
@@ -32,6 +32,8 @@ interface Props {
 export default function FSReductionResultCards({
   result, opts, cols, accent = ACCENT, onDownloadFA, onDownloadLDA,
 }: Props) {
+  const [faView, setFaView] = useState<"2d" | "3d">("2d");
+  const [ldaView, setLdaView] = useState<"2d" | "3d">("2d");
   return (
     <>
       {/* ── FA result card ── */}
@@ -112,22 +114,44 @@ export default function FSReductionResultCards({
               </table>
             </div>
             {result.faResult.points.length >= 2 && (() => {
-              const hasZ = result.faResult!.points[0]?.z !== undefined;
-              const nDims = hasZ ? 3 : 2;
+              const faHas3D = result.faResult!.points[0]?.z !== undefined;
+              const faUse3D = faHas3D && faView === "3d";
               const faScatter = {
-                nComponents: nDims as 2 | 3,
+                nComponents: (faUse3D ? 3 : 2) as 2 | 3,
                 csvText: "",
                 points: result.faResult!.points.map(p =>
-                  hasZ ? [p.x, p.y, p.z!] : [p.x, p.y]
+                  faUse3D ? [p.x, p.y, p.z!] : [p.x, p.y]
                 ),
               };
               return (
-                <UMAPScatter
-                  umapResult={faScatter}
-                  accent={accent}
-                  labelValues={result.faResult!.points.map(p => p.label)}
-                  axisPrefix="F"
-                />
+                <>
+                  {faHas3D && (
+                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", marginBottom: "0.5rem" }}>
+                      {(["2d", "3d"] as const).map(mode => (
+                        <button key={mode} onClick={() => setFaView(mode)} style={{
+                          padding: "0.35rem 1rem", borderRadius: 6, cursor: "pointer",
+                          fontSize: "0.76rem", fontWeight: 600, transition: "all 0.15s",
+                          border: `1px solid ${faView === mode ? accent : "rgba(255,255,255,0.12)"}`,
+                          background: faView === mode ? `${accent}18` : "rgba(0,0,0,0.2)",
+                          color: faView === mode ? accent : "var(--text3)",
+                        }}>
+                          {mode.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <UMAPScatter
+                    umapResult={faScatter}
+                    accent={accent}
+                    labelValues={result.faResult!.points.map(p => p.label)}
+                    axisPrefix="F"
+                  />
+                  {faHas3D && faView === "3d" && (
+                    <div style={{ fontSize: "0.70rem", color: "var(--text3)", marginTop: "0.35rem", lineHeight: 1.5 }}>
+                      3D view uses Factor 1, 2 and 3. Only available when 3+ factors are computed.
+                    </div>
+                  )}
+                </>
               );
             })()}
             <div style={{ marginTop: "0.85rem" }}>
@@ -163,8 +187,9 @@ export default function FSReductionResultCards({
         const actualDims = points[0]?.length ?? 0;
 
         // Build scatter-compatible structure for UMAPScatter (2D or 3D)
+        const ldaUse3D = actualDims >= 3 && ldaView === "3d";
         const scatterResult = {
-          nComponents: Math.min(actualDims, 3) as 2 | 3,
+          nComponents: (ldaUse3D ? 3 : 2) as 2 | 3,
           csvText: "",
           points,
         };
@@ -223,12 +248,30 @@ export default function FSReductionResultCards({
             {/* 3D or 2D scatter coloured by class */}
             {actualDims >= 2 && (
               <>
+                {actualDims >= 3 && (
+                  <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                    {(["2d", "3d"] as const).map(mode => (
+                      <button key={mode} onClick={() => setLdaView(mode)} style={{
+                        padding: "0.35rem 1rem", borderRadius: 6, cursor: "pointer",
+                        fontSize: "0.76rem", fontWeight: 600, transition: "all 0.15s",
+                        border: `1px solid ${ldaView === mode ? accent : "rgba(255,255,255,0.12)"}`,
+                        background: ldaView === mode ? `${accent}18` : "rgba(0,0,0,0.2)",
+                        color: ldaView === mode ? accent : "var(--text3)",
+                      }}>{mode.toUpperCase()}</button>
+                    ))}
+                  </div>
+                )}
                 <UMAPScatter
                   umapResult={scatterResult}
                   accent={accent}
                   labelValues={targetValues.map(String)}
                   axisPrefix="LD"
                 />
+                {actualDims >= 3 && ldaView === "3d" && (
+                  <div style={{ fontSize: "0.70rem", color: "var(--text3)", marginTop: "0.35rem", lineHeight: 1.5 }}>
+                    3D view uses LD1, LD2 and LD3. Only available when 4+ target classes exist.
+                  </div>
+                )}
                 {/* Class colour legend */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
                   {classes.map((cls, i) => (

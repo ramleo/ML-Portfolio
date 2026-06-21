@@ -1,11 +1,11 @@
 "use client";
 
 import CorrelationHeatmap from "@/components/CorrelationHeatmap";
-import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
+import { ScoreComparisonChart } from "@/components/FSCharts";
 import UMAPScatter from "@/components/UMAPScatter";
 import RepulsionCard from "@/components/RepulsionCard";
-import FSProjectedScatter from "@/components/FSPanels/FSProjectedScatter";
-import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult } from "@/lib/fsAlgorithms";
+import FSPCACard from "@/components/FSPanels/FSPCACard";
+import type { ColInfo, SelectionOpts, FeatureScore, SelectionResult } from "@/lib/fsAlgorithms";
 
 const ACCENT = "#fb923c";
 
@@ -315,55 +315,9 @@ export default function FSResultCards({
       </RepulsionCard>
 
       {/* ── PCA result card ── */}
-      {result.pcaResult != null && (() => {
-        const { components } = result.pcaResult;
-        const lastComp = components[components.length - 1];
-        return (
-          <RepulsionCard style={{ ...CARD, borderColor: `${accent}22` }}>
-            <div style={{ marginBottom: "0.75rem" }}>
-              <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>PCA Components</span>
-              <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
-                {components.length} components · {((lastComp?.cumulativeVariance ?? 0) * 100).toFixed(1)}% total variance explained
-              </span>
-            </div>
-            <PCAScreeChart components={components} accent={accent} />
-            <FSProjectedScatter points={result.pcaResult.points} xLabel="PC1" yLabel="PC2" accent={accent} />
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem", marginTop: "1rem" }}>
-              {components.map((comp: PCAComponent) => (
-                <div key={comp.index} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <span style={{ fontSize: "0.74rem", fontWeight: 700, color: accent, width: 36, flexShrink: 0 }}>
-                    PC{comp.index}
-                  </span>
-                  <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
-                    <div style={{
-                      height: "100%", borderRadius: 9999,
-                      width: `${Math.max(comp.varianceExplained * 100, 1)}%`,
-                      background: accent, opacity: 0.8,
-                      transition: "width 0.4s",
-                    }} />
-                  </div>
-                  <span style={{ fontSize: "0.73rem", color: "var(--text3)", width: 44, textAlign: "right", flexShrink: 0 }}>
-                    {(comp.varianceExplained * 100).toFixed(1)}%
-                  </span>
-                  <span style={{ fontSize: "0.71rem", color: "var(--text3)", flexShrink: 0, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    Top: {comp.topLoadings[0]?.name} ({comp.topLoadings[0]?.loading > 0 ? "+" : ""}{comp.topLoadings[0]?.loading.toFixed(2)})
-                  </span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={onDownloadPCA}
-              style={{
-                padding: "0.5rem 1.2rem", background: accent, border: "none", borderRadius: 8,
-                color: "#000", fontWeight: 700, fontSize: "0.82rem",
-                cursor: "pointer", boxShadow: `0 0 12px ${accent}44`,
-              }}
-            >
-              Download PCA CSV
-            </button>
-          </RepulsionCard>
-        );
-      })()}
+      {result.pcaResult != null && (
+        <FSPCACard result={result} opts={opts} accent={accent} onDownloadPCA={onDownloadPCA} />
+      )}
 
       {/* ── UMAP result card ── */}
       {result.umapResult != null && (

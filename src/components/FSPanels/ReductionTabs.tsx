@@ -1,6 +1,6 @@
 "use client";
 
-import type { SelectionOpts } from "@/lib/fsAlgorithms";
+import type { SelectionOpts, ColInfo } from "@/lib/fsAlgorithms";
 
 const ACCENT = "#fb923c";
 
@@ -8,10 +8,11 @@ interface ReductionTabsProps {
   opts: SelectionOpts;
   setOpts: React.Dispatch<React.SetStateAction<SelectionOpts>>;
   candidateCount: number;
+  cols: ColInfo[];
   activeTab: string;
 }
 
-export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab }: ReductionTabsProps) {
+export default function ReductionTabs({ opts, setOpts, candidateCount, cols, activeTab }: ReductionTabsProps) {
   if (activeTab === "pca") {
     return (
       <div>
@@ -134,7 +135,11 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
   }
 
   if (activeTab === "lda") {
-    const targetCol = opts.targetCol;
+    const targetCol = cols.find(c => c.name === opts.targetCol);
+    const nClasses = targetCol
+      ? new Set(targetCol.rawVals.filter(Boolean)).size
+      : 0;
+    const maxLDA = Math.max(1, nClasses - 1);
     return (
       <div>
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
@@ -156,16 +161,24 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
             <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Components</span>
             <input
-              type="range" min="1" max="5" step="1"
-              value={opts.ldaComponents}
-              onChange={e => setOpts(o => ({ ...o, ldaComponents: parseInt(e.target.value) }))}
+              type="range" min="1" max={maxLDA} step="1"
+              value={Math.min(opts.ldaComponents, maxLDA)}
+              onChange={e => setOpts(o => ({ ...o, ldaComponents: Math.min(parseInt(e.target.value), maxLDA) }))}
               disabled={!opts.useLDA}
               style={{ flex: 1, accentColor: ACCENT }}
             />
             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
-              {opts.ldaComponents}
+              {Math.min(opts.ldaComponents, maxLDA)}
             </span>
           </div>
+          {nClasses > 0 && (
+            <div style={{
+              fontSize: "0.70rem", color: "var(--text3)", marginTop: "0.3rem",
+              background: "rgba(255,255,255,0.03)", borderRadius: 5, padding: "0.3rem 0.5rem",
+            }}>
+              {nClasses} class{nClasses !== 1 ? "es" : ""} detected → max {maxLDA} discriminant{maxLDA !== 1 ? "s" : ""} (classes − 1)
+            </div>
+          )}
           <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
             Supervised — requires categorical target. Max components = number of classes − 1.
           </div>

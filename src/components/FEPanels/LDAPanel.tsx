@@ -72,6 +72,7 @@ export default function LDAPanel({
   onRunLDA,
 }: LDAPanelProps) {
   const [expanded, setExpanded] = useState(true);
+  const [howOpen, setHowOpen] = useState(false);
 
   return (
     <div style={{
@@ -103,12 +104,48 @@ export default function LDAPanel({
       {expanded && (
         <>
           {/* Description */}
-          <div style={{ fontSize: "0.71rem", color: "var(--text3)", lineHeight: 1.6, marginBottom: "1rem" }}>
+          <div style={{ fontSize: "0.71rem", color: "var(--text3)", lineHeight: 1.6, marginBottom: "0.6rem" }}>
             Discovers hidden topics in a text column using Latent Dirichlet Allocation (Gibbs Sampling).
             Outputs one probability column per topic.{" "}
             <span style={{ color: `${ACCENT}99`, fontStyle: "italic" }}>
               Best with 50+ rows of meaningful text.
             </span>
+            {" "}Default English stopwords are always applied; custom stopwords add to them.
+          </div>
+
+          {/* How LDA works — collapsible */}
+          <div style={{ marginBottom: "1rem" }}>
+            <button
+              onClick={() => setHowOpen(o => !o)}
+              style={{
+                display: "flex", alignItems: "center", gap: "0.4rem",
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                fontSize: "0.71rem", fontWeight: 600, color: "var(--text3)",
+              }}
+            >
+              <span style={{ fontSize: "0.65rem" }}>{howOpen ? "▲" : "▶"}</span>
+              How Latent Dirichlet Allocation works
+            </button>
+            {howOpen && (
+              <div style={{
+                marginTop: "0.5rem", padding: "0.75rem 0.9rem",
+                borderLeft: `2px solid ${PURPLE}55`,
+                background: "rgba(167,139,250,0.04)",
+                borderRadius: "0 6px 6px 0",
+                fontSize: "0.70rem", color: "var(--text3)", lineHeight: 1.65,
+              }}>
+                <strong style={{ color: "var(--text2)", display: "block", marginBottom: "0.4rem" }}>Full preprocessing + inference pipeline:</strong>
+                <ol style={{ margin: 0, paddingLeft: "1.1rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <li><strong style={{ color: ACCENT }}>Build stopword set</strong> — built-in ~60 common English words (the, a, is, are…) are always removed. If you enter custom stopwords, they are merged on top. Default stopwords apply regardless.</li>
+                  <li><strong style={{ color: ACCENT }}>Tokenize</strong> — each text cell is lowercased, all non-alphanumeric characters stripped, split on whitespace. Tokens shorter than 2 characters are dropped. Stopwords removed here.</li>
+                  <li><strong style={{ color: ACCENT }}>Stemming</strong> (optional) — if enabled, common suffixes are stripped: <em>running → runn, classification → classif, happiness → happi, moved → mov</em>. Words ≤ 4 chars are left as-is.</li>
+                  <li><strong style={{ color: ACCENT }}>Build vocabulary</strong> — count global word frequency across all documents. Take the top 500 most frequent words as the working vocabulary.</li>
+                  <li><strong style={{ color: ACCENT }}>Min document frequency filter</strong> — any word appearing in fewer than <em>minDocFreq</em> documents is removed from vocabulary. Default = 2 (removes words unique to a single row — likely noise or proper nouns).</li>
+                  <li><strong style={{ color: ACCENT }}>Collapsed Gibbs Sampling</strong> — each token is iteratively reassigned to a topic proportional to: <em>P(topic k | word w, doc d) ∝ (docTopic[d][k] + α) × (wordTopic[w][k] + β) / (topicTotal[k] + V·β)</em>. α = 0.1, β = 0.01. Runs for the configured iterations. Deterministic (seed = 42).</li>
+                  <li><strong style={{ color: ACCENT }}>Output</strong> — topic-document distribution θ[d][k] exported as one column per topic (<em>lda_topic_0, lda_topic_1,…</em>). Top words per topic shown as coloured chips (φ distribution).</li>
+                </ol>
+              </div>
+            )}
           </div>
 
           {/* Column selector */}
