@@ -139,12 +139,26 @@ export default function FSReductionResultCards({
           .sort((a, b) => Math.abs(b.w) - Math.abs(a.w))
           .slice(0, 5);
 
-        // Build scatter-compatible structure for UMAPScatter
+        // Actual number of dimensions in the projected points
+        const actualDims = points[0]?.length ?? 0;
+
+        // Build scatter-compatible structure for UMAPScatter (2D or 3D)
         const scatterResult = {
-          nComponents: Math.min(nComp, 2),
+          nComponents: Math.min(actualDims, 3) as 2 | 3,
           csvText: "",
           points,
         };
+
+        // ── 1D histogram helpers ──
+        const colorMap1D = new Map<string, string>();
+        classes.forEach((cls, i) => colorMap1D.set(String(cls), CLASS_COLORS[i % CLASS_COLORS.length]));
+        const ld1Vals = points.map(p => p[0] ?? 0).filter((_, i) => targetValues[i] !== "");
+        const ld1Min = Math.min(...ld1Vals);
+        const ld1Max = Math.max(...ld1Vals);
+        const ld1Range = ld1Max - ld1Min || 1;
+        const HIST_W = 480, HIST_H = 120, HIST_PAD_X = 32, HIST_PAD_Y = 20;
+        // Seeded jitter per point (deterministic based on index)
+        const jitter = (i: number) => ((i * 2654435761) % 1000) / 1000;
 
         return (
           <RepulsionCard style={{ ...CARD, borderColor: `${accent}22` }}>
@@ -176,8 +190,8 @@ export default function FSReductionResultCards({
               ))}
             </div>
 
-            {/* 2D scatter coloured by class */}
-            {nComp >= 2 && (
+            {/* 3D or 2D scatter coloured by class */}
+            {actualDims >= 2 && (
               <>
                 <UMAPScatter
                   umapResult={scatterResult}
@@ -186,6 +200,63 @@ export default function FSReductionResultCards({
                 />
                 {/* Class colour legend */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
+                  {classes.map((cls, i) => (
+                    <div key={cls} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <div style={{ width: 10, height: 10, borderRadius: 2, background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{cls}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* 1D histogram — binary target gives exactly 1 component */}
+            {actualDims === 1 && (
+              <>
+                <div style={{ fontSize: "0.74rem", color: "var(--text3)", marginBottom: "0.35rem", fontWeight: 600 }}>
+                  LD1 projection
+                </div>
+                <svg
+                  viewBox={`0 0 ${HIST_W} ${HIST_H}`}
+                  style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}
+                >
+                  {/* Horizontal axis line */}
+                  <line
+                    x1={HIST_PAD_X} y1={HIST_H - HIST_PAD_Y}
+                    x2={HIST_W - HIST_PAD_X} y2={HIST_H - HIST_PAD_Y}
+                    stroke="rgba(255,255,255,0.15)" strokeWidth={1}
+                  />
+                  {/* Tick labels */}
+                  {[0, 0.25, 0.5, 0.75, 1].map(t => {
+                    const x = HIST_PAD_X + t * (HIST_W - HIST_PAD_X * 2);
+                    const val = (ld1Min + t * ld1Range).toFixed(2);
+                    return (
+                      <text key={t} x={x} y={HIST_H - 4} textAnchor="middle" fontSize={8} fill="rgba(255,255,255,0.35)">
+                        {val}
+                      </text>
+                    );
+                  })}
+                  {/* Points with vertical jitter */}
+                  {points.map((p, i) => {
+                    const label = targetValues[i];
+                    if (!label) return null;
+                    const cx = HIST_PAD_X + ((p[0] - ld1Min) / ld1Range) * (HIST_W - HIST_PAD_X * 2);
+                    const jitterFrac = jitter(i);
+                    const usableH = HIST_H - HIST_PAD_Y - 12;
+                    const cy = 8 + jitterFrac * usableH;
+                    const fill = colorMap1D.get(String(label)) ?? accent;
+                    return (
+                      <circle
+                        key={i}
+                        cx={cx} cy={cy} r={3}
+                        fill={fill} fillOpacity={0.75}
+                        stroke="rgba(0,0,0,0.3)" strokeWidth={0.5}
+                      />
+                    );
+                  })}
+                </svg>
+                {/* Class colour legend */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                   {classes.map((cls, i) => (
                     <div key={cls} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <div style={{ width: 10, height: 10, borderRadius: 2, background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />

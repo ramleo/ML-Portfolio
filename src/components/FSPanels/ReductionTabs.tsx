@@ -159,6 +159,10 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
           <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
             Supervised — requires categorical target. Max components = number of classes − 1.
           </div>
+          <div style={{ fontSize: "0.71rem", color: "var(--text3)", marginTop: "0.35rem", lineHeight: 1.55 }}>
+            Binary target → 1 component (1D histogram).<br />
+            3 classes → max 2D scatter. 4+ classes → 3D scatter.
+          </div>
         </div>
       </div>
     );
