@@ -111,9 +111,25 @@ export default function FSReductionResultCards({
                 </tbody>
               </table>
             </div>
-            {result.faResult.points.length >= 2 && (
-              <FSProjectedScatter points={result.faResult.points} xLabel="Factor 1" yLabel="Factor 2" accent={accent} />
-            )}
+            {result.faResult.points.length >= 2 && (() => {
+              const hasZ = result.faResult!.points[0]?.z !== undefined;
+              const nDims = hasZ ? 3 : 2;
+              const faScatter = {
+                nComponents: nDims as 2 | 3,
+                csvText: "",
+                points: result.faResult!.points.map(p =>
+                  hasZ ? [p.x, p.y, p.z!] : [p.x, p.y]
+                ),
+              };
+              return (
+                <UMAPScatter
+                  umapResult={faScatter}
+                  accent={accent}
+                  labelValues={result.faResult!.points.map(p => p.label)}
+                  axisPrefix="F"
+                />
+              );
+            })()}
             <div style={{ marginTop: "0.85rem" }}>
               <button
                 onClick={onDownloadFA}
@@ -171,6 +187,16 @@ export default function FSReductionResultCards({
               <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
                 {nComp} discriminant{nComp !== 1 ? "s" : ""}
               </span>
+              {opts.ldaComponents > nComp && (
+                <span style={{
+                  fontSize: "0.70rem", color: "#fbbf24", fontWeight: 500,
+                  marginLeft: "0.5rem",
+                  background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)",
+                  borderRadius: 4, padding: "1px 6px",
+                }}>
+                  capped at {nComp} (max for {classes.length} classes)
+                </span>
+              )}
             </div>
 
             {/* Discriminant variance bars */}

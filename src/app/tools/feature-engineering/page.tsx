@@ -118,6 +118,7 @@ export default function FeatureEngineeringPage() {
     ldaTextCol: ldaCol, setLdaTextCol: setLdaCol,
     ldaNTopics, setLdaNTopics,
     ldaNIter, setLdaNIter,
+    ldaOpts, setLdaOpts,
     ldaResult,
     ldaRunning,
     ldaError,
@@ -349,12 +350,14 @@ export default function FeatureEngineeringPage() {
               ldaCol={ldaCol}
               ldaNTopics={ldaNTopics}
               ldaNIter={ldaNIter}
+              ldaOpts={ldaOpts}
               ldaResult={ldaResult}
               ldaRunning={ldaRunning}
               ldaError={ldaError}
               onSetLdaCol={setLdaCol}
               onSetLdaNTopics={setLdaNTopics}
               onSetLdaNIter={setLdaNIter}
+              setLdaOpts={setLdaOpts}
               onRunLDA={handleRunLDA}
             />
           </div>

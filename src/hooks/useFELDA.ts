@@ -4,10 +4,21 @@ import { useState, useCallback } from "react";
 import { ColInfo } from "@/lib/feAlgorithms";
 import { runLDA, LDATopicResult } from "@/lib/feLDA";
 
+export interface LDAOpts {
+  stopwords: string;
+  minDocFreq: number;
+  stemming: boolean;
+}
+
 export function useFELDA(cols: ColInfo[]) {
   const [ldaTextCol, setLdaTextCol] = useState("");
   const [ldaNTopics, setLdaNTopics] = useState(5);
   const [ldaNIter, setLdaNIter]     = useState(50);
+  const [ldaOpts, setLdaOpts]       = useState<LDAOpts>({
+    stopwords: "",
+    minDocFreq: 2,
+    stemming: false,
+  });
   const [ldaResult, setLdaResult]   = useState<LDATopicResult | null>(null);
   const [ldaRunning, setLdaRunning] = useState(false);
   const [ldaError, setLdaError]     = useState<string | null>(null);
@@ -19,7 +30,11 @@ export function useFELDA(cols: ColInfo[]) {
     setLdaError(null);
     setTimeout(() => {
       try {
-        const result = runLDA(col.rawValues, ldaNTopics, ldaNIter, 8);
+        const result = runLDA(col.rawValues, ldaNTopics, ldaNIter, 8, {
+          userStopwords: ldaOpts.stopwords,
+          minDocFreq: ldaOpts.minDocFreq,
+          stemming: ldaOpts.stemming,
+        });
         setLdaResult(result);
       } catch (e) {
         setLdaError(String(e));
@@ -27,7 +42,7 @@ export function useFELDA(cols: ColInfo[]) {
         setLdaRunning(false);
       }
     }, 20);
-  }, [cols, ldaTextCol, ldaNTopics, ldaNIter]);
+  }, [cols, ldaTextCol, ldaNTopics, ldaNIter, ldaOpts]);
 
   const resetLDA = useCallback(() => {
     setLdaTextCol("");
@@ -39,6 +54,7 @@ export function useFELDA(cols: ColInfo[]) {
     ldaTextCol, setLdaTextCol,
     ldaNTopics, setLdaNTopics,
     ldaNIter, setLdaNIter,
+    ldaOpts, setLdaOpts,
     ldaResult,
     ldaRunning,
     ldaError,

@@ -42,8 +42,9 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               {opts.pcaKaiser ? "auto" : Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
             </span>
           </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
-            PCA and UMAP produce a separate transformed CSV downloadable below after running.
+          <div style={{ fontSize: "0.72rem", color: "var(--text3)", lineHeight: 1.55 }}>
+            Components = number of principal axes to keep. Start with 2–3 for visualisation. Increase to capture more variance; decrease to compress more aggressively. Auto (Kaiser) picks the optimal count automatically.
+            <br />PCA and UMAP produce a separate transformed CSV downloadable below after running.
           </div>
         </div>
       </div>
@@ -123,8 +124,9 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               {opts.faFactors}
             </span>
           </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
-            Finds latent factors explaining feature correlations. Uses iterated principal axis factoring on the correlation matrix.
+          <div style={{ fontSize: "0.72rem", color: "var(--text3)", lineHeight: 1.55 }}>
+            Factors = number of latent variables to extract. Use 2 for a quick overview, 3+ to capture richer structure. Scatter plot shows 2D for 2 factors, 3D for 3+.
+            <br />Finds latent factors explaining feature correlations. Uses iterated principal axis factoring on the correlation matrix.
           </div>
         </div>
       </div>
@@ -168,8 +170,8 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
             Supervised — requires categorical target. Max components = number of classes − 1.
           </div>
           <div style={{ fontSize: "0.71rem", color: "var(--text3)", marginTop: "0.35rem", lineHeight: 1.55 }}>
-            Binary target → 1 component (1D histogram).<br />
-            3 classes → max 2D scatter. 4+ classes → 3D scatter.
+            Components = discriminant axes to compute. Actual output is always capped at nClasses − 1 regardless of slider value.<br />
+            Binary target → 1 component (1D histogram). 3 classes → max 2D scatter. 4+ classes → 3D scatter.
           </div>
         </div>
       </div>

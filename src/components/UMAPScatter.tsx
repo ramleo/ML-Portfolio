@@ -93,9 +93,9 @@ function Scatter2D({ umapResult, accent, labelValues, axisPrefix = "UMAP" }: Pro
         })}
 
         {/* Axis labels */}
-        <text x={W / 2} y={H - 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)">{`${axisPrefix}-1`}</text>
+        <text x={W / 2} y={H - 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)">{`${axisPrefix}1`}</text>
         <text x={8} y={H / 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)"
-          transform={`rotate(-90, 8, ${H / 2})`}>{`${axisPrefix}-2`}</text>
+          transform={`rotate(-90, 8, ${H / 2})`}>{`${axisPrefix}2`}</text>
       </svg>
 
       {legendEntries && legendEntries.length > 1 && (

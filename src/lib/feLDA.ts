@@ -7,6 +7,12 @@ export interface LDATopicResult {
   nTopics: number;
 }
 
+export interface LDAPreprocessOpts {
+  userStopwords?: string;   // comma-separated extra stopwords
+  minDocFreq?: number;      // min docs a word must appear in (default 1 = no filter)
+  stemming?: boolean;       // apply basic suffix-stripping stemming
+}
+
 const STOPWORDS = new Set([
   'the','a','an','is','are','was','were','be','been','have','has','had',
   'do','does','did','will','would','could','should','may','might','can',
@@ -16,12 +22,32 @@ const STOPWORDS = new Set([
   'than','when','what','which','who','how',
 ]);
 
-function tokenize(text: string): string[] {
+function stemWord(w: string): string {
+  if (w.length <= 4) return w;
+  if (w.endsWith("ing")) return w.slice(0, -3);
+  if (w.endsWith("tion")) return w.slice(0, -4);
+  if (w.endsWith("ness")) return w.slice(0, -4);
+  if (w.endsWith("ment")) return w.slice(0, -4);
+  if (w.endsWith("ies")) return w.slice(0, -3) + "y";
+  if (w.endsWith("es") && w.length > 5) return w.slice(0, -2);
+  if (w.endsWith("ed") && w.length > 4) return w.slice(0, -2);
+  if (w.endsWith("ly") && w.length > 4) return w.slice(0, -2);
+  if (w.endsWith("er") && w.length > 4) return w.slice(0, -2);
+  if (w.endsWith("s") && w.length > 4 && !w.endsWith("ss")) return w.slice(0, -1);
+  return w;
+}
+
+function tokenize(
+  text: string,
+  allStops: Set<string>,
+  useStemming: boolean,
+): string[] {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, '')
     .split(/\s+/)
-    .filter(w => w.length >= 2 && !STOPWORDS.has(w));
+    .filter(w => w.length >= 2 && !allStops.has(w))
+    .map(w => (useStemming ? stemWord(w) : w));
 }
 
 function buildVocab(docs: string[][], cap = 500): string[] {
@@ -49,6 +75,7 @@ export function runLDA(
   nTopics: number,
   nIter: number,
   nTopWords: number,
+  preprocessOpts: LDAPreprocessOpts = {},
 ): LDATopicResult {
   const MAX_ROWS = 1000;
   const safeTexts = texts.slice(0, MAX_ROWS);
@@ -57,11 +84,32 @@ export function runLDA(
   const ALPHA = 0.1;
   const BETA  = 0.01;
 
+  // Build combined stopword set (built-in + user-supplied)
+  const userExtraStops = (preprocessOpts.userStopwords ?? "")
+    .split(",")
+    .map(w => w.trim().toLowerCase())
+    .filter(Boolean);
+  const allStops = new Set([...STOPWORDS, ...userExtraStops]);
+  const useStemming = preprocessOpts.stemming ?? false;
+  const minDocFreq  = preprocessOpts.minDocFreq ?? 1;
+
   // 1. Tokenize
-  const tokenizedDocs = safeTexts.map(tokenize);
+  const tokenizedDocs = safeTexts.map(t => tokenize(t, allStops, useStemming));
 
   // 2. Build vocabulary (cap 500 most frequent)
-  const vocab = buildVocab(tokenizedDocs);
+  let vocab = buildVocab(tokenizedDocs);
+
+  // 2b. Apply min-document-frequency filter
+  if (minDocFreq > 1) {
+    const docFreq = new Map<string, number>();
+    for (const doc of tokenizedDocs) {
+      const seen = new Set(doc);
+      for (const w of seen) {
+        docFreq.set(w, (docFreq.get(w) ?? 0) + 1);
+      }
+    }
+    vocab = vocab.filter(w => (docFreq.get(w) ?? 0) >= minDocFreq);
+  }
   const wordIndex = new Map(vocab.map((w, i) => [w, i]));
   const V = vocab.length;
 

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ColInfo } from "@/lib/feAlgorithms";
 import { LDATopicResult } from "@/lib/feLDA";
+import { LDAOpts } from "@/hooks/useFELDA";
 
 const ACCENT  = "#38bdf8";
 const PURPLE  = "#a78bfa";
@@ -44,12 +45,14 @@ export interface LDAPanelProps {
   ldaCol: string;
   ldaNTopics: number;
   ldaNIter: number;
+  ldaOpts: LDAOpts;
   ldaResult: LDATopicResult | null;
   ldaRunning: boolean;
   ldaError: string | null;
   onSetLdaCol: (col: string) => void;
   onSetLdaNTopics: (n: number) => void;
   onSetLdaNIter: (n: number) => void;
+  setLdaOpts: React.Dispatch<React.SetStateAction<LDAOpts>>;
   onRunLDA: () => void;
 }
 
@@ -58,12 +61,14 @@ export default function LDAPanel({
   ldaCol,
   ldaNTopics,
   ldaNIter,
+  ldaOpts,
   ldaResult,
   ldaRunning,
   ldaError,
   onSetLdaCol,
   onSetLdaNTopics,
   onSetLdaNIter,
+  setLdaOpts,
   onRunLDA,
 }: LDAPanelProps) {
   const [expanded, setExpanded] = useState(true);
@@ -140,6 +145,60 @@ export default function LDAPanel({
                 style={INPUT_STYLE}
               />
             </div>
+          </div>
+
+          {/* Text preprocessing controls */}
+
+          {/* Custom stopwords */}
+          <div style={{ marginBottom: "0.75rem" }}>
+            <div style={{ fontSize: "0.74rem", color: "var(--text3)", marginBottom: "0.3rem", fontWeight: 600 }}>
+              Custom stopwords
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. company, product, year"
+              value={ldaOpts.stopwords}
+              onChange={e => setLdaOpts(o => ({ ...o, stopwords: e.target.value }))}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 6, padding: "0.4rem 0.6rem",
+                fontSize: "0.74rem", color: "var(--text)", outline: "none",
+              }}
+            />
+            <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.2rem" }}>
+              Comma-separated. Added on top of built-in stopwords.
+            </div>
+          </div>
+
+          {/* Min doc frequency slider */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <span style={{ fontSize: "0.74rem", color: "var(--text3)", flexShrink: 0, width: 120 }}>Min doc freq</span>
+            <input
+              type="range" min="1" max="10" step="1"
+              value={ldaOpts.minDocFreq}
+              onChange={e => setLdaOpts(o => ({ ...o, minDocFreq: parseInt(e.target.value) }))}
+              style={{ flex: 1, accentColor: "#fb923c" }}
+            />
+            <span style={{ fontSize: "0.80rem", fontWeight: 700, color: "#fb923c", width: 24, textAlign: "right" }}>
+              {ldaOpts.minDocFreq}
+            </span>
+          </div>
+
+          {/* Stemming toggle */}
+          <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={ldaOpts.stemming}
+              onChange={e => setLdaOpts(o => ({ ...o, stemming: e.target.checked }))}
+            />
+            <span style={{ fontSize: "0.80rem", color: "var(--text2)" }}>
+              Stemming <span style={{ fontSize: "0.70rem", color: "var(--text3)" }}>(strip common suffixes)</span>
+            </span>
+          </label>
+
+          {/* Run button */}
+          <div style={{ marginBottom: "0.9rem" }}>
             <button
               onClick={onRunLDA}
               disabled={!ldaCol || ldaRunning}
