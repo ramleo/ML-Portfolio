@@ -111,10 +111,12 @@ export default function AutoMLModal({
   const handleFile = useCallback(async (f: File) => {
     if (!f.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
     setError(""); setFile(f); setAnalyzing(true);
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), 30_000);
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${API}/analyze`, { method: "POST", body: fd });
+      const res = await fetch(`${API}/analyze`, { method: "POST", body: fd, signal: abort.signal });
       if (!res.ok) throw new Error("Analysis failed — check the CSV format.");
       const data: AnalyzeResult = await res.json();
       setAnalyzed(data);
@@ -122,8 +124,13 @@ export default function AutoMLModal({
       setTaskType(data.suggested_task);
       setStep("config");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed.");
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setError("Server not responding — the backend may be starting up on Render (cold start). Wait 30s and try again.");
+      } else {
+        setError(e instanceof Error ? e.message : "Analysis failed.");
+      }
     } finally {
+      clearTimeout(timer);
       setAnalyzing(false);
     }
   }, []);

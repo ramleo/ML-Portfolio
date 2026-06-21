@@ -233,6 +233,9 @@ export default function PreprocessingPage() {
             {error && (
               <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "0.82rem" }}>{error}</div>
             )}
+            <div style={{ marginTop: "0.75rem", fontSize: "0.7rem", color: "var(--text3)", textAlign: "center" }}>
+              All rows processed in-browser · large files (&gt;5,000 rows) may be slow
+            </div>
           </div>
         )}
 
