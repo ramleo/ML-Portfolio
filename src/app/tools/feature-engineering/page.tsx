@@ -12,10 +12,12 @@ import ResultsPanel from "@/components/FEPanels/ResultsPanel";
 import LDAPanel from "@/components/FEPanels/LDAPanel";
 import {
   ColInfo, FeResult, Step,
-  parseCSV, analyzeColumns, serializeCSV, applyTransforms,
-  NUM_TRANSFORMS,
+  serializeCSV,
 } from "@/lib/feAlgorithms";
 import { useFELDA } from "@/hooks/useFELDA";
+import { useFETransforms } from "@/hooks/useFETransforms";
+import { useFEAISuggest } from "@/hooks/useFEAISuggest";
+import { useFEFileLoad } from "@/hooks/useFEFileLoad";
 
 const ACCENT = "#38bdf8";
 
@@ -108,6 +110,9 @@ export default function FeatureEngineeringPage() {
   const [rowAggCols, setRowAggCols] = useState<string[]>([]);
   const [rowAggFn, setRowAggFn]     = useState("mean");
 
+  const numCols = cols.filter(c => c.isNumeric);
+  const catCols = cols.filter(c => !c.isNumeric);
+
   // LDA Topic Model
   const {
     ldaTextCol: ldaCol, setLdaTextCol: setLdaCol,
@@ -121,8 +126,19 @@ export default function FeatureEngineeringPage() {
   } = useFELDA(cols);
 
   // AI Suggest
-  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
-  const [aiSuggestError, setAiSuggestError]     = useState<string | null>(null);
+  const { aiSuggest, aiSuggestLoading, aiSuggestError, setAiSuggestError } = useFEAISuggest({
+    numCols,
+    rawRows,
+    setColTransforms,
+  });
+
+  // Apply all transforms
+  const { applyAllTransforms } = useFETransforms({
+    rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
+    freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
+    cyclicCols, rowAggCols, rowAggFn, ldaResult,
+    setStep, setResult, setError,
+  });
 
   useEffect(() => {
     if (step === "configure") document.body.style.overflow = "hidden";
@@ -130,50 +146,15 @@ export default function FeatureEngineeringPage() {
     return () => { document.body.style.overflow = ""; };
   }, [step]);
 
-  const numCols = cols.filter(c => c.isNumeric);
-  const catCols = cols.filter(c => !c.isNumeric);
-
   // ── File handling ──────────────────────────────────────────────────────────
 
-  const handleFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
-    setError("");
-    setFilename(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      const rows = parseCSV(text);
-      if (rows.length < 2) { setError("CSV must have at least 2 rows."); return; }
-      const analyzed = analyzeColumns(rows);
-      setRawRows(rows);
-      setCols(analyzed);
-      const initT: Record<string, string[]> = {};
-      for (const col of analyzed) {
-        if (col.isNumeric) initT[col.name] = Math.abs(col.skew) > 1.5 ? ["log1p"] : [];
-      }
-      setColTransforms(initT);
-      setDateCols([]);
-      setInteractions([]);
-      setPolyCols([]);
-      setRatios([]);
-      setRatioA(""); setRatioB("");
-      setFreqCols([]);
-      setSortCol("");
-      setLagCols([]); setLagN(1); setLagDiff(false);
-      setRollCols([]); setRollN(3); setRollAgg("mean");
-      setCyclicCols({});
-      setRowAggCols([]); setRowAggFn("mean");
-      resetLDA();
-      setStep("configure");
-    };
-    reader.readAsText(file);
-  }, [resetLDA]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const f = e.dataTransfer.files[0];
-    if (f) handleFile(f);
-  }, [handleFile]);
+  const { handleFile, handleDrop } = useFEFileLoad({
+    setError, setFilename, setRawRows, setCols, setColTransforms,
+    setDateCols, setInteractions, setPolyCols, setRatios, setRatioA, setRatioB,
+    setFreqCols, setSortCol, setLagCols, setLagN, setLagDiff,
+    setRollCols, setRollN, setRollAgg, setCyclicCols,
+    setRowAggCols, setRowAggFn, resetLDA, setStep,
+  });
 
   // ── Config helpers ─────────────────────────────────────────────────────────
 
@@ -211,115 +192,6 @@ export default function FeatureEngineeringPage() {
     setRatios(prev => [...prev, pair]);
     setRatioA(""); setRatioB("");
   };
-
-  // ── AI Smart Suggest ───────────────────────────────────────────────────────
-
-  const aiSuggest = useCallback(async () => {
-    if (aiSuggestLoading || numCols.length === 0) return;
-    setAiSuggestLoading(true);
-    setAiSuggestError(null);
-    const n = rawRows.length - 1;
-    const colSummaries = numCols.map(col => {
-      const valid = col.values.filter(v => v !== null) as number[];
-      const sorted = [...valid].sort((a, b) => a - b);
-      const min = sorted[0] ?? 0;
-      const max = sorted[sorted.length - 1] ?? 0;
-      const mean = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
-      const q1 = sorted[Math.floor(sorted.length * 0.25)] ?? 0;
-      const q3 = sorted[Math.floor(sorted.length * 0.75)] ?? 0;
-      return `${col.name}: skew=${col.skew.toFixed(2)}, missing=${((col.missing / n) * 100).toFixed(1)}%, min=${min.toFixed(2)}, max=${max.toFixed(2)}, mean=${mean.toFixed(2)}, Q1=${q1.toFixed(2)}, Q3=${q3.toFixed(2)}`;
-    }).join("\n");
-
-    const prompt = `Output a single raw JSON object — no markdown, no code fences, no explanation. Keys are column names, values are arrays of transform keys from this list: log1p, sqrt, zscore, minmax, percentile, outlier_flag, missing_flag, winsor, above_mean, bin_equal, bin_quantile.
-
-Column statistics:
-${colSummaries}
-
-Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
-
-    function extractTransformJSON(raw: string): Record<string, string[]> | null {
-      const attempts = [
-        raw.trim(),
-        (raw.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [])[1]?.trim(),
-        (raw.match(/\{[\s\S]*\}/) ?? [])[0],
-      ];
-      for (const candidate of attempts) {
-        if (!candidate) continue;
-        try { return JSON.parse(candidate) as Record<string, string[]>; } catch { /* try next */ }
-      }
-      return null;
-    }
-
-    try {
-      const provider = localStorage.getItem("tools_ai_provider") ?? "gemini";
-      const model = localStorage.getItem("tools_ai_model") ?? "gemini-2.5-flash";
-      const userKey = localStorage.getItem("tools_ai_key") ?? undefined;
-      const res = await fetch("/api/ai-tools", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          provider, model,
-          userKey: userKey || undefined,
-          toolContext: "Feature Engineering — AI Suggest transform selection. Return only raw JSON.",
-        }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setAiSuggestError(data.error);
-      } else {
-        const parsed = extractTransformJSON(data.reply ?? "");
-        if (parsed) {
-          const VALID_KEYS = new Set(NUM_TRANSFORMS.map(t => t.key));
-          const next: Record<string, string[]> = {};
-          for (const col of numCols) {
-            next[col.name] = (parsed[col.name] ?? []).filter(k => VALID_KEYS.has(k));
-          }
-          setColTransforms(next);
-        } else {
-          setAiSuggestError(`Could not read AI response. Raw reply: "${(data.reply ?? "").slice(0, 80)}"`);
-        }
-      }
-    } catch (e) {
-      setAiSuggestError(`Request failed: ${(e as Error).message.slice(0, 80)}`);
-    } finally {
-      setAiSuggestLoading(false);
-    }
-  }, [aiSuggestLoading, numCols, rawRows.length]);
-
-  // ── Apply ──────────────────────────────────────────────────────────────────
-
-  const applyAllTransforms = useCallback(() => {
-    setStep("processing");
-    setTimeout(() => {
-      try {
-        const res = applyTransforms(
-          rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
-          freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
-          cyclicCols, rowAggCols, rowAggFn
-        );
-        // Merge LDA columns if present
-        if (ldaResult) {
-          const nRows = res.csv.length - 1;
-          for (const tc of ldaResult.topicColumns) {
-            res.headers.push(tc.name);
-            res.newColumns.push(tc.name);
-            for (let i = 0; i < nRows; i++) {
-              res.csv[i + 1].push(String(tc.values[i] ?? ""));
-            }
-          }
-          res.colsAfter = res.headers.length;
-        }
-        setResult(res);
-        setStep("results");
-      } catch (e) {
-        setError(String(e));
-        setStep("configure");
-      }
-    }, 50);
-  }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
-      freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
-      cyclicCols, rowAggCols, rowAggFn, ldaResult]);
 
   const downloadResult = useCallback(() => {
     if (!result) return;
