@@ -158,7 +158,7 @@ export default function FeatureSelectionPage() {
   }, [handleFile]);
 
   const runSelectionWorker = useCallback((filteredCols: ColInfo[], selOpts: SelectionOpts) => {
-    const worker = new Worker(new URL("../../workers/fsSelectionWorker.ts", import.meta.url));
+    const worker = new Worker(new URL("../../../workers/fsSelectionWorker.ts", import.meta.url));
     worker.onmessage = (e) => {
       const { type, payload, message } = e.data;
       if (type === "result") setResult(payload as SelectionResult);
