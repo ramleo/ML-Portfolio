@@ -252,6 +252,7 @@ export default function FeatureSelectionPage() {
           cols={cols}
           numericCols={numericCols}
           categoricalCols={categoricalCols}
+          opts={opts}
           fileRef={fileRef}
           onFile={handleFile}
           onDrop={handleDrop}
@@ -356,6 +357,7 @@ export default function FeatureSelectionPage() {
                   result={result}
                   opts={opts}
                   cols={cols}
+                  rowCount={rowCount}
                   accent={ACCENT}
                   onDownloadFA={handleDownloadFA}
                   onDownloadLDA={handleDownloadLDA}

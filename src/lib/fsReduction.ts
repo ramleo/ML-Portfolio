@@ -116,7 +116,7 @@ export function computeUMAP(candidates: ColInfo[], allCols: ColInfo[], opts: Sel
   : { nComponents: number; csvText: string; points: number[][] } | null {
   const p = candidates.length;
   if (p < 2) return null;
-  const maxRows = 400;
+  const maxRows = 600;
   const totalRows = Math.min(...candidates.map(c => c.nums.length));
   const validIdx: number[] = [];
   for (let i = 0; i < totalRows; i++) {

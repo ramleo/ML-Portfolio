@@ -48,7 +48,7 @@ export function computeFA(
   const p = numCols.length;
   if (p < 2 || nFactors < 1) return null;
 
-  const maxRows = 500;
+  const maxRows = 800;
   const totalRows = Math.min(...numCols.map(c => c.nums.length));
   const validIdx: number[] = [];
   for (let i = 0; i < totalRows; i++) {

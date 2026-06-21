@@ -24,13 +24,14 @@ interface Props {
   result: SelectionResult;
   opts: SelectionOpts;
   cols: ColInfo[];
+  rowCount: number;
   accent?: string;
   onDownloadFA: () => void;
   onDownloadLDA: () => void;
 }
 
 export default function FSReductionResultCards({
-  result, opts, cols, accent = ACCENT, onDownloadFA, onDownloadLDA,
+  result, opts, cols, rowCount, accent = ACCENT, onDownloadFA, onDownloadLDA,
 }: Props) {
   const [faView, setFaView] = useState<"2d" | "3d">("2d");
   const [ldaView, setLdaView] = useState<"2d" | "3d">("2d");
@@ -48,6 +49,11 @@ export default function FSReductionResultCards({
               <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
                 {nFactors} factors · {totalVar}% total variance
               </span>
+              {rowCount > 800 && (
+                <div style={{ fontSize: "0.68rem", color: "#60a5fa", marginTop: "0.2rem" }}>
+                  ↳ factoring on 800 rows · {(rowCount - 800).toLocaleString()} projected via kNN
+                </div>
+              )}
             </div>
 
             {/* Variance bars per factor */}
@@ -212,6 +218,9 @@ export default function FSReductionResultCards({
               <span style={{ fontSize: "0.73rem", fontWeight: 400, color: "var(--text3)", marginLeft: "0.75rem" }}>
                 {nComp} discriminant{nComp !== 1 ? "s" : ""}
               </span>
+              <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.2rem" }}>
+                {rowCount.toLocaleString()} rows used (all rows)
+              </div>
               {opts.ldaComponents > nComp && (
                 <span style={{
                   fontSize: "0.70rem", color: "#fbbf24", fontWeight: 500,

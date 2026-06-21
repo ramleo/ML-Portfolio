@@ -10,6 +10,7 @@ import CategoricalPanel from "@/components/FEPanels/CategoricalPanel";
 import SidebarPanel from "@/components/FEPanels/SidebarPanel";
 import ResultsPanel from "@/components/FEPanels/ResultsPanel";
 import LDAPanel from "@/components/FEPanels/LDAPanel";
+import FEUploadInfo from "@/components/FEPanels/FEUploadInfo";
 import {
   ColInfo, FeResult, Step,
   serializeCSV,
@@ -272,6 +273,7 @@ export default function FeatureEngineeringPage() {
           </MouseTiltCard>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           {error && <div style={{ marginTop: "1rem", color: "#f87171", fontSize: "0.8rem", textAlign: "center" }}>{error}</div>}
+          <FEUploadInfo rowCount={rawRows.length > 1 ? rawRows.length - 1 : 0} numericColCount={numCols.length} ldaEnabled={!!ldaCol} ldaTopics={ldaNTopics} ldaIter={ldaNIter} />
         </div>
       )}
 

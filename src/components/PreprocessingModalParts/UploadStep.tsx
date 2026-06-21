@@ -58,6 +58,9 @@ export default function UploadStep({ analyzing, error, onFile }: UploadStepProps
           {error}
         </div>
       )}
+      <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.5rem", textAlign: "center" }}>
+        All rows processed in-browser · large files (&gt;5,000 rows) may be slow
+      </div>
     </div>
   );
 }

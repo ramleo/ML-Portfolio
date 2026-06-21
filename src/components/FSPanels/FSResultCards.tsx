@@ -326,7 +326,10 @@ export default function FSResultCards({
             <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>UMAP Embedding</span>
           </div>
           <div style={{ fontSize: "0.76rem", color: "var(--text3)", marginBottom: "1rem", lineHeight: 1.55 }}>
-            {result.umapResult.nComponents}D spectral embedding · All rows have coordinates (kNN interpolation for rows beyond 400-row sample)
+            {result.umapResult.nComponents}D spectral embedding
+            {rowCount > 600
+              ? ` · graph on 600 rows · ${(rowCount - 600).toLocaleString()} projected via kNN`
+              : ` · all ${rowCount.toLocaleString()} rows used`}
           </div>
           <UMAPScatter
             umapResult={result.umapResult}

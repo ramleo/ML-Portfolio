@@ -119,7 +119,7 @@ export function runLDA(
   nTopWords: number,
   preprocessOpts: LDAPreprocessOpts = {},
 ): LDATopicResult {
-  const MAX_ROWS = 1000;
+  const MAX_ROWS = 2000;
   const safeTexts = texts.slice(0, MAX_ROWS);
   const D = safeTexts.length;
   const K = nTopics;

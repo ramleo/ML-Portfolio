@@ -1,7 +1,8 @@
 "use client";
 
-import type { ColInfo } from "@/lib/fsAlgorithms";
+import type { ColInfo, SelectionOpts } from "@/lib/fsAlgorithms";
 import RepulsionCard from "@/components/RepulsionCard";
+import DatasetEstimator from "@/components/DatasetEstimator";
 
 const ACCENT = "#fb923c";
 
@@ -29,6 +30,7 @@ interface FSUploadHeroProps {
   cols: ColInfo[];
   numericCols: ColInfo[];
   categoricalCols: ColInfo[];
+  opts: SelectionOpts;
   fileRef: React.RefObject<HTMLInputElement | null>;
   onFile: (file: File) => void;
   onDrop: (e: React.DragEvent) => void;
@@ -41,6 +43,7 @@ export default function FSUploadHero({
   cols,
   numericCols,
   categoricalCols,
+  opts,
   fileRef,
   onFile,
   onDrop,
@@ -89,6 +92,7 @@ export default function FSUploadHero({
           onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f); }}
         />
         {hasFile ? (
+          <>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <div style={{
@@ -110,6 +114,13 @@ export default function FSUploadHero({
             </div>
             <span style={{ fontSize: "0.75rem", color: ACCENT, fontWeight: 500 }}>Click to replace</span>
           </div>
+          <DatasetEstimator
+            n={rowCount}
+            p={numericCols.length}
+            tool="fs"
+            fsOpts={opts}
+          />
+          </>
         ) : (
           <div>
             <div style={{ fontSize: "2.2rem", marginBottom: "0.5rem", opacity: 0.25, lineHeight: 1 }}>+</div>
