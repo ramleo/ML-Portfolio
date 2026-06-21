@@ -15,7 +15,7 @@ import {
   parseCSV, analyzeColumns, serializeCSV, applyTransforms,
   NUM_TRANSFORMS,
 } from "@/lib/feAlgorithms";
-import { runLDA, LDATopicResult } from "@/lib/feLDA";
+import { useFELDA } from "@/hooks/useFELDA";
 
 const ACCENT = "#38bdf8";
 
@@ -109,12 +109,16 @@ export default function FeatureEngineeringPage() {
   const [rowAggFn, setRowAggFn]     = useState("mean");
 
   // LDA Topic Model
-  const [ldaCol, setLdaCol]           = useState("");
-  const [ldaNTopics, setLdaNTopics]   = useState(5);
-  const [ldaNIter, setLdaNIter]       = useState(50);
-  const [ldaResult, setLdaResult]     = useState<LDATopicResult | null>(null);
-  const [ldaRunning, setLdaRunning]   = useState(false);
-  const [ldaError, setLdaError]       = useState<string | null>(null);
+  const {
+    ldaTextCol: ldaCol, setLdaTextCol: setLdaCol,
+    ldaNTopics, setLdaNTopics,
+    ldaNIter, setLdaNIter,
+    ldaResult,
+    ldaRunning,
+    ldaError,
+    handleRunLDA,
+    resetLDA,
+  } = useFELDA(cols);
 
   // AI Suggest
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
@@ -159,11 +163,11 @@ export default function FeatureEngineeringPage() {
       setRollCols([]); setRollN(3); setRollAgg("mean");
       setCyclicCols({});
       setRowAggCols([]); setRowAggFn("mean");
-      setLdaCol(""); setLdaResult(null); setLdaError(null);
+      resetLDA();
       setStep("configure");
     };
     reader.readAsText(file);
-  }, []);
+  }, [resetLDA]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -207,25 +211,6 @@ export default function FeatureEngineeringPage() {
     setRatios(prev => [...prev, pair]);
     setRatioA(""); setRatioB("");
   };
-
-  // ── LDA handler ───────────────────────────────────────────────────────────
-
-  const handleRunLDA = useCallback(() => {
-    const col = cols.find(c => c.name === ldaCol);
-    if (!col) return;
-    setLdaRunning(true);
-    setLdaError(null);
-    setTimeout(() => {
-      try {
-        const result = runLDA(col.rawValues, ldaNTopics, ldaNIter, 8);
-        setLdaResult(result);
-      } catch (e) {
-        setLdaError(String(e));
-      } finally {
-        setLdaRunning(false);
-      }
-    }, 20);
-  }, [cols, ldaCol, ldaNTopics, ldaNIter]);
 
   // ── AI Smart Suggest ───────────────────────────────────────────────────────
 
