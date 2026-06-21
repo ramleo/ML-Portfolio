@@ -75,8 +75,11 @@ export default function LDAPanel({
       borderRadius: 12,
       padding: "1.25rem 1.4rem",
     }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: expanded ? "0.9rem" : 0 }}>
+      {/* Header — full row is clickable */}
+      <div
+        onClick={() => setExpanded(p => !p)}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: expanded ? "0.9rem" : 0, cursor: "pointer", userSelect: "none" }}
+      >
         <div>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Text — LDA Topic Model
@@ -87,11 +90,9 @@ export default function LDAPanel({
             </div>
           )}
         </div>
-        <button
-          onClick={() => setExpanded(p => !p)}
-          style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.75rem", padding: "2px 6px" }}>
+        <span style={{ color: "var(--text3)", fontSize: "0.75rem", padding: "2px 6px", pointerEvents: "none" }}>
           {expanded ? "▲" : "▼"}
-        </button>
+        </span>
       </div>
 
       {expanded && (
