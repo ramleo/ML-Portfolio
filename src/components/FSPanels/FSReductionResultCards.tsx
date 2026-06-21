@@ -201,6 +201,7 @@ export default function FSReductionResultCards({
                   umapResult={scatterResult}
                   accent={accent}
                   labelValues={targetValues.map(String)}
+                  axisPrefix="LD"
                 />
                 {/* Class colour legend */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem", marginBottom: "0.75rem" }}>

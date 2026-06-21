@@ -11,6 +11,7 @@ interface Props {
   umapResult: UMAPResult;
   accent?: string;
   labelValues?: string[];
+  axisPrefix?: string;
 }
 
 // ── colour helpers ─────────────────────────────────────────────────────────────
@@ -29,7 +30,7 @@ function buildColorMap(labels: string[]): Map<string, string> {
 
 // ── 2D SVG Scatter ─────────────────────────────────────────────────────────────
 
-function Scatter2D({ umapResult, accent, labelValues }: Props) {
+function Scatter2D({ umapResult, accent, labelValues, axisPrefix = "UMAP" }: Props) {
   const { points } = umapResult;
   if (points.length === 0) return null;
 
@@ -92,9 +93,9 @@ function Scatter2D({ umapResult, accent, labelValues }: Props) {
         })}
 
         {/* Axis labels */}
-        <text x={W / 2} y={H - 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)">UMAP-1</text>
+        <text x={W / 2} y={H - 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)">{`${axisPrefix}-1`}</text>
         <text x={8} y={H / 2} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.4)"
-          transform={`rotate(-90, 8, ${H / 2})`}>UMAP-2</text>
+          transform={`rotate(-90, 8, ${H / 2})`}>{`${axisPrefix}-2`}</text>
       </svg>
 
       {legendEntries && legendEntries.length > 1 && (
@@ -291,10 +292,10 @@ function Scatter3D({ umapResult, accent, labelValues }: Props) {
 
 // ── Main export ────────────────────────────────────────────────────────────────
 
-export default function UMAPScatter({ umapResult, accent, labelValues }: Props) {
+export default function UMAPScatter({ umapResult, accent, labelValues, axisPrefix = "UMAP" }: Props) {
   if (!umapResult || umapResult.points.length === 0) return null;
 
   return umapResult.nComponents === 3
     ? <Scatter3D umapResult={umapResult} accent={accent} labelValues={labelValues} />
-    : <Scatter2D umapResult={umapResult} accent={accent} labelValues={labelValues} />;
+    : <Scatter2D umapResult={umapResult} accent={accent} labelValues={labelValues} axisPrefix={axisPrefix} />;
 }
