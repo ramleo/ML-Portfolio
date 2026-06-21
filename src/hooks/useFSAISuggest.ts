@@ -40,7 +40,7 @@ export function useFSAISuggest(
         }),
       };
       const toolContext = `OVERRIDE: Your response MUST be a raw JSON object only. No explanation, no markdown, no backticks. Start with { and end with }.\n\nDataset stats: ${JSON.stringify(stats)}`;
-      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a JSON object with the fields to enable. Boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Numeric fields: varianceThreshold, corrThreshold, topK, kBestK, kendallTopK, chiSqTopK, rfeK, lassoAlpha, ridgeAlpha, treeTopK, forwardK, pcaComponents, umapComponents, umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}. Output the JSON object and nothing else.`;
+      const prompt = `Suggest feature selection methods for this dataset. Return ONLY a JSON object with the fields to enable. Boolean fields: useVariance, useCorrelation, useTopK, useSelectKBest, useKendall, useChiSq, useRFE, useLasso, useRidge, useTree, useForward, usePCA, useUMAP. Numeric fields: varianceThreshold, corrThreshold, topK, selectKBestK, kendallTopK, chiSqTopK, rfeTargetK, lassoAlpha, ridgeAlpha, treeTopK, forwardK, pcaComponents, umapComponents, umapNeighbors. Example: {"useLasso":true,"lassoAlpha":0.05,"useTree":true,"treeTopK":8}. Output the JSON object and nothing else.`;
       const res = await fetch("/api/ai-tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,10 +58,24 @@ export function useFSAISuggest(
       }
       const data = await res.json() as { reply?: string; content?: string; error?: string };
       if (data.error) { setAiError(data.error); return; }
-      const raw = data.reply ?? data.content ?? "";
+      const raw = (data.reply ?? data.content ?? "").trim();
 
+      // Try 1: direct parse (jsonMode should give clean JSON)
+      const tryApply = (jsonStr: string): boolean => {
+        try {
+          const patch = JSON.parse(jsonStr) as Partial<SelectionOpts>;
+          if (typeof patch !== "object" || patch === null) return false;
+          setOpts(o => ({ ...o, ...patch }));
+          setAiError("Done — methods updated");
+          return true;
+        } catch { return false; }
+      };
+
+      if (tryApply(raw)) return;
+
+      // Try 2: bracket-depth extraction (handles JSON in prose/fenced blocks)
       const extractJSON = (s: string): string | null => {
-        const clean = s.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
+        const clean = s.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
         const start = clean.indexOf("{");
         if (start === -1) return null;
         let depth = 0;
@@ -73,17 +87,9 @@ export function useFSAISuggest(
       };
 
       const jsonStr = extractJSON(raw);
-      if (jsonStr) {
-        try {
-          const patch = JSON.parse(jsonStr) as Partial<SelectionOpts>;
-          setOpts(o => ({ ...o, ...patch }));
-          setAiError("Done — methods updated");
-        } catch {
-          setAiError(`Malformed JSON — raw: ${raw.slice(0, 80)}`);
-        }
-      } else {
-        setAiError(`No JSON found — AI replied: "${raw.slice(0, 80)}"`);
-      }
+      if (jsonStr && tryApply(jsonStr)) return;
+
+      setAiError(`Could not parse response — AI replied: "${raw.slice(0, 100)}"`);
     } catch {
       setAiError("Network error — check connection and try again");
     } finally {

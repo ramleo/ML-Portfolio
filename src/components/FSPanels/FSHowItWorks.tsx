@@ -4,6 +4,23 @@ import { useState } from "react";
 
 const ACCENT = "#fb923c";
 
+const TAB_LABELS: Record<string, string> = {
+  variance:    "Variance Filter",
+  correlation: "Correlation Filter",
+  topk:        "Top-K Filter",
+  selectkbest: "SelectKBest",
+  kendall:     "Kendall τ",
+  chisq:       "Chi-squared",
+  rfe:         "RFE",
+  lasso:       "Lasso (L1)",
+  ridge:       "Ridge (L2)",
+  tree:        "Tree Importance",
+  forward:     "Forward Selection",
+  exhaustive:  "Exhaustive Search",
+  pca:         "PCA",
+  umap:        "UMAP",
+};
+
 const HOW_IT_WORKS: Record<string, string> = {
   variance: "Computes the variance of each numeric feature across all rows. Variance = E[(X−μ)²]. Features with variance below the threshold are constant or near-constant and carry no signal — they are dropped first. E.g. if 'zipcode' has variance 0.0003 and your threshold is 0.01, it gets dropped — it barely changes across rows.",
   correlation: "Builds a Pearson r matrix between numeric features. When |r(A,B)| exceeds the threshold, the feature with lower mutual information vs. the target is discarded. This removes multicollinearity without losing predictive power. E.g. 'height_cm' and 'height_in' have r=0.99 — the one with lower MI vs. target is dropped.",
@@ -25,6 +42,7 @@ export default function HowItWorks({ tabId }: { tabId: string }) {
   const [open, setOpen] = useState(false);
   const text = HOW_IT_WORKS[tabId];
   if (!text) return null;
+  const label = TAB_LABELS[tabId] ?? tabId;
   return (
     <div style={{ marginBottom: "0.75rem" }}>
       <button
@@ -44,7 +62,7 @@ export default function HowItWorks({ tabId }: { tabId: string }) {
         >
           <path d="M3 2l4 3-4 3z" />
         </svg>
-        How it works
+        How {label} works
       </button>
       {open && (
         <div style={{
