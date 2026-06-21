@@ -325,7 +325,9 @@ export default function FeatureSelectionPage() {
               />
 
               {/* How it works */}
-              <HowItWorks tabId={activeTab} />
+              <div style={{ marginTop: "1.5rem" }}>
+                <HowItWorks tabId={activeTab} />
+              </div>
 
               {/* Tab panels */}
               <FilterTabs opts={opts} setOpts={setOpts} candidateCount={candidateCount} numericCols={numericCols} activeTab={activeTab} />

@@ -18,7 +18,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
           <input type="checkbox" checked={opts.usePCA}
             onChange={e => setOpts(o => ({ ...o, usePCA: e.target.checked }))} />
-          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable PCA</span>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>Enable PCA</span>
         </label>
         <div style={{ opacity: opts.usePCA ? 1 : 0.4, transition: "opacity 0.15s" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
@@ -30,7 +30,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               disabled={!opts.usePCA}
               style={{ flex: 1, accentColor: ACCENT }}
             />
-            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
               {Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
             </span>
           </div>
@@ -48,7 +48,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
           <input type="checkbox" checked={opts.useUMAP}
             onChange={e => setOpts(o => ({ ...o, useUMAP: e.target.checked }))} />
-          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable UMAP (spectral)</span>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>Enable UMAP (spectral)</span>
         </label>
         <div style={{ opacity: opts.useUMAP ? 1 : 0.4, transition: "opacity 0.15s" }}>
           <div style={{ marginBottom: "0.75rem" }}>
@@ -81,7 +81,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               disabled={!opts.useUMAP}
               style={{ flex: 1, accentColor: ACCENT }}
             />
-            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
               {opts.umapNeighbors}
             </span>
           </div>
@@ -99,7 +99,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
           <input type="checkbox" checked={opts.useFA}
             onChange={e => setOpts(o => ({ ...o, useFA: e.target.checked }))} />
-          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable Factor Analysis</span>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>Enable Factor Analysis</span>
         </label>
         <div style={{ opacity: opts.useFA ? 1 : 0.4, transition: "opacity 0.15s" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
@@ -111,7 +111,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               disabled={!opts.useFA}
               style={{ flex: 1, accentColor: ACCENT }}
             />
-            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
               {opts.faFactors}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
           <input type="checkbox" checked={opts.useLDA}
             onChange={e => setOpts(o => ({ ...o, useLDA: e.target.checked }))} />
-          <span style={{ fontSize: "0.84rem", fontWeight: 600, color: "var(--text)" }}>Enable LDA</span>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>Enable LDA</span>
         </label>
         {!targetCol && (
           <div style={{
@@ -152,7 +152,7 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
               disabled={!opts.useLDA}
               style={{ flex: 1, accentColor: ACCENT }}
             />
-            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
               {opts.ldaComponents}
             </span>
           </div>
