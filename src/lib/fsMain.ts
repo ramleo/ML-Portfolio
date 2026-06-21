@@ -227,7 +227,8 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
     });
 
   // PCA / UMAP / FA / LDA
-  const pcaResult = opts.usePCA ? computePCA(candidates, cols, opts, opts.pcaComponents) : null;
+  const pcaComponents = opts.pcaKaiser ? candidates.length : opts.pcaComponents;
+  const pcaResult = opts.usePCA ? computePCA(candidates, cols, opts, pcaComponents, opts.pcaKaiser) : null;
   const umapResult = opts.useUMAP ? computeUMAP(candidates, cols, opts, opts.umapComponents, opts.umapNeighbors) : null;
   const faResult = opts.useFA ? (computeFA(candidates, opts.faFactors ?? 3, { targetCol: opts.targetCol, allCols: cols }) ?? undefined) : undefined;
   const ldaResult = opts.useLDA ? (computeLDA(cols, opts.targetCol ?? "", opts.ldaComponents ?? 2) ?? undefined) : undefined;

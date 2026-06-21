@@ -67,7 +67,7 @@ const DEFAULT_OPTS: Omit<SelectionOpts, "targetCol"> = {
   useTree: false, treeTopK: 10, treeNTrees: 50,
   useForward: false, forwardK: 10,
   useExhaustive: false, exhaustiveK: 5,
-  usePCA: false, pcaComponents: 3,
+  usePCA: false, pcaComponents: 3, pcaKaiser: false,
   useUMAP: false, umapComponents: 2, umapNeighbors: 15,
   useFA: false, faFactors: 3,
   useLDA: false, ldaComponents: 2,

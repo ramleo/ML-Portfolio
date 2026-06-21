@@ -15,23 +15,31 @@ export default function ReductionTabs({ opts, setOpts, candidateCount, activeTab
   if (activeTab === "pca") {
     return (
       <div>
-        <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem", cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem", cursor: "pointer" }}>
           <input type="checkbox" checked={opts.usePCA}
             onChange={e => setOpts(o => ({ ...o, usePCA: e.target.checked }))} />
           <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>Enable PCA</span>
         </label>
         <div style={{ opacity: opts.usePCA ? 1 : 0.4, transition: "opacity 0.15s" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem", cursor: "pointer" }}>
+            <input type="checkbox" checked={opts.pcaKaiser}
+              onChange={e => setOpts(o => ({ ...o, pcaKaiser: e.target.checked }))}
+              disabled={!opts.usePCA} />
+            <span style={{ fontSize: "0.80rem", color: opts.pcaKaiser ? "#fb923c" : "var(--text2)" }}>
+              Auto (Kaiser) — keep components with eigenvalue &gt; 1
+            </span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem", opacity: opts.pcaKaiser ? 0.35 : 1, transition: "opacity 0.15s" }}>
             <span style={{ fontSize: "0.76rem", color: "var(--text3)", flexShrink: 0 }}>Components</span>
             <input
               type="range" min="1" max={Math.min(Math.max(candidateCount, 1), 10)} step="1"
               value={Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
               onChange={e => setOpts(o => ({ ...o, pcaComponents: parseInt(e.target.value) }))}
-              disabled={!opts.usePCA}
+              disabled={!opts.usePCA || opts.pcaKaiser}
               style={{ flex: 1, accentColor: ACCENT }}
             />
             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT, width: 40, textAlign: "right" }}>
-              {Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
+              {opts.pcaKaiser ? "auto" : Math.min(opts.pcaComponents, Math.min(Math.max(candidateCount, 1), 10))}
             </span>
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>

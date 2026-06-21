@@ -52,6 +52,7 @@ export interface SelectionOpts {
   // Reduction
   usePCA: boolean;
   pcaComponents: number;
+  pcaKaiser: boolean;
   useUMAP: boolean;
   umapComponents: number;
   umapNeighbors: number;

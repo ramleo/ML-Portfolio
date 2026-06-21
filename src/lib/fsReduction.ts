@@ -1,7 +1,7 @@
 import type { ColInfo, PCAComponent, ScatterPoint, SelectionOpts } from "./fsCore";
 import { serializeCSV } from "./fsCore";
 
-export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: SelectionOpts, nComp: number)
+export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: SelectionOpts, nComp: number, kaiser = false)
   : { components: PCAComponent[]; csvText: string; points: ScatterPoint[] } | null {
   const p = candidates.length;
   if (p < 2) return null;
@@ -63,10 +63,18 @@ export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: Sele
     eigVals.push(Math.max(0, lambda));
   }
 
+  // If Kaiser: keep only components with eigenvalue > 1 (min 1)
+  let activeCount = eigVecs.length;
+  if (kaiser) {
+    activeCount = Math.max(1, eigVals.filter(v => v > 1).length);
+  }
+  const activeEigVecs = eigVecs.slice(0, activeCount);
+  const activeEigVals = eigVals.slice(0, activeCount);
+
   const totalVar = p; // standardized data: trace of cov = p
   let cumVar = 0;
-  const components: PCAComponent[] = eigVecs.map((v, ci) => {
-    const varExp = eigVals[ci] / totalVar;
+  const components: PCAComponent[] = activeEigVecs.map((v, ci) => {
+    const varExp = activeEigVals[ci] / totalVar;
     cumVar += varExp;
     const loadings = candidates.map((col, j) => ({ name: col.name, loading: v[j] }))
       .sort((a, b) => Math.abs(b.loading) - Math.abs(a.loading));
@@ -75,7 +83,7 @@ export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: Sele
 
   // Build projected coordinates for each valid row
   const allRows = allCols[0]?.rawVals.length ?? 0;
-  const pcCols: ColInfo[] = eigVecs.map((v, ci) => {
+  const pcCols: ColInfo[] = activeEigVecs.map((v, ci) => {
     const rawVals = Array(allRows).fill("");
     const nums = Array(allRows).fill(NaN);
     for (let ri = 0; ri < validIdx.length; ri++) {
