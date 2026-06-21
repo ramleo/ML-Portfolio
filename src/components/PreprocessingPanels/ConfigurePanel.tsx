@@ -171,11 +171,13 @@ export function ConfigurePanel({
           )}
 
           {/* Toggles */}
-          <MouseTiltCard style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem", padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
-            <Toggle on={removeDups}     onChange={v => { setRemoveDups(v);     setActivePreset("custom"); }} label="Remove Duplicates" />
-            <Toggle on={removeOutliers} onChange={v => { setRemoveOutliers(v); setActivePreset("custom"); }} label="Remove Outliers (IQR)" />
-            <Toggle on={fixSkewness}    onChange={v => { setFixSkewness(v);    setActivePreset("custom"); }} label="Fix Skewness (log1p)" />
-            <Toggle on={standardize}    onChange={v => { setStandardize(v);    setActivePreset("custom"); }} label="Standardize (Z-score)" />
+          <MouseTiltCard style={{ padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
+              <Toggle on={removeDups}     onChange={v => { setRemoveDups(v);     setActivePreset("custom"); }} label="Remove Duplicates" />
+              <Toggle on={removeOutliers} onChange={v => { setRemoveOutliers(v); setActivePreset("custom"); }} label="Remove Outliers (IQR)" />
+              <Toggle on={fixSkewness}    onChange={v => { setFixSkewness(v);    setActivePreset("custom"); }} label="Fix Skewness (log1p)" />
+              <Toggle on={standardize}    onChange={v => { setStandardize(v);    setActivePreset("custom"); }} label="Standardize (Z-score)" />
+            </div>
           </MouseTiltCard>
 
           {error && <div style={{ padding: "0.75rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "0.82rem" }}>{error}</div>}

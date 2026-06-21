@@ -273,7 +273,6 @@ export default function FeatureEngineeringPage() {
           </MouseTiltCard>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           {error && <div style={{ marginTop: "1rem", color: "#f87171", fontSize: "0.8rem", textAlign: "center" }}>{error}</div>}
-          <FEUploadInfo rowCount={rawRows.length > 1 ? rawRows.length - 1 : 0} numericColCount={numCols.length} ldaEnabled={!!ldaCol} ldaTopics={ldaNTopics} ldaIter={ldaNIter} />
         </div>
       )}
 
@@ -328,6 +327,7 @@ export default function FeatureEngineeringPage() {
           />
 
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <FEUploadInfo rowCount={rawRows.length > 1 ? rawRows.length - 1 : 0} numericColCount={numCols.length} ldaEnabled={!!ldaCol} ldaTopics={ldaNTopics} ldaIter={ldaNIter} />
             <NumericTransformsPanel
               numCols={numCols}
               colTransforms={colTransforms}
