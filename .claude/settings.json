@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(wc -l *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(/Users/wrks/Downloads/Claude-documentation/Projects/ml-portfolio/node_modules/.bin/tsc --noEmit)",
+      "Bash(/Users/wrks/Downloads/Claude-documentation/Projects/ml-portfolio/node_modules/.bin/tsc --noEmit *)"
+    ]
+  }
+}
