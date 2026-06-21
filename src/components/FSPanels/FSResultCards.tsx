@@ -4,6 +4,7 @@ import CorrelationHeatmap from "@/components/CorrelationHeatmap";
 import { ScoreComparisonChart, PCAScreeChart } from "@/components/FSCharts";
 import UMAPScatter from "@/components/UMAPScatter";
 import RepulsionCard from "@/components/RepulsionCard";
+import FSProjectedScatter from "@/components/FSPanels/FSProjectedScatter";
 import type { ColInfo, SelectionOpts, FeatureScore, PCAComponent, SelectionResult } from "@/lib/fsAlgorithms";
 
 const ACCENT = "#fb923c";
@@ -326,6 +327,7 @@ export default function FSResultCards({
               </span>
             </div>
             <PCAScreeChart components={components} accent={accent} />
+            <FSProjectedScatter points={result.pcaResult.points} xLabel="PC1" yLabel="PC2" accent={accent} />
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem", marginTop: "1rem" }}>
               {components.map((comp: PCAComponent) => (
                 <div key={comp.index} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

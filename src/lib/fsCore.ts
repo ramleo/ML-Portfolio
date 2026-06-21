@@ -83,6 +83,8 @@ export interface PCAComponent {
   topLoadings: { name: string; loading: number }[];
 }
 
+export interface ScatterPoint { x: number; y: number; z?: number; label: string }
+
 export interface SelectionResult {
   features: FeatureScore[];
   keptCount: number;
@@ -97,7 +99,7 @@ export interface SelectionResult {
   chiSqActive: boolean;
   forwardActive: boolean;
   exhaustiveActive: boolean;
-  pcaResult: { components: PCAComponent[]; csvText: string } | null;
+  pcaResult: { components: PCAComponent[]; csvText: string; points: ScatterPoint[] } | null;
   umapResult: { nComponents: number; csvText: string; points: number[][] } | null;
   faResult?: import("./fsFA").FAResult;
   ldaResult?: import("./fsLDA").LDAResult;

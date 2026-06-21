@@ -229,7 +229,7 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
   // PCA / UMAP / FA / LDA
   const pcaResult = opts.usePCA ? computePCA(candidates, cols, opts, opts.pcaComponents) : null;
   const umapResult = opts.useUMAP ? computeUMAP(candidates, cols, opts, opts.umapComponents, opts.umapNeighbors) : null;
-  const faResult = opts.useFA ? (computeFA(candidates, opts.faFactors ?? 3) ?? undefined) : undefined;
+  const faResult = opts.useFA ? (computeFA(candidates, opts.faFactors ?? 3, { targetCol: opts.targetCol, allCols: cols }) ?? undefined) : undefined;
   const ldaResult = opts.useLDA ? (computeLDA(cols, opts.targetCol ?? "", opts.ldaComponents ?? 2) ?? undefined) : undefined;
 
   const keptNames = new Set([

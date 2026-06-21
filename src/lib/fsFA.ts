@@ -1,4 +1,4 @@
-import type { ColInfo } from "./fsCore";
+import type { ColInfo, ScatterPoint } from "./fsCore";
 
 // ── Factor Analysis via iterated principal axis factoring ─────────────────────
 
@@ -7,6 +7,7 @@ export interface FAResult {
   communalities: number[]; // [nFeatures] h² per feature
   variance: number[];      // [nFactors] proportion of variance explained per factor
   featureNames: string[];
+  points: ScatterPoint[];  // factor scores per row, coloured by target
 }
 
 /** Power-iteration eigenvector of matrix M, deflating out already-found vectors. */
@@ -37,7 +38,11 @@ function topEigenvector(M: number[][], deflated: number[][], p: number): number[
   return v;
 }
 
-export function computeFA(cols: ColInfo[], nFactors: number): FAResult | null {
+export function computeFA(
+  cols: ColInfo[],
+  nFactors: number,
+  extra?: { targetCol?: string; allCols?: ColInfo[] },
+): FAResult | null {
   // Only numeric columns with finite values
   const numCols = cols.filter(c => c.type === "numeric");
   const p = numCols.length;
@@ -127,10 +132,20 @@ export function computeFA(cols: ColInfo[], nFactors: number): FAResult | null {
     return s / p;
   });
 
+  // Factor scores: each row projected onto each factor
+  const targetCol = extra?.allCols?.find(c => c.name === extra?.targetCol);
+  const points: ScatterPoint[] = Z.map((row, ri) => ({
+    x: row.reduce((s, z, j) => s + z * (loadings[j]?.[0] ?? 0), 0),
+    y: row.reduce((s, z, j) => s + z * (loadings[j]?.[1] ?? 0), 0),
+    z: nk >= 3 ? row.reduce((s, z, j) => s + z * (loadings[j]?.[2] ?? 0), 0) : undefined,
+    label: targetCol ? (targetCol.rawVals[sIdx[ri]] ?? "?") : String(ri),
+  }));
+
   return {
     loadings,
     communalities: h2,
     variance,
     featureNames: numCols.map(c => c.name),
+    points,
   };
 }

@@ -1,8 +1,8 @@
-import type { ColInfo, PCAComponent, SelectionOpts } from "./fsCore";
+import type { ColInfo, PCAComponent, ScatterPoint, SelectionOpts } from "./fsCore";
 import { serializeCSV } from "./fsCore";
 
 export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: SelectionOpts, nComp: number)
-  : { components: PCAComponent[]; csvText: string } | null {
+  : { components: PCAComponent[]; csvText: string; points: ScatterPoint[] } | null {
   const p = candidates.length;
   if (p < 2) return null;
   const totalRows = Math.min(...candidates.map(c => c.nums.length));
@@ -92,7 +92,16 @@ export function computePCA(candidates: ColInfo[], allCols: ColInfo[], opts: Sele
     ...(opts.targetCol ? allCols.filter(c => c.name === opts.targetCol) : []),
     ...allCols.filter(c => c.type === "categorical" && c.name !== opts.targetCol),
   ];
-  return { components, csvText: serializeCSV(keptForCSV) };
+
+  const target = opts.targetCol ? allCols.find(c => c.name === opts.targetCol) : null;
+  const points: ScatterPoint[] = validIdx.map((origI, ri) => ({
+    x: pcCols[0]?.nums[origI] ?? 0,
+    y: pcCols[1]?.nums[origI] ?? 0,
+    z: pcCols[2] ? pcCols[2].nums[origI] : undefined,
+    label: target ? (target.rawVals[origI] ?? "?") : String(ri),
+  }));
+
+  return { components, csvText: serializeCSV(keptForCSV), points };
 }
 
 export function computeUMAP(candidates: ColInfo[], allCols: ColInfo[], opts: SelectionOpts, nComp: number, nNeighbors: number)

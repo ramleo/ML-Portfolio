@@ -2,6 +2,7 @@
 
 import RepulsionCard from "@/components/RepulsionCard";
 import UMAPScatter from "@/components/UMAPScatter";
+import FSProjectedScatter from "@/components/FSPanels/FSProjectedScatter";
 import type { SelectionResult, SelectionOpts, ColInfo } from "@/lib/fsAlgorithms";
 
 const ACCENT = "#fb923c";
@@ -110,6 +111,9 @@ export default function FSReductionResultCards({
                 </tbody>
               </table>
             </div>
+            {result.faResult.points.length >= 2 && (
+              <FSProjectedScatter points={result.faResult.points} xLabel="Factor 1" yLabel="Factor 2" accent={accent} />
+            )}
             <div style={{ marginTop: "0.85rem" }}>
               <button
                 onClick={onDownloadFA}
