@@ -9,11 +9,13 @@ import NumericTransformsPanel from "@/components/FEPanels/NumericTransformsPanel
 import CategoricalPanel from "@/components/FEPanels/CategoricalPanel";
 import SidebarPanel from "@/components/FEPanels/SidebarPanel";
 import ResultsPanel from "@/components/FEPanels/ResultsPanel";
+import LDAPanel from "@/components/FEPanels/LDAPanel";
 import {
   ColInfo, FeResult, Step,
   parseCSV, analyzeColumns, serializeCSV, applyTransforms,
   NUM_TRANSFORMS,
 } from "@/lib/feAlgorithms";
+import { runLDA, LDATopicResult } from "@/lib/feLDA";
 
 const ACCENT = "#38bdf8";
 
@@ -106,6 +108,14 @@ export default function FeatureEngineeringPage() {
   const [rowAggCols, setRowAggCols] = useState<string[]>([]);
   const [rowAggFn, setRowAggFn]     = useState("mean");
 
+  // LDA Topic Model
+  const [ldaCol, setLdaCol]           = useState("");
+  const [ldaNTopics, setLdaNTopics]   = useState(5);
+  const [ldaNIter, setLdaNIter]       = useState(50);
+  const [ldaResult, setLdaResult]     = useState<LDATopicResult | null>(null);
+  const [ldaRunning, setLdaRunning]   = useState(false);
+  const [ldaError, setLdaError]       = useState<string | null>(null);
+
   // AI Suggest
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
   const [aiSuggestError, setAiSuggestError]     = useState<string | null>(null);
@@ -149,6 +159,7 @@ export default function FeatureEngineeringPage() {
       setRollCols([]); setRollN(3); setRollAgg("mean");
       setCyclicCols({});
       setRowAggCols([]); setRowAggFn("mean");
+      setLdaCol(""); setLdaResult(null); setLdaError(null);
       setStep("configure");
     };
     reader.readAsText(file);
@@ -196,6 +207,25 @@ export default function FeatureEngineeringPage() {
     setRatios(prev => [...prev, pair]);
     setRatioA(""); setRatioB("");
   };
+
+  // ── LDA handler ───────────────────────────────────────────────────────────
+
+  const handleRunLDA = useCallback(() => {
+    const col = cols.find(c => c.name === ldaCol);
+    if (!col) return;
+    setLdaRunning(true);
+    setLdaError(null);
+    setTimeout(() => {
+      try {
+        const result = runLDA(col.rawValues, ldaNTopics, ldaNIter, 8);
+        setLdaResult(result);
+      } catch (e) {
+        setLdaError(String(e));
+      } finally {
+        setLdaRunning(false);
+      }
+    }, 20);
+  }, [cols, ldaCol, ldaNTopics, ldaNIter]);
 
   // ── AI Smart Suggest ───────────────────────────────────────────────────────
 
@@ -283,6 +313,18 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
           freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
           cyclicCols, rowAggCols, rowAggFn
         );
+        // Merge LDA columns if present
+        if (ldaResult) {
+          const nRows = res.csv.length - 1;
+          for (const tc of ldaResult.topicColumns) {
+            res.headers.push(tc.name);
+            res.newColumns.push(tc.name);
+            for (let i = 0; i < nRows; i++) {
+              res.csv[i + 1].push(String(tc.values[i] ?? ""));
+            }
+          }
+          res.colsAfter = res.headers.length;
+        }
         setResult(res);
         setStep("results");
       } catch (e) {
@@ -292,7 +334,7 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
     }, 50);
   }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
       freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
-      cyclicCols, rowAggCols, rowAggFn]);
+      cyclicCols, rowAggCols, rowAggFn, ldaResult]);
 
   const downloadResult = useCallback(() => {
     if (!result) return;
@@ -313,7 +355,8 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
     freqCols.length +
     (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0) +
     Object.keys(cyclicCols).length * 2 +
-    (rowAggCols.length >= 2 ? 1 : 0);
+    (rowAggCols.length >= 2 ? 1 : 0) +
+    (ldaResult ? ldaResult.nTopics : 0);
 
   const outerStyle: React.CSSProperties = step === "configure"
     ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" }
@@ -443,6 +486,19 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
               onToggleFreqCol={col => setFreqCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
               onToggleDateCol={col => setDateCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
               onToggleDatePart={part => setDateParts(prev => prev.includes(part) ? prev.filter(x => x !== part) : [...prev, part])}
+            />
+            <LDAPanel
+              catCols={catCols}
+              ldaCol={ldaCol}
+              ldaNTopics={ldaNTopics}
+              ldaNIter={ldaNIter}
+              ldaResult={ldaResult}
+              ldaRunning={ldaRunning}
+              ldaError={ldaError}
+              onSetLdaCol={setLdaCol}
+              onSetLdaNTopics={setLdaNTopics}
+              onSetLdaNIter={setLdaNIter}
+              onRunLDA={handleRunLDA}
             />
           </div>
         </div>
