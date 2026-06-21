@@ -82,7 +82,7 @@ function Scatter2D({ umapResult, accent, labelValues }: Props) {
           return (
             <circle
               key={i}
-              cx={cx} cy={cy} r={3.5}
+              cx={cx} cy={cy} r={2}
               fill={dotColor(i)}
               fillOpacity={0.75}
               stroke="rgba(0,0,0,0.3)"

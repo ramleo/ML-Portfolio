@@ -206,8 +206,8 @@ export default function FSReductionResultCards({
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
                   {classes.map((cls, i) => (
                     <div key={cls} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 2, background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />
-                      <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{cls}</span>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>{cls}</span>
                     </div>
                   ))}
                 </div>
@@ -252,7 +252,7 @@ export default function FSReductionResultCards({
                     return (
                       <circle
                         key={i}
-                        cx={cx} cy={cy} r={3}
+                        cx={cx} cy={cy} r={1.5}
                         fill={fill} fillOpacity={0.75}
                         stroke="rgba(0,0,0,0.3)" strokeWidth={0.5}
                       />
@@ -263,8 +263,8 @@ export default function FSReductionResultCards({
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                   {classes.map((cls, i) => (
                     <div key={cls} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 2, background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />
-                      <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{cls}</span>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: CLASS_COLORS[i % CLASS_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>{cls}</span>
                     </div>
                   ))}
                 </div>

@@ -35,15 +35,15 @@ export default function FSProjectedScatter({ points, xLabel, yLabel, accent }: P
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
         <line x1={PX} y1={H - PY} x2={W - PX} y2={H - PY} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
         <line x1={PX} y1={PY}     x2={PX}      y2={H - PY} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
-        <text x={W / 2} y={H - 4}  textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.38)">{xLabel}</text>
-        <text x={9}     y={H / 2}  textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.38)"
+        <text x={W / 2} y={H - 4}  textAnchor="middle" fontSize={6} fill="rgba(255,255,255,0.5)">{xLabel}</text>
+        <text x={9}     y={H / 2}  textAnchor="middle" fontSize={6} fill="rgba(255,255,255,0.5)"
           transform={`rotate(-90,9,${H / 2})`}>{yLabel}</text>
         {points.map((p, i) => {
           const cx = PX + ((p.x - xMin) / xRange) * (W - PX * 2);
           const cy = H - PY - ((p.y - yMin) / yRange) * (H - PY * 2);
           const fill = multiClass ? (colorMap.get(p.label) ?? accent) : accent;
           return (
-            <circle key={i} cx={cx} cy={cy} r={3}
+            <circle key={i} cx={cx} cy={cy} r={1.5}
               fill={fill} fillOpacity={0.72}
               stroke="rgba(0,0,0,0.3)" strokeWidth={0.5} />
           );
@@ -53,8 +53,8 @@ export default function FSProjectedScatter({ points, xLabel, yLabel, accent }: P
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.3rem" }}>
           {labels.map((l, i) => (
             <div key={l} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: PALETTE[i % PALETTE.length], flexShrink: 0 }} />
-              <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{l}</span>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: PALETTE[i % PALETTE.length], flexShrink: 0 }} />
+              <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>{l}</span>
             </div>
           ))}
         </div>
