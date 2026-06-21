@@ -8,7 +8,7 @@ const ACCENT  = "#22d3ee";
 const CARD_BG = "rgba(17,24,39,0.80)";
 
 export function DatasetOverview({ analyzed }: { analyzed: AnalyzeResult }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const numCols = analyzed.columns.filter(c => c.is_numeric);
   const catCols = analyzed.columns.filter(c => !c.is_numeric);
   const colsWithMissing = analyzed.columns.filter(c => c.missing > 0).sort((a, b) => b.missing - a.missing);
