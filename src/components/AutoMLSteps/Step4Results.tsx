@@ -217,7 +217,9 @@ export default function Step4Results({
               <div style={{ marginTop: "0.75rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
                   <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
-                    Asking {LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
+                    Asking {customLLMUrl.trim()
+                      ? (customLLMModel.trim() || "your provider")
+                      : LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
                   </span>
                   <span style={{ fontSize: "0.72rem", color: ACCENT, fontVariantNumeric: "tabular-nums" }}>{Math.round(llmProgress)}%</span>
                 </div>
