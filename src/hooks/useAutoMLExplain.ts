@@ -107,7 +107,7 @@ export function useAutoMLExplain(
         model,
         userKey:   userApiKey || undefined,
         jsonMode:  true,
-        maxTokens: 2000,
+        maxTokens: 3000,
       };
       if (baseUrl) body.baseUrl = baseUrl;
 
