@@ -71,7 +71,7 @@ export type SavedRun = {
   result: TrainResult;
 };
 
-export type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral" | "custom";
+export type LLMProvider = "gemini-2.5" | "anthropic" | "openai" | "groq" | "groq-mixtral";
 
 export type Step = "upload" | "config" | "training" | "results";
 
@@ -83,7 +83,6 @@ export const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
   { value: "openai",       label: "GPT-4o Mini" },
   { value: "groq",         label: "Groq Llama 3.3 70B" },
   { value: "groq-mixtral", label: "Groq Llama 3.1 8B Instant" },
-  { value: "custom",       label: "Custom (OpenAI-compatible)" },
 ];
 
 export const LLM_KEY_HINTS: Record<LLMProvider, string> = {
@@ -92,7 +91,6 @@ export const LLM_KEY_HINTS: Record<LLMProvider, string> = {
   "openai":       "Get a key at platform.openai.com",
   "groq":         "Get a free key at console.groq.com",
   "groq-mixtral": "Get a free key at console.groq.com",
-  "custom":       "Leave blank if your endpoint does not require authentication",
 };
 
 export const DEFAULT_ML_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"] as const;

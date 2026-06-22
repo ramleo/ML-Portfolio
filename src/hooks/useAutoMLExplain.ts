@@ -15,7 +15,6 @@ function mapProvider(
     case "openai":       return { provider: "openai",  model: "gpt-4o-mini" };
     case "groq":         return { provider: "groq",    model: "llama-3.3-70b-versatile" };
     case "groq-mixtral": return { provider: "groq",    model: "llama-3.1-8b-instant" };
-    case "custom":       return { provider: "groq",    model: customLLMModel || "llama-3.3-70b-versatile" };
     default:             return { provider: "gemini",  model: "gemini-2.5-flash" };
   }
 }

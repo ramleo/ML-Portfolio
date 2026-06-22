@@ -176,7 +176,7 @@ export default function Step4Results({
         )}
 
         {/* API key + custom fields */}
-        {(showKeyInput || llmProvider === "custom") && (
+        {showKeyInput && (
           <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
             <input
               type="password"
@@ -189,20 +189,18 @@ export default function Step4Results({
               type="text"
               value={customLLMUrl}
               onChange={(e) => onSetCustomLLMUrl(e.target.value)}
-              placeholder={llmProvider === "custom"
-                ? "API base URL (e.g. http://localhost:11434/v1)"
-                : "Provider base URL (e.g. https://api.cohere.com/compatibility/v1) — leave empty to use provider above"}
+              placeholder="Provider base URL (e.g. https://api.cohere.com/compatibility/v1) — leave empty to use provider above"
               style={{ width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box" as const }}
             />
-            {(showKeyInput || llmProvider === "custom") && (
-              <input
-                type="text"
-                value={customLLMModel}
-                onChange={(e) => onSetCustomLLMModel(e.target.value)}
-                placeholder={llmProvider === "custom" ? "Model name (e.g. llama3, mistral)" : "Model override (optional, e.g. gpt-4o, claude-opus-4-8)"}
-                style={{ width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box" as const }}
-              />
-            )}
+            <input
+              type="text"
+              value={customLLMModel}
+              onChange={(e) => onSetCustomLLMModel(e.target.value)}
+              placeholder={customLLMUrl.trim()
+                ? "Model name required (e.g. command-r-plus for Cohere, gpt-4o for OpenAI)"
+                : "Model override (optional, e.g. gpt-4o, claude-opus-4-8)"}
+              style={{ width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box" as const }}
+            />
             <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: 0, lineHeight: 1.45 }}>
               {LLM_KEY_HINTS[llmProvider]}
             </p>
