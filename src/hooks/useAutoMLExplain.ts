@@ -120,7 +120,7 @@ export function useAutoMLExplain(
         jsonMode:  true,
         maxTokens: 3000,
       };
-      if (customLLMUrl?.trim()) body.baseUrl = customLLMUrl.trim();
+      if (customLLMUrl?.trim() && userApiKey?.trim()) body.baseUrl = customLLMUrl.trim();
 
       const res = await fetch("/api/ai-tools", {
         method:  "POST",

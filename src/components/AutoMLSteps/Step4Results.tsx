@@ -217,7 +217,7 @@ export default function Step4Results({
               <div style={{ marginTop: "0.75rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
                   <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
-                    Asking {customLLMUrl.trim()
+                    Asking {(showKeyInput && customLLMUrl.trim())
                       ? (customLLMModel.trim() || "your provider")
                       : LLM_PROVIDERS.find(p => p.value === llmProvider)?.label}...
                   </span>
