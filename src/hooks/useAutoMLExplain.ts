@@ -103,12 +103,11 @@ export function useAutoMLExplain(
       const body: Record<string, unknown> = {
         messages:  [{ role: "user", content: prompt }],
         provider,
-        model,
+        model: (customLLMUrl?.trim() && customLLMModel?.trim()) ? customLLMModel.trim() : model,
         userKey:   userApiKey || undefined,
         jsonMode:  true,
         maxTokens: 3000,
       };
-      // Always pass baseUrl when the user filled it in — works for ANY provider, not just "custom"
       if (customLLMUrl?.trim()) body.baseUrl = customLLMUrl.trim();
 
       const res = await fetch("/api/ai-tools", {
