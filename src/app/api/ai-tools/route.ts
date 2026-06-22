@@ -15,7 +15,7 @@ function friendlyGeminiError(status: number, body: string, isRetry = false): str
   if (status === 429) return `Rate limit reached — Gemini free tier allows only a few requests per minute. Wait a moment and try again, or switch to Groq (free, higher limits) in chat settings.`;
   if (status === 503) return isRetry
     ? `Both Gemini models are currently overloaded. Switch to Groq or Claude in chat settings (gear icon).`
-    : `Gemini is overloaded. Retrying with gemini-3.5-flash...`;
+    : `Gemini is overloaded. Retrying with gemini-2.0-flash...`;
   if (status === 401 || status === 403) return `Invalid or unauthorized Gemini API key. Check your key in chat settings (gear icon).`;
   try {
     const msg = (JSON.parse(body) as { error?: { message?: string } })?.error?.message;
@@ -142,9 +142,9 @@ export async function POST(req: NextRequest) {
       } catch (e) {
         // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 rate limit)
         const status = (e as { status?: number }).status;
-        if (status === 503 && chosenModel !== "gemini-3.5-flash") {
+        if (status === 503 && chosenModel !== "gemini-2.0-flash") {
           try {
-            reply = await callGemini(key, "gemini-3.5-flash", system, messages, jsonMode, maxTokens);
+            reply = await callGemini(key, "gemini-2.0-flash", system, messages, jsonMode, maxTokens);
           } catch (e2) {
             // Both models overloaded — show the "both overloaded" message
             const s2 = (e2 as { status?: number; body?: string });
