@@ -264,6 +264,9 @@ export default function AutoMLModal({
       const data = await res.json();
       setLlmProgress(100);
       setLlmExp(data.explanation as Explanation);
+      if (data.source === "rule" && llmProvider !== "gemini-2.5") {
+        setError(`${llmProvider} explanation failed — showing rule-based fallback. Check your API key.`);
+      }
     } catch {
       // silently fall back — rule explanation still shown
     } finally {
