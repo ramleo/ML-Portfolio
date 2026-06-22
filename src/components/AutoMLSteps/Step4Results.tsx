@@ -197,7 +197,7 @@ export default function Step4Results({
               value={customLLMModel}
               onChange={(e) => onSetCustomLLMModel(e.target.value)}
               placeholder={customLLMUrl.trim()
-                ? "Model name required (e.g. command-r-plus for Cohere, gpt-4o for OpenAI)"
+                ? "Model name required (e.g. command-a-03-2025 for Cohere, gpt-4o for OpenAI)"
                 : "Model override (optional, e.g. gpt-4o, claude-opus-4-8)"}
               style={{ width: "100%", padding: "0.45rem 0.7rem", borderRadius: 7, background: "var(--bg-input, var(--border))", border: "1px solid var(--border2)", color: "var(--text)", fontSize: "0.75rem", boxSizing: "border-box" as const }}
             />

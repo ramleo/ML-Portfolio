@@ -40,12 +40,24 @@ Return ONLY a JSON object with exactly these fields:
 {"why_won":"2-3 sentences on why ${winner} outperformed others — cite score margins","score_analysis":"1-2 sentences on score meaning and reliability","key_drivers":"1-2 sentences on what features/patterns drove the win","recommendations":[{"title":"short title","detail":"specific suggestion"}],"model_comparison":[{"title":"short title","detail":"specific observation"}],"actionable_insights":[{"title":"short title","detail":"specific action"}]}`;
 }
 
+function toArr<T>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : [];
+}
+
 function extractJson(text: string): Explanation | null {
   const tryParse = (s: string): Explanation | null => {
     try {
       let parsed = JSON.parse(s);
       if (typeof parsed === "string") parsed = JSON.parse(parsed); // handle double-encoded
-      if (parsed && typeof parsed === "object" && "why_won" in parsed) return parsed as Explanation;
+      if (parsed && typeof parsed === "object" && "why_won" in parsed) {
+        // Normalize array fields — Gemini sometimes returns strings instead of arrays
+        return {
+          ...parsed,
+          recommendations:    toArr(parsed.recommendations),
+          model_comparison:   toArr(parsed.model_comparison),
+          actionable_insights: toArr(parsed.actionable_insights),
+        } as Explanation;
+      }
     } catch { /* ignore */ }
     return null;
   };
