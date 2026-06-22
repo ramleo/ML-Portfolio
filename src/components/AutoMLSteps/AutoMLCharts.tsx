@@ -193,7 +193,7 @@ export function ModelComparisonChart({ items }: { items: ModelComparisonItem[] }
   const yFor       = (s: number) => padT + chartH - (s / 100) * chartH;
   const dotColor   = (s: number) => s >= 80 ? ACCENT : s >= 60 ? "#fbbf24" : "#f87171";
   const polyline   = sorted.map((item, i) => `${xFor(i)},${yFor(item.fitness_score)}`).join(" ");
-  const shortName  = (name: string) => name.replace("Random Forest", "Rand. Forest");
+  const shortName  = (name: string | undefined) => (name ?? "").replace("Random Forest", "Rand. Forest");
 
   return (
     <div style={{ marginTop: "0.75rem" }}>

@@ -37,7 +37,7 @@ Top features: ${featImp}
 Rows: ${automl.n_rows ?? "unknown"}
 
 Return ONLY a JSON object with exactly these fields:
-{"why_won":"2-3 sentences on why ${winner} outperformed others — cite score margins","score_analysis":"1-2 sentences on score meaning and reliability","key_drivers":"1-2 sentences on what features/patterns drove the win","recommendations":[{"title":"short title","detail":"specific suggestion"}],"model_comparison":[{"title":"short title","detail":"specific observation"}],"actionable_insights":[{"title":"short title","detail":"specific action"}]}`;
+{"why_won":"2-3 sentences on why ${winner} outperformed others — cite score margins","score_analysis":"1-2 sentences on score meaning and reliability","key_drivers":"1-2 sentences on what features/patterns drove the win","recommendations":[{"title":"short title","detail":"specific suggestion"}],"model_comparison":[{"algorithm":"algorithm name exactly as given","fitness_score":85,"reason":"1 sentence on why this score — 0-100 scale where 100=perfect fit"}],"actionable_insights":[{"title":"short title","detail":"specific action"}]}`;
 }
 
 function toArr<T>(v: unknown): T[] {
