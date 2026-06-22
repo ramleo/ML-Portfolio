@@ -115,6 +115,10 @@ export function useAutoMLExplain(
 
       if (data.error) {
         setLlmError(data.error);
+        // Fall back to the rule-based explanation computed at training time
+        if (trainResult?.automl?.explanation) {
+          setLlmExp(trainResult.automl.explanation as Explanation);
+        }
         return;
       }
 
