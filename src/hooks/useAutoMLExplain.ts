@@ -42,24 +42,30 @@ Return ONLY a JSON object with exactly these fields:
 }
 
 function extractJson(text: string): Explanation | null {
-  try {
-    const parsed = JSON.parse(text);
-    if (parsed && typeof parsed === "object" && "why_won" in parsed) return parsed as Explanation;
-  } catch { /* not clean JSON */ }
+  const tryParse = (s: string): Explanation | null => {
+    try {
+      let parsed = JSON.parse(s);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed); // handle double-encoded
+      if (parsed && typeof parsed === "object" && "why_won" in parsed) return parsed as Explanation;
+    } catch { /* ignore */ }
+    return null;
+  };
 
-  // Bracket-depth extraction
-  const start = text.indexOf("{");
+  const direct = tryParse(text);
+  if (direct) return direct;
+
+  // Strip markdown fences then bracket-depth extract
+  const cleaned = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
+  const start = cleaned.indexOf("{");
   if (start === -1) return null;
   let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    if (text[i] === "{") depth++;
-    else if (text[i] === "}") {
+  for (let i = start; i < cleaned.length; i++) {
+    if (cleaned[i] === "{") depth++;
+    else if (cleaned[i] === "}") {
       depth--;
       if (depth === 0) {
-        try {
-          const parsed = JSON.parse(text.slice(start, i + 1));
-          if (parsed && "why_won" in parsed) return parsed as Explanation;
-        } catch { /* malformed */ }
+        const result = tryParse(cleaned.slice(start, i + 1));
+        if (result) return result;
         break;
       }
     }

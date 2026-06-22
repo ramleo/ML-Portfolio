@@ -356,6 +356,7 @@ export default function AutoMLModal({
               onSetCustomLLMUrl={setCustomLLMUrl}
               onSetCustomLLMModel={setCustomLLMModel}
               onSetLlmExp={setLlmExp}
+              llmError={llmError}
               onGenerateAnalysis={handleExplain}
               onSetTrainResult={setTrainResult}
               onRunAgain={handleRunAgain}

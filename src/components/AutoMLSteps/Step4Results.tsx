@@ -32,6 +32,7 @@ interface Props {
   onSetUserApiKey:       (v: string) => void;
   onSetCustomLLMUrl:     (v: string) => void;
   onSetCustomLLMModel:   (v: string) => void;
+  llmError:              string | null;
   onSetLlmExp:           (v: Explanation | null) => void;
   onGenerateAnalysis:    () => void;
   onSetTrainResult:      (r: TrainResult) => void;
@@ -47,7 +48,7 @@ export default function Step4Results({
   showKeyInput, userApiKey, customLLMUrl, customLLMModel,
   onSetAnalysisExpanded, onSetShowKeyInput, onSetLlmProvider,
   onSetUserApiKey, onSetCustomLLMUrl, onSetCustomLLMModel, onSetLlmExp,
-  onGenerateAnalysis, onSetTrainResult, onRunAgain, onClose, onSaveVersion, onSaveToPipeline,
+  llmError, onGenerateAnalysis, onSetTrainResult, onRunAgain, onClose, onSaveVersion, onSaveToPipeline,
 }: Props) {
   const { automl } = trainResult;
   const isReg      = automl.task === "regression";
@@ -166,6 +167,13 @@ export default function Step4Results({
             </button>
           </div>
         </div>
+
+        {/* LLM error display */}
+        {llmError && !llmLoading && (
+          <div style={{ marginTop: "0.5rem", fontSize: "0.7rem", color: "#f87171", lineHeight: 1.45, padding: "0.35rem 0.6rem", borderRadius: 6, background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}>
+            AI error: {llmError} — showing rule-based analysis instead.
+          </div>
+        )}
 
         {/* API key + custom fields */}
         {(showKeyInput || llmProvider === "custom") && (
