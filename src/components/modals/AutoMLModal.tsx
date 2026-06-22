@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useAutoMLExplain } from "@/hooks/useAutoMLExplain";
 import { usePipeline } from "@/context/PipelineContext";
 import { type ModelResult } from "@/types/pipeline";
 import { ML_UNIFIED_API as API } from "@/config/urls";
@@ -60,14 +61,16 @@ export default function AutoMLModal({
 
   // ── LLM analysis state ────────────────────────────────────────────────────
   const [llmProvider, setLlmProvider]         = useState<LLMProvider>("gemini-2.5");
-  const [llmExp, setLlmExp]                   = useState<Explanation | null>(null);
-  const [llmLoading, setLlmLoading]           = useState(false);
-  const [llmProgress, setLlmProgress]         = useState(0);
   const [userApiKey, setUserApiKey]           = useState("");
   const [showKeyInput, setShowKeyInput]       = useState(false);
   const [customLLMUrl, setCustomLLMUrl]       = useState("");
   const [customLLMModel, setCustomLLMModel]   = useState("");
   const [analysisExpanded, setAnalysisExpanded] = useState(false);
+
+  // ── Explain hook ──────────────────────────────────────────────────────────
+  const { llmExp, llmLoading, llmProgress, llmError, handleExplain, setLlmExp } = useAutoMLExplain(
+    trainResult, llmProvider, userApiKey, customLLMUrl, customLLMModel,
+  );
 
   // ── Saved runs + view ─────────────────────────────────────────────────────
   const [savedFlash, setSavedFlash]             = useState(false);
@@ -248,33 +251,6 @@ export default function AutoMLModal({
     onSavedToPipeline?.();
   }, [trainResult, file, savedRuns, onSavedToPipeline]);
 
-  const handleGenerateAnalysis = useCallback(async () => {
-    if (!trainResult?.automl) return;
-    setLlmLoading(true); setLlmExp(null); setLlmProgress(8); setAnalysisExpanded(true);
-    const interval = setInterval(() => {
-      setLlmProgress(p => p < 85 ? p + Math.random() * 7 : p);
-    }, 500);
-    try {
-      const body: Record<string, unknown> = { automl_data: trainResult.automl, provider: llmProvider };
-      if (userApiKey.trim())     body.user_api_key    = userApiKey.trim();
-      if (customLLMUrl.trim())   body.custom_base_url = customLLMUrl.trim();
-      if (customLLMModel.trim()) body.custom_model    = customLLMModel.trim();
-      const res = await fetch(`${API}/explain`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error("Explain request failed");
-      const data = await res.json();
-      setLlmProgress(100);
-      setLlmExp(data.explanation as Explanation);
-      if (data.source === "rule" && llmProvider !== "gemini-2.5") {
-        setError(`${llmProvider} explanation failed — showing rule-based fallback. Check your API key.`);
-      }
-    } catch {
-      // silently fall back — rule explanation still shown
-    } finally {
-      clearInterval(interval);
-      setLlmLoading(false);
-    }
-  }, [trainResult, llmProvider, userApiKey, customLLMUrl, customLLMModel]);
-
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
       const next = new Set(prev);
@@ -286,8 +262,8 @@ export default function AutoMLModal({
 
   const handleRunAgain = useCallback(() => {
     setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null);
-    setPct(0); setLlmExp(null); setLlmProgress(0); setIsLoadedFromSaved(false);
-  }, []);
+    setPct(0); setLlmExp(null); setIsLoadedFromSaved(false);
+  }, [setLlmExp]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -379,7 +355,7 @@ export default function AutoMLModal({
               onSetCustomLLMUrl={setCustomLLMUrl}
               onSetCustomLLMModel={setCustomLLMModel}
               onSetLlmExp={setLlmExp}
-              onGenerateAnalysis={handleGenerateAnalysis}
+              onGenerateAnalysis={handleExplain}
               onSetTrainResult={setTrainResult}
               onRunAgain={handleRunAgain}
               onClose={onClose}
