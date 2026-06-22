@@ -119,13 +119,13 @@ ${toolContext ?? "No dataset loaded yet."}`;
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, provider = "gemini", model, userKey, toolContext, jsonMode = false, maxTokens = 800 } = await req.json();
+  const { messages, provider = "gemini", model, userKey, baseUrl, toolContext, jsonMode = false, maxTokens = 800 } = await req.json();
 
   if (!Array.isArray(messages) || messages.length === 0)
     return NextResponse.json({ error: "No messages provided." }, { status: 400 });
 
   const key = resolveKey(provider, userKey);
-  if (!key)
+  if (!key && !baseUrl)
     return NextResponse.json({
       error: `No API key for ${provider}. Add your key in the chat settings (gear icon).`,
     }, { status: 401 });
@@ -135,7 +135,11 @@ export async function POST(req: NextRequest) {
   try {
     let reply: string;
 
-    if (provider === "gemini") {
+    // If caller supplied a baseUrl, use it directly (user's own provider — any OpenAI-compat endpoint)
+    if (baseUrl) {
+      if (!key) return NextResponse.json({ error: "API key required when using a custom base URL." }, { status: 401 });
+      reply = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages);
+    } else if (provider === "gemini") {
       const chosenModel = model ?? "gemini-2.5-flash";
       try {
         reply = await callGemini(key, chosenModel, system, messages, jsonMode, maxTokens);
@@ -159,7 +163,7 @@ export async function POST(req: NextRequest) {
     } else {
       const base = OPENAI_COMPAT[provider];
       if (!base) return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
-      reply = await callOpenAICompat(base, key, model ?? "gpt-4o-mini", system, messages);
+      reply = await callOpenAICompat(base, key!, model ?? "gpt-4o-mini", system, messages);
     }
 
     return NextResponse.json({ reply });

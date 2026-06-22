@@ -4,18 +4,18 @@ import { useState, useCallback } from "react";
 import { type TrainResult, type Explanation, type LLMProvider } from "@/lib/automlUtils";
 
 // Maps LLMProvider to /api/ai-tools provider+model
+// baseUrl is NOT returned here — it is sourced directly from customLLMUrl in handleExplain
 function mapProvider(
   llmProvider: LLMProvider,
-  customLLMUrl: string,
   customLLMModel: string,
-): { provider: string; model: string; baseUrl?: string } {
+): { provider: string; model: string } {
   switch (llmProvider) {
     case "gemini-2.5":   return { provider: "gemini",  model: "gemini-2.5-flash" };
     case "anthropic":    return { provider: "claude",  model: "claude-haiku-4-5-20251001" };
     case "openai":       return { provider: "openai",  model: "gpt-4o-mini" };
     case "groq":         return { provider: "groq",    model: "llama-3.3-70b-versatile" };
     case "groq-mixtral": return { provider: "groq",    model: "llama-3.1-8b-instant" };
-    case "custom":       return { provider: "groq",    model: customLLMModel || "llama-3.3-70b-versatile", baseUrl: customLLMUrl };
+    case "custom":       return { provider: "groq",    model: customLLMModel || "llama-3.3-70b-versatile" };
     default:             return { provider: "gemini",  model: "gemini-2.5-flash" };
   }
 }
@@ -98,7 +98,7 @@ export function useAutoMLExplain(
     }, 500);
 
     try {
-      const { provider, model, baseUrl } = mapProvider(llmProvider, customLLMUrl, customLLMModel);
+      const { provider, model } = mapProvider(llmProvider, customLLMModel);
       const prompt = buildPrompt(trainResult.automl);
 
       const body: Record<string, unknown> = {
@@ -109,7 +109,8 @@ export function useAutoMLExplain(
         jsonMode:  true,
         maxTokens: 3000,
       };
-      if (baseUrl) body.baseUrl = baseUrl;
+      // Always pass baseUrl when the user filled it in — works for ANY provider, not just "custom"
+      if (customLLMUrl?.trim()) body.baseUrl = customLLMUrl.trim();
 
       const res = await fetch("/api/ai-tools", {
         method:  "POST",
