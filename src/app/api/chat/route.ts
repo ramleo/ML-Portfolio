@@ -75,7 +75,7 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
     method: 'POST',
     headers: { 'Authorization': `Bearer ${key}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       max_tokens: 400,
       temperature: 0.7,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],

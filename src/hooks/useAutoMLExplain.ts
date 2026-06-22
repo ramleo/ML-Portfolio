@@ -13,9 +13,9 @@ function mapProvider(
     case "gemini-2.5":   return { provider: "gemini",  model: "gemini-2.5-flash" };
     case "anthropic":    return { provider: "claude",  model: "claude-haiku-4-5-20251001" };
     case "openai":       return { provider: "openai",  model: "gpt-4o-mini" };
-    case "groq":         return { provider: "groq",    model: "llama3-70b-8192" };
-    case "groq-mixtral": return { provider: "groq",    model: "llama3-8b-8192" };
-    case "custom":       return { provider: "groq",    model: customLLMModel || "llama3-70b-8192", baseUrl: customLLMUrl };
+    case "groq":         return { provider: "groq",    model: "llama-3.3-70b-versatile" };
+    case "groq-mixtral": return { provider: "groq",    model: "llama-3.1-8b-instant" };
+    case "custom":       return { provider: "groq",    model: customLLMModel || "llama-3.3-70b-versatile", baseUrl: customLLMUrl };
     default:             return { provider: "gemini",  model: "gemini-2.5-flash" };
   }
 }

@@ -45,8 +45,8 @@ const PROVIDERS: ProviderConfig[] = [
   {
     id: "groq", label: "Groq", color: "#a78bfa",
     models: [
-      { id: "llama3-70b-8192",      label: "Llama 3 70B" },
-      { id: "llama3-8b-8192",       label: "Llama 3 8B" },
+      { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
+      { id: "llama-3.1-8b-instant",   label: "Llama 3.1 8B Instant" },
       { id: "mixtral-8x7b-32768",   label: "Mixtral 8x7B" },
       { id: "gemma2-9b-it",         label: "Gemma 2 9B" },
     ],
