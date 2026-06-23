@@ -50,7 +50,7 @@ ${colSummaries}
 Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
 
     try {
-      const provider = localStorage.getItem("tools_ai_provider") ?? "gemini";
+      const provider = localStorage.getItem("tools_ai_provider") ?? "groq";
       const model = localStorage.getItem("tools_ai_model") ?? "gemini-2.5-flash";
       const userKey = localStorage.getItem("tools_ai_key") ?? undefined;
       const res = await fetch("/api/ai-tools", {

@@ -47,7 +47,7 @@ export function useFSAISuggest(
         body: JSON.stringify({
           messages: [{ role: "user", content: prompt }],
           toolContext,
-          provider: "gemini",
+          provider: "groq",
           jsonMode: true,
           maxTokens: 2048,
         }),
