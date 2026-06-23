@@ -45,19 +45,30 @@ function toArr<T>(v: unknown): T[] {
 }
 
 function extractJson(text: string): Explanation | null {
+  const normalize = (parsed: Record<string, unknown>): Explanation | null => {
+    // Direct match
+    if ("why_won" in parsed) {
+      return {
+        ...parsed,
+        recommendations:     toArr(parsed.recommendations),
+        model_comparison:    toArr(parsed.model_comparison),
+        actionable_insights: toArr(parsed.actionable_insights),
+      } as Explanation;
+    }
+    // Unwrap one level — handles {"analysis": {"why_won": ...}} wrapper objects
+    for (const val of Object.values(parsed)) {
+      if (val && typeof val === "object" && "why_won" in (val as object)) {
+        return normalize(val as Record<string, unknown>);
+      }
+    }
+    return null;
+  };
+
   const tryParse = (s: string): Explanation | null => {
     try {
       let parsed = JSON.parse(s);
       if (typeof parsed === "string") parsed = JSON.parse(parsed); // handle double-encoded
-      if (parsed && typeof parsed === "object" && "why_won" in parsed) {
-        // Normalize array fields — Gemini sometimes returns strings instead of arrays
-        return {
-          ...parsed,
-          recommendations:    toArr(parsed.recommendations),
-          model_comparison:   toArr(parsed.model_comparison),
-          actionable_insights: toArr(parsed.actionable_insights),
-        } as Explanation;
-      }
+      if (parsed && typeof parsed === "object") return normalize(parsed as Record<string, unknown>);
     } catch { /* ignore */ }
     return null;
   };
@@ -144,13 +155,10 @@ export function useAutoMLExplain(
         if (parsed) {
           setLlmExp(parsed);
         } else {
-          // Reply came back but wasn't valid JSON — show raw text in why_won
-          setLlmExp({
-            why_won:          data.reply,
-            score_analysis:   "",
-            key_drivers:      "",
-            recommendations:  [],
-          });
+          setLlmError("AI returned an unreadable response. Try regenerating.");
+          if (trainResult?.automl?.explanation) {
+            setLlmExp(trainResult.automl.explanation as Explanation);
+          }
         }
       } else {
         setLlmError("No response received from the AI provider.");
