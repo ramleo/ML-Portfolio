@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 type ChatMessage = { role: string; content: string };
 
 const OPENAI_COMPAT: Record<string, string> = {

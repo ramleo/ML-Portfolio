@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ColInfo, DATE_PARTS, getTopValues } from "@/lib/feAlgorithms";
 
 const ACCENT = "#38bdf8";
@@ -24,20 +24,45 @@ export default function CategoricalPanel({
   onToggleDateCol,
   onToggleDatePart,
 }: CategoricalPanelProps) {
+  const [colSearch, setColSearch] = useState("");
   if (catCols.length === 0) return null;
+
+  const visibleCols = colSearch.trim()
+    ? catCols.filter(c => c.name.toLowerCase().includes(colSearch.toLowerCase()))
+    : catCols;
 
   return (
     <div style={{ background: "rgba(14,22,40,0.72)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "1.25rem 1.4rem" }}>
       <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.85rem" }}>
         Categorical Columns
       </div>
+      {catCols.length >= 8 && (
+        <input
+          type="text"
+          placeholder="Search columns…"
+          value={colSearch}
+          onChange={e => setColSearch(e.target.value)}
+          style={{
+            width: "100%",
+            background: "rgba(0,0,0,0.3)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 7,
+            color: "var(--text)",
+            fontSize: "0.77rem",
+            padding: "0.35rem 0.6rem",
+            outline: "none",
+            marginBottom: "0.75rem",
+            boxSizing: "border-box",
+          }}
+        />
+      )}
       <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-        {catCols.map((col, ci) => {
+        {visibleCols.map((col, ci) => {
           const topVals = getTopValues(col, 6);
           const isFreqOn = freqCols.includes(col.name);
           const isDateOn = dateCols.includes(col.name);
           const maxPct = topVals[0]?.pct ?? 1;
-          const border = ci < catCols.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none";
+          const border = ci < visibleCols.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none";
           return (
             <div key={col.name} style={{ paddingTop: ci === 0 ? 0 : "1rem", paddingBottom: "1rem", borderBottom: border }}>
               {/* Column header */}

@@ -3,6 +3,19 @@
 import React, { useState } from "react";
 import { ColInfo, NUM_TRANSFORMS } from "@/lib/feAlgorithms";
 
+const SEARCH_INPUT_STYLE: React.CSSProperties = {
+  width: "100%",
+  background: "rgba(0,0,0,0.3)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 7,
+  color: "var(--text)",
+  fontSize: "0.77rem",
+  padding: "0.35rem 0.6rem",
+  outline: "none",
+  marginBottom: "0.75rem",
+  boxSizing: "border-box",
+};
+
 const ACCENT = "#38bdf8";
 
 // ── Mini histogram (SVG, pure browser) ───────────────────────────────────────
@@ -52,6 +65,11 @@ export default function NumericTransformsPanel({
   aiSuggestLoading,
   aiSuggestError,
 }: NumericTransformsPanelProps) {
+  const [colSearch, setColSearch] = useState("");
+  const visibleCols = colSearch.trim()
+    ? numCols.filter(c => c.name.toLowerCase().includes(colSearch.toLowerCase()))
+    : numCols;
+
   return (
     <div style={{ background: "rgba(14,22,40,0.72)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "1.25rem 1.4rem" }}>
       <div style={{ marginBottom: "0.85rem" }}>
@@ -86,6 +104,16 @@ export default function NumericTransformsPanel({
       {numCols.length === 0 ? (
         <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No numeric columns detected.</div>
       ) : (
+        <>
+          {numCols.length >= 8 && (
+            <input
+              type="text"
+              placeholder="Search columns…"
+              value={colSearch}
+              onChange={e => setColSearch(e.target.value)}
+              style={SEARCH_INPUT_STYLE}
+            />
+          )}
         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: 118 }} />
@@ -121,11 +149,11 @@ export default function NumericTransformsPanel({
             </tr>
           </thead>
           <tbody>
-            {numCols.map((col, i) => {
+            {visibleCols.map((col, i) => {
               const selected = colTransforms[col.name] ?? [];
               const skewAbs = Math.abs(col.skew);
               const skewColor = skewAbs > 1.5 ? "#f59e0b" : skewAbs > 0.5 ? "#94a3b8" : "#34d399";
-              const border = i < numCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none";
+              const border = i < visibleCols.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none";
               return (
                 <tr key={col.name}>
                   <td style={{ padding: "0.5rem 0", borderBottom: border, verticalAlign: "middle" }}>
@@ -166,6 +194,7 @@ export default function NumericTransformsPanel({
             })}
           </tbody>
         </table>
+        </>
       )}
     </div>
   );

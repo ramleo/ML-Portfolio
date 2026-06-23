@@ -207,15 +207,29 @@ export default function FeatureEngineeringPage() {
 
   const totalSelected =
     Object.values(colTransforms).reduce((s, v) => s + v.length, 0) +
-    dateCols.length * dateParts.length +
-    interactions.length +
-    ratios.length +
+    dateCols.length * dateParts.length + interactions.length + ratios.length +
     (polyCols.length >= 2 ? polyCols.length * (polyCols.length - 1) / 2 : 0) +
-    freqCols.length +
-    (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0) +
-    Object.keys(cyclicCols).length * 2 +
-    (rowAggCols.length >= 2 ? 1 : 0) +
-    (ldaResult ? ldaResult.nTopics : 0);
+    freqCols.length + (sortCol ? lagCols.length * (lagDiff ? 2 : 1) + rollCols.length : 0) +
+    Object.keys(cyclicCols).length * 2 + (rowAggCols.length >= 2 ? 1 : 0) + (ldaResult ? ldaResult.nTopics : 0);
+
+  const transformSummary = (() => {
+    if (!totalSelected) return "";
+    const byt: Record<string, number> = {};
+    for (const ts of Object.values(colTransforms)) for (const t of ts) byt[t] = (byt[t] ?? 0) + 1;
+    const p: string[] = Object.entries(byt).map(([k, n]) => `${n} ${k}`);
+    if (dateCols.length) p.push(`${dateCols.length * dateParts.length} date`);
+    if (interactions.length) p.push(`${interactions.length} A×B`);
+    if (ratios.length) p.push(`${ratios.length} A÷B`);
+    const pn = polyCols.length >= 2 ? polyCols.length * (polyCols.length - 1) / 2 : 0;
+    if (pn) p.push(`${pn} poly`);
+    if (freqCols.length) p.push(`${freqCols.length} freq`);
+    if (sortCol && lagCols.length) p.push(`${lagCols.length * (lagDiff ? 2 : 1)} lag`);
+    if (sortCol && rollCols.length) p.push(`${rollCols.length} roll`);
+    const cn = Object.keys(cyclicCols).length; if (cn) p.push(`${cn * 2} cyclic`);
+    if (rowAggCols.length >= 2) p.push(`1 row-agg`);
+    if (ldaResult) p.push(`${ldaResult.nTopics} LDA`);
+    return `Will apply: ${p.join(", ")} → ~${totalSelected} cols`;
+  })();
 
   const outerStyle: React.CSSProperties = step === "configure"
     ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" }
@@ -241,7 +255,9 @@ export default function FeatureEngineeringPage() {
           </div>
           {step === "configure" && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>{totalSelected} transform{totalSelected !== 1 ? "s" : ""} selected</span>
+              <span style={{ fontSize: "0.72rem", color: "var(--text3)", maxWidth: 340, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={transformSummary || undefined}>
+                {transformSummary || "0 transforms selected"}
+              </span>
               <ActionBtn onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
             </div>
           )}
@@ -347,21 +363,10 @@ export default function FeatureEngineeringPage() {
               onToggleDateCol={col => setDateCols(prev => prev.includes(col) ? prev.filter(x => x !== col) : [...prev, col])}
               onToggleDatePart={part => setDateParts(prev => prev.includes(part) ? prev.filter(x => x !== part) : [...prev, part])}
             />
-            <LDAPanel
-              catCols={catCols}
-              ldaCol={ldaCol}
-              ldaNTopics={ldaNTopics}
-              ldaNIter={ldaNIter}
-              ldaOpts={ldaOpts}
-              ldaResult={ldaResult}
-              ldaRunning={ldaRunning}
-              ldaError={ldaError}
-              onSetLdaCol={setLdaCol}
-              onSetLdaNTopics={setLdaNTopics}
-              onSetLdaNIter={setLdaNIter}
-              setLdaOpts={setLdaOpts}
-              onRunLDA={handleRunLDA}
-            />
+            <LDAPanel catCols={catCols} ldaCol={ldaCol} ldaNTopics={ldaNTopics} ldaNIter={ldaNIter}
+              ldaOpts={ldaOpts} ldaResult={ldaResult} ldaRunning={ldaRunning} ldaError={ldaError}
+              onSetLdaCol={setLdaCol} onSetLdaNTopics={setLdaNTopics} onSetLdaNIter={setLdaNIter}
+              setLdaOpts={setLdaOpts} onRunLDA={handleRunLDA} />
           </div>
         </div>
       )}
@@ -384,17 +389,12 @@ export default function FeatureEngineeringPage() {
         />
       )}
 
-      <ToolsAIChat context={{
-        tool: "Feature Engineering",
-        summary: rawRows.length > 1
-          ? [
-              `Dataset: ${rawRows.length - 1} rows, ${numCols.length} numeric cols (${numCols.map(c => c.name).join(", ")}), ${catCols.length} categorical cols (${catCols.map(c => c.name).join(", ")}).`,
-              numCols.length > 0 ? `Numeric stats: ${numCols.map(c => `${c.name} skew=${c.skew.toFixed(2)} missing=${c.missing}`).join("; ")}.` : "",
-              Object.keys(colTransforms).length > 0 ? `Selected transforms: ${Object.entries(colTransforms).filter(([,v]) => v.length > 0).map(([k,v]) => `${k}→[${v.join(",")}]`).join("; ")}.` : "No transforms selected yet.",
-              result ? `Last result: added ${result.newColumns.length} new columns (${result.newColumns.join(", ")}).` : "",
-            ].filter(Boolean).join(" ")
-          : "No dataset loaded yet.",
-      }} />
+      <ToolsAIChat context={{ tool: "Feature Engineering", summary: rawRows.length > 1
+        ? [`Dataset: ${rawRows.length - 1} rows, ${numCols.length} numeric cols (${numCols.map(c => c.name).join(", ")}), ${catCols.length} categorical cols (${catCols.map(c => c.name).join(", ")}).`,
+           numCols.length > 0 ? `Numeric stats: ${numCols.map(c => `${c.name} skew=${c.skew.toFixed(2)} missing=${c.missing}`).join("; ")}.` : "",
+           Object.keys(colTransforms).length > 0 ? `Selected transforms: ${Object.entries(colTransforms).filter(([,v]) => v.length > 0).map(([k,v]) => `${k}→[${v.join(",")}]`).join("; ")}.` : "No transforms selected yet.",
+           result ? `Last result: added ${result.newColumns.length} new columns (${result.newColumns.join(", ")}).` : ""].filter(Boolean).join(" ")
+        : "No dataset loaded yet." }} />
     </div>
   );
 }
