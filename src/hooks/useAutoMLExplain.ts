@@ -92,6 +92,12 @@ function extractJson(text: string): Explanation | null {
       }
     }
   }
+  // Last-resort: extract from first { to last } in case of truncated/malformed JSON
+  const lastClose = cleaned.lastIndexOf("}");
+  if (lastClose > start) {
+    const result = tryParse(cleaned.slice(start, lastClose + 1));
+    if (result) return result;
+  }
   return null;
 }
 

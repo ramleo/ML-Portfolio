@@ -92,7 +92,6 @@ export default function AutoMLModal({
   // ── Effects ───────────────────────────────────────────────────────────────
   useEffect(() => { setSelectedModels(new Set(DEFAULT_ML_MODELS)); }, [taskType]);
   useEffect(() => { if (llmExp) setAnalysisExpanded(true); }, [llmExp]);
-  useEffect(() => { if (llmError) setError(llmError); }, [llmError]);
 
   const onResultChangeRef = useRef(onResultChange);
   onResultChangeRef.current = onResultChange;
