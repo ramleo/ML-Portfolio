@@ -17,6 +17,8 @@ export type AnalyzeResult = {
 
 export type CVResult = { algorithm: string; score: number; fold_scores: number[] };
 
+export type CI95 = { lower: number; upper: number; metric: "r2" | "rmse" };
+
 export type WinnerMetrics = {
   mae?: number; rmse?: number; mape?: number; max_error?: number; median_ae?: number; r2?: number;
   accuracy?: number; f1_weighted?: number; precision?: number; recall?: number; roc_auc?: number;
@@ -36,17 +38,27 @@ export type Explanation = {
   actionable_insights?: ActionableInsight[];
 };
 
+export type LearningCurveData = {
+  train_sizes: number[];
+  train_scores: number[];
+  val_scores: number[];
+  metric_label: string;
+  cv_folds: number;
+};
+
 export type AutoMLResult = {
   winner: string;
   selection_metric: string;
   cv_results: CVResult[];
   task: "classification" | "regression";
   winner_metrics?: WinnerMetrics;
+  ci_95?: CI95;
   feature_importance?: FeatureImportanceItem[];
   explanation?: Explanation;
   explanation_source?: string;
   is_imbalanced?: boolean;
   n_rows?: number;
+  learning_curve?: LearningCurveData;
 };
 
 export type TrainResult = {
@@ -142,4 +154,32 @@ export function formatWinnerScore(
   return task === "regression"
     ? score.toFixed(2)
     : `${(score * 100).toFixed(2)}%`;
+}
+
+// ── Learning curve interpretation ─────────────────────────────────────────────
+
+/**
+ * Returns a dataset-size-aware label for learning curve behaviour.
+ * @param gap       Training score minus validation score (positive = overfit tendency).
+ * @param finalVal  Validation score at the largest training-set size seen.
+ * @param numRows   Number of rows in the dataset (used to calibrate thresholds).
+ */
+export function interpretLearningCurve(gap: number, finalVal: number, numRows?: number): string {
+  let overfit: number;
+  let underfit: number;
+
+  if (!numRows || numRows <= 200) {
+    overfit  = 0.08;
+    underfit = 0.65;
+  } else if (numRows <= 1000) {
+    overfit  = 0.12;
+    underfit = 0.70;
+  } else {
+    overfit  = 0.18;
+    underfit = 0.75;
+  }
+
+  if (gap > overfit)       return "Overfitting";
+  if (finalVal < underfit) return "Underfitting";
+  return "Good fit";
 }

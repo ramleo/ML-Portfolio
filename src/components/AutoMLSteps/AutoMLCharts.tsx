@@ -6,6 +6,7 @@ import {
   ACCENT,
   type CVResult,
   type WinnerMetrics,
+  type CI95,
   type FeatureImportanceItem,
   type ModelComparisonItem,
 } from "@/lib/automlUtils";
@@ -113,7 +114,7 @@ export function RankingTable({ results, winner, task }: {
 
 // ── WinnerMetricsGrid ─────────────────────────────────────────────────────────
 
-export function WinnerMetricsGrid({ metrics, task }: { metrics: WinnerMetrics; task: "classification" | "regression" }) {
+export function WinnerMetricsGrid({ metrics, task, ci95 }: { metrics: WinnerMetrics; task: "classification" | "regression"; ci95?: CI95 }) {
   const entries: { label: string; value: string }[] = [];
   if (task === "regression") {
     if (metrics.mae       != null) entries.push({ label: "MAE",       value: metrics.mae.toFixed(2) });
@@ -130,21 +131,31 @@ export function WinnerMetricsGrid({ metrics, task }: { metrics: WinnerMetrics; t
     if (metrics.roc_auc     != null) entries.push({ label: "ROC-AUC",   value: metrics.roc_auc.toFixed(2) });
   }
   if (!entries.length) return null;
+  const ciLabel = ci95
+    ? `${ci95.metric === "r2" ? "R²" : "RMSE"} 95% CI: ${ci95.lower.toFixed(2)} – ${ci95.upper.toFixed(2)}`
+    : null;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginTop: "0.85rem" }}>
-      {entries.map(e => (
-        <div key={e.label} style={{
-          padding: "0.5rem 0.75rem", borderRadius: 8,
-          background: `${ACCENT}0a`, border: `1px solid ${ACCENT}1a`, textAlign: "center" as const,
-        }}>
-          <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: "0.15rem" }}>
-            {e.label}
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginTop: "0.85rem" }}>
+        {entries.map(e => (
+          <div key={e.label} style={{
+            padding: "0.5rem 0.75rem", borderRadius: 8,
+            background: `${ACCENT}0a`, border: `1px solid ${ACCENT}1a`, textAlign: "center" as const,
+          }}>
+            <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: "0.15rem" }}>
+              {e.label}
+            </div>
+            <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>
+              {e.value}
+            </div>
           </div>
-          <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>
-            {e.value}
-          </div>
+        ))}
+      </div>
+      {ciLabel && (
+        <div style={{ marginTop: "0.5rem", fontSize: "0.72rem", color: "var(--text3)", textAlign: "center" as const, fontVariantNumeric: "tabular-nums" }}>
+          {ciLabel}
         </div>
-      ))}
+      )}
     </div>
   );
 }

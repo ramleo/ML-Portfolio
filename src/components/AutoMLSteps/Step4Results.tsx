@@ -3,6 +3,7 @@
 import {
   ACCENT,
   LLM_PROVIDERS, LLM_KEY_HINTS,
+  interpretLearningCurve,
   type TrainResult, type HistoryEntry, type SavedRun,
   type LLMProvider, type Explanation,
 } from "@/lib/automlUtils";
@@ -100,8 +101,22 @@ export default function Step4Results({
 
       {/* Extended metrics */}
       {automl.winner_metrics && (
-        <WinnerMetricsGrid metrics={automl.winner_metrics} task={automl.task} />
+        <WinnerMetricsGrid metrics={automl.winner_metrics} task={automl.task} ci95={automl.ci_95} />
       )}
+
+      {/* Learning curve interpretation */}
+      {automl.learning_curve && (() => {
+        const lc = automl.learning_curve!;
+        const gap = lc.train_scores[lc.train_scores.length - 1] - lc.val_scores[lc.val_scores.length - 1];
+        const finalVal = lc.val_scores[lc.val_scores.length - 1];
+        const label = interpretLearningCurve(gap, finalVal, automl.n_rows);
+        const color = label === "Good fit" ? "#22c55e" : label === "Overfitting" ? "#f97316" : "#eab308";
+        return (
+          <div style={{ marginTop: "0.6rem", fontSize: "0.72rem", color: "var(--text3)" }}>
+            Learning curve: <span style={{ color, fontWeight: 700 }}>{label}</span>
+          </div>
+        );
+      })()}
 
       {/* Feature importance */}
       {automl.feature_importance && automl.feature_importance.length > 0 && (
@@ -234,7 +249,11 @@ export default function Step4Results({
               <div style={{ marginTop: "1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border)" }}>
                 <div style={{ marginBottom: "0.5rem" }}>
                   <div style={{ fontSize: "0.65rem", color: "var(--text)", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>
-                    Model fitness for this dataset
+                    Model fitness for this dataset{" "}
+                    <span
+                      title="LLM-rated score (0–100) estimating how well this algorithm fits your dataset's characteristics — higher is better."
+                      style={{ cursor: "help", color: "var(--text3)", fontWeight: 400, fontSize: "0.7rem" }}
+                    >ⓘ</span>
                   </div>
                   <p style={{ fontSize: "0.65rem", color: "var(--text3)", margin: "0.2rem 0 0", lineHeight: 1.5 }}>
                     LLM-rated 0–100 for your specific data. <span style={{ color: ACCENT }}>90–100</span> = excellent fit.{" "}
