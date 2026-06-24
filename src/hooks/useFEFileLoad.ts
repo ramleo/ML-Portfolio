@@ -28,6 +28,10 @@ interface UseFEFileLoadParams {
   setRowAggCols: (v: string[]) => void;
   setRowAggFn: (v: string) => void;
   resetLDA: () => void;
+  setSquareCols: (v: string[]) => void;
+  setBinConfigs: (v: Record<string, number>) => void;
+  setRatioDiffPairs: (v: [string, string][]) => void;
+  setEnabledDatetimeCols: (v: string[]) => void;
   setStep: (s: "upload" | "configure" | "processing" | "results") => void;
 }
 
@@ -36,7 +40,9 @@ export function useFEFileLoad({
   setDateCols, setInteractions, setPolyCols, setRatios, setRatioA, setRatioB,
   setFreqCols, setSortCol, setLagCols, setLagN, setLagDiff,
   setRollCols, setRollN, setRollAgg, setCyclicCols,
-  setRowAggCols, setRowAggFn, resetLDA, setStep,
+  setRowAggCols, setRowAggFn, resetLDA,
+  setSquareCols, setBinConfigs, setRatioDiffPairs, setEnabledDatetimeCols,
+  setStep,
 }: UseFEFileLoadParams) {
   const handleFile = useCallback((file: File) => {
     if (!file.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
@@ -64,6 +70,10 @@ export function useFEFileLoad({
       setCyclicCols({});
       setRowAggCols([]); setRowAggFn("mean");
       resetLDA();
+      setSquareCols([]);
+      setBinConfigs({});
+      setRatioDiffPairs([]);
+      setEnabledDatetimeCols([]);
       setStep("configure");
     }, (err) => { setError(err); });
   }, [
@@ -71,7 +81,9 @@ export function useFEFileLoad({
     setDateCols, setInteractions, setPolyCols, setRatios, setRatioA, setRatioB,
     setFreqCols, setSortCol, setLagCols, setLagN, setLagDiff,
     setRollCols, setRollN, setRollAgg, setCyclicCols,
-    setRowAggCols, setRowAggFn, resetLDA, setStep,
+    setRowAggCols, setRowAggFn, resetLDA,
+    setSquareCols, setBinConfigs, setRatioDiffPairs, setEnabledDatetimeCols,
+    setStep,
   ]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {

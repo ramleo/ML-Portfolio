@@ -1,10 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import {
-  ColInfo, FeResult,
-  applyTransforms,
-} from "@/lib/feAlgorithms";
+import { ColInfo, FeResult } from "@/lib/feAlgorithms";
+import { applyTransforms } from "@/lib/feTransforms";
 import { LDATopicResult } from "@/lib/feLDA";
 
 interface UseFETransformsParams {
@@ -28,35 +26,21 @@ interface UseFETransformsParams {
   rowAggCols: string[];
   rowAggFn: string;
   ldaResult: LDATopicResult | null;
+  squareCols: string[];
+  binConfigs: Record<string, number>;
+  ratioDiffPairs: [string, string][];
+  enabledDatetimeCols: string[];
   setStep: (step: "upload" | "configure" | "processing" | "results") => void;
   setResult: (result: FeResult) => void;
   setError: (error: string) => void;
 }
 
 export function useFETransforms({
-  rawRows,
-  cols,
-  colTransforms,
-  dateCols,
-  dateParts,
-  interactions,
-  polyCols,
-  freqCols,
-  ratios,
-  sortCol,
-  lagCols,
-  lagN,
-  lagDiff,
-  rollCols,
-  rollN,
-  rollAgg,
-  cyclicCols,
-  rowAggCols,
-  rowAggFn,
-  ldaResult,
-  setStep,
-  setResult,
-  setError,
+  rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
+  freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
+  cyclicCols, rowAggCols, rowAggFn, ldaResult,
+  squareCols, binConfigs, ratioDiffPairs, enabledDatetimeCols,
+  setStep, setResult, setError,
 }: UseFETransformsParams) {
   const applyAllTransforms = useCallback(() => {
     setStep("processing");
@@ -65,17 +49,15 @@ export function useFETransforms({
         const res = applyTransforms(
           rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
           freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
-          cyclicCols, rowAggCols, rowAggFn
+          cyclicCols, rowAggCols, rowAggFn,
+          squareCols, binConfigs, ratioDiffPairs, enabledDatetimeCols
         );
-        // Merge LDA columns if present
         if (ldaResult) {
           const nRows = res.csv.length - 1;
           for (const tc of ldaResult.topicColumns) {
             res.headers.push(tc.name);
             res.newColumns.push(tc.name);
-            for (let i = 0; i < nRows; i++) {
-              res.csv[i + 1].push(String(tc.values[i] ?? ""));
-            }
+            for (let i = 0; i < nRows; i++) res.csv[i + 1].push(String(tc.values[i] ?? ""));
           }
           res.colsAfter = res.headers.length;
         }
@@ -88,7 +70,9 @@ export function useFETransforms({
     }, 50);
   }, [rawRows, cols, colTransforms, dateCols, dateParts, interactions, polyCols,
       freqCols, ratios, sortCol, lagCols, lagN, lagDiff, rollCols, rollN, rollAgg,
-      cyclicCols, rowAggCols, rowAggFn, ldaResult, setStep, setResult, setError]);
+      cyclicCols, rowAggCols, rowAggFn, ldaResult,
+      squareCols, binConfigs, ratioDiffPairs, enabledDatetimeCols,
+      setStep, setResult, setError]);
 
   return { applyAllTransforms };
 }
