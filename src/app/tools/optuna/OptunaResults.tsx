@@ -355,13 +355,14 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               <select value={provider} onChange={e => setProvider(e.target.value)} style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}>
                 <option value="gemini-2.5">Gemini 2.5 Flash</option>
-                <option value="gemini-3.5">Gemini 2.0 Flash</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
                 <option value="openai">OpenAI GPT-4o Mini</option>
+                <option value="cohere">Cohere Command R+</option>
                 <option value="groq">Groq Llama 70B</option>
               </select>
               <input
                 type="password"
-                placeholder={provider.startsWith("gemini") ? "Google AI API key..." : provider === "openai" ? "OpenAI API key..." : "Groq API key..."}
+                placeholder={provider.startsWith("gemini") ? "Google AI API key..." : provider === "openai" ? "OpenAI API key..." : provider === "cohere" ? "Cohere API key..." : "Groq API key..."}
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
                 style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}
