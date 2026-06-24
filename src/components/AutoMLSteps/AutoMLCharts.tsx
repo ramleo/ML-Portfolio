@@ -162,19 +162,46 @@ export function WinnerMetricsGrid({ metrics, task, ci95 }: { metrics: WinnerMetr
 
 // ── FeatureImportanceChart ────────────────────────────────────────────────────
 
+function getParentLabel(feature: string): string | null {
+  if (/_sq$/.test(feature))      return feature.replace(/_sq$/, "");
+  if (/_log1p$/.test(feature))   return feature.replace(/_log1p$/, "");
+  if (/_sqrt$/.test(feature))    return feature.replace(/_sqrt$/, "");
+  if (/_bin\d+$/.test(feature))  return feature.replace(/_bin\d+$/, "");
+  if (/_year$/.test(feature))    return feature.replace(/_year$/, "");
+  if (/_month$/.test(feature))   return feature.replace(/_month$/, "");
+  if (/_day$/.test(feature))     return feature.replace(/_day$/, "");
+  if (/_dayofweek$/.test(feature)) return feature.replace(/_dayofweek$/, "");
+  if (/_hour$/.test(feature))    return feature.replace(/_hour$/, "");
+  if (/_rank$/.test(feature))    return feature.replace(/_rank$/, "");
+  if (/_zscore$/.test(feature))  return feature.replace(/_zscore$/, "");
+  if (/_minmax$/.test(feature))  return feature.replace(/_minmax$/, "");
+  const divMatch = /^(.+)_div_(.+)$/.exec(feature);
+  if (divMatch) return `${divMatch[1]} / ${divMatch[2]}`;
+  const minusMatch = /^(.+)_minus_(.+)$/.exec(feature);
+  if (minusMatch) return `${minusMatch[1]} − ${minusMatch[2]}`;
+  return null;
+}
+
 export function FeatureImportanceChart({ features }: { features: FeatureImportanceItem[] }) {
   const top = features.slice(0, 7);
   const max = top[0]?.importance ?? 1;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
       {top.map(f => (
-        <div key={f.feature} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <span style={{
-            fontSize: "0.72rem", color: "var(--text2)", minWidth: 110,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const, textAlign: "right" as const,
-          }}>
-            {f.feature}
-          </span>
+        <div key={f.feature} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+          <div style={{ minWidth: 110, textAlign: "right" as const }}>
+            <span style={{
+              fontSize: "0.72rem", color: "var(--text2)",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const, display: "block",
+            }}>
+              {f.feature}
+            </span>
+            {getParentLabel(f.feature) && (
+              <span style={{ fontSize: "0.65rem", color: "#6b7280", display: "block" }}>
+                ↳ {getParentLabel(f.feature)}
+              </span>
+            )}
+          </div>
           <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "var(--border2)", overflow: "hidden" }}>
             <div style={{
               height: "100%", width: `${(f.importance / max) * 100}%`,

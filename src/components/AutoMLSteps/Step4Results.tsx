@@ -8,8 +8,10 @@ import {
   type LLMProvider, type Explanation,
 } from "@/lib/automlUtils";
 import {
-  RankingTable, WinnerMetricsGrid, FeatureImportanceChart, ModelComparisonChart,
+  RankingTable, WinnerMetricsGrid, ModelComparisonChart,
 } from "./AutoMLCharts";
+import { FeatureImportanceSection } from "./FeatureImportanceSection";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 interface Props {
   trainResult:        TrainResult;
@@ -81,6 +83,22 @@ export default function Step4Results({
         <div>
           <div style={{ fontSize: "0.62rem", color: ACCENT, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: "0.2rem" }}>Winner</div>
           <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text)" }}>{automl.winner}</div>
+          <a
+            href={`${ML_UNIFIED_API}/models/${trainResult.id}/export`}
+            download
+            style={{
+              display: "inline-block",
+              marginTop: "0.35rem",
+              fontSize: "0.75rem",
+              color: "#22c55e",
+              border: "1px solid #22c55e",
+              borderRadius: "0.3rem",
+              padding: "0.2rem 0.6rem",
+              textDecoration: "none",
+            }}
+          >
+            ↓ Download .pkl
+          </a>
           <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginTop: "0.15rem" }}>
             {automl.selection_metric} · {automl.cv_results.length}-model competition · 5-fold CV
           </div>
@@ -120,12 +138,7 @@ export default function Step4Results({
 
       {/* Feature importance */}
       {automl.feature_importance && automl.feature_importance.length > 0 && (
-        <div style={{ marginTop: "1.25rem" }}>
-          <div style={{ fontSize: "0.72rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: "0.6rem" }}>
-            Driving features
-          </div>
-          <FeatureImportanceChart features={automl.feature_importance} />
-        </div>
+        <FeatureImportanceSection features={automl.feature_importance} />
       )}
 
       {/* AI Analysis panel */}
