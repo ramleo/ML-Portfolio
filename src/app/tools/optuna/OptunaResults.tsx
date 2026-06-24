@@ -140,40 +140,85 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
       {(displayTrials.length > 0 || paramImp.length > 0 || bestParams) && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
 
-          {/* B — Trial History (left) */}
-          {displayTrials.length > 0 && (
-            <div style={card()}>
-              <div style={label()}>Trial History</div>
-              {bestTrial && (
-                <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
-                  Best: Trial {bestTrial.trial} — score{" "}
-                  <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>
+          {/* B — Trial History SVG chart (left) */}
+          {displayTrials.length > 0 && (() => {
+            const W = 340, H = 180, PL = 10, PR = 10, PT = 12, PB = 24;
+            const cw = W - PL - PR, ch = H - PT - PB;
+            const yMin = Math.min(...displayTrials.map(t => t.value));
+            const yMax = Math.max(...displayTrials.map(t => t.value));
+            const yRange = yMax - yMin || 0.01;
+            const xStep = cw / Math.max(displayTrials.length - 1, 1);
+            const toX = (i: number) => PL + i * xStep;
+            const toY = (v: number) => PT + ch - ((v - yMin) / yRange) * ch;
+
+            // running best
+            let runBest = -Infinity;
+            const bestLine = displayTrials.map(t => {
+              if (t.value > runBest) runBest = t.value;
+              return runBest;
+            });
+
+            const trialPolyline = displayTrials.map((t, i) => `${toX(i)},${toY(t.value)}`).join(" ");
+            const bestPolyline  = bestLine.map((v, i) => `${toX(i)},${toY(v)}`).join(" ");
+
+            return (
+              <div style={card()}>
+                <div style={label()}>Trial History</div>
+                {bestTrial && (
+                  <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
+                    Best: Trial <span style={{ color: ACCENT, fontWeight: 700 }}>#{bestTrial.trial}</span> — score <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>
+                  </div>
+                )}
+                <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+                  {/* Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map(f => {
+                    const y = PT + ch * (1 - f);
+                    const val = yMin + yRange * f;
+                    return (
+                      <g key={f}>
+                        <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                        <text x={PL - 2} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
+                      </g>
+                    );
+                  })}
+                  {/* X axis labels */}
+                  {displayTrials.filter((_, i) => i === 0 || i === displayTrials.length - 1 || (i + 1) % 10 === 0).map((t, _, arr) => {
+                    const i = displayTrials.indexOf(t);
+                    return <text key={t.trial} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">{t.trial}</text>;
+                  })}
+                  {/* Running best line */}
+                  <polyline points={bestPolyline} fill="none" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" />
+                  {/* Trial score line */}
+                  <polyline points={trialPolyline} fill="none" stroke={`${ACCENT}88`} strokeWidth="1.5" />
+                  {/* Dots */}
+                  {displayTrials.map((t, i) => {
+                    const isBest = bestTrial !== null && t.trial === bestTrial.trial;
+                    return (
+                      <circle key={t.trial} cx={toX(i)} cy={toY(t.value)} r={isBest ? 5 : 2.5}
+                        fill={isBest ? ACCENT : `${ACCENT}99`}
+                        stroke={isBest ? "rgba(255,255,255,0.3)" : "none"}
+                        strokeWidth={isBest ? 1.5 : 0}
+                        style={isBest ? { filter: `drop-shadow(0 0 4px ${ACCENT})` } : {}}
+                      />
+                    );
+                  })}
+                </svg>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
+                    <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}88`} strokeWidth="1.5" /></svg>
+                    Trial scores
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
+                    <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" /></svg>
+                    Running best
+                  </div>
                 </div>
-              )}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.28rem" }}>
-                {displayTrials.map(t => {
-                  const pct = ((t.value - minTrialVal) / trialRange) * 100;
-                  const isBest = bestTrial !== null && t.trial === bestTrial.trial;
-                  return (
-                    <div key={t.trial} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span style={{ width: 28, fontSize: "0.62rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
-                        #{t.trial}
-                      </span>
-                      <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
-                        <div style={{ height: "100%", borderRadius: 9999, width: `${Math.max(pct, 1)}%`, background: isBest ? ACCENT : `${ACCENT}55`, boxShadow: isBest ? `0 0 6px ${ACCENT}66` : "none" }} />
-                      </div>
-                      <span style={{ width: 44, fontSize: "0.62rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
-                        {t.value.toFixed(4)}
-                      </span>
-                    </div>
-                  );
-                })}
+                {trials.length > 30 && (
+                  <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.3rem" }}>Showing first 30 of {trials.length}</div>
+                )}
               </div>
-              {trials.length > 30 && (
-                <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.4rem" }}>Showing first 30 of {trials.length}</div>
-              )}
-            </div>
-          )}
+            );
+          })()}
 
           {/* C + D — HP Importance + Best Params stacked (right) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
