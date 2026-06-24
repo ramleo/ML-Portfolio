@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import ShapResults from "./ShapResults";
 
 const ACCENT = "#f59e0b";
 
@@ -39,7 +40,7 @@ interface TrainResult {
 
 const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
-export default function ShapRunner({ onHasResult }: { onHasResult?: (v: boolean) => void }) {
+export default function ShapRunner() {
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -127,7 +128,7 @@ export default function ShapRunner({ onHasResult }: { onHasResult?: (v: boolean)
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) { setResult(evt.result.automl ?? evt.result); onHasResult?.(true); }
+            if (evt.result) { setResult(evt.result.automl ?? evt.result); }
           } catch { /* skip malformed */ }
         }
       }
@@ -266,48 +267,7 @@ export default function ShapRunner({ onHasResult }: { onHasResult?: (v: boolean)
             </div>
           </div>
 
-          {result && (
-            <>
-              {/* CV score badge */}
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.9rem", background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, borderRadius: 8, alignSelf: "flex-start" }}>
-                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em" }}>CV Score</span>
-                <span style={{ fontSize: "1rem", fontWeight: 800, color: ACCENT }}>{result.cv_results[0]?.score?.toFixed(4) ?? "—"}</span>
-                <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>({result.winner})</span>
-              </div>
-
-              {/* Top feature callout */}
-              {result.feature_importance.length > 0 && (
-                <div style={{ padding: "0.85rem 1rem", background: `${ACCENT}0a`, border: `1px solid ${ACCENT}22`, borderRadius: 10 }}>
-                  <div style={{ fontSize: "0.7rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.2rem" }}>Most Impactful Feature</div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text)" }}>
-                    {result.feature_importance[0].feature}{" "}
-                    <span style={{ color: ACCENT }}>({result.feature_importance[0].importance.toFixed(1)}%)</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Feature importance bars */}
-              {result.feature_importance.length > 0 && (
-                <div>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.6rem" }}>SHAP-style Importance</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
-                    {result.feature_importance.slice(0, 12).map((f, i) => {
-                      const max = result.feature_importance[0]?.importance ?? 1;
-                      return (
-                        <div key={f.feature} style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-                          <span style={{ width: 160, fontSize: "0.75rem", fontWeight: i === 0 ? 700 : 500, color: i === 0 ? "var(--text)" : "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.feature}</span>
-                          <div style={{ flex: 1, height: 10, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
-                            <div style={{ height: "100%", width: `${(f.importance / max) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 6px ${ACCENT}55` }} />
-                          </div>
-                          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, width: 45, textAlign: "right" }}>{f.importance.toFixed(1)}%</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+          {result && <ShapResults result={result} />}
 
           {!training && !result && error && (
             <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>

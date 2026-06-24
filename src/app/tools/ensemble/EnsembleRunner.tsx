@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import EnsembleResults from "./EnsembleResults";
 
 const ACCENT = "#10b981";
 
@@ -38,7 +39,7 @@ interface TrainResult {
 
 const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
 
-export default function EnsembleRunner({ onHasResult }: { onHasResult?: (v: boolean) => void }) {
+export default function EnsembleRunner() {
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -137,7 +138,7 @@ export default function EnsembleRunner({ onHasResult }: { onHasResult?: (v: bool
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) { setResult(evt.result.automl ?? evt.result); onHasResult?.(true); }
+            if (evt.result) { setResult(evt.result.automl ?? evt.result); }
           } catch { /* skip malformed */ }
         }
       }
@@ -289,52 +290,7 @@ export default function EnsembleRunner({ onHasResult }: { onHasResult?: (v: bool
             </div>
           </div>
 
-          {result && (
-            <>
-              {/* Winner badge */}
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.6rem 1rem", background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, borderRadius: 10, alignSelf: "flex-start" }}>
-                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.07em" }}>Winner</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "var(--text)" }}>{result.winner}</span>
-                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: ACCENT }}>{result.cv_results.find(r => r.name === result.winner)?.score?.toFixed(4) ?? ""}</span>
-              </div>
-
-              {/* Ensemble spread */}
-              {result.cv_results.length >= 2 && (() => {
-                const scores = result.cv_results.map(r => r.score);
-                const spread = (Math.max(...scores) - Math.min(...scores)) * 100;
-                return (
-                  <div style={{ padding: "0.7rem 0.9rem", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, fontSize: "0.78rem", color: "var(--text2)" }}>
-                    Top models within <strong style={{ color: ACCENT }}>{spread.toFixed(1)}%</strong> of each other
-                  </div>
-                );
-              })()}
-
-              {/* CV Leaderboard */}
-              {result.cv_results.length > 0 && (
-                <div>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>CV Leaderboard</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "24px 1fr 90px", gap: "0.5rem", padding: "0.35rem 0.5rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                      <span>#</span><span>Model</span><span style={{ textAlign: "right" }}>Score</span>
-                    </div>
-                    {[...result.cv_results].sort((a, b) => b.score - a.score).map((r, i) => {
-                      const isWinner = r.name === result.winner;
-                      return (
-                        <div key={r.name} style={{ display: "grid", gridTemplateColumns: "24px 1fr 90px", gap: "0.5rem", padding: "0.55rem 0.5rem", fontSize: "0.8rem", borderBottom: "1px solid rgba(255,255,255,0.04)", background: isWinner ? `${ACCENT}08` : "transparent", alignItems: "center" }}>
-                          <span style={{ fontSize: "0.7rem", color: "var(--text3)" }}>{i + 1}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <span style={{ fontWeight: isWinner ? 700 : 500, color: isWinner ? "var(--text)" : "var(--text2)" }}>{r.name}</span>
-                            {isWinner && <span style={{ fontSize: "0.58rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.07em", padding: "1px 6px", borderRadius: 9999, background: `${ACCENT}18`, border: `1px solid ${ACCENT}30` }}>winner</span>}
-                          </div>
-                          <span style={{ fontWeight: 700, color: isWinner ? ACCENT : "var(--text2)", textAlign: "right" }}>{r.score.toFixed(4)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+          {result && <EnsembleResults result={result} />}
 
           {!training && !result && error && (
             <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>
