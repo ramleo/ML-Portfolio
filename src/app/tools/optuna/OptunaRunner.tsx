@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback, DragEvent, ChangeEvent } from "react";
+import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import OptunaResults from "./OptunaResults";
 
@@ -53,11 +53,15 @@ export default function OptunaRunner() {
   const [task, setTask] = useState<"classification" | "regression">("classification");
   const [model, setModel] = useState(MODELS[1]);
   const [nTrials, setNTrials] = useState(30);
+  const [dropCols, setDropCols] = useState<string[]>([]);
+  const [optMetric, setOptMetric] = useState("auto");
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<TrainResult | null>(null);
   const [training, setTraining] = useState(false);
+
+  useEffect(() => { setOptMetric("auto"); }, [task]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -117,6 +121,8 @@ export default function OptunaRunner() {
       fd.append("fe_b64", "");
       fd.append("pre_fe_cols_json", "[]");
       fd.append("pre_fe_sample_json", "{}");
+      fd.append("drop_cols_json", JSON.stringify(dropCols));
+      fd.append("opt_metric", optMetric);
       const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
@@ -139,7 +145,7 @@ export default function OptunaRunner() {
     } finally {
       setTraining(false);
     }
-  }, [file, target, task, model, nTrials]);
+  }, [file, target, task, model, nTrials, dropCols, optMetric]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -149,6 +155,8 @@ export default function OptunaRunner() {
     setError(null);
     setProgress(0);
     setStatus("");
+    setDropCols([]);
+    setOptMetric("auto");
   }, []);
 
   return (
@@ -248,6 +256,33 @@ export default function OptunaRunner() {
             </select>
           </div>
 
+          {/* Drop Columns */}
+          {analyzeResult.columns.filter(c => c.name !== target).length > 0 && (
+            <div>
+              <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
+                Drop Columns <span style={{ color: "var(--text3)", fontWeight: 400, textTransform: "none" }}>(optional)</span>
+              </label>
+              <div style={{ maxHeight: 120, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.3rem", padding: "0.4rem", background: "rgba(0,0,0,0.3)", borderRadius: 7, border: `1px solid ${ACCENT}20` }}>
+                {analyzeResult.columns.filter(c => c.name !== target).map(c => (
+                  <label key={c.name} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.78rem", color: dropCols.includes(c.name) ? ACCENT : "var(--text2)" }}>
+                    <input
+                      type="checkbox"
+                      checked={dropCols.includes(c.name)}
+                      onChange={e => setDropCols(prev => e.target.checked ? [...prev, c.name] : prev.filter(n => n !== c.name))}
+                      style={{ accentColor: ACCENT }}
+                    />
+                    {c.name}
+                  </label>
+                ))}
+              </div>
+              {dropCols.length > 0 && (
+                <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.25rem" }}>
+                  {dropCols.length} column{dropCols.length > 1 ? "s" : ""} will be excluded from training
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
               Optuna Trials: <span style={{ color: ACCENT }}>{nTrials}</span>
@@ -256,6 +291,31 @@ export default function OptunaRunner() {
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.2rem" }}>
               <span>10</span><span>100</span>
             </div>
+          </div>
+
+          {/* Optimization Metric */}
+          <div>
+            <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
+              Optimization Metric
+            </label>
+            <select value={optMetric} onChange={e => setOptMetric(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              {task === "classification" ? (
+                <>
+                  <option value="auto">Auto (F1 Weighted / F1 Macro)</option>
+                  <option value="f1_weighted">F1 Weighted</option>
+                  <option value="f1_macro">F1 Macro</option>
+                  <option value="accuracy">Accuracy</option>
+                  <option value="roc_auc">ROC-AUC</option>
+                </>
+              ) : (
+                <>
+                  <option value="auto">Auto (MAE)</option>
+                  <option value="mae">MAE</option>
+                  <option value="rmse">RMSE</option>
+                  <option value="r2">R²</option>
+                </>
+              )}
+            </select>
           </div>
 
           <button onClick={handleTrain} style={{ padding: "0.65rem 1.2rem", borderRadius: 8, border: "none", background: ACCENT, color: "#000", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start" }}>
