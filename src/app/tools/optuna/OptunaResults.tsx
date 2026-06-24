@@ -60,7 +60,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
     ? (((bestTrial.value - firstVal) / Math.abs(firstVal)) * 100).toFixed(1)
     : null;
 
-  const tuningRan = nTrials > 0;
+  const tuningRan = nTrials > 0 || (result.optuna_params != null && Object.keys(result.optuna_params).length > 0) || trials.length > 0;
   const displayTrials = trials.slice(0, 30);
   const maxTrialVal = displayTrials.length > 0
     ? Math.max(...displayTrials.map(t => t.value))
@@ -107,8 +107,8 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
             <div style={{ fontSize: "0.74rem", color: "var(--text3)", lineHeight: 1.5 }}>
               TPE (Tree-structured Parzen Estimator) models the distribution of good vs. bad
               hyperparameter regions, sampling more from promising areas each trial.
-              {bestTrial && (
-                <> Best CV score: <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>.</>
+              {(bestTrial || result.optuna_best_score) && (
+                <> Best CV score: <span style={{ color: ACCENT, fontWeight: 700 }}>{(bestTrial?.value ?? result.optuna_best_score)?.toFixed(4)}</span>.</>
               )}
             </div>
           </>
