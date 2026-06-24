@@ -53,6 +53,18 @@ const badge = (extra?: React.CSSProperties): React.CSSProperties => ({
   ...extra,
 });
 
+function mdToHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, '<h4 style="margin:0.9rem 0 0.25rem;font-size:0.84rem;font-weight:700;color:var(--text)">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="margin:1rem 0 0.3rem;font-size:0.9rem;font-weight:700;color:var(--text)">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:700">$1</strong>')
+    .replace(/\n\n/g, '</p><p style="margin:0.5rem 0">')
+    .replace(/^(?!<h[234]|<\/p>|<p)(.+)$/gm, '$1')
+    .replace(/^/, '<p style="margin:0">')
+    .replace(/$/, '</p>');
+}
+
 export default function OptunaResults({ result }: { result: TrainResult }) {
   const trials = result.optuna_trials ?? [];
   const nTrials = result.optuna_n_trials ?? 0;
@@ -379,8 +391,11 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
           )}
 
           {optunaExp && (
-            <div style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
-              {optunaExp}
+            <div>
+              <div
+                style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.7 }}
+                dangerouslySetInnerHTML={{ __html: mdToHtml(optunaExp) }}
+              />
               <button onClick={() => { setOptunaExp(null); setShowExpForm(true); }} style={{ display: "block", marginTop: "0.75rem", fontSize: "0.7rem", color: "var(--text3)", background: "none", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 5, padding: "3px 8px", cursor: "pointer" }}>
                 Re-explain
               </button>
