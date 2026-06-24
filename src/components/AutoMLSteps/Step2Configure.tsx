@@ -21,6 +21,8 @@ interface Props {
   onTaskType:      (v: "classification" | "regression") => void;
   onModelName:     (v: string) => void;
   onToggleModel:   (m: string) => void;
+  useSMOTE:        boolean;
+  onUseSMOTE:      (v: boolean) => void;
   onBack:          () => void;
   onTrain:         () => void;
 }
@@ -28,6 +30,7 @@ interface Props {
 export default function Step2Configure({
   file, analyzed, target, taskType, modelName,
   selectedModels, availableModels, error, trainingEst,
+  useSMOTE, onUseSMOTE,
   onTarget, onTaskType, onModelName, onToggleModel, onBack, onTrain,
 }: Props) {
   const addableModels = availableModels.filter(m => !selectedModels.has(m));
@@ -76,6 +79,21 @@ export default function Step2Configure({
           ))}
         </div>
       </div>
+
+      {/* SMOTE toggle — classification only */}
+      {taskType === "classification" && (
+        <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={useSMOTE}
+            onChange={e => onUseSMOTE(e.target.checked)}
+            style={{ accentColor: ACCENT, width: 15, height: 15, cursor: "pointer" }}
+          />
+          <span style={{ fontSize: "0.8rem", color: "var(--text2)" }}>
+            Apply SMOTE <span style={{ color: "var(--text3)", fontWeight: 400 }}>— oversample minority class to balance training data</span>
+          </span>
+        </label>
+      )}
 
       {/* Model name */}
       <div>

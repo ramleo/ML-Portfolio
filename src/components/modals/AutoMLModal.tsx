@@ -50,6 +50,7 @@ export default function AutoMLModal({
   const [analyzed, setAnalyzed]   = useState<AnalyzeResult | null>(null);
   const [target, setTarget]       = useState("");
   const [taskType, setTaskType]   = useState<"classification" | "regression">("classification");
+  const [useSMOTE, setUseSMOTE]   = useState(true);
   const [modelName, setModelName] = useState("My AutoML Model");
   const [pct, setPct]             = useState(0);
   const [statusMsg, setStatusMsg] = useState("Initializing...");
@@ -162,6 +163,7 @@ export default function AutoMLModal({
       fd.append("tune",                "false");
       fd.append("n_trials",            "10");
       fd.append("selected_models",     JSON.stringify([...selectedModels]));
+      fd.append("use_smote",           String(taskType === "classification" && useSMOTE));
 
       const res = await fetch(`${API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error("Training request failed.");
@@ -316,6 +318,8 @@ export default function AutoMLModal({
               onTaskType={setTaskType}
               onModelName={setModelName}
               onToggleModel={toggleModel}
+              useSMOTE={useSMOTE}
+              onUseSMOTE={setUseSMOTE}
               onBack={() => setStep("upload")}
               onTrain={handleTrain}
             />
