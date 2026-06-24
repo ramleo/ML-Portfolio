@@ -128,7 +128,7 @@ export default function OptunaRunner() {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) setResult(evt.result);
+            if (evt.result) setResult(evt.result.automl ?? evt.result);
           } catch { /* skip malformed */ }
         }
       }
