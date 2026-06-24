@@ -136,91 +136,91 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
         )}
       </div>
 
-      {/* B — Trial History */}
-      {displayTrials.length > 0 && (
-        <div style={card()}>
-          <div style={label()}>Trial History</div>
-          {bestTrial && (
-            <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
-              Best: Trial {bestTrial.trial} — score{" "}
-              <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>
+      {/* B/C/D — Trial History | HP Importance + Best Params side by side */}
+      {(displayTrials.length > 0 || paramImp.length > 0 || bestParams) && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
+
+          {/* B — Trial History (left) */}
+          {displayTrials.length > 0 && (
+            <div style={card()}>
+              <div style={label()}>Trial History</div>
+              {bestTrial && (
+                <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
+                  Best: Trial {bestTrial.trial} — score{" "}
+                  <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>
+                </div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.28rem" }}>
+                {displayTrials.map(t => {
+                  const pct = ((t.value - minTrialVal) / trialRange) * 100;
+                  const isBest = bestTrial !== null && t.trial === bestTrial.trial;
+                  return (
+                    <div key={t.trial} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={{ width: 28, fontSize: "0.62rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
+                        #{t.trial}
+                      </span>
+                      <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                        <div style={{ height: "100%", borderRadius: 9999, width: `${Math.max(pct, 1)}%`, background: isBest ? ACCENT : `${ACCENT}55`, boxShadow: isBest ? `0 0 6px ${ACCENT}66` : "none" }} />
+                      </div>
+                      <span style={{ width: 44, fontSize: "0.62rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
+                        {t.value.toFixed(4)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {trials.length > 30 && (
+                <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.4rem" }}>Showing first 30 of {trials.length}</div>
+              )}
             </div>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.28rem" }}>
-            {displayTrials.map(t => {
-              const pct = ((t.value - minTrialVal) / trialRange) * 100;
-              const isBest = bestTrial !== null && t.trial === bestTrial.trial;
-              return (
-                <div key={t.trial} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span style={{ width: 36, fontSize: "0.65rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
-                    #{t.trial}
-                  </span>
-                  <div style={{ flex: 1, height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
-                    <div style={{
-                      height: "100%", borderRadius: 9999,
-                      width: `${Math.max(pct, 1)}%`,
-                      background: isBest ? ACCENT : `${ACCENT}55`,
-                      boxShadow: isBest ? `0 0 6px ${ACCENT}66` : "none",
-                      transition: "width 0.3s ease",
-                    }} />
-                  </div>
-                  <span style={{ width: 52, fontSize: "0.65rem", color: isBest ? ACCENT : "var(--text3)", fontWeight: isBest ? 700 : 400, textAlign: "right", flexShrink: 0 }}>
-                    {t.value.toFixed(4)}
-                  </span>
+
+          {/* C + D — HP Importance + Best Params stacked (right) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {paramImp.length > 0 && (
+              <div style={card()}>
+                <div style={label()}>Hyperparameter Importance</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {paramImp.map(([param, imp]) => (
+                    <div key={param} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={{ width: 120, fontSize: "0.72rem", fontWeight: 600, color: "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {param}
+                      </span>
+                      <div style={{ flex: 1, height: 7, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                        <div style={{ height: "100%", width: `${(imp / maxImp) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 5px ${ACCENT}44` }} />
+                      </div>
+                      <span style={{ width: 40, fontSize: "0.7rem", fontWeight: 700, color: ACCENT, textAlign: "right", flexShrink: 0 }}>
+                        {(imp * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-          {trials.length > 30 && (
-            <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginTop: "0.4rem" }}>
-              Showing first 30 of {trials.length} trials.
+              </div>
+            )}
+
+            <div style={card()}>
+              <div style={label()}>Best Tuned Parameters</div>
+              {bestParams && bestParams.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  {bestParams.map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0.5rem", borderRadius: 6, background: "rgba(0,0,0,0.2)" }}>
+                      <span style={{ flex: 1, fontSize: "0.75rem", fontWeight: 600, color: "var(--text2)" }}>{k}</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: 700, color: ACCENT }}>
+                        {typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(4)) : String(v)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>
+                  Default parameters used (tuning was skipped or failed).
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
         </div>
       )}
-
-      {/* C — Hyperparameter Importance */}
-      {paramImp.length > 0 && (
-        <div style={card()}>
-          <div style={label()}>Hyperparameter Importance</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {paramImp.map(([param, imp]) => (
-              <div key={param} style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-                <span style={{ width: 160, fontSize: "0.75rem", fontWeight: 600, color: "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {param}
-                </span>
-                <div style={{ flex: 1, height: 8, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
-                  <div style={{ height: "100%", width: `${(imp / maxImp) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 5px ${ACCENT}44` }} />
-                </div>
-                <span style={{ width: 45, fontSize: "0.72rem", fontWeight: 700, color: ACCENT, textAlign: "right", flexShrink: 0 }}>
-                  {(imp * 100).toFixed(1)}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* D — Best Parameters */}
-      <div style={card()}>
-        <div style={label()}>Best Tuned Parameters</div>
-        {bestParams && bestParams.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-            {bestParams.map(([k, v]) => (
-              <div key={k} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.35rem 0.5rem", borderRadius: 6, background: "rgba(0,0,0,0.2)" }}>
-                <span style={{ flex: 1, fontSize: "0.78rem", fontWeight: 600, color: "var(--text2)" }}>{k}</span>
-                <span style={{ fontSize: "0.82rem", fontWeight: 700, color: ACCENT }}>
-                  {typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(4)) : String(v)}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>
-            Default parameters used (tuning was skipped or failed).
-          </div>
-        )}
-      </div>
 
       {/* E — Winner Metrics */}
       {metrics.length > 0 && (
