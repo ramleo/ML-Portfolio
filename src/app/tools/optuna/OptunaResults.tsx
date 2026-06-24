@@ -100,6 +100,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
   const [apiKey, setApiKey] = useState("");
   const [provider, setProvider] = useState("gemini-2.5");
   const [explaining, setExplaining] = useState(false);
+  const [expProgress, setExpProgress] = useState(0);
   const [optunaExp, setOptunaExp] = useState<string | null>(null);
   const [expError, setExpError] = useState<string | null>(null);
   const [showExpForm, setShowExpForm] = useState(false);
@@ -107,8 +108,12 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
   const handleExplain = async () => {
     if (!apiKey.trim()) { setExpError("API key required"); return; }
     setExplaining(true);
+    setExpProgress(0);
     setExpError(null);
     setOptunaExp(null);
+    const timer = setInterval(() => {
+      setExpProgress(p => p < 88 ? p + Math.random() * 6 : p);
+    }, 500);
     try {
       const fd = new FormData();
       fd.append("winner", result.winner);
@@ -123,8 +128,11 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
       fd.append("provider", provider);
       const resp = await fetch(`${ML_UNIFIED_API}/optuna-explain`, { method: "POST", body: fd });
       const data = await resp.json();
-      setOptunaExp(data.explanation ?? "No explanation returned.");
+      clearInterval(timer);
+      setExpProgress(100);
+      setTimeout(() => setOptunaExp(data.explanation ?? "No explanation returned."), 300);
     } catch (e) {
+      clearInterval(timer);
       setExpError(e instanceof Error ? e.message : "Request failed");
     } finally {
       setExplaining(false);
@@ -393,16 +401,16 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                 <div style={{ marginTop: "0.5rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
                     <span>Generating explanation...</span>
+                    <span style={{ color: ACCENT, fontWeight: 700 }}>{Math.round(expProgress)}%</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <div style={{ height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
                     <div style={{
                       height: "100%", borderRadius: 9999, background: ACCENT,
                       boxShadow: `0 0 8px ${ACCENT}66`,
-                      animation: "optuna-shimmer 1.6s ease-in-out infinite",
-                      width: "40%",
+                      width: `${expProgress}%`,
+                      transition: "width 0.4s ease",
                     }} />
                   </div>
-                  <style>{`@keyframes optuna-shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }`}</style>
                 </div>
               )}
             </div>
