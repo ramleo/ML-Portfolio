@@ -19,7 +19,7 @@ export function FeatureImportanceSection({ features }: Props) {
           Why only {Math.min(features.length, 7)} features shown?
         </summary>
         <p style={{ marginTop: "0.3rem", paddingLeft: "1rem" }}>
-          Top {Math.min(features.length, 7)} features ranked by importance. Lower-ranked features add noise without improving explainability. Select fewer input columns to see all.
+          The chart shows the top {Math.min(features.length, 7)} features by importance score. Features below this threshold have minimal predictive contribution and are omitted to keep the view readable.{features.length <= 7 ? " All features are shown." : ` ${features.length - 7} lower-ranked feature${features.length - 7 > 1 ? "s are" : " is"} hidden.`}
         </p>
       </details>
     </div>
