@@ -20,8 +20,6 @@ interface TrainResult {
   optuna_trials?: TrialEntry[];
   optuna_param_importance?: Record<string, number>;
   optuna_error?: string;
-  debug_tune?: string;
-  debug_tune_type?: string;
 }
 
 const card = (extra?: React.CSSProperties): React.CSSProperties => ({
@@ -127,11 +125,6 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
 
-      {(result.debug_tune !== undefined) && (
-        <div style={{ padding: "0.5rem 0.8rem", background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 8, fontSize: "0.72rem", color: "#a5b4fc" }}>
-          Backend received tune={result.debug_tune} (type: {result.debug_tune_type})
-        </div>
-      )}
       {result.optuna_error && (
         <div style={{ padding: "0.6rem 0.8rem", background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 8, fontSize: "0.72rem", color: "#f87171", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
           <strong>Tuning error:</strong> {result.optuna_error}
