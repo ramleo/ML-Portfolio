@@ -357,7 +357,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                 <option value="gemini-2.5">Gemini 2.5 Flash</option>
                 <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
                 <option value="openai">OpenAI GPT-4o Mini</option>
-                <option value="cohere">Cohere Command R+</option>
+                <option value="cohere">Cohere Command A</option>
                 <option value="groq">Groq Llama 70B</option>
               </select>
               <input
