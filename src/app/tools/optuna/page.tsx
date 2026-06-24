@@ -183,6 +183,12 @@ export default function OptunaPage() {
 
         <OptunaRunner />
 
+        {/* Static showcase — example data */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.5rem" }}>
+          <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", border: "1px solid #374151", borderRadius: 4, padding: "2px 8px" }}>Example Output</span>
+          <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Upload your CSV above to see real results</span>
+        </div>
+
         {/* Hero */}
         <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
