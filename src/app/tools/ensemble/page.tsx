@@ -204,6 +204,7 @@ const VIEW_CONTENT: Record<View, React.ReactNode> = {
 export default function EnsemblePage() {
   const router = useRouter();
   const [view, setView] = useState<View>("models");
+  const [hasResult, setHasResult] = useState(false);
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
   return (
@@ -238,8 +239,9 @@ export default function EnsemblePage() {
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-        <EnsembleRunner />
+        <EnsembleRunner onHasResult={setHasResult} />
 
+        {!hasResult && <>
         {/* Static showcase — example data */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.5rem" }}>
           <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", border: "1px solid #374151", borderRadius: 4, padding: "2px 8px" }}>Example Output</span>
@@ -314,6 +316,7 @@ export default function EnsemblePage() {
             Soft voting is preferable when all base models are well-calibrated and the dataset is small (meta-learner overfitting risk). Stacking wins when base models have distinct error profiles and enough data exists for 5-fold OOF generation without over-representing any single fold. In this project, stacking gained +0.005 AUC over voting — marginal but consistent across five random seeds.
           </div>
         </div>
+        </>}
       </div>
 
       <ToolsAIChat context={{

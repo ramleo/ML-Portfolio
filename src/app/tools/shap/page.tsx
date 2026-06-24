@@ -170,6 +170,7 @@ const VIEW_CONTENT: Record<View, React.ReactNode> = {
 export default function ShapPage() {
   const router = useRouter();
   const [view, setView] = useState<View>("global");
+  const [hasResult, setHasResult] = useState(false);
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
   return (
@@ -204,8 +205,9 @@ export default function ShapPage() {
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-        <ShapRunner />
+        <ShapRunner onHasResult={setHasResult} />
 
+        {!hasResult && <>
         {/* Static showcase — example data */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.5rem" }}>
           <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", border: "1px solid #374151", borderRadius: 4, padding: "2px 8px" }}>Example Output</span>
@@ -280,6 +282,7 @@ export default function ShapPage() {
             The SHAP dependence plot for <strong style={{ color: "var(--text)" }}>bmi_category</strong> revealed a previously unknown interaction with <strong style={{ color: "var(--text)" }}>glucose_insulin</strong>. High BMI alone had moderate SHAP impact; high BMI combined with elevated glucose-insulin showed SHAP values 2.4x higher. This interaction was subsequently added as an explicit feature, improving AUC by 0.012.
           </div>
         </div>
+        </>}
       </div>
 
       <ToolsAIChat context={{

@@ -39,7 +39,7 @@ interface TrainResult {
 
 const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
-export default function ShapRunner() {
+export default function ShapRunner({ onHasResult }: { onHasResult?: (v: boolean) => void }) {
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -127,7 +127,7 @@ export default function ShapRunner() {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) setResult(evt.result.automl ?? evt.result);
+            if (evt.result) { setResult(evt.result.automl ?? evt.result); onHasResult?.(true); }
           } catch { /* skip malformed */ }
         }
       }

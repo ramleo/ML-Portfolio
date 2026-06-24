@@ -147,6 +147,7 @@ const VIEW_CONTENT: Record<View, React.ReactNode> = {
 export default function OptunaPage() {
   const router = useRouter();
   const [view, setView] = useState<View>("history");
+  const [hasResult, setHasResult] = useState(false);
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
   return (
@@ -181,9 +182,10 @@ export default function OptunaPage() {
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-        <OptunaRunner />
+        <OptunaRunner onHasResult={setHasResult} />
 
-        {/* Static showcase — example data */}
+        {/* Static showcase — example data, hidden once user has real results */}
+        {!hasResult && <>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.5rem" }}>
           <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", border: "1px solid #374151", borderRadius: 4, padding: "2px 8px" }}>Example Output</span>
           <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Upload your CSV above to see real results</span>
@@ -257,6 +259,7 @@ export default function OptunaPage() {
             Grid search with 6 hyperparameters at 5 values each requires 15,625 evaluations. TPE reached a better result in 100 trials by modeling which parameter regions are promising — reducing compute by 99.4% while improving final AUC by 6.9 points over the default baseline.
           </div>
         </div>
+        </>}
       </div>
 
       <ToolsAIChat context={{
