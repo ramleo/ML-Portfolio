@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import EnsembleRunner from "./EnsembleRunner";
 
 
 const ACCENT = "#f472b6";
@@ -236,6 +237,8 @@ export default function EnsemblePage() {
       </div>
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
+        <EnsembleRunner />
 
         {/* Hero */}
         <div style={{ ...CARD, borderColor: `${ACCENT}22` }}>
