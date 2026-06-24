@@ -100,15 +100,21 @@ export default function ShapRunner() {
     setResult(null);
     setStep(3);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/train`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          algorithms: [model],
-          target,
-          task,
-        }),
-      });
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("target_col", target);
+      fd.append("task", task);
+      fd.append("model_name", "SHAP Run");
+      fd.append("algorithm", "AutoML");
+      fd.append("accent", "#f59e0b");
+      fd.append("selected_models", JSON.stringify([model]));
+      fd.append("tune", "false");
+      fd.append("n_trials", "10");
+      fd.append("feature_engineering", "{}");
+      fd.append("fe_b64", "");
+      fd.append("pre_fe_cols_json", "[]");
+      fd.append("pre_fe_sample_json", "{}");
+      const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
