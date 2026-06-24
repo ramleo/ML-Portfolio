@@ -389,6 +389,22 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                 {explaining ? "Analyzing..." : "Explain"}
               </button>
               {expError && <div style={{ fontSize: "0.72rem", color: "#f87171" }}>{expError}</div>}
+              {explaining && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
+                    <span>Generating explanation...</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", borderRadius: 9999, background: ACCENT,
+                      boxShadow: `0 0 8px ${ACCENT}66`,
+                      animation: "optuna-shimmer 1.6s ease-in-out infinite",
+                      width: "40%",
+                    }} />
+                  </div>
+                  <style>{`@keyframes optuna-shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }`}</style>
+                </div>
+              )}
             </div>
           )}
 
