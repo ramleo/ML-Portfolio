@@ -1,4 +1,5 @@
 "use client";
+import { useRef, useState, useEffect } from "react";
 
 const ACCENT = "#a78bfa";
 
@@ -136,20 +137,27 @@ interface LearningCurveProps {
 }
 
 export function LearningCurveChart({ trainSizes, trainScores, valScores, metricLabel }: LearningCurveProps) {
-  const W = 300, H = 140, PL = 26, PR = 12, PT = 8, PB = 20;
-  const cw = W - PL - PR, ch = H - PT - PB;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [svgW, setSvgW] = useState(600);
 
-  // Filter out null/NaN values before computing axis range
+  useEffect(() => {
+    const update = () => { if (svgRef.current) setSvgW(svgRef.current.getBoundingClientRect().width); };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const H = 160, PL = 34, PR = 12, PT = 10, PB = 22;
+  const cw = svgW - PL - PR, ch = H - PT - PB;
+
   const validTrain = trainScores.filter(v => v != null && isFinite(v));
   const validVal   = valScores.filter(v => v != null && isFinite(v));
   const allValid   = [...validTrain, ...validVal];
   const rawMin = allValid.length ? Math.min(...allValid) : 0;
   const rawMax = allValid.length ? Math.max(...allValid) : 1;
-  const rawRange = rawMax - rawMin;
-  // Add at least 10% padding on each side so lines don't hug the edges
-  const pad = Math.max(rawRange * 0.15, 0.05);
-  const yMin  = Math.max(0, rawMin - pad);
-  const yMax  = Math.min(1, rawMax + pad);
+  const pad  = Math.max((rawMax - rawMin) * 0.15, 0.05);
+  const yMin = Math.max(0, rawMin - pad);
+  const yMax = Math.min(1, rawMax + pad);
   const yRange = yMax - yMin || 0.1;
 
   const xMin = trainSizes[0] ?? 0;
@@ -157,9 +165,8 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const xRange = xMax - xMin || 1;
 
   const toX = (s: number) => PL + ((s - xMin) / xRange) * cw;
-  const toY = (v: number) => v != null && isFinite(v) ? PT + ch - ((v - yMin) / yRange) * ch : -999;
+  const toY = (v: number) => PT + ch - ((v - yMin) / yRange) * ch;
 
-  // Only include points where value is valid
   const trainPts = trainSizes.map((s, i) => trainScores[i] != null && isFinite(trainScores[i]) ? `${toX(s)},${toY(trainScores[i])}` : null).filter(Boolean).join(" ");
   const valPts   = trainSizes.map((s, i) => valScores[i]   != null && isFinite(valScores[i])   ? `${toX(s)},${toY(valScores[i])}` : null).filter(Boolean).join(" ");
   const hasVal   = validVal.length > 0;
@@ -169,36 +176,36 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
       <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginBottom: "0.4rem" }}>
         {metricLabel} vs training set size
       </div>
-      <svg width="100%" height={140} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: "block" }}>
+      <svg ref={svgRef} width="100%" height={H}>
         {[0, 0.25, 0.5, 0.75, 1].map(f => {
           const y = PT + ch * (1 - f);
           const val = yMin + yRange * f;
           return (
             <g key={f}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              <text x={PL - 3} y={y + 3} textAnchor="end" fontSize="6" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
+              <line x1={PL} y1={y} x2={svgW - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              <text x={PL - 4} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(255,255,255,0.35)">{val.toFixed(2)}</text>
             </g>
           );
         })}
         {trainSizes.map(s => (
-          <text key={s} x={toX(s)} y={H - 3} textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.3)">{s}</text>
+          <text key={s} x={toX(s)} y={H - 4} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.35)">{s}</text>
         ))}
-        {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.2" strokeDasharray="3 2" />}
-        <polyline points={trainPts} fill="none" stroke={ACCENT}       strokeWidth="1.2" />
+        {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="5 3" />}
+        <polyline points={trainPts} fill="none" stroke={ACCENT} strokeWidth="1.5" />
         {trainSizes.map((s, i) => (
           <g key={s}>
-            {trainScores[i] != null && isFinite(trainScores[i]) && <circle cx={toX(s)} cy={toY(trainScores[i])} r={2.5} fill={ACCENT} />}
-            {valScores[i]   != null && isFinite(valScores[i])   && <circle cx={toX(s)} cy={toY(valScores[i])}   r={2.5} fill={`${ACCENT}77`} />}
+            {trainScores[i] != null && isFinite(trainScores[i]) && <circle cx={toX(s)} cy={toY(trainScores[i])} r={4} fill={ACCENT} />}
+            {valScores[i]   != null && isFinite(valScores[i])   && <circle cx={toX(s)} cy={toY(valScores[i])}   r={4} fill={`${ACCENT}77`} />}
           </g>
         ))}
       </svg>
-      <div style={{ display: "flex", gap: "0.7rem", marginTop: "0.25rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.58rem", color: "var(--text3)" }}>
-          <svg width="12" height="5"><line x1="0" y1="2.5" x2="12" y2="2.5" stroke={ACCENT} strokeWidth="1.2" /></svg>
+      <div style={{ display: "flex", gap: "1rem", marginTop: "0.35rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
+          <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={ACCENT} strokeWidth="1.5" /></svg>
           Train
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.58rem", color: "var(--text3)" }}>
-          <svg width="12" height="5"><line x1="0" y1="2.5" x2="12" y2="2.5" stroke={`${ACCENT}55`} strokeWidth="1.2" strokeDasharray="3 2" /></svg>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
+          <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="5 3" /></svg>
           Validation
         </div>
       </div>
