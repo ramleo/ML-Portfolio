@@ -171,7 +171,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
           <>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.5rem" }}>
               <span style={badge()}>
-                {result.optuna_sampler === "gp" ? "GP Sampler" : result.optuna_sampler === "auto" ? "Auto Sampler" : "TPE Sampler"}
+                {result.optuna_sampler === "cmaes" ? "CMA-ES Sampler" : result.optuna_sampler === "auto" ? "Auto Sampler" : "TPE Sampler"}
               </span>
               <span style={badge()}>N Trials: {nTrials}</span>
               {bestTrial && (
