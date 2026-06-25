@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { TrialHistoryChart, LearningCurveChart } from "./OptunaCharts";
+import { TrialHistoryChart, LearningCurveChart, mdToHtml } from "./OptunaCharts";
 
 const ACCENT = "#a78bfa";
 
@@ -65,19 +65,6 @@ const badge = (extra?: React.CSSProperties): React.CSSProperties => ({
   ...extra,
 });
 
-function mdToHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.75rem 0"/>')
-    .replace(/^### (.+)$/gm, '<h4 style="margin:0.9rem 0 0.25rem;font-size:0.84rem;font-weight:700;color:var(--text)">$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3 style="margin:1rem 0 0.3rem;font-size:0.9rem;font-weight:700;color:var(--text)">$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:700">$1</strong>')
-    .replace(/\*([^*\n]+?)\*/g, '<em style="color:var(--text);font-style:italic">$1</em>')
-    .replace(/\n\n/g, '</p><p style="margin:0.5rem 0">')
-    .replace(/^(?!<h[234]|<\/p>|<p)(.+)$/gm, '$1')
-    .replace(/^/, '<p style="margin:0">')
-    .replace(/$/, '</p>');
-}
 
 export default function OptunaResults({ result }: { result: TrainResult }) {
   const trials = result.optuna_trials ?? [];
@@ -152,6 +139,8 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
   };
 
   const METRIC_KEYS = ["accuracy", "f1_weighted", "f1_macro", "precision", "recall", "roc_auc", "mae", "rmse", "r2"];
+  const METRIC_DISPLAY: Record<string, string> = { accuracy: "Accuracy", f1_weighted: "F1 Weighted", f1_macro: "F1 Macro", precision: "Precision", recall: "Recall", roc_auc: "ROC-AUC", mae: "MAE", rmse: "RMSE", r2: "R²", mape: "MAPE", max_error: "Max Error", median_ae: "Median AE" };
+  const metricLabel = (k: string) => METRIC_DISPLAY[k] ?? k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const metrics = Object.entries(result.winner_metrics)
     .filter(([k]) => METRIC_KEYS.some(mk => k.toLowerCase().includes(mk)));
 
@@ -209,9 +198,9 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
             <TrialHistoryChart
               trials={displayTrials}
               bestTrial={bestTrial}
-              primaryMetricLabel={result.optuna_primary_metric && result.optuna_primary_metric !== "auto" ? result.optuna_primary_metric.replace("_", "-").toUpperCase() : undefined}
+              primaryMetricLabel={result.optuna_primary_metric && result.optuna_primary_metric !== "auto" ? metricLabel(result.optuna_primary_metric) : undefined}
               secondaryTrials={result.optuna_secondary_trials}
-              secondaryMetricLabel={result.optuna_secondary_metric !== "none" ? result.optuna_secondary_metric : undefined}
+              secondaryMetricLabel={result.optuna_secondary_metric && result.optuna_secondary_metric !== "none" ? metricLabel(result.optuna_secondary_metric) : undefined}
             />
           )}
 
@@ -276,7 +265,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                   style={{ background: isPrimary ? `${ACCENT}15` : "rgba(0,0,0,0.2)", border: isPrimary ? `1px solid ${ACCENT}40` : isSecondary ? "1px solid rgba(52,211,153,0.25)" : "none", borderRadius: 8, padding: "0.6rem 0.8rem", textAlign: "center", cursor: isPrimary || isSecondary ? "help" : "default" }}
                 >
                   <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text)" }}>{typeof v === "number" ? v.toFixed(4) : v}</div>
-                  <div style={{ fontSize: "0.65rem", color: isPrimary ? ACCENT : isSecondary ? "#34d399" : "var(--text3)", marginTop: "0.15rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}{isPrimary ? " ★" : isSecondary ? " ◆" : ""}</div>
+                  <div style={{ fontSize: "0.65rem", color: isPrimary ? ACCENT : isSecondary ? "#34d399" : "var(--text3)", marginTop: "0.15rem", letterSpacing: "0.04em" }}>{metricLabel(k)}{isPrimary ? " ★" : isSecondary ? " ◆" : ""}</div>
                 </div>
               );
             })}
@@ -310,17 +299,24 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
       )}
 
       {/* F2 — Learning Curve */}
-      {result.learning_curve && (
-        <div>
-          <div style={label({ color: "var(--text3)" })}>Learning Curve</div>
-          <LearningCurveChart
-            trainSizes={result.learning_curve.train_sizes}
-            trainScores={result.learning_curve.train_scores}
-            valScores={result.learning_curve.val_scores}
-            metricLabel={result.learning_curve.metric_label}
-          />
-        </div>
-      )}
+      {result.learning_curve && (() => {
+        const lc = result.learning_curve;
+        const lastTrain = lc.train_scores[lc.train_scores.length - 1] ?? 0;
+        const lastVal   = lc.val_scores[lc.val_scores.length - 1] ?? 0;
+        const gap = lastTrain - lastVal;
+        const lcNote = gap > 0.10
+          ? { text: `⚠ Gap of ${(gap * 100).toFixed(1)}% between train and validation — possible overfitting. Try more regularization or more data.`, color: "#f87171" }
+          : gap < 0.03
+          ? { text: `✓ Train and validation scores are close (gap ${(gap * 100).toFixed(1)}%) — model generalizes well.`, color: "#34d399" }
+          : { text: `Train–validation gap: ${(gap * 100).toFixed(1)}%. Moderate variance, within normal range.`, color: "var(--text3)" };
+        return (
+          <div>
+            <div style={label({ color: "var(--text3)" })}>Learning Curve</div>
+            <LearningCurveChart trainSizes={lc.train_sizes} trainScores={lc.train_scores} valScores={lc.val_scores} metricLabel={lc.metric_label} />
+            <div style={{ marginTop: "0.45rem", fontSize: "0.7rem", color: lcNote.color, lineHeight: 1.5 }}>{lcNote.text}</div>
+          </div>
+        );
+      })()}
 
       {/* G — AI Explanation of Optuna Results */}
       {tuningRan && (

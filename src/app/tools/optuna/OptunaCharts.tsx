@@ -1,6 +1,20 @@
 "use client";
 
 const ACCENT = "#a78bfa";
+
+export function mdToHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.75rem 0"/>')
+    .replace(/^### (.+)$/gm, '<h4 style="margin:0.9rem 0 0.25rem;font-size:0.84rem;font-weight:700;color:var(--text)">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="margin:1rem 0 0.3rem;font-size:0.9rem;font-weight:700;color:var(--text)">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:700">$1</strong>')
+    .replace(/\*([^*\n]+?)\*/g, '<em style="color:var(--text);font-style:italic">$1</em>')
+    .replace(/\n\n/g, '</p><p style="margin:0.5rem 0">')
+    .replace(/^(?!<h[234]|<\/p>|<p)(.+)$/gm, '$1')
+    .replace(/^/, '<p style="margin:0">')
+    .replace(/$/, '</p>');
+}
 const ACCENT_GREEN = "#34d399";
 
 interface TrialEntry { trial: number; value: number }
