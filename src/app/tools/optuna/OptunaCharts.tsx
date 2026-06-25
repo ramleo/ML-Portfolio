@@ -136,7 +136,7 @@ interface LearningCurveProps {
 }
 
 export function LearningCurveChart({ trainSizes, trainScores, valScores, metricLabel }: LearningCurveProps) {
-  const W = 340, H = 180, PL = 10, PR = 10, PT = 12, PB = 24;
+  const W = 260, H = 130, PL = 10, PR = 8, PT = 8, PB = 18;
   const cw = W - PL - PR, ch = H - PT - PB;
 
   // Filter out null/NaN values before computing axis range
@@ -165,8 +165,8 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const hasVal   = validVal.length > 0;
 
   return (
-    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.9rem 1rem" }}>
-      <div style={{ fontSize: "0.68rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
+    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.6rem 0.75rem" }}>
+      <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
         {metricLabel} vs training set size
       </div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
@@ -176,29 +176,29 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
           return (
             <g key={f}>
               <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              <text x={PL - 2} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
+              <text x={PL - 2} y={y + 3} textAnchor="end" fontSize="5.5" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
             </g>
           );
         })}
         {trainSizes.map(s => (
-          <text key={s} x={toX(s)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">{s}</text>
+          <text key={s} x={toX(s)} y={H - 3} textAnchor="middle" fontSize="5.5" fill="rgba(255,255,255,0.3)">{s}</text>
         ))}
-        {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="4 2" />}
-        <polyline points={trainPts} fill="none" stroke={ACCENT}       strokeWidth="1.5" />
+        {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.2" strokeDasharray="3 2" />}
+        <polyline points={trainPts} fill="none" stroke={ACCENT}       strokeWidth="1.2" />
         {trainSizes.map((s, i) => (
           <g key={s}>
-            {trainScores[i] != null && isFinite(trainScores[i]) && <circle cx={toX(s)} cy={toY(trainScores[i])} r={3} fill={ACCENT} />}
-            {valScores[i]   != null && isFinite(valScores[i])   && <circle cx={toX(s)} cy={toY(valScores[i])}   r={3} fill={`${ACCENT}77`} />}
+            {trainScores[i] != null && isFinite(trainScores[i]) && <circle cx={toX(s)} cy={toY(trainScores[i])} r={2.5} fill={ACCENT} />}
+            {valScores[i]   != null && isFinite(valScores[i])   && <circle cx={toX(s)} cy={toY(valScores[i])}   r={2.5} fill={`${ACCENT}77`} />}
           </g>
         ))}
       </svg>
-      <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
-          <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={ACCENT} strokeWidth="1.5" /></svg>
+      <div style={{ display: "flex", gap: "0.7rem", marginTop: "0.25rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.58rem", color: "var(--text3)" }}>
+          <svg width="12" height="5"><line x1="0" y1="2.5" x2="12" y2="2.5" stroke={ACCENT} strokeWidth="1.2" /></svg>
           Train
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
-          <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="4 2" /></svg>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.58rem", color: "var(--text3)" }}>
+          <svg width="12" height="5"><line x1="0" y1="2.5" x2="12" y2="2.5" stroke={`${ACCENT}55`} strokeWidth="1.2" strokeDasharray="3 2" /></svg>
           Validation
         </div>
       </div>
