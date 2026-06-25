@@ -141,6 +141,7 @@ export default function OptunaRunner() {
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
             if (evt.result) { setResult(evt.result.automl ?? evt.result); }
+            if (evt.error) setError(`Server error: ${evt.error}`);
           } catch { /* skip malformed */ }
         }
       }
