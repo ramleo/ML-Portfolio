@@ -151,8 +151,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
     }
   };
 
-  const METRIC_KEYS = ["accuracy", "f1_weighted", "f1_macro", "precision_weighted",
-    "recall_weighted", "roc_auc", "mae", "rmse", "r2"];
+  const METRIC_KEYS = ["accuracy", "f1_weighted", "f1_macro", "precision", "recall", "roc_auc", "mae", "rmse", "r2"];
   const metrics = Object.entries(result.winner_metrics)
     .filter(([k]) => METRIC_KEYS.some(mk => k.toLowerCase().includes(mk)));
 
@@ -268,14 +267,19 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
         <div>
           <div style={label({ color: "var(--text3)" })}>Winner Metrics — {result.winner}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.6rem" }}>
-            {metrics.map(([k, v]) => (
-              <div key={k} style={{ background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "0.6rem 0.8rem", textAlign: "center" }}>
-                <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text)" }}>
-                  {typeof v === "number" ? v.toFixed(4) : v}
+            {metrics.map(([k, v]) => {
+              const isPrimary = !!result.optuna_primary_metric && k === result.optuna_primary_metric;
+              const isSecondary = !!result.optuna_secondary_metric && result.optuna_secondary_metric !== "none" && k === result.optuna_secondary_metric;
+              return (
+                <div key={k}
+                  title={isPrimary ? "Primary optimization metric — Optuna tuned for this" : isSecondary ? "Secondary tracked metric" : undefined}
+                  style={{ background: isPrimary ? `${ACCENT}15` : "rgba(0,0,0,0.2)", border: isPrimary ? `1px solid ${ACCENT}40` : isSecondary ? "1px solid rgba(52,211,153,0.25)" : "none", borderRadius: 8, padding: "0.6rem 0.8rem", textAlign: "center", cursor: isPrimary || isSecondary ? "help" : "default" }}
+                >
+                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text)" }}>{typeof v === "number" ? v.toFixed(4) : v}</div>
+                  <div style={{ fontSize: "0.65rem", color: isPrimary ? ACCENT : isSecondary ? "#34d399" : "var(--text3)", marginTop: "0.15rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}{isPrimary ? " ★" : isSecondary ? " ◆" : ""}</div>
                 </div>
-                <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.15rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
