@@ -165,11 +165,11 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const hasVal   = validVal.length > 0;
 
   return (
-    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.6rem 0.75rem" }}>
-      <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
+    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.5rem 0.65rem", maxWidth: 300 }}>
+      <div style={{ fontSize: "0.57rem", color: "var(--text3)", marginBottom: "0.25rem" }}>
         {metricLabel} vs training set size
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible", display: "block" }}>
         {[0, 0.25, 0.5, 0.75, 1].map(f => {
           const y = PT + ch * (1 - f);
           const val = yMin + yRange * f;
