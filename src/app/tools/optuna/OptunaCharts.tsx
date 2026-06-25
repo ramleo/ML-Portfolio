@@ -169,7 +169,7 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
       <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginBottom: "0.4rem" }}>
         {metricLabel} vs training set size
       </div>
-      <svg width="100%" height={140} viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+      <svg width="100%" height={140} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: "block" }}>
         {[0, 0.25, 0.5, 0.75, 1].map(f => {
           const y = PT + ch * (1 - f);
           const val = yMin + yRange * f;
