@@ -22,6 +22,7 @@ interface TrainResult {
   optuna_param_importance?: Record<string, number>;
   optuna_error?: string;
   optuna_sampler?: string;
+  optuna_primary_metric?: string;
   optuna_secondary_metric?: string;
   optuna_secondary_trials?: TrialEntry[];
   learning_curve?: {
@@ -184,8 +185,10 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
               )}
             </div>
             <div style={{ fontSize: "0.74rem", color: "var(--text3)", lineHeight: 1.5 }}>
-              TPE (Tree-structured Parzen Estimator) models the distribution of good vs. bad
-              hyperparameter regions, sampling more from promising areas each trial.
+              {result.optuna_sampler === "qmc"
+                ? "QMC (Quasi-Monte Carlo / Sobol) uses low-discrepancy sequences for uniform coverage of the hyperparameter space, reducing clustering seen in random sampling."
+                : "TPE (Tree-structured Parzen Estimator) models the distribution of good vs. bad hyperparameter regions, sampling more from promising areas each trial."
+              }
               {(bestTrial || result.optuna_best_score) && (
                 <> Best CV score: <span style={{ color: ACCENT, fontWeight: 700 }}>{(bestTrial?.value ?? result.optuna_best_score)?.toFixed(4)}</span>.</>
               )}
@@ -207,6 +210,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
             <TrialHistoryChart
               trials={displayTrials}
               bestTrial={bestTrial}
+              primaryMetricLabel={result.optuna_primary_metric && result.optuna_primary_metric !== "auto" ? result.optuna_primary_metric.replace("_", "-").toUpperCase() : undefined}
               secondaryTrials={result.optuna_secondary_trials}
               secondaryMetricLabel={result.optuna_secondary_metric !== "none" ? result.optuna_secondary_metric : undefined}
             />

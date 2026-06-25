@@ -8,11 +8,12 @@ interface TrialEntry { trial: number; value: number }
 interface TrialHistoryProps {
   trials: TrialEntry[];
   bestTrial: TrialEntry | null;
+  primaryMetricLabel?: string;
   secondaryTrials?: TrialEntry[];
   secondaryMetricLabel?: string;
 }
 
-export function TrialHistoryChart({ trials, bestTrial, secondaryTrials, secondaryMetricLabel }: TrialHistoryProps) {
+export function TrialHistoryChart({ trials, bestTrial, primaryMetricLabel, secondaryTrials, secondaryMetricLabel }: TrialHistoryProps) {
   if (!trials.length) return null;
 
   const W = 340, H = 180, PL = 10, PR = 10, PT = 12, PB = 24;
@@ -96,7 +97,7 @@ export function TrialHistoryChart({ trials, bestTrial, secondaryTrials, secondar
       <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
           <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}88`} strokeWidth="1.5" /></svg>
-          Trial scores
+          {primaryMetricLabel ? primaryMetricLabel : "Trial scores"}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
           <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" /></svg>
