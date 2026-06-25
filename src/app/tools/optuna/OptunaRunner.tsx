@@ -330,8 +330,7 @@ export default function OptunaRunner() {
             </label>
             <select value={sampler} onChange={e => setSampler(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
               <option value="tpe">TPE (Tree Parzen Estimator)</option>
-              <option value="cmaes">CMA-ES (Covariance Matrix Adaptation)</option>
-              <option value="auto">Auto (Optuna selects best)</option>
+              <option value="qmc">QMC (Quasi-Monte Carlo / Sobol)</option>
             </select>
           </div>
 
