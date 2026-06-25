@@ -149,6 +149,7 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
 
   const H = 160, PL = 34, PR = 12, PT = 10, PB = 22;
   const cw = svgW - PL - PR, ch = H - PT - PB;
+  const xInset = 10; // pushes first/last points away from axis edges
 
   const validTrain = trainScores.filter(v => v != null && isFinite(v));
   const validVal   = valScores.filter(v => v != null && isFinite(v));
@@ -164,7 +165,7 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const xMax = trainSizes[trainSizes.length - 1] ?? 1;
   const xRange = xMax - xMin || 1;
 
-  const toX = (s: number) => PL + ((s - xMin) / xRange) * cw;
+  const toX = (s: number) => PL + xInset + ((s - xMin) / xRange) * (cw - 2 * xInset);
   const toY = (v: number) => PT + ch - ((v - yMin) / yRange) * ch;
 
   const trainPts = trainSizes.map((s, i) => trainScores[i] != null && isFinite(trainScores[i]) ? `${toX(s)},${toY(trainScores[i])}` : null).filter(Boolean).join(" ");
