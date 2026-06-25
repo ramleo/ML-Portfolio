@@ -55,13 +55,15 @@ export default function OptunaRunner() {
   const [nTrials, setNTrials] = useState(30);
   const [dropCols, setDropCols] = useState<string[]>([]);
   const [optMetric, setOptMetric] = useState("auto");
+  const [sampler, setSampler] = useState("tpe");
+  const [secondaryMetric, setSecondaryMetric] = useState("none");
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<TrainResult | null>(null);
   const [training, setTraining] = useState(false);
 
-  useEffect(() => { setOptMetric("auto"); }, [task]);
+  useEffect(() => { setOptMetric("auto"); setSecondaryMetric("none"); }, [task]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +125,8 @@ export default function OptunaRunner() {
       fd.append("pre_fe_sample_json", "{}");
       fd.append("drop_cols_json", JSON.stringify(dropCols));
       fd.append("opt_metric", optMetric);
+      fd.append("sampler", sampler);
+      fd.append("secondary_metric", secondaryMetric);
       const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
@@ -145,7 +149,7 @@ export default function OptunaRunner() {
     } finally {
       setTraining(false);
     }
-  }, [file, target, task, model, nTrials, dropCols, optMetric]);
+  }, [file, target, task, model, nTrials, dropCols, optMetric, sampler, secondaryMetric]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -157,6 +161,8 @@ export default function OptunaRunner() {
     setStatus("");
     setDropCols([]);
     setOptMetric("auto");
+    setSampler("tpe");
+    setSecondaryMetric("none");
   }, []);
 
   return (
@@ -310,6 +316,39 @@ export default function OptunaRunner() {
               ) : (
                 <>
                   <option value="auto">Auto (MAE)</option>
+                  <option value="mae">MAE</option>
+                  <option value="rmse">RMSE</option>
+                  <option value="r2">R²</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
+              Sampler
+            </label>
+            <select value={sampler} onChange={e => setSampler(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              <option value="tpe">TPE (Tree Parzen Estimator)</option>
+              <option value="gp">GP (Gaussian Process)</option>
+              <option value="auto">Auto (Optuna selects best)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
+              Secondary Metric <span style={{ color: "var(--text3)", fontWeight: 400, textTransform: "none" }}>(tracked, not optimized)</span>
+            </label>
+            <select value={secondaryMetric} onChange={e => setSecondaryMetric(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              <option value="none">None</option>
+              {task === "classification" ? (
+                <>
+                  <option value="accuracy">Accuracy</option>
+                  <option value="f1_weighted">F1 Weighted</option>
+                  <option value="f1_macro">F1 Macro</option>
+                </>
+              ) : (
+                <>
                   <option value="mae">MAE</option>
                   <option value="rmse">RMSE</option>
                   <option value="r2">R²</option>

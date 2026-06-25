@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { TrialHistoryChart, LearningCurveChart } from "./OptunaCharts";
 
 const ACCENT = "#a78bfa";
 
@@ -20,6 +21,16 @@ interface TrainResult {
   optuna_trials?: TrialEntry[];
   optuna_param_importance?: Record<string, number>;
   optuna_error?: string;
+  optuna_sampler?: string;
+  optuna_secondary_metric?: string;
+  optuna_secondary_trials?: TrialEntry[];
+  learning_curve?: {
+    train_sizes: number[];
+    train_scores: number[];
+    val_scores: number[];
+    metric_label: string;
+    cv_folds: number;
+  };
 }
 
 const card = (extra?: React.CSSProperties): React.CSSProperties => ({
@@ -80,13 +91,6 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
 
   const tuningRan = nTrials > 0 || (result.optuna_params != null && Object.keys(result.optuna_params).length > 0) || trials.length > 0;
   const displayTrials = trials.slice(0, 30);
-  const maxTrialVal = displayTrials.length > 0
-    ? Math.max(...displayTrials.map(t => t.value))
-    : 1;
-  const minTrialVal = displayTrials.length > 0
-    ? Math.min(...displayTrials.map(t => t.value))
-    : 0;
-  const trialRange = maxTrialVal - minTrialVal || 1;
 
   const paramImp = result.optuna_param_importance
     ? Object.entries(result.optuna_param_importance).sort((a, b) => b[1] - a[1])
@@ -130,11 +134,18 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
       const data = await resp.json();
       clearInterval(timer);
       setExpProgress(100);
-      setTimeout(() => setOptunaExp(data.explanation ?? "No explanation returned."), 300);
+      if (data.error) {
+        setTimeout(() => {
+          setExpError(data.error);
+          setExplaining(false);
+        }, 300);
+      } else {
+        setTimeout(() => setOptunaExp(data.explanation ?? "No explanation returned."), 300);
+        setTimeout(() => setExplaining(false), 600);
+      }
     } catch (e) {
       clearInterval(timer);
       setExpError(e instanceof Error ? e.message : "Request failed");
-    } finally {
       setExplaining(false);
     }
   };
@@ -159,7 +170,9 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
         {tuningRan ? (
           <>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <span style={badge()}>TPE Sampler</span>
+              <span style={badge()}>
+                {result.optuna_sampler === "gp" ? "GP Sampler" : result.optuna_sampler === "auto" ? "Auto Sampler" : "TPE Sampler"}
+              </span>
               <span style={badge()}>N Trials: {nTrials}</span>
               {bestTrial && (
                 <span style={badge()}>Best at Trial {bestTrial.trial}</span>
@@ -189,85 +202,15 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
       {(displayTrials.length > 0 || paramImp.length > 0 || bestParams) && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
 
-          {/* B — Trial History SVG chart (left) */}
-          {displayTrials.length > 0 && (() => {
-            const W = 340, H = 180, PL = 10, PR = 10, PT = 12, PB = 24;
-            const cw = W - PL - PR, ch = H - PT - PB;
-            const yMin = Math.min(...displayTrials.map(t => t.value));
-            const yMax = Math.max(...displayTrials.map(t => t.value));
-            const yRange = yMax - yMin || 0.01;
-            const xStep = cw / Math.max(displayTrials.length - 1, 1);
-            const toX = (i: number) => PL + i * xStep;
-            const toY = (v: number) => PT + ch - ((v - yMin) / yRange) * ch;
-
-            // running best
-            let runBest = -Infinity;
-            const bestLine = displayTrials.map(t => {
-              if (t.value > runBest) runBest = t.value;
-              return runBest;
-            });
-
-            const trialPolyline = displayTrials.map((t, i) => `${toX(i)},${toY(t.value)}`).join(" ");
-            const bestPolyline  = bestLine.map((v, i) => `${toX(i)},${toY(v)}`).join(" ");
-
-            return (
-              <div style={card()}>
-                <div style={label()}>Trial History</div>
-                {bestTrial && (
-                  <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginBottom: "0.5rem" }}>
-                    Best: Trial <span style={{ color: ACCENT, fontWeight: 700 }}>#{bestTrial.trial}</span> — score <span style={{ color: ACCENT, fontWeight: 700 }}>{bestTrial.value.toFixed(4)}</span>
-                  </div>
-                )}
-                <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
-                  {/* Grid lines */}
-                  {[0, 0.25, 0.5, 0.75, 1].map(f => {
-                    const y = PT + ch * (1 - f);
-                    const val = yMin + yRange * f;
-                    return (
-                      <g key={f}>
-                        <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                        <text x={PL - 2} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
-                      </g>
-                    );
-                  })}
-                  {/* X axis labels */}
-                  {displayTrials.filter((_, i) => i === 0 || i === displayTrials.length - 1 || (i + 1) % 10 === 0).map((t, _, arr) => {
-                    const i = displayTrials.indexOf(t);
-                    return <text key={t.trial} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">{t.trial}</text>;
-                  })}
-                  {/* Running best line */}
-                  <polyline points={bestPolyline} fill="none" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" />
-                  {/* Trial score line */}
-                  <polyline points={trialPolyline} fill="none" stroke={`${ACCENT}88`} strokeWidth="1.5" />
-                  {/* Dots */}
-                  {displayTrials.map((t, i) => {
-                    const isBest = bestTrial !== null && t.trial === bestTrial.trial;
-                    return (
-                      <circle key={t.trial} cx={toX(i)} cy={toY(t.value)} r={isBest ? 5 : 2.5}
-                        fill={isBest ? ACCENT : `${ACCENT}99`}
-                        stroke={isBest ? "rgba(255,255,255,0.3)" : "none"}
-                        strokeWidth={isBest ? 1.5 : 0}
-                        style={isBest ? { filter: `drop-shadow(0 0 4px ${ACCENT})` } : {}}
-                      />
-                    );
-                  })}
-                </svg>
-                <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
-                    <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}88`} strokeWidth="1.5" /></svg>
-                    Trial scores
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.65rem", color: "var(--text3)" }}>
-                    <svg width="16" height="6"><line x1="0" y1="3" x2="16" y2="3" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" /></svg>
-                    Running best
-                  </div>
-                </div>
-                {trials.length > 30 && (
-                  <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.3rem" }}>Showing first 30 of {trials.length}</div>
-                )}
-              </div>
-            );
-          })()}
+          {/* B — Trial History chart (left) */}
+          {displayTrials.length > 0 && (
+            <TrialHistoryChart
+              trials={displayTrials}
+              bestTrial={bestTrial}
+              secondaryTrials={result.optuna_secondary_trials}
+              secondaryMetricLabel={result.optuna_secondary_metric !== "none" ? result.optuna_secondary_metric : undefined}
+            />
+          )}
 
           {/* C + D — HP Importance + Best Params stacked (right) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -355,6 +298,19 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* F2 — Learning Curve */}
+      {result.learning_curve && (
+        <div>
+          <div style={label({ color: "var(--text3)" })}>Learning Curve</div>
+          <LearningCurveChart
+            trainSizes={result.learning_curve.train_sizes}
+            trainScores={result.learning_curve.train_scores}
+            valScores={result.learning_curve.val_scores}
+            metricLabel={result.learning_curve.metric_label}
+          />
         </div>
       )}
 
