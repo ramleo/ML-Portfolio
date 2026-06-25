@@ -136,7 +136,7 @@ interface LearningCurveProps {
 }
 
 export function LearningCurveChart({ trainSizes, trainScores, valScores, metricLabel }: LearningCurveProps) {
-  const W = 260, H = 130, PL = 10, PR = 8, PT = 8, PB = 18;
+  const W = 300, H = 140, PL = 26, PR = 12, PT = 8, PB = 20;
   const cw = W - PL - PR, ch = H - PT - PB;
 
   // Filter out null/NaN values before computing axis range
@@ -165,23 +165,23 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const hasVal   = validVal.length > 0;
 
   return (
-    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.5rem 0.65rem", maxWidth: 300 }}>
-      <div style={{ fontSize: "0.57rem", color: "var(--text3)", marginBottom: "0.25rem" }}>
+    <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.6rem 0.75rem", maxWidth: 340, overflow: "hidden" }}>
+      <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginBottom: "0.3rem" }}>
         {metricLabel} vs training set size
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible", display: "block" }}>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
         {[0, 0.25, 0.5, 0.75, 1].map(f => {
           const y = PT + ch * (1 - f);
           const val = yMin + yRange * f;
           return (
             <g key={f}>
               <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              <text x={PL - 2} y={y + 3} textAnchor="end" fontSize="5.5" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
+              <text x={PL - 3} y={y + 3} textAnchor="end" fontSize="6" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
             </g>
           );
         })}
         {trainSizes.map(s => (
-          <text key={s} x={toX(s)} y={H - 3} textAnchor="middle" fontSize="5.5" fill="rgba(255,255,255,0.3)">{s}</text>
+          <text key={s} x={toX(s)} y={H - 3} textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.3)">{s}</text>
         ))}
         {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.2" strokeDasharray="3 2" />}
         <polyline points={trainPts} fill="none" stroke={ACCENT}       strokeWidth="1.2" />
