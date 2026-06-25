@@ -303,12 +303,17 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
         const lc = result.learning_curve;
         const lastTrain = lc.train_scores[lc.train_scores.length - 1] ?? 0;
         const lastVal   = lc.val_scores[lc.val_scores.length - 1] ?? 0;
-        const gap = lastTrain - lastVal;
-        const lcNote = gap > 0.10
-          ? { text: `⚠ Gap of ${(gap * 100).toFixed(1)}% between train and validation — possible overfitting. Try more regularization or more data.`, color: "#f87171" }
-          : gap < 0.03
-          ? { text: `✓ Train and validation scores are close (gap ${(gap * 100).toFixed(1)}%) — model generalizes well.`, color: "#34d399" }
-          : { text: `Train–validation gap: ${(gap * 100).toFixed(1)}%. Moderate variance, within normal range.`, color: "var(--text3)" };
+        // Lower-is-better metrics (RMSE, MAE): overfitting = val > train (positive raw gap)
+        // Higher-is-better metrics (R², F1, AUC): overfitting = train > val (positive raw gap)
+        const lowerIsBetter = /rmse|mae|error/i.test(lc.metric_label);
+        const rawGap = lowerIsBetter ? lastVal - lastTrain : lastTrain - lastVal;
+        const baseline = Math.max(Math.abs(lastTrain), Math.abs(lastVal), 0.0001);
+        const gapPct = (rawGap / baseline) * 100;
+        const lcNote = gapPct > 10
+          ? { text: `⚠ Train–validation gap: ${gapPct.toFixed(1)}% — possible overfitting. Try more regularization or more data.`, color: "#f87171" }
+          : gapPct < 3
+          ? { text: `✓ Train and validation scores are close (gap ${gapPct.toFixed(1)}%) — model generalizes well.`, color: "#34d399" }
+          : { text: `Train–validation gap: ${gapPct.toFixed(1)}%. Moderate variance, within normal range.`, color: "var(--text3)" };
         return (
           <div>
             <div style={label({ color: "var(--text3)" })}>Learning Curve</div>

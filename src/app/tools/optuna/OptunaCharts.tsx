@@ -157,8 +157,8 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const rawMin = allValid.length ? Math.min(...allValid) : 0;
   const rawMax = allValid.length ? Math.max(...allValid) : 1;
   const pad  = Math.max((rawMax - rawMin) * 0.15, 0.05);
-  const yMin = Math.max(0, rawMin - pad);
-  const yMax = Math.min(1, rawMax + pad);
+  const yMin = rawMin - pad;
+  const yMax = rawMax + pad;
   const yRange = yMax - yMin || 0.1;
 
   const xMin = trainSizes[0] ?? 0;
