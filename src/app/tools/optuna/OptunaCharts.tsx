@@ -139,20 +139,30 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
   const W = 340, H = 180, PL = 10, PR = 10, PT = 12, PB = 24;
   const cw = W - PL - PR, ch = H - PT - PB;
 
-  const allScores = [...trainScores, ...valScores];
-  const yMin = Math.min(...allScores);
-  const yMax = Math.max(...allScores);
-  const yRange = yMax - yMin || 0.01;
+  // Filter out null/NaN values before computing axis range
+  const validTrain = trainScores.filter(v => v != null && isFinite(v));
+  const validVal   = valScores.filter(v => v != null && isFinite(v));
+  const allValid   = [...validTrain, ...validVal];
+  const rawMin = allValid.length ? Math.min(...allValid) : 0;
+  const rawMax = allValid.length ? Math.max(...allValid) : 1;
+  const rawRange = rawMax - rawMin;
+  // Add at least 10% padding on each side so lines don't hug the edges
+  const pad = Math.max(rawRange * 0.15, 0.05);
+  const yMin  = Math.max(0, rawMin - pad);
+  const yMax  = Math.min(1, rawMax + pad);
+  const yRange = yMax - yMin || 0.1;
 
   const xMin = trainSizes[0] ?? 0;
   const xMax = trainSizes[trainSizes.length - 1] ?? 1;
   const xRange = xMax - xMin || 1;
 
   const toX = (s: number) => PL + ((s - xMin) / xRange) * cw;
-  const toY = (v: number) => PT + ch - ((v - yMin) / yRange) * ch;
+  const toY = (v: number) => v != null && isFinite(v) ? PT + ch - ((v - yMin) / yRange) * ch : -999;
 
-  const trainLine = trainSizes.map((s, i) => `${toX(s)},${toY(trainScores[i])}`).join(" ");
-  const valLine   = trainSizes.map((s, i) => `${toX(s)},${toY(valScores[i])}`).join(" ");
+  // Only include points where value is valid
+  const trainPts = trainSizes.map((s, i) => trainScores[i] != null && isFinite(trainScores[i]) ? `${toX(s)},${toY(trainScores[i])}` : null).filter(Boolean).join(" ");
+  const valPts   = trainSizes.map((s, i) => valScores[i]   != null && isFinite(valScores[i])   ? `${toX(s)},${toY(valScores[i])}` : null).filter(Boolean).join(" ");
+  const hasVal   = validVal.length > 0;
 
   return (
     <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "0.9rem 1rem" }}>
@@ -173,12 +183,12 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
         {trainSizes.map(s => (
           <text key={s} x={toX(s)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">{s}</text>
         ))}
-        <polyline points={valLine}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="4 2" />
-        <polyline points={trainLine} fill="none" stroke={ACCENT}       strokeWidth="1.5" />
+        {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="4 2" />}
+        <polyline points={trainPts} fill="none" stroke={ACCENT}       strokeWidth="1.5" />
         {trainSizes.map((s, i) => (
           <g key={s}>
-            <circle cx={toX(s)} cy={toY(trainScores[i])} r={3} fill={ACCENT} />
-            <circle cx={toX(s)} cy={toY(valScores[i])}   r={3} fill={`${ACCENT}77`} />
+            {trainScores[i] != null && isFinite(trainScores[i]) && <circle cx={toX(s)} cy={toY(trainScores[i])} r={3} fill={ACCENT} />}
+            {valScores[i]   != null && isFinite(valScores[i])   && <circle cx={toX(s)} cy={toY(valScores[i])}   r={3} fill={`${ACCENT}77`} />}
           </g>
         ))}
       </svg>
