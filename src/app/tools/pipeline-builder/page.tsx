@@ -8,15 +8,27 @@ import { cardDeps, emptyPipelineState, type MLPipelineState } from "@/types/pipe
 
 // ── Card definitions ──────────────────────────────────────────────────────────
 
+const S = { width: 22, height: 22, fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+
+const ICONS = {
+  preprocessing: <svg {...S} viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M10 18h4"/></svg>,
+  featureeng:    <svg {...S} viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M4.22 4.22l2.12 2.12m11.32 11.32 2.12 2.12M2 12h3m14 0h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>,
+  featureselect: <svg {...S} viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="21"/><line x1="3" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="21" y2="12"/></svg>,
+  automl:        <svg {...S} viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"/></svg>,
+  optuna:        <svg {...S} viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>,
+  shap:          <svg {...S} viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="9.5" y="9" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="17" rx="1"/></svg>,
+  ensemble:      <svg {...S} viewBox="0 0 24 24"><path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z"/></svg>,
+};
+
 const CARDS = [
-  { id: "preprocessing",  title: "Preprocessing",       icon: "🧹", accent: "#38bdf8", href: "/tools/preprocessing",       description: "Impute missing values, remove duplicates, encode categoricals, handle outliers." },
-  { id: "featureeng",     title: "Feature Engineering", icon: "⚙️",  accent: "#f59e0b", href: "/tools/feature-engineering", description: "Create new features: log transforms, binning, polynomial, date extraction, ratios." },
-  { id: "featureselect",  title: "Feature Selection",   icon: "🎯", accent: "#34d399", href: "/tools/feature-selection",   description: "Select top features via variance, correlation, RFE, SelectKBest, Lasso, or PCA." },
-  { id: "automl",         title: "AutoML",              icon: "🤖", accent: "#22c55e", href: "/tools/automl",              description: "Run a 5-fold CV competition across RF, XGBoost, LightGBM, CatBoost and more." },
-  { id: "optuna",         title: "Optuna Tuning",       icon: "🔬", accent: "#a78bfa", href: "/tools/optuna",             description: "Bayesian hyperparameter search on the AutoML winner. Up to 200 trials." },
-  { id: "shap",           title: "SHAP Explainability", icon: "📊", accent: "#f87171", href: "/tools/shap",               description: "Explain predictions with SHAP importance bars per feature." },
-  { id: "ensemble",       title: "Ensemble",            icon: "🏆", accent: "#818cf8", href: "/tools/ensemble",           description: "Combine top models via Voting or Stacking for maximum accuracy." },
-] as const;
+  { id: "preprocessing",  title: "Preprocessing",       accent: "#38bdf8", href: "/tools/preprocessing",       description: "Impute missing values, remove duplicates, encode categoricals, handle outliers." },
+  { id: "featureeng",     title: "Feature Engineering", accent: "#f59e0b", href: "/tools/feature-engineering", description: "Create new features: log transforms, binning, polynomial, date extraction, ratios." },
+  { id: "featureselect",  title: "Feature Selection",   accent: "#34d399", href: "/tools/feature-selection",   description: "Select top features via variance, correlation, RFE, SelectKBest, Lasso, or PCA." },
+  { id: "automl",         title: "AutoML",              accent: "#22c55e", href: "/tools/automl",              description: "Run a 5-fold CV competition across RF, XGBoost, LightGBM, CatBoost and more." },
+  { id: "optuna",         title: "Optuna Tuning",       accent: "#a78bfa", href: "/tools/optuna",             description: "Bayesian hyperparameter search on the AutoML winner. Up to 200 trials." },
+  { id: "shap",           title: "SHAP Explainability", accent: "#f87171", href: "/tools/shap",               description: "Explain predictions with SHAP importance bars per feature." },
+  { id: "ensemble",       title: "Ensemble",            accent: "#818cf8", href: "/tools/ensemble",           description: "Combine top models via Voting or Stacking for maximum accuracy." },
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -219,7 +231,7 @@ function PipelineBuilderInner() {
               id={card.id}
               title={card.title}
               description={card.description}
-              icon={card.icon}
+              icon={ICONS[card.id as keyof typeof ICONS]}
               accent={card.accent}
               href={card.href}
               status={status}

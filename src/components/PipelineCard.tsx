@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export interface PipelineCardProps {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: ReactNode;
   accent: string;
   href: string;
   status: "locked" | "ready" | "done";
@@ -64,7 +65,6 @@ export default function PipelineCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "1.3rem",
           flexShrink: 0,
         }}
       >
