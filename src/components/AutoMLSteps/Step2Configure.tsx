@@ -25,6 +25,8 @@ interface Props {
   onUseSMOTE:      (v: boolean) => void;
   colEncodings:    Record<string, string>;
   onColEncoding:   (col: string, enc: string) => void;
+  dropCols:        string[];
+  onToggleDropCol: (col: string) => void;
   onBack:          () => void;
   onTrain:         () => void;
 }
@@ -34,6 +36,7 @@ export default function Step2Configure({
   selectedModels, availableModels, error, trainingEst,
   useSMOTE, onUseSMOTE,
   colEncodings, onColEncoding,
+  dropCols, onToggleDropCol,
   onTarget, onTaskType, onModelName, onToggleModel, onBack, onTrain,
 }: Props) {
   const addableModels = availableModels.filter(m => !selectedModels.has(m));
@@ -128,6 +131,26 @@ export default function Step2Configure({
           </div>
         );
       })()}
+
+      {/* Drop columns */}
+      <div>
+        <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.4rem" }}>
+          Drop columns <span style={{ fontWeight: 400, color: "var(--text3)" }}>— exclude from training</span>
+        </label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", maxHeight: 180, overflowY: "auto" }}>
+          {analyzed.columns.filter(c => c.name !== target).map(col => (
+            <label key={col.name} style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.3rem 0.65rem", borderRadius: 7, background: dropCols.includes(col.name) ? "rgba(167,139,250,0.08)" : "rgba(0,0,0,0.15)", border: `1px solid ${dropCols.includes(col.name) ? "rgba(167,139,250,0.25)" : "rgba(129,140,248,0.08)"}`, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={dropCols.includes(col.name)}
+                onChange={() => onToggleDropCol(col.name)}
+                style={{ accentColor: ACCENT, width: 13, height: 13, cursor: "pointer", flexShrink: 0 }}
+              />
+              <span style={{ fontSize: "0.77rem", color: "var(--text2)", flex: 1 }}>{col.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       {/* Model name */}
       <div>
