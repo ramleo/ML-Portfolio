@@ -296,7 +296,7 @@ export default function OptunaRunner() {
             </label>
             <input type="range" min={10} max={200} step={5} value={nTrials} onChange={e => setNTrials(Number(e.target.value))} style={{ width: "100%", accentColor: ACCENT }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.2rem" }}>
-              <span>10</span><span>100</span>
+              <span>10</span><span>200</span>
             </div>
           </div>
 
