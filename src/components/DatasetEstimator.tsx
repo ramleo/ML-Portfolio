@@ -78,7 +78,7 @@ function AlgoRow({ est }: { est: AlgoEstimate }) {
         ⏱ {fmtTime(est.timeMin, est.timeMax)}
       </span>
       <span style={{ fontSize: "0.72rem", color: "var(--text3)", whiteSpace: "nowrap" }}>
-        💾 {fmtMem(est.memoryMB)}
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 2 }}><rect x="2" y="1" width="12" height="14" rx="1.5"/><rect x="5" y="1" width="6" height="5" rx="0.5"/><rect x="5" y="9" width="6" height="5" rx="0.5"/></svg>{fmtMem(est.memoryMB)}
       </span>
     </div>
   );
@@ -138,7 +138,7 @@ export default function DatasetEstimator({ n, p, tool, fsOpts, ldaEnabled, ldaTo
                 ⏱ {fmtTime(totalMin, totalMax)}
               </span>
               <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
-                💾 {fmtMem(totalMem)}
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 2 }}><rect x="2" y="1" width="12" height="14" rx="1.5"/><rect x="5" y="1" width="6" height="5" rx="0.5"/><rect x="5" y="9" width="6" height="5" rx="0.5"/></svg>{fmtMem(totalMem)}
               </span>
               <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>
                 Recommended RAM: {fmtMem(recommendedRamMB(estimates))}

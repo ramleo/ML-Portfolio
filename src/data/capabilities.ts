@@ -130,6 +130,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/ensemble",
   },
+  {
+    id: "pipeline-builder",
+    title: "Pipeline Builder",
+    subtitle: "End-to-End ML Canvas",
+    description:
+      "Visual card canvas that orchestrates all 7 ML stages — Preprocessing, Feature Engineering, Feature Selection, AutoML, Optuna, SHAP, and Ensemble — into one sequential pipeline.",
+    accent: "#a78bfa",
+    stat: "7",
+    statLabel: "Stages",
+    model: "Full Pipeline",
+    input: "Any labeled CSV",
+    tags: ["Pipeline", "AutoML", "Optuna", "SHAP", "Ensemble", "End-to-End"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/pipeline-builder",
+  },
 ];
 
 export default capabilities;
