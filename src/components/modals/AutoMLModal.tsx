@@ -329,7 +329,7 @@ export default function AutoMLModal({
               onColEncoding={(col, enc) => setColEncodings(prev => ({ ...prev, [col]: enc }))}
               dropCols={dropCols}
               onToggleDropCol={(col) => setDropCols(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col])}
-              onBack={() => setStep("upload")}
+              onBack={() => { setStep("upload"); setError(""); }}
               onTrain={handleTrain}
             />
           )}
