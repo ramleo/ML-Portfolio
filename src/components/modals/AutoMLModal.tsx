@@ -208,7 +208,7 @@ export default function AutoMLModal({
       setError(e instanceof Error ? e.message : "Training failed.");
       setStep("config");
     }
-  }, [file, target, taskType, modelName, selectedModels]);
+  }, [file, target, taskType, modelName, selectedModels, dropCols, colEncodings, useSMOTE]);
 
   const handleSave = useCallback(() => {
     if (!trainResult?.automl) { onClose(); return; }
