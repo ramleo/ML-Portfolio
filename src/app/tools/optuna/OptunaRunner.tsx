@@ -294,7 +294,7 @@ export default function OptunaRunner() {
             <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
               Optuna Trials: <span style={{ color: ACCENT }}>{nTrials}</span>
             </label>
-            <input type="range" min={10} max={100} step={5} value={nTrials} onChange={e => setNTrials(Number(e.target.value))} style={{ width: "100%", accentColor: ACCENT }} />
+            <input type="range" min={10} max={200} step={5} value={nTrials} onChange={e => setNTrials(Number(e.target.value))} style={{ width: "100%", accentColor: ACCENT }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.2rem" }}>
               <span>10</span><span>100</span>
             </div>
