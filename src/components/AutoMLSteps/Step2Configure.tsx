@@ -23,6 +23,8 @@ interface Props {
   onToggleModel:   (m: string) => void;
   useSMOTE:        boolean;
   onUseSMOTE:      (v: boolean) => void;
+  colEncodings:    Record<string, string>;
+  onColEncoding:   (col: string, enc: string) => void;
   onBack:          () => void;
   onTrain:         () => void;
 }
@@ -31,6 +33,7 @@ export default function Step2Configure({
   file, analyzed, target, taskType, modelName,
   selectedModels, availableModels, error, trainingEst,
   useSMOTE, onUseSMOTE,
+  colEncodings, onColEncoding,
   onTarget, onTaskType, onModelName, onToggleModel, onBack, onTrain,
 }: Props) {
   const addableModels = availableModels.filter(m => !selectedModels.has(m));
@@ -94,6 +97,37 @@ export default function Step2Configure({
           </span>
         </label>
       )}
+
+      {/* Categorical encoding */}
+      {(() => {
+        const catCols = analyzed.columns
+          .filter(c => c.name !== target && !c.is_numeric)
+          .map(c => c.name);
+        if (!catCols.length) return null;
+        return (
+          <div>
+            <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>
+              Categorical encoding
+            </label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              {catCols.map(col => (
+                <div key={col} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.35rem 0.65rem", borderRadius: 7, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(129,140,248,0.1)" }}>
+                  <span style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 500 }}>{col}</span>
+                  <select
+                    value={colEncodings[col] ?? "onehot"}
+                    onChange={e => onColEncoding(col, e.target.value)}
+                    style={{ fontSize: "0.73rem", background: "#111827", border: "1px solid rgba(129,140,248,0.2)", borderRadius: 6, padding: "0.2rem 0.4rem", color: "var(--text)", cursor: "pointer" }}
+                  >
+                    <option value="onehot">One-Hot</option>
+                    <option value="ordinal">Ordinal</option>
+                    <option value="frequency">Frequency</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Model name */}
       <div>

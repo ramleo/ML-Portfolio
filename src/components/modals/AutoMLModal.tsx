@@ -83,6 +83,8 @@ export default function AutoMLModal({
   });
   const [expandedDatasets, setExpandedDatasets] = useState<Set<string>>(new Set());
 
+  const [colEncodings, setColEncodings] = useState<Record<string, string>>({});
+
   // ── Model selection ───────────────────────────────────────────────────────
   const availableModels = useMemo(
     () => [...SHARED_ML_MODELS, ...TASK_ML_MODELS[taskType]],
@@ -114,7 +116,7 @@ export default function AutoMLModal({
 
   const handleFile = useCallback(async (f: File) => {
     if (!f.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
-    setError(""); setFile(f); setAnalyzing(true);
+    setError(""); setFile(f); setAnalyzing(true); setColEncodings({});
     const abort = new AbortController();
     const timer = setTimeout(() => abort.abort(), 30_000);
     try {
@@ -164,6 +166,7 @@ export default function AutoMLModal({
       fd.append("n_trials",            "10");
       fd.append("selected_models",     JSON.stringify([...selectedModels]));
       fd.append("use_smote",           String(taskType === "classification" && useSMOTE));
+      fd.append("col_encoding_json",   JSON.stringify(colEncodings));
 
       const res = await fetch(`${API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error("Training request failed.");
@@ -264,7 +267,7 @@ export default function AutoMLModal({
 
   const handleRunAgain = useCallback(() => {
     setStep("upload"); setFile(null); setAnalyzed(null); setTrainResult(null);
-    setPct(0); setLlmExp(null); setIsLoadedFromSaved(false);
+    setPct(0); setLlmExp(null); setIsLoadedFromSaved(false); setColEncodings({});
   }, [setLlmExp]);
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -320,6 +323,8 @@ export default function AutoMLModal({
               onToggleModel={toggleModel}
               useSMOTE={useSMOTE}
               onUseSMOTE={setUseSMOTE}
+              colEncodings={colEncodings}
+              onColEncoding={(col, enc) => setColEncodings(prev => ({ ...prev, [col]: enc }))}
               onBack={() => setStep("upload")}
               onTrain={handleTrain}
             />
