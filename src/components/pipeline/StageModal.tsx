@@ -177,20 +177,20 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
   }
 
   if (stageId === "shap") {
-    const vals = d.shap_values as Record<string, number> ?? {};
-    const sorted = Object.entries(vals).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 10);
-    const max = sorted[0]?.[1] ? Math.abs(sorted[0][1]) : 1;
+    const items = (d.feature_importance as { feature: string; importance: number }[]) ?? [];
+    const max = items[0]?.importance ?? 1;
     return (
       <motion.div variants={stagger} initial="initial" animate="animate" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        {sorted.map(([feat, val]) => (
-          <motion.div key={feat} variants={fadeUp} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div style={{ width: 110, fontSize: "0.75rem", color: "rgba(220,230,250,0.8)", textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feat}</div>
+        {items.length === 0 && <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No SHAP values available.</p>}
+        {items.map(({ feature, importance }) => (
+          <motion.div key={feature} variants={fadeUp} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ width: 110, fontSize: "0.75rem", color: "rgba(220,230,250,0.8)", textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature}</div>
             <div style={{ flex: 1, height: 14, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: `${(Math.abs(val) / max) * 100}%` }}
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(importance / max) * 100}%` }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 style={{ height: "100%", background: accent, borderRadius: 4 }} />
             </div>
-            <div style={{ width: 52, fontSize: "0.72rem", color: "rgba(200,210,230,0.6)", textAlign: "right" }}>{val.toFixed(4)}</div>
+            <div style={{ width: 52, fontSize: "0.72rem", color: "rgba(200,210,230,0.6)", textAlign: "right" }}>{importance.toFixed(4)}</div>
           </motion.div>
         ))}
       </motion.div>

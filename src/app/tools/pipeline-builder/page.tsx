@@ -229,7 +229,9 @@ export default function PipelineBuilderPage() {
       return { id: s.id, label: s.title, accent: s.accent, scoreDelta, scoreUnit, tooltip };
     }
     if (s.id === "optuna") {
-      const scoreDelta = Math.round(((d.score_after as number ?? 0) - (d.score_before as number ?? 0)) * 10000) / 100;
+      const improvement = d.improvement as number ?? 0;
+      // classification improvement is 0-1 F1 → convert to %; regression is MAE units → keep as-is
+      const scoreDelta = taskType === "classification" ? Math.round(improvement * 10000) / 100 : Math.round(improvement * 100) / 100;
       const tooltip = "Hyperparameter tuning improved score";
       return { id: s.id, label: s.title, accent: s.accent, scoreDelta, tooltip };
     }
