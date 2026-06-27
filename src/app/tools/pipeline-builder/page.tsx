@@ -72,7 +72,7 @@ export default function PipelineBuilderPage() {
   const [stageResults, setStageResults] = useState<Record<string, StageResult>>({});
   const [stageCsvs, setStageCsvs] = useState<Record<string, string>>({});
   const [activeModal, setActiveModal] = useState<StageId | null>(null);
-  const [runningStage] = useState<StageId | null>(null);
+  const [runningStage, setRunningStage] = useState<StageId | null>(null);
   const [showCode, setShowCode] = useState(false);
   const [exportedCode, setExportedCode] = useState("");
   const [abResultA, setAbResultA] = useState<{ score: number; winner: string; time_ms: number } | null>(null);
@@ -93,18 +93,45 @@ export default function PipelineBuilderPage() {
   const doneCount = completedStages.length;
   const progressPct = Math.round((doneCount / STAGES.length) * 100);
 
-  const handleFile = useCallback(async (b64: string) => {
+  const handleFile = useCallback((b64: string, cols: string[]) => {
     setCsvB64(b64);
-    try {
-      const res = await fetch(`${API}/analyze`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv_b64: b64 }) });
-      if (res.ok) {
-        const json = await res.json() as { columns?: string[] };
-        const cols = json.columns ?? [];
-        setColumns(cols);
-        if (cols.length > 0) setTarget(cols[cols.length - 1]);
-      }
-    } catch { /* silent */ }
+    setColumns(cols);
+    if (cols.length > 0) setTarget(cols[cols.length - 1]);
   }, []);
+
+  async function runExpressPipeline() {
+    if (!csvB64 || !target) return;
+    const AUTO_STAGES: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
+    const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
+      preprocessing: { mv_num: "median", mv_cat: "most_frequent", remove_duplicates: true, remove_outliers: false, fix_skewness: false, drop_cols: [] },
+      "feature-eng": { transforms: {}, date_cols: [], date_parts: [] },
+      "feature-select": { method: "kbest", top_k: 15 },
+      automl: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 5 },
+    };
+    const ENDPOINTS: Record<string, string> = { preprocessing: "preprocess", "feature-eng": "feature-eng", "feature-select": "feature-select", automl: "automl" };
+    let currentCsv = csvB64;
+    for (const stageId of AUTO_STAGES) {
+      setRunningStage(stageId);
+      try {
+        const config = DEFAULT_CONFIGS[stageId];
+        const extraFields = stageId === "automl" ? { task_type: taskType } : {};
+        const res = await fetch(`${API}/pipeline-builder/${ENDPOINTS[stageId]}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csv_b64: currentCsv, target, config, ...extraFields }),
+        });
+        if (!res.ok) break;
+        const json = await res.json() as Record<string, unknown>;
+        const result: StageResult = { stageId, outputCsvB64: json.processed_csv_b64 as string | undefined, metric: json.metric as string | undefined, data: json };
+        setStageResults((p) => ({ ...p, [stageId]: result }));
+        if (json.processed_csv_b64) {
+          const nextCsv = json.processed_csv_b64 as string;
+          setStageCsvs((p) => ({ ...p, [stageId]: nextCsv }));
+          currentCsv = nextCsv;
+        }
+      } catch { break; }
+    }
+    setRunningStage(null);
+  }
 
   function handleStageComplete(result: StageResult) {
     setStageResults((p) => ({ ...p, [result.stageId]: result }));
@@ -188,7 +215,7 @@ export default function PipelineBuilderPage() {
         </div>
 
         {/* File upload */}
-        {!csvB64 && <FileUploadSection onFile={(b64) => handleFile(b64)} />}
+        {!csvB64 && <FileUploadSection onFile={(b64, cols) => handleFile(b64, cols)} />}
 
         {/* File info + target */}
         {csvB64 && (
@@ -247,6 +274,21 @@ export default function PipelineBuilderPage() {
           </div>
         )}
 
+        {/* Express mode banner + auto-run */}
+        {mode === "express" && csvB64 && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1.5rem", padding: "0.9rem 1.25rem", background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12 }}>
+            <div>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#4ade80", marginBottom: 2 }}>Express Mode</div>
+              <div style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.65)" }}>Runs all 4 pipeline stages automatically with optimal defaults. Results appear as each stage completes.</div>
+            </div>
+            <button onClick={runExpressPipeline} disabled={!!runningStage}
+              style={{ padding: "0.6rem 1.4rem", borderRadius: 9, background: "#22c55e", color: "#000", fontWeight: 700, fontSize: "0.85rem", border: "none", cursor: runningStage ? "not-allowed" : "pointer", opacity: runningStage ? 0.6 : 1, whiteSpace: "nowrap" }}>
+              {runningStage ? `Running ${runningStage}…` : "Auto-Run Pipeline"}
+            </button>
+          </motion.div>
+        )}
+
         {/* Guided / Express stage grid */}
         {mode !== "ab" && (
           <div ref={gridRef} style={{ position: "relative" }}>
@@ -277,7 +319,7 @@ export default function PipelineBuilderPage() {
       {/* Stage modal */}
       <AnimatePresence>
         {activeModal && csvB64 && (
-          <StageModal key={activeModal} stageId={activeModal} title={STAGES.find((s) => s.id === activeModal)?.title ?? activeModal} accent={STAGES.find((s) => s.id === activeModal)?.accent ?? "#38bdf8"} csvB64={getStageCsv(activeModal, csvB64, stageCsvs)} target={target} taskType={taskType} columns={columns} onClose={() => setActiveModal(null)} onComplete={handleStageComplete} existingResult={stageResults[activeModal] ?? null} />
+          <StageModal key={activeModal} stageId={activeModal} title={STAGES.find((s) => s.id === activeModal)?.title ?? activeModal} accent={STAGES.find((s) => s.id === activeModal)?.accent ?? "#38bdf8"} csvB64={getStageCsv(activeModal, csvB64, stageCsvs)} target={target} taskType={taskType} columns={columns} modelId={stageResults["automl"]?.data?.model_id as string | undefined} onClose={() => setActiveModal(null)} onComplete={handleStageComplete} existingResult={stageResults[activeModal] ?? null} />
         )}
       </AnimatePresence>
 

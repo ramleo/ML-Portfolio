@@ -117,25 +117,26 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
     const outliers = get(config, "remove_outliers", false);
     return (
       <div style={sectionStyle}>
-        <SelectField label="Numeric imputation" value={get(config, "numeric_impute", "mean")}
-          onChange={(v) => set("numeric_impute", v)} options={["mean", "median", "knn", "mice", "drop"]} />
-        <SelectField label="Categorical imputation" value={get(config, "cat_impute", "most_frequent")}
-          onChange={(v) => set("cat_impute", v)} options={["most_frequent", "constant", "drop"]} />
+        <SelectField label="Numeric imputation" value={get(config, "mv_num", "mean")}
+          onChange={(v) => set("mv_num", v)} options={["mean", "median", "knn", "mice", "drop"]} />
+        <SelectField label="Categorical imputation" value={get(config, "mv_cat", "most_frequent")}
+          onChange={(v) => set("mv_cat", v)} options={["most_frequent", "constant", "drop"]} />
         <Toggle label="Remove duplicates" checked={get(config, "remove_duplicates", false)} onChange={(v) => set("remove_duplicates", v)} />
         <Toggle label="Remove outliers" checked={outliers} onChange={(v) => set("remove_outliers", v)} />
         {outliers && (
           <SelectField label="Outlier method" value={get(config, "outlier_method", "iqr")}
             onChange={(v) => set("outlier_method", v)} options={["iqr", "zscore", "winsorize"]} />
         )}
-        <Toggle label="Fix skewness" checked={get(config, "fix_skew", false)} onChange={(v) => set("fix_skew", v)} />
+        <Toggle label="Fix skewness" checked={get(config, "fix_skewness", false)} onChange={(v) => set("fix_skewness", v)} />
         <Field label="Drop columns">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: 150, overflowY: "auto" }}>
+            {columns.length === 0 && <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.4)" }}>No columns loaded</span>}
             {columns.map((col) => {
-              const dropped = get<string[]>(config, "drop_columns", []);
+              const dropped = get<string[]>(config, "drop_cols", []);
               return (
                 <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                   <input type="checkbox" checked={dropped.includes(col)}
-                    onChange={(e) => set("drop_columns", e.target.checked ? [...dropped, col] : dropped.filter((c) => c !== col))}
+                    onChange={(e) => set("drop_cols", e.target.checked ? [...dropped, col] : dropped.filter((c) => c !== col))}
                     style={{ accentColor: "#8b5cf6" }} />
                   <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
                 </label>
@@ -225,8 +226,8 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
         <Field label="Select models to compare:">
           <ModelPills selected={get<string[]>(config, "models", MODEL_OPTIONS)} onChange={(v) => set("models", v)} />
         </Field>
-        <SliderField label="CV Folds" value={get(config, "cv_folds", 5)} min={3} max={10}
-          onChange={(v) => set("cv_folds", v)} />
+        <SliderField label="CV Folds" value={get(config, "n_folds", 5)} min={3} max={10}
+          onChange={(v) => set("n_folds", v)} />
         <Field label="Task type">
           <div style={{ display: "flex", gap: "1rem" }}>
             {(["classification", "regression"] as const).map((t) => (

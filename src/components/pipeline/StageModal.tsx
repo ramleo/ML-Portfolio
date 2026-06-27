@@ -20,6 +20,7 @@ interface Props {
   target: string;
   taskType: "classification" | "regression";
   columns: string[];
+  modelId?: string;
   onClose: () => void;
   onComplete: (result: StageResult) => void;
   existingResult?: StageResult | null;
@@ -39,12 +40,15 @@ function buildBody(
   stageId: string,
   csvB64: string,
   target: string,
+  taskType: string,
   config: Record<string, unknown>,
-  existingResult?: StageResult | null
+  modelId?: string
 ): Record<string, unknown> {
   const base = { csv_b64: csvB64, target, config };
+  if (stageId === "automl") return { ...base, task_type: taskType };
+  if (stageId === "ensemble") return { ...base, task_type: taskType };
   if (stageId === "optuna" || stageId === "shap") {
-    return { ...base, model_id: existingResult?.data?.model_id as string };
+    return { ...base, model_id: modelId ?? "" };
   }
   return base;
 }
@@ -217,7 +221,7 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
   return <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No result display available.</p>;
 }
 
-export default function StageModal({ stageId, title, accent, csvB64, target, taskType, columns, onClose, onComplete, existingResult }: Props) {
+export default function StageModal({ stageId, title, accent, csvB64, target, taskType, columns, modelId, onClose, onComplete, existingResult }: Props) {
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [result, setResult] = useState<StageResult | null>(existingResult ?? null);
   const [running, setRunning] = useState(false);
@@ -228,7 +232,7 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
     setError(null);
     try {
       const endpoint = ENDPOINTS[stageId] ?? stageId;
-      const body = buildBody(stageId, csvB64, target, config, existingResult);
+      const body = buildBody(stageId, csvB64, target, taskType, config, modelId);
       const res = await fetch(`${API}/pipeline-builder/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,7 +240,7 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
       });
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const json = await res.json();
-      const r: StageResult = { stageId, outputCsvB64: json.output_csv_b64, metric: json.metric, data: json };
+      const r: StageResult = { stageId, outputCsvB64: json.processed_csv_b64 as string | undefined, metric: json.metric as string | undefined, data: json };
       setResult(r);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");

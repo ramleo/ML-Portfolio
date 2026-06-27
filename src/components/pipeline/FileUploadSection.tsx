@@ -11,11 +11,18 @@ export default function FileUploadSection({ onFile }: Props) {
 
   function processFile(file: File) {
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
       const raw = e.target?.result as string;
       const b64 = raw.includes(",") ? raw.split(",")[1] : raw;
-      // Return immediately with empty columns — caller can fetch analyze separately
-      onFile(b64, []);
+      // Parse column names from the base64-encoded CSV header
+      try {
+        const decoded = atob(b64);
+        const firstLine = decoded.split("\n")[0] ?? "";
+        const cols = firstLine.split(",").map((c) => c.trim().replace(/^"|"$/g, "")).filter(Boolean);
+        onFile(b64, cols);
+      } catch {
+        onFile(b64, []);
+      }
     };
     reader.readAsDataURL(file);
   }
