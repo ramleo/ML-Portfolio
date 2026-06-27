@@ -23,9 +23,23 @@ const METRIC_MAP: Record<string, string> = {
   recall: "Recall",
 };
 
-function fmtMetric(m: string): string {
-  if (METRIC_MAP[m]) return METRIC_MAP[m];
-  return m.replace(/^neg_/i, "").replace(/_/g, " ");
+function fmtMetric(m: string) {
+  return METRIC_MAP[m] ?? m.replace(/^neg_/i, "").replace(/_/g, " ");
+}
+
+function useTypewriter(text: string, charDelay = 45) {
+  const [shown, setShown] = useState("");
+  useEffect(() => {
+    setShown("");
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      setShown(text.slice(0, i));
+      if (i >= text.length) clearInterval(t);
+    }, charDelay);
+    return () => clearInterval(t);
+  }, [text, charDelay]);
+  return shown;
 }
 
 function useCountUp(target: number, duration = 650) {
@@ -52,20 +66,20 @@ function CountUp({ value }: { value: number }) {
   return <>{useCountUp(value)}</>;
 }
 
+const MUTED = "rgba(200,205,225,0.38)";
+const MUTED_SM: React.CSSProperties = { fontSize: "0.65rem", color: MUTED, fontWeight: 400 };
+
 function RowLabel({ stage }: { stage: WaterfallStage }) {
   if (stage.scoreDelta !== undefined && stage.scoreDelta !== 0) {
-    const isErrorMetric = (stage.scoreUnit ?? "").startsWith("neg_");
-    const displayVal = isErrorMetric ? Math.abs(stage.scoreDelta) : stage.scoreDelta;
+    const isErr = (stage.scoreUnit ?? "").startsWith("neg_");
+    const displayVal = isErr ? Math.abs(stage.scoreDelta) : stage.scoreDelta;
     const pos = stage.scoreDelta >= 0;
-    const metricName = fmtMetric(stage.scoreUnit ?? "");
     return (
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-        <span style={{ color: pos ? "#4ade80" : "#f87171", fontWeight: 700, fontSize: "0.82rem", whiteSpace: "nowrap" }}>
-          {!isErrorMetric && (pos ? "+" : "")}{displayVal}
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+        <span style={{ color: pos ? "#4ade80" : "#f87171", fontWeight: 700, fontSize: "0.85rem" }}>
+          {!isErr && (pos ? "+" : "")}{displayVal}
         </span>
-        <span style={{ fontSize: "0.65rem", color: "rgba(200,205,225,0.4)", fontWeight: 500, letterSpacing: "0.03em" }}>
-          {metricName}
-        </span>
+        <span style={MUTED_SM}>{fmtMetric(stage.scoreUnit ?? "")}</span>
       </span>
     );
   }
@@ -75,32 +89,44 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
     const colChanged = stage.colsBefore !== undefined && stage.colsAfter !== stage.colsBefore;
 
     return (
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.18rem" }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.22rem" }}>
         {stage.rowsBefore !== undefined && (
-          <span style={{ fontSize: "0.72rem", fontWeight: 600, color: rowChanged ? stage.accent : "rgba(200,205,225,0.45)", whiteSpace: "nowrap" }}>
-            {rowChanged
-              ? <>{stage.rowsBefore}<span style={{ opacity: 0.5 }}> → </span><CountUp value={stage.rowsAfter!} /> rows</>
-              : <><CountUp value={stage.rowsAfter ?? stage.rowsBefore} /> rows</>
-            }
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: rowChanged ? stage.accent : "rgba(200,205,225,0.6)" }}>
+            {rowChanged ? (
+              <>{stage.rowsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.rowsAfter!} /> rows
+                <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.rowDelta! > 0 ? "+" : ""}{stage.rowDelta})</span>
+              </>
+            ) : (
+              <><CountUp value={stage.rowsAfter ?? stage.rowsBefore} /> rows
+                <span style={{ ...MUTED_SM, marginLeft: 4 }}>(no change)</span>
+              </>
+            )}
           </span>
         )}
         {stage.colsBefore !== undefined && (
-          <span style={{ fontSize: "0.72rem", fontWeight: 600, color: colChanged ? stage.accent : "rgba(200,205,225,0.45)", whiteSpace: "nowrap" }}>
-            {colChanged
-              ? <>{stage.colsBefore}<span style={{ opacity: 0.5 }}> → </span><CountUp value={stage.colsAfter!} /> cols</>
-              : <><CountUp value={stage.colsAfter ?? stage.colsBefore} /> cols</>
-            }
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: colChanged ? stage.accent : "rgba(200,205,225,0.6)" }}>
+            {colChanged ? (
+              <>{stage.colsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.colsAfter!} /> cols
+                <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.colDelta! > 0 ? "+" : ""}{stage.colDelta})</span>
+              </>
+            ) : (
+              <><CountUp value={stage.colsAfter ?? stage.colsBefore} /> cols
+                <span style={{ ...MUTED_SM, marginLeft: 4 }}>(no change)</span>
+              </>
+            )}
           </span>
         )}
       </span>
     );
   }
 
-  return <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.3)" }}>—</span>;
+  return <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.25)" }}>—</span>;
 }
 
 export default function WaterfallChart({ stages }: WaterfallChartProps) {
   if (!stages.length) return null;
+
+  const header = useTypewriter("STAGE IMPACT");
 
   const scoreStages = stages.filter((s) => s.scoreDelta !== undefined && s.scoreDelta !== 0);
   const maxScore = scoreStages.length
@@ -112,29 +138,31 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      style={{
-        background: "rgba(13,17,28,0.8)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 14,
-        padding: "1.25rem 1.5rem",
-        marginTop: "2rem",
-      }}
+      style={{ background: "rgba(13,17,28,0.8)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "1.25rem 1.5rem", marginTop: "2rem" }}
     >
-      {/* Header row with column labels */}
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.35 }}
-        style={{ display: "flex", alignItems: "center", marginBottom: "1.1rem" }}
-      >
-        <span style={{ fontSize: "0.82rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.55)", flex: "0 0 140px" }}>
-          Stage Impact
-        </span>
-        <div style={{ flex: 1 }} />
-        <span style={{ minWidth: 130, textAlign: "right", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.28)" }}>
-          output
-        </span>
-      </motion.div>
+      {/* Header with typewriter + accent underline */}
+      <div style={{ marginBottom: "1.2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.55rem" }}>
+          <span style={{ fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.1em", color: "rgba(200,205,225,0.7)", fontFamily: "monospace" }}>
+            {header}
+            <motion.span
+              animate={{ opacity: [1, 0] }}
+              transition={{ repeat: Infinity, duration: 0.7 }}
+              style={{ marginLeft: 2, borderRight: "2px solid rgba(200,205,225,0.5)", display: "inline-block", height: "0.85em", verticalAlign: "middle" }}
+            />
+          </span>
+          <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.28)" }}>
+            output
+          </span>
+        </div>
+        {/* Accent underline — animates width in after typewriter */}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "100%" }}
+          transition={{ delay: "STAGE IMPACT".length * 0.045 + 0.1, duration: 0.5, ease: "easeOut" }}
+          style={{ height: 1, background: "linear-gradient(90deg, rgba(56,189,248,0.5), rgba(168,139,250,0.3), transparent)" }}
+        />
+      </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
         <AnimatePresence>
