@@ -160,7 +160,10 @@ export default function PipelineBuilderPage() {
     if (s.id === "feature-eng" || s.id === "feature-select") {
       const cb = stats?.cols_before ?? 0;
       const ca = stats?.cols_after ?? 0;
-      return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb, colsBefore: cb, colsAfter: ca };
+      if (cb > 0 || ca > 0) {
+        return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb, colsBefore: cb, colsAfter: ca };
+      }
+      return { id: s.id, label: s.title, accent: s.accent };
     }
     if (s.id === "automl") {
       const winner = d.winner as Record<string, unknown> | undefined;

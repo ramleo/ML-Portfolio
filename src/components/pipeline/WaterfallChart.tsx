@@ -8,6 +8,26 @@ interface WaterfallChartProps {
   stages: WaterfallStage[];
 }
 
+const METRIC_MAP: Record<string, string> = {
+  neg_mean_absolute_error: "MAE",
+  neg_root_mean_squared_error: "RMSE",
+  neg_mean_squared_error: "MSE",
+  neg_mean_absolute_percentage_error: "MAPE",
+  r2: "R²",
+  accuracy: "Accuracy",
+  f1: "F1",
+  roc_auc: "AUC-ROC",
+  f1_weighted: "F1 (weighted)",
+  f1_macro: "F1 (macro)",
+  precision: "Precision",
+  recall: "Recall",
+};
+
+function fmtMetric(m: string): string {
+  if (METRIC_MAP[m]) return METRIC_MAP[m];
+  return m.replace(/^neg_/i, "").replace(/_/g, " ");
+}
+
 function useCountUp(target: number, duration = 650) {
   const [val, setVal] = useState(0);
   const prev = useRef(0);
@@ -34,10 +54,18 @@ function CountUp({ value }: { value: number }) {
 
 function RowLabel({ stage }: { stage: WaterfallStage }) {
   if (stage.scoreDelta !== undefined && stage.scoreDelta !== 0) {
+    const isErrorMetric = (stage.scoreUnit ?? "").startsWith("neg_");
+    const displayVal = isErrorMetric ? Math.abs(stage.scoreDelta) : stage.scoreDelta;
     const pos = stage.scoreDelta >= 0;
+    const metricName = fmtMetric(stage.scoreUnit ?? "");
     return (
-      <span style={{ color: pos ? "#4ade80" : "#f87171", fontWeight: 700, fontSize: "0.78rem", whiteSpace: "nowrap" }}>
-        {pos ? "+" : ""}{stage.scoreDelta} {stage.scoreUnit ?? ""}
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+        <span style={{ color: pos ? "#4ade80" : "#f87171", fontWeight: 700, fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+          {!isErrorMetric && (pos ? "+" : "")}{displayVal}
+        </span>
+        <span style={{ fontSize: "0.65rem", color: "rgba(200,205,225,0.4)", fontWeight: 500, letterSpacing: "0.03em" }}>
+          {metricName}
+        </span>
       </span>
     );
   }
@@ -47,20 +75,21 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
     const colChanged = stage.colsBefore !== undefined && stage.colsAfter !== stage.colsBefore;
 
     return (
-      <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.72rem", whiteSpace: "nowrap", fontWeight: 600 }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.18rem" }}>
         {stage.rowsBefore !== undefined && (
-          <span style={{ color: rowChanged ? stage.accent : "rgba(200,205,225,0.45)" }}>
-            <CountUp value={stage.rowsAfter ?? stage.rowsBefore} /> rows
-            {rowChanged && <span style={{ opacity: 0.8 }}> ({stage.rowDelta! > 0 ? "+" : ""}{stage.rowDelta})</span>}
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, color: rowChanged ? stage.accent : "rgba(200,205,225,0.45)", whiteSpace: "nowrap" }}>
+            {rowChanged
+              ? <>{stage.rowsBefore}<span style={{ opacity: 0.5 }}> → </span><CountUp value={stage.rowsAfter!} /> rows</>
+              : <><CountUp value={stage.rowsAfter ?? stage.rowsBefore} /> rows</>
+            }
           </span>
         )}
-        {stage.rowsBefore !== undefined && stage.colsBefore !== undefined && (
-          <span style={{ color: "rgba(255,255,255,0.18)", fontSize: "0.6rem" }}>·</span>
-        )}
         {stage.colsBefore !== undefined && (
-          <span style={{ color: colChanged ? stage.accent : "rgba(200,205,225,0.45)" }}>
-            <CountUp value={stage.colsAfter ?? stage.colsBefore} /> cols
-            {colChanged && <span style={{ opacity: 0.8 }}> ({stage.colDelta! > 0 ? "+" : ""}{stage.colDelta})</span>}
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, color: colChanged ? stage.accent : "rgba(200,205,225,0.45)", whiteSpace: "nowrap" }}>
+            {colChanged
+              ? <>{stage.colsBefore}<span style={{ opacity: 0.5 }}> → </span><CountUp value={stage.colsAfter!} /> cols</>
+              : <><CountUp value={stage.colsAfter ?? stage.colsBefore} /> cols</>
+            }
           </span>
         )}
       </span>
@@ -91,14 +120,19 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
         marginTop: "2rem",
       }}
     >
+      {/* Header row with column labels */}
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.35 }}
-        style={{ marginBottom: "1.25rem" }}
+        style={{ display: "flex", alignItems: "center", marginBottom: "1.1rem" }}
       >
-        <span style={{ fontSize: "0.82rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.55)" }}>
+        <span style={{ fontSize: "0.82rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.55)", flex: "0 0 140px" }}>
           Stage Impact
+        </span>
+        <div style={{ flex: 1 }} />
+        <span style={{ minWidth: 130, textAlign: "right", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.28)" }}>
+          output
         </span>
       </motion.div>
 
@@ -132,7 +166,6 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                     transition={{ delay: index * 0.07 + 0.12, duration: 0.5, ease: "easeOut" }}
                     style={{ height: "100%", background: stage.accent, borderRadius: 4 }}
                   />
-                  {/* arrival glow flash */}
                   <motion.div
                     initial={{ opacity: 0.5 }}
                     animate={{ opacity: 0 }}
