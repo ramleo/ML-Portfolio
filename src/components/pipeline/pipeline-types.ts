@@ -6,4 +6,8 @@ export interface WaterfallStage {
   scoreUnit?: string;
   rowDelta?: number;
   colDelta?: number;
+  rowsBefore?: number;
+  rowsAfter?: number;
+  colsBefore?: number;
+  colsAfter?: number;
 }

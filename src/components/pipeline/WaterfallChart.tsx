@@ -59,7 +59,7 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
           if (hasScore) {
             barWidth = Math.max(4, (Math.abs(stage.scoreDelta!) / maxScore) * 100);
           } else if (hasRowCol) {
-            barWidth = 30;
+            barWidth = stage.colsBefore !== undefined ? 25 : 30;
           } else {
             barWidth = 10;
           }
@@ -104,7 +104,7 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
               {/* Value label */}
               <div
                 style={{
-                  minWidth: 110,
+                  minWidth: 130,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "flex-end",
@@ -113,6 +113,19 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
               >
                 {hasScore ? (
                   <DeltaLabel value={stage.scoreDelta!} unit={stage.scoreUnit ?? ""} />
+                ) : stage.rowsBefore !== undefined || stage.colsBefore !== undefined ? (
+                  <>
+                    {stage.rowsBefore !== undefined && (
+                      <span style={{ fontSize: "0.72rem", whiteSpace: "nowrap", color: stage.rowsAfter !== stage.rowsBefore ? stage.accent : "rgba(200,205,225,0.45)" }}>
+                        {stage.rowsAfter} rows{stage.rowsAfter !== stage.rowsBefore ? ` (${stage.rowDelta! > 0 ? "+" : ""}${stage.rowDelta})` : " (no change)"}
+                      </span>
+                    )}
+                    {stage.colsBefore !== undefined && (
+                      <span style={{ fontSize: "0.72rem", whiteSpace: "nowrap", color: stage.colsAfter !== stage.colsBefore ? stage.accent : "rgba(200,205,225,0.45)" }}>
+                        {stage.colsAfter} cols{stage.colsAfter !== stage.colsBefore ? ` (${stage.colDelta! > 0 ? "+" : ""}${stage.colDelta})` : " (no change)"}
+                      </span>
+                    )}
+                  </>
                 ) : hasRowCol ? (
                   <>
                     {stage.rowDelta !== undefined && stage.rowDelta !== 0 && (
@@ -121,10 +134,6 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                     {stage.colDelta !== undefined && stage.colDelta !== 0 && (
                       <DeltaLabel value={stage.colDelta} unit="cols" />
                     )}
-                    {(stage.rowDelta === 0 || stage.rowDelta === undefined) &&
-                      (stage.colDelta === 0 || stage.colDelta === undefined) && (
-                        <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.4)" }}>—</span>
-                      )}
                   </>
                 ) : (
                   <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.4)" }}>—</span>

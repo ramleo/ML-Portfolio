@@ -154,16 +154,6 @@ const BTN_BASE: React.CSSProperties = {
   gap: 5,
 };
 
-const ARROW_SVG = {
-  width: 13,
-  height: 13,
-  fill: "none" as const,
-  stroke: "currentColor",
-  strokeWidth: 2.2,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  viewBox: "0 0 24 24",
-};
 
 function ActionButton({
   status,
@@ -263,8 +253,8 @@ export default function StageCard({
   useEffect(() => {
     if (status === "done") {
       controls.start({
-        scale: [1, 1.04, 1],
-        transition: { duration: 0.35 },
+        scale: [1, 1.06, 0.97, 1.02, 1],
+        transition: { duration: 0.5, ease: "easeOut" },
       });
     }
     if (status === "error") {
@@ -292,6 +282,10 @@ export default function StageCard({
           0%   { border-color: rgba(255,255,255,0.1); }
           50%  { border-color: rgba(255,255,255,0.4); }
           100% { border-color: rgba(255,255,255,0.1); }
+        }
+        @keyframes sc-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
         }
       `}</style>
       <motion.div
@@ -327,6 +321,11 @@ export default function StageCard({
           transition: "box-shadow 0.4s",
         }}
       >
+        {isRunning && (
+          <div style={{ position: "absolute", inset: 0, borderRadius: 14, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
+            <div style={{ position: "absolute", top: 0, left: 0, width: "40%", height: "100%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)", animation: "sc-shimmer 1.5s ease-in-out infinite" }} />
+          </div>
+        )}
         <div
           style={{
             display: "flex",

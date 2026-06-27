@@ -41,53 +41,80 @@ function getStatus(
   return "ready";
 }
 
-function RightArrow({ animated }: { animated: boolean }) {
+function FlowConnector({ active }: { active: boolean }) {
   return (
-    <>
+    <div style={{ flexShrink: 0, alignSelf: "center", width: 32, position: "relative", height: 24, display: "flex", alignItems: "center" }}>
       <style>{`
-        @keyframes connector-pulse {
-          0%   { opacity: 0.4; }
-          50%  { opacity: 1; }
-          100% { opacity: 0.4; }
+        @keyframes flow-dot {
+          0%   { left: 0px; opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 1; }
+          100% { left: 28px; opacity: 0; }
+        }
+        @keyframes flow-dot-idle {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.5; }
         }
       `}</style>
-      <svg
-        width={24}
-        height={24}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="rgba(56,189,248,0.6)"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{
-          flexShrink: 0,
-          alignSelf: "center",
-          animation: animated ? "connector-pulse 1.4s ease-in-out infinite" : "none",
-        }}
-      >
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </>
+      <div style={{
+        position: "absolute", left: 0, right: 0, top: "50%", height: 1,
+        background: active
+          ? "linear-gradient(90deg, rgba(56,189,248,0.6), rgba(56,189,248,0.2))"
+          : "rgba(255,255,255,0.1)",
+        transform: "translateY(-50%)",
+      }} />
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 5, height: 5,
+        borderRadius: "50%",
+        background: active ? "#38bdf8" : "rgba(255,255,255,0.2)",
+        boxShadow: active ? "0 0 6px 2px rgba(56,189,248,0.7)" : "none",
+        animation: active
+          ? "flow-dot 1.2s ease-in-out infinite"
+          : "flow-dot-idle 2s ease-in-out infinite",
+      }} />
+    </div>
   );
 }
 
-function DownArrow() {
+function DownArrow({ active }: { active: boolean }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", margin: "0.5rem 0" }}>
-      <svg
-        width={24}
-        height={24}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="rgba(56,189,248,0.6)"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ flexShrink: 0 }}
-      >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+      <div style={{ position: "relative", width: 24, height: 32, display: "flex", justifyContent: "center" }}>
+        <style>{`
+          @keyframes flow-dot-down {
+            0%   { top: 0px; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 28px; opacity: 0; }
+          }
+          @keyframes flow-dot-down-idle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+        <div style={{
+          position: "absolute", top: 0, bottom: 0, left: "50%", width: 1,
+          background: active
+            ? "linear-gradient(180deg, rgba(56,189,248,0.6), rgba(56,189,248,0.2))"
+            : "rgba(255,255,255,0.1)",
+          transform: "translateX(-50%)",
+        }} />
+        <div style={{
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 5, height: 5,
+          borderRadius: "50%",
+          background: active ? "#38bdf8" : "rgba(255,255,255,0.2)",
+          boxShadow: active ? "0 0 6px 2px rgba(56,189,248,0.7)" : "none",
+          animation: active
+            ? "flow-dot-down 1.2s ease-in-out infinite"
+            : "flow-dot-down-idle 2s ease-in-out infinite",
+        }} />
+      </div>
     </div>
   );
 }
@@ -142,7 +169,7 @@ export default function StageGrid({
                 />
               </div>
               {!isLast && (
-                <RightArrow animated={completedSet.has(stage.id)} />
+                <FlowConnector active={completedSet.has(stage.id)} />
               )}
             </div>
           );
@@ -150,7 +177,7 @@ export default function StageGrid({
       </div>
 
       {/* Down arrow between rows */}
-      <DownArrow />
+      <DownArrow active={row1.some((s) => completedSet.has(s.id))} />
 
       {/* Row 2: optuna → shap → ensemble (centered) */}
       <div
@@ -187,7 +214,7 @@ export default function StageGrid({
                 />
               </div>
               {!isLast && (
-                <RightArrow animated={completedSet.has(stage.id)} />
+                <FlowConnector active={completedSet.has(stage.id)} />
               )}
             </div>
           );

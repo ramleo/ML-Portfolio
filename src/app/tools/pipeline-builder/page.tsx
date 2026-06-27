@@ -155,12 +155,12 @@ export default function PipelineBuilderPage() {
       const ra = stats?.rows_after ?? (d.rows_after as number ?? 0);
       const cb = stats?.cols_before ?? (d.cols_before as number ?? 0);
       const ca = stats?.cols_after ?? (d.cols_after as number ?? 0);
-      return { id: s.id, label: s.title, accent: s.accent, rowDelta: ra - rb, colDelta: ca - cb };
+      return { id: s.id, label: s.title, accent: s.accent, rowDelta: ra - rb, colDelta: ca - cb, rowsBefore: rb, rowsAfter: ra, colsBefore: cb, colsAfter: ca };
     }
     if (s.id === "feature-eng" || s.id === "feature-select") {
       const cb = stats?.cols_before ?? 0;
       const ca = stats?.cols_after ?? 0;
-      return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb };
+      return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb, colsBefore: cb, colsAfter: ca };
     }
     if (s.id === "automl") {
       const winner = d.winner as Record<string, unknown> | undefined;
