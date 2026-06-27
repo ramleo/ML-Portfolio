@@ -120,7 +120,11 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
     );
   }
 
-  return <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.25)" }}>—</span>;
+  return (
+    <span style={{ fontSize: "0.7rem", color: "rgba(200,205,225,0.3)", fontStyle: "italic" }}>
+      no change
+    </span>
+  );
 }
 
 export default function WaterfallChart({ stages }: WaterfallChartProps) {
