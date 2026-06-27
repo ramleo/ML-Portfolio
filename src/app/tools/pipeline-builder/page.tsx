@@ -9,7 +9,16 @@ import ModeSelector from "@/components/pipeline/ModeSelector";
 import StageCard from "@/components/pipeline/StageCard";
 import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
 import StageGrid from "@/components/pipeline/StageGrid";
-import type { WaterfallStage } from "@/components/pipeline/WaterfallChart";
+
+type WaterfallStage = {
+  id: string;
+  label: string;
+  accent: string;
+  scoreDelta?: number;
+  scoreUnit?: string;
+  rowDelta?: number;
+  colDelta?: number;
+};
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
