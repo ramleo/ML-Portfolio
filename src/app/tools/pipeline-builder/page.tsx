@@ -7,9 +7,9 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import ModeSelector from "@/components/pipeline/ModeSelector";
 import StageCard from "@/components/pipeline/StageCard";
-import type { StageStatus } from "@/components/pipeline/StageCard";
 import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
 import StageGrid from "@/components/pipeline/StageGrid";
+import type { WaterfallStage } from "@/components/pipeline/WaterfallChart";
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
@@ -41,15 +41,6 @@ const STAGES: { id: StageId; title: string; accent: string; description: string 
   { id: "ensemble", title: "Ensemble", accent: "#818cf8", description: "Combine models for higher accuracy" },
 ];
 
-const LOCKED_UNTIL_AUTOML = new Set(["optuna", "shap", "ensemble"]);
-
-function getStatus(id: string, hasFile: boolean, results: Record<string, StageResult>, running: string | null): StageStatus {
-  if (!hasFile) return "locked";
-  if (running === id) return "running";
-  if (results[id]) return "done";
-  if (LOCKED_UNTIL_AUTOML.has(id) && !results["automl"]) return "locked";
-  return "ready";
-}
 
 function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): string {
   const order: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl", "optuna", "shap", "ensemble"];
@@ -155,7 +146,7 @@ export default function PipelineBuilderPage() {
     setStageCsvs({}); setActiveModal(null); setAbResultA(null); setAbResultB(null);
   }
 
-  const waterfallStages = STAGES.filter((s) => stageResults[s.id]).map((s) => {
+  const waterfallStages: WaterfallStage[] = STAGES.filter((s) => stageResults[s.id]).map((s) => {
     const d = stageResults[s.id].data;
     const stats = d.stats as Record<string, number> | undefined;
 
