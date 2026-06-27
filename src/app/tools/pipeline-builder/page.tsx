@@ -134,11 +134,13 @@ export default function PipelineBuilderPage() {
 
   async function runExpressPipeline() {
     if (!csvB64 || !target) return;
+    setStageResults({});
+    setStageCsvs({});
     const AUTO_STAGES: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
     const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
       preprocessing: { mv_num: "median", mv_cat: "most_frequent", remove_duplicates: true, remove_outliers: false, fix_skewness: false, drop_cols: [] },
       "feature-eng": { transforms: {}, date_cols: [], date_parts: [] },
-      "feature-select": { method: "kbest", top_k: 15 },
+      "feature-select": { method: "none", top_k: 15 },
       automl: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 5 },
     };
     const ENDPOINTS: Record<string, string> = { preprocessing: "preprocess", "feature-eng": "feature-eng", "feature-select": "feature-select", automl: "automl" };
@@ -226,7 +228,9 @@ export default function PipelineBuilderPage() {
       const scoreDelta = Math.round((winner?.score as number ?? 0) * 10000) / 100;
       const scoreUnit = winner?.metric as string ?? "";
       const nFolds = (d.n_folds as number | undefined) ?? 5;
-      const tooltip = `Winner: ${winner?.algo ?? "unknown"} · Score: ${scoreDelta} ${fmtM(scoreUnit)} · ${nFolds}-fold CV`;
+      const sampledFrom = d.sampled_from as number | null | undefined;
+      const sampleNote = sampledFrom ? ` · sampled 15K/${sampledFrom} rows` : "";
+      const tooltip = `Winner: ${winner?.algo ?? "unknown"} · Score: ${scoreDelta} ${fmtM(scoreUnit)} · ${nFolds}-fold CV${sampleNote}`;
       return { id: s.id, label: s.title, accent: s.accent, scoreDelta, scoreUnit, tooltip };
     }
     if (s.id === "optuna") {
@@ -311,7 +315,7 @@ export default function PipelineBuilderPage() {
                 </div>
               </>
             )}
-            <button onClick={() => { setCsvB64(null); setColumns([]); }} style={{ marginLeft: "auto", fontSize: "0.72rem", color: "rgba(248,113,113,0.7)", background: "transparent", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 6, padding: "0.25rem 0.65rem", cursor: "pointer" }}>Remove</button>
+            <button onClick={() => { setCsvB64(null); setColumns([]); setStageResults({}); setStageCsvs({}); }} style={{ marginLeft: "auto", fontSize: "0.72rem", color: "rgba(248,113,113,0.7)", background: "transparent", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 6, padding: "0.25rem 0.65rem", cursor: "pointer" }}>Remove</button>
           </motion.div>
         )}
 
