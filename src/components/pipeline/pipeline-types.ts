@@ -1,4 +1,4 @@
-export interface WaterfallStageDef {
+export interface WaterfallStage {
   id: string;
   label: string;
   accent: string;

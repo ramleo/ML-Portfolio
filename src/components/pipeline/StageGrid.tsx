@@ -11,8 +11,8 @@ interface StageDef {
   icon: React.ReactNode;
 }
 
-import type { WaterfallStageDef } from "./pipeline-types";
-export type { WaterfallStageDef };
+import type { WaterfallStage } from "./pipeline-types";
+export type { WaterfallStage };
 
 interface Props {
   stages: StageDef[];
@@ -22,7 +22,7 @@ interface Props {
   completedStages: string[];
   activeStage: string | null;
   onOpenStage: (id: string) => void;
-  waterfallStages: WaterfallStageDef[];
+  waterfallStages: WaterfallStage[];
   icons: Record<string, React.ReactNode>;
 }
 

@@ -1,23 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-
-interface Stage {
-  id: string;
-  label: string;
-  scoreDelta: number;
-  accent: string;
-}
+import type { WaterfallStage } from "./pipeline-types";
 
 interface WaterfallChartProps {
-  stages: Stage[];
+  stages: WaterfallStage[];
+}
+
+function DeltaLabel({ value, unit }: { value: number; unit: string }) {
+  const positive = value >= 0;
+  return (
+    <span style={{ color: positive ? "#4ade80" : "#f87171", fontWeight: 600, fontSize: "0.78rem", whiteSpace: "nowrap" }}>
+      {positive ? "+" : ""}{value}{unit ? ` ${unit}` : ""}
+    </span>
+  );
 }
 
 export default function WaterfallChart({ stages }: WaterfallChartProps) {
-  if (!stages.length || stages.every((s) => s.scoreDelta === 0)) return null;
+  if (!stages.length) return null;
 
-  const maxDelta = Math.max(...stages.map((s) => s.scoreDelta), 1);
-  const cumulative = stages.reduce((sum, s) => sum + s.scoreDelta, 0);
+  const scoreStages = stages.filter((s) => s.scoreDelta !== undefined && s.scoreDelta !== 0);
+  const maxScore = scoreStages.length
+    ? Math.max(...scoreStages.map((s) => Math.abs(s.scoreDelta!)), 1)
+    : 1;
 
   return (
     <div
@@ -30,14 +35,7 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1.25rem",
-        }}
-      >
+      <div style={{ marginBottom: "1.25rem" }}>
         <span
           style={{
             fontSize: "0.82rem",
@@ -49,30 +47,27 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
         >
           Stage Impact
         </span>
-        <span
-          style={{
-            fontSize: "0.88rem",
-            fontWeight: 700,
-            color: "rgba(200,205,225,0.9)",
-          }}
-        >
-          {cumulative >= 0 ? "+" : ""}
-          {cumulative.toFixed(2)}
-        </span>
       </div>
 
       {/* Rows */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
         {stages.map((stage, index) => {
-          const barWidth = Math.max(4, (stage.scoreDelta / maxDelta) * 100);
+          const hasScore = stage.scoreDelta !== undefined && stage.scoreDelta !== 0;
+          const hasRowCol = stage.rowDelta !== undefined || stage.colDelta !== undefined;
+
+          let barWidth: number;
+          if (hasScore) {
+            barWidth = Math.max(4, (Math.abs(stage.scoreDelta!) / maxScore) * 100);
+          } else if (hasRowCol) {
+            barWidth = 30;
+          } else {
+            barWidth = 10;
+          }
+
           return (
             <div
               key={stage.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-              }}
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
             >
               {/* Label */}
               <span
@@ -101,31 +96,40 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: `${barWidth}%` }}
-                  transition={{
-                    delay: index * 0.1,
-                    duration: 0.5,
-                    ease: "easeOut",
-                  }}
-                  style={{
-                    height: "100%",
-                    background: stage.accent,
-                    borderRadius: 4,
-                  }}
+                  transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
+                  style={{ height: "100%", background: stage.accent, borderRadius: 4 }}
                 />
               </div>
 
-              {/* Delta value */}
-              <span
+              {/* Value label */}
+              <div
                 style={{
-                  minWidth: 60,
-                  textAlign: "right",
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: stage.accent,
+                  minWidth: 110,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: "0.15rem",
                 }}
               >
-                +{stage.scoreDelta.toFixed(2)}
-              </span>
+                {hasScore ? (
+                  <DeltaLabel value={stage.scoreDelta!} unit={stage.scoreUnit ?? ""} />
+                ) : hasRowCol ? (
+                  <>
+                    {stage.rowDelta !== undefined && stage.rowDelta !== 0 && (
+                      <DeltaLabel value={stage.rowDelta} unit="rows" />
+                    )}
+                    {stage.colDelta !== undefined && stage.colDelta !== 0 && (
+                      <DeltaLabel value={stage.colDelta} unit="cols" />
+                    )}
+                    {(stage.rowDelta === 0 || stage.rowDelta === undefined) &&
+                      (stage.colDelta === 0 || stage.colDelta === undefined) && (
+                        <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.4)" }}>—</span>
+                      )}
+                  </>
+                ) : (
+                  <span style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.4)" }}>—</span>
+                )}
+              </div>
             </div>
           );
         })}

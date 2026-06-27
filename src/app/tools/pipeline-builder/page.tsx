@@ -9,7 +9,7 @@ import ModeSelector from "@/components/pipeline/ModeSelector";
 import StageCard from "@/components/pipeline/StageCard";
 import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
 import StageGrid from "@/components/pipeline/StageGrid";
-import type { WaterfallStageDef } from "@/components/pipeline/pipeline-types";
+import type { WaterfallStage } from "@/components/pipeline/pipeline-types";
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
@@ -146,7 +146,7 @@ export default function PipelineBuilderPage() {
     setStageCsvs({}); setActiveModal(null); setAbResultA(null); setAbResultB(null);
   }
 
-  const waterfallStages: WaterfallStageDef[] = STAGES.filter((s) => stageResults[s.id]).map((s) => {
+  const waterfallStages: WaterfallStage[] = STAGES.filter((s) => stageResults[s.id]).map((s) => {
     const d = stageResults[s.id].data;
     const stats = d.stats as Record<string, number> | undefined;
 
