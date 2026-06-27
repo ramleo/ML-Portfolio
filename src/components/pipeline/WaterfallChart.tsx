@@ -123,10 +123,27 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
 
 export default function WaterfallChart({ stages }: WaterfallChartProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [glowing, setGlowing] = useState(false);
+  const prevLen = useRef(0);
+  const mounted = useRef(false);
+  const header = useTypewriter("STAGE IMPACT");
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      prevLen.current = stages.length;
+      return;
+    }
+    if (stages.length > prevLen.current) {
+      setGlowing(true);
+      const t = setTimeout(() => setGlowing(false), 900);
+      prevLen.current = stages.length;
+      return () => clearTimeout(t);
+    }
+    prevLen.current = stages.length;
+  }, [stages.length]);
 
   if (!stages.length) return null;
-
-  const header = useTypewriter("STAGE IMPACT");
 
   const scoreStages = stages.filter((s) => s.scoreDelta !== undefined && s.scoreDelta !== 0);
   const maxScore = scoreStages.length
@@ -138,7 +155,13 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      style={{ background: "rgba(13,17,28,0.8)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "1.25rem 1.5rem", marginTop: "2rem" }}
+      style={{
+        background: "rgba(13,17,28,0.8)",
+        border: `1px solid ${glowing ? "rgba(56,189,248,0.5)" : "rgba(255,255,255,0.08)"}`,
+        boxShadow: glowing ? "0 0 28px rgba(56,189,248,0.18), inset 0 0 20px rgba(56,189,248,0.04)" : "none",
+        borderRadius: 14, padding: "1.25rem 1.5rem", marginTop: "2rem",
+        transition: "border-color 0.35s, box-shadow 0.35s",
+      }}
     >
       {/* Header with typewriter + accent underline */}
       <div style={{ marginBottom: "1.2rem" }}>
