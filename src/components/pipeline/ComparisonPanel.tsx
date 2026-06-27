@@ -30,6 +30,7 @@ function useCountUp(target: number | null, duration = 900): number {
       setDisplay(0);
       return;
     }
+    const targetVal = target;
     startRef.current = null;
 
     function step(ts: number) {
@@ -38,11 +39,11 @@ function useCountUp(target: number | null, duration = 900): number {
       const progress = Math.min(elapsed / duration, 1);
       // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(target * eased);
+      setDisplay(targetVal * eased);
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(step);
       } else {
-        setDisplay(target);
+        setDisplay(targetVal);
       }
     }
 

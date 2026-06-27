@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import { ML_UNIFIED_API as API } from "@/config/urls";
@@ -21,7 +22,7 @@ type StageId = "preprocessing" | "feature-eng" | "feature-select" | "automl" | "
 
 const S = { width: 22, height: 22, fill: "none" as const, stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, viewBox: "0 0 24 24" };
 
-const ICONS: Record<string, React.ReactElement> = {
+const ICONS: Record<string, ReactElement> = {
   preprocessing: <svg {...S}><path d="M22 3H2l8 9.46V19l4 2V12.46z" /></svg>,
   "feature-eng": <svg {...S}><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>,
   "feature-select": <svg {...S}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3" /><path d="M12 3v3m0 12v3M3 12h3m12 0h3" /></svg>,
@@ -78,7 +79,14 @@ export default function PipelineBuilderPage() {
   const [abResultB, setAbResultB] = useState<{ score: number; winner: string; time_ms: number } | null>(null);
   const [abRunning, setAbRunning] = useState(false);
 
-  const cardRefs = useRef<React.RefObject<HTMLDivElement>[]>(STAGES.map(() => React.createRef<HTMLDivElement>()));
+  const cr0 = useRef<HTMLDivElement>(null);
+  const cr1 = useRef<HTMLDivElement>(null);
+  const cr2 = useRef<HTMLDivElement>(null);
+  const cr3 = useRef<HTMLDivElement>(null);
+  const cr4 = useRef<HTMLDivElement>(null);
+  const cr5 = useRef<HTMLDivElement>(null);
+  const cr6 = useRef<HTMLDivElement>(null);
+  const cardRefs = [cr0, cr1, cr2, cr3, cr4, cr5, cr6];
   const gridRef = useRef<HTMLDivElement>(null);
 
   const completedStages = STAGES.filter((s) => stageResults[s.id]).map((s) => s.id);
@@ -242,10 +250,10 @@ export default function PipelineBuilderPage() {
         {/* Guided / Express stage grid */}
         {mode !== "ab" && (
           <div ref={gridRef} style={{ position: "relative" }}>
-            <CircuitBoard cardRefs={cardRefs.current} completedStages={completedStages} activeStage={activeModal ?? runningStage} containerRef={gridRef as React.RefObject<HTMLDivElement>} />
+            <CircuitBoard cardRefs={cardRefs} completedStages={completedStages} activeStage={activeModal ?? runningStage} containerRef={gridRef} />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1.25rem", position: "relative", zIndex: 2 }}>
               {STAGES.map((stage, i) => (
-                <StageCard key={stage.id} id={stage.id} title={stage.title} description={stage.description} icon={ICONS[stage.id]} accent={stage.accent} status={getStatus(stage.id, !!csvB64, stageResults, runningStage)} metric={stageResults[stage.id]?.metric ?? null} onOpen={() => setActiveModal(stage.id)} index={i} cardRef={cardRefs.current[i]} />
+                <StageCard key={stage.id} id={stage.id} title={stage.title} description={stage.description} icon={ICONS[stage.id]} accent={stage.accent} status={getStatus(stage.id, !!csvB64, stageResults, runningStage)} metric={stageResults[stage.id]?.metric ?? null} onOpen={() => setActiveModal(stage.id)} index={i} cardRef={cardRefs[i]} />
               ))}
             </div>
             {waterfallStages.length >= 2 && <WaterfallChart stages={waterfallStages} />}
