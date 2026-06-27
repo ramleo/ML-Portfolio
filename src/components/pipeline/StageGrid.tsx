@@ -1,8 +1,6 @@
 "use client";
 
-import { useRef } from "react";
 import StageCard, { type StageStatus } from "@/components/pipeline/StageCard";
-import CircuitBoard from "@/components/pipeline/CircuitBoard";
 import WaterfallChart from "@/components/pipeline/WaterfallChart";
 
 interface StageDef {
@@ -13,12 +11,8 @@ interface StageDef {
   icon: React.ReactNode;
 }
 
-interface WaterfallStageDef {
-  id: string;
-  label: string;
-  scoreDelta: number;
-  accent: string;
-}
+import type { WaterfallStageDef } from "./pipeline-types";
+export type { WaterfallStageDef };
 
 interface Props {
   stages: StageDef[];
@@ -47,61 +41,159 @@ function getStatus(
   return "ready";
 }
 
+function RightArrow({ animated }: { animated: boolean }) {
+  return (
+    <>
+      <style>{`
+        @keyframes connector-pulse {
+          0%   { opacity: 0.4; }
+          50%  { opacity: 1; }
+          100% { opacity: 0.4; }
+        }
+      `}</style>
+      <svg
+        width={24}
+        height={24}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="rgba(56,189,248,0.6)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{
+          flexShrink: 0,
+          alignSelf: "center",
+          animation: animated ? "connector-pulse 1.4s ease-in-out infinite" : "none",
+        }}
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </>
+  );
+}
+
+function DownArrow() {
+  return (
+    <div style={{ display: "flex", justifyContent: "center", margin: "0.5rem 0" }}>
+      <svg
+        width={24}
+        height={24}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="rgba(56,189,248,0.6)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ flexShrink: 0 }}
+      >
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </div>
+  );
+}
+
 export default function StageGrid({
   stages,
   stageResults,
   csvB64,
   runningStage,
   completedStages,
-  activeStage,
   onOpenStage,
   waterfallStages,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const r0 = useRef<HTMLDivElement>(null);
-  const r1 = useRef<HTMLDivElement>(null);
-  const r2 = useRef<HTMLDivElement>(null);
-  const r3 = useRef<HTMLDivElement>(null);
-  const r4 = useRef<HTMLDivElement>(null);
-  const r5 = useRef<HTMLDivElement>(null);
-  const r6 = useRef<HTMLDivElement>(null);
-  const cardRefs = [r0, r1, r2, r3, r4, r5, r6];
+  // Split stages into two rows: row1 = indices 0–3, row2 = indices 4–6
+  const row1 = stages.slice(0, 4);
+  const row2 = stages.slice(4, 7);
+
+  const completedSet = new Set(completedStages);
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
-      <CircuitBoard
-        cardRefs={cardRefs}
-        completedStages={completedStages}
-        activeStage={activeStage}
-        containerRef={containerRef}
-      />
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: "1.25rem",
-        position: "relative",
-        zIndex: 2,
-      }}>
-        {stages.map((stage, i) => {
+    <div>
+      {/* Row 1: preprocessing → feature-eng → feature-select → automl */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 0,
+          flexWrap: "nowrap",
+          overflowX: "auto",
+        }}
+      >
+        {row1.map((stage, i) => {
           const status = getStatus(stage.id, !!csvB64, stageResults, runningStage);
           const metric = stageResults[stage.id]?.metric ?? null;
+          const isLast = i === row1.length - 1;
           return (
-            <StageCard
+            <div
               key={stage.id}
-              id={stage.id}
-              title={stage.title}
-              description={stage.description}
-              icon={stage.icon}
-              accent={stage.accent}
-              status={status}
-              metric={metric}
-              onOpen={() => onOpenStage(stage.id)}
-              index={i}
-              cardRef={cardRefs[i]}
-            />
+              style={{ display: "flex", alignItems: "center", flex: i < row1.length - 1 ? "1 1 0" : "none", minWidth: 200 }}
+            >
+              <div style={{ flex: 1 }}>
+                <StageCard
+                  id={stage.id}
+                  title={stage.title}
+                  description={stage.description}
+                  icon={stage.icon}
+                  accent={stage.accent}
+                  status={status}
+                  metric={metric}
+                  onOpen={() => onOpenStage(stage.id)}
+                  index={i}
+                />
+              </div>
+              {!isLast && (
+                <RightArrow animated={completedSet.has(stage.id)} />
+              )}
+            </div>
           );
         })}
       </div>
+
+      {/* Down arrow between rows */}
+      <DownArrow />
+
+      {/* Row 2: optuna → shap → ensemble (centered) */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 0,
+          flexWrap: "nowrap",
+          justifyContent: "center",
+          overflowX: "auto",
+        }}
+      >
+        {row2.map((stage, i) => {
+          const globalIndex = 4 + i;
+          const status = getStatus(stage.id, !!csvB64, stageResults, runningStage);
+          const metric = stageResults[stage.id]?.metric ?? null;
+          const isLast = i === row2.length - 1;
+          return (
+            <div
+              key={stage.id}
+              style={{ display: "flex", alignItems: "center", flex: i < row2.length - 1 ? "1 1 0" : "none", minWidth: 200, maxWidth: 340 }}
+            >
+              <div style={{ flex: 1 }}>
+                <StageCard
+                  id={stage.id}
+                  title={stage.title}
+                  description={stage.description}
+                  icon={stage.icon}
+                  accent={stage.accent}
+                  status={status}
+                  metric={metric}
+                  onOpen={() => onOpenStage(stage.id)}
+                  index={globalIndex}
+                />
+              </div>
+              {!isLast && (
+                <RightArrow animated={completedSet.has(stage.id)} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {waterfallStages.length >= 2 && (
         <WaterfallChart stages={waterfallStages} />
       )}
