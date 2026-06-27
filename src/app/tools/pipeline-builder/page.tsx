@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -8,9 +8,8 @@ import { ML_UNIFIED_API as API } from "@/config/urls";
 import ModeSelector from "@/components/pipeline/ModeSelector";
 import StageCard from "@/components/pipeline/StageCard";
 import type { StageStatus } from "@/components/pipeline/StageCard";
-import CircuitBoard from "@/components/pipeline/CircuitBoard";
 import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
-import WaterfallChart from "@/components/pipeline/WaterfallChart";
+import StageGrid from "@/components/pipeline/StageGrid";
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
@@ -79,15 +78,6 @@ export default function PipelineBuilderPage() {
   const [abResultB, setAbResultB] = useState<{ score: number; winner: string; time_ms: number } | null>(null);
   const [abRunning, setAbRunning] = useState(false);
 
-  const cr0 = useRef<HTMLDivElement>(null);
-  const cr1 = useRef<HTMLDivElement>(null);
-  const cr2 = useRef<HTMLDivElement>(null);
-  const cr3 = useRef<HTMLDivElement>(null);
-  const cr4 = useRef<HTMLDivElement>(null);
-  const cr5 = useRef<HTMLDivElement>(null);
-  const cr6 = useRef<HTMLDivElement>(null);
-  const cardRefs = [cr0, cr1, cr2, cr3, cr4, cr5, cr6];
-  const gridRef = useRef<HTMLDivElement>(null);
 
   const completedStages = STAGES.filter((s) => stageResults[s.id]).map((s) => s.id);
   const doneCount = completedStages.length;
@@ -167,13 +157,35 @@ export default function PipelineBuilderPage() {
 
   const waterfallStages = STAGES.filter((s) => stageResults[s.id]).map((s) => {
     const d = stageResults[s.id].data;
-    let delta = 0;
-    if (s.id === "preprocessing") delta = ((d.rows_before as number ?? 100) - (d.rows_after as number ?? 100)) / (d.rows_before as number ?? 100) * 100;
-    if (s.id === "feature-eng") delta = (d.new_columns as unknown[])?.length ?? 2;
-    if (s.id === "automl") delta = ((d.winner as Record<string, unknown>)?.score as number ?? 0) * 100;
-    if (s.id === "optuna") delta = ((d.score_after as number ?? 0) - (d.score_before as number ?? 0)) * 100;
-    if (s.id === "ensemble") delta = ((d.ensemble_score as number ?? 0) - ((stageResults["automl"]?.data?.winner as Record<string, unknown>)?.score as number ?? 0)) * 100;
-    return { id: s.id, label: s.title, scoreDelta: Math.round(delta * 100) / 100, accent: s.accent };
+    const stats = d.stats as Record<string, number> | undefined;
+
+    if (s.id === "preprocessing") {
+      const rb = stats?.rows_before ?? (d.rows_before as number ?? 0);
+      const ra = stats?.rows_after ?? (d.rows_after as number ?? 0);
+      const cb = stats?.cols_before ?? (d.cols_before as number ?? 0);
+      const ca = stats?.cols_after ?? (d.cols_after as number ?? 0);
+      return { id: s.id, label: s.title, accent: s.accent, rowDelta: ra - rb, colDelta: ca - cb };
+    }
+    if (s.id === "feature-eng" || s.id === "feature-select") {
+      const cb = stats?.cols_before ?? 0;
+      const ca = stats?.cols_after ?? 0;
+      return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb };
+    }
+    if (s.id === "automl") {
+      const winner = d.winner as Record<string, unknown> | undefined;
+      const scoreDelta = Math.round((winner?.score as number ?? 0) * 10000) / 100;
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta, scoreUnit: winner?.metric as string ?? "" };
+    }
+    if (s.id === "optuna") {
+      const scoreDelta = Math.round(((d.score_after as number ?? 0) - (d.score_before as number ?? 0)) * 10000) / 100;
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta };
+    }
+    if (s.id === "ensemble") {
+      const base = (stageResults["automl"]?.data?.winner as Record<string, unknown>)?.score as number ?? 0;
+      const scoreDelta = Math.round(((d.ensemble_score as number ?? 0) - base) * 10000) / 100;
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta };
+    }
+    return { id: s.id, label: s.title, accent: s.accent };
   });
 
   const abScoreA = abResultA?.score ?? null;
@@ -291,15 +303,17 @@ export default function PipelineBuilderPage() {
 
         {/* Guided / Express stage grid */}
         {mode !== "ab" && (
-          <div ref={gridRef} style={{ position: "relative" }}>
-            <CircuitBoard cardRefs={cardRefs} completedStages={completedStages} activeStage={activeModal ?? runningStage} containerRef={gridRef} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1.25rem", position: "relative", zIndex: 2 }}>
-              {STAGES.map((stage, i) => (
-                <StageCard key={stage.id} id={stage.id} title={stage.title} description={stage.description} icon={ICONS[stage.id]} accent={stage.accent} status={getStatus(stage.id, !!csvB64, stageResults, runningStage)} metric={stageResults[stage.id]?.metric ?? null} onOpen={() => setActiveModal(stage.id)} index={i} cardRef={cardRefs[i]} />
-              ))}
-            </div>
-            {waterfallStages.length >= 2 && <WaterfallChart stages={waterfallStages} />}
-          </div>
+          <StageGrid
+            stages={STAGES.map((s) => ({ ...s, icon: ICONS[s.id] }))}
+            stageResults={stageResults}
+            csvB64={csvB64}
+            runningStage={runningStage}
+            completedStages={completedStages}
+            activeStage={activeModal}
+            onOpenStage={(id) => setActiveModal(id as StageId)}
+            waterfallStages={waterfallStages}
+            icons={ICONS}
+          />
         )}
 
         {/* Bottom actions */}
