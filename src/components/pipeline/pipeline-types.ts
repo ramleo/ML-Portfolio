@@ -10,4 +10,5 @@ export interface WaterfallStage {
   rowsAfter?: number;
   colsBefore?: number;
   colsAfter?: number;
+  tooltip?: string;
 }

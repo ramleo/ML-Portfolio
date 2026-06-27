@@ -128,6 +128,8 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
 }
 
 export default function WaterfallChart({ stages }: WaterfallChartProps) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
   if (!stages.length) return null;
 
   const header = useTypewriter("STAGE IMPACT");
@@ -185,8 +187,23 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12 }}
                 transition={{ delay: index * 0.07, duration: 0.32, ease: "easeOut" }}
-                style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+                onMouseEnter={() => setHoveredId(stage.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                style={{ display: "flex", alignItems: "center", gap: "0.75rem", position: "relative" }}
               >
+                {hoveredId === stage.id && stage.tooltip && (
+                  <div style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", left: 140, zIndex: 50,
+                    background: "rgba(15,22,38,0.97)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8, padding: "0.5rem 0.85rem",
+                    fontSize: "0.73rem", color: "rgba(200,210,230,0.85)",
+                    whiteSpace: "nowrap", pointerEvents: "none",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.5)"
+                  }}>
+                    {stage.tooltip}
+                  </div>
+                )}
+
                 <span style={{ minWidth: 140, fontSize: "0.82rem", color: "rgba(200,205,225,0.75)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {stage.label}
                 </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -41,6 +41,57 @@ const STAGES: { id: StageId; title: string; accent: string; description: string 
   { id: "ensemble", title: "Ensemble", accent: "#818cf8", description: "Combine models for higher accuracy" },
 ];
 
+
+function fmtM(m: string) {
+  const map: Record<string, string> = { neg_mean_absolute_error: "MAE", neg_root_mean_squared_error: "RMSE", r2: "R²", accuracy: "Accuracy", f1: "F1", roc_auc: "AUC-ROC" };
+  return map[m] ?? m.replace(/^neg_/i, "").replace(/_/g, " ");
+}
+
+// ── Custom Target Dropdown ─────────────────────────────────────────────────────
+
+function TargetDropdown({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: "var(--text)", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", minWidth: 110 }}
+      >
+        <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
+        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, marginTop: 4, background: "rgba(20,27,45,0.98)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, maxHeight: 200, overflowY: "auto", minWidth: "100%" }}>
+          {options.map((opt) => (
+            <div
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false); }}
+              style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", cursor: "pointer", color: opt === value ? "#4ade80" : "var(--text)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", whiteSpace: "nowrap" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.07)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+            >
+              {opt}
+              {opt === value && <span style={{ fontSize: "0.7rem", color: "#4ade80" }}>✓</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): string {
   const order: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl", "optuna", "shap", "ensemble"];
@@ -155,31 +206,40 @@ export default function PipelineBuilderPage() {
       const ra = stats?.rows_after ?? (d.rows_after as number ?? 0);
       const cb = stats?.cols_before ?? (d.cols_before as number ?? 0);
       const ca = stats?.cols_after ?? (d.cols_after as number ?? 0);
-      return { id: s.id, label: s.title, accent: s.accent, rowDelta: ra - rb, colDelta: ca - cb, rowsBefore: rb, rowsAfter: ra, colsBefore: cb, colsAfter: ca };
+      const tooltip = `Missing values filled (imputation preserves row count). Shape: ${rb} rows × ${cb} cols → ${ra} rows × ${ca} cols`;
+      return { id: s.id, label: s.title, accent: s.accent, rowDelta: ra - rb, colDelta: ca - cb, rowsBefore: rb, rowsAfter: ra, colsBefore: cb, colsAfter: ca, tooltip };
     }
     if (s.id === "feature-eng" || s.id === "feature-select") {
       const cb = stats?.cols_before ?? 0;
       const ca = stats?.cols_after ?? 0;
+      const stageLabel = s.id === "feature-eng" ? "Feature transforms applied" : "Top features selected";
       if (cb > 0 || ca > 0) {
-        return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb, colsBefore: cb, colsAfter: ca };
+        const tooltip = `${stageLabel}. Columns: ${cb} → ${ca}`;
+        return { id: s.id, label: s.title, accent: s.accent, colDelta: ca - cb, colsBefore: cb, colsAfter: ca, tooltip };
       }
-      return { id: s.id, label: s.title, accent: s.accent };
+      const tooltip = `${stageLabel} (no column stats)`;
+      return { id: s.id, label: s.title, accent: s.accent, tooltip };
     }
     if (s.id === "automl") {
       const winner = d.winner as Record<string, unknown> | undefined;
       const scoreDelta = Math.round((winner?.score as number ?? 0) * 10000) / 100;
-      return { id: s.id, label: s.title, accent: s.accent, scoreDelta, scoreUnit: winner?.metric as string ?? "" };
+      const scoreUnit = winner?.metric as string ?? "";
+      const nFolds = (d.n_folds as number | undefined) ?? 5;
+      const tooltip = `Winner: ${winner?.algo ?? "unknown"} · Score: ${scoreDelta} ${fmtM(scoreUnit)} · ${nFolds}-fold CV`;
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta, scoreUnit, tooltip };
     }
     if (s.id === "optuna") {
       const scoreDelta = Math.round(((d.score_after as number ?? 0) - (d.score_before as number ?? 0)) * 10000) / 100;
-      return { id: s.id, label: s.title, accent: s.accent, scoreDelta };
+      const tooltip = "Hyperparameter tuning improved score";
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta, tooltip };
     }
     if (s.id === "ensemble") {
       const base = (stageResults["automl"]?.data?.winner as Record<string, unknown>)?.score as number ?? 0;
       const scoreDelta = Math.round(((d.ensemble_score as number ?? 0) - base) * 10000) / 100;
-      return { id: s.id, label: s.title, accent: s.accent, scoreDelta };
+      const tooltip = "Ensemble of top models";
+      return { id: s.id, label: s.title, accent: s.accent, scoreDelta, tooltip };
     }
-    return { id: s.id, label: s.title, accent: s.accent };
+    return { id: s.id, label: s.title, accent: s.accent, tooltip: "Stage completed" };
   });
 
   const abScoreA = abResultA?.score ?? null;
@@ -236,9 +296,7 @@ export default function PipelineBuilderPage() {
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <label style={{ fontSize: "0.78rem", color: "var(--text2)", whiteSpace: "nowrap" }}>Target:</label>
-                  <select value={target} onChange={(e) => setTarget(e.target.value)} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: "var(--text)", padding: "0.3rem 0.6rem", fontSize: "0.8rem" }}>
-                    {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <TargetDropdown value={target} options={columns} onChange={setTarget} />
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   {(["classification", "regression"] as const).map((t) => (
