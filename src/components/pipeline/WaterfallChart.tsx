@@ -88,32 +88,26 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
     const rowChanged = stage.rowsBefore !== undefined && stage.rowsAfter !== stage.rowsBefore;
     const colChanged = stage.colsBefore !== undefined && stage.colsAfter !== stage.colsBefore;
 
+    if (!rowChanged && !colChanged) {
+      return (
+        <span style={{ fontSize: "0.72rem", color: "rgba(200,205,225,0.35)", fontStyle: "italic" }}>
+          No change
+        </span>
+      );
+    }
+
     return (
       <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.22rem" }}>
-        {stage.rowsBefore !== undefined && (
-          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: rowChanged ? stage.accent : "rgba(200,205,225,0.6)" }}>
-            {rowChanged ? (
-              <>{stage.rowsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.rowsAfter!} /> rows
-                <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.rowDelta! > 0 ? "+" : ""}{stage.rowDelta})</span>
-              </>
-            ) : (
-              <><CountUp value={stage.rowsAfter ?? stage.rowsBefore} /> rows
-                <span style={{ ...MUTED_SM, marginLeft: 4 }}>(no change)</span>
-              </>
-            )}
+        {rowChanged && (
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: stage.accent }}>
+            {stage.rowsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.rowsAfter!} /> rows
+            <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.rowDelta! > 0 ? "+" : ""}{stage.rowDelta})</span>
           </span>
         )}
-        {stage.colsBefore !== undefined && (
-          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: colChanged ? stage.accent : "rgba(200,205,225,0.6)" }}>
-            {colChanged ? (
-              <>{stage.colsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.colsAfter!} /> cols
-                <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.colDelta! > 0 ? "+" : ""}{stage.colDelta})</span>
-              </>
-            ) : (
-              <><CountUp value={stage.colsAfter ?? stage.colsBefore} /> cols
-                <span style={{ ...MUTED_SM, marginLeft: 4 }}>(no change)</span>
-              </>
-            )}
+        {colChanged && (
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap", color: stage.accent }}>
+            {stage.colsBefore}<span style={{ opacity: 0.45 }}> → </span><CountUp value={stage.colsAfter!} /> cols
+            <span style={{ ...MUTED_SM, marginLeft: 4 }}>({stage.colDelta! > 0 ? "+" : ""}{stage.colDelta})</span>
           </span>
         )}
       </span>
@@ -193,7 +187,7 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
               >
                 {hoveredId === stage.id && stage.tooltip && (
                   <div style={{
-                    position: "absolute", bottom: "calc(100% + 8px)", left: 140, zIndex: 50,
+                    position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50,
                     background: "rgba(15,22,38,0.97)", border: "1px solid rgba(255,255,255,0.1)",
                     borderRadius: 8, padding: "0.5rem 0.85rem",
                     fontSize: "0.73rem", color: "rgba(200,210,230,0.85)",
