@@ -13,6 +13,7 @@ import type { WaterfallStage } from "@/components/pipeline/pipeline-types";
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
+import ExpressRunner from "@/components/pipeline/ExpressRunner";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -353,6 +354,11 @@ export default function PipelineBuilderPage() {
               {runningStage ? `Running ${runningStage}…` : "Auto-Run Pipeline"}
             </button>
           </motion.div>
+        )}
+
+        {/* Express running animation */}
+        {mode === "express" && (
+          <ExpressRunner runningStage={runningStage} completedStages={completedStages} />
         )}
 
         {/* Guided / Express stage grid */}
