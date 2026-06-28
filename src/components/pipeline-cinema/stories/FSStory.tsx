@@ -31,14 +31,14 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
 
   if (allCols && allCols.length > 0) {
     const keptSet = new Set(keptCols ?? allCols);
-    const kept = allCols.filter(c => keptSet.has(c)).slice(0, 6);
-    const dropped = allCols.filter(c => !keptSet.has(c)).slice(0, 3);
+    const kept = allCols.filter(c => keptSet.has(c)).slice(0, 12);
+    const dropped = allCols.filter(c => !keptSet.has(c)).slice(0, 5);
     const all = [...kept, ...dropped];
     displayFeatures = all.map((name, i) => ({
       name,
-      score: parseFloat((0.95 - i * 0.07).toFixed(2)),
+      score: parseFloat((0.95 - i * 0.05).toFixed(2)),
       keep: keptSet.has(name),
-    })).slice(0, 10);
+    })).slice(0, 17);
   } else {
     displayFeatures = demoFeatures;
   }
@@ -55,8 +55,11 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [active, step, frozen, keptCols]);
 
+  const rowH = displayFeatures.length > 10 ? 16 : 22;
+  const gap = displayFeatures.length > 10 ? 2 : 4;
+
   return (
-    <div data-frozen={frozen} style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4 }}>
+    <div data-frozen={frozen} style={{ padding: "1rem", display: "flex", flexDirection: "column", gap }}>
       {displayFeatures.map((feat, i) => {
         const isDimmed = !feat.keep && step >= 2;
         const isRemoved = !feat.keep && step >= 3;
@@ -68,7 +71,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
             key={feat.name}
             animate={isRemoved
               ? { height: 0, opacity: 0, marginBottom: -4 }
-              : { height: 22, opacity: isDimmed ? 0.2 : 1, marginBottom: 0 }
+              : { height: rowH, opacity: isDimmed ? 0.2 : 1, marginBottom: 0 }
             }
             transition={{ duration: 0.4, delay: isRemoved ? i * 0.04 : 0 }}
             style={{ overflow: "hidden", display: "flex", alignItems: "center", gap: 8 }}
@@ -84,7 +87,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
 
             {/* Bar track */}
             <div style={{
-              flex: 1, height: 14, background: "#0a1628",
+              flex: 1, height: rowH - 4, background: "#0a1628",
               borderRadius: 4, overflow: "hidden", position: "relative",
             }}>
               {/* Threshold line */}

@@ -163,7 +163,7 @@ export async function callFeatureSelect(
       dropped > 0
         ? `Dropping ${dropped} low-variance feature${dropped > 1 ? "s" : ""}: ${data.dropped_features?.slice(0, 3).join(", ")}${dropped > 3 ? "..." : ""}.`
         : "All features pass the variance threshold!",
-      `Keeping ${data.features_after} features for model training. Leaner = faster + less overfitting.`,
+      `Keeping ${data.features_after - 1} features for model training. Leaner = faster + less overfitting.`,
     ],
   };
 }
