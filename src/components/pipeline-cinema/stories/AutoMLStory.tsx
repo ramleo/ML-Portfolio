@@ -178,15 +178,15 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
 
   useEffect(() => {
     if (!active) { setStep(automlResults ? 3 : 0); return; }
-    if (frozen) { if (step !== 3) setStep(3); return; } // viewer mode: lock at winner state
-    // Skip step 0 — cards are invisible there; start from 1
+    if (frozen || automlResults) { if (step !== 3) setStep(3); return; } // lock at winner once data arrives
+    // Demo cycling (no real data): skip step 0 so cards never disappear
     if (step === 0) { setStep(1); return; }
     timerRef.current = setTimeout(() => {
-      setStep((s) => (s >= 4 ? 1 : s + 1)); // cycle 1→2→3→4→1
+      setStep((s) => (s >= 4 ? 1 : s + 1));
     }, CYCLE_MS);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, step, frozen]);
+  }, [active, step, frozen, automlResults]);
 
   return (
     <div style={{ padding: "1rem" }}>
