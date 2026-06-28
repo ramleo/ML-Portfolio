@@ -173,7 +173,7 @@ export async function callAutoML(
       csv_b64: csvB64,
       target,
       task_type: taskType,
-      config: { models: ["RandomForest", "LogisticRegression"], n_folds: 3 },
+      config: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 3 },
     }),
   });
   if (!res.ok) return null;
@@ -233,11 +233,12 @@ export async function callAutoML(
 
   // Map metric name to human-readable label
   const metricLabel = metric === "r2" || metric === "r2_score" ? "R² score"
-    : metric === "rmse" ? "RMSE"
-    : metric === "mae" ? "MAE"
+    : metric === "rmse" || metric === "neg_root_mean_squared_error" ? "RMSE"
+    : metric === "mae" || metric === "neg_mean_absolute_error" ? "MAE"
+    : metric === "mse" || metric === "neg_mean_squared_error" ? "MSE"
     : metric === "f1_weighted" || metric === "f1" ? "F1 score"
     : metric === "accuracy" ? "accuracy"
-    : metric;
+    : metric.replace(/^neg_/, "").replace(/_/g, " ");
 
   return {
     lines: [

@@ -54,27 +54,7 @@ export default function FSStory({ active, allCols, keptCols }: Props) {
   }, [active, step]);
 
   return (
-    <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4, position: "relative" }}>
-      {/* Badge */}
-      <AnimatePresence>
-        {step >= 3 && (
-          <motion.div
-            key="badge"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "absolute", top: 8, right: 8,
-              background: "#f59e0b22", border: "1px solid #f59e0b",
-              borderRadius: 6, padding: "2px 8px",
-              fontSize: 9, color: "#f59e0b", fontWeight: 700,
-            }}
-          >
-            {displayFeatures.filter(f => f.keep).length} / {displayFeatures.length} features kept
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+    <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4 }}>
       {displayFeatures.map((feat, i) => {
         const isDimmed = !feat.keep && step >= 2;
         const isRemoved = !feat.keep && step >= 3;
@@ -144,6 +124,26 @@ export default function FSStory({ active, allCols, keptCols }: Props) {
           </motion.div>
         );
       })}
+
+      {/* Badge — below bars so it never overlaps scores */}
+      <AnimatePresence>
+        {step >= 3 && (
+          <motion.div
+            key="badge"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            style={{
+              alignSelf: "flex-end", marginTop: 6,
+              background: "#f59e0b22", border: "1px solid #f59e0b",
+              borderRadius: 6, padding: "2px 8px",
+              fontSize: 9, color: "#f59e0b", fontWeight: 700,
+            }}
+          >
+            {displayFeatures.filter(f => f.keep).length} / {displayFeatures.length} features kept
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
