@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { type StageResult } from "./StageModal";
 
 interface Props {
@@ -110,6 +111,48 @@ function s(config: Record<string, unknown>, setConfig: (c: Record<string, unknow
   setConfig({ ...config, [key]: val });
 }
 
+function InteractionPicker({
+  columns, interactions, onAdd, onRemove,
+}: {
+  columns: string[];
+  interactions: string[][];
+  onAdd: (a: string, b: string) => void;
+  onRemove: (i: number) => void;
+}) {
+  const [colA, setColA] = useState("");
+  const [colB, setColB] = useState("");
+  return (
+    <div>
+      <label style={labelStyle}>Column interactions (A × B → new column):</label>
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+        <select value={colA} onChange={(e) => setColA(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
+          <option value="">Col A</option>
+          {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <span style={{ color: "rgba(200,210,230,0.4)", fontSize: "0.9rem" }}>×</span>
+        <select value={colB} onChange={(e) => setColB(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
+          <option value="">Col B</option>
+          {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button type="button" onClick={() => { onAdd(colA, colB); setColA(""); setColB(""); }}
+          style={{ padding: "0.4rem 0.7rem", borderRadius: 6, background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.4)", color: "#c4b5fd", fontSize: "0.78rem", cursor: "pointer", whiteSpace: "nowrap" }}>
+          + Add
+        </button>
+      </div>
+      {interactions.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+          {interactions.map(([a, b], i) => (
+            <span key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 5, padding: "0.15rem 0.5rem", fontSize: "0.73rem", color: "#c4b5fd" }}>
+              {a} × {b}
+              <button type="button" onClick={() => onRemove(i)} style={{ background: "none", border: "none", color: "rgba(200,210,230,0.4)", cursor: "pointer", padding: 0, lineHeight: 1, fontSize: "0.85rem" }}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StageConfigForm({ stageId, config, setConfig, columns, taskType, existingResult }: Props) {
   const set = (key: string, val: unknown) => s(config, setConfig, key, val);
 
@@ -149,30 +192,52 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
   }
 
   if (stageId === "feature-eng") {
-    const transforms = get<Record<string, string[]>>(config, "column_transforms", {});
-    const dateCols = get<string[]>(config, "date_columns", []);
-    const dateParts = get<string[]>(config, "date_parts", []);
-    const TRANSFORM_OPTS = ["log1p", "sqrt", "outlier_flag", "missing_flag"];
+    // Keys must match backend FEConfig field names exactly
+    const transforms  = get<Record<string, string[]>>(config, "transforms", {});
+    const dateCols    = get<string[]>(config, "date_cols", []);
+    const dateParts   = get<string[]>(config, "date_parts", []);
+    const interactions = get<string[][]>(config, "interactions", []);
+    const polyCols    = get<string[]>(config, "poly_cols", []);
+    const polyDegree  = get<number>(config, "poly_degree", 2);
+
+    const NUMERIC_TRANSFORMS: { id: string; label: string }[] = [
+      { id: "log1p",       label: "log1p"         },
+      { id: "sqrt",        label: "sqrt"          },
+      { id: "yeo_johnson", label: "Yeo-Johnson"   },
+      { id: "bin_equal",   label: "Equal bins"    },
+      { id: "bin_quantile",label: "Quantile bins" },
+    ];
     const DATE_PARTS = ["year", "month", "day", "dayofweek"];
+
+    // Interaction picker state lives in config as interactions: string[][]
+    function addPair(a: string, b: string) {
+      if (!a || !b || a === b) return;
+      const already = interactions.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+      if (!already) set("interactions", [...interactions, [a, b]]);
+    }
+    function removePair(i: number) {
+      set("interactions", interactions.filter((_, idx) => idx !== i));
+    }
+
     return (
       <div style={sectionStyle}>
         <div>
-          <label style={labelStyle}>For each numeric column, select transforms to apply:</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: 220, overflowY: "auto" }}>
+          <label style={labelStyle}>Column transforms (each creates a new column):</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: 200, overflowY: "auto" }}>
             {columns.map((col) => {
               const cur = transforms[col] ?? [];
               return (
                 <div key={col} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.6)", marginBottom: "0.3rem" }}>{col}</div>
+                  <div style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.55)", marginBottom: "0.3rem" }}>{col}</div>
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                    {TRANSFORM_OPTS.map((t) => (
-                      <label key={t} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
-                        <input type="checkbox" checked={cur.includes(t)}
+                    {NUMERIC_TRANSFORMS.map((t) => (
+                      <label key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
+                        <input type="checkbox" checked={cur.includes(t.id)}
                           onChange={(e) => {
-                            const next = e.target.checked ? [...cur, t] : cur.filter((x) => x !== t);
-                            setConfig({ ...config, column_transforms: { ...transforms, [col]: next } });
+                            const next = e.target.checked ? [...cur, t.id] : cur.filter((x) => x !== t.id);
+                            set("transforms", { ...transforms, [col]: next });
                           }} style={{ accentColor: "#8b5cf6" }} />
-                        <span style={{ fontSize: "0.72rem", color: "rgba(200,210,230,0.7)" }}>{t}</span>
+                        <span style={{ fontSize: "0.72rem", color: "rgba(200,210,230,0.7)" }}>{t.label}</span>
                       </label>
                     ))}
                   </div>
@@ -181,30 +246,59 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
             })}
           </div>
         </div>
-        <Field label="Date columns (select which columns are dates)">
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", maxHeight: 100, overflowY: "auto" }}>
+
+        <InteractionPicker columns={columns} interactions={interactions} onAdd={addPair} onRemove={removePair} />
+
+        <div>
+          <label style={labelStyle}>Polynomial expansion (select ≥ 2 columns for interaction terms):</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
+            {columns.map((col) => (
+              <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
+                <input type="checkbox" checked={polyCols.includes(col)}
+                  onChange={(e) => set("poly_cols", e.target.checked ? [...polyCols, col] : polyCols.filter((c) => c !== col))}
+                  style={{ accentColor: "#8b5cf6" }} />
+                <span style={{ fontSize: "0.73rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
+              </label>
+            ))}
+          </div>
+          {polyCols.length >= 2 && (
+            <div style={{ display: "flex", gap: "1rem" }}>
+              {[2, 3].map((d) => (
+                <label key={d} style={{ display: "flex", alignItems: "center", gap: "0.35rem", cursor: "pointer" }}>
+                  <input type="radio" checked={polyDegree === d} onChange={() => set("poly_degree", d)} style={{ accentColor: "#8b5cf6" }} />
+                  <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.75)" }}>Degree {d}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Field label="Date columns (decompose into year / month / day etc.)">
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", maxHeight: 90, overflowY: "auto" }}>
             {columns.map((col) => (
               <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                 <input type="checkbox" checked={dateCols.includes(col)}
-                  onChange={(e) => set("date_columns", e.target.checked ? [...dateCols, col] : dateCols.filter((c) => c !== col))}
+                  onChange={(e) => set("date_cols", e.target.checked ? [...dateCols, col] : dateCols.filter((c) => c !== col))}
                   style={{ accentColor: "#8b5cf6" }} />
                 <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
               </label>
             ))}
           </div>
         </Field>
-        <Field label="Date parts to extract">
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {DATE_PARTS.map((p) => (
-              <label key={p} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
-                <input type="checkbox" checked={dateParts.includes(p)}
-                  onChange={(e) => set("date_parts", e.target.checked ? [...dateParts, p] : dateParts.filter((x) => x !== p))}
-                  style={{ accentColor: "#8b5cf6" }} />
-                <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{p}</span>
-              </label>
-            ))}
-          </div>
-        </Field>
+        {dateCols.length > 0 && (
+          <Field label="Date parts to extract">
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              {DATE_PARTS.map((p) => (
+                <label key={p} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
+                  <input type="checkbox" checked={dateParts.includes(p)}
+                    onChange={(e) => set("date_parts", e.target.checked ? [...dateParts, p] : dateParts.filter((x) => x !== p))}
+                    style={{ accentColor: "#8b5cf6" }} />
+                  <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{p}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+        )}
       </div>
     );
   }
