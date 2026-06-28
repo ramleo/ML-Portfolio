@@ -23,6 +23,7 @@ interface Props {
   modelId?: string;
   onClose: () => void;
   onComplete: (result: StageResult) => void;
+  onConfigCapture?: (config: Record<string, unknown>) => void;
   existingResult?: StageResult | null;
 }
 
@@ -221,7 +222,7 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
   return <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No result display available.</p>;
 }
 
-export default function StageModal({ stageId, title, accent, csvB64, target, taskType, columns, modelId, onClose, onComplete, existingResult }: Props) {
+export default function StageModal({ stageId, title, accent, csvB64, target, taskType, columns, modelId, onClose, onComplete, onConfigCapture, existingResult }: Props) {
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [result, setResult] = useState<StageResult | null>(existingResult ?? null);
   const [running, setRunning] = useState(false);
@@ -230,6 +231,7 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
   async function handleRun() {
     setRunning(true);
     setError(null);
+    onConfigCapture?.(config);
     try {
       const endpoint = ENDPOINTS[stageId] ?? stageId;
       const body = buildBody(stageId, csvB64, target, taskType, config, modelId);

@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import ModeSelector from "@/components/pipeline/ModeSelector";
-import StageCard from "@/components/pipeline/StageCard";
 import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
 import StageGrid from "@/components/pipeline/StageGrid";
 import type { WaterfallStage } from "@/components/pipeline/pipeline-types";
 import CodeExportModal from "@/components/pipeline/CodeExportModal";
-import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import FileUploadSection from "@/components/pipeline/FileUploadSection";
 import ExpressRunner from "@/components/pipeline/ExpressRunner";
+import ABPanel from "@/components/pipeline/ABPanel";
+import TargetDropdown from "@/components/pipeline/TargetDropdown";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,52 +46,6 @@ const STAGES: { id: StageId; title: string; accent: string; description: string 
 function fmtM(m: string) {
   const map: Record<string, string> = { neg_mean_absolute_error: "MAE", neg_root_mean_squared_error: "RMSE", r2: "R²", accuracy: "Accuracy", f1: "F1", roc_auc: "AUC-ROC" };
   return map[m] ?? m.replace(/^neg_/i, "").replace(/_/g, " ");
-}
-
-// ── Custom Target Dropdown ─────────────────────────────────────────────────────
-
-function TargetDropdown({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: "var(--text)", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", minWidth: 110 }}
-      >
-        <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
-        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, marginTop: 4, background: "rgba(20,27,45,0.98)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, maxHeight: 200, overflowY: "auto", minWidth: "100%" }}>
-          {options.map((opt) => (
-            <div
-              key={opt}
-              onClick={() => { onChange(opt); setOpen(false); }}
-              style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", cursor: "pointer", color: opt === value ? "#4ade80" : "var(--text)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", whiteSpace: "nowrap" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.07)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
-            >
-              {opt}
-              {opt === value && <span style={{ fontSize: "0.7rem", color: "#4ade80" }}>✓</span>}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): string {
@@ -183,14 +137,34 @@ export default function PipelineBuilderPage() {
     if (res.ok) { const { code } = await res.json() as { code: string }; setExportedCode(code); setShowCode(true); }
   }
 
-  async function handleRunAB() {
+  async function handleRunAB(
+    configA: Record<string, Record<string, unknown>>,
+    configB: Record<string, Record<string, unknown>>,
+  ) {
     if (!csvB64) return;
     setAbRunning(true);
     try {
-      const res = await fetch(`${API}/pipeline-builder/compare`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv_b64: csvB64, target, task_type: taskType }) });
+      const buildSpec = (cfg: Record<string, Record<string, unknown>>) => ({
+        preprocess: cfg["preprocessing"] ?? null,
+        fe: cfg["feature-eng"] ?? null,
+        fs: cfg["feature-select"] ?? null,
+        automl: cfg["automl"] ?? null,
+      });
+      const res = await fetch(`${API}/pipeline-builder/compare`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          csv_b64: csvB64,
+          target,
+          task_type: taskType,
+          pipeline_a: buildSpec(configA),
+          pipeline_b: buildSpec(configB),
+        }),
+      });
       if (res.ok) {
         const j = await res.json() as { pipeline_a?: { score: number; winner: string; time_ms: number }; pipeline_b?: { score: number; winner: string; time_ms: number } };
-        setAbResultA(j.pipeline_a ?? null); setAbResultB(j.pipeline_b ?? null);
+        setAbResultA(j.pipeline_a ?? null);
+        setAbResultB(j.pipeline_b ?? null);
       }
     } finally { setAbRunning(false); }
   }
@@ -321,28 +295,19 @@ export default function PipelineBuilderPage() {
 
         {/* A/B mode */}
         {mode === "ab" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
-              {(["Pipeline A", "Pipeline B"] as const).map((label, pi) => (
-                <div key={label}>
-                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: pi === 0 ? "#38bdf8" : "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem" }}>{label}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    {STAGES.slice(0, 4).map((s, i) => (
-                      <StageCard key={`${pi}-${s.id}`} id={s.id} title={s.title} description={s.description} icon={ICONS[s.id]} accent={s.accent} status={csvB64 ? "ready" : "locked"} onOpen={() => {}} index={i} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {csvB64 && (
-              <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-                <button onClick={handleRunAB} disabled={abRunning} style={{ padding: "0.7rem 2rem", borderRadius: 10, background: "#a78bfa", color: "#000", fontWeight: 700, fontSize: "0.88rem", border: "none", cursor: abRunning ? "not-allowed" : "pointer", opacity: abRunning ? 0.6 : 1 }}>
-                  {abRunning ? "Running..." : "Run A/B Comparison"}
-                </button>
-              </div>
-            )}
-            <ComparisonPanel resultA={abResultA} resultB={abResultB} difference={abDiff} winner={abWinner} isRunning={abRunning} />
-          </div>
+          <ABPanel
+            stages={STAGES.map((s) => ({ ...s, icon: ICONS[s.id] }))}
+            csvB64={csvB64}
+            target={target}
+            taskType={taskType}
+            columns={columns}
+            abResultA={abResultA}
+            abResultB={abResultB}
+            abDiff={abDiff}
+            abWinner={abWinner}
+            abRunning={abRunning}
+            onRun={(cfgA, cfgB) => handleRunAB(cfgA, cfgB)}
+          />
         )}
 
         {/* Express mode banner + auto-run */}
