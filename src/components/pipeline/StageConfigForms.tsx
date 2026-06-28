@@ -8,6 +8,7 @@ interface Props {
   config: Record<string, unknown>;
   setConfig: (c: Record<string, unknown>) => void;
   columns: string[];
+  target: string;
   taskType: "classification" | "regression";
   existingResult?: StageResult | null;
 }
@@ -153,8 +154,9 @@ function InteractionPicker({
   );
 }
 
-export function StageConfigForm({ stageId, config, setConfig, columns, taskType, existingResult }: Props) {
+export function StageConfigForm({ stageId, config, setConfig, columns, target, taskType, existingResult }: Props) {
   const set = (key: string, val: unknown) => s(config, setConfig, key, val);
+  const featureCols = columns.filter((c) => c !== target);
 
   if (stageId === "preprocessing") {
     const outliers = get(config, "remove_outliers", false);
@@ -173,8 +175,8 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
         <Toggle label="Fix skewness" checked={get(config, "fix_skewness", false)} onChange={(v) => set("fix_skewness", v)} />
         <Field label="Drop columns">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: 150, overflowY: "auto" }}>
-            {columns.length === 0 && <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.4)" }}>No columns loaded</span>}
-            {columns.map((col) => {
+            {featureCols.length === 0 && <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.4)" }}>No columns loaded</span>}
+            {featureCols.map((col) => {
               const dropped = get<string[]>(config, "drop_cols", []);
               return (
                 <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
@@ -224,7 +226,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
         <div>
           <label style={labelStyle}>Column transforms (each creates a new column):</label>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: 200, overflowY: "auto" }}>
-            {columns.map((col) => {
+            {featureCols.map((col) => {
               const cur = transforms[col] ?? [];
               return (
                 <div key={col} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
@@ -247,12 +249,12 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
           </div>
         </div>
 
-        <InteractionPicker columns={columns} interactions={interactions} onAdd={addPair} onRemove={removePair} />
+        <InteractionPicker columns={featureCols} interactions={interactions} onAdd={addPair} onRemove={removePair} />
 
         <div>
           <label style={labelStyle}>Polynomial expansion (select ≥ 2 columns for interaction terms):</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
-            {columns.map((col) => (
+            {featureCols.map((col) => (
               <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
                 <input type="checkbox" checked={polyCols.includes(col)}
                   onChange={(e) => set("poly_cols", e.target.checked ? [...polyCols, col] : polyCols.filter((c) => c !== col))}
@@ -275,7 +277,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, taskType,
 
         <Field label="Date columns (decompose into year / month / day etc.)">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", maxHeight: 90, overflowY: "auto" }}>
-            {columns.map((col) => (
+            {featureCols.map((col) => (
               <label key={col} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                 <input type="checkbox" checked={dateCols.includes(col)}
                   onChange={(e) => set("date_cols", e.target.checked ? [...dateCols, col] : dateCols.filter((c) => c !== col))}

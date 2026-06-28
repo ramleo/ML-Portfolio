@@ -340,7 +340,7 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
           <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
             {/* Config panel */}
             <div style={{ width: "40%", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <StageConfigForm stageId={stageId} config={config} setConfig={setConfig} columns={columns} taskType={taskType} existingResult={existingResult} />
+              <StageConfigForm stageId={stageId} config={config} setConfig={setConfig} columns={columns} target={target} taskType={taskType} existingResult={existingResult} />
               {error && <p style={{ color: "#f87171", fontSize: "0.8rem", margin: 0 }}>{error}</p>}
               <button onClick={handleRun} disabled={running}
                 style={{ marginTop: "auto", padding: "0.65rem 1.25rem", borderRadius: 8, border: "none", cursor: running ? "not-allowed" : "pointer", background: accent, color: "#fff", fontWeight: 600, fontSize: "0.88rem", opacity: running ? 0.6 : 1, transition: "opacity 0.2s" }}>
