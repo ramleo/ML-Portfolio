@@ -57,6 +57,8 @@ export default function PipelineCinemaPage() {
     paused,
     stageColumns,
     automlResults,
+    viewingStage,
+    setViewingStage,
     handleRunAnimation,
     handleStop,
     handleReset,
@@ -166,6 +168,7 @@ export default function PipelineCinemaPage() {
             csvPreviewRows={csvPreviewRows}
             stageColumns={stageColumns}
             automlResults={automlResults}
+            viewingStage={viewingStage}
           />
         </div>
 
@@ -184,13 +187,14 @@ export default function PipelineCinemaPage() {
             const { label, accent } = STAGE_META[stage];
             const isDone = doneStages.has(stage);
             const isActive = activeStage === stage;
+            const isViewing = running && viewingStage === stage;
             return (
               <motion.button
                 key={stage}
                 onClick={() => handleStageClick(stage)}
-                disabled={running}
-                whileHover={{ scale: running ? 1 : 1.05 }}
-                whileTap={{ scale: running ? 1 : 0.97 }}
+                disabled={running && !isDone}
+                whileHover={{ scale: running && !isDone ? 1 : 1.05 }}
+                whileTap={{ scale: running && !isDone ? 1 : 0.97 }}
                 style={{
                   padding: "0.5rem 1.1rem",
                   borderRadius: 999,
@@ -199,11 +203,12 @@ export default function PipelineCinemaPage() {
                   color: isActive || isDone ? accent : "#475569",
                   fontSize: "0.82rem",
                   fontWeight: 600,
-                  cursor: running ? "default" : "pointer",
+                  cursor: running && !isDone ? "default" : "pointer",
                   transition: "all 0.2s",
+                  boxShadow: isViewing ? `0 0 0 2px ${accent}` : "none",
                 }}
               >
-                {label}
+                {isViewing ? `• ${label}` : label}
               </motion.button>
             );
           })}

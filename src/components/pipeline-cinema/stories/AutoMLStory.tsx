@@ -160,7 +160,9 @@ export default function AutoMLStory({ active, taskType, automlResults }: {
 
   const winnerName = automlResults?.winner
     ?? displayModels.reduce((best, m) => m.score > best.score ? m : best).name;
-  const winnerIdx = Math.max(displayModels.findIndex((m) => m.name === winnerName), 0);
+  const norm = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, "");
+  const winnerIdx = displayModels.findIndex(m => norm(m.name) === norm(winnerName));
+  const effectiveWinnerIdx = winnerIdx >= 0 ? winnerIdx : 0;
 
   const effectiveTaskType = automlResults?.taskType ?? taskType ?? "classification";
   const metricLabel = effectiveTaskType === "regression" ? "R² score" : "accuracy";
@@ -180,7 +182,7 @@ export default function AutoMLStory({ active, taskType, automlResults }: {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {displayModels.map((m, i) => (
-          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={winnerIdx} metricLabel={metricLabel} />
+          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={effectiveWinnerIdx} metricLabel={metricLabel} />
         ))}
       </div>
 

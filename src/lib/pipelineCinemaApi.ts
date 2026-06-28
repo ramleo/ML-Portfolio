@@ -148,6 +148,13 @@ export async function callFeatureSelect(
   };
 }
 
+function fuzzyScore(scores: Record<string, number>, name: string): number | undefined {
+  if (typeof scores[name] === "number") return scores[name];
+  const norm = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, "");
+  const entry = Object.entries(scores).find(([k]) => norm(k) === norm(name));
+  return entry ? entry[1] : undefined;
+}
+
 export async function callAutoML(
   csvB64: string,
   target: string,
@@ -181,12 +188,14 @@ export async function callAutoML(
   const rawWinner = data.winner ?? data.best_model;
   const winner = typeof rawWinner === "string" && rawWinner
     ? rawWinner
+    // NOTE: sort direction can't be inferred without metric metadata, so this fallback is
+    // best-effort (descending = higher-is-better) and only fires when the API returns no winner at all.
     : Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest";
 
   const winnerScore =
-    typeof scores[winner] === "number" ? scores[winner] :
-    typeof data.best_score === "number" ? data.best_score :
-    typeof data.score === "number" ? data.score : 0;
+    fuzzyScore(scores, winner) ??
+    (typeof data.best_score === "number" ? data.best_score :
+     typeof data.score === "number" ? data.score : 0);
 
   const modelList = Object.entries(scores)
     .sort((a, b) => b[1] - a[1])

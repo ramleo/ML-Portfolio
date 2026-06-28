@@ -68,6 +68,8 @@ export interface PipelineRunnerState {
     afterFS?: string[];
   };
   automlResults: AutoMLResults | null;
+  viewingStage: StageKind | null;
+  setViewingStage: (s: StageKind | null) => void;
 }
 
 export interface PipelineRunnerHandlers {
@@ -104,6 +106,7 @@ export function usePipelineRunner({
     afterFS?: string[];
   }>({});
   const [automlResults, setAutomlResults] = useState<AutoMLResults | null>(null);
+  const [viewingStage, setViewingStage] = useState<StageKind | null>(null);
 
   const pausedRef = useRef(false);
   const stoppedRef = useRef(false);
@@ -148,7 +151,8 @@ export function usePipelineRunner({
       setChapterStage(null);
 
       setActiveStage(stage);
-      setOrbProgress((i / (STAGES.length - 1)) * 0.85 + 0.06);
+      setViewingStage(null);  // auto-follow animation when new stage starts
+      setOrbProgress(X_PERCENT_FOR_STAGE(stage));
 
       if (hasCsv) {
         try {
@@ -190,7 +194,7 @@ export function usePipelineRunner({
       }
 
       setDoneStages((prev) => new Set([...prev, stage]));
-      setOrbProgress(((i + 1) / (STAGES.length - 1)) * 0.85 + 0.06);
+      setOrbProgress(X_PERCENT_FOR_STAGE(stage));
       await waitPauseable(400);
     }
 
@@ -205,6 +209,7 @@ export function usePipelineRunner({
     setRunning(false);
     setActiveStage(null);
     setChapterStage(null);
+    setViewingStage(null);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -220,11 +225,18 @@ export function usePipelineRunner({
     setApiError(null);
     setStageColumns({});
     setAutomlResults(null);
+    setViewingStage(null);
   }, []);
 
   const handleStageClick = useCallback(
     (stage: StageKind) => {
-      if (running) return;
+      if (running) {
+        if (doneStages.has(stage)) {
+          setViewingStage((prev) => prev === stage ? null : stage); // toggle: click again to unpin
+        }
+        return;
+      }
+      setViewingStage(null);
       setActiveStage(stage);
       setOrbProgress(X_PERCENT_FOR_STAGE(stage));
       setTimeout(() => {
@@ -232,7 +244,7 @@ export function usePipelineRunner({
         setActiveStage(null);
       }, 1500);
     },
-    [running]
+    [running, doneStages]
   );
 
   return {
@@ -246,6 +258,8 @@ export function usePipelineRunner({
     paused,
     stageColumns,
     automlResults,
+    viewingStage,
+    setViewingStage,
     handleRunAnimation,
     handleStop,
     handleReset,

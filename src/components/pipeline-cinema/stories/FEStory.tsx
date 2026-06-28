@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const TRANSFORMS: Array<{ sources: string[]; output: string; label: string; desc: string }> = [
-  { sources: ["Age"], output: "Age_log1p", label: "log transform", desc: "log transform preserves relative differences in skewed data" },
-  { sources: ["Age", "Fare"], output: "Age×Fare", label: "interaction", desc: "interaction term captures combined effect of two features" },
-  { sources: ["Age", "Pclass"], output: "Age², Pclass²", label: "degree 2", desc: "polynomial features expose non-linear decision boundaries" },
+// Generic FE technique labels (educational, not dataset-specific)
+const FE_STEPS = [
+  { label: "log transform",  desc: "log1p reduces right-skew; keeps zero values valid" },
+  { label: "interaction",    desc: "interaction terms capture combined effects of two features" },
+  { label: "polynomial",     desc: "polynomial features expose non-linear decision boundaries" },
 ];
 
 const pillBase: React.CSSProperties = {
@@ -74,7 +75,19 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
   }, [active]);
 
   const visibleEngineered = step === 0 ? [] : step >= 4 ? displayEngineered : [displayEngineered[step - 1]].filter(Boolean);
-  const desc = step > 0 && step < 4 ? TRANSFORMS[step - 1].desc : step === 4 ? `${featuresAdded} engineered features added to feature matrix` : "";
+  const desc = step > 0 && step < 4
+    ? FE_STEPS[step - 1].desc
+    : step === 4
+    ? `${featuresAdded} engineered features added to feature matrix`
+    : "";
+
+  // Generic beam sources: for step N (1-3), use indices (N-1) % n and N % n from displaySource
+  const getBeamSources = (stepN: number): number[] => {
+    const n = displaySource.length;
+    const a = ((stepN - 1) % n + n) % n;
+    const b = stepN % n;
+    return a === b ? [a] : [a, b];
+  };
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "1rem", position: "relative" }}>
@@ -98,9 +111,9 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
         {/* Left: Source columns */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
           <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>SOURCE</div>
-          {displaySource.map((col) => {
+          {displaySource.map((col, idx) => {
             const isActive = step > 0 && step < 4
-              ? TRANSFORMS[step - 1].sources.includes(col)
+              ? idx === (step - 1) % displaySource.length || idx === step % displaySource.length
               : step === 4;
             return (
               <motion.div
@@ -119,28 +132,28 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
         <div style={{ width: "40%", position: "relative", height: "100%", minHeight: 120 }}>
           <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, overflow: "visible" }}>
             <AnimatePresence>
-              {(step > 0 && step < 4 ? [TRANSFORMS[step - 1]] : step >= 4 ? TRANSFORMS : []).map((t, i) => {
-                const sourceYs = t.sources.map((s) => {
-                  const idx = displaySource.indexOf(s) !== -1 ? displaySource.indexOf(s) : TRANSFORMS.findIndex(tr => tr.sources.includes(s));
-                  return 32 + Math.max(0, idx) * 32;
-                });
+              {(step > 0 && step < 4 ? [step] : step >= 4 ? [1, 2, 3] : []).map((stepN, i) => {
+                const sourceIndices = getBeamSources(stepN);
                 const targetY = 32 + i * 36;
-                return sourceYs.map((sy, si) => (
-                  <motion.line
-                    key={`${t.output}-${si}`}
-                    x1="0%"
-                    y1={sy}
-                    x2="100%"
-                    y2={targetY}
-                    stroke="#34d399"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 3"
-                    initial={{ strokeDashoffset: 40, opacity: 0 }}
-                    animate={{ strokeDashoffset: 0, opacity: 0.7 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "linear" }}
-                  />
-                ));
+                return sourceIndices.map((srcIdx, si) => {
+                  const sy = 32 + srcIdx * 32;
+                  return (
+                    <motion.line
+                      key={`beam-${stepN}-${si}`}
+                      x1="0%"
+                      y1={sy}
+                      x2="100%"
+                      y2={targetY}
+                      stroke="#34d399"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 3"
+                      initial={{ strokeDashoffset: 40, opacity: 0 }}
+                      animate={{ strokeDashoffset: 0, opacity: 0.7 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8, ease: "linear" }}
+                    />
+                  );
+                });
               })}
             </AnimatePresence>
           </svg>
@@ -155,7 +168,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
                 exit={{ opacity: 0 }}
                 style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "rgba(52,211,153,0.1)", border: "1px solid #34d399", borderRadius: 4, padding: "2px 7px", fontSize: 9, color: "#34d399", whiteSpace: "nowrap", fontWeight: 600 }}
               >
-                {TRANSFORMS[step - 1].label}
+                {FE_STEPS[step - 1].label}
               </motion.div>
             )}
           </AnimatePresence>
