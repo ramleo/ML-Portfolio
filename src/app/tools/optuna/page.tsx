@@ -43,7 +43,7 @@ export default function OptunaPage() {
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 12L4 7l5-5" />
             </svg>
-            Portfolio
+            Home
           </button>
           <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
