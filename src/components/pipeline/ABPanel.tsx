@@ -39,10 +39,23 @@ const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
   automl: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 5 },
 };
 
+const STAGE_ORDER = ["preprocessing", "feature-eng", "feature-select", "automl"];
+
 function cloneDefaults() {
   return Object.fromEntries(
     Object.entries(DEFAULT_CONFIGS).map(([k, v]) => [k, { ...v }])
   );
+}
+
+// Parse column headers from a base64-encoded CSV string
+function parseCsvColumns(b64: string): string[] {
+  try {
+    const text = atob(b64);
+    const firstLine = text.split("\n")[0];
+    return firstLine.split(",").map((c) => c.trim().replace(/^"|"$/g, "")).filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 export default function ABPanel({
@@ -64,9 +77,10 @@ export default function ABPanel({
   const [configuredB, setConfiguredB] = useState<Set<string>>(new Set());
   const [stageCsvsA, setStageCsvsA] = useState<Record<string, string>>({});
   const [stageCsvsB, setStageCsvsB] = useState<Record<string, string>>({});
+  const [stageResultsA, setStageResultsA] = useState<Record<string, StageResult>>({});
+  const [stageResultsB, setStageResultsB] = useState<Record<string, StageResult>>({});
   const [activeModal, setActiveModal] = useState<{ stageId: string; pipeline: "a" | "b" } | null>(null);
 
-  const STAGE_ORDER = ["preprocessing", "feature-eng", "feature-select", "automl"];
   function getInputCsv(stageId: string, pipeline: "a" | "b"): string {
     const csvs = pipeline === "a" ? stageCsvsA : stageCsvsB;
     const idx = STAGE_ORDER.indexOf(stageId);
@@ -82,8 +96,13 @@ export default function ABPanel({
     { label: "Pipeline B", accent: "#a78bfa", pipeline: "b" as const, configured: configuredB },
   ];
 
-  const activeStage = activeModal
-    ? stages.find((s) => s.id === activeModal.stageId)
+  const activeStage = activeModal ? stages.find((s) => s.id === activeModal.stageId) : null;
+
+  // Derive modal input CSV and columns from the chained pipeline state
+  const modalCsv = activeModal ? getInputCsv(activeModal.stageId, activeModal.pipeline) : (csvB64 ?? "");
+  const modalColumns = modalCsv ? parseCsvColumns(modalCsv) : columns;
+  const modalExistingResult = activeModal
+    ? ((activeModal.pipeline === "a" ? stageResultsA : stageResultsB)[activeModal.stageId] ?? null)
     : null;
 
   return (
@@ -106,13 +125,7 @@ export default function ABPanel({
                   description={stage.description}
                   icon={stage.icon}
                   accent={stage.accent}
-                  status={
-                    configured.has(stage.id)
-                      ? "done"
-                      : csvB64
-                      ? "ready"
-                      : "locked"
-                  }
+                  status={configured.has(stage.id) ? "done" : csvB64 ? "ready" : "locked"}
                   onOpen={() => setActiveModal({ stageId: stage.id, pipeline })}
                   index={i}
                 />
@@ -149,7 +162,6 @@ export default function ABPanel({
         isRunning={abRunning}
       />
 
-      {/* Stage config modal for A/B pipelines */}
       <AnimatePresence>
         {activeModal !== null && csvB64 && activeStage && (
           <StageModal
@@ -157,16 +169,22 @@ export default function ABPanel({
             stageId={activeModal.stageId}
             title={activeStage.title}
             accent={activeStage.accent}
-            csvB64={activeModal ? getInputCsv(activeModal.stageId, activeModal.pipeline) : (csvB64 ?? "")}
+            csvB64={modalCsv}
             target={target}
             taskType={taskType}
-            columns={columns}
+            columns={modalColumns}
             onClose={() => setActiveModal(null)}
             onComplete={(result: StageResult) => {
-              if (result.outputCsvB64 && activeModal) {
-                const { stageId, pipeline } = activeModal;
-                if (pipeline === "a") setStageCsvsA((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
-                else setStageCsvsB((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
+              const { stageId, pipeline } = activeModal;
+              // Store result so right panel shows on reopen
+              if (pipeline === "a") {
+                setStageResultsA((p) => ({ ...p, [stageId]: result }));
+                if (result.outputCsvB64) setStageCsvsA((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
+                setConfiguredA((p) => new Set([...p, stageId]));
+              } else {
+                setStageResultsB((p) => ({ ...p, [stageId]: result }));
+                if (result.outputCsvB64) setStageCsvsB((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
+                setConfiguredB((p) => new Set([...p, stageId]));
               }
               setActiveModal(null);
             }}
@@ -174,13 +192,11 @@ export default function ABPanel({
               const { stageId, pipeline } = activeModal;
               if (pipeline === "a") {
                 setConfigA((p) => ({ ...p, [stageId]: cfg }));
-                setConfiguredA((p) => new Set([...p, stageId]));
               } else {
                 setConfigB((p) => ({ ...p, [stageId]: cfg }));
-                setConfiguredB((p) => new Set([...p, stageId]));
               }
             }}
-            existingResult={null}
+            existingResult={modalExistingResult}
           />
         )}
       </AnimatePresence>
