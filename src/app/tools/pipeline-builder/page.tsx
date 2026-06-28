@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -60,6 +61,8 @@ function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): st
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PipelineBuilderPage() {
+  const router = useRouter();
+  const handleHome = useCallback(() => router.push("/#capabilities"), [router]);
   const [mode, setMode] = useState<PipelineMode>(null);
   const [csvB64, setCsvB64] = useState<string | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
@@ -243,6 +246,10 @@ export default function PipelineBuilderPage() {
 
       {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1.5rem", background: "rgba(6,13,26,0.88)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "rgba(180,185,210,0.7)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
+          Home
+        </button>
         <button onClick={handleReset} style={{ background: "transparent", border: "none", color: "rgba(180,185,210,0.7)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
           Back

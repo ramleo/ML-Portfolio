@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -36,6 +37,9 @@ function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: s
 }
 
 export default function PipelineCinemaPage() {
+  const router = useRouter();
+  const handleHome = useCallback(() => router.push("/#capabilities"), [router]);
+
   // CSV / config state
   const [csvB64, setCsvB64] = useState<string | null>(null);
   const [csvName, setCsvName] = useState<string>("");
@@ -102,12 +106,12 @@ export default function PipelineCinemaPage() {
         {/* Header */}
         <header style={{ maxWidth: 900, margin: "0 auto 2rem" }}>
           <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1rem" }}>
-            <Link
-              href="/"
-              style={{ color: "#64748b", fontSize: "0.85rem", textDecoration: "none" }}
+            <button
+              onClick={handleHome}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", padding: 0 }}
             >
               ← Home
-            </Link>
+            </button>
             <Link
               href="/tools/pipeline-builder"
               style={{ color: "#38bdf8", fontSize: "0.85rem", textDecoration: "none" }}
