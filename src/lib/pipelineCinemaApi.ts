@@ -135,7 +135,7 @@ export async function callFeatureSelect(
     body: JSON.stringify({
       csv_b64: csvB64,
       target,
-      config: { method: "variance", top_k: 10 },
+      config: { method: "variance", top_k: 4 },
     }),
   });
   if (!res.ok) return null;
@@ -220,6 +220,12 @@ export async function callAutoML(
       : Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest";
     winnerScore = fuzzyScore(scores, winner) ?? (typeof data.best_score === "number" ? data.best_score : typeof data.score === "number" ? data.score : 0);
     metric = taskType === "regression" ? "r2" : "accuracy";
+  }
+
+  // For loss metrics (neg_ prefix), lower score = better — override API winner
+  if (metric.startsWith("neg_") || metric === "mae" || metric === "mse" || metric === "rmse") {
+    const minEntry = Object.entries(scores).sort((a, b) => a[1] - b[1])[0];
+    if (minEntry) { winner = minEntry[0]; winnerScore = minEntry[1]; }
   }
 
   const modelList = Object.entries(scores)

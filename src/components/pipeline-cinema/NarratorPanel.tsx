@@ -7,6 +7,7 @@ type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 
 interface Props {
   activeStage: StageKind | null;
+  viewingStage?: StageKind | null;
   running: boolean;
   dynamicLines?: Partial<Record<StageKind, string[]>>;
 }
@@ -63,7 +64,7 @@ const STAGE_LABELS: Record<StageKind, string> = {
   automl: "AutoML",
 };
 
-export default function NarratorPanel({ activeStage, running, dynamicLines }: Props) {
+export default function NarratorPanel({ activeStage, viewingStage, running, dynamicLines }: Props) {
   const [step, setStep] = useState(0);
   const [mouthOpen, setMouthOpen] = useState(false);
 
@@ -90,15 +91,22 @@ export default function NarratorPanel({ activeStage, running, dynamicLines }: Pr
     return () => clearInterval(id);
   }, [speaking]);
 
+  // Resolve which stage to narrate: active stage wins, then viewing stage (completed)
+  const narrateStage = activeStage ?? (viewingStage ?? null);
+
   const lines =
-    activeStage && dynamicLines?.[activeStage]?.length
-      ? dynamicLines[activeStage]!
-      : activeStage
-      ? SCRIPTS[activeStage]
+    narrateStage && dynamicLines?.[narrateStage]?.length
+      ? dynamicLines[narrateStage]!
+      : narrateStage
+      ? SCRIPTS[narrateStage]
       : null;
 
+  // When viewing a completed stage (not actively running), show the last line
+  const isViewing = activeStage === null && viewingStage != null;
   const currentText = lines
-    ? lines[Math.min(step, lines.length - 1)]
+    ? isViewing
+      ? lines[lines.length - 1]
+      : lines[Math.min(step, lines.length - 1)]
     : "Hello! I'm your ML guide. Hit 'Run Animation' to watch the full pipeline in action.";
 
   const mouthPath = mouthOpen ? "M14,25 Q20,31 26,25" : "M14,26 Q20,30 26,26";
@@ -140,24 +148,25 @@ export default function NarratorPanel({ activeStage, running, dynamicLines }: Pr
 
       {/* Speech area */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {activeStage !== null && (
+        {narrateStage !== null && (
           <div style={{ marginBottom: 3 }}>
             <span
               style={{
-                color: ACCENT_COLORS[activeStage],
+                color: ACCENT_COLORS[narrateStage],
                 fontSize: 10,
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: 2,
+                opacity: isViewing ? 0.6 : 1,
               }}
             >
-              ● {STAGE_LABELS[activeStage]}
+              ● {STAGE_LABELS[narrateStage]}
             </span>
           </div>
         )}
         <AnimatePresence mode="wait">
           <motion.p
-            key={`${activeStage}-${step}`}
+            key={`${narrateStage}-${step}`}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
@@ -165,7 +174,7 @@ export default function NarratorPanel({ activeStage, running, dynamicLines }: Pr
             style={{
               fontSize: 12,
               lineHeight: 1.5,
-              color: activeStage !== null ? "#94a3b8" : "#334155",
+              color: narrateStage !== null ? "#94a3b8" : "#334155",
               margin: 0,
               overflow: "hidden",
               display: "-webkit-box",

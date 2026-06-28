@@ -293,7 +293,7 @@ export default function CinemaScene({
       </div>
 
       {/* Narrator strip */}
-      <NarratorPanel activeStage={activeStage} running={running} dynamicLines={dynamicLines} />
+      <NarratorPanel activeStage={activeStage} viewingStage={viewingStage} running={running} dynamicLines={dynamicLines} />
 
       {/* Chapter card overlay */}
       <ChapterCard

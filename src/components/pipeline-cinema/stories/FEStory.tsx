@@ -53,8 +53,9 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
         displayEngineered.push(engineeredCols.slice(i, i + 2).join(", "));
       }
     } else {
+      // API returned empty — show demo pills so animation looks alive, note the real result
+      displayEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
       noNewFeatures = true;
-      displayEngineered = [];
     }
   } else {
     // No CSV loaded: show demo
@@ -81,7 +82,9 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
   const desc = step > 0 && step < 4
     ? FE_STEPS[step - 1].desc
     : step === 4
-    ? `${featuresAdded} engineered features added to feature matrix`
+    ? noNewFeatures
+      ? "Configure transforms in Pipeline Builder to add real engineered features"
+      : `${featuresAdded} engineered features added to feature matrix`
     : "";
 
   // Generic beam sources: for step N (1-3), use indices (N-1) % n and N % n from displaySource
@@ -94,9 +97,9 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "1rem", position: "relative" }}>
-      {/* Counter badge */}
+      {/* Counter badge — only show when features were actually added */}
       <AnimatePresence>
-        {step === 4 && (
+        {step === 4 && !noNewFeatures && (
           <motion.div
             key="counter"
             initial={{ opacity: 0, scale: 0.7 }}
@@ -180,25 +183,24 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
         {/* Right: New feature pills */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
           <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ENGINEERED</div>
-          {noNewFeatures ? (
-            <div style={{ fontSize: 10, color: "#475569", textAlign: "right", marginTop: 8 }}>
-              No new features added.<br />Configure transforms in Pipeline Builder.
+          <AnimatePresence>
+            {visibleEngineered.map((label, i) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.08 }}
+                style={{ ...newPill }}
+              >
+                {label}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {noNewFeatures && step >= 4 && (
+            <div style={{ fontSize: 9, color: "#475569", textAlign: "right", marginTop: 6 }}>
+              No new features added.
             </div>
-          ) : (
-            <AnimatePresence>
-              {visibleEngineered.map((label, i) => (
-                <motion.div
-                  key={label}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.08 }}
-                  style={{ ...newPill }}
-                >
-                  {label}
-                </motion.div>
-              ))}
-            </AnimatePresence>
           )}
         </div>
       </div>

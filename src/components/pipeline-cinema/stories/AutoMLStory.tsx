@@ -81,12 +81,11 @@ interface DisplayModel {
   color: string;
 }
 
-function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
+function ModelCard({ model, index, step, winnerIdx }: {
   model: DisplayModel;
   index: number;
   step: number;
   winnerIdx: number;
-  metricLabel: string;
 }) {
   const isWinner = index === winnerIdx;
   const isDimmed = step >= 3 && !isWinner;
@@ -130,7 +129,6 @@ function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
       <div style={{ fontSize: 20, fontWeight: 800, color: model.color, lineHeight: 1 }}>
         {score.toFixed(3)}
       </div>
-      <div style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>{metricLabel}</div>
     </motion.div>
   );
 }
@@ -170,11 +168,12 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
   const metricLabel = (() => {
     const m = automlResults?.metric ?? (effectiveTaskType === "regression" ? "r2" : "accuracy");
     if (m === "r2" || m === "r2_score") return "R² score";
-    if (m === "rmse") return "RMSE";
-    if (m === "mae") return "MAE";
+    if (m === "rmse" || m === "neg_root_mean_squared_error") return "RMSE";
+    if (m === "mae" || m === "neg_mean_absolute_error") return "MAE";
+    if (m === "mse" || m === "neg_mean_squared_error") return "MSE";
     if (m === "f1_weighted" || m === "f1") return "F1 score";
     if (m === "accuracy") return "accuracy";
-    return m;
+    return m.replace(/^neg_/, "").replace(/_/g, " ");
   })();
 
   useEffect(() => {
@@ -189,12 +188,15 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
 
   return (
     <div style={{ padding: "1rem" }}>
-      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 10, letterSpacing: 1 }}>
+      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4, letterSpacing: 1 }}>
         MODEL COMPETITION
+      </div>
+      <div style={{ fontSize: 9, color: "#475569", marginBottom: 8, letterSpacing: 0.5 }}>
+        scored by {metricLabel}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {displayModels.map((m, i) => (
-          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={effectiveWinnerIdx} metricLabel={metricLabel} />
+          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={effectiveWinnerIdx} />
         ))}
       </div>
 
