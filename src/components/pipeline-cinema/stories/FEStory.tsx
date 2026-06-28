@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SOURCE_COLS = ["Age", "Fare", "Pclass", "Sex"];
-
 const TRANSFORMS: Array<{ sources: string[]; output: string; label: string; desc: string }> = [
   { sources: ["Age"], output: "Age_log1p", label: "log transform", desc: "log transform preserves relative differences in skewed data" },
   { sources: ["Age", "Fare"], output: "Age×Fare", label: "interaction", desc: "interaction term captures combined effect of two features" },
@@ -33,7 +31,34 @@ const newPill: React.CSSProperties = {
   color: "#34d399",
 };
 
-export default function FEStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
+interface Props {
+  active: boolean;
+  taskType?: "classification" | "regression";
+  sourceCols?: string[];
+  engineeredCols?: string[];
+}
+
+export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
+  const demoSource = ["Age", "Fare", "Pclass", "Sex"];
+  const displaySource = (sourceCols && sourceCols.length > 0) ? sourceCols.slice(0, 5) : demoSource;
+
+  const demoEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
+  let displayEngineered: string[] = demoEngineered;
+  if (sourceCols && engineeredCols && sourceCols.length > 0 && engineeredCols.length > 0) {
+    const sourceSet = new Set(sourceCols);
+    const newCols = engineeredCols.filter(c => !sourceSet.has(c));
+    if (newCols.length > 0) {
+      displayEngineered = [];
+      for (let i = 0; i < Math.min(newCols.length, 6); i += 2) {
+        displayEngineered.push(newCols.slice(i, i + 2).join(", "));
+      }
+    }
+  }
+
+  const featuresAdded = (sourceCols && engineeredCols && sourceCols.length > 0 && engineeredCols.length > 0)
+    ? Math.max(0, engineeredCols.length - sourceCols.length)
+    : displayEngineered.length;
+
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -48,9 +73,8 @@ export default function FEStory({ active }: { active: boolean; taskType?: "class
     if (!active) setStep(0);
   }, [active]);
 
-  // Which transforms to show
-  const visibleTransforms = step === 0 ? [] : step >= 4 ? TRANSFORMS : [TRANSFORMS[step - 1]];
-  const desc = step > 0 && step < 4 ? TRANSFORMS[step - 1].desc : step === 4 ? "4 engineered features added to feature matrix" : "";
+  const visibleEngineered = step === 0 ? [] : step >= 4 ? displayEngineered : [displayEngineered[step - 1]].filter(Boolean);
+  const desc = step > 0 && step < 4 ? TRANSFORMS[step - 1].desc : step === 4 ? `${featuresAdded} engineered features added to feature matrix` : "";
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "1rem", position: "relative" }}>
@@ -64,7 +88,7 @@ export default function FEStory({ active }: { active: boolean; taskType?: "class
             exit={{ opacity: 0 }}
             style={{ position: "absolute", top: 12, right: 12, background: "#34d399", color: "#000", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, zIndex: 10 }}
           >
-            +4 features
+            +{featuresAdded} features
           </motion.div>
         )}
       </AnimatePresence>
@@ -74,7 +98,7 @@ export default function FEStory({ active }: { active: boolean; taskType?: "class
         {/* Left: Source columns */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
           <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>SOURCE</div>
-          {SOURCE_COLS.map((col) => {
+          {displaySource.map((col) => {
             const isActive = step > 0 && step < 4
               ? TRANSFORMS[step - 1].sources.includes(col)
               : step === 4;
@@ -95,11 +119,10 @@ export default function FEStory({ active }: { active: boolean; taskType?: "class
         <div style={{ width: "40%", position: "relative", height: "100%", minHeight: 120 }}>
           <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, overflow: "visible" }}>
             <AnimatePresence>
-              {visibleTransforms.map((t, i) => {
-                // Approximate y positions for source pills (top=32 + i*32)
+              {(step > 0 && step < 4 ? [TRANSFORMS[step - 1]] : step >= 4 ? TRANSFORMS : []).map((t, i) => {
                 const sourceYs = t.sources.map((s) => {
-                  const idx = SOURCE_COLS.indexOf(s);
-                  return 32 + idx * 32;
+                  const idx = displaySource.indexOf(s) !== -1 ? displaySource.indexOf(s) : TRANSFORMS.findIndex(tr => tr.sources.includes(s));
+                  return 32 + Math.max(0, idx) * 32;
                 });
                 const targetY = 32 + i * 36;
                 return sourceYs.map((sy, si) => (
@@ -142,16 +165,16 @@ export default function FEStory({ active }: { active: boolean; taskType?: "class
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
           <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ENGINEERED</div>
           <AnimatePresence>
-            {visibleTransforms.map((t, i) => (
+            {visibleEngineered.map((label, i) => (
               <motion.div
-                key={t.output}
+                key={label}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.08 }}
                 style={{ ...newPill }}
               >
-                {t.output}
+                {label}
               </motion.div>
             ))}
           </AnimatePresence>

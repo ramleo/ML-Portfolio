@@ -1,35 +1,12 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
-import {
-  callPreprocess,
-  callFeatureEng,
-  callFeatureSelect,
-  callAutoML,
-} from "@/lib/pipelineCinemaApi";
-
-type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
-
-const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
-
-const STAGE_META: Record<StageKind, { label: string; accent: string }> = {
-  preprocessing:    { label: "Preprocess",     accent: "#38bdf8" },
-  "feature-eng":    { label: "Feature Eng",    accent: "#34d399" },
-  "feature-select": { label: "Feature Select", accent: "#f59e0b" },
-  automl:           { label: "AutoML",          accent: "#a78bfa" },
-};
-
-const STAGE_DURATIONS: Record<StageKind, number> = {
-  preprocessing:    8400,
-  "feature-eng":    8000,
-  "feature-select": 7200,
-  automl:           10000,
-};
+import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
 
 function parseCsvB64(b64: string): string[] {
   try {
@@ -59,12 +36,6 @@ function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: s
 }
 
 export default function PipelineCinemaPage() {
-  // Animation state
-  const [activeStage, setActiveStage] = useState<StageKind | null>(null);
-  const [doneStages, setDoneStages] = useState<Set<StageKind>>(new Set());
-  const [running, setRunning] = useState(false);
-  const [orbProgress, setOrbProgress] = useState(0);
-
   // CSV / config state
   const [csvB64, setCsvB64] = useState<string | null>(null);
   const [csvName, setCsvName] = useState<string>("");
@@ -74,31 +45,26 @@ export default function PipelineCinemaPage() {
   const [csvPreviewCols, setCsvPreviewCols] = useState<string[]>([]);
   const [csvPreviewRows, setCsvPreviewRows] = useState<string[][]>([]);
 
-  // Dynamic narrator + chapter
-  const [dynamicLines, setDynamicLines] = useState<Partial<Record<StageKind, string[]>>>({});
-  const [chapterStage, setChapterStage] = useState<StageKind | null>(null);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(false);
-  const stoppedRef = useRef(false);
+  // Animation state and handlers from hook
+  const {
+    activeStage,
+    doneStages,
+    running,
+    orbProgress,
+    dynamicLines,
+    chapterStage,
+    apiError,
+    paused,
+    stageColumns,
+    handleRunAnimation,
+    handleStop,
+    handleReset,
+    togglePause,
+    handleStageClick,
+    setChapterStage,
+  } = usePipelineRunner({ csvB64, target, taskType });
 
-  const togglePause = useCallback(() => {
-    pausedRef.current = !pausedRef.current;
-    setPaused(pausedRef.current);
-  }, []);
-
-  // Waits ms but pauses when pausedRef is true and aborts when stoppedRef is true
-  const waitPauseable = useCallback(async (ms: number) => {
-    let remaining = ms;
-    while (remaining > 0) {
-      if (stoppedRef.current) return;
-      await new Promise<void>((r) => setTimeout(r, 100));
-      if (!pausedRef.current) remaining -= 100;
-    }
-  }, []);
-
-  // ── File handling ─────────────────────────────────────────────────────────
-
+  // File handling
   const handleFile = useCallback((file: File) => {
     setCsvName(file.name);
     const reader = new FileReader();
@@ -121,122 +87,9 @@ export default function PipelineCinemaPage() {
     setCsvName("");
     setColumns([]);
     setTarget("");
-    setDynamicLines({});
-    setChapterStage(null);
-    setApiError(null);
     setCsvPreviewCols([]);
     setCsvPreviewRows([]);
   }, []);
-
-  // ── Animation runner ──────────────────────────────────────────────────────
-
-  const handleRunAnimation = useCallback(async () => {
-    stoppedRef.current = false;
-    pausedRef.current = false;
-    setPaused(false);
-    setRunning(true);
-    setDoneStages(new Set());
-    setActiveStage(null);
-    setOrbProgress(0);
-    setDynamicLines({});
-    setApiError(null);
-
-    const hasCsv = !!csvB64 && !!target;
-    let currentCsv = csvB64 ?? "";
-
-    for (let i = 0; i < STAGES.length; i++) {
-      if (stoppedRef.current) break;
-      const stage = STAGES[i];
-
-      // Flash chapter card
-      setChapterStage(stage);
-      await waitPauseable(1800);
-      if (stoppedRef.current) { setChapterStage(null); break; }
-      setChapterStage(null);
-
-      setActiveStage(stage);
-      setOrbProgress((i / (STAGES.length - 1)) * 0.85 + 0.06);
-
-      if (hasCsv) {
-        try {
-          if (stage === "preprocessing") {
-            const result = await callPreprocess(currentCsv, target);
-            if (result) {
-              currentCsv = result.csv;
-              setDynamicLines((p) => ({ ...p, preprocessing: result.lines }));
-            }
-          } else if (stage === "feature-eng") {
-            const result = await callFeatureEng(currentCsv, target);
-            if (result) {
-              currentCsv = result.csv;
-              setDynamicLines((p) => ({ ...p, "feature-eng": result.lines }));
-            }
-          } else if (stage === "feature-select") {
-            const result = await callFeatureSelect(currentCsv, target);
-            if (result) {
-              currentCsv = result.csv;
-              setDynamicLines((p) => ({ ...p, "feature-select": result.lines }));
-            }
-          } else if (stage === "automl") {
-            const result = await callAutoML(currentCsv, target, taskType);
-            if (result) {
-              setDynamicLines((p) => ({ ...p, automl: result.lines }));
-            }
-          }
-          await waitPauseable(STAGE_DURATIONS[stage]);
-        } catch {
-          setApiError("API error on one or more stages — falling back to demo mode.");
-          await waitPauseable(2000);
-        }
-      } else {
-        await waitPauseable(9000);
-      }
-
-      setDoneStages((prev) => new Set([...prev, stage]));
-      setOrbProgress(((i + 1) / (STAGES.length - 1)) * 0.85 + 0.06);
-      await waitPauseable(400);
-    }
-
-    setActiveStage(null);
-    setRunning(false);
-  }, [csvB64, target, taskType]);
-
-  const handleStop = useCallback(() => {
-    stoppedRef.current = true;
-    pausedRef.current = false;
-    setPaused(false);
-    setRunning(false);
-    setActiveStage(null);
-    setChapterStage(null);
-  }, []);
-
-  const handleReset = useCallback(() => {
-    stoppedRef.current = true;
-    pausedRef.current = false;
-    setPaused(false);
-    setRunning(false);
-    setActiveStage(null);
-    setDoneStages(new Set());
-    setOrbProgress(0);
-    setDynamicLines({});
-    setChapterStage(null);
-    setApiError(null);
-  }, []);
-
-  const handleStageClick = useCallback(
-    (stage: StageKind) => {
-      if (running) return;
-      setActiveStage(stage);
-      setOrbProgress(X_PERCENT_FOR_STAGE(stage));
-      setTimeout(() => {
-        setDoneStages((prev) => new Set([...prev, stage]));
-        setActiveStage(null);
-      }, 1500);
-    },
-    [running]
-  );
-
-  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ minHeight: "100vh", background: "#060d1a", position: "relative" }}>
@@ -310,10 +163,11 @@ export default function PipelineCinemaPage() {
             taskType={taskType}
             csvPreviewCols={csvPreviewCols}
             csvPreviewRows={csvPreviewRows}
+            stageColumns={stageColumns}
           />
         </div>
 
-        {/* Controls — stage pills + Run/Reset in one compact bar */}
+        {/* Controls */}
         <div
           style={{
             display: "flex",
@@ -439,14 +293,4 @@ export default function PipelineCinemaPage() {
       </main>
     </div>
   );
-}
-
-function X_PERCENT_FOR_STAGE(stage: StageKind): number {
-  const percents: Record<StageKind, number> = {
-    preprocessing:    0.12,
-    "feature-eng":    0.37,
-    "feature-select": 0.63,
-    automl:           0.88,
-  };
-  return percents[stage];
 }

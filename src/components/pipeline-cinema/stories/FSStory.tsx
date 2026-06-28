@@ -3,22 +3,45 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const FEATURES = [
-  { name: "Age×Fare",      score: 0.92, keep: true  },
-  { name: "Fare",          score: 0.87, keep: true  },
-  { name: "Age",           score: 0.79, keep: true  },
-  { name: "Pclass",        score: 0.74, keep: true  },
-  { name: "Age_log1p",     score: 0.68, keep: true  },
-  { name: "Sex_encoded",   score: 0.61, keep: true  },
-  { name: "Embarked_S",    score: 0.38, keep: false },
-  { name: "Embarked_C",    score: 0.29, keep: false },
-  { name: "Fare_sqrt",     score: 0.21, keep: false },
-  { name: "Cabin_missing", score: 0.08, keep: false },
-];
-
 const CYCLE_MS = 1800;
 
-export default function FSStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
+interface Props {
+  active: boolean;
+  taskType?: "classification" | "regression";
+  allCols?: string[];
+  keptCols?: string[];
+}
+
+export default function FSStory({ active, allCols, keptCols }: Props) {
+  const demoFeatures = [
+    { name: "Age×Fare",      score: 0.92, keep: true  },
+    { name: "Fare",          score: 0.87, keep: true  },
+    { name: "Age",           score: 0.79, keep: true  },
+    { name: "Pclass",        score: 0.74, keep: true  },
+    { name: "Age_log1p",     score: 0.68, keep: true  },
+    { name: "Sex_encoded",   score: 0.61, keep: true  },
+    { name: "Embarked_S",    score: 0.38, keep: false },
+    { name: "Embarked_C",    score: 0.29, keep: false },
+    { name: "Fare_sqrt",     score: 0.21, keep: false },
+    { name: "Cabin_missing", score: 0.08, keep: false },
+  ];
+
+  let displayFeatures: Array<{ name: string; score: number; keep: boolean }>;
+
+  if (allCols && allCols.length > 0) {
+    const keptSet = new Set(keptCols ?? allCols);
+    const kept = allCols.filter(c => keptSet.has(c)).slice(0, 6);
+    const dropped = allCols.filter(c => !keptSet.has(c)).slice(0, 3);
+    const all = [...kept, ...dropped];
+    displayFeatures = all.map((name, i) => ({
+      name,
+      score: parseFloat((0.95 - i * 0.07).toFixed(2)),
+      keep: keptSet.has(name),
+    })).slice(0, 10);
+  } else {
+    displayFeatures = demoFeatures;
+  }
+
   const [step, setStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,12 +70,12 @@ export default function FSStory({ active }: { active: boolean; taskType?: "class
               fontSize: 9, color: "#f59e0b", fontWeight: 700,
             }}
           >
-            6 / 10 features kept
+            {displayFeatures.filter(f => f.keep).length} / {displayFeatures.length} features kept
           </motion.div>
         )}
       </AnimatePresence>
 
-      {FEATURES.map((feat, i) => {
+      {displayFeatures.map((feat, i) => {
         const isDimmed = !feat.keep && step >= 2;
         const isRemoved = !feat.keep && step >= 3;
         const isKept = feat.keep && step >= 3;

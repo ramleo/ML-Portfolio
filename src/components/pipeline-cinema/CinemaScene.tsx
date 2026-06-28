@@ -23,6 +23,11 @@ interface Props {
   taskType?: "classification" | "regression";
   csvPreviewCols?: string[];
   csvPreviewRows?: string[][];
+  stageColumns?: {
+    afterPreprocess?: string[];
+    afterFE?: string[];
+    afterFS?: string[];
+  };
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -46,6 +51,7 @@ export default function CinemaScene({
   taskType,
   csvPreviewCols,
   csvPreviewRows,
+  stageColumns,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(720);
@@ -271,7 +277,7 @@ export default function CinemaScene({
           overflowY: "auto",
         }}
       >
-        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} />
+        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} />
       </div>
 
       {/* Narrator strip */}

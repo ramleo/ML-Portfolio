@@ -14,6 +14,11 @@ interface Props {
   taskType?: "classification" | "regression";
   csvPreviewCols?: string[];
   csvPreviewRows?: string[][];
+  stageColumns?: {
+    afterPreprocess?: string[];
+    afterFE?: string[];
+    afterFS?: string[];
+  };
 }
 
 const STORY_MAP = {
@@ -43,7 +48,7 @@ const PulsingDots = () => (
   </div>
 );
 
-export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows }: Props) {
+export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows, stageColumns }: Props) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", overflowY: "auto" }}>
       <AnimatePresence mode="wait">
@@ -96,6 +101,12 @@ export default function StageStory({ stage, active, taskType, csvPreviewCols, cs
               {(() => {
                 if (stage === "preprocessing") {
                   return <PreprocessStory active={active} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} />;
+                }
+                if (stage === "feature-eng") {
+                  return <FEStory active={active} sourceCols={stageColumns?.afterPreprocess} engineeredCols={stageColumns?.afterFE} />;
+                }
+                if (stage === "feature-select") {
+                  return <FSStory active={active} allCols={stageColumns?.afterFE} keptCols={stageColumns?.afterFS} />;
                 }
                 const Story = STORY_MAP[stage];
                 return <Story active={active} taskType={taskType} />;
