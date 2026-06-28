@@ -11,6 +11,7 @@ type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 interface Props {
   stage: StageKind | null;
   active: boolean;
+  taskType?: "classification" | "regression";
 }
 
 const STORY_MAP = {
@@ -40,9 +41,9 @@ const PulsingDots = () => (
   </div>
 );
 
-export default function StageStory({ stage, active }: Props) {
+export default function StageStory({ stage, active, taskType }: Props) {
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
+    <div style={{ width: "100%", height: "100%", position: "relative", overflowY: "auto" }}>
       <AnimatePresence mode="wait">
         {stage === null ? (
           <motion.div
@@ -89,10 +90,10 @@ export default function StageStory({ stage, active }: Props) {
             </div>
 
             {/* Story content */}
-            <div style={{ flex: 1, overflow: "hidden" }}>
+            <div style={{ flex: 1, overflowY: "auto" }}>
               {(() => {
                 const Story = STORY_MAP[stage];
-                return <Story active={active} />;
+                return <Story active={active} taskType={taskType} />;
               })()}
             </div>
           </motion.div>

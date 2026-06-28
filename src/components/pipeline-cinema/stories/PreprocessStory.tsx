@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function PreprocessStory({ active }: { active: boolean }) {
+export default function PreprocessStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
   const [step, setStep] = useState(0);
 
   useEffect(() => {

@@ -64,16 +64,18 @@ export default function PipelineCinemaPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
+  const stoppedRef = useRef(false);
 
   const togglePause = useCallback(() => {
     pausedRef.current = !pausedRef.current;
     setPaused(pausedRef.current);
   }, []);
 
-  // Waits ms but pauses when pausedRef is true — time only counts down while unpaused
+  // Waits ms but pauses when pausedRef is true and aborts when stoppedRef is true
   const waitPauseable = useCallback(async (ms: number) => {
     let remaining = ms;
     while (remaining > 0) {
+      if (stoppedRef.current) return;
       await new Promise<void>((r) => setTimeout(r, 100));
       if (!pausedRef.current) remaining -= 100;
     }
@@ -108,6 +110,9 @@ export default function PipelineCinemaPage() {
   // ── Animation runner ──────────────────────────────────────────────────────
 
   const handleRunAnimation = useCallback(async () => {
+    stoppedRef.current = false;
+    pausedRef.current = false;
+    setPaused(false);
     setRunning(true);
     setDoneStages(new Set());
     setActiveStage(null);
@@ -119,11 +124,13 @@ export default function PipelineCinemaPage() {
     let currentCsv = csvB64 ?? "";
 
     for (let i = 0; i < STAGES.length; i++) {
+      if (stoppedRef.current) break;
       const stage = STAGES[i];
 
       // Flash chapter card
       setChapterStage(stage);
       await waitPauseable(1800);
+      if (stoppedRef.current) { setChapterStage(null); break; }
       setChapterStage(null);
 
       setActiveStage(stage);
@@ -173,7 +180,17 @@ export default function PipelineCinemaPage() {
     setRunning(false);
   }, [csvB64, target, taskType]);
 
+  const handleStop = useCallback(() => {
+    stoppedRef.current = true;
+    pausedRef.current = false;
+    setPaused(false);
+    setRunning(false);
+    setActiveStage(null);
+    setChapterStage(null);
+  }, []);
+
   const handleReset = useCallback(() => {
+    stoppedRef.current = true;
     pausedRef.current = false;
     setPaused(false);
     setRunning(false);
@@ -182,6 +199,7 @@ export default function PipelineCinemaPage() {
     setOrbProgress(0);
     setDynamicLines({});
     setChapterStage(null);
+    setApiError(null);
   }, []);
 
   const handleStageClick = useCallback(
@@ -268,6 +286,7 @@ export default function PipelineCinemaPage() {
             dynamicLines={dynamicLines}
             chapterStage={chapterStage}
             onChapterDismiss={() => setChapterStage(null)}
+            taskType={taskType}
           />
         </div>
 
@@ -350,6 +369,28 @@ export default function PipelineCinemaPage() {
               }}
             >
               {paused ? "▶ Resume" : "⏸ Pause"}
+            </motion.button>
+          )}
+
+          {running && (
+            <motion.button
+              onClick={handleStop}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                padding: "0.7rem 1.4rem",
+                borderRadius: 10,
+                background: "transparent",
+                color: "#f87171",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                border: "1.5px solid #7f1d1d",
+                cursor: "pointer",
+              }}
+            >
+              ⏹ Stop
             </motion.button>
           )}
 

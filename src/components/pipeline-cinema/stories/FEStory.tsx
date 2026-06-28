@@ -33,7 +33,7 @@ const newPill: React.CSSProperties = {
   color: "#34d399",
 };
 
-export default function FEStory({ active }: { active: boolean }) {
+export default function FEStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
   const [step, setStep] = useState(0);
 
   useEffect(() => {

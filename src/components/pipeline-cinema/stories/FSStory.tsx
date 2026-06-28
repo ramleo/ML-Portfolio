@@ -18,7 +18,7 @@ const FEATURES = [
 
 const CYCLE_MS = 1800;
 
-export default function FSStory({ active }: { active: boolean }) {
+export default function FSStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
   const [step, setStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

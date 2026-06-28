@@ -20,6 +20,7 @@ interface Props {
   dynamicLines?: Partial<Record<StageKind, string[]>>;
   chapterStage?: StageKind | null;
   onChapterDismiss?: () => void;
+  taskType?: "classification" | "regression";
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -40,6 +41,7 @@ export default function CinemaScene({
   dynamicLines,
   chapterStage,
   onChapterDismiss,
+  taskType,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(720);
@@ -235,7 +237,9 @@ export default function CinemaScene({
           transition={orbActive ? { type: "spring", stiffness: 80, damping: 18 } : { duration: 0 }}
           style={{ position: "absolute", top: 0 }}
         >
-          <DataOrb x={0} y={0} active={orbActive} color="#38bdf8" />
+          <div style={{ transform: "translate(-50%, -50%)" }}>
+            <DataOrb x={0} y={0} active={orbActive} color="#38bdf8" />
+          </div>
         </motion.div>
       </div>
 
@@ -260,10 +264,10 @@ export default function CinemaScene({
           right: 0,
           height: storyHeight,
           background: "#070f1e",
-          overflow: "hidden",
+          overflowY: "auto",
         }}
       >
-        <StageStory stage={activeStage} active={activeStage !== null} />
+        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} />
       </div>
 
       {/* Narrator strip */}

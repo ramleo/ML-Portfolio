@@ -72,11 +72,12 @@ function useAnimatedScore(target: number, active: boolean) {
   return val;
 }
 
-function ModelCard({ model, index, step, winnerIdx }: {
+function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
   model: typeof MODELS[0];
   index: number;
   step: number;
   winnerIdx: number;
+  metricLabel: string;
 }) {
   const isWinner = index === winnerIdx;
   const isDimmed = step >= 3 && !isWinner;
@@ -120,15 +121,16 @@ function ModelCard({ model, index, step, winnerIdx }: {
       <div style={{ fontSize: 20, fontWeight: 800, color: model.color, lineHeight: 1 }}>
         {score.toFixed(3)}
       </div>
-      <div style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>accuracy</div>
+      <div style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>{metricLabel}</div>
     </motion.div>
   );
 }
 
-export default function AutoMLStory({ active }: { active: boolean }) {
+export default function AutoMLStory({ active, taskType }: { active: boolean; taskType?: "classification" | "regression" }) {
   const [step, setStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const winnerIdx = MODELS.reduce((best, m, i) => m.score > MODELS[best].score ? i : best, 0);
+  const metricLabel = taskType === "regression" ? "R² score" : "accuracy";
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
@@ -145,7 +147,7 @@ export default function AutoMLStory({ active }: { active: boolean }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {MODELS.map((m, i) => (
-          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={winnerIdx} />
+          <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={winnerIdx} metricLabel={metricLabel} />
         ))}
       </div>
 
