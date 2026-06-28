@@ -20,6 +20,7 @@ export interface FeatureEngResponse {
   processed_csv_b64: string;
   features_before: number;
   features_added: number;
+  new_columns?: string[];
 }
 
 export interface FeatureSelectResponse {
@@ -30,14 +31,17 @@ export interface FeatureSelectResponse {
 }
 
 export interface AutoMLResponse {
+  // New shape
+  leaderboard?: Array<{ algo: string; score: number; error?: string }>;
+  winner?: unknown; // can be string OR { algo, score, metric }
+  // Old shape fallbacks
   scores?: Record<string, number>;
   model_scores?: Record<string, number>;
-  winner?: unknown;
+  models?: Array<{ name?: string; model?: string; score?: number }>;
   best_model?: unknown;
   best_score?: number;
   score?: number;
   rows?: number;
-  models?: Array<{ name?: string; model?: string; score?: number }>;
 }
 
 // ── Stage callers ─────────────────────────────────────────────────────────────
@@ -93,7 +97,7 @@ export async function callPreprocess(
 export async function callFeatureEng(
   csvB64: string,
   target: string
-): Promise<{ csv: string; lines: string[] } | null> {
+): Promise<{ csv: string; lines: string[]; engineeredCols: string[] } | null> {
   const res = await fetch(`${API}/pipeline-builder/feature-eng`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -105,6 +109,7 @@ export async function callFeatureEng(
   });
   if (!res.ok) return null;
   const data = (await res.json()) as FeatureEngResponse;
+  const engineeredCols: string[] = Array.isArray(data.new_columns) ? data.new_columns : [];
   return {
     csv: data.processed_csv_b64,
     lines: [
@@ -116,6 +121,7 @@ export async function callFeatureEng(
         ? `${data.features_added} new features created!`
         : "Use Pipeline Builder's FE stage to add custom transforms to your data.",
     ],
+    engineeredCols,
   };
 }
 
@@ -159,7 +165,7 @@ export async function callAutoML(
   csvB64: string,
   target: string,
   taskType: "classification" | "regression"
-): Promise<{ lines: string[]; models: Array<{ name: string; score: number }>; winner: string; taskType: "classification" | "regression" } | null> {
+): Promise<{ lines: string[]; models: Array<{ name: string; score: number }>; winner: string; taskType: "classification" | "regression"; metric: string } | null> {
   const res = await fetch(`${API}/pipeline-builder/automl`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -173,9 +179,19 @@ export async function callAutoML(
   if (!res.ok) return null;
   const data = (await res.json()) as AutoMLResponse;
 
-  // Build scores from multiple possible shapes
+  // Build scores — handle leaderboard shape AND old shapes
   let scores: Record<string, number> = {};
-  if (data.scores && typeof data.scores === "object") scores = { ...data.scores };
+
+  // New shape: leaderboard array with algo/score
+  if (Array.isArray(data.leaderboard)) {
+    data.leaderboard.forEach((entry) => {
+      if (entry.algo && typeof entry.score === "number" && entry.score > -900 && !entry.error) {
+        scores[entry.algo] = entry.score;
+      }
+    });
+  }
+  // Old shapes (backwards compat)
+  if (data.scores && typeof data.scores === "object") scores = { ...scores, ...data.scores };
   if (data.model_scores && typeof data.model_scores === "object") scores = { ...scores, ...data.model_scores };
   if (Array.isArray(data.models)) {
     data.models.forEach((m) => {
@@ -184,18 +200,27 @@ export async function callAutoML(
     });
   }
 
-  // Robustly extract winner string
-  const rawWinner = data.winner ?? data.best_model;
-  const winner = typeof rawWinner === "string" && rawWinner
-    ? rawWinner
-    // NOTE: sort direction can't be inferred without metric metadata, so this fallback is
-    // best-effort (descending = higher-is-better) and only fires when the API returns no winner at all.
-    : Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest";
+  // Extract winner — handle object shape { algo, score, metric } OR old string shape
+  let winner: string;
+  let winnerScore: number;
+  let metric: string;
 
-  const winnerScore =
-    fuzzyScore(scores, winner) ??
-    (typeof data.best_score === "number" ? data.best_score :
-     typeof data.score === "number" ? data.score : 0);
+  type WinnerObj = { algo?: string; score?: number; metric?: string };
+
+  if (data.winner && typeof data.winner === "object" && !Array.isArray(data.winner)) {
+    const w = data.winner as WinnerObj;
+    winner = w.algo ?? Object.keys(scores)[0] ?? "RandomForest";
+    winnerScore = typeof w.score === "number" ? w.score : (fuzzyScore(scores, winner) ?? 0);
+    metric = w.metric ?? (taskType === "regression" ? "r2" : "accuracy");
+  } else {
+    // Old string shape
+    const rawWinner = typeof data.winner === "string" ? data.winner : (data.best_model as string | undefined);
+    winner = typeof rawWinner === "string" && rawWinner
+      ? rawWinner
+      : Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest";
+    winnerScore = fuzzyScore(scores, winner) ?? (typeof data.best_score === "number" ? data.best_score : typeof data.score === "number" ? data.score : 0);
+    metric = taskType === "regression" ? "r2" : "accuracy";
+  }
 
   const modelList = Object.entries(scores)
     .sort((a, b) => b[1] - a[1])
@@ -205,16 +230,26 @@ export async function callAutoML(
   const scoreLines = Object.entries(scores)
     .map(([m, s]) => `${m}: ${(Number(s) * 100).toFixed(1)}%`)
     .join(", ");
+
+  // Map metric name to human-readable label
+  const metricLabel = metric === "r2" || metric === "r2_score" ? "R² score"
+    : metric === "rmse" ? "RMSE"
+    : metric === "mae" ? "MAE"
+    : metric === "f1_weighted" || metric === "f1" ? "F1 score"
+    : metric === "accuracy" ? "accuracy"
+    : metric;
+
   return {
     lines: [
       `Training ${Object.keys(scores).length || 2} models on your ${data.rows ?? "processed"} rows with 3-fold cross-validation.`,
       "Random Forest: building 100 decision trees in parallel...",
       scoreLines ? `Results in! ${scoreLines}.` : "Models trained! Comparing cross-validation scores.",
-      `Winner: ${winner} with ${(winnerScore * 100).toFixed(1)}% ${taskType === "classification" ? "accuracy" : "R² score"}!`,
+      `Winner: ${winner} with ${(winnerScore * 100).toFixed(1)}% ${metricLabel}!`,
       "Tip: Add more models or use Optuna stage in Pipeline Builder for hyperparameter tuning.",
     ],
     models: modelList,
     winner,
     taskType,
+    metric,
   };
 }

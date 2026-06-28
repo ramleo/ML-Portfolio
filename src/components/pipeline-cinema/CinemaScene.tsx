@@ -15,6 +15,7 @@ interface AutoMLResults {
   models: Array<{ name: string; score: number }>;
   winner: string;
   taskType: "classification" | "regression";
+  metric: string;
 }
 
 interface Props {
@@ -33,6 +34,7 @@ interface Props {
     afterPreprocess?: string[];
     afterFE?: string[];
     afterFS?: string[];
+    engineeredCols?: string[];
   };
   automlResults?: AutoMLResults | null;
   viewingStage?: StageKind | null;
@@ -287,7 +289,7 @@ export default function CinemaScene({
           overflowY: "auto",
         }}
       >
-        <StageStory stage={viewingStage ?? activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} automlResults={automlResults} />
+        <StageStory stage={viewingStage ?? activeStage} active={activeStage !== null || viewingStage !== null} frozen={viewingStage !== null && activeStage === null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} automlResults={automlResults} />
       </div>
 
       {/* Narrator strip */}

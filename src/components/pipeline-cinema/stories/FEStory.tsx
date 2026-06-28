@@ -43,22 +43,25 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
   const demoSource = ["Age", "Fare", "Pclass", "Sex"];
   const displaySource = (sourceCols && sourceCols.length > 0) ? sourceCols.slice(0, 5) : demoSource;
 
-  const demoEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
-  let displayEngineered: string[] = demoEngineered;
-  if (sourceCols && engineeredCols && sourceCols.length > 0 && engineeredCols.length > 0) {
-    const sourceSet = new Set(sourceCols);
-    const newCols = engineeredCols.filter(c => !sourceSet.has(c));
-    if (newCols.length > 0) {
-      displayEngineered = [];
-      for (let i = 0; i < Math.min(newCols.length, 6); i += 2) {
-        displayEngineered.push(newCols.slice(i, i + 2).join(", "));
+  let displayEngineered: string[] = [];
+  let noNewFeatures = false;
+
+  if (engineeredCols !== undefined) {
+    // Real data: engineeredCols directly from API
+    if (engineeredCols.length > 0) {
+      for (let i = 0; i < Math.min(engineeredCols.length, 6); i += 2) {
+        displayEngineered.push(engineeredCols.slice(i, i + 2).join(", "));
       }
+    } else {
+      noNewFeatures = true;
+      displayEngineered = [];
     }
+  } else {
+    // No CSV loaded: show demo
+    displayEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
   }
 
-  const featuresAdded = (sourceCols && engineeredCols && sourceCols.length > 0 && engineeredCols.length > 0)
-    ? Math.max(0, engineeredCols.length - sourceCols.length)
-    : displayEngineered.length;
+  const featuresAdded = engineeredCols ? engineeredCols.length : displayEngineered.length;
 
   const [step, setStep] = useState(0);
 
@@ -177,20 +180,26 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
         {/* Right: New feature pills */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
           <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ENGINEERED</div>
-          <AnimatePresence>
-            {visibleEngineered.map((label, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.08 }}
-                style={{ ...newPill }}
-              >
-                {label}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {noNewFeatures ? (
+            <div style={{ fontSize: 10, color: "#475569", textAlign: "right", marginTop: 8 }}>
+              No new features added.<br />Configure transforms in Pipeline Builder.
+            </div>
+          ) : (
+            <AnimatePresence>
+              {visibleEngineered.map((label, i) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.08 }}
+                  style={{ ...newPill }}
+                >
+                  {label}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
       </div>
 

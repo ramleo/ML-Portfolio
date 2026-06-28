@@ -51,6 +51,7 @@ export interface AutoMLResults {
   models: Array<{ name: string; score: number }>;
   winner: string;
   taskType: "classification" | "regression";
+  metric: string;
 }
 
 export interface PipelineRunnerState {
@@ -66,6 +67,7 @@ export interface PipelineRunnerState {
     afterPreprocess?: string[];
     afterFE?: string[];
     afterFS?: string[];
+    engineeredCols?: string[];
   };
   automlResults: AutoMLResults | null;
   viewingStage: StageKind | null;
@@ -104,6 +106,7 @@ export function usePipelineRunner({
     afterPreprocess?: string[];
     afterFE?: string[];
     afterFS?: string[];
+    engineeredCols?: string[];
   }>({});
   const [automlResults, setAutomlResults] = useState<AutoMLResults | null>(null);
   const [viewingStage, setViewingStage] = useState<StageKind | null>(null);
@@ -168,7 +171,11 @@ export function usePipelineRunner({
             if (result) {
               currentCsv = result.csv;
               setDynamicLines((p) => ({ ...p, "feature-eng": result.lines }));
-              setStageColumns((p) => ({ ...p, afterFE: parseCsvHeader(currentCsv) }));
+              setStageColumns((p) => ({
+                ...p,
+                afterFE: parseCsvHeader(currentCsv),
+                engineeredCols: result.engineeredCols,
+              }));
             }
           } else if (stage === "feature-select") {
             const result = await callFeatureSelect(currentCsv, target);
@@ -181,7 +188,12 @@ export function usePipelineRunner({
             const result = await callAutoML(currentCsv, target, taskType);
             if (result) {
               setDynamicLines((p) => ({ ...p, automl: result.lines }));
-              setAutomlResults({ models: result.models, winner: result.winner, taskType: result.taskType });
+              setAutomlResults({
+                models: result.models,
+                winner: result.winner,
+                taskType: result.taskType,
+                metric: result.metric,
+              });
             }
           }
           await waitPauseable(STAGE_DURATIONS[stage]);
@@ -236,7 +248,7 @@ export function usePipelineRunner({
         }
         return;
       }
-      setViewingStage(null);
+      setViewingStage((prev) => (prev === stage ? null : stage));
       setActiveStage(stage);
       setOrbProgress(X_PERCENT_FOR_STAGE(stage));
       setTimeout(() => {

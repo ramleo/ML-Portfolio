@@ -139,10 +139,12 @@ interface AutoMLResults {
   models: Array<{ name: string; score: number }>;
   winner: string;
   taskType: "classification" | "regression";
+  metric: string;
 }
 
-export default function AutoMLStory({ active, taskType, automlResults }: {
+export default function AutoMLStory({ active, frozen = false, taskType, automlResults }: {
   active: boolean;
+  frozen?: boolean;
   taskType?: "classification" | "regression";
   automlResults?: AutoMLResults | null;
 }) {
@@ -165,15 +167,25 @@ export default function AutoMLStory({ active, taskType, automlResults }: {
   const effectiveWinnerIdx = winnerIdx >= 0 ? winnerIdx : 0;
 
   const effectiveTaskType = automlResults?.taskType ?? taskType ?? "classification";
-  const metricLabel = effectiveTaskType === "regression" ? "R² score" : "accuracy";
+  const metricLabel = (() => {
+    const m = automlResults?.metric ?? (effectiveTaskType === "regression" ? "r2" : "accuracy");
+    if (m === "r2" || m === "r2_score") return "R² score";
+    if (m === "rmse") return "RMSE";
+    if (m === "mae") return "MAE";
+    if (m === "f1_weighted" || m === "f1") return "F1 score";
+    if (m === "accuracy") return "accuracy";
+    return m;
+  })();
 
   useEffect(() => {
-    if (!active) { setStep(0); return; }
+    if (!active) { setStep(automlResults ? 3 : 0); return; }
+    if (frozen) { if (step !== 3) setStep(3); return; } // viewer mode: lock at winner state
     timerRef.current = setTimeout(() => {
       setStep((s) => (s >= 4 ? 0 : s + 1));
     }, CYCLE_MS);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [active, step]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, step, frozen]);
 
   return (
     <div style={{ padding: "1rem" }}>

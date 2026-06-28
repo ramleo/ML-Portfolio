@@ -12,11 +12,13 @@ interface AutoMLResults {
   models: Array<{ name: string; score: number }>;
   winner: string;
   taskType: "classification" | "regression";
+  metric: string;
 }
 
 interface Props {
   stage: StageKind | null;
   active: boolean;
+  frozen?: boolean;
   taskType?: "classification" | "regression";
   csvPreviewCols?: string[];
   csvPreviewRows?: string[][];
@@ -24,6 +26,7 @@ interface Props {
     afterPreprocess?: string[];
     afterFE?: string[];
     afterFS?: string[];
+    engineeredCols?: string[];
   };
   automlResults?: AutoMLResults | null;
 }
@@ -55,7 +58,7 @@ const PulsingDots = () => (
   </div>
 );
 
-export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows, stageColumns, automlResults }: Props) {
+export default function StageStory({ stage, active, frozen = false, taskType, csvPreviewCols, csvPreviewRows, stageColumns, automlResults }: Props) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", overflowY: "auto" }}>
       <AnimatePresence mode="wait">
@@ -110,13 +113,13 @@ export default function StageStory({ stage, active, taskType, csvPreviewCols, cs
                   return <PreprocessStory active={active} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} />;
                 }
                 if (stage === "feature-eng") {
-                  return <FEStory active={active} sourceCols={stageColumns?.afterPreprocess} engineeredCols={stageColumns?.afterFE} />;
+                  return <FEStory active={active} sourceCols={stageColumns?.afterPreprocess} engineeredCols={stageColumns?.engineeredCols} />;
                 }
                 if (stage === "feature-select") {
                   return <FSStory active={active} allCols={stageColumns?.afterFE} keptCols={stageColumns?.afterFS} />;
                 }
                 if (stage === "automl") {
-                  return <AutoMLStory active={active} taskType={taskType} automlResults={automlResults} />;
+                  return <AutoMLStory active={active} frozen={frozen} taskType={taskType} automlResults={automlResults} />;
                 }
                 return null;
               })()}
