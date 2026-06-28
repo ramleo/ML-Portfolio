@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function PreprocessStory({ active }: { active: boolean; taskType?: "classification" | "regression" }) {
+interface PreprocessStoryProps {
+  active: boolean;
+  taskType?: "classification" | "regression";
+  csvPreviewCols?: string[];
+  csvPreviewRows?: string[][];
+}
+
+export default function PreprocessStory({ active, csvPreviewCols, csvPreviewRows }: PreprocessStoryProps) {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -32,22 +39,56 @@ export default function PreprocessStory({ active }: { active: boolean; taskType?
   // Cell state helpers
   const nanStyle = { background: "rgba(239,68,68,0.25)", color: "#fca5a5" };
   const filledStyle = { background: "rgba(34,211,238,0.25)", color: "#67e8f9" };
-  const dupStyle = { background: "rgba(251,191,36,0.2)", color: "#fde68a" };
   const outlierStyle = { background: "rgba(249,115,22,0.25)", color: "#fdba74" };
   const normal = {};
 
-  const row1Cabin = step >= 1 ? { val: "C23", style: step === 1 ? filledStyle : normal } : { val: "NaN", style: nanStyle };
-  const row2Age = step >= 1 ? { val: "30", style: step === 1 ? filledStyle : normal } : { val: "NaN", style: nanStyle };
-  const row3Cabin = step >= 1 ? { val: "C23", style: step === 1 ? filledStyle : normal } : { val: "NaN", style: nanStyle };
+  // Use real CSV data if provided, otherwise fall back to demo data
+  const demoCols = ["#", "Age", "Fare", "Cabin", "Embarked", "Sex"];
+  const demoRows = [
+    ["1", "22", "7.25", "C23", "S", "male"],
+    ["2", "—", "71.83", "C85", "C", "female"],
+    ["3", "26", "7.92", "C23", "S", "male"],
+    ["4", "35", "71.83", "C85", "C", "female"],
+    ["5", "35", "71.83", "C85", "C", "female"],
+  ];
 
-  const fareVal = step >= 3 ? "262.00" : step === 3 ? "512.33" : "71.83";
-  const fareR4Style = step === 3 ? outlierStyle : normal;
+  const tableCols = csvPreviewCols && csvPreviewCols.length > 0
+    ? ["#", ...csvPreviewCols.slice(0, 5)]
+    : demoCols;
+
+  const tableRows = csvPreviewRows && csvPreviewRows.length > 0
+    ? csvPreviewRows.slice(0, 5).map((row, i) => [String(i + 1), ...row.slice(0, 5)])
+    : demoRows;
+
+  // Animated cell indices (impute col 2, col 3; outlier col 2 row 3)
+  const imputeCol = 2; // index into tableRows[i] to show as NaN -> filled
+  const imputeRow2Col = 1; // second imputed cell in row 1
+
+  const cell = (rowIdx: number, colIdx: number, step: number) => {
+    const val = tableRows[rowIdx]?.[colIdx] ?? "—";
+    // Impute animation: rows 0 and 2, col imputeCol
+    if ((rowIdx === 0 || rowIdx === 2) && colIdx === imputeCol) {
+      if (step < 1) return { val: "NaN", style: nanStyle };
+      return { val, style: step === 1 ? filledStyle : normal };
+    }
+    // Second impute: row 1, col imputeRow2Col
+    if (rowIdx === 1 && colIdx === imputeRow2Col) {
+      if (step < 1) return { val: "NaN", style: nanStyle };
+      return { val, style: step === 1 ? filledStyle : normal };
+    }
+    // Outlier: row 3, col 2
+    if (rowIdx === 3 && colIdx === 2) {
+      if (step === 3) return { val: "outlier↑", style: outlierStyle };
+      return { val, style: normal };
+    }
+    return { val, style: normal };
+  };
 
   const skewBars = [40, 30, 15, 8, 5, 2];
   const normalBars = [5, 15, 30, 30, 15, 5];
   const bars = step >= 4 ? normalBars : skewBars;
 
-  const showRow5 = step < 2;
+  const showRow5 = step < 2 && tableRows.length >= 5;
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "1rem", position: "relative", overflow: "hidden" }}>
@@ -77,7 +118,7 @@ export default function PreprocessStory({ active }: { active: boolean; taskType?
         <table style={{ fontSize: 11, borderCollapse: "collapse", width: "100%", color: "#e2e8f0" }}>
           <thead>
             <tr>
-              {["#", "Age", "Fare", "Cabin", "Embarked", "Sex"].map((h) => (
+              {tableCols.map((h) => (
                 <th key={h} style={{ background: "#0f2744", color: "#64748b", padding: "4px 8px", fontWeight: 700, fontSize: 10, textAlign: "left" }}>
                   {h}
                 </th>
@@ -85,45 +126,32 @@ export default function PreprocessStory({ active }: { active: boolean; taskType?
             </tr>
           </thead>
           <tbody>
-            {/* Row 1 */}
-            <tr>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: "#475569", fontSize: 10 }}>1</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>22</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>7.25</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", transition: "background 0.4s", ...row1Cabin.style }}>{row1Cabin.val}</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>S</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>male</td>
-            </tr>
-            {/* Row 2 */}
-            <tr>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: "#475569", fontSize: 10 }}>2</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", transition: "background 0.4s", ...row2Age.style }}>{row2Age.val}</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>71.83</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C85</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>female</td>
-            </tr>
-            {/* Row 3 */}
-            <tr>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: "#475569", fontSize: 10 }}>3</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>26</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>7.92</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", transition: "background 0.4s", ...row3Cabin.style }}>{row3Cabin.val}</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>S</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>male</td>
-            </tr>
-            {/* Row 4 — outlier fare */}
-            <tr>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: "#475569", fontSize: 10 }}>4</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>35</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", transition: "background 0.4s", ...fareR4Style }}>
-                {step === 3 ? "512.33" : step > 3 ? "262.00" : "71.83"}
-                {step === 3 && <span style={{ fontSize: 9, color: "#fb923c", marginLeft: 4 }}>clipped ↓</span>}
-              </td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C85</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C</td>
-              <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>female</td>
-            </tr>
+            {/* Rows 0-3 always shown */}
+            {tableRows.slice(0, 4).map((row, rowIdx) => (
+              <tr key={rowIdx}>
+                {tableCols.map((_, colIdx) => {
+                  const { val, style } = cell(rowIdx, colIdx, step);
+                  const isRowNum = colIdx === 0;
+                  const isOutlierCell = rowIdx === 3 && colIdx === 2 && step === 3;
+                  return (
+                    <td
+                      key={colIdx}
+                      style={{
+                        padding: "3px 8px",
+                        borderBottom: "1px solid #0f2744",
+                        transition: "background 0.4s",
+                        color: isRowNum ? "#475569" : undefined,
+                        fontSize: isRowNum ? 10 : undefined,
+                        ...style,
+                      }}
+                    >
+                      {val}
+                      {isOutlierCell && <span style={{ fontSize: 9, color: "#fb923c", marginLeft: 4 }}>clipped ↓</span>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
             {/* Row 5 — duplicate, removed at step 2 */}
             <AnimatePresence>
               {showRow5 && (
@@ -134,12 +162,11 @@ export default function PreprocessStory({ active }: { active: boolean; taskType?
                   transition={{ duration: 0.5 }}
                   style={{ background: step >= 1 ? "rgba(251,191,36,0.2)" : "transparent", color: step >= 1 ? "#fde68a" : "inherit", overflow: "hidden" }}
                 >
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: "#475569", fontSize: 10 }}>5</td>
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>35</td>
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>71.83</td>
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C85</td>
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>C</td>
-                  <td style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744" }}>female</td>
+                  {tableCols.map((_, colIdx) => (
+                    <td key={colIdx} style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: colIdx === 0 ? "#475569" : undefined, fontSize: colIdx === 0 ? 10 : undefined }}>
+                      {tableRows[4]?.[colIdx] ?? "—"}
+                    </td>
+                  ))}
                 </motion.tr>
               )}
             </AnimatePresence>

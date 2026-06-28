@@ -44,6 +44,20 @@ function parseCsvB64(b64: string): string[] {
   }
 }
 
+function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: string[][] } {
+  try {
+    const text = atob(b64);
+    const lines = text.split("\n").filter(Boolean);
+    const columns = lines[0].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+    const rows = lines.slice(1, maxRows + 1).map((line) =>
+      line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""))
+    );
+    return { columns, rows };
+  } catch {
+    return { columns: [], rows: [] };
+  }
+}
+
 export default function PipelineCinemaPage() {
   // Animation state
   const [activeStage, setActiveStage] = useState<StageKind | null>(null);
@@ -57,6 +71,8 @@ export default function PipelineCinemaPage() {
   const [columns, setColumns] = useState<string[]>([]);
   const [target, setTarget] = useState<string>("");
   const [taskType, setTaskType] = useState<"classification" | "regression">("classification");
+  const [csvPreviewCols, setCsvPreviewCols] = useState<string[]>([]);
+  const [csvPreviewRows, setCsvPreviewRows] = useState<string[][]>([]);
 
   // Dynamic narrator + chapter
   const [dynamicLines, setDynamicLines] = useState<Partial<Record<StageKind, string[]>>>({});
@@ -93,6 +109,9 @@ export default function PipelineCinemaPage() {
       const cols = parseCsvB64(b64);
       setColumns(cols);
       setTarget(cols[cols.length - 1] ?? "");
+      const preview = parseCsvPreview(b64);
+      setCsvPreviewCols(preview.columns);
+      setCsvPreviewRows(preview.rows);
     };
     reader.readAsBinaryString(file);
   }, []);
@@ -105,6 +124,8 @@ export default function PipelineCinemaPage() {
     setDynamicLines({});
     setChapterStage(null);
     setApiError(null);
+    setCsvPreviewCols([]);
+    setCsvPreviewRows([]);
   }, []);
 
   // ── Animation runner ──────────────────────────────────────────────────────
@@ -287,6 +308,8 @@ export default function PipelineCinemaPage() {
             chapterStage={chapterStage}
             onChapterDismiss={() => setChapterStage(null)}
             taskType={taskType}
+            csvPreviewCols={csvPreviewCols}
+            csvPreviewRows={csvPreviewRows}
           />
         </div>
 

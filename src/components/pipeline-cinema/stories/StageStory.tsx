@@ -12,6 +12,8 @@ interface Props {
   stage: StageKind | null;
   active: boolean;
   taskType?: "classification" | "regression";
+  csvPreviewCols?: string[];
+  csvPreviewRows?: string[][];
 }
 
 const STORY_MAP = {
@@ -41,7 +43,7 @@ const PulsingDots = () => (
   </div>
 );
 
-export default function StageStory({ stage, active, taskType }: Props) {
+export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows }: Props) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", overflowY: "auto" }}>
       <AnimatePresence mode="wait">
@@ -92,6 +94,9 @@ export default function StageStory({ stage, active, taskType }: Props) {
             {/* Story content */}
             <div style={{ flex: 1, overflowY: "auto" }}>
               {(() => {
+                if (stage === "preprocessing") {
+                  return <PreprocessStory active={active} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} />;
+                }
                 const Story = STORY_MAP[stage];
                 return <Story active={active} taskType={taskType} />;
               })()}

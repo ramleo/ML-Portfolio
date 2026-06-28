@@ -21,6 +21,8 @@ interface Props {
   chapterStage?: StageKind | null;
   onChapterDismiss?: () => void;
   taskType?: "classification" | "regression";
+  csvPreviewCols?: string[];
+  csvPreviewRows?: string[][];
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -42,6 +44,8 @@ export default function CinemaScene({
   chapterStage,
   onChapterDismiss,
   taskType,
+  csvPreviewCols,
+  csvPreviewRows,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(720);
@@ -267,7 +271,7 @@ export default function CinemaScene({
           overflowY: "auto",
         }}
       >
-        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} />
+        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} />
       </div>
 
       {/* Narrator strip */}
