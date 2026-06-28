@@ -74,20 +74,82 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
   const d = result.data;
 
   if (stageId === "preprocessing") {
-    const stats: [string, unknown][] = [
-      ["Rows before", d.rows_before], ["Rows after", d.rows_after],
-      ["Missing filled", d.missing_filled], ["Duplicates removed", d.duplicates_removed],
+    const colsBefore = d.cols_before as number ?? 0;
+    const colsAfter  = d.cols_after  as number ?? 0;
+    const droppedCols    = (d.dropped_cols         as string[])         ?? [];
+    const imputedCols    = (d.imputed_cols          as Record<string, number>) ?? {};
+    const skewedCols     = (d.skewed_cols           as string[])         ?? [];
+    const clippedCols    = (d.outlier_clipped_cols  as string[])         ?? [];
+    const imputedEntries = Object.entries(imputedCols);
+
+    const statTiles: [string, unknown][] = [
+      ["Rows before",        d.rows_before],
+      ["Rows after",         d.rows_after],
+      ["Cols before",        colsBefore],
+      ["Cols after",         colsAfter],
+      ["Missing filled",     d.missing_filled],
+      ["Duplicates removed", d.duplicates_removed],
     ];
+
+    const tagStyle = (color: string): React.CSSProperties => ({
+      display: "inline-block", padding: "0.15rem 0.5rem", borderRadius: 5,
+      fontSize: "0.73rem", fontWeight: 500,
+      background: `${color}18`, color, border: `1px solid ${color}40`,
+      marginRight: "0.3rem", marginBottom: "0.3rem",
+    });
+
+    const sectionLabel = (text: string): React.CSSProperties => ({
+      fontSize: "0.7rem", fontWeight: 700, color: "rgba(200,210,230,0.5)",
+      textTransform: "uppercase", letterSpacing: "0.08em",
+      marginBottom: "0.4rem", marginTop: "0.9rem",
+    });
+
     return (
-      <motion.div variants={stagger} initial="initial" animate="animate"
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-        {stats.map(([label, val]) => (
-          <motion.div key={label} variants={fadeUp}
-            style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "0.75rem 1rem" }}>
-            <div style={{ fontSize: "0.72rem", color: "rgba(200,210,230,0.6)", marginBottom: 4 }}>{label}</div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 600, color: "#fff" }}>{String(val ?? "—")}</div>
+      <motion.div variants={stagger} initial="initial" animate="animate">
+        {/* Stat tiles */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
+          {statTiles.map(([label, val]) => (
+            <motion.div key={label} variants={fadeUp}
+              style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "0.65rem 0.85rem" }}>
+              <div style={{ fontSize: "0.7rem", color: "rgba(200,210,230,0.55)", marginBottom: 3 }}>{label}</div>
+              <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#fff" }}>{String(val ?? "—")}</div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Dropped columns */}
+        {droppedCols.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <div style={sectionLabel("Dropped columns")}>Dropped columns ({droppedCols.length})</div>
+            <div>{droppedCols.map((c) => <span key={c} style={tagStyle("#f87171")}>{c}</span>)}</div>
           </motion.div>
-        ))}
+        )}
+
+        {/* Imputed columns */}
+        {imputedEntries.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <div style={sectionLabel("Imputed")}>Missing values imputed</div>
+            <div>{imputedEntries.map(([col, n]) => (
+              <span key={col} style={tagStyle("#38bdf8")}>{col} <span style={{ opacity: 0.7 }}>({n})</span></span>
+            ))}</div>
+          </motion.div>
+        )}
+
+        {/* Skewness corrected */}
+        {skewedCols.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <div style={sectionLabel("Skewness")}>Skewness corrected (log1p)</div>
+            <div>{skewedCols.map((c) => <span key={c} style={tagStyle("#a78bfa")}>{c}</span>)}</div>
+          </motion.div>
+        )}
+
+        {/* Outliers clipped */}
+        {clippedCols.length > 0 && (
+          <motion.div variants={fadeUp}>
+            <div style={sectionLabel("Outliers")}>Outliers clipped</div>
+            <div>{clippedCols.map((c) => <span key={c} style={tagStyle("#f59e0b")}>{c}</span>)}</div>
+          </motion.div>
+        )}
       </motion.div>
     );
   }
