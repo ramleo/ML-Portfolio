@@ -101,18 +101,20 @@ export default function PipelineCinemaPage() {
 
         {/* Header */}
         <header style={{ maxWidth: 900, margin: "0 auto 2rem" }}>
-          <Link
-            href="/tools/pipeline-builder"
-            style={{
-              color: "#38bdf8",
-              fontSize: "0.85rem",
-              textDecoration: "none",
-              display: "inline-block",
-              marginBottom: "1rem",
-            }}
-          >
-            ← Pipeline Builder
-          </Link>
+          <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1rem" }}>
+            <Link
+              href="/"
+              style={{ color: "#64748b", fontSize: "0.85rem", textDecoration: "none" }}
+            >
+              ← Home
+            </Link>
+            <Link
+              href="/tools/pipeline-builder"
+              style={{ color: "#38bdf8", fontSize: "0.85rem", textDecoration: "none" }}
+            >
+              ← Pipeline Builder
+            </Link>
+          </div>
           <h1 style={{ color: "#f0f4f8", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
             Pipeline Cinema
           </h1>
