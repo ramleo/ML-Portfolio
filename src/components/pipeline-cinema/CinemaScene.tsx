@@ -173,7 +173,7 @@ export default function CinemaScene({
               left: x,
               top: trackY,
               transform: "translate(-50%, -50%)",
-              zIndex: 5,
+              zIndex: 8,
             }}
           >
             {/* Spotlight radial glow */}
@@ -199,15 +199,15 @@ export default function CinemaScene({
             {/* Stage glow dot */}
             <motion.div
               style={{
-                width: 12,
-                height: 12,
+                width: 14,
+                height: 14,
                 borderRadius: "50%",
                 background: state === "idle" ? "#1e3a5f" : accent,
-                boxShadow: state !== "idle" ? `0 0 12px ${accent}` : "none",
+                boxShadow: state === "active" ? `0 0 16px 4px ${accent}` : state === "done" ? `0 0 8px ${accent}` : "none",
                 margin: "0 auto",
-                opacity: state === "idle" ? 0.35 : 1,
+                opacity: state === "idle" ? 0.4 : 1,
               }}
-              animate={{ scale: isActive ? [1, 1.3, 1] : 1 }}
+              animate={{ scale: isActive ? [1, 1.4, 1] : 1 }}
               transition={{ repeat: isActive ? Infinity : 0, duration: 0.8 }}
             />
 

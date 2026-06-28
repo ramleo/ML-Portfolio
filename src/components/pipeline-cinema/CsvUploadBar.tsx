@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 
 interface Props {
   csvB64: string | null;
@@ -19,6 +19,7 @@ export default function CsvUploadBar({
   onFile, onTarget, onTaskType, onClear,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -94,37 +95,72 @@ export default function CsvUploadBar({
         {csvName}
       </span>
 
-      {/* Target selector */}
-      <label
-        style={{
-          color: "#64748b",
-          fontSize: "0.8rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.4rem",
-        }}
-      >
+      {/* Target selector — custom dropdown so it opens downward and stays in viewport */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "#64748b" }}>
         Target:
-        <select
-          value={target}
-          onChange={(e) => onTarget(e.target.value)}
-          style={{
-            background: "#0f1e35",
-            border: "1px solid #1e3a5f",
-            borderRadius: 6,
-            color: "#f0f4f8",
-            padding: "0.25rem 0.5rem",
-            fontSize: "0.8rem",
-            cursor: "pointer",
-          }}
-        >
-          {columns.map((col) => (
-            <option key={col} value={col}>
-              {col}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setDropdownOpen((o) => !o)}
+            style={{
+              background: "#0f1e35",
+              border: "1px solid #1e3a5f",
+              borderRadius: 6,
+              color: "#f0f4f8",
+              padding: "0.25rem 0.6rem",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              minWidth: 100,
+              maxWidth: 160,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{target || "—"}</span>
+            <span style={{ opacity: 0.5, fontSize: "0.7rem", flexShrink: 0 }}>▾</span>
+          </button>
+          {dropdownOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 50,
+                background: "#0f2744",
+                border: "1px solid #1e3a5f",
+                borderRadius: 8,
+                minWidth: 160,
+                maxHeight: 220,
+                overflowY: "auto",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+              }}
+            >
+              {columns.map((col) => (
+                <button
+                  key={col}
+                  onClick={() => { onTarget(col); setDropdownOpen(false); }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "0.4rem 0.75rem",
+                    background: col === target ? "#1e3a5f" : "transparent",
+                    color: col === target ? "#38bdf8" : "#94a3b8",
+                    fontSize: "0.8rem",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {col}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Task type toggle */}
       {(["classification", "regression"] as const).map((t) => (

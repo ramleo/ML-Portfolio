@@ -32,10 +32,12 @@ export interface FeatureSelectResponse {
 export interface AutoMLResponse {
   scores?: Record<string, number>;
   model_scores?: Record<string, number>;
-  winner?: string;
-  best_model?: string;
+  winner?: unknown;
+  best_model?: unknown;
   best_score?: number;
+  score?: number;
   rows?: number;
+  models?: Array<{ name?: string; model?: string; score?: number }>;
 }
 
 // ── Stage callers ─────────────────────────────────────────────────────────────
@@ -163,12 +165,29 @@ export async function callAutoML(
   });
   if (!res.ok) return null;
   const data = (await res.json()) as AutoMLResponse;
-  const scores: Record<string, number> = data.scores ?? data.model_scores ?? {};
-  const winner =
-    data.winner ??
-    data.best_model ??
-    (Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest");
-  const winnerScore = scores[winner] ?? data.best_score ?? 0;
+
+  // Build scores from multiple possible shapes
+  let scores: Record<string, number> = {};
+  if (data.scores && typeof data.scores === "object") scores = { ...data.scores };
+  if (data.model_scores && typeof data.model_scores === "object") scores = { ...scores, ...data.model_scores };
+  if (Array.isArray(data.models)) {
+    data.models.forEach((m) => {
+      const name = m.name ?? m.model ?? "";
+      if (name && typeof m.score === "number") scores[name] = m.score;
+    });
+  }
+
+  // Robustly extract winner string
+  const rawWinner = data.winner ?? data.best_model;
+  const winner = typeof rawWinner === "string" && rawWinner
+    ? rawWinner
+    : Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "RandomForest";
+
+  const winnerScore =
+    typeof scores[winner] === "number" ? scores[winner] :
+    typeof data.best_score === "number" ? data.best_score :
+    typeof data.score === "number" ? data.score : 0;
+
   const scoreLines = Object.entries(scores)
     .map(([m, s]) => `${m}: ${(Number(s) * 100).toFixed(1)}%`)
     .join(", ");

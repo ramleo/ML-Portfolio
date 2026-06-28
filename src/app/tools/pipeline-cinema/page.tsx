@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -62,6 +62,22 @@ export default function PipelineCinemaPage() {
   const [dynamicLines, setDynamicLines] = useState<Partial<Record<StageKind, string[]>>>({});
   const [chapterStage, setChapterStage] = useState<StageKind | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+
+  const togglePause = useCallback(() => {
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
+  }, []);
+
+  // Waits ms but pauses when pausedRef is true — time only counts down while unpaused
+  const waitPauseable = useCallback(async (ms: number) => {
+    let remaining = ms;
+    while (remaining > 0) {
+      await new Promise<void>((r) => setTimeout(r, 100));
+      if (!pausedRef.current) remaining -= 100;
+    }
+  }, []);
 
   // ── File handling ─────────────────────────────────────────────────────────
 
@@ -107,7 +123,7 @@ export default function PipelineCinemaPage() {
 
       // Flash chapter card
       setChapterStage(stage);
-      await new Promise<void>((r) => setTimeout(r, 1800));
+      await waitPauseable(1800);
       setChapterStage(null);
 
       setActiveStage(stage);
@@ -139,18 +155,18 @@ export default function PipelineCinemaPage() {
               setDynamicLines((p) => ({ ...p, automl: result.lines }));
             }
           }
-          await new Promise<void>((r) => setTimeout(r, STAGE_DURATIONS[stage]));
+          await waitPauseable(STAGE_DURATIONS[stage]);
         } catch {
           setApiError("API error on one or more stages — falling back to demo mode.");
-          await new Promise<void>((r) => setTimeout(r, 2000));
+          await waitPauseable(2000);
         }
       } else {
-        await new Promise<void>((r) => setTimeout(r, 9000));
+        await waitPauseable(9000);
       }
 
       setDoneStages((prev) => new Set([...prev, stage]));
       setOrbProgress(((i + 1) / (STAGES.length - 1)) * 0.85 + 0.06);
-      await new Promise<void>((r) => setTimeout(r, 400));
+      await waitPauseable(400);
     }
 
     setActiveStage(null);
@@ -158,6 +174,8 @@ export default function PipelineCinemaPage() {
   }, [csvB64, target, taskType]);
 
   const handleReset = useCallback(() => {
+    pausedRef.current = false;
+    setPaused(false);
     setRunning(false);
     setActiveStage(null);
     setDoneStages(new Set());
@@ -312,6 +330,28 @@ export default function PipelineCinemaPage() {
           >
             {running ? "Running…" : "Run Cinema"}
           </motion.button>
+
+          {running && (
+            <motion.button
+              onClick={togglePause}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                padding: "0.7rem 1.4rem",
+                borderRadius: 10,
+                background: paused ? "#0f2744" : "transparent",
+                color: paused ? "#38bdf8" : "#94a3b8",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                border: `1.5px solid ${paused ? "#38bdf8" : "#1e3a5f"}`,
+                cursor: "pointer",
+              }}
+            >
+              {paused ? "▶ Resume" : "⏸ Pause"}
+            </motion.button>
+          )}
 
           <motion.button
             onClick={handleReset}
