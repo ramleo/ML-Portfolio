@@ -152,7 +152,7 @@ export async function callAutoML(
   csvB64: string,
   target: string,
   taskType: "classification" | "regression"
-): Promise<{ lines: string[] } | null> {
+): Promise<{ lines: string[]; models: Array<{ name: string; score: number }>; winner: string; taskType: "classification" | "regression" } | null> {
   const res = await fetch(`${API}/pipeline-builder/automl`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -188,6 +188,11 @@ export async function callAutoML(
     typeof data.best_score === "number" ? data.best_score :
     typeof data.score === "number" ? data.score : 0;
 
+  const modelList = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, score]) => ({ name, score }));
+
   const scoreLines = Object.entries(scores)
     .map(([m, s]) => `${m}: ${(Number(s) * 100).toFixed(1)}%`)
     .join(", ");
@@ -199,5 +204,8 @@ export async function callAutoML(
       `Winner: ${winner} with ${(winnerScore * 100).toFixed(1)}% ${taskType === "classification" ? "accuracy" : "R² score"}!`,
       "Tip: Add more models or use Optuna stage in Pipeline Builder for hyperparameter tuning.",
     ],
+    models: modelList,
+    winner,
+    taskType,
   };
 }

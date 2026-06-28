@@ -3,46 +3,49 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const MODELS = [
-  {
-    name: "Random Forest", score: 0.821, color: "#38bdf8",
-    icon: (
+const DEMO_MODELS = [
+  { name: "Random Forest", score: 0.821, color: "#38bdf8" },
+  { name: "XGBoost",       score: 0.847, color: "#f59e0b" },
+  { name: "LightGBM",      score: 0.839, color: "#34d399" },
+  { name: "Logistic Reg.", score: 0.783, color: "#a78bfa" },
+];
+
+const MODEL_COLORS = ["#38bdf8", "#f59e0b", "#34d399", "#a78bfa", "#e879f9", "#fb923c"];
+
+function iconForModel(name: string, color: string) {
+  if (/forest/i.test(name)) {
+    return (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <polygon points="10,2 15,9 5,9" fill="#38bdf8" opacity="0.9" />
-        <polygon points="10,6 16,14 4,14" fill="#38bdf8" opacity="0.7" />
-        <rect x="8.5" y="14" width="3" height="4" rx="1" fill="#38bdf8" opacity="0.8" />
+        <polygon points="10,2 15,9 5,9" fill={color} opacity="0.9" />
+        <polygon points="10,6 16,14 4,14" fill={color} opacity="0.7" />
+        <rect x="8.5" y="14" width="3" height="4" rx="1" fill={color} opacity="0.8" />
       </svg>
-    ),
-  },
-  {
-    name: "XGBoost", score: 0.847, color: "#f59e0b",
-    icon: (
+    );
+  }
+  if (/boost|xgb/i.test(name)) {
+    return (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M12 2L7 10h4l-3 8 9-10h-5l3-6z" fill="#f59e0b" />
+        <path d="M12 2L7 10h4l-3 8 9-10h-5l3-6z" fill={color} />
       </svg>
-    ),
-  },
-  {
-    name: "LightGBM", score: 0.839, color: "#34d399",
-    icon: (
+    );
+  }
+  if (/gb|lightgbm/i.test(name)) {
+    return (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 2 L17 10 L10 18 L3 10 Z" fill="#34d399" opacity="0.85" />
+        <path d="M10 2 L17 10 L10 18 L3 10 Z" fill={color} opacity="0.85" />
         <path d="M10 5 L14 10 L10 15 L6 10 Z" fill="#0a1628" />
       </svg>
-    ),
-  },
-  {
-    name: "Logistic Reg.", score: 0.783, color: "#a78bfa",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path
-          d="M2,15 C4,15 4,10 6,10 C8,10 8,5 10,5 C12,5 12,10 14,10 C16,10 16,5 18,5"
-          stroke="#a78bfa" strokeWidth="2" fill="none" strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-];
+    );
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M2,15 C4,15 4,10 6,10 C8,10 8,5 10,5 C12,5 12,10 14,10 C16,10 16,5 18,5"
+        stroke={color} strokeWidth="2" fill="none" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 const CrownSVG = () => (
   <svg width="24" height="16" viewBox="0 0 24 16" fill="#fbbf24">
@@ -72,8 +75,14 @@ function useAnimatedScore(target: number, active: boolean) {
   return val;
 }
 
+interface DisplayModel {
+  name: string;
+  score: number;
+  color: string;
+}
+
 function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
-  model: typeof MODELS[0];
+  model: DisplayModel;
   index: number;
   step: number;
   winnerIdx: number;
@@ -115,7 +124,7 @@ function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
       </AnimatePresence>
 
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        {model.icon}
+        {iconForModel(model.name, model.color)}
         <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{model.name}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 800, color: model.color, lineHeight: 1 }}>
@@ -126,11 +135,35 @@ function ModelCard({ model, index, step, winnerIdx, metricLabel }: {
   );
 }
 
-export default function AutoMLStory({ active, taskType }: { active: boolean; taskType?: "classification" | "regression" }) {
+interface AutoMLResults {
+  models: Array<{ name: string; score: number }>;
+  winner: string;
+  taskType: "classification" | "regression";
+}
+
+export default function AutoMLStory({ active, taskType, automlResults }: {
+  active: boolean;
+  taskType?: "classification" | "regression";
+  automlResults?: AutoMLResults | null;
+}) {
   const [step, setStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const winnerIdx = MODELS.reduce((best, m, i) => m.score > MODELS[best].score ? i : best, 0);
-  const metricLabel = taskType === "regression" ? "R² score" : "accuracy";
+
+  const displayModels: DisplayModel[] =
+    automlResults?.models && automlResults.models.length > 0
+      ? automlResults.models.slice(0, 4).map((m, i) => ({
+          name: m.name,
+          score: m.score,
+          color: MODEL_COLORS[i % MODEL_COLORS.length],
+        }))
+      : DEMO_MODELS;
+
+  const winnerName = automlResults?.winner
+    ?? displayModels.reduce((best, m) => m.score > best.score ? m : best).name;
+  const winnerIdx = Math.max(displayModels.findIndex((m) => m.name === winnerName), 0);
+
+  const effectiveTaskType = automlResults?.taskType ?? taskType ?? "classification";
+  const metricLabel = effectiveTaskType === "regression" ? "R² score" : "accuracy";
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
@@ -146,7 +179,7 @@ export default function AutoMLStory({ active, taskType }: { active: boolean; tas
         MODEL COMPETITION
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {MODELS.map((m, i) => (
+        {displayModels.map((m, i) => (
           <ModelCard key={m.name} model={m} index={i} step={step} winnerIdx={winnerIdx} metricLabel={metricLabel} />
         ))}
       </div>
@@ -165,7 +198,7 @@ export default function AutoMLStory({ active, taskType }: { active: boolean; tas
             }}
           >
             Combining top 3 models in ensemble
-            <span style={{ color: "#34d399", fontWeight: 700 }}> → 0.861 </span>
+            <span style={{ color: "#34d399", fontWeight: 700 }}> → boost </span>
             <span style={{ color: "#34d399" }}>↑</span>
           </motion.div>
         )}

@@ -56,6 +56,7 @@ export default function PipelineCinemaPage() {
     apiError,
     paused,
     stageColumns,
+    automlResults,
     handleRunAnimation,
     handleStop,
     handleReset,
@@ -164,6 +165,7 @@ export default function PipelineCinemaPage() {
             csvPreviewCols={csvPreviewCols}
             csvPreviewRows={csvPreviewRows}
             stageColumns={stageColumns}
+            automlResults={automlResults}
           />
         </div>
 

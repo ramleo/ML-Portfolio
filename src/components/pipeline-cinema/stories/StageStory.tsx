@@ -8,6 +8,12 @@ import AutoMLStory from "./AutoMLStory";
 
 type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 
+interface AutoMLResults {
+  models: Array<{ name: string; score: number }>;
+  winner: string;
+  taskType: "classification" | "regression";
+}
+
 interface Props {
   stage: StageKind | null;
   active: boolean;
@@ -19,6 +25,7 @@ interface Props {
     afterFE?: string[];
     afterFS?: string[];
   };
+  automlResults?: AutoMLResults | null;
 }
 
 const STORY_MAP = {
@@ -48,7 +55,7 @@ const PulsingDots = () => (
   </div>
 );
 
-export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows, stageColumns }: Props) {
+export default function StageStory({ stage, active, taskType, csvPreviewCols, csvPreviewRows, stageColumns, automlResults }: Props) {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", overflowY: "auto" }}>
       <AnimatePresence mode="wait">
@@ -108,8 +115,10 @@ export default function StageStory({ stage, active, taskType, csvPreviewCols, cs
                 if (stage === "feature-select") {
                   return <FSStory active={active} allCols={stageColumns?.afterFE} keptCols={stageColumns?.afterFS} />;
                 }
-                const Story = STORY_MAP[stage];
-                return <Story active={active} taskType={taskType} />;
+                if (stage === "automl") {
+                  return <AutoMLStory active={active} taskType={taskType} automlResults={automlResults} />;
+                }
+                return null;
               })()}
             </div>
           </motion.div>

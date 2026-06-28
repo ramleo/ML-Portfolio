@@ -47,6 +47,12 @@ function parseCsvHeader(b64: string): string[] {
   }
 }
 
+export interface AutoMLResults {
+  models: Array<{ name: string; score: number }>;
+  winner: string;
+  taskType: "classification" | "regression";
+}
+
 export interface PipelineRunnerState {
   activeStage: StageKind | null;
   doneStages: Set<StageKind>;
@@ -61,6 +67,7 @@ export interface PipelineRunnerState {
     afterFE?: string[];
     afterFS?: string[];
   };
+  automlResults: AutoMLResults | null;
 }
 
 export interface PipelineRunnerHandlers {
@@ -96,6 +103,7 @@ export function usePipelineRunner({
     afterFE?: string[];
     afterFS?: string[];
   }>({});
+  const [automlResults, setAutomlResults] = useState<AutoMLResults | null>(null);
 
   const pausedRef = useRef(false);
   const stoppedRef = useRef(false);
@@ -125,6 +133,7 @@ export function usePipelineRunner({
     setDynamicLines({});
     setApiError(null);
     setStageColumns({});
+    setAutomlResults(null);
 
     const hasCsv = !!csvB64 && !!target;
     let currentCsv = csvB64 ?? "";
@@ -168,6 +177,7 @@ export function usePipelineRunner({
             const result = await callAutoML(currentCsv, target, taskType);
             if (result) {
               setDynamicLines((p) => ({ ...p, automl: result.lines }));
+              setAutomlResults({ models: result.models, winner: result.winner, taskType: result.taskType });
             }
           }
           await waitPauseable(STAGE_DURATIONS[stage]);
@@ -209,6 +219,7 @@ export function usePipelineRunner({
     setChapterStage(null);
     setApiError(null);
     setStageColumns({});
+    setAutomlResults(null);
   }, []);
 
   const handleStageClick = useCallback(
@@ -234,6 +245,7 @@ export function usePipelineRunner({
     apiError,
     paused,
     stageColumns,
+    automlResults,
     handleRunAnimation,
     handleStop,
     handleReset,

@@ -11,6 +11,12 @@ import ChapterCard from "./ChapterCard";
 type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 type CharacterState = "idle" | "active" | "done";
 
+interface AutoMLResults {
+  models: Array<{ name: string; score: number }>;
+  winner: string;
+  taskType: "classification" | "regression";
+}
+
 interface Props {
   activeStage: StageKind | null;
   doneStages: Set<StageKind>;
@@ -28,6 +34,7 @@ interface Props {
     afterFE?: string[];
     afterFS?: string[];
   };
+  automlResults?: AutoMLResults | null;
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -52,6 +59,7 @@ export default function CinemaScene({
   csvPreviewCols,
   csvPreviewRows,
   stageColumns,
+  automlResults,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(720);
@@ -277,7 +285,7 @@ export default function CinemaScene({
           overflowY: "auto",
         }}
       >
-        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} />
+        <StageStory stage={activeStage} active={activeStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} automlResults={automlResults} />
       </div>
 
       {/* Narrator strip */}
