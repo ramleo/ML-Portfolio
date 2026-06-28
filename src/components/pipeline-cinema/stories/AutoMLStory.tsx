@@ -179,8 +179,10 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
   useEffect(() => {
     if (!active) { setStep(automlResults ? 3 : 0); return; }
     if (frozen) { if (step !== 3) setStep(3); return; } // viewer mode: lock at winner state
+    // Skip step 0 — cards are invisible there; start from 1
+    if (step === 0) { setStep(1); return; }
     timerRef.current = setTimeout(() => {
-      setStep((s) => (s >= 4 ? 0 : s + 1));
+      setStep((s) => (s >= 4 ? 1 : s + 1)); // cycle 1→2→3→4→1
     }, CYCLE_MS);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps

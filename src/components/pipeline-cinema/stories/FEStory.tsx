@@ -54,12 +54,32 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
       }
     } else {
       // API returned empty — show demo pills so animation looks alive, note the real result
-      displayEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
+      const numericLike = displaySource.filter(c =>
+        /age|fare|income|amount|price|year|count|num|score|salary/i.test(c)
+      );
+      const col1 = numericLike[0] ?? displaySource[0] ?? "Feature1";
+      const col2 = numericLike[1] ?? displaySource[1] ?? displaySource[0] ?? "Feature2";
+      const col3 = displaySource[2] ?? displaySource[1] ?? col1;
+      displayEngineered = [
+        `${col1}_log1p`,
+        `${col1}×${col2}`,
+        `${col1}², ${col3}²`,
+      ];
       noNewFeatures = true;
     }
   } else {
     // No CSV loaded: show demo
-    displayEngineered = ["Age_log1p", "Age×Fare", "Age², Pclass²"];
+    const numericLike = displaySource.filter(c =>
+      /age|fare|income|amount|price|year|count|num|score|salary/i.test(c)
+    );
+    const col1 = numericLike[0] ?? displaySource[0] ?? "Feature1";
+    const col2 = numericLike[1] ?? displaySource[1] ?? displaySource[0] ?? "Feature2";
+    const col3 = displaySource[2] ?? displaySource[1] ?? col1;
+    displayEngineered = [
+      `${col1}_log1p`,
+      `${col1}×${col2}`,
+      `${col1}², ${col3}²`,
+    ];
   }
 
   const featuresAdded = engineeredCols ? engineeredCols.length : displayEngineered.length;
