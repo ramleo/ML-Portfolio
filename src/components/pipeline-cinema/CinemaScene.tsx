@@ -6,6 +6,7 @@ import StageIcon from "./StageIcon";
 import DataOrb from "./DataOrb";
 import StageStory from "./stories/StageStory";
 import NarratorPanel from "./NarratorPanel";
+import ChapterCard from "./ChapterCard";
 
 type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 type CharacterState = "idle" | "active" | "done";
@@ -16,6 +17,9 @@ interface Props {
   orbProgress: number;
   orbActive: boolean;
   running: boolean;
+  dynamicLines?: Partial<Record<StageKind, string[]>>;
+  chapterStage?: StageKind | null;
+  onChapterDismiss?: () => void;
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -26,24 +30,39 @@ const ACCENTS: Record<StageKind, string> = {
   "feature-select": "#f59e0b",
   automl: "#a78bfa",
 };
-const TRACK_Y = 155;
 
-export default function CinemaScene({ activeStage, doneStages, orbProgress, orbActive, running }: Props) {
+export default function CinemaScene({
+  activeStage,
+  doneStages,
+  orbProgress,
+  orbActive,
+  running,
+  dynamicLines,
+  chapterStage,
+  onChapterDismiss,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(460);
+  const [containerWidth, setContainerWidth] = useState(720);
+  const [containerHeight, setContainerHeight] = useState(420);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
+      const rect = entries[0].contentRect;
+      setContainerWidth(rect.width);
+      setContainerHeight(rect.height);
     });
     observer.observe(containerRef.current);
     setContainerWidth(containerRef.current.offsetWidth);
+    setContainerHeight(containerRef.current.offsetHeight);
     return () => observer.disconnect();
   }, []);
 
   const stageX = X_PERCENTS.map((p) => p * containerWidth);
   const orbX = orbProgress * containerWidth;
+  const trackY = containerHeight * 0.38;
+  const storyTop = containerHeight * 0.44;
+  const storyHeight = containerHeight * 0.40;
 
   function stateFor(stage: StageKind): CharacterState {
     if (doneStages.has(stage)) return "done";
@@ -53,20 +72,18 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
 
   return (
     <div
+      ref={containerRef}
       style={{
         width: "100%",
-        height: 540,
-        display: "flex",
-        background: "linear-gradient(180deg, #060d1a 0%, #0a1628 100%)",
-        borderRadius: 16,
+        aspectRatio: "16/9",
+        minHeight: 420,
+        maxHeight: 680,
+        position: "relative",
+        background: "linear-gradient(180deg, #030810 0%, #060d1a 40%, #0a1628 100%)",
+        borderRadius: 20,
         overflow: "hidden",
       }}
     >
-      <NarratorPanel activeStage={activeStage} running={running} />
-      <div
-        ref={containerRef}
-        style={{ flex: 1, position: "relative", height: "100%" }}
-      >
       {/* Title */}
       <div
         style={{
@@ -98,7 +115,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
           pointerEvents: "none",
           zIndex: 1,
         }}
-        animate={{ y: [-80, 400] }}
+        animate={{ y: [-80, containerHeight + 80] }}
         transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
       />
 
@@ -106,7 +123,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
       <div
         style={{
           position: "absolute",
-          top: TRACK_Y,
+          top: trackY,
           left: "7.5%",
           width: "85%",
           height: 3,
@@ -116,7 +133,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
         }}
       />
 
-      {/* Connector segments between stages */}
+      {/* Connector segments */}
       {STAGES.slice(0, -1).map((stage, i) => {
         const leftX = stageX[i];
         const rightX = stageX[i + 1];
@@ -127,13 +144,12 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
             key={`seg-${i}`}
             style={{
               position: "absolute",
-              top: TRACK_Y,
+              top: trackY,
               left: leftX,
               height: 3,
               background: "#38bdf8",
               borderRadius: 2,
               zIndex: 3,
-              transformOrigin: "left center",
               width: segWidth,
               originX: 0,
             }}
@@ -143,22 +159,43 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
         );
       })}
 
-      {/* Stage glows + Characters */}
+      {/* Spotlights + Stage icons */}
       {STAGES.map((stage, i) => {
         const state = stateFor(stage);
         const x = stageX[i];
         const accent = ACCENTS[stage];
+        const isActive = state === "active";
         return (
           <div
             key={stage}
             style={{
               position: "absolute",
               left: x,
-              top: TRACK_Y,
+              top: trackY,
               transform: "translate(-50%, -50%)",
               zIndex: 5,
             }}
           >
+            {/* Spotlight radial glow */}
+            {isActive && (
+              <motion.div
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: 160,
+                  height: 160,
+                  borderRadius: "50%",
+                  background: `radial-gradient(ellipse, ${accent}22 0%, transparent 70%)`,
+                  transform: "translate(-50%, -50%)",
+                  pointerEvents: "none",
+                  zIndex: 4,
+                }}
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ repeat: Infinity, duration: 1.8 }}
+              />
+            )}
+
             {/* Stage glow dot */}
             <motion.div
               style={{
@@ -168,12 +205,23 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
                 background: state === "idle" ? "#1e3a5f" : accent,
                 boxShadow: state !== "idle" ? `0 0 12px ${accent}` : "none",
                 margin: "0 auto",
+                opacity: state === "idle" ? 0.35 : 1,
               }}
-              animate={{ scale: state === "active" ? [1, 1.3, 1] : 1 }}
-              transition={{ repeat: state === "active" ? Infinity : 0, duration: 0.8 }}
+              animate={{ scale: isActive ? [1, 1.3, 1] : 1 }}
+              transition={{ repeat: isActive ? Infinity : 0, duration: 0.8 }}
             />
-            {/* Stage icon positioned above track */}
-            <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)" }}>
+
+            {/* Stage icon */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 18,
+                left: "50%",
+                transform: `translateX(-50%) scale(${isActive ? 1.1 : 1})`,
+                opacity: state === "idle" ? 0.35 : 1,
+                transition: "opacity 0.3s, transform 0.3s",
+              }}
+            >
               <StageIcon stage={stage} state={state} accent={accent} />
             </div>
           </div>
@@ -181,7 +229,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
       })}
 
       {/* Data Orb */}
-      <div style={{ position: "absolute", top: TRACK_Y, zIndex: 6 }}>
+      <div style={{ position: "absolute", top: trackY, zIndex: 6 }}>
         <motion.div
           animate={{ x: orbX }}
           transition={orbActive ? { type: "spring", stiffness: 80, damping: 18 } : { duration: 0 }}
@@ -191,14 +239,41 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
         </motion.div>
       </div>
 
-      {/* Divider between track and story panel */}
-      <div style={{ position: "absolute", top: 220, left: 0, right: 0, height: 1, background: "#0f2744" }} />
+      {/* Divider */}
+      <div
+        style={{
+          position: "absolute",
+          top: storyTop - 1,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: "#0f2744",
+        }}
+      />
 
       {/* Story panel */}
-      <div style={{ position: "absolute", top: 221, left: 0, right: 0, bottom: 0, background: "#070f1e", overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: storyTop,
+          left: 0,
+          right: 0,
+          height: storyHeight,
+          background: "#070f1e",
+          overflow: "hidden",
+        }}
+      >
         <StageStory stage={activeStage} active={activeStage !== null} />
       </div>
-      </div>
+
+      {/* Narrator strip */}
+      <NarratorPanel activeStage={activeStage} running={running} dynamicLines={dynamicLines} />
+
+      {/* Chapter card overlay */}
+      <ChapterCard
+        chapterStage={chapterStage ?? null}
+        onDismiss={onChapterDismiss ?? (() => {})}
+      />
     </div>
   );
 }

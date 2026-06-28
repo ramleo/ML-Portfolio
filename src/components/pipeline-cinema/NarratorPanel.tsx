@@ -8,6 +8,7 @@ type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 interface Props {
   activeStage: StageKind | null;
   running: boolean;
+  dynamicLines?: Partial<Record<StageKind, string[]>>;
 }
 
 const STAGE_INTERVALS: Record<StageKind, number> = {
@@ -62,161 +63,120 @@ const STAGE_LABELS: Record<StageKind, string> = {
   automl: "AutoML",
 };
 
-const IDLE_TEXT =
-  "Hello! I'm your ML guide. Hit 'Run Animation' to watch the full pipeline in action. I'll explain each step as it happens!";
-
-export default function NarratorPanel({ activeStage, running }: Props) {
+export default function NarratorPanel({ activeStage, running, dynamicLines }: Props) {
   const [step, setStep] = useState(0);
   const [mouthOpen, setMouthOpen] = useState(false);
 
   const speaking = running && activeStage !== null;
 
-  // Reset step when stage changes
-  useEffect(() => {
-    setStep(0);
-  }, [activeStage]);
+  useEffect(() => { setStep(0); }, [activeStage]);
 
-  // Advance step on interval
   useEffect(() => {
     if (!speaking || !activeStage) return;
+    const lines =
+      dynamicLines?.[activeStage]?.length
+        ? dynamicLines[activeStage]!
+        : SCRIPTS[activeStage];
     const interval = STAGE_INTERVALS[activeStage];
     const id = setInterval(() => {
-      setStep((prev) => {
-        const max = SCRIPTS[activeStage].length - 1;
-        return prev < max ? prev + 1 : prev;
-      });
+      setStep((prev) => (prev < lines.length - 1 ? prev + 1 : prev));
     }, interval);
     return () => clearInterval(id);
-  }, [speaking, activeStage]);
+  }, [speaking, activeStage, dynamicLines]);
 
-  // Mouth animation
   useEffect(() => {
-    if (!speaking) {
-      setMouthOpen(false);
-      return;
-    }
-    const id = setInterval(() => setMouthOpen((prev) => !prev), 300);
+    if (!speaking) { setMouthOpen(false); return; }
+    const id = setInterval(() => setMouthOpen((p) => !p), 280);
     return () => clearInterval(id);
   }, [speaking]);
 
-  const currentText =
-    activeStage !== null
-      ? SCRIPTS[activeStage][Math.min(step, SCRIPTS[activeStage].length - 1)]
-      : IDLE_TEXT;
+  const lines =
+    activeStage && dynamicLines?.[activeStage]?.length
+      ? dynamicLines[activeStage]!
+      : activeStage
+      ? SCRIPTS[activeStage]
+      : null;
 
-  const mouthD = mouthOpen
-    ? "M33,37 Q40,44 47,37"
-    : "M33,38 Q40,42 47,38";
+  const currentText = lines
+    ? lines[Math.min(step, lines.length - 1)]
+    : "Hello! I'm your ML guide. Hit 'Run Animation' to watch the full pipeline in action.";
+
+  const mouthPath = mouthOpen ? "M14,25 Q20,31 26,25" : "M14,26 Q20,30 26,26";
 
   return (
     <div
       style={{
-        width: 240,
-        height: "100%",
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 88,
+        background:
+          "linear-gradient(0deg, rgba(6,13,26,0.97) 0%, rgba(6,13,26,0.85) 70%, transparent 100%)",
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        padding: "1rem 0.75rem",
-        background: "#070f1e",
-        borderRight: "1px solid #0f2744",
+        gap: 12,
+        padding: "0 1.5rem",
+        zIndex: 20,
         boxSizing: "border-box",
       }}
     >
       {/* Avatar */}
-      <svg width="80" height="90" viewBox="0 0 80 90" fill="none">
-        {/* Body */}
-        <path d="M18,52 Q40,48 62,52 L62,85 L18,85 Z" fill="#0f2744" stroke="#1e3a5f" strokeWidth="1" />
-        {/* Collar line */}
-        <line x1="18" y1="55" x2="62" y2="55" stroke="#1e3a5f" strokeWidth="1" />
-        {/* Tie */}
-        <polygon points="40,55 37,62 40,70 43,62" fill="#38bdf8" opacity="0.7" />
-        {/* Head */}
-        <circle cx="40" cy="30" r="22" fill="#1e3a5f" stroke="#38bdf8" strokeWidth="1.5" />
-        {/* Eyes */}
-        <circle cx="33" cy="27" r="3" fill="#38bdf8" />
-        <circle cx="47" cy="27" r="3" fill="#38bdf8" />
-        {/* Mouth */}
+      <svg width="40" height="48" viewBox="0 0 40 48" fill="none" style={{ flexShrink: 0 }}>
+        <circle cx="20" cy="20" r="16" fill="#0f2744" stroke="#38bdf8" strokeWidth="1.5" />
+        <circle cx="14" cy="17" r="2.5" fill="#38bdf8" />
+        <circle cx="26" cy="17" r="2.5" fill="#38bdf8" />
         <motion.path
-          d={mouthD}
+          d={mouthPath}
           stroke="#38bdf8"
           strokeWidth="2"
           strokeLinecap="round"
           fill="none"
-          animate={{ d: mouthD }}
-          transition={{ duration: 0.15 }}
+          animate={{ d: mouthPath }}
+          transition={{ duration: 0.12 }}
         />
-        {/* Microphone */}
-        <rect x="36" y="52" width="8" height="14" rx="4" fill="#38bdf8" />
-        <line x1="40" y1="66" x2="40" y2="71" stroke="#38bdf8" strokeWidth="1.5" />
-        <line x1="36" y1="71" x2="44" y2="71" stroke="#38bdf8" strokeWidth="1.5" />
+        <rect x="16" y="34" width="8" height="10" rx="4" fill="#38bdf8" />
       </svg>
 
-      {/* Speech bubble */}
-      <div
-        style={{
-          background: "#0f2744",
-          border: "1px solid #1e3a5f",
-          borderRadius: 10,
-          padding: "0.75rem",
-          width: "100%",
-          minHeight: 120,
-          position: "relative",
-          marginTop: 12,
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Triangle pointer */}
-        <div
-          style={{
-            position: "absolute",
-            top: -8,
-            left: 16,
-            width: 0,
-            height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderBottom: "8px solid #0f2744",
-          }}
-        />
+      {/* Speech area */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {activeStage !== null && (
+          <div style={{ marginBottom: 3 }}>
+            <span
+              style={{
+                color: ACCENT_COLORS[activeStage],
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: 2,
+              }}
+            >
+              ● {STAGE_LABELS[activeStage]}
+            </span>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.p
             key={`${activeStage}-${step}`}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
-            style={{ fontSize: 12, lineHeight: 1.6, color: "#94a3b8", margin: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              fontSize: 12,
+              lineHeight: 1.5,
+              color: activeStage !== null ? "#94a3b8" : "#334155",
+              margin: 0,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
           >
             {currentText}
           </motion.p>
         </AnimatePresence>
       </div>
-
-      {/* Stage indicator */}
-      {activeStage !== null && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            marginTop: 12,
-            alignSelf: "flex-start",
-          }}
-        >
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: ACCENT_COLORS[activeStage],
-              flexShrink: 0,
-            }}
-          />
-          <span style={{ fontSize: 11, color: ACCENT_COLORS[activeStage], fontWeight: 500 }}>
-            {STAGE_LABELS[activeStage]}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
