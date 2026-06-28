@@ -146,6 +146,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/pipeline-builder",
   },
+  {
+    id: "pipeline-cinema",
+    title: "Pipeline Cinema",
+    subtitle: "Animated ML Showcase",
+    description:
+      "Watch your data transform in real time — chibi scientist characters process each ML stage with fluid animations. A cinematic walkthrough of the full pipeline.",
+    accent: "#f97316",
+    stat: "4",
+    statLabel: "Stages",
+    model: "Visual Demo",
+    input: "No upload needed",
+    tags: ["Animation", "Pipeline", "Visual", "Cinematic", "Demo"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/pipeline-cinema",
+  },
 ];
 
 export default capabilities;
