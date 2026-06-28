@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import PipelineCharacter from "./PipelineCharacter";
 import DataOrb from "./DataOrb";
+import StageStory from "./stories/StageStory";
 
 type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 type CharacterState = "idle" | "active" | "done";
@@ -23,7 +24,7 @@ const ACCENTS: Record<StageKind, string> = {
   "feature-select": "#f59e0b",
   automl: "#a78bfa",
 };
-const TRACK_Y = 200;
+const TRACK_Y = 155;
 
 export default function CinemaScene({ activeStage, doneStages, orbProgress, orbActive }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
       ref={containerRef}
       style={{
         width: "100%",
-        height: 320,
+        height: 540,
         position: "relative",
         background: "linear-gradient(180deg, #060d1a 0%, #0a1628 100%)",
         borderRadius: 16,
@@ -182,6 +183,14 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
         >
           <DataOrb x={0} y={0} active={orbActive} color="#38bdf8" />
         </motion.div>
+      </div>
+
+      {/* Divider between track and story panel */}
+      <div style={{ position: "absolute", top: 220, left: 0, right: 0, height: 1, background: "#0f2744" }} />
+
+      {/* Story panel */}
+      <div style={{ position: "absolute", top: 221, left: 0, right: 0, bottom: 0, background: "#070f1e", overflow: "hidden" }}>
+        <StageStory stage={activeStage} active={activeStage !== null} />
       </div>
     </div>
   );
