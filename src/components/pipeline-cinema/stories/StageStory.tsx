@@ -116,7 +116,7 @@ export default function StageStory({ stage, active, frozen = false, taskType, cs
                   return <FEStory active={active} sourceCols={stageColumns?.afterPreprocess} engineeredCols={stageColumns?.engineeredCols} />;
                 }
                 if (stage === "feature-select") {
-                  return <FSStory active={active} allCols={stageColumns?.afterFE} keptCols={stageColumns?.afterFS} />;
+                  return <FSStory active={active} frozen={frozen} allCols={stageColumns?.afterFE} keptCols={stageColumns?.afterFS} />;
                 }
                 if (stage === "automl") {
                   return <AutoMLStory active={active} frozen={frozen} taskType={taskType} automlResults={automlResults} />;

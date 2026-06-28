@@ -96,15 +96,29 @@ export async function callPreprocess(
 
 export async function callFeatureEng(
   csvB64: string,
-  target: string
+  target: string,
+  columns?: string[]
 ): Promise<{ csv: string; lines: string[]; engineeredCols: string[] } | null> {
+  const nonTarget = (columns ?? []).filter(c => c !== target);
+  const numericLike = nonTarget.filter(c =>
+    /age|fare|income|amount|price|year|count|num|score|salary|weight|height|temp|duration|time|size|rate|ratio|value|quantity|total/i.test(c)
+  );
+  // Fall back to first 3 non-target cols if regex matches nothing
+  const logCols = numericLike.length > 0 ? numericLike : nonTarget.slice(0, 3);
+  const interactionPairs: string[][] = logCols.length >= 2 ? [[logCols[0], logCols[1]]] : [];
+  const polyCols = logCols.slice(0, 2);
+
   const res = await fetch(`${API}/pipeline-builder/feature-eng`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       csv_b64: csvB64,
       target,
-      config: { transforms: {}, poly_cols: [], interactions: [] },
+      config: {
+        transforms: logCols.length > 0 ? { log1p: logCols } : {},
+        poly_cols: polyCols,
+        interactions: interactionPairs,
+      },
     }),
   });
   if (!res.ok) return null;
@@ -135,7 +149,7 @@ export async function callFeatureSelect(
     body: JSON.stringify({
       csv_b64: csvB64,
       target,
-      config: { method: "variance", top_k: 4 },
+      config: { method: "mutual_info", top_k: 4 },
     }),
   });
   if (!res.ok) return null;
@@ -144,7 +158,7 @@ export async function callFeatureSelect(
   return {
     csv: data.processed_csv_b64,
     lines: [
-      `Evaluating ${data.features_before} features using variance thresholding.`,
+      `Evaluating ${data.features_before} features using mutual information scoring.`,
       "Low-variance features carry little predictive signal — they'll be removed.",
       dropped > 0
         ? `Dropping ${dropped} low-variance feature${dropped > 1 ? "s" : ""}: ${data.dropped_features?.slice(0, 3).join(", ")}${dropped > 3 ? "..." : ""}.`

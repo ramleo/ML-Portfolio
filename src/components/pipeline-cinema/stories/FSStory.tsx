@@ -7,12 +7,13 @@ const CYCLE_MS = 1800;
 
 interface Props {
   active: boolean;
+  frozen?: boolean;
   taskType?: "classification" | "regression";
   allCols?: string[];
   keptCols?: string[];
 }
 
-export default function FSStory({ active, allCols, keptCols }: Props) {
+export default function FSStory({ active, frozen = false, allCols, keptCols }: Props) {
   const demoFeatures = [
     { name: "Age×Fare",      score: 0.92, keep: true  },
     { name: "Fare",          score: 0.87, keep: true  },
@@ -46,15 +47,16 @@ export default function FSStory({ active, allCols, keptCols }: Props) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!active) { setStep(0); return; }
+    if (!active) { setStep(keptCols && keptCols.length > 0 ? 3 : 0); return; }
+    if (frozen) { if (step !== 3) setStep(3); return; }
     timerRef.current = setTimeout(() => {
       setStep((s) => (s >= 3 ? 0 : s + 1));
     }, CYCLE_MS);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [active, step]);
+  }, [active, step, frozen, keptCols]);
 
   return (
-    <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4 }}>
+    <div data-frozen={frozen} style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4 }}>
       {displayFeatures.map((feat, i) => {
         const isDimmed = !feat.keep && step >= 2;
         const isRemoved = !feat.keep && step >= 3;

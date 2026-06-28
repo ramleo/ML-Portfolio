@@ -167,7 +167,7 @@ export function usePipelineRunner({
               setStageColumns((p) => ({ ...p, afterPreprocess: parseCsvHeader(currentCsv) }));
             }
           } else if (stage === "feature-eng") {
-            const result = await callFeatureEng(currentCsv, target);
+            const result = await callFeatureEng(currentCsv, target, parseCsvHeader(currentCsv));
             if (result) {
               currentCsv = result.csv;
               setDynamicLines((p) => ({ ...p, "feature-eng": result.lines }));
