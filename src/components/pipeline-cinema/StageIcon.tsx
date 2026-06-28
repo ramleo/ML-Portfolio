@@ -162,12 +162,12 @@ const LABELS: Record<StageKind, string> = {
 export default function StageIcon({ stage, state, accent }: Props) {
   return (
     <div style={{ width: 80, position: "relative" }}>
-      <svg viewBox="0 0 80 100" width={80} height={100}>
+      <svg viewBox="0 0 80 112" width={80} height={112}>
         {stage === "preprocessing" && <PreprocessingIcon state={state} accent={accent} />}
         {stage === "feature-eng" && <FeatureEngIcon state={state} accent={accent} />}
         {stage === "feature-select" && <FeatureSelectIcon state={state} accent={accent} />}
         {stage === "automl" && <AutoMLIcon state={state} accent={accent} />}
-        <text x={40} y={95} fontSize={8} fill={accent} textAnchor="middle" fontWeight="bold">{LABELS[stage]}</text>
+        <text x={40} y={109} fontSize={8} fill={accent} textAnchor="middle" fontWeight="bold">{LABELS[stage]}</text>
       </svg>
     </div>
   );
