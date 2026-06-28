@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import StageCard from "@/components/pipeline/StageCard";
-import StageModal from "@/components/pipeline/StageModal";
+import StageModal, { type StageResult } from "@/components/pipeline/StageModal";
 import ComparisonPanel from "@/components/pipeline/ComparisonPanel";
 import ABRunner from "@/components/pipeline/ABRunner";
 
@@ -62,7 +62,20 @@ export default function ABPanel({
   const [configB, setConfigB] = useState<Record<string, Record<string, unknown>>>(cloneDefaults);
   const [configuredA, setConfiguredA] = useState<Set<string>>(new Set());
   const [configuredB, setConfiguredB] = useState<Set<string>>(new Set());
+  const [stageCsvsA, setStageCsvsA] = useState<Record<string, string>>({});
+  const [stageCsvsB, setStageCsvsB] = useState<Record<string, string>>({});
   const [activeModal, setActiveModal] = useState<{ stageId: string; pipeline: "a" | "b" } | null>(null);
+
+  const STAGE_ORDER = ["preprocessing", "feature-eng", "feature-select", "automl"];
+  function getInputCsv(stageId: string, pipeline: "a" | "b"): string {
+    const csvs = pipeline === "a" ? stageCsvsA : stageCsvsB;
+    const idx = STAGE_ORDER.indexOf(stageId);
+    for (let i = idx - 1; i >= 0; i--) {
+      const prev = csvs[STAGE_ORDER[i]];
+      if (prev) return prev;
+    }
+    return csvB64 ?? "";
+  }
 
   const pipelineDefs = [
     { label: "Pipeline A", accent: "#38bdf8", pipeline: "a" as const, configured: configuredA },
@@ -144,12 +157,19 @@ export default function ABPanel({
             stageId={activeModal.stageId}
             title={activeStage.title}
             accent={activeStage.accent}
-            csvB64={csvB64}
+            csvB64={activeModal ? getInputCsv(activeModal.stageId, activeModal.pipeline) : (csvB64 ?? "")}
             target={target}
             taskType={taskType}
             columns={columns}
             onClose={() => setActiveModal(null)}
-            onComplete={() => setActiveModal(null)}
+            onComplete={(result: StageResult) => {
+              if (result.outputCsvB64 && activeModal) {
+                const { stageId, pipeline } = activeModal;
+                if (pipeline === "a") setStageCsvsA((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
+                else setStageCsvsB((p) => ({ ...p, [stageId]: result.outputCsvB64! }));
+              }
+              setActiveModal(null);
+            }}
             onConfigCapture={(cfg) => {
               const { stageId, pipeline } = activeModal;
               if (pipeline === "a") {
