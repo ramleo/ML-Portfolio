@@ -2,9 +2,10 @@
 
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import PipelineCharacter from "./PipelineCharacter";
+import StageIcon from "./StageIcon";
 import DataOrb from "./DataOrb";
 import StageStory from "./stories/StageStory";
+import NarratorPanel from "./NarratorPanel";
 
 type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 type CharacterState = "idle" | "active" | "done";
@@ -14,6 +15,7 @@ interface Props {
   doneStages: Set<StageKind>;
   orbProgress: number;
   orbActive: boolean;
+  running: boolean;
 }
 
 const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
@@ -26,9 +28,9 @@ const ACCENTS: Record<StageKind, string> = {
 };
 const TRACK_Y = 155;
 
-export default function CinemaScene({ activeStage, doneStages, orbProgress, orbActive }: Props) {
+export default function CinemaScene({ activeStage, doneStages, orbProgress, orbActive, running }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(700);
+  const [containerWidth, setContainerWidth] = useState(460);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -51,16 +53,20 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
 
   return (
     <div
-      ref={containerRef}
       style={{
         width: "100%",
         height: 540,
-        position: "relative",
+        display: "flex",
         background: "linear-gradient(180deg, #060d1a 0%, #0a1628 100%)",
         borderRadius: 16,
         overflow: "hidden",
       }}
     >
+      <NarratorPanel activeStage={activeStage} running={running} />
+      <div
+        ref={containerRef}
+        style={{ flex: 1, position: "relative", height: "100%" }}
+      >
       {/* Title */}
       <div
         style={{
@@ -166,9 +172,9 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
               animate={{ scale: state === "active" ? [1, 1.3, 1] : 1 }}
               transition={{ repeat: state === "active" ? Infinity : 0, duration: 0.8 }}
             />
-            {/* Character positioned above track */}
+            {/* Stage icon positioned above track */}
             <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)" }}>
-              <PipelineCharacter stage={stage} state={state} accent={accent} />
+              <StageIcon stage={stage} state={state} accent={accent} />
             </div>
           </div>
         );
@@ -191,6 +197,7 @@ export default function CinemaScene({ activeStage, doneStages, orbProgress, orbA
       {/* Story panel */}
       <div style={{ position: "absolute", top: 221, left: 0, right: 0, bottom: 0, background: "#070f1e", overflow: "hidden" }}>
         <StageStory stage={activeStage} active={activeStage !== null} />
+      </div>
       </div>
     </div>
   );

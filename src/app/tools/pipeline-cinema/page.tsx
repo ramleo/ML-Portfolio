@@ -103,6 +103,7 @@ export default function PipelineCinemaPage() {
             doneStages={doneStages}
             orbProgress={orbProgress}
             orbActive={running || activeStage !== null}
+            running={running}
           />
         </div>
 
