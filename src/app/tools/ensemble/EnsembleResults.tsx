@@ -21,8 +21,33 @@ export default function EnsembleResults({ result }: { result: TrainResult }) {
   const sorted = [...result.cv_results].sort((a, b) => b.score - a.score);
   const scores = sorted.map(r => r.score);
   const spread = scores.length >= 2 ? (Math.max(...scores) - Math.min(...scores)) * 100 : 0;
-  const rankColors = ["#f59e0b", "#94a3b8", "#cd7f32"];
   const maxScore = scores[0] ?? 1;
+
+  const RANK_CONFIG = [
+    { ribbon1: "#f59e0b", ribbon2: "#d97706", fill: "#fbbf24", stroke: "#f59e0b", num: "#78350f" },
+    { ribbon1: "#94a3b8", ribbon2: "#64748b", fill: "#cbd5e1", stroke: "#94a3b8", num: "#1e293b" },
+    { ribbon1: "#cd7f32", ribbon2: "#a0522d", fill: "#d4965a", stroke: "#cd7f32", num: "#431407" },
+  ];
+
+  function MedalRibbon({ rank }: { rank: number }) {
+    const cfg = RANK_CONFIG[rank];
+    if (!cfg) {
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" />
+          <text x="8" y="11.5" textAnchor="middle" fontSize="7" fontWeight="700" fill="var(--text3)">{rank + 1}</text>
+        </svg>
+      );
+    }
+    return (
+      <svg width="16" height="22" viewBox="0 0 16 22">
+        <rect x="4" y="0" width="3.5" height="8" fill={cfg.ribbon1} rx="1" />
+        <rect x="7.5" y="0" width="3.5" height="8" fill={cfg.ribbon2} rx="1" />
+        <circle cx="8" cy="16" r="6" fill={cfg.fill} stroke={cfg.stroke} strokeWidth="1.2" />
+        <text x="8" y="19.5" textAnchor="middle" fontSize="7" fontWeight="800" fill={cfg.num}>{rank + 1}</text>
+      </svg>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -56,10 +81,7 @@ export default function EnsembleResults({ result }: { result: TrainResult }) {
               const consistColor = consistency === "Consistent" ? "#34d399" : consistency === "Variable" ? "#f59e0b" : "var(--text3)";
               return (
                 <div key={r.name} style={{ display: "grid", gridTemplateColumns: "20px 1fr 90px 80px 80px", gap: "0.5rem", padding: "0.55rem 0.5rem", fontSize: "0.8rem", borderBottom: "1px solid rgba(255,255,255,0.04)", background: isWinner ? `${ACCENT}08` : "transparent", alignItems: "center" }}>
-                  <svg width="18" height="18" viewBox="0 0 18 18">
-                    <circle cx="9" cy="9" r="8" fill={rankColors[i] ? `${rankColors[i]}22` : "rgba(255,255,255,0.06)"} stroke={rankColors[i] ?? "rgba(255,255,255,0.15)"} strokeWidth="1.2" />
-                    <text x="9" y="12.5" textAnchor="middle" fontSize="8" fontWeight="700" fill={rankColors[i] ?? "var(--text3)"}>{i + 1}</text>
-                  </svg>
+                  <MedalRibbon rank={i} />
                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", overflow: "hidden" }}>
                     <span style={{ fontWeight: isWinner ? 700 : 500, color: isWinner ? "var(--text)" : "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
                     {isWinner && <span style={{ fontSize: "0.55rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", padding: "1px 5px", borderRadius: 9999, background: `${ACCENT}18`, border: `1px solid ${ACCENT}30`, flexShrink: 0 }}>winner</span>}
