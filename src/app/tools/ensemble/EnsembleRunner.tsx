@@ -164,7 +164,13 @@ export default function EnsembleRunner({ onReady }: EnsembleRunnerProps) {
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
             if (evt.result) {
-              const data: TrainResult = evt.result.automl ?? evt.result;
+              const raw = evt.result.automl ?? evt.result;
+              const data: TrainResult = {
+                ...raw,
+                cv_results: (raw.cv_results ?? []).map((r: { algorithm?: string; name?: string; score: number; fold_scores?: number[] }) => ({
+                  ...r, name: r.name ?? r.algorithm ?? "",
+                })),
+              };
               setResult(data);
               // Write ensembleScore back to PipelineContext
               if (data?.winner_metrics) {
