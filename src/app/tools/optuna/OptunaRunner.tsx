@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { usePipeline } from "@/context/PipelineContext";
 import OptunaResults from "./OptunaResults";
 
 const ACCENT = "#a78bfa";
@@ -42,6 +43,8 @@ interface TrainResult {
 const MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
 
 export default function OptunaRunner() {
+  const { state, setState } = usePipeline();
+
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -53,6 +56,17 @@ export default function OptunaRunner() {
   const [task, setTask] = useState<"classification" | "regression">("classification");
   const [model, setModel] = useState(MODELS[1]);
   const [nTrials, setNTrials] = useState(30);
+
+  // Pre-select model from AutoML winner in context
+  useEffect(() => {
+    if (!state.automlWinner) return;
+    const mapping: Record<string, string> = {
+      RandomForest: "Random Forest", XGBoost: "XGBoost",
+      LightGBM: "LightGBM", CatBoost: "CatBoost",
+    };
+    const mapped = mapping[state.automlWinner.algo];
+    if (mapped && MODELS.includes(mapped)) setModel(mapped);
+  }, [state.automlWinner]); // eslint-disable-line react-hooks/exhaustive-deps
   const [dropCols, setDropCols] = useState<string[]>([]);
   const [optMetric, setOptMetric] = useState("auto");
   const [sampler, setSampler] = useState("tpe");
@@ -140,7 +154,22 @@ export default function OptunaRunner() {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) { setResult(evt.result.automl ?? evt.result); }
+            if (evt.result) {
+              const data: TrainResult = evt.result.automl ?? evt.result;
+              setResult(data);
+              // Write tunedModel back to PipelineContext
+              if (data?.best_params && data?.winner_metrics) {
+                setState(prev => ({
+                  ...prev,
+                  tunedModel: {
+                    algo: model as "RandomForest" | "XGBoost" | "LightGBM" | "CatBoost",
+                    score: Number(Object.values(data.winner_metrics)[0] ?? 0),
+                    metric: (optMetric === "auto" ? "accuracy" : optMetric) as import("@/types/pipeline").Metric,
+                    params: data.best_params as Record<string, number | string>,
+                  },
+                }));
+              }
+            }
             if (evt.error) setError(`Server error: ${evt.error}`);
           } catch { /* skip malformed */ }
         }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { PipelineProvider } from "@/context/PipelineContext";
+import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import AutoMLModal from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -15,21 +15,35 @@ const ACCENT = "#22c55e";
 function AutoMLPageInner() {
   const router  = useRouter();
   const fileRef = useRef<{ trigger: (f: File) => void } | null>(null);
+  const { state } = usePipeline();
 
   useEffect(() => {
     try {
+      // Priority 1: sessionStorage handoff from Preprocess page
       const raw = sessionStorage.getItem("prep_handoff");
-      if (!raw) return;
-      sessionStorage.removeItem("prep_handoff");
-      const { csv_b64, filename } = JSON.parse(raw) as { csv_b64: string; filename: string };
-      const bytes = atob(csv_b64);
-      const arr   = new Uint8Array(bytes.length);
-      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-      const blob = new Blob([arr], { type: "text/csv" });
-      const file = new File([blob], filename, { type: "text/csv" });
-      fileRef.current?.trigger(file);
+      if (raw) {
+        sessionStorage.removeItem("prep_handoff");
+        const { csv_b64, filename } = JSON.parse(raw) as { csv_b64: string; filename: string };
+        const bytes = atob(csv_b64);
+        const arr   = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        const blob = new Blob([arr], { type: "text/csv" });
+        const file = new File([blob], filename, { type: "text/csv" });
+        fileRef.current?.trigger(file);
+        return;
+      }
+      // Priority 2: PipelineContext CSV chain (persists across page navigations)
+      const ctxCsv = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
+      if (ctxCsv) {
+        const bytes = atob(ctxCsv);
+        const arr   = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        const blob = new Blob([arr], { type: "text/csv" });
+        const file = new File([blob], "pipeline_data.csv", { type: "text/csv" });
+        fileRef.current?.trigger(file);
+      }
     } catch { /* ignore */ }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 

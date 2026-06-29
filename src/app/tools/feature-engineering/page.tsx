@@ -19,6 +19,8 @@ import { useFELDA } from "@/hooks/useFELDA";
 import { useFETransforms } from "@/hooks/useFETransforms";
 import { useFEAISuggest } from "@/hooks/useFEAISuggest";
 import { useFEFileLoad } from "@/hooks/useFEFileLoad";
+import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
+import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 
 const ACCENT = "#38bdf8";
 const CARD: React.CSSProperties = { background: "rgba(14,22,40,0.72)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "1.25rem 1.4rem" };
@@ -37,7 +39,7 @@ function ActionBtn({ onClick, disabled = false, children, secondary = false }: {
   );
 }
 
-export default function FeatureEngineeringPage() {
+function FeatureEngineeringPageInner() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -74,6 +76,8 @@ export default function FeatureEngineeringPage() {
   const [ratioDiffPairs, setRatioDiffPairs] = useState<[string, string][]>([]);
   const [enabledDatetimeCols, setEnabledDatetimeCols] = useState<string[]>([]);
 
+  const { state, setState } = usePipeline();
+
   const numCols = cols.filter(c => c.isNumeric);
   const catCols = cols.filter(c => !c.isNumeric);
 
@@ -106,10 +110,33 @@ export default function FeatureEngineeringPage() {
     setStep,
   });
 
+  useEffect(() => {
+    const b64 = state.preprocessedCsvB64;
+    if (!b64 || step !== "upload") return;
+    try {
+      const bytes = atob(b64);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: "text/csv" });
+      const file = new File([blob], state.fileName ?? "preprocessed.csv", { type: "text/csv" });
+      handleFile(file);
+    } catch { /* ignore decode errors */ }
+  }, []); // run once on mount only
+
   const toggleTransform = (col: string, key: string) => setColTransforms(prev => { const cur = prev[col] ?? []; return { ...prev, [col]: cur.includes(key) ? cur.filter(k => k !== key) : [...cur, key] }; });
   const toggleAllTransform = (key: string, on: boolean) => setColTransforms(prev => { const next = { ...prev }; for (const col of numCols) { const cur = next[col.name] ?? []; if (on && !cur.includes(key)) next[col.name] = [...cur, key]; if (!on) next[col.name] = cur.filter(k => k !== key); } return next; });
   const addInteraction = () => { if (!interactA || !interactB || interactA === interactB) return; const pair: [string, string] = [interactA, interactB]; if (interactions.some(([a, b]) => a === pair[0] && b === pair[1])) return; setInteractions(prev => [...prev, pair]); setInteractA(""); setInteractB(""); };
   const addRatio = () => { if (!ratioA || !ratioB || ratioA === ratioB) return; const pair: [string, string] = [ratioA, ratioB]; if (ratios.some(([a, b]) => a === pair[0] && b === pair[1])) return; setRatios(prev => [...prev, pair]); setRatioA(""); setRatioB(""); };
+
+  useEffect(() => {
+    if (!result) return;
+    try {
+      const csvText = serializeCSV(result.csv);
+      const bytes = new TextEncoder().encode(csvText);
+      const b64 = btoa(String.fromCharCode(...bytes));
+      setState(prev => ({ ...prev, feCsvB64: b64 }));
+    } catch { /* ignore */ }
+  }, [result, setState]);
 
   const downloadResult = useCallback(() => {
     if (!result) return;
@@ -186,6 +213,16 @@ export default function FeatureEngineeringPage() {
             <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>Feature Engineering</div>
             <div style={{ fontSize: "0.87rem", color: "var(--text3)", lineHeight: 1.6 }}>Upload a CSV. Apply log transforms, date extraction, interaction terms, and more — all processed in your browser, nothing sent to any server.</div>
           </div>
+          {state.preprocessedCsvB64 && (
+            <CsvFromContextBanner
+              csvB64={state.preprocessedCsvB64}
+              stageLabel="preprocessed data"
+              accent="#38bdf8"
+              onUploadDifferent={() => {
+                setState(prev => ({ ...prev, preprocessedCsvB64: null }));
+              }}
+            />
+          )}
           <MouseTiltCard onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current?.click()}
             style={{ ...CARD, textAlign: "center", padding: "3rem 2rem", cursor: "pointer", borderStyle: "dashed", borderColor: `${ACCENT}40`, transition: "border-color 0.2s, box-shadow 0.2s" }}>
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke={ACCENT} strokeWidth="1.5" style={{ display: "block", margin: "0 auto 1rem", opacity: 0.7 }}>
@@ -265,5 +302,13 @@ export default function FeatureEngineeringPage() {
            result ? `Last result: added ${result.newColumns.length} new columns (${result.newColumns.join(", ")}).` : ""].filter(Boolean).join(" ")
         : "No dataset loaded yet." }} />
     </div>
+  );
+}
+
+export default function FeatureEngineeringPage() {
+  return (
+    <PipelineProvider>
+      <FeatureEngineeringPageInner />
+    </PipelineProvider>
   );
 }

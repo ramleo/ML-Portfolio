@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useCallback, DragEvent, ChangeEvent } from "react";
+import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { usePipeline } from "@/context/PipelineContext";
 import ShapResults from "./ShapResults";
 
 const ACCENT = "#f59e0b";
@@ -41,6 +42,8 @@ interface TrainResult {
 const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
 export default function ShapRunner() {
+  const { state, setState } = usePipeline();
+
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -51,6 +54,17 @@ export default function ShapRunner() {
   const [target, setTarget] = useState("");
   const [task, setTask] = useState<"classification" | "regression">("classification");
   const [model, setModel] = useState(MODELS[1]);
+
+  // Pre-select model from AutoML winner in context
+  useEffect(() => {
+    if (!state.automlWinner) return;
+    const mapping: Record<string, string> = {
+      RandomForest: "Random Forest", XGBoost: "XGBoost",
+      LightGBM: "LightGBM", CatBoost: "CatBoost",
+    };
+    const mapped = mapping[state.automlWinner.algo];
+    if (mapped && MODELS.includes(mapped)) setModel(mapped);
+  }, [state.automlWinner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
@@ -128,7 +142,16 @@ export default function ShapRunner() {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) { setResult(evt.result.automl ?? evt.result); }
+            if (evt.result) {
+              const data: TrainResult = evt.result.automl ?? evt.result;
+              setResult(data);
+              // Write shapValues back to PipelineContext using feature_importance
+              if (data?.feature_importance) {
+                const vals: Record<string, number> = {};
+                data.feature_importance.forEach(e => { vals[e.feature] = e.importance; });
+                setState(prev => ({ ...prev, shapValues: vals }));
+              }
+            }
           } catch { /* skip malformed */ }
         }
       }

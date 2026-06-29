@@ -99,6 +99,12 @@ export type MLPipelineState = {
   preprocessingConfig:    PreprocessingConfig | null;
   cleanedCsv:             File | null;         // standalone output (downloadable)
 
+  // CSV data as base64 strings — serializable to localStorage, flows through pipeline stages
+  csvB64:                 string | null;               // raw uploaded CSV (any page)
+  preprocessedCsvB64:     string | null;   // output of Preprocessing page
+  feCsvB64:               string | null;             // output of Feature Engineering page
+  fsCsvB64:               string | null;             // output of Feature Selection page
+
   // Feature Engineering outputs
   transforms: FeatureTransform[];
 
@@ -129,6 +135,10 @@ export const emptyPipelineState: MLPipelineState = {
   taskType:               null,
   preprocessingConfig:    null,
   cleanedCsv:             null,
+  csvB64:                 null,
+  preprocessedCsvB64:     null,
+  feCsvB64:               null,
+  fsCsvB64:               null,
   transforms:             [],
   featureSelectionConfig: null,
   selectedFeatures:       [],

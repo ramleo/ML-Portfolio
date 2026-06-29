@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { PipelineProvider } from "@/context/PipelineContext";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import OptunaRunner from "./OptunaRunner";
@@ -19,7 +20,7 @@ function Badge({ label, color }: { label: string; color: string }) {
   );
 }
 
-export default function OptunaPage() {
+function OptunaPageInner() {
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -62,5 +63,13 @@ export default function OptunaPage() {
         summary: "Optuna-powered hyperparameter optimisation visualiser using Tree-structured Parzen Estimator (TPE). Shows trial history, parameter importance, and convergence plots. Demonstrates efficient Bayesian search vs grid/random search.",
       }} />
     </div>
+  );
+}
+
+export default function OptunaPage() {
+  return (
+    <PipelineProvider>
+      <OptunaPageInner />
+    </PipelineProvider>
   );
 }

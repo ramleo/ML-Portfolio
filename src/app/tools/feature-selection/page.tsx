@@ -20,6 +20,10 @@ import HowItWorks from "@/components/FSPanels/FSHowItWorks";
 import FSExcludePanel from "@/components/FSPanels/FSExcludePanel";
 import FSUploadHero from "@/components/FSPanels/FSUploadHero";
 import { useFSAISuggest } from "@/hooks/useFSAISuggest";
+import FSPageHeader from "@/components/FSPanels/FSPageHeader";
+import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
+import CsvFromContextBanner from "@/components/CsvFromContextBanner";
+import { buildTabs, TAB_CATEGORIES, type TabId } from "@/components/FSPanels/fsTabs";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -31,27 +35,6 @@ const CARD: React.CSSProperties = {
   borderRadius: 12,
   padding: "1.25rem 1.4rem",
 };
-
-// ── Small local components ────────────────────────────────────────────────────
-
-function Badge({ label, color }: { label: string; color: string }) {
-  return (
-    <span style={{
-      fontSize: "0.62rem", fontWeight: 600, color,
-      textTransform: "uppercase", letterSpacing: "0.08em",
-      padding: "2px 8px", borderRadius: 9999,
-      background: `${color}14`, border: `1px solid ${color}30`,
-    }}>{label}</span>
-  );
-}
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type TabId =
-  | "variance" | "correlation" | "topk" | "rfe" | "selectkbest"
-  | "forward" | "exhaustive" | "chisq" | "kendall"
-  | "lasso" | "ridge" | "tree"
-  | "pca" | "umap" | "fa" | "lda";
 
 // ── Default opts ──────────────────────────────────────────────────────────────
 
@@ -74,10 +57,11 @@ const DEFAULT_OPTS: Omit<SelectionOpts, "targetCol"> = {
   useLDA: false, ldaComponents: 2,
 };
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Inner Page ────────────────────────────────────────────────────────────────
 
-export default function FeatureSelectionPage() {
+function FeatureSelectionPageInner() {
   const router = useRouter();
+  const { state, setState } = usePipeline();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [cols, setCols] = useState<ColInfo[]>([]);
@@ -103,31 +87,7 @@ export default function FeatureSelectionPage() {
 
   // ── Tab metadata ──────────────────────────────────────────────────────────
 
-  const TABS: { id: TabId; label: string; enabled: boolean; cat: string }[] = [
-    { id: "variance",    label: "Variance",   enabled: opts.useVariance,    cat: "Filter" },
-    { id: "correlation", label: "Corr",       enabled: opts.useCorrelation, cat: "Filter" },
-    { id: "topk",        label: "Top-K",      enabled: opts.useTopK,        cat: "Filter" },
-    { id: "selectkbest", label: "K Best",     enabled: opts.useSelectKBest, cat: "Score" },
-    { id: "kendall",     label: "Kendall τ",  enabled: opts.useKendall,     cat: "Score" },
-    { id: "chisq",       label: "Chi-sq",     enabled: opts.useChiSq,       cat: "Score" },
-    { id: "rfe",         label: "RFE",        enabled: opts.useRFE,         cat: "Wrapper" },
-    { id: "lasso",       label: "Lasso",      enabled: opts.useLasso,       cat: "Wrapper" },
-    { id: "ridge",       label: "Ridge",      enabled: opts.useRidge,       cat: "Wrapper" },
-    { id: "tree",        label: "Tree",       enabled: opts.useTree,        cat: "Wrapper" },
-    { id: "forward",     label: "Forward",    enabled: opts.useForward,     cat: "Wrapper" },
-    { id: "exhaustive",  label: "Exhaustive", enabled: opts.useExhaustive,  cat: "Wrapper" },
-    { id: "pca",         label: "PCA",        enabled: opts.usePCA,         cat: "Reduction" },
-    { id: "umap",        label: "UMAP",       enabled: opts.useUMAP,        cat: "Reduction" },
-    { id: "fa",          label: "FA",         enabled: opts.useFA,          cat: "Reduction" },
-    { id: "lda",         label: "LDA",        enabled: opts.useLDA,         cat: "Reduction" },
-  ];
-
-  const TAB_CATEGORIES = [
-    { label: "Filter",    color: "#60a5fa" },
-    { label: "Score",     color: "#a78bfa" },
-    { label: "Wrapper",   color: "#34d399" },
-    { label: "Reduction", color: "#f472b6" },
-  ];
+  const TABS = buildTabs(opts);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -151,6 +111,21 @@ export default function FeatureSelectionPage() {
     }, () => {});
   }, []);
 
+  // Auto-load CSV from pipeline context on mount
+  useEffect(() => {
+    const b64 = state.feCsvB64 ?? state.preprocessedCsvB64;
+    if (!b64 || cols.length > 0) return;
+    try {
+      const bytes = atob(b64);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: "text/csv" });
+      const file = new File([blob], state.fileName ?? "from_context.csv", { type: "text/csv" });
+      handleFile(file);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -161,14 +136,21 @@ export default function FeatureSelectionPage() {
     const worker = new Worker(new URL("../../../workers/fsSelectionWorker.ts", import.meta.url));
     worker.onmessage = (e) => {
       const { type, payload, message } = e.data;
-      if (type === "result") setResult(payload as SelectionResult);
-      else if (type === "error") console.error("FS worker error:", message);
+      if (type === "result") {
+        setResult(payload as SelectionResult);
+        try {
+          const kept = (payload as SelectionResult).features
+            .filter((f: { name: string; kept: boolean }) => f.kept)
+            .map((f: { name: string; kept: boolean }) => f.name);
+          setState(prev => ({ ...prev, selectedFeatures: kept }));
+        } catch { /* ignore */ }
+      } else if (type === "error") console.error("FS worker error:", message);
       setRunning(false);
       worker.terminate();
     };
     worker.onerror = (err) => { console.error("FS worker error:", err.message); setRunning(false); worker.terminate(); };
     worker.postMessage({ cols: filteredCols, opts: selOpts });
-  }, []);
+  }, [setState]);
 
   const handleRun = useCallback(() => {
     if (!cols.length || typeof window === "undefined") return;
@@ -199,48 +181,24 @@ export default function FeatureSelectionPage() {
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
 
-      {/* Header */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-      }}>
-        <div style={{
-          maxWidth: 960, margin: "0 auto", padding: "0 1.5rem",
-          height: 60, display: "flex", alignItems: "center", gap: "1.5rem",
-        }}>
-          <button
-            onClick={() => router.push("/#capabilities")}
-            style={{
-              display: "flex", alignItems: "center", gap: "0.4rem",
-              background: "none", border: "none", cursor: "pointer",
-              color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0,
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 12L4 7l5-5" />
-            </svg>
-            Home
-          </button>
-          <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <Badge label="Step 3" color={ACCENT} />
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Selection</span>
-          </div>
-          <div style={{ marginLeft: "auto" }}>
-            <Badge label="runs in browser" color="#22c55e" />
-          </div>
-        </div>
-      </div>
+      <FSPageHeader accent={ACCENT} onHome={() => router.push("/#capabilities")} />
 
       <div style={{
         maxWidth: 960, margin: "0 auto",
         padding: "2.5rem 1.5rem 5rem",
         display: "flex", flexDirection: "column", gap: "1.5rem",
       }}>
+
+        {(state.feCsvB64 ?? state.preprocessedCsvB64) && cols.length === 0 && (
+          <CsvFromContextBanner
+            csvB64={(state.feCsvB64 ?? state.preprocessedCsvB64)!}
+            stageLabel={state.feCsvB64 ? "FE-transformed data" : "preprocessed data"}
+            accent="#fb923c"
+            onUploadDifferent={() => {
+              setState(prev => ({ ...prev, feCsvB64: null, preprocessedCsvB64: null }));
+            }}
+          />
+        )}
 
         <FSUploadHero
           hasFile={hasFile}
@@ -378,5 +336,15 @@ export default function FeatureSelectionPage() {
           : "No dataset loaded yet.",
       }} />
     </div>
+  );
+}
+
+// ── Wrapper ───────────────────────────────────────────────────────────────────
+
+export default function FeatureSelectionPage() {
+  return (
+    <PipelineProvider>
+      <FeatureSelectionPageInner />
+    </PipelineProvider>
   );
 }

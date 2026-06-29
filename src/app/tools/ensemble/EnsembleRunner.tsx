@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useCallback, DragEvent, ChangeEvent } from "react";
+import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { usePipeline } from "@/context/PipelineContext";
 import EnsembleResults from "./EnsembleResults";
 
 const ACCENT = "#10b981";
@@ -40,6 +41,8 @@ interface TrainResult {
 const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
 
 export default function EnsembleRunner() {
+  const { state, setState } = usePipeline();
+
   const [step, setStep] = useState<Step>(1);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -50,6 +53,20 @@ export default function EnsembleRunner() {
   const [target, setTarget] = useState("");
   const [task, setTask] = useState<"classification" | "regression">("classification");
   const [selectedModels, setSelectedModels] = useState<string[]>(["Random Forest", "XGBoost", "LightGBM"]);
+
+  // Pre-select top models from AutoML ranking in context
+  useEffect(() => {
+    if (!state.automlRanking || state.automlRanking.length === 0) return;
+    const mapping: Record<string, string> = {
+      RandomForest: "Random Forest", XGBoost: "XGBoost",
+      LightGBM: "LightGBM", CatBoost: "CatBoost",
+    };
+    const top = state.automlRanking
+      .slice(0, 3)
+      .map(m => mapping[m.algo])
+      .filter((m): m is string => !!m && ALL_MODELS.includes(m));
+    if (top.length >= 2) setSelectedModels(top);
+  }, [state.automlRanking]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
@@ -138,7 +155,18 @@ export default function EnsembleRunner() {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
-            if (evt.result) { setResult(evt.result.automl ?? evt.result); }
+            if (evt.result) {
+              const data: TrainResult = evt.result.automl ?? evt.result;
+              setResult(data);
+              // Write ensembleScore back to PipelineContext
+              if (data?.winner_metrics) {
+                setState(prev => ({
+                  ...prev,
+                  ensembleType: "voting",
+                  ensembleScore: Number(Object.values(data.winner_metrics)[0] ?? 0),
+                }));
+              }
+            }
           } catch { /* skip malformed */ }
         }
       }

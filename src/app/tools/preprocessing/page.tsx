@@ -12,10 +12,12 @@ import {
 import { StepIndicator }  from "@/components/PreprocessingPanels/StepIndicator";
 import { ConfigurePanel } from "@/components/PreprocessingPanels/ConfigurePanel";
 import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
+import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 
 const ACCENT = "#22d3ee";
 
-export default function PreprocessingPage() {
+function PreprocessingPageInner() {
+  const { setState } = usePipeline();
   const router = useRouter();
 
   const [step, setStep]           = useState<Step>("upload");
@@ -66,8 +68,18 @@ export default function PreprocessingPage() {
 
   const handleFile = useCallback((f: File) => {
     if (!f.name.endsWith(".csv")) { setError("Please upload a CSV file."); return; }
-    setFile(f); analyze(f);
-  }, [analyze]);
+    setFile(f);
+    // Store raw CSV in pipeline context for downstream pages
+    const reader = new FileReader();
+    reader.onload = () => {
+      const b64 = reader.result as string;
+      // FileReader result is "data:text/csv;base64,..." — strip the prefix
+      const raw = b64.split(",")[1] ?? b64;
+      setState(prev => ({ ...prev, csvB64: raw, fileName: f.name }));
+    };
+    reader.readAsDataURL(f);
+    analyze(f);
+  }, [analyze, setState]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDragging(false);
@@ -87,6 +99,16 @@ export default function PreprocessingPage() {
             encode_method: encodeMethod, standardize,
           }, file.name);
           setResult(data); setStep("results");
+          // Store preprocessed CSV in context for FE/FS/AutoML pages
+          const csvText = data.csvText;
+          try {
+            const b64 = btoa(unescape(encodeURIComponent(csvText)));
+            setState(prev => ({
+              ...prev,
+              preprocessedCsvB64: b64,
+              columns: data.columns.map(c => c.name),
+            }));
+          } catch { /* ignore encode errors */ }
         } catch (e) {
           setError(e instanceof Error ? e.message : "Preprocessing failed");
           setStep("configure");
@@ -294,5 +316,13 @@ export default function PreprocessingPage() {
           : "No dataset loaded yet.",
       }} />
     </div>
+  );
+}
+
+export default function PreprocessingPage() {
+  return (
+    <PipelineProvider>
+      <PreprocessingPageInner />
+    </PipelineProvider>
   );
 }

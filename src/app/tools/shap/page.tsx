@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { PipelineProvider } from "@/context/PipelineContext";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ShapRunner from "./ShapRunner";
@@ -19,7 +20,7 @@ function Badge({ label, color }: { label: string; color: string }) {
   );
 }
 
-export default function ShapPage() {
+function ShapPageInner() {
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -62,5 +63,13 @@ export default function ShapPage() {
         summary: "Interactive SHAP (SHapley Additive exPlanations) visualiser. Shows global feature importance (bar chart), individual prediction waterfall plots, and dependence plots to reveal feature interactions. Helps interpret why a model made a specific prediction.",
       }} />
     </div>
+  );
+}
+
+export default function ShapPage() {
+  return (
+    <PipelineProvider>
+      <ShapPageInner />
+    </PipelineProvider>
   );
 }

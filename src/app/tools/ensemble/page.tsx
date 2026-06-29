@@ -2,13 +2,14 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { PipelineProvider } from "@/context/PipelineContext";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import EnsembleRunner from "./EnsembleRunner";
 
 const ACCENT = "#f472b6";
 
-export default function EnsemblePage() {
+function EnsemblePageInner() {
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -51,5 +52,13 @@ export default function EnsemblePage() {
         summary: "Ensemble learning visualiser covering soft voting, hard voting, and stacking with a meta-learner. Shows how combining diverse base models (XGBoost, Random Forest, LightGBM) reduces variance and improves AUC over any single model.",
       }} />
     </div>
+  );
+}
+
+export default function EnsemblePage() {
+  return (
+    <PipelineProvider>
+      <EnsemblePageInner />
+    </PipelineProvider>
   );
 }
