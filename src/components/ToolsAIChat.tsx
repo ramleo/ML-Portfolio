@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
 import { ML_UNIFIED_API } from "@/config/urls";
@@ -294,9 +295,28 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                 background: m.role === "user" ? `${accentColor}22` : "rgba(255,255,255,0.05)",
                 border: `1px solid ${m.role === "user" ? accentColor + "44" : "rgba(255,255,255,0.08)"}`,
                 fontSize: "0.73rem", lineHeight: 1.65, color: m.role === "user" ? "var(--text)" : "var(--text2)",
-                whiteSpace: "pre-wrap",
               }}>
-                {m.content}
+                {m.role === "assistant" ? (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p style={{ margin: "0 0 0.4em" }}>{children}</p>,
+                      h1: ({ children }) => <p style={{ margin: "0.5em 0 0.3em", fontWeight: 700, fontSize: "0.85em" }}>{children}</p>,
+                      h2: ({ children }) => <p style={{ margin: "0.5em 0 0.3em", fontWeight: 700, fontSize: "0.82em" }}>{children}</p>,
+                      h3: ({ children }) => <p style={{ margin: "0.4em 0 0.2em", fontWeight: 600, fontSize: "0.79em" }}>{children}</p>,
+                      ul: ({ children }) => <ul style={{ margin: "0.2em 0", paddingLeft: "1.2em" }}>{children}</ul>,
+                      ol: ({ children }) => <ol style={{ margin: "0.2em 0", paddingLeft: "1.2em" }}>{children}</ol>,
+                      li: ({ children }) => <li style={{ marginBottom: "0.15em" }}>{children}</li>,
+                      code: ({ children }) => <code style={{ background: "rgba(255,255,255,0.1)", borderRadius: 3, padding: "0 3px", fontSize: "0.9em", fontFamily: "monospace" }}>{children}</code>,
+                      pre: ({ children }) => <pre style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "0.5em 0.75em", overflowX: "auto", margin: "0.4em 0", fontSize: "0.88em" }}>{children}</pre>,
+                      strong: ({ children }) => <strong style={{ color: "var(--text)", fontWeight: 600 }}>{children}</strong>,
+                      hr: () => <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", margin: "0.5em 0" }} />,
+                    }}
+                  >
+                    {m.content}
+                  </ReactMarkdown>
+                ) : (
+                  <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>
+                )}
               </div>
             ))}
             {sources.length > 0 && (
