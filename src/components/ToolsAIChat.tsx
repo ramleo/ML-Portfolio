@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import RagSourceCard from "./RagSourceCard";
+import ToolsAIChatSettings from "./ToolsAIChatSettings";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 export type ToolChatContext = {
   tool: string;
@@ -113,12 +116,15 @@ function GearIcon() {
   );
 }
 
+type RagSource = { source: string; text: string; score: number };
+
 export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [open, setOpen]           = useState(false);
   const [settings, setSettings]   = useState(false);
   const [messages, setMessages]   = useState<Message[]>([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
+  const [sources, setSources]     = useState<RagSource[]>([]);
 
   const [provider, setProvider]   = useState("gemini");
   const [model, setModel]         = useState("gemini-2.5-flash");
@@ -136,25 +142,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     if (k) setUserKey(k);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(LS_PROVIDER, provider);
-  }, [provider]);
-
-  useEffect(() => {
-    localStorage.setItem(LS_MODEL, model);
-  }, [model]);
-
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, userKey);
-  }, [userKey]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  useEffect(() => {
-    if (open && !settings) inputRef.current?.focus();
-  }, [open, settings]);
+  useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); }, [provider]);
+  useEffect(() => { localStorage.setItem(LS_MODEL, model); }, [model]);
+  useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  useEffect(() => { if (open && !settings) inputRef.current?.focus(); }, [open, settings]);
 
   const providerConfig = PROVIDERS.find(p => p.id === provider) ?? PROVIDERS[0];
   const accentColor = providerConfig.color;
@@ -174,26 +166,53 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     setMessages(next);
     setInput("");
     setLoading(true);
+    setSources([]);
     try {
-      const res = await fetch("/api/ai-tools", {
+      const res = await fetch(`${ML_UNIFIED_API}/rag/query`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          messages: next,
+          query: text,
+          tool_context: `Tool: ${context.tool}\n${context.summary}`,
+          history: messages.slice(-6),
           provider,
           model,
-          userKey: userKey || undefined,
-          toolContext: `Tool: ${context.tool}\n${context.summary}`,
+          user_key: userKey || undefined,
         }),
       });
-      const data = await res.json();
-      if (data.error) {
-        setMessages(m => [...m, { role: "assistant", content: `Error: ${data.error}` }]);
-      } else {
-        setMessages(m => [...m, { role: "assistant", content: data.reply ?? "No response." }]);
+      if (!res.ok || !res.body) throw new Error(`RAG query failed: ${res.statusText}`);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantText = "";
+      const collectedSources: RagSource[] = [];
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const lines = decoder.decode(value).split("\n").filter(Boolean);
+        for (const line of lines) {
+          try {
+            const evt = JSON.parse(line.replace(/^data:\s*/, ""));
+            if (evt.type === "source") {
+              collectedSources.push(evt.doc);
+              setSources([...collectedSources]);
+            } else if (evt.type === "token") {
+              assistantText += evt.text;
+              setMessages(m => {
+                const last = m[m.length - 1];
+                if (last?.role === "assistant") {
+                  return [...m.slice(0, -1), { role: "assistant", content: assistantText }];
+                }
+                return [...m, { role: "assistant", content: assistantText }];
+              });
+            }
+          } catch { /* skip malformed */ }
+        }
       }
-    } catch {
-      setMessages(m => [...m, { role: "assistant", content: "Network error. Please try again." }]);
+      if (!assistantText) {
+        setMessages(m => [...m, { role: "assistant", content: "No response." }]);
+      }
+    } catch (e) {
+      setMessages(m => [...m, { role: "assistant", content: `Error: ${e instanceof Error ? e.message : "Network error"}` }]);
     } finally {
       setLoading(false);
     }
@@ -209,24 +228,19 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   return (
     <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999, fontFamily: "inherit", pointerEvents: "none" }}>
 
-      {/* Chat panel */}
       {open && (
         <div style={{
-          position: "absolute", bottom: 64, right: 0,
-          pointerEvents: "auto",
+          position: "absolute", bottom: 64, right: 0, pointerEvents: "auto",
           width: PANEL_W, height: PANEL_H,
           background: "rgba(8,15,30,0.97)",
-          border: `1px solid ${accentColor}33`,
-          borderRadius: 16,
+          border: `1px solid ${accentColor}33`, borderRadius: 16,
           boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px ${accentColor}18`,
-          display: "flex", flexDirection: "column",
-          overflow: "hidden",
+          display: "flex", flexDirection: "column", overflow: "hidden",
         }}>
 
           {/* Header */}
           <div style={{
-            padding: "0.7rem 1rem",
-            borderBottom: `1px solid rgba(255,255,255,0.07)`,
+            padding: "0.7rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)",
             display: "flex", alignItems: "center", gap: "0.5rem",
             background: `linear-gradient(135deg, rgba(8,15,30,1) 0%, rgba(${accentColor === "#38bdf8" ? "56,189,248" : accentColor === "#f59e0b" ? "245,158,11" : "52,211,153"},0.08) 100%)`,
           }}>
@@ -245,51 +259,16 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
 
           {/* Settings panel */}
           {settings && (
-            <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
-              {/* Provider */}
-              <div>
-                <div style={{ fontSize: "0.6rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Provider</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                  {PROVIDERS.map(p => (
-                    <button key={p.id} onClick={() => handleProviderChange(p.id)}
-                      style={{
-                        padding: "3px 10px", borderRadius: 9999, fontSize: "0.68rem", fontWeight: 600, cursor: "pointer",
-                        border: `1px solid ${provider === p.id ? p.color : "rgba(255,255,255,0.1)"}`,
-                        background: provider === p.id ? `${p.color}22` : "transparent",
-                        color: provider === p.id ? p.color : "var(--text3)",
-                      }}>
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Model */}
-              <div>
-                <div style={{ fontSize: "0.6rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Model</div>
-                <select value={model} onChange={e => setModel(e.target.value)}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: "var(--text)", fontSize: "0.72rem", padding: "0.3rem 0.5rem", outline: "none" }}>
-                  {providerConfig.models.map(m => (
-                    <option key={m.id} value={m.id}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* API Key */}
-              <div>
-                <div style={{ fontSize: "0.6rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>API Key <span style={{ textTransform: "none", fontWeight: 400 }}>(optional — overrides default)</span></div>
-                <input
-                  type="password"
-                  value={userKey}
-                  onChange={e => setUserKey(e.target.value)}
-                  placeholder={providerConfig.envKeyNote}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.5)", border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 7, color: "var(--text)", fontSize: "0.72rem", padding: "0.3rem 0.5rem", outline: "none", boxSizing: "border-box" }}
-                />
-                <div style={{ fontSize: "0.58rem", color: "var(--text3)", marginTop: "0.22rem" }}>
-                  Stored in browser only. Never sent to any server except the provider.
-                </div>
-              </div>
-            </div>
+            <ToolsAIChatSettings
+              providers={PROVIDERS}
+              provider={provider}
+              model={model}
+              userKey={userKey}
+              providerConfig={providerConfig}
+              onProviderChange={handleProviderChange}
+              onModelChange={setModel}
+              onKeyChange={setUserKey}
+            />
           )}
 
           {/* Messages */}
@@ -310,8 +289,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             {messages.map((m, i) => (
               <div key={i} style={{
                 alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "88%",
-                padding: "0.5rem 0.75rem",
+                maxWidth: "88%", padding: "0.5rem 0.75rem",
                 borderRadius: m.role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
                 background: m.role === "user" ? `${accentColor}22` : "rgba(255,255,255,0.05)",
                 border: `1px solid ${m.role === "user" ? accentColor + "44" : "rgba(255,255,255,0.08)"}`,
@@ -321,6 +299,16 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                 {m.content}
               </div>
             ))}
+            {sources.length > 0 && (
+              <div style={{ marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
+                  Sources retrieved
+                </div>
+                {sources.map((s, i) => (
+                  <RagSourceCard key={i} source={s.source} text={s.text} score={s.score} accent={accentColor} />
+                ))}
+              </div>
+            )}
             {loading && (
               <div style={{ alignSelf: "flex-start", padding: "0.5rem 0.75rem", borderRadius: "12px 12px 12px 3px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", fontSize: "0.73rem", color: "var(--text3)" }}>
                 <span style={{ animation: "pulse 1.2s ease-in-out infinite" }}>Thinking...</span>
@@ -369,7 +357,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
           pointerEvents: "auto",
           width: 52, height: 52, borderRadius: "50%",
           background: open
-            ? `rgba(8,15,30,0.95)`
+            ? "rgba(8,15,30,0.95)"
             : `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)`,
           border: `2px solid ${open ? accentColor + "66" : "transparent"}`,
           color: open ? accentColor : "#000",
