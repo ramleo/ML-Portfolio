@@ -191,6 +191,17 @@ export default function OptunaRunner({ onReady }: OptunaRunnerProps) {
     }
   }, [file, target, task, model, nTrials, dropCols, optMetric, sampler, secondaryMetric]);
 
+  const handleDownloadParams = useCallback(() => {
+    if (!result?.best_params) return;
+    const blob = new Blob([JSON.stringify(result.best_params, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "optuna_best_params.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [result]);
+
   const reset = useCallback(() => {
     setStep(1);
     setFile(null);
@@ -294,6 +305,26 @@ export default function OptunaRunner({ onReady }: OptunaRunnerProps) {
           </div>
 
           {result && <OptunaResults result={result} />}
+
+          {result?.best_params && (
+            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <button
+                onClick={handleDownloadParams}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.4rem",
+                  padding: "0.5rem 1rem", borderRadius: 9999, cursor: "pointer",
+                  background: "transparent", border: `1px solid ${ACCENT}55`,
+                  color: ACCENT, fontSize: "0.78rem", fontWeight: 600,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 1v8M4 6l3 3 3-3" />
+                  <path d="M2 11h10" />
+                </svg>
+                Download Params (JSON)
+              </button>
+            </div>
+          )}
 
           {!training && !result && error && (
             <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>

@@ -371,6 +371,10 @@ export default function Step4Results({
         <button onClick={onClose} style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}>
           Close
         </button>
+        <button onClick={() => window.open(`${ML_UNIFIED_API}/model/${trainResult.id}/download`, "_blank")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1v8M4 6l3 3 3-3" /><path d="M2 11h10" /></svg>
+          Download Model (.pkl)
+        </button>
         <button
           onClick={onSaveVersion}
           disabled={blocked}
