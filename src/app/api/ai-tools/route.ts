@@ -57,6 +57,7 @@ async function callOpenAICompat(
   baseUrl: string, key: string, model: string,
   system: string, messages: ChatMessage[],
   jsonMode = false, maxTokens = 800,
+  providerLabel = "",
 ) {
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -69,7 +70,15 @@ async function callOpenAICompat(
       ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     }),
   });
-  if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 401 || res.status === 403) {
+      const label = providerLabel ? ` for ${providerLabel}` : "";
+      throw new Error(`Invalid or expired API key${label}. Add your own key in the chat settings (gear icon), or update the server environment variable.`);
+    }
+    if (res.status === 429) throw new Error(`Rate limit reached${providerLabel ? ` (${providerLabel})` : ""}. Wait a moment and try again.`);
+    throw new Error(`${res.status}: ${body.slice(0, 120)}`);
+  }
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? "No response.";
 }
@@ -142,7 +151,7 @@ export async function POST(req: NextRequest) {
     // If caller supplied a baseUrl, use it directly (user's own provider — any OpenAI-compat endpoint)
     if (baseUrl) {
       if (!key) return NextResponse.json({ error: "API key required when using a custom base URL." }, { status: 401 });
-      reply = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens);
+      reply = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, "custom");
     } else if (provider === "gemini") {
       const chosenModel = model ?? "gemini-2.5-flash";
       try {
@@ -167,7 +176,7 @@ export async function POST(req: NextRequest) {
     } else {
       const base = OPENAI_COMPAT[provider];
       if (!base) return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
-      reply = await callOpenAICompat(base, key!, model ?? "gpt-4o-mini", system, messages);
+      reply = await callOpenAICompat(base, key!, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, provider);
     }
 
     return NextResponse.json({ reply });
