@@ -41,7 +41,11 @@ interface TrainResult {
 
 const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
-export default function ShapRunner() {
+interface ShapRunnerProps {
+  onReady?: (trigger: (f: File) => void) => void;
+}
+
+export default function ShapRunner({ onReady }: ShapRunnerProps) {
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
@@ -93,6 +97,10 @@ export default function ShapRunner() {
       setAnalyzing(false);
     }
   }, []);
+
+  useEffect(() => {
+    onReady?.(handleFile);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();

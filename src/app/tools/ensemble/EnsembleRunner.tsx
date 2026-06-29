@@ -40,7 +40,11 @@ interface TrainResult {
 
 const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
 
-export default function EnsembleRunner() {
+interface EnsembleRunnerProps {
+  onReady?: (trigger: (f: File) => void) => void;
+}
+
+export default function EnsembleRunner({ onReady }: EnsembleRunnerProps) {
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
@@ -101,6 +105,10 @@ export default function EnsembleRunner() {
       setAnalyzing(false);
     }
   }, []);
+
+  useEffect(() => {
+    onReady?.(handleFile);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();

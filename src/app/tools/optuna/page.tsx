@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { PipelineProvider } from "@/context/PipelineContext";
+import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import OptunaRunner from "./OptunaRunner";
 
 const ACCENT = "#a78bfa";
@@ -22,7 +23,42 @@ function Badge({ label, color }: { label: string; color: string }) {
 
 function OptunaPageInner() {
   const router = useRouter();
+  const { state, setState } = usePipeline();
+  const triggerRef = useRef<((f: File) => void) | null>(null);
+  const [contextLoading, setContextLoading] = useState(false);
+  const [fileLoaded, setFileLoaded] = useState(false);
+
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+
+  const handleReady = useCallback((trigger: (f: File) => void) => {
+    triggerRef.current = trigger;
+  }, []);
+
+  const loadFromContext = useCallback(() => {
+    const b64 = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
+    if (!b64 || !triggerRef.current) return;
+    setContextLoading(true);
+    try {
+      const bytes = atob(b64);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: "text/csv" });
+      const label = state.fsCsvB64 ? "fs_output" : state.feCsvB64 ? "fe_output" : state.fileName ?? "pipeline_data";
+      const file = new File([blob], label.replace(/(\.[^.]+)?$/, ".csv"), { type: "text/csv" });
+      triggerRef.current(file);
+      setFileLoaded(true);
+    } catch { /* ignore */ }
+    finally { setContextLoading(false); }
+  }, [state]);
+
+  const ctxB64 = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
+  const stageLabel = state.fsCsvB64
+    ? "FS-selected data"
+    : state.feCsvB64
+    ? "FE-transformed data"
+    : state.preprocessedCsvB64
+    ? "preprocessed data"
+    : "uploaded data";
 
   return (
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
@@ -55,7 +91,20 @@ function OptunaPageInner() {
       </div>
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <OptunaRunner />
+        {ctxB64 && !fileLoaded && (
+          <CsvFromContextBanner
+            csvB64={ctxB64}
+            stageLabel={stageLabel}
+            accent={ACCENT}
+            loading={contextLoading}
+            onUseData={loadFromContext}
+            onUploadDifferent={() => {
+              setState(prev => ({ ...prev, fsCsvB64: null, feCsvB64: null, preprocessedCsvB64: null, csvB64: null }));
+              setFileLoaded(false);
+            }}
+          />
+        )}
+        <OptunaRunner onReady={handleReady} />
       </div>
 
       <ToolsAIChat context={{
