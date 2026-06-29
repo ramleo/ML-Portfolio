@@ -71,6 +71,18 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
     if (mapped && MODELS.includes(mapped)) setModel(mapped);
   }, [state.tunedModel, state.automlWinner]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [usePresetParams, setUsePresetParams] = useState(false);
+  const [presetParams, setPresetParams] = useState<Record<string, number | string> | null>(null);
+  const paramsInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-populate preset params from tunedModel context
+  useEffect(() => {
+    if (state.tunedModel?.params && Object.keys(state.tunedModel.params).length > 0) {
+      setPresetParams(state.tunedModel.params as Record<string, number | string>);
+      setUsePresetParams(true);
+    }
+  }, [state.tunedModel]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<TrainResult | null>(null);
@@ -138,6 +150,7 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
       fd.append("fe_b64", "");
       fd.append("pre_fe_cols_json", "[]");
       fd.append("pre_fe_sample_json", "{}");
+      fd.append("preset_params_json", usePresetParams && presetParams ? JSON.stringify(presetParams) : "{}");
       const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
@@ -169,7 +182,7 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
     } finally {
       setTraining(false);
     }
-  }, [file, target, task, model]);
+  }, [file, target, task, model, usePresetParams, presetParams]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -276,6 +289,51 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
             <select value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
               {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
+          </div>
+
+          {/* Hyperparameters */}
+          <div>
+            <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.5rem" }}>
+              Hyperparameters
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.8rem", color: "var(--text2)" }}>
+                <input
+                  type="checkbox"
+                  checked={usePresetParams}
+                  onChange={e => setUsePresetParams(e.target.checked)}
+                  style={{ accentColor: ACCENT }}
+                />
+                {state.tunedModel?.params && Object.keys(state.tunedModel.params).length > 0
+                  ? "Use Optuna-tuned parameters (auto-detected)"
+                  : "Use custom parameters"}
+              </label>
+              <button
+                onClick={() => paramsInputRef.current?.click()}
+                style={{ fontSize: "0.72rem", padding: "0.3rem 0.75rem", borderRadius: 6, background: "transparent", border: `1px solid ${ACCENT}44`, color: ACCENT, cursor: "pointer" }}
+              >
+                Upload params JSON
+              </button>
+              <input ref={paramsInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={e => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                  try {
+                    const parsed = JSON.parse(ev.target?.result as string);
+                    setPresetParams(parsed);
+                    setUsePresetParams(true);
+                  } catch { /* ignore */ }
+                };
+                reader.readAsText(f);
+              }} />
+            </div>
+            {usePresetParams && presetParams && (
+              <div style={{ marginTop: "0.5rem", fontSize: "0.72rem", color: "var(--text3)", background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "0.4rem 0.65rem" }}>
+                {Object.entries(presetParams).slice(0, 5).map(([k, v]) => `${k}: ${v}`).join(" · ")}
+                {Object.keys(presetParams).length > 5 && ` · +${Object.keys(presetParams).length - 5} more`}
+              </div>
+            )}
           </div>
 
           <button onClick={handleTrain} style={{ padding: "0.65rem 1.2rem", borderRadius: 8, border: "none", background: ACCENT, color: "#000", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start" }}>
