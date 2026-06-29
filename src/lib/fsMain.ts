@@ -121,10 +121,12 @@ export function runSelection(cols: ColInfo[], opts: SelectionOpts): SelectionRes
         const mi = miScore(col, targetInfo);
         const others = remaining.filter(o => o.name !== col.name);
         const avgR = others.length > 0 ? others.reduce((s, o) => s + Math.abs(pearson(col.nums, o.nums)), 0) / others.length : 0;
-        const score = mi * (1 - 0.35 * avgR);
+        // Treat NaN scores as 0 so NaN features are always candidates for removal
+        const raw = mi * (1 - 0.35 * (isFinite(avgR) ? avgR : 0));
+        const score = isFinite(raw) ? raw : 0;
         if (score < minScore) { minScore = score; minName = col.name; }
       }
-      if (!minName) break;
+      if (!minName) break; // only reachable if remaining is empty
       rfeDropped.add(minName);
       rfeRoundMap[minName] = round++;
       remaining = remaining.filter(c => c.name !== minName);

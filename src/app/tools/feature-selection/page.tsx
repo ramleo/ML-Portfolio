@@ -141,10 +141,12 @@ function FeatureSelectionPageInner() {
       if (type === "result") {
         setResult(payload as SelectionResult);
         try {
-          const kept = (payload as SelectionResult).features
+          const sr = payload as SelectionResult;
+          const kept = sr.features
             .filter((f: { name: string; kept: boolean }) => f.kept)
             .map((f: { name: string; kept: boolean }) => f.name);
-          setState(prev => ({ ...prev, selectedFeatures: kept }));
+          const fsCsvB64 = btoa(unescape(encodeURIComponent(sr.csvText)));
+          setState(prev => ({ ...prev, selectedFeatures: kept, fsCsvB64 }));
         } catch { /* ignore */ }
       } else if (type === "error") console.error("FS worker error:", message);
       setRunning(false);
