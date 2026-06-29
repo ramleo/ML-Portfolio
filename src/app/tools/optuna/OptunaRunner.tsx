@@ -165,7 +165,8 @@ export default function OptunaRunner({ onReady }: OptunaRunnerProps) {
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
             if (evt.result) {
-              const data: TrainResult = evt.result.automl ?? evt.result;
+              const raw = evt.result.automl ?? evt.result;
+              const data: TrainResult = { ...raw, best_params: raw.optuna_params ?? raw.best_params };
               setResult(data);
               // Write tunedModel back to PipelineContext
               if (data?.best_params && data?.winner_metrics) {
