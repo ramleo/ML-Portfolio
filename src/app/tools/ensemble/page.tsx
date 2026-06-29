@@ -93,7 +93,7 @@ function EnsemblePageInner() {
             }}
           />
         )}
-        <EnsembleRunner onReady={handleReady} />
+        <EnsembleRunner onReady={handleReady} accent="#f472b6" />
       </div>
 
       <ToolsAIChat context={{

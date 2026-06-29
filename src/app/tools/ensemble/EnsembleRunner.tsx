@@ -5,8 +5,6 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
 import EnsembleResults from "./EnsembleResults";
 
-const ACCENT = "#10b981";
-
 const CARD: React.CSSProperties = {
   background: "rgba(14,22,40,0.72)",
   border: "1px solid rgba(255,255,255,0.07)",
@@ -42,9 +40,11 @@ const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra T
 
 interface EnsembleRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
+  accent?: string;
 }
 
-export default function EnsembleRunner({ onReady }: EnsembleRunnerProps) {
+export default function EnsembleRunner({ onReady, accent }: EnsembleRunnerProps) {
+  const ACCENT = accent ?? "#10b981";
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
@@ -142,7 +142,7 @@ export default function EnsembleRunner({ onReady }: EnsembleRunnerProps) {
       fd.append("task", task);
       fd.append("model_name", "Ensemble Run");
       fd.append("algorithm", "AutoML");
-      fd.append("accent", "#10b981");
+      fd.append("accent", ACCENT);
       fd.append("selected_models", JSON.stringify(selectedModels));
       fd.append("tune", "false");
       fd.append("n_trials", "10");
@@ -332,7 +332,7 @@ export default function EnsembleRunner({ onReady }: EnsembleRunnerProps) {
             </div>
           </div>
 
-          {result && <EnsembleResults result={result} />}
+          {result && <EnsembleResults result={result} accent={ACCENT} />}
 
           {!training && !result && error && (
             <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>

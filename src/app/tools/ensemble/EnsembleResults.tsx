@@ -1,7 +1,5 @@
 "use client";
 
-const ACCENT = "#10b981";
-
 interface CVEntry { name: string; score: number; fold_scores?: number[] }
 interface TrainResult {
   winner: string;
@@ -17,7 +15,8 @@ function modelConsistency(entry: CVEntry): string {
   return Math.sqrt(variance) < 0.03 ? "Consistent" : "Variable";
 }
 
-export default function EnsembleResults({ result }: { result: TrainResult }) {
+export default function EnsembleResults({ result, accent }: { result: TrainResult; accent?: string }) {
+  const ACCENT = accent ?? "#10b981";
   const sorted = [...result.cv_results].sort((a, b) => b.score - a.score);
   const scores = sorted.map(r => r.score);
   const spread = scores.length >= 2 ? (Math.max(...scores) - Math.min(...scores)) * 100 : 0;
