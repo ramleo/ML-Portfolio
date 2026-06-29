@@ -141,31 +141,30 @@ export default function AutoMLModal({
         onStart:    () => { setStep("training"); setPct(0); setStatusMsg("Starting AutoML competition..."); setError(""); },
         onPct:      setPct,
         onMsg:      setStatusMsg,
-        onResult:   (r) => { setTrainResult(r); setIsLoadedFromSaved(false); setStep("results"); },
+        onResult:   (r) => {
+          setTrainResult(r); setIsLoadedFromSaved(false); setStep("results");
+          // Auto-write winner to context on training completion
+          if (r?.automl) {
+            const automl = r.automl;
+            setState(prev => ({
+              ...prev, csv: file, fileName: file?.name ?? null, target, taskType,
+              automlWinner: {
+                algo: algoToKey(automl.winner), params: {},
+                score: automl.cv_results.find((c: { algorithm: string; score: number }) => c.algorithm === automl.winner)?.score ?? 0,
+                metric: automl.selection_metric as ModelResult["metric"],
+              },
+              automlRanking: automl.cv_results.map((c: { algorithm: string; score: number }) => ({
+                algo: algoToKey(c.algorithm), params: {}, score: c.score,
+                metric: automl.selection_metric as ModelResult["metric"],
+              })),
+            }));
+          }
+        },
         onError:    (msg) => { setError(msg); setStep("config"); },
         addHistory: (entry) => setHistory(prev => [entry, ...prev].slice(0, 3)),
       },
     );
   }, [file, target, taskType, modelName, selectedModels, dropCols, colEncodings, useSMOTE, runTrain, setIsLoadedFromSaved]);
-
-  const handleSave = useCallback(() => {
-    if (!trainResult?.automl) { onClose(); return; }
-    const automl = trainResult.automl;
-    setState(prev => ({
-      ...prev, csv: file, fileName: file?.name ?? null, target, taskType,
-      automlWinner: {
-        algo: algoToKey(automl.winner), params: {},
-        score: automl.cv_results.find(c => c.algorithm === automl.winner)?.score ?? 0,
-        metric: automl.selection_metric as ModelResult["metric"],
-      },
-      automlRanking: automl.cv_results.map(c => ({
-        algo: algoToKey(c.algorithm), params: {}, score: c.score,
-        metric: automl.selection_metric as ModelResult["metric"],
-      })),
-    }));
-    onSavedToPipeline?.();
-    onClose();
-  }, [trainResult, file, target, taskType, setState, onClose, onSavedToPipeline]);
 
   const toggleModel = useCallback((m: string) => {
     setSelectedModels(prev => {
@@ -243,7 +242,6 @@ export default function AutoMLModal({
               onSetLlmExp={setLlmExp} llmError={llmError} onGenerateAnalysis={handleExplain}
               onSetTrainResult={setTrainResult} onRunAgain={handleRunAgain} onClose={onClose}
               onSaveVersion={() => handleSaveVersion(trainResult, file?.name)}
-              onSaveToPipeline={handleSave}
             />
           )}
         </>

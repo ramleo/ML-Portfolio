@@ -42,7 +42,6 @@ interface Props {
   onRunAgain:            () => void;
   onClose:               () => void;
   onSaveVersion:         () => void;
-  onSaveToPipeline:      () => void;
 }
 
 export default function Step4Results({
@@ -51,7 +50,7 @@ export default function Step4Results({
   showKeyInput, userApiKey, customLLMUrl, customLLMModel,
   onSetAnalysisExpanded, onSetShowKeyInput, onSetLlmProvider,
   onSetUserApiKey, onSetCustomLLMUrl, onSetCustomLLMModel, onSetLlmExp,
-  llmError, onGenerateAnalysis, onSetTrainResult, onRunAgain, onClose, onSaveVersion, onSaveToPipeline,
+  llmError, onGenerateAnalysis, onSetTrainResult, onRunAgain, onClose, onSaveVersion,
 }: Props) {
   const { automl } = trainResult;
   const isReg      = automl.task === "regression";
@@ -388,9 +387,6 @@ export default function Step4Results({
           }}
         >
           {savedFlash ? "Saved!" : atCap ? "5 / 5 Full" : "Save Version"}
-        </button>
-        <button onClick={onSaveToPipeline} style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#000", fontSize: "0.85rem", fontWeight: 700 }}>
-          Save to Pipeline
         </button>
       </div>
     </div>
