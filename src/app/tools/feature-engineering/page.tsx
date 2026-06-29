@@ -49,6 +49,7 @@ function FeatureEngineeringPageInner() {
   const [filename, setFilename] = useState("");
   const [result, setResult]     = useState<FeResult | null>(null);
   const [error, setError]       = useState("");
+  const [contextLoading, setContextLoading] = useState(false);
 
   const [colTransforms, setColTransforms] = useState<Record<string, string[]>>({});
   const [dateCols, setDateCols]   = useState<string[]>([]);
@@ -98,7 +99,11 @@ function FeatureEngineeringPageInner() {
     setStep, setResult, setError,
   });
 
-  useEffect(() => { if (step === "configure") document.body.style.overflow = "hidden"; else document.body.style.overflow = ""; return () => { document.body.style.overflow = ""; }; }, [step]);
+  useEffect(() => {
+    if (step === "configure") { document.body.style.overflow = "hidden"; setContextLoading(false); }
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [step]);
 
   const { handleFile, handleDrop } = useFEFileLoad({
     setError, setFilename, setRawRows, setCols, setColTransforms,
@@ -110,18 +115,23 @@ function FeatureEngineeringPageInner() {
     setStep,
   });
 
-  useEffect(() => {
+  const loadFromContext = useCallback(() => {
     const b64 = state.preprocessedCsvB64;
-    if (!b64 || step !== "upload") return;
+    if (!b64) return;
     try {
+      setContextLoading(true);
       const bytes = atob(b64);
       const arr = new Uint8Array(bytes.length);
       for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
       const blob = new Blob([arr], { type: "text/csv" });
-      const file = new File([blob], state.fileName ?? "preprocessed.csv", { type: "text/csv" });
+      const name = (state.fileName ?? "preprocessed.csv").replace(/(\.[^.]+)?$/, ".csv");
+      const file = new File([blob], name, { type: "text/csv" });
       handleFile(file);
-    } catch { /* ignore decode errors */ }
-  }, []); // run once on mount only
+    } catch {
+      setContextLoading(false);
+      setError("Failed to load preprocessed data — try uploading the file manually.");
+    }
+  }, [state.preprocessedCsvB64, state.fileName, handleFile]);
 
   const toggleTransform = (col: string, key: string) => setColTransforms(prev => { const cur = prev[col] ?? []; return { ...prev, [col]: cur.includes(key) ? cur.filter(k => k !== key) : [...cur, key] }; });
   const toggleAllTransform = (key: string, on: boolean) => setColTransforms(prev => { const next = { ...prev }; for (const col of numCols) { const cur = next[col.name] ?? []; if (on && !cur.includes(key)) next[col.name] = [...cur, key]; if (!on) next[col.name] = cur.filter(k => k !== key); } return next; });
@@ -218,8 +228,11 @@ function FeatureEngineeringPageInner() {
               csvB64={state.preprocessedCsvB64}
               stageLabel="preprocessed data"
               accent="#38bdf8"
+              onUseData={loadFromContext}
+              loading={contextLoading}
               onUploadDifferent={() => {
                 setState(prev => ({ ...prev, preprocessedCsvB64: null }));
+                setContextLoading(false);
               }}
             />
           )}

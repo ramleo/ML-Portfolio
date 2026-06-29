@@ -67,6 +67,7 @@ function FeatureSelectionPageInner() {
   const [cols, setCols] = useState<ColInfo[]>([]);
   const [fileName, setFileName] = useState("");
   const [rowCount, setRowCount] = useState(0);
+  const [contextLoading, setContextLoading] = useState(false);
   const [opts, setOpts] = useState<SelectionOpts>({ targetCol: "", ...DEFAULT_OPTS });
   const [result, setResult] = useState<SelectionResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -98,6 +99,7 @@ function FeatureSelectionPageInner() {
       setCols(analyzed);
       setFileName(file.name);
       setRowCount(rows.length);
+      setContextLoading(false);
       setResult(null);
       setExcludeOpen(false);
       setExcludedCols([]);
@@ -111,20 +113,20 @@ function FeatureSelectionPageInner() {
     }, () => {});
   }, []);
 
-  // Auto-load CSV from pipeline context on mount
-  useEffect(() => {
+  const loadFromContext = useCallback(() => {
     const b64 = state.feCsvB64 ?? state.preprocessedCsvB64;
-    if (!b64 || cols.length > 0) return;
+    if (!b64) return;
     try {
+      setContextLoading(true);
       const bytes = atob(b64);
       const arr = new Uint8Array(bytes.length);
       for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
       const blob = new Blob([arr], { type: "text/csv" });
-      const file = new File([blob], state.fileName ?? "from_context.csv", { type: "text/csv" });
+      const name = (state.fileName ?? "from_context.csv").replace(/(\.[^.]+)?$/, ".csv");
+      const file = new File([blob], name, { type: "text/csv" });
       handleFile(file);
-    } catch { /* ignore */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    } catch { setContextLoading(false); }
+  }, [state.feCsvB64, state.preprocessedCsvB64, state.fileName, handleFile]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -194,8 +196,11 @@ function FeatureSelectionPageInner() {
             csvB64={(state.feCsvB64 ?? state.preprocessedCsvB64)!}
             stageLabel={state.feCsvB64 ? "FE-transformed data" : "preprocessed data"}
             accent="#fb923c"
+            onUseData={loadFromContext}
+            loading={contextLoading}
             onUploadDifferent={() => {
               setState(prev => ({ ...prev, feCsvB64: null, preprocessedCsvB64: null }));
+              setContextLoading(false);
             }}
           />
         )}
