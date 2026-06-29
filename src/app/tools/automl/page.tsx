@@ -1,56 +1,75 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import AutoMLModal from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ToolsAIChat from "@/components/ToolsAIChat";
 
 const ACCENT = "#22c55e";
 
-// Thin page wrapper: provides the page shell + handles prep handoff from sessionStorage.
-// AutoMLModal renders its content directly (isPage=true skips ModalShell).
-
 function AutoMLPageInner() {
-  const router  = useRouter();
-  const fileRef = useRef<{ trigger: (f: File) => void } | null>(null);
-  const { state } = usePipeline();
+  const router     = useRouter();
+  const { state, setState } = usePipeline();
+  const triggerRef = useRef<((f: File) => void) | null>(null);
 
+  const [contextLoading, setContextLoading] = useState(false);
+  const [fileLoaded, setFileLoaded]         = useState(false);
+
+  const handleReady = useCallback((trigger: (f: File) => void) => {
+    triggerRef.current = trigger;
+  }, []);
+
+  // sessionStorage handoff from Preprocess page (auto-load, no banner needed)
   useEffect(() => {
     try {
-      // Priority 1: sessionStorage handoff from Preprocess page
       const raw = sessionStorage.getItem("prep_handoff");
-      if (raw) {
-        sessionStorage.removeItem("prep_handoff");
-        const { csv_b64, filename } = JSON.parse(raw) as { csv_b64: string; filename: string };
-        const bytes = atob(csv_b64);
-        const arr   = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-        const blob = new Blob([arr], { type: "text/csv" });
-        const file = new File([blob], filename, { type: "text/csv" });
-        fileRef.current?.trigger(file);
-        return;
-      }
-      // Priority 2: PipelineContext CSV chain (persists across page navigations)
-      const ctxCsv = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
-      if (ctxCsv) {
-        const bytes = atob(ctxCsv);
-        const arr   = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-        const blob = new Blob([arr], { type: "text/csv" });
-        const file = new File([blob], "pipeline_data.csv", { type: "text/csv" });
-        fileRef.current?.trigger(file);
-      }
+      if (!raw) return;
+      sessionStorage.removeItem("prep_handoff");
+      const { csv_b64, filename } = JSON.parse(raw) as { csv_b64: string; filename: string };
+      const bytes = atob(csv_b64);
+      const arr   = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: "text/csv" });
+      const file = new File([blob], filename, { type: "text/csv" });
+      triggerRef.current?.(file);
+      setFileLoaded(true);
     } catch { /* ignore */ }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const loadFromContext = useCallback(() => {
+    const b64 = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
+    if (!b64 || !triggerRef.current) return;
+    setContextLoading(true);
+    try {
+      const bytes = atob(b64);
+      const arr   = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob  = new Blob([arr], { type: "text/csv" });
+      const label = state.fsCsvB64 ? "fs_output" : state.feCsvB64 ? "fe_output" : state.fileName ?? "pipeline_data";
+      const file  = new File([blob], label.replace(/(\.[^.]+)?$/, ".csv"), { type: "text/csv" });
+      triggerRef.current(file);
+      setFileLoaded(true);
+    } catch { /* ignore */ }
+    finally { setContextLoading(false); }
+  }, [state]);
+
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+
+  const ctxB64 = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
+  const stageLabel = state.fsCsvB64
+    ? "FS-selected data"
+    : state.feCsvB64
+    ? "FE-transformed data"
+    : state.preprocessedCsvB64
+    ? "preprocessed data"
+    : "uploaded data";
 
   return (
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
-      {/* Page header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
         background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)",
@@ -70,15 +89,27 @@ function AutoMLPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#22c55e14", border: "1px solid #22c55e30" }}>Step 4</span>
+            <span style={{ fontSize: "0.62rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#22c55e14", border: "1px solid #22c55e30" }}>Step 4</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
           </div>
         </div>
       </div>
 
-      {/* AutoML wizard content — no wrapper card, renders directly on page background */}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
-        <AutoMLModal onClose={handleBack} isPage />
+        {ctxB64 && !fileLoaded && (
+          <CsvFromContextBanner
+            csvB64={ctxB64}
+            stageLabel={stageLabel}
+            accent={ACCENT}
+            loading={contextLoading}
+            onUseData={loadFromContext}
+            onUploadDifferent={() => {
+              setState(prev => ({ ...prev, fsCsvB64: null, feCsvB64: null, preprocessedCsvB64: null, csvB64: null }));
+              setFileLoaded(false);
+            }}
+          />
+        )}
+        <AutoMLModal onClose={handleBack} isPage onReady={handleReady} />
       </div>
 
       <ToolsAIChat context={{
