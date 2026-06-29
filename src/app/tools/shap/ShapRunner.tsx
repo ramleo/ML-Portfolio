@@ -59,16 +59,17 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
   const [task, setTask] = useState<"classification" | "regression">("classification");
   const [model, setModel] = useState(MODELS[1]);
 
-  // Pre-select model from AutoML winner in context
+  // Pre-select model: tunedModel (Optuna) first, then automlWinner fallback
   useEffect(() => {
-    if (!state.automlWinner) return;
+    const source = state.tunedModel ?? state.automlWinner;
+    if (!source) return;
     const mapping: Record<string, string> = {
       RandomForest: "Random Forest", XGBoost: "XGBoost",
       LightGBM: "LightGBM", CatBoost: "CatBoost",
     };
-    const mapped = mapping[state.automlWinner.algo];
+    const mapped = mapping[source.algo];
     if (mapped && MODELS.includes(mapped)) setModel(mapped);
-  }, [state.automlWinner]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.tunedModel, state.automlWinner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
