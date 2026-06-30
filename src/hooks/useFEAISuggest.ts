@@ -55,7 +55,8 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           messages: [{ role: "user", content: prompt }],
-          provider: "groq",
+          provider: "cohere",
+          jsonMode: true,
           toolContext: "Feature Engineering — AI Suggest transform selection. Return only raw JSON.",
         }),
       });

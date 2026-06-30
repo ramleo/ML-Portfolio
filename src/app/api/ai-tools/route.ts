@@ -12,6 +12,16 @@ const OPENAI_COMPAT: Record<string, string> = {
   perplexity:  "https://api.perplexity.ai",
 };
 
+// Per-provider default model — must not fall back to an OpenAI model name
+// for non-OpenAI providers (e.g. sending "gpt-4o-mini" to Groq 404s).
+const DEFAULT_MODELS: Record<string, string> = {
+  openai:      "gpt-4o-mini",
+  groq:        "llama-3.3-70b-versatile",
+  together:    "meta-llama/Llama-3-70b-chat-hf",
+  mistral:     "mistral-small-latest",
+  perplexity:  "sonar",
+};
+
 function friendlyGeminiError(status: number, body: string, isRetry = false): string {
   try { JSON.parse(body); } catch { /* not JSON, fall through */ }
   if (status === 429) return `Rate limit reached — Gemini free tier allows only a few requests per minute. Wait a moment and try again, or switch to Groq (free, higher limits) in chat settings.`;
@@ -83,6 +93,31 @@ async function callOpenAICompat(
   return data.choices?.[0]?.message?.content ?? "No response.";
 }
 
+async function callCohere(key: string, model: string, system: string, messages: ChatMessage[], jsonMode = false, maxTokens = 800) {
+  const body: Record<string, unknown> = {
+    model,
+    messages: [{ role: "system", content: system }, ...messages],
+    max_tokens: maxTokens,
+  };
+  if (jsonMode) body.response_format = { type: "json_object" };
+
+  const res = await fetch("https://api.cohere.com/v2/chat", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`Invalid or expired Cohere API key. Add your own key in chat settings (gear icon), or update the server environment variable.`);
+    }
+    if (res.status === 429) throw new Error(`Rate limit reached (Cohere). Wait a moment and try again.`);
+    throw new Error(`Cohere ${res.status}: ${errBody.slice(0, 120)}`);
+  }
+  const data = await res.json();
+  return data.message?.content?.[0]?.text ?? "No response.";
+}
+
 async function callClaude(key: string, model: string, system: string, messages: ChatMessage[]) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -105,6 +140,7 @@ function resolveKey(provider: string, userKey?: string): string {
     claude:     process.env.ANTHROPIC_API_KEY,
     openai:     process.env.OPENAI_API_KEY,
     groq:       process.env.GROQ_API_KEY,
+    cohere:     process.env.COHERE_API_KEY,
     together:   process.env.TOGETHER_API_KEY,
     mistral:    process.env.MISTRAL_API_KEY,
     perplexity: process.env.PERPLEXITY_API_KEY,
@@ -173,10 +209,12 @@ export async function POST(req: NextRequest) {
       }
     } else if (provider === "claude") {
       reply = await callClaude(key, model ?? "claude-haiku-4-5-20251001", system, messages);
+    } else if (provider === "cohere") {
+      reply = await callCohere(key, model ?? "command-a-03-2025", system, messages, jsonMode, maxTokens);
     } else {
       const base = OPENAI_COMPAT[provider];
       if (!base) return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
-      reply = await callOpenAICompat(base, key!, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, provider);
+      reply = await callOpenAICompat(base, key!, model ?? DEFAULT_MODELS[provider] ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, provider);
     }
 
     return NextResponse.json({ reply });
