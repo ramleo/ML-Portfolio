@@ -35,6 +35,8 @@ function ChevronIcon({ open }: { open: boolean }) {
 export default function RagSourceCard({ source, text, score, accent }: Props) {
   const [open, setOpen] = useState(false);
   const pct = Math.round(score * 100);
+  const confColor = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : accent;
+  const confLabel = pct < 30 ? "Low confidence" : pct < 70 ? "Medium confidence" : "High confidence";
 
   return (
     <div
@@ -53,11 +55,13 @@ export default function RagSourceCard({ source, text, score, accent }: Props) {
         <span style={{ flex: 1, fontSize: "0.65rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {source}
         </span>
-        <span style={{
-          fontSize: "0.58rem", fontWeight: 700, color: accent,
-          background: `${accent}18`, borderRadius: 9999,
-          padding: "1px 6px", flexShrink: 0,
-        }}>
+        <span
+          title={`${confLabel} (${pct}%) that the answer lies in this source`}
+          style={{
+            fontSize: "0.58rem", fontWeight: 700, color: confColor,
+            background: `${confColor}18`, borderRadius: 9999,
+            padding: "1px 6px", flexShrink: 0,
+          }}>
           {pct}%
         </span>
         <span style={{ color: "var(--text3)", flexShrink: 0 }}><ChevronIcon open={open} /></span>
