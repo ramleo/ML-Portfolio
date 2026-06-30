@@ -217,9 +217,14 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             />
           )}
 
+          {ingestStatus.kind !== "idle" && (
+            <div style={{ padding: "0.5rem 1rem 0" }}>
+              <RagIngestBanner status={ingestStatus} accent={accentColor} />
+            </div>
+          )}
+
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <RagIngestBanner status={ingestStatus} accent={accentColor} />
             {messages.length === 0 && (
               <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
                 Ask anything about your data, transforms, or ML concepts.
