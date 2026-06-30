@@ -59,6 +59,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [sources, setSources]     = useState<RagSource[]>([]);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [ingestStatus, setIngestStatus] = useState<IngestStatus>({ kind: "idle" });
 
   const [provider, setProvider]   = useState("gemini");
@@ -107,6 +108,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     setInput("");
     setLoading(true);
     setSources([]);
+    setSourcesOpen(false);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/query`, {
         method: "POST",
@@ -263,12 +265,18 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                 )}
               </div>
             ))}
-            {sources.length > 0 && (
-              <div style={{ marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
-                  Sources retrieved
-                </div>
-                {sources.map((s, i) => (
+            {sources.length > 0 && !loading && (
+              <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <button onClick={() => setSourcesOpen(o => !o)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.3rem", alignSelf: "flex-start",
+                    background: "transparent", border: "none", cursor: "pointer", padding: 0,
+                    fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600,
+                  }}>
+                  <span style={{ transform: sourcesOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-block" }}>›</span>
+                  Sources ({sources.length})
+                </button>
+                {sourcesOpen && sources.map((s, i) => (
                   <RagSourceCard key={i} source={s.source} text={s.text} score={s.score} accent={accentColor} />
                 ))}
               </div>
