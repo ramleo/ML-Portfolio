@@ -44,8 +44,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "cohere", label: "Cohere", color: "#fb923c",
     models: [
-      { id: "command-a-03-2025", label: "Command A" },
-      { id: "command-r-plus",    label: "Command R+" },
+      { id: "command-a-03-2025", label: "Command A 03-2025" },
     ],
     envKeyNote: "Default key provided. Add your own for higher limits.",
   },
