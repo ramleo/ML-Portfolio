@@ -42,13 +42,12 @@ export const PROVIDERS: ProviderConfig[] = [
     envKeyNote: "Paste your Groq API key (free tier available).",
   },
   {
-    id: "together", label: "Together AI", color: "#fb923c",
+    id: "cohere", label: "Cohere", color: "#fb923c",
     models: [
-      { id: "meta-llama/Llama-3-70b-chat-hf",          label: "Llama 3 70B" },
-      { id: "mistralai/Mixtral-8x7B-Instruct-v0.1",    label: "Mixtral 8x7B" },
-      { id: "Qwen/Qwen2-72B-Instruct",                 label: "Qwen 2 72B" },
+      { id: "command-a-03-2025", label: "Command A" },
+      { id: "command-r-plus",    label: "Command R+" },
     ],
-    envKeyNote: "Paste your Together AI API key.",
+    envKeyNote: "Default key provided. Add your own for higher limits.",
   },
   {
     id: "mistral", label: "Mistral", color: "#f472b6",
