@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
-import RagIngestButton from "./RagIngestButton";
+import RagIngestButton, { type IngestStatus } from "./RagIngestButton";
+import RagIngestBanner from "./RagIngestBanner";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
+import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
 
 export type ToolChatContext = {
@@ -13,76 +15,6 @@ export type ToolChatContext = {
 };
 
 type Message = { role: "user" | "assistant"; content: string };
-
-type ProviderConfig = {
-  id: string;
-  label: string;
-  color: string;
-  models: { id: string; label: string }[];
-  envKeyNote: string;
-};
-
-const PROVIDERS: ProviderConfig[] = [
-  {
-    id: "gemini", label: "Gemini", color: "#38bdf8",
-    models: [
-      { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-      { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash" },
-    ],
-    envKeyNote: "Default key provided. Add your own for higher limits.",
-  },
-  {
-    id: "claude", label: "Claude", color: "#f59e0b",
-    models: [
-      { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
-      { id: "claude-sonnet-4-6",         label: "Claude Sonnet 4.6" },
-    ],
-    envKeyNote: "Paste your Anthropic API key.",
-  },
-  {
-    id: "openai", label: "OpenAI", color: "#34d399",
-    models: [
-      { id: "gpt-4o-mini", label: "GPT-4o Mini" },
-      { id: "gpt-4o",      label: "GPT-4o" },
-    ],
-    envKeyNote: "Paste your OpenAI API key.",
-  },
-  {
-    id: "groq", label: "Groq", color: "#a78bfa",
-    models: [
-      { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-      { id: "llama-3.1-8b-instant",   label: "Llama 3.1 8B Instant" },
-      { id: "mixtral-8x7b-32768",   label: "Mixtral 8x7B" },
-      { id: "gemma2-9b-it",         label: "Gemma 2 9B" },
-    ],
-    envKeyNote: "Paste your Groq API key (free tier available).",
-  },
-  {
-    id: "together", label: "Together AI", color: "#fb923c",
-    models: [
-      { id: "meta-llama/Llama-3-70b-chat-hf",          label: "Llama 3 70B" },
-      { id: "mistralai/Mixtral-8x7B-Instruct-v0.1",    label: "Mixtral 8x7B" },
-      { id: "Qwen/Qwen2-72B-Instruct",                 label: "Qwen 2 72B" },
-    ],
-    envKeyNote: "Paste your Together AI API key.",
-  },
-  {
-    id: "mistral", label: "Mistral", color: "#f472b6",
-    models: [
-      { id: "mistral-small-latest", label: "Mistral Small" },
-      { id: "mistral-large-latest", label: "Mistral Large" },
-    ],
-    envKeyNote: "Paste your Mistral API key.",
-  },
-  {
-    id: "perplexity", label: "Perplexity", color: "#67e8f9",
-    models: [
-      { id: "sonar",     label: "Sonar" },
-      { id: "sonar-pro", label: "Sonar Pro" },
-    ],
-    envKeyNote: "Paste your Perplexity API key.",
-  },
-];
 
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
@@ -127,6 +59,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [sources, setSources]     = useState<RagSource[]>([]);
+  const [ingestStatus, setIngestStatus] = useState<IngestStatus>({ kind: "idle" });
 
   const [provider, setProvider]   = useState("gemini");
   const [model, setModel]         = useState("gemini-2.5-flash");
@@ -149,6 +82,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
   useEffect(() => { if (open && !settings) inputRef.current?.focus(); }, [open, settings]);
+  useEffect(() => {
+    if (ingestStatus.kind !== "ok" && ingestStatus.kind !== "error") return;
+    const t = setTimeout(() => setIngestStatus({ kind: "idle" }), 6000);
+    return () => clearTimeout(t);
+  }, [ingestStatus]);
 
   const providerConfig = PROVIDERS.find(p => p.id === provider) ?? PROVIDERS[0];
   const accentColor = providerConfig.color;
@@ -249,7 +187,10 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
               AI Assistant · {context.tool}
             </span>
-            <RagIngestButton accent={accentColor} compact />
+            <RagIngestButton
+              busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"}
+              onStatusChange={setIngestStatus}
+            />
             <button onClick={() => setSettings(s => !s)}
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
               <GearIcon />
@@ -276,6 +217,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            <RagIngestBanner status={ingestStatus} accent={accentColor} />
             {messages.length === 0 && (
               <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
                 Ask anything about your data, transforms, or ML concepts.

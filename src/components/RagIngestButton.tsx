@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 
-type Status = { kind: "idle" } | { kind: "uploading" } | { kind: "ok"; chunks: number; name: string } | { kind: "error"; message: string };
+export type IngestStatus =
+  | { kind: "idle" }
+  | { kind: "uploading"; progress: number }
+  | { kind: "processing" }
+  | { kind: "ok"; chunks: number; name: string }
+  | { kind: "error"; message: string };
 
 function UploadIcon() {
   return (
@@ -16,91 +21,59 @@ function UploadIcon() {
   );
 }
 
-export default function RagIngestButton({ accent, compact = false }: { accent: string; compact?: boolean }) {
-  const [status, setStatus] = useState<Status>({ kind: "idle" });
+export default function RagIngestButton({
+  busy, onStatusChange,
+}: { busy: boolean; onStatusChange: (s: IngestStatus) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const onFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
 
-    setStatus({ kind: "uploading" });
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch(`${ML_UNIFIED_API}/rag/ingest`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || res.statusText);
-      setStatus({ kind: "ok", chunks: data.chunks_added, name: data.source });
-    } catch (err) {
-      setStatus({ kind: "error", message: err instanceof Error ? err.message : "Upload failed" });
-    }
-  }, []);
+    onStatusChange({ kind: "uploading", progress: 0 });
 
-  useEffect(() => {
-    if (status.kind !== "ok" && status.kind !== "error") return;
-    const t = setTimeout(() => setStatus({ kind: "idle" }), 4000);
-    return () => clearTimeout(t);
-  }, [status]);
+    const fd = new FormData();
+    fd.append("file", file);
 
-  const tooltip =
-    status.kind === "ok" ? `Added ${status.chunks} chunks from ${status.name}`
-    : status.kind === "error" ? status.message
-    : "Upload a .pdf, .md, or .txt document to the knowledge base";
-
-  if (compact) {
-    return (
-      <div style={{ position: "relative", display: "inline-flex" }}>
-        <input ref={fileRef} type="file" accept=".pdf,.md,.txt" onChange={onFile} style={{ display: "none" }} />
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={status.kind === "uploading"}
-          title={tooltip}
-          style={{
-            background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
-            color: "var(--text3)", cursor: status.kind === "uploading" ? "default" : "pointer",
-            padding: "3px 6px", display: "flex", alignItems: "center",
-            opacity: status.kind === "uploading" ? 0.5 : 1,
-          }}>
-          <UploadIcon />
-        </button>
-        {(status.kind === "ok" || status.kind === "error") && (
-          <span style={{
-            position: "absolute", top: -3, right: -3, width: 7, height: 7, borderRadius: "50%",
-            background: status.kind === "ok" ? "#34d399" : "#f87171",
-            border: "1px solid rgba(8,15,30,1)",
-          }} />
-        )}
-      </div>
-    );
-  }
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = (ev) => {
+      if (!ev.lengthComputable) return;
+      const pct = Math.round((ev.loaded / ev.total) * 100);
+      onStatusChange(pct >= 100 ? { kind: "processing" } : { kind: "uploading", progress: pct });
+    };
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onStatusChange({ kind: "ok", chunks: data.chunks_added, name: data.source });
+        } else {
+          onStatusChange({ kind: "error", message: data.detail || xhr.statusText });
+        }
+      } catch {
+        onStatusChange({ kind: "error", message: xhr.statusText || "Upload failed" });
+      }
+    };
+    xhr.onerror = () => onStatusChange({ kind: "error", message: "Network error" });
+    xhr.open("POST", `${ML_UNIFIED_API}/rag/ingest`);
+    xhr.send(fd);
+  }, [onStatusChange]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+    <div style={{ display: "inline-flex" }}>
       <input ref={fileRef} type="file" accept=".pdf,.md,.txt" onChange={onFile} style={{ display: "none" }} />
       <button
         onClick={() => fileRef.current?.click()}
-        disabled={status.kind === "uploading"}
+        disabled={busy}
         title="Upload a .pdf, .md, or .txt document to the knowledge base"
         style={{
-          display: "flex", alignItems: "center", gap: "0.35rem",
-          background: `${accent}0f`, border: `1px solid ${accent}28`, borderRadius: 8,
-          color: accent, fontSize: "0.65rem", padding: "0.3rem 0.6rem",
-          cursor: status.kind === "uploading" ? "default" : "pointer",
-          opacity: status.kind === "uploading" ? 0.6 : 1,
+          background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+          color: "var(--text3)", cursor: busy ? "default" : "pointer",
+          padding: "3px 6px", display: "flex", alignItems: "center",
+          opacity: busy ? 0.5 : 1,
         }}>
         <UploadIcon />
-        {status.kind === "uploading" ? "Uploading…" : "Upload document"}
       </button>
-      {status.kind === "ok" && (
-        <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>
-          Added {status.chunks} chunks from {status.name}
-        </span>
-      )}
-      {status.kind === "error" && (
-        <span style={{ fontSize: "0.6rem", color: "#f87171" }}>{status.message}</span>
-      )}
     </div>
   );
 }
