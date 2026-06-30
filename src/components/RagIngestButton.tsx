@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 
 type Status = { kind: "idle" } | { kind: "uploading" } | { kind: "ok"; chunks: number; name: string } | { kind: "error"; message: string };
@@ -16,7 +16,7 @@ function UploadIcon() {
   );
 }
 
-export default function RagIngestButton({ accent }: { accent: string }) {
+export default function RagIngestButton({ accent, compact = false }: { accent: string; compact?: boolean }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +37,44 @@ export default function RagIngestButton({ accent }: { accent: string }) {
       setStatus({ kind: "error", message: err instanceof Error ? err.message : "Upload failed" });
     }
   }, []);
+
+  useEffect(() => {
+    if (status.kind !== "ok" && status.kind !== "error") return;
+    const t = setTimeout(() => setStatus({ kind: "idle" }), 4000);
+    return () => clearTimeout(t);
+  }, [status]);
+
+  const tooltip =
+    status.kind === "ok" ? `Added ${status.chunks} chunks from ${status.name}`
+    : status.kind === "error" ? status.message
+    : "Upload a .pdf, .md, or .txt document to the knowledge base";
+
+  if (compact) {
+    return (
+      <div style={{ position: "relative", display: "inline-flex" }}>
+        <input ref={fileRef} type="file" accept=".pdf,.md,.txt" onChange={onFile} style={{ display: "none" }} />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={status.kind === "uploading"}
+          title={tooltip}
+          style={{
+            background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+            color: "var(--text3)", cursor: status.kind === "uploading" ? "default" : "pointer",
+            padding: "3px 6px", display: "flex", alignItems: "center",
+            opacity: status.kind === "uploading" ? 0.5 : 1,
+          }}>
+          <UploadIcon />
+        </button>
+        {(status.kind === "ok" || status.kind === "error") && (
+          <span style={{
+            position: "absolute", top: -3, right: -3, width: 7, height: 7, borderRadius: "50%",
+            background: status.kind === "ok" ? "#34d399" : "#f87171",
+            border: "1px solid rgba(8,15,30,1)",
+          }} />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>

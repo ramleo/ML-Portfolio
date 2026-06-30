@@ -249,6 +249,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
               AI Assistant · {context.tool}
             </span>
+            <RagIngestButton accent={accentColor} compact />
             <button onClick={() => setSettings(s => !s)}
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
               <GearIcon />
@@ -285,9 +286,6 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                       {q}
                     </button>
                   ))}
-                </div>
-                <div style={{ marginTop: "0.8rem", display: "flex", justifyContent: "center" }}>
-                  <RagIngestButton accent={accentColor} />
                 </div>
               </div>
             )}
