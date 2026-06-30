@@ -35,8 +35,8 @@ function ChevronIcon({ open }: { open: boolean }) {
 export default function RagSourceCard({ source, text, score, accent }: Props) {
   const [open, setOpen] = useState(false);
   const pct = Math.round(score * 100);
-  const confColor = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : accent;
-  const confLabel = pct < 30 ? "Low confidence" : pct < 70 ? "Medium confidence" : "High confidence";
+  const confColor = pct <= 50 ? "#f87171" : pct <= 80 ? "#fbbf24" : accent;
+  const confLabel = pct <= 50 ? "Low confidence" : pct <= 80 ? "Medium confidence" : "High confidence";
 
   return (
     <div

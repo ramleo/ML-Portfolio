@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
 import RagIngestButton, { type IngestStatus } from "./RagIngestButton";
 import RagIngestBanner from "./RagIngestBanner";
+import RagUploadsPanel from "./RagUploadsPanel";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
@@ -84,7 +85,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
   useEffect(() => { if (open && !settings) inputRef.current?.focus(); }, [open, settings]);
   useEffect(() => {
-    if (ingestStatus.kind !== "ok" && ingestStatus.kind !== "error") return;
+    if (ingestStatus.kind !== "ok" && ingestStatus.kind !== "error" && ingestStatus.kind !== "deleted") return;
     const t = setTimeout(() => setIngestStatus({ kind: "idle" }), 6000);
     return () => clearTimeout(t);
   }, [ingestStatus]);
@@ -193,6 +194,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"}
               onStatusChange={setIngestStatus}
             />
+            <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
             <button onClick={() => setSettings(s => !s)}
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
               <GearIcon />

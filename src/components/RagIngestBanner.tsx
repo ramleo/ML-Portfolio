@@ -35,6 +35,9 @@ export default function RagIngestBanner({ status, accent }: { status: IngestStat
       {status.kind === "ok" && (
         <span>Added {status.chunks} chunks from {status.name} — ready to ask questions.</span>
       )}
+      {status.kind === "deleted" && (
+        <span>Removed {status.name} from the knowledge base.</span>
+      )}
       {status.kind === "error" && (
         <span>Upload failed: {status.message}</span>
       )}

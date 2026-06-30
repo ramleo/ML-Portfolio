@@ -8,6 +8,7 @@ export type IngestStatus =
   | { kind: "uploading"; progress: number }
   | { kind: "processing" }
   | { kind: "ok"; chunks: number; name: string }
+  | { kind: "deleted"; name: string }
   | { kind: "error"; message: string };
 
 function UploadIcon() {
