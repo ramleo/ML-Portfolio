@@ -6,6 +6,7 @@ type Props = {
   source: string;
   text: string;
   score: number;
+  rawScore?: number;
   accent: string;
 };
 
@@ -32,9 +33,10 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function RagSourceCard({ source, text, score, accent }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent }: Props) {
   const [open, setOpen] = useState(false);
   const pct = Math.round(score * 100);
+  const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : null;
   const confColor = pct <= 50 ? "#f87171" : pct <= 80 ? "#fbbf24" : accent;
   const confLabel = pct <= 50 ? "Low confidence" : pct <= 80 ? "Medium confidence" : "High confidence";
 
@@ -56,7 +58,11 @@ export default function RagSourceCard({ source, text, score, accent }: Props) {
           {source}
         </span>
         <span
-          title={`${confLabel} (${pct}%) that the answer lies in this source`}
+          title={
+            rawPct !== null
+              ? `${confLabel} — ${pct}% relative to the best match in this response (raw model confidence: ${rawPct}%)`
+              : `${confLabel} (${pct}%) that the answer lies in this source`
+          }
           style={{
             fontSize: "0.58rem", fontWeight: 700, color: confColor,
             background: `${confColor}18`, borderRadius: 9999,
@@ -76,6 +82,11 @@ export default function RagSourceCard({ source, text, score, accent }: Props) {
           borderTop: `1px solid rgba(255,255,255,0.06)`,
           paddingTop: "0.35rem",
         }}>
+          {rawPct !== null && (
+            <div style={{ marginBottom: "0.3rem", color: "var(--text2)" }}>
+              Raw model confidence: <strong>{rawPct}%</strong>
+            </div>
+          )}
           {text.slice(0, 200)}{text.length > 200 ? "…" : ""}
         </div>
       )}

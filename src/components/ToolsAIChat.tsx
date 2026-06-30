@@ -284,7 +284,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                   Sources ({sources.length})
                 </button>
                 {sourcesOpen && sources.map((s, i) => (
-                  <RagSourceCard key={i} source={s.source} text={s.text} score={s.display_score ?? s.score} accent={accentColor} />
+                  <RagSourceCard key={i} source={s.source} text={s.text} score={s.display_score ?? s.score} rawScore={s.score} accent={accentColor} />
                 ))}
               </div>
             )}
