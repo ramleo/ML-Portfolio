@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
+import RagIngestButton from "./RagIngestButton";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
 import { ML_UNIFIED_API } from "@/config/urls";
 
@@ -284,6 +285,9 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
                       {q}
                     </button>
                   ))}
+                </div>
+                <div style={{ marginTop: "0.8rem", display: "flex", justifyContent: "center" }}>
+                  <RagIngestButton accent={accentColor} />
                 </div>
               </div>
             )}
