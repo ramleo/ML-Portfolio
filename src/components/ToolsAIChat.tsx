@@ -239,7 +239,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
             <button
               onClick={enableJina}
-              title={useJina ? "Enhanced Embedding (Jina v3) — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
+              title={useJina && jinaStatus === "loading" ? "Jina v3 loading — click to cancel" : useJina ? "Enhanced Embedding (Jina v3) active — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
               style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
               <SparkleIcon />{useJina ? "Jina" : "Std"}
             </button>
