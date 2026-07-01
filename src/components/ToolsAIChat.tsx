@@ -102,6 +102,19 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     return () => clearTimeout(t);
   }, [ingestStatus]);
 
+  // Poll /rag/health every 5s while Jina is loading so the banner updates automatically
+  useEffect(() => {
+    if (jinaStatus !== "loading") return;
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch(`${ML_UNIFIED_API}/rag/health`);
+        const data = await res.json();
+        if (data.jina_ready) setJinaStatus("ready");
+      } catch { /* ignore network errors */ }
+    }, 5000);
+    return () => clearInterval(id);
+  }, [jinaStatus]);
+
   const providerConfig = PROVIDERS.find(p => p.id === provider) ?? PROVIDERS[0];
   const accentColor = providerConfig.color;
 
