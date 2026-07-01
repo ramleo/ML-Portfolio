@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { type TrainResult, type Explanation, type LLMProvider } from "@/lib/automlUtils";
+import { ML_UNIFIED_API } from "@/config/urls";
 
-// Maps LLMProvider to /api/ai-tools provider+model
-// baseUrl is NOT returned here — it is sourced directly from customLLMUrl in handleExplain
+// Maps LLMProvider to /api/ai-tools provider+model (used for Vercel fallback only)
 function mapProvider(
   llmProvider: LLMProvider,
   customLLMModel: string,
@@ -46,7 +46,6 @@ function toArr<T>(v: unknown): T[] {
 
 function extractJson(text: string): Explanation | null {
   const normalize = (parsed: Record<string, unknown>): Explanation | null => {
-    // Direct match
     if ("why_won" in parsed) {
       return {
         ...parsed,
@@ -55,7 +54,6 @@ function extractJson(text: string): Explanation | null {
         actionable_insights: toArr(parsed.actionable_insights),
       } as Explanation;
     }
-    // Unwrap one level — handles {"analysis": {"why_won": ...}} wrapper objects
     for (const val of Object.values(parsed)) {
       if (val && typeof val === "object" && "why_won" in (val as object)) {
         return normalize(val as Record<string, unknown>);
@@ -67,7 +65,7 @@ function extractJson(text: string): Explanation | null {
   const tryParse = (s: string): Explanation | null => {
     try {
       let parsed = JSON.parse(s);
-      if (typeof parsed === "string") parsed = JSON.parse(parsed); // handle double-encoded
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
       if (parsed && typeof parsed === "object") return normalize(parsed as Record<string, unknown>);
     } catch { /* ignore */ }
     return null;
@@ -76,7 +74,6 @@ function extractJson(text: string): Explanation | null {
   const direct = tryParse(text);
   if (direct) return direct;
 
-  // Strip markdown fences then bracket-depth extract
   const cleaned = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
   const start = cleaned.indexOf("{");
   if (start === -1) return null;
@@ -92,7 +89,6 @@ function extractJson(text: string): Explanation | null {
       }
     }
   }
-  // Last-resort: extract from first { to last } in case of truncated/malformed JSON
   const lastClose = cleaned.lastIndexOf("}");
   if (lastClose > start) {
     const result = tryParse(cleaned.slice(start, lastClose + 1));
@@ -126,10 +122,43 @@ export function useAutoMLExplain(
     }, 500);
 
     try {
+      // Primary: FastAPI /explain — RAG-enhanced; injects KB context about the winning algorithm
+      if (ML_UNIFIED_API) {
+        const body: Record<string, unknown> = {
+          automl_data:  trainResult.automl,
+          provider:     llmProvider,
+        };
+        if (userApiKey?.trim())       body.user_api_key    = userApiKey.trim();
+        if (customLLMUrl?.trim())     body.custom_base_url = customLLMUrl.trim();
+        if (customLLMModel?.trim())   body.custom_model    = customLLMModel.trim();
+
+        try {
+          const res = await fetch(`${ML_UNIFIED_API}/explain`, {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify(body),
+          });
+          if (res.ok) {
+            const data = await res.json() as { explanation?: Explanation; source?: string };
+            if (data.explanation?.why_won) {
+              setLlmExp({
+                ...data.explanation,
+                recommendations:     toArr(data.explanation.recommendations),
+                model_comparison:    toArr(data.explanation.model_comparison),
+                actionable_insights: toArr(data.explanation.actionable_insights),
+              });
+              setLlmProgress(100);
+              return;
+            }
+          }
+        } catch { /* network error — fall through to Vercel path */ }
+      }
+
+      // Fallback: /api/ai-tools (Vercel, no RAG) — used when backend unreachable
       const { provider, model } = mapProvider(llmProvider, customLLMModel);
       const prompt = buildPrompt(trainResult.automl);
 
-      const body: Record<string, unknown> = {
+      const fallbackBody: Record<string, unknown> = {
         messages:  [{ role: "user", content: prompt }],
         provider,
         model: (customLLMUrl?.trim() && customLLMModel?.trim()) ? customLLMModel.trim() : model,
@@ -137,19 +166,18 @@ export function useAutoMLExplain(
         jsonMode:  true,
         maxTokens: 3000,
       };
-      if (customLLMUrl?.trim() && userApiKey?.trim()) body.baseUrl = customLLMUrl.trim();
+      if (customLLMUrl?.trim() && userApiKey?.trim()) fallbackBody.baseUrl = customLLMUrl.trim();
 
       const res = await fetch("/api/ai-tools", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(body),
+        body:    JSON.stringify(fallbackBody),
       });
 
       const data = await res.json() as { reply?: string; error?: string };
 
       if (data.error) {
         setLlmError(data.error);
-        // Fall back to the rule-based explanation computed at training time
         if (trainResult?.automl?.explanation) {
           setLlmExp(trainResult.automl.explanation as Explanation);
         }
