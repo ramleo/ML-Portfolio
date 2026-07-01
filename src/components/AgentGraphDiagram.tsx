@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type NodeStatus = "idle" | "active" | "done" | "skipped";
 
 interface GraphNode {
@@ -93,6 +95,8 @@ function LoopArrow({ accent, loops }: { accent: string; loops: number }) {
 }
 
 export default function AgentGraphDiagram({ activeStep, completedSteps, loops, accent }: Props) {
+  const [isOpen, setIsOpen] = useState(true);
+
   function statusOf(nodeId: string): NodeStatus {
     if (activeStep === nodeId)           return "active";
     if (completedSteps.includes(nodeId)) return "done";
@@ -117,58 +121,68 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
         }
       `}</style>
 
-      <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
-        Agent Graph
+      {/* Header with collapse toggle */}
+      <div style={{ display: "flex", alignItems: "center", marginBottom: isOpen ? "0.5rem" : 0 }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", flex: 1 }}>
+          Agent Graph
+        </div>
+        <button onClick={() => setIsOpen(o => !o)}
+          style={{ background: "transparent", border: "none", cursor: "pointer", padding: "1px 3px", color: "var(--text3)", display: "flex", alignItems: "center" }}>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: "transform 0.2s", transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)" }}>
+            <polyline points="2,3.5 5,6.5 8,3.5" />
+          </svg>
+        </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-        {NODES.map((node, idx) => {
-          const status = statusOf(node.id);
-          const isLast = idx === NODES.length - 1;
+      {isOpen && (
+        <div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {NODES.map((node, idx) => {
+              const status = statusOf(node.id);
+              const isLast = idx === NODES.length - 1;
 
-          return (
-            <div key={node.id}>
-              {/* Node row */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                <NodeDot status={status} accent={accent} />
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontSize: "0.68rem", fontWeight: 600,
-                    color: status === "active" ? accent
-                         : status === "done"   ? "var(--text2)"
-                         : "var(--text3)",
-                    transition: "color 0.3s",
-                  }}>
-                    {node.label}
+              return (
+                <div key={node.id}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                    <NodeDot status={status} accent={accent} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: "0.68rem", fontWeight: 600,
+                        color: status === "active" ? accent
+                             : status === "done"   ? "var(--text2)"
+                             : "var(--text3)",
+                        transition: "color 0.3s",
+                      }}>
+                        {node.label}
+                      </div>
+                      <div style={{ fontSize: "0.58rem", color: "var(--text3)", lineHeight: 1.3 }}>
+                        {node.desc}
+                      </div>
+                    </div>
+                    {isRewriteNode(node.id) && <LoopArrow accent={accent} loops={loops} />}
                   </div>
-                  <div style={{ fontSize: "0.58rem", color: "var(--text3)", lineHeight: 1.3 }}>
-                    {node.desc}
-                  </div>
+
+                  {!isLast && (
+                    <div style={{
+                      marginLeft: 9, width: 2, height: 14,
+                      background: isRewriteNode(node.id) && loops > 0
+                        ? `linear-gradient(to bottom, ${accent}44, ${accent}22)`
+                        : "rgba(255,255,255,0.08)",
+                      borderRadius: 1,
+                      transition: "background 0.3s",
+                    }} />
+                  )}
                 </div>
-                {/* Loop badge on rewriter row */}
-                {isRewriteNode(node.id) && <LoopArrow accent={accent} loops={loops} />}
-              </div>
+              );
+            })}
+          </div>
 
-              {/* Connector line between nodes */}
-              {!isLast && (
-                <div style={{
-                  marginLeft: 9, width: 2, height: 14,
-                  background: isRewriteNode(node.id) && loops > 0
-                    ? `linear-gradient(to bottom, ${accent}44, ${accent}22)`
-                    : "rgba(255,255,255,0.08)",
-                  borderRadius: 1,
-                  transition: "background 0.3s",
-                }} />
-              )}
+          {!activeStep && completedSteps.length === 0 && (
+            <div style={{ marginTop: "0.5rem", fontSize: "0.58rem", color: "var(--text3)", lineHeight: 1.4 }}>
+              Nodes highlight live as your query flows through the graph.
             </div>
-          );
-        })}
-      </div>
-
-      {/* Footer note — only when idle (no active run) */}
-      {!activeStep && completedSteps.length === 0 && (
-        <div style={{ marginTop: "0.5rem", fontSize: "0.58rem", color: "var(--text3)", lineHeight: 1.4 }}>
-          Nodes highlight live as your query flows through the graph.
+          )}
         </div>
       )}
     </div>

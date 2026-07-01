@@ -150,7 +150,6 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     } catch { /* status updates via done event */ }
   }, [useJina, jinaStatus]);
 
-  // Current loading label — context-aware for deep search
   const loadingLabel = deepSearch && agentStep
     ? (STEP_LABELS[agentStep] ?? "Thinking…")
     : "Thinking…";
@@ -192,11 +191,15 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
       let assistantText = "";
       const collectedSources: RagSource[] = [];
       let prevStep: string | null = null;
+      let sseBuffer = "";
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        const lines = decoder.decode(value).split("\n").filter(Boolean);
+        sseBuffer += decoder.decode(value);
+        const parts = sseBuffer.split("\n");
+        sseBuffer = parts.pop() ?? "";
+        const lines = parts.filter(Boolean);
         for (const line of lines) {
           try {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
