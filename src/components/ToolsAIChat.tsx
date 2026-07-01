@@ -102,6 +102,15 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     return () => clearTimeout(t);
   }, [ingestStatus]);
 
+  // When chat opens, clear stale "error" state if backend has no jina_error
+  useEffect(() => {
+    if (!open || jinaStatus !== "error") return;
+    fetch(`${ML_UNIFIED_API}/rag/health`)
+      .then(r => r.json())
+      .then(data => { if (!data.jina_error) setJinaStatus("idle"); })
+      .catch(() => {});
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Poll /rag/health every 5s while Jina is loading so the banner updates automatically
   useEffect(() => {
     if (jinaStatus !== "loading") return;
@@ -111,11 +120,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
         const data = await res.json();
         if (data.jina_ready) {
           setJinaStatus("ready");
-        } else if (data.initialized && !data.jina_loading) {
-          // RAG fully up but Jina specifically failed
+        } else if (data.initialized && data.jina_error) {
+          // backend explicitly reported a Jina failure
           setJinaStatus("error");
         }
-        // if !initialized → Space still starting, keep polling
+        // jina_loading=false, jina_ready=false, jina_error=null → not started yet, keep polling
       } catch { /* ignore network errors */ }
     }, 5000);
     return () => clearInterval(id);
