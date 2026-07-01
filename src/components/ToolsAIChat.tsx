@@ -111,10 +111,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
         const data = await res.json();
         if (data.jina_ready) {
           setJinaStatus("ready");
-        } else if (!data.jina_loading) {
-          // init finished but jina_ready is still false → it failed
+        } else if (data.initialized && !data.jina_loading) {
+          // RAG fully up but Jina specifically failed
           setJinaStatus("error");
         }
+        // if !initialized → Space still starting, keep polling
       } catch { /* ignore network errors */ }
     }, 5000);
     return () => clearInterval(id);
