@@ -1,26 +1,33 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import ReactMarkdown from "react-markdown";
-import RagSourceCard from "./RagSourceCard";
 import RagIngestButton, { type IngestStatus } from "./RagIngestButton";
 import RagIngestBanner from "./RagIngestBanner";
 import RagUploadsPanel from "./RagUploadsPanel";
 import RagJinaBanner from "./RagJinaBanner";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
+import ChatMessageList from "./ChatMessageList";
+import AgentGraphDiagram from "./AgentGraphDiagram";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
 
-export type ToolChatContext = {
-  tool: string;
-  summary: string;
-};
+export type ToolChatContext = { tool: string; summary: string };
 
 type Message = { role: "user" | "assistant"; content: string };
+type RagSource = { source: string; text: string; score: number; display_score: number };
 
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
 const LS_KEY      = "tools_ai_key";
+
+// Maps agent_step → human-readable loading label
+const STEP_LABELS: Record<string, string> = {
+  routing:    "Analyzing query…",
+  retrieving: "Searching knowledge base…",
+  grading:    "Evaluating results…",
+  rewriting:  "Refining search…",
+  generating: "Generating response…",
+};
 
 function ChatIcon() {
   return (
@@ -31,25 +38,17 @@ function ChatIcon() {
     </svg>
   );
 }
-
 function SendIcon() {
   return (
     <svg width={15} height={15} viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none" />
+      <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none" />
     </svg>
   );
 }
-
 function SparkleIcon() {
-  return (
-    <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-    </svg>
-  );
+  return <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>;
 }
-
 function GearIcon() {
   return (
     <svg width={14} height={14} viewBox="0 0 24 24" fill="none"
@@ -59,25 +58,39 @@ function GearIcon() {
     </svg>
   );
 }
-
-type RagSource = { source: string; text: string; score: number; display_score: number };
+function DeepSearchIcon() {
+  return (
+    <svg width={11} height={11} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <path d="M11 8 C9 8 8 9.5 8 11" strokeWidth={2.2} />
+    </svg>
+  );
+}
 
 export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
-  const [open, setOpen]           = useState(false);
-  const [settings, setSettings]   = useState(false);
-  const [messages, setMessages]   = useState<Message[]>([]);
-  const [input, setInput]         = useState("");
-  const [loading, setLoading]     = useState(false);
-  const [sources, setSources]     = useState<RagSource[]>([]);
+  const [open, setOpen]               = useState(false);
+  const [settings, setSettings]       = useState(false);
+  const [messages, setMessages]       = useState<Message[]>([]);
+  const [input, setInput]             = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [sources, setSources]         = useState<RagSource[]>([]);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [ingestStatus, setIngestStatus] = useState<IngestStatus>({ kind: "idle" });
-  const [useJina, setUseJina] = useState(false);
-  const [jinaStatus, setJinaStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [useJina, setUseJina]         = useState(false);
+  const [jinaStatus, setJinaStatus]   = useState<"idle"|"loading"|"ready"|"error">("idle");
   const [lowConfidence, setLowConfidence] = useState(false);
 
-  const [provider, setProvider]   = useState("gemini");
-  const [model, setModel]         = useState("gemini-2.5-flash");
-  const [userKey, setUserKey]     = useState("");
+  // Deep Search (LangGraph agent) state
+  const [deepSearch, setDeepSearch]         = useState(false);
+  const [agentStep, setAgentStep]           = useState<string | null>(null);
+  const [agentDoneSteps, setAgentDoneSteps] = useState<string[]>([]);
+  const [agentLoops, setAgentLoops]         = useState(0);
+  const [agentRewritten, setAgentRewritten] = useState(false);
+
+  const [provider, setProvider] = useState("gemini");
+  const [model, setModel]       = useState("gemini-2.5-flash");
+  const [userKey, setUserKey]   = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -86,11 +99,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     const p = localStorage.getItem(LS_PROVIDER);
     const m = localStorage.getItem(LS_MODEL);
     const k = localStorage.getItem(LS_KEY);
-    if (p) setProvider(p);
-    if (m) setModel(m);
-    if (k) setUserKey(k);
+    if (p) setProvider(p); if (m) setModel(m); if (k) setUserKey(k);
   }, []);
-
   useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); }, [provider]);
   useEffect(() => { localStorage.setItem(LS_MODEL, model); }, [model]);
   useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
@@ -102,42 +112,31 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     return () => clearTimeout(t);
   }, [ingestStatus]);
 
-  // When chat opens, clear stale "error" state if backend has no jina_error
   useEffect(() => {
     if (!open || jinaStatus !== "error") return;
-    fetch(`${ML_UNIFIED_API}/rag/health`)
-      .then(r => r.json())
-      .then(data => { if (!data.jina_error) setJinaStatus("idle"); })
-      .catch(() => {});
+    fetch(`${ML_UNIFIED_API}/rag/health`).then(r => r.json())
+      .then(d => { if (!d.jina_error) setJinaStatus("idle"); }).catch(() => {});
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Poll /rag/health every 5s while Jina is loading so the banner updates automatically
   useEffect(() => {
     if (jinaStatus !== "loading") return;
     const id = setInterval(async () => {
       try {
-        const res = await fetch(`${ML_UNIFIED_API}/rag/health`);
-        const data = await res.json();
-        if (data.jina_ready) {
-          setJinaStatus("ready");
-        } else if (data.initialized && data.jina_error) {
-          // backend explicitly reported a Jina failure
-          setJinaStatus("error");
-        }
-        // jina_loading=false, jina_ready=false, jina_error=null → not started yet, keep polling
-      } catch { /* ignore network errors */ }
+        const d = await (await fetch(`${ML_UNIFIED_API}/rag/health`)).json();
+        if (d.jina_ready) setJinaStatus("ready");
+        else if (d.initialized && d.jina_error) setJinaStatus("error");
+      } catch { /* ignore */ }
     }, 5000);
     return () => clearInterval(id);
   }, [jinaStatus]);
 
   const providerConfig = PROVIDERS.find(p => p.id === provider) ?? PROVIDERS[0];
-  const accentColor = providerConfig.color;
+  const accentColor    = providerConfig.color;
 
-  const handleProviderChange = useCallback((newProvider: string) => {
-    const cfg = PROVIDERS.find(p => p.id === newProvider);
+  const handleProviderChange = useCallback((p: string) => {
+    const cfg = PROVIDERS.find(x => x.id === p);
     if (!cfg) return;
-    setProvider(newProvider);
-    setModel(cfg.models[0].id);
+    setProvider(p); setModel(cfg.models[0].id);
   }, []);
 
   const enableJina = useCallback(async () => {
@@ -146,42 +145,54 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     if (jinaStatus === "ready") return;
     setJinaStatus("loading");
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/prepare-jina`, { method: "POST" });
-      const data = await res.json();
-      if (data.status === "ready") setJinaStatus("ready");
-    } catch { /* ignore — status updates via done event */ }
+      const d = await (await fetch(`${ML_UNIFIED_API}/rag/prepare-jina`, { method: "POST" })).json();
+      if (d.status === "ready") setJinaStatus("ready");
+    } catch { /* status updates via done event */ }
   }, [useJina, jinaStatus]);
+
+  // Current loading label — context-aware for deep search
+  const loadingLabel = deepSearch && agentStep
+    ? (STEP_LABELS[agentStep] ?? "Thinking…")
+    : "Thinking…";
 
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
-    const userMsg: Message = { role: "user", content: text };
-    const next = [...messages, userMsg];
+    const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next);
     setInput("");
     setLoading(true);
     setSources([]);
     setSourcesOpen(false);
     setLowConfidence(false);
-    try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/query`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          query: text,
-          tool_context: `Tool: ${context.tool}\n${context.summary}`,
-          history: messages.slice(-6),
-          provider,
-          model,
+    setAgentStep(null);
+    setAgentDoneSteps([]);
+    setAgentLoops(0);
+    setAgentRewritten(false);
+
+    const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
+    const body = deepSearch
+      ? { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
+          history: messages.slice(-6), provider, model,
+          user_key: userKey || undefined }
+      : { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
+          history: messages.slice(-6), provider, model,
           user_key: userKey || undefined,
-          embedding_model: useJina ? "jina" : "minilm",
-        }),
+          embedding_model: useJina ? "jina" : "minilm" };
+
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
       });
-      if (!res.ok || !res.body) throw new Error(`RAG query failed: ${res.statusText}`);
+      if (!res.ok || !res.body) throw new Error(`Request failed: ${res.statusText}`);
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let assistantText = "";
       const collectedSources: RagSource[] = [];
+      let prevStep: string | null = null;
+
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -189,45 +200,63 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
         for (const line of lines) {
           try {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
-            if (evt.type === "source") {
+
+            if (evt.type === "agent_step") {
+              if (prevStep) setAgentDoneSteps(s => [...s, prevStep!]);
+              setAgentStep(evt.step);
+              prevStep = evt.step;
+
+            } else if (evt.type === "source") {
               collectedSources.push(evt.doc);
               setSources([...collectedSources]);
+
             } else if (evt.type === "done") {
+              // Mark last step done
+              if (prevStep) setAgentDoneSteps(s => [...s, prevStep!]);
+              setAgentStep(null);
+              if (evt.loops)     setAgentLoops(evt.loops);
+              if (evt.rewritten) setAgentRewritten(true);
               setLowConfidence(!!evt.low_confidence && !useJina);
               if (evt.jina_status === "ready") setJinaStatus("ready");
+
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
                 const last = m[m.length - 1];
-                if (last?.role === "assistant") {
+                if (last?.role === "assistant")
                   return [...m.slice(0, -1), { role: "assistant", content: assistantText }];
-                }
                 return [...m, { role: "assistant", content: assistantText }];
               });
+
+            } else if (evt.type === "error") {
+              setMessages(m => [...m, { role: "assistant", content: `Error: ${evt.message}` }]);
             }
-          } catch { /* skip malformed */ }
+          } catch { /* skip malformed lines */ }
         }
       }
       if (!assistantText) {
         setMessages(m => [...m, { role: "assistant", content: "No response." }]);
       }
     } catch (e) {
-      setMessages(m => [...m, { role: "assistant", content: `Error: ${e instanceof Error ? e.message : "Network error"}` }]);
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: `Error: ${e instanceof Error ? e.message : "Network error"}`,
+      }]);
     } finally {
       setLoading(false);
+      setAgentStep(null);
     }
-  }, [input, loading, messages, provider, model, userKey, context, useJina]);
+  }, [input, loading, messages, provider, model, userKey, context, useJina, deepSearch]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   }, [send]);
 
-  const PANEL_W = 360;
-  const PANEL_H = 520;
+  const PANEL_W = 370;
+  const PANEL_H = 540;
 
   return (
     <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999, fontFamily: "inherit", pointerEvents: "none" }}>
-
       {open && (
         <div style={{
           position: "absolute", bottom: 64, right: 0, pointerEvents: "auto",
@@ -247,14 +276,27 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
               AI Assistant · {context.tool}
             </span>
-            <RagIngestButton
-              busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"}
-              onStatusChange={setIngestStatus}
-            />
+            <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} />
             <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
+            {/* Deep Search toggle */}
             <button
-              onClick={enableJina}
-              title={useJina && jinaStatus === "loading" ? "Jina v3 loading — click to cancel" : useJina && jinaStatus === "error" ? "Jina v3 failed to load — click to retry" : useJina ? "Enhanced Embedding (Jina v3) active — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
+              onClick={() => setDeepSearch(d => !d)}
+              title={deepSearch
+                ? "Deep Search active — LangGraph agentic loop (adds ~3–5 s). Click to disable."
+                : "Enable Deep Search — LangGraph agent refines query if retrieval quality is low (adds ~3–5 s)"}
+              style={{
+                background: deepSearch ? `${accentColor}22` : "transparent",
+                border: `1px solid ${deepSearch ? accentColor + "55" : "rgba(255,255,255,0.1)"}`,
+                borderRadius: 6, color: deepSearch ? accentColor : "var(--text3)",
+                cursor: "pointer", padding: "3px 6px",
+                display: "flex", alignItems: "center", gap: "3px",
+                fontSize: "0.58rem", fontWeight: 600,
+              }}>
+              <DeepSearchIcon />
+              {deepSearch ? "Deep" : "Std"}
+            </button>
+            <button onClick={enableJina}
+              title={useJina && jinaStatus === "loading" ? "Jina v3 loading…" : useJina ? "Jina v3 active — click to disable" : "Enable Jina v3 embeddings"}
               style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
               <SparkleIcon />{useJina ? "Jina" : "Std"}
             </button>
@@ -268,17 +310,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             </button>
           </div>
 
-          {/* Settings panel */}
           {settings && (
             <ToolsAIChatSettings
-              providers={PROVIDERS}
-              provider={provider}
-              model={model}
-              userKey={userKey}
+              providers={PROVIDERS} provider={provider} model={model} userKey={userKey}
               providerConfig={providerConfig}
-              onProviderChange={handleProviderChange}
-              onModelChange={setModel}
-              onKeyChange={setUserKey}
+              onProviderChange={handleProviderChange} onModelChange={setModel} onKeyChange={setUserKey}
             />
           )}
 
@@ -293,103 +329,59 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             </div>
           )}
 
+          {/* Deep Search latency note */}
+          {deepSearch && !loading && (
+            <div style={{ padding: "0.25rem 1rem 0", fontSize: "0.6rem", color: "var(--text3)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+              <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="6" cy="6" r="5" /><line x1="6" y1="4" x2="6" y2="6.5" /><line x1="6" y1="8" x2="6" y2="8.5" />
+              </svg>
+              LangGraph agent active — adds ~3–5 s for query refinement
+            </div>
+          )}
+
+          {/* "Query refined N×" note after a rewrite */}
+          {agentRewritten && !loading && (
+            <div style={{ padding: "0.25rem 1rem 0", fontSize: "0.6rem", color: accentColor, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+              <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 6 C2 3 6 1 9 4" /><polyline points="7,1 9,4 6,5" />
+              </svg>
+              Query was refined {agentLoops}× for better results
+            </div>
+          )}
+
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {messages.length === 0 && (
-              <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
-                Ask anything about your data, transforms, or ML concepts.
-                <div style={{ marginTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                  {["Which columns need normalisation?", "What does log1p do to skewed data?", "When should I use frequency encoding?"].map(q => (
-                    <button key={q} onClick={() => { setInput(q); inputRef.current?.focus(); }}
-                      style={{ background: `${accentColor}0f`, border: `1px solid ${accentColor}28`, borderRadius: 8, color: accentColor, fontSize: "0.65rem", padding: "0.3rem 0.6rem", cursor: "pointer", textAlign: "left" }}>
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <div key={i} style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "88%", padding: "0.5rem 0.75rem",
-                borderRadius: m.role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
-                background: m.role === "user" ? `${accentColor}22` : "rgba(255,255,255,0.05)",
-                border: `1px solid ${m.role === "user" ? accentColor + "44" : "rgba(255,255,255,0.08)"}`,
-                fontSize: "0.73rem", lineHeight: 1.65, color: m.role === "user" ? "var(--text)" : "var(--text2)",
-              }}>
-                {m.role === "assistant" ? (
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p style={{ margin: "0 0 0.4em" }}>{children}</p>,
-                      h1: ({ children }) => <p style={{ margin: "0.5em 0 0.3em", fontWeight: 700, fontSize: "0.85em" }}>{children}</p>,
-                      h2: ({ children }) => <p style={{ margin: "0.5em 0 0.3em", fontWeight: 700, fontSize: "0.82em" }}>{children}</p>,
-                      h3: ({ children }) => <p style={{ margin: "0.4em 0 0.2em", fontWeight: 600, fontSize: "0.79em" }}>{children}</p>,
-                      ul: ({ children }) => <ul style={{ margin: "0.2em 0", paddingLeft: "1.2em" }}>{children}</ul>,
-                      ol: ({ children }) => <ol style={{ margin: "0.2em 0", paddingLeft: "1.2em" }}>{children}</ol>,
-                      li: ({ children }) => <li style={{ marginBottom: "0.15em" }}>{children}</li>,
-                      code: ({ children }) => <code style={{ background: "rgba(255,255,255,0.1)", borderRadius: 3, padding: "0 3px", fontSize: "0.9em", fontFamily: "monospace" }}>{children}</code>,
-                      pre: ({ children }) => <pre style={{ background: "rgba(0,0,0,0.3)", borderRadius: 6, padding: "0.5em 0.75em", overflowX: "auto", margin: "0.4em 0", fontSize: "0.88em" }}>{children}</pre>,
-                      strong: ({ children }) => <strong style={{ color: "var(--text)", fontWeight: 600 }}>{children}</strong>,
-                      hr: () => <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", margin: "0.5em 0" }} />,
-                    }}
-                  >
-                    {m.content}
-                  </ReactMarkdown>
-                ) : (
-                  <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>
-                )}
-              </div>
-            ))}
-            {sources.length > 0 && !loading && (
-              <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                <button onClick={() => setSourcesOpen(o => !o)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "0.3rem", alignSelf: "flex-start",
-                    background: "transparent", border: "none", cursor: "pointer", padding: 0,
-                    fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600,
-                  }}>
-                  <span style={{ transform: sourcesOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-block" }}>›</span>
-                  Sources ({sources.length})
-                </button>
-                {sourcesOpen && sources.map((s, i) => (
-                  <RagSourceCard key={i} source={s.source} text={s.text} score={s.display_score ?? s.score} rawScore={s.score} accent={accentColor} />
-                ))}
-              </div>
-            )}
-            {loading && (
-              <div style={{ alignSelf: "flex-start", padding: "0.5rem 0.75rem", borderRadius: "12px 12px 12px 3px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", fontSize: "0.73rem", color: "var(--text3)" }}>
-                <span style={{ animation: "pulse 1.2s ease-in-out infinite" }}>Thinking...</span>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
+          <ChatMessageList
+            messages={messages}
+            loading={loading}
+            loadingLabel={loadingLabel}
+            sources={sources}
+            sourcesOpen={sourcesOpen}
+            accentColor={accentColor}
+            bottomRef={bottomRef}
+            onSuggestion={q => { setInput(q); inputRef.current?.focus(); }}
+            onSourcesToggle={() => setSourcesOpen(o => !o)}
+          />
+
+          {/* Agent graph diagram — shown when Deep Search is on */}
+          {deepSearch && (
+            <div style={{ padding: "0 0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", overflowY: "auto", maxHeight: 220 }}>
+              <AgentGraphDiagram
+                activeStep={agentStep}
+                completedSteps={agentDoneSteps}
+                loops={agentLoops}
+                accent={accentColor}
+              />
+            </div>
+          )}
 
           {/* Input */}
           <div style={{ padding: "0.6rem 0.75rem", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder="Ask about your data or ML techniques…"
-              rows={1}
-              style={{
-                flex: 1, resize: "none", background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9,
-                color: "var(--text)", fontSize: "0.74rem", padding: "0.45rem 0.6rem",
-                outline: "none", lineHeight: 1.5, maxHeight: 100, overflowY: "auto",
-                fontFamily: "inherit",
-              }}
+            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+              onKeyDown={onKeyDown} placeholder="Ask about your data or ML techniques…" rows={1}
+              style={{ flex: 1, resize: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: "var(--text)", fontSize: "0.74rem", padding: "0.45rem 0.6rem", outline: "none", lineHeight: 1.5, maxHeight: 100, overflowY: "auto", fontFamily: "inherit" }}
             />
             <button onClick={send} disabled={!input.trim() || loading}
-              style={{
-                background: input.trim() && !loading ? accentColor : "rgba(255,255,255,0.06)",
-                border: "none", borderRadius: 9, padding: "0.45rem 0.65rem",
-                color: input.trim() && !loading ? "#000" : "var(--text3)",
-                cursor: input.trim() && !loading ? "pointer" : "default",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all 0.15s", flexShrink: 0,
-              }}>
+              style={{ background: input.trim() && !loading ? accentColor : "rgba(255,255,255,0.06)", border: "none", borderRadius: 9, padding: "0.45rem 0.65rem", color: input.trim() && !loading ? "#000" : "var(--text3)", cursor: input.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s", flexShrink: 0 }}>
               <SendIcon />
             </button>
           </div>
@@ -397,22 +389,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
       )}
 
       {/* Floating bubble */}
-      <button
-        onClick={() => { setOpen(o => !o); setSettings(false); }}
-        title="AI Assistant"
-        style={{
-          pointerEvents: "auto",
-          width: 52, height: 52, borderRadius: "50%",
-          background: open
-            ? "rgba(8,15,30,0.95)"
-            : `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)`,
-          border: `2px solid ${open ? accentColor + "66" : "transparent"}`,
-          color: open ? accentColor : "#000",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 4px 20px ${accentColor}44`,
-          transition: "all 0.2s",
-          fontSize: open ? "1.2rem" : "inherit",
-        }}>
+      <button onClick={() => { setOpen(o => !o); setSettings(false); }} title="AI Assistant"
+        style={{ pointerEvents: "auto", width: 52, height: 52, borderRadius: "50%", background: open ? "rgba(8,15,30,0.95)" : `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)`, border: `2px solid ${open ? accentColor + "66" : "transparent"}`, color: open ? accentColor : "#000", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 20px ${accentColor}44`, transition: "all 0.2s", fontSize: open ? "1.2rem" : "inherit" }}>
         {open ? "×" : <ChatIcon />}
       </button>
     </div>
