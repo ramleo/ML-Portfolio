@@ -72,7 +72,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [ingestStatus, setIngestStatus] = useState<IngestStatus>({ kind: "idle" });
   const [useJina, setUseJina] = useState(false);
-  const [jinaStatus, setJinaStatus] = useState<"idle" | "loading" | "ready">("idle");
+  const [jinaStatus, setJinaStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [lowConfidence, setLowConfidence] = useState(false);
 
   const [provider, setProvider]   = useState("gemini");
@@ -109,7 +109,12 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
       try {
         const res = await fetch(`${ML_UNIFIED_API}/rag/health`);
         const data = await res.json();
-        if (data.jina_ready) setJinaStatus("ready");
+        if (data.jina_ready) {
+          setJinaStatus("ready");
+        } else if (!data.jina_loading) {
+          // init finished but jina_ready is still false → it failed
+          setJinaStatus("error");
+        }
       } catch { /* ignore network errors */ }
     }, 5000);
     return () => clearInterval(id);
@@ -126,7 +131,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   }, []);
 
   const enableJina = useCallback(async () => {
-    if (useJina) { setUseJina(false); return; }
+    if (useJina && jinaStatus !== "error") { setUseJina(false); return; }
     setUseJina(true);
     if (jinaStatus === "ready") return;
     setJinaStatus("loading");
@@ -239,7 +244,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
             <button
               onClick={enableJina}
-              title={useJina && jinaStatus === "loading" ? "Jina v3 loading — click to cancel" : useJina ? "Enhanced Embedding (Jina v3) active — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
+              title={useJina && jinaStatus === "loading" ? "Jina v3 loading — click to cancel" : useJina && jinaStatus === "error" ? "Jina v3 failed to load — click to retry" : useJina ? "Enhanced Embedding (Jina v3) active — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
               style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
               <SparkleIcon />{useJina ? "Jina" : "Std"}
             </button>

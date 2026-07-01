@@ -1,6 +1,6 @@
 "use client";
 
-type JinaStatus = "idle" | "loading" | "ready";
+type JinaStatus = "idle" | "loading" | "ready" | "error";
 
 type Props = {
   jinaStatus: JinaStatus;
@@ -31,6 +31,18 @@ export default function RagJinaBanner({ jinaStatus, useJina, lowConfidence, acce
         borderRadius: 6, padding: "0.3rem 0.6rem",
       }}>
         Enhanced embedding (Jina v3) active
+      </div>
+    );
+  }
+
+  if (useJina && jinaStatus === "error") {
+    return (
+      <div style={{
+        fontSize: "0.62rem", color: "#f87171",
+        background: "#f8717112", border: "1px solid #f8717130",
+        borderRadius: 6, padding: "0.3rem 0.6rem",
+      }}>
+        Jina v3 failed to load — click the toggle to retry
       </div>
     );
   }
