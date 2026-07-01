@@ -68,7 +68,7 @@ export default function AutoMLModal({
   const [customLLMModel, setCustomLLMModel] = useState("");
   const [analysisExpanded, setAnalysisExpanded] = useState(false);
 
-  const { llmExp, llmLoading, llmProgress, llmError, handleExplain, setLlmExp } = useAutoMLExplain(
+  const { llmExp, llmLoading, llmProgress, llmError, ragUsed, handleExplain, setLlmExp } = useAutoMLExplain(
     trainResult, llmProvider, userApiKey, customLLMUrl, customLLMModel,
   );
 
@@ -239,7 +239,7 @@ export default function AutoMLModal({
               onSetAnalysisExpanded={setAnalysisExpanded} onSetShowKeyInput={setShowKeyInput}
               onSetLlmProvider={setLlmProvider} onSetUserApiKey={setUserApiKey}
               onSetCustomLLMUrl={setCustomLLMUrl} onSetCustomLLMModel={setCustomLLMModel}
-              onSetLlmExp={setLlmExp} llmError={llmError} onGenerateAnalysis={handleExplain}
+              onSetLlmExp={setLlmExp} llmError={llmError} ragUsed={ragUsed} onGenerateAnalysis={handleExplain}
               onSetTrainResult={setTrainResult} onRunAgain={handleRunAgain} onClose={onClose}
               onSaveVersion={() => handleSaveVersion(trainResult, file?.name)}
             />

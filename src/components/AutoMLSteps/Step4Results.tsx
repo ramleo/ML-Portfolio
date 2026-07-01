@@ -36,6 +36,7 @@ interface Props {
   onSetCustomLLMUrl:     (v: string) => void;
   onSetCustomLLMModel:   (v: string) => void;
   llmError:              string | null;
+  ragUsed?:              boolean;
   onSetLlmExp:           (v: Explanation | null) => void;
   onGenerateAnalysis:    () => void;
   onSetTrainResult:      (r: TrainResult) => void;
@@ -47,7 +48,7 @@ interface Props {
 export default function Step4Results({
   trainResult, history, file, savedRuns, savedFlash, isLoadedFromSaved,
   analysisExpanded, llmProvider, llmExp, llmLoading, llmProgress,
-  showKeyInput, userApiKey, customLLMUrl, customLLMModel,
+  showKeyInput, userApiKey, customLLMUrl, customLLMModel, ragUsed,
   onSetAnalysisExpanded, onSetShowKeyInput, onSetLlmProvider,
   onSetUserApiKey, onSetCustomLLMUrl, onSetCustomLLMModel, onSetLlmExp,
   llmError, onGenerateAnalysis, onSetTrainResult, onRunAgain, onClose, onSaveVersion,
@@ -151,6 +152,17 @@ export default function Step4Results({
             <div style={{ fontSize: "0.65rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>
               AI Analysis
             </div>
+            {ragUsed && (
+              <div title="Knowledge-base enhanced — RAG context was retrieved for this explanation"
+                style={{ display: "flex", alignItems: "center", gap: "0.2rem", padding: "0.1rem 0.35rem", borderRadius: 5, background: `${ACCENT}18`, border: `1px solid ${ACCENT}40` }}>
+                <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke={ACCENT} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="3" width="10" height="2.5" rx="0.8" />
+                  <rect x="1" y="6.5" width="10" height="2.5" rx="0.8" />
+                  <line x1="3" y1="1.5" x2="9" y2="1.5" />
+                </svg>
+                <span style={{ fontSize: "0.58rem", fontWeight: 700, color: ACCENT, letterSpacing: "0.04em" }}>KB</span>
+              </div>
+            )}
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
               style={{ transition: "transform 0.2s", transform: analysisExpanded ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}>
               <polyline points="2,3 5,7 8,3" />

@@ -108,6 +108,7 @@ export function useAutoMLExplain(
   const [llmLoading,  setLlmLoading]  = useState(false);
   const [llmProgress, setLlmProgress] = useState(0);
   const [llmError,    setLlmError]    = useState<string | null>(null);
+  const [ragUsed,     setRagUsed]     = useState(false);
 
   const handleExplain = useCallback(async () => {
     if (!trainResult?.automl) return;
@@ -115,6 +116,7 @@ export function useAutoMLExplain(
     setLlmLoading(true);
     setLlmExp(null);
     setLlmError(null);
+    setRagUsed(false);
     setLlmProgress(8);
 
     const interval = setInterval(() => {
@@ -139,7 +141,7 @@ export function useAutoMLExplain(
             body:    JSON.stringify(body),
           });
           if (res.ok) {
-            const data = await res.json() as { explanation?: Explanation; source?: string };
+            const data = await res.json() as { explanation?: Explanation; source?: string; rag_used?: boolean };
             if (data.explanation?.why_won) {
               setLlmExp({
                 ...data.explanation,
@@ -147,6 +149,7 @@ export function useAutoMLExplain(
                 model_comparison:    toArr(data.explanation.model_comparison),
                 actionable_insights: toArr(data.explanation.actionable_insights),
               });
+              setRagUsed(data.rag_used ?? false);
               setLlmProgress(100);
               return;
             }
@@ -207,5 +210,5 @@ export function useAutoMLExplain(
     }
   }, [trainResult, llmProvider, userApiKey, customLLMUrl, customLLMModel]);
 
-  return { llmExp, llmLoading, llmProgress, llmError, handleExplain, setLlmExp };
+  return { llmExp, llmLoading, llmProgress, llmError, ragUsed, handleExplain, setLlmExp };
 }
