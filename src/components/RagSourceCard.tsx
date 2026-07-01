@@ -35,10 +35,10 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 export default function RagSourceCard({ source, text, score, rawScore, accent }: Props) {
   const [open, setOpen] = useState(false);
-  const pct = Math.round(score * 100);
-  const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : null;
-  const confColor = pct <= 50 ? "#f87171" : pct <= 80 ? "#fbbf24" : accent;
-  const confLabel = pct <= 50 ? "Low confidence" : pct <= 80 ? "Medium confidence" : "High confidence";
+  const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
+  const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
+  const confLabel = rawPct <= 50 ? "Low" : rawPct <= 80 ? "Medium" : "High";
+  const confFull = rawPct <= 50 ? "Low confidence" : rawPct <= 80 ? "Medium confidence" : "High confidence";
 
   return (
     <div
@@ -58,17 +58,13 @@ export default function RagSourceCard({ source, text, score, rawScore, accent }:
           {source}
         </span>
         <span
-          title={
-            rawPct !== null
-              ? `${confLabel} — ${pct}% relative to the best match in this response (raw model confidence: ${rawPct}%)`
-              : `${confLabel} (${pct}%) that the answer lies in this source`
-          }
+          title={`${confFull} — raw model confidence: ${rawPct}%`}
           style={{
             fontSize: "0.58rem", fontWeight: 700, color: confColor,
             background: `${confColor}18`, borderRadius: 9999,
             padding: "1px 6px", flexShrink: 0,
           }}>
-          {pct}%
+          {confLabel}
         </span>
         <span style={{ color: "var(--text3)", flexShrink: 0 }}><ChevronIcon open={open} /></span>
       </div>
