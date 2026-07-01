@@ -6,6 +6,7 @@ import RagSourceCard from "./RagSourceCard";
 import RagIngestButton, { type IngestStatus } from "./RagIngestButton";
 import RagIngestBanner from "./RagIngestBanner";
 import RagUploadsPanel from "./RagUploadsPanel";
+import RagJinaBanner from "./RagJinaBanner";
 import ToolsAIChatSettings from "./ToolsAIChatSettings";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
@@ -41,6 +42,14 @@ function SendIcon() {
   );
 }
 
+function SparkleIcon() {
+  return (
+    <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  );
+}
+
 function GearIcon() {
   return (
     <svg width={14} height={14} viewBox="0 0 24 24" fill="none"
@@ -62,6 +71,9 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [sources, setSources]     = useState<RagSource[]>([]);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [ingestStatus, setIngestStatus] = useState<IngestStatus>({ kind: "idle" });
+  const [useJina, setUseJina] = useState(false);
+  const [jinaStatus, setJinaStatus] = useState<"idle" | "loading" | "ready">("idle");
+  const [lowConfidence, setLowConfidence] = useState(false);
 
   const [provider, setProvider]   = useState("gemini");
   const [model, setModel]         = useState("gemini-2.5-flash");
@@ -100,6 +112,18 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     setModel(cfg.models[0].id);
   }, []);
 
+  const enableJina = useCallback(async () => {
+    if (useJina) { setUseJina(false); return; }
+    setUseJina(true);
+    if (jinaStatus === "ready") return;
+    setJinaStatus("loading");
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/rag/prepare-jina`, { method: "POST" });
+      const data = await res.json();
+      if (data.status === "ready") setJinaStatus("ready");
+    } catch { /* ignore — status updates via done event */ }
+  }, [useJina, jinaStatus]);
+
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -110,6 +134,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     setLoading(true);
     setSources([]);
     setSourcesOpen(false);
+    setLowConfidence(false);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/query`, {
         method: "POST",
@@ -121,6 +146,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
           provider,
           model,
           user_key: userKey || undefined,
+          embedding_model: useJina ? "jina" : "minilm",
         }),
       });
       if (!res.ok || !res.body) throw new Error(`RAG query failed: ${res.statusText}`);
@@ -138,6 +164,9 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             if (evt.type === "source") {
               collectedSources.push(evt.doc);
               setSources([...collectedSources]);
+            } else if (evt.type === "done") {
+              setLowConfidence(!!evt.low_confidence && !useJina);
+              if (evt.jina_status === "ready") setJinaStatus("ready");
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -159,7 +188,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages, provider, model, userKey, context]);
+  }, [input, loading, messages, provider, model, userKey, context, useJina]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -195,6 +224,12 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               onStatusChange={setIngestStatus}
             />
             <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
+            <button
+              onClick={enableJina}
+              title={useJina ? "Enhanced Embedding (Jina v3) — click to disable" : "Enable Enhanced Embedding (Jina v3)"}
+              style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
+              <SparkleIcon />{useJina ? "Jina" : "Std"}
+            </button>
             <button onClick={() => setSettings(s => !s)}
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
               <GearIcon />
@@ -222,6 +257,11 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
           {ingestStatus.kind !== "idle" && (
             <div style={{ padding: "0.5rem 1rem 0" }}>
               <RagIngestBanner status={ingestStatus} accent={accentColor} />
+            </div>
+          )}
+          {(useJina || lowConfidence) && (
+            <div style={{ padding: "0.3rem 1rem 0" }}>
+              <RagJinaBanner jinaStatus={jinaStatus} useJina={useJina} lowConfidence={lowConfidence} accent={accentColor} onEnableJina={enableJina} />
             </div>
           )}
 
