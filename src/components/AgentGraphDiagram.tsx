@@ -79,12 +79,12 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
           <svg width="100%" viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ overflow: "visible", display: "block" }}>
 
             {/* ── Down arrows ──────────────────────────────── */}
-            {NODES.slice(0, -1).map((node, i) => {
+            {NODES.slice(0, -1).map((_, i) => {
               const y1 = NODE_Y[i] + NH;
               const y2 = NODE_Y[i + 1];
-              const src = statusOf(node.id);
-              const color = src === "done" ? accent : src === "active" ? `${accent}88` : DIM_ARROW;
-              const anim = src === "done" || src === "active";
+              const dst = statusOf(NODES[i + 1].id);
+              const color = dst === "done" ? accent : dst === "active" ? `${accent}88` : DIM_ARROW;
+              const anim = dst === "done" || dst === "active";
               return (
                 <g key={i}>
                   <line x1={NCX} y1={y1} x2={NCX} y2={y2 - 5}
