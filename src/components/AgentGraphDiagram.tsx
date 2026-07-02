@@ -56,6 +56,7 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
     }}>
       <style>{`
         @keyframes nodePulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
+        @keyframes flowArrow { from { stroke-dashoffset: 14 } to { stroke-dashoffset: 0 } }
       `}</style>
 
       {/* Header + collapse */}
@@ -78,16 +79,21 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
           <svg width="100%" viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ overflow: "visible", display: "block" }}>
 
             {/* ── Down arrows ──────────────────────────────── */}
-            {NODES.slice(0, -1).map((_, i) => {
+            {NODES.slice(0, -1).map((node, i) => {
               const y1 = NODE_Y[i] + NH;
               const y2 = NODE_Y[i + 1];
+              const src = statusOf(node.id);
+              const color = src === "done" ? accent : src === "active" ? `${accent}88` : DIM_ARROW;
+              const anim = src === "done" || src === "active";
               return (
                 <g key={i}>
                   <line x1={NCX} y1={y1} x2={NCX} y2={y2 - 5}
-                    stroke={DIM_ARROW} strokeWidth="1.5" />
+                    stroke={color} strokeWidth="1.5"
+                    strokeDasharray={anim ? "5 3" : undefined}
+                    style={anim ? { animation: "flowArrow 0.6s linear infinite" } : undefined} />
                   <polygon
                     points={`${NCX},${y2} ${NCX - 4},${y2 - 7} ${NCX + 4},${y2 - 7}`}
-                    fill={DIM_ARROW} />
+                    fill={color} />
                 </g>
               );
             })}

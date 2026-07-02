@@ -205,7 +205,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             const evt = JSON.parse(line.replace(/^data:\s*/, ""));
 
             if (evt.type === "agent_step") {
-              if (prevStep) setAgentDoneSteps(s => [...s, prevStep!]);
+              const snap = prevStep; if (snap) setAgentDoneSteps(s => [...s, snap]);
               setAgentStep(evt.step);
               prevStep = evt.step;
 
@@ -214,8 +214,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               setSources([...collectedSources]);
 
             } else if (evt.type === "done") {
-              // Mark last step done
-              if (prevStep) setAgentDoneSteps(s => [...s, prevStep!]);
+              const snap = prevStep; if (snap) setAgentDoneSteps(s => [...s, snap]);
               setAgentStep(null);
               if (evt.loops)     setAgentLoops(evt.loops);
               if (evt.rewritten) setAgentRewritten(true);
