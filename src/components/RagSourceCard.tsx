@@ -33,12 +33,49 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
+type SourceCategory = "KB" | "Web" | "User" | "Model";
+
+function categorize(source: string): SourceCategory {
+  if (!source)                    return "Model";
+  if (source.startsWith("web:"))  return "Web";
+  if (source.startsWith("user:")) return "User";
+  return "KB";
+}
+
+function displayName(source: string, cat: SourceCategory): string {
+  if (cat === "Web")  return source.replace(/^web:/, "");
+  if (cat === "User") return source.replace(/^user:/, "");
+  return source;
+}
+
+const CATEGORY_COLORS: Record<SourceCategory, string> = {
+  KB:    "#60a5fa",
+  Web:   "#34d399",
+  User:  "#a78bfa",
+  Model: "#94a3b8",
+};
+
+function CategoryBadge({ cat }: { cat: SourceCategory }) {
+  const color = CATEGORY_COLORS[cat];
+  return (
+    <span style={{
+      fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.05em",
+      color, background: `${color}1a`, borderRadius: 9999,
+      padding: "1px 5px", flexShrink: 0, textTransform: "uppercase",
+    }}>
+      {cat}
+    </span>
+  );
+}
+
 export default function RagSourceCard({ source, text, score, rawScore, accent }: Props) {
   const [open, setOpen] = useState(false);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
   const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
   const confLabel = rawPct <= 50 ? "Low" : rawPct <= 80 ? "Medium" : "High";
   const confFull = rawPct <= 50 ? "Low confidence" : rawPct <= 80 ? "Medium confidence" : "High confidence";
+  const cat = categorize(source);
+  const name = displayName(source, cat);
 
   return (
     <div
@@ -54,8 +91,9 @@ export default function RagSourceCard({ source, text, score, rawScore, accent }:
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
         <span style={{ color: accent, flexShrink: 0 }}><DocIcon /></span>
+        <CategoryBadge cat={cat} />
         <span style={{ flex: 1, fontSize: "0.65rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {source}
+          {name}
         </span>
         <span
           title={`${confFull} — raw model confidence: ${rawPct}%`}
