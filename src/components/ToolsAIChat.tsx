@@ -19,6 +19,7 @@ type RagSource = { source: string; text: string; score: number; display_score: n
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
 const LS_KEY      = "tools_ai_key";
+const LS_SESSION  = "rag_session_id";
 
 // Maps agent_step → human-readable loading label
 const STEP_LABELS: Record<string, string> = {
@@ -91,6 +92,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [provider, setProvider] = useState("gemini");
   const [model, setModel]       = useState("gemini-2.5-flash");
   const [userKey, setUserKey]   = useState("");
+  const [sessionId, setSessionId] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -99,11 +101,13 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     const p = localStorage.getItem(LS_PROVIDER);
     const m = localStorage.getItem(LS_MODEL);
     const k = localStorage.getItem(LS_KEY);
-    if (p) setProvider(p); if (m) setModel(m); if (k) setUserKey(k);
+    const s = localStorage.getItem(LS_SESSION);
+    if (p) setProvider(p); if (m) setModel(m); if (k) setUserKey(k); if (s) setSessionId(s);
   }, []);
   useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); }, [provider]);
   useEffect(() => { localStorage.setItem(LS_MODEL, model); }, [model]);
   useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
+  useEffect(() => { localStorage.setItem(LS_SESSION, sessionId); }, [sessionId]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
   useEffect(() => { if (open && !settings) inputRef.current?.focus(); }, [open, settings]);
   useEffect(() => {
@@ -173,11 +177,12 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     const body = deepSearch
       ? { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
           history: messages.slice(-6), provider, model,
-          user_key: userKey || undefined }
+          user_key: userKey || undefined, session_id: sessionId || undefined }
       : { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
           history: messages.slice(-6), provider, model,
           user_key: userKey || undefined,
-          embedding_model: useJina ? "jina" : "minilm" };
+          embedding_model: useJina ? "jina" : "minilm",
+          session_id: sessionId || undefined };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
@@ -248,7 +253,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
       setLoading(false);
       setAgentStep(null);
     }
-  }, [input, loading, messages, provider, model, userKey, context, useJina, deepSearch]);
+  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -278,7 +283,7 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
               AI Assistant · {context.tool}
             </span>
-            <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} />
+            <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} onSessionId={id => setSessionId(id)} />
             <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
             {/* Deep Search toggle */}
             <button

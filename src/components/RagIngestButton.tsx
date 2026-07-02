@@ -23,8 +23,8 @@ function UploadIcon() {
 }
 
 export default function RagIngestButton({
-  busy, onStatusChange,
-}: { busy: boolean; onStatusChange: (s: IngestStatus) => void }) {
+  busy, onStatusChange, onSessionId,
+}: { busy: boolean; onStatusChange: (s: IngestStatus) => void; onSessionId?: (id: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +48,7 @@ export default function RagIngestButton({
         const data = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) {
           onStatusChange({ kind: "ok", chunks: data.chunks_added, name: data.source });
+          if (data.session_id) onSessionId?.(data.session_id);
         } else {
           onStatusChange({ kind: "error", message: data.detail || xhr.statusText });
         }
