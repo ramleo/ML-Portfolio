@@ -92,8 +92,9 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [useJina, setUseJina]         = useState(false);
   const [jinaStatus, setJinaStatus]   = useState<"idle"|"loading"|"ready"|"error">("idle");
   const [lowConfidence, setLowConfidence] = useState(false);
-  const [cacheHit, setCacheHit]   = useState(false);
-  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [cacheHit, setCacheHit]     = useState(false);
+  const [latencyMs, setLatencyMs]   = useState<number | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   // Deep Search (LangGraph agent) state
   const [deepSearch, setDeepSearch]         = useState(false);
@@ -335,10 +336,24 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               <GearIcon />
             </button>
             {messages.length > 0 && (
-              <button onClick={clearChat} title="Clear conversation"
-                style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
-                <TrashIcon />
-              </button>
+              confirmClear ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <span style={{ fontSize: "0.58rem", color: "var(--text3)" }}>Clear?</span>
+                  <button onClick={() => { clearChat(); setConfirmClear(false); }}
+                    style={{ background: "#ef444418", border: "1px solid #ef444455", borderRadius: 6, color: "#ef4444", cursor: "pointer", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 700 }}>
+                    Yes
+                  </button>
+                  <button onClick={() => setConfirmClear(false)}
+                    style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 700 }}>
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmClear(true)} title="Clear conversation"
+                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
+                  <TrashIcon />
+                </button>
+              )
             )}
             <button onClick={() => setOpen(false)}
               style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: "2px 4px" }}>
