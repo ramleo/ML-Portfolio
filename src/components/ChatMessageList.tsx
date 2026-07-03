@@ -14,6 +14,8 @@ interface Props {
   sourcesOpen:    boolean;
   accentColor:    string;
   bottomRef:      React.RefObject<HTMLDivElement | null>;
+  cacheHit?:      boolean;
+  latencyMs?:     number | null;
   onSuggestion:   (q: string) => void;
   onSourcesToggle: () => void;
 }
@@ -40,7 +42,8 @@ const SUGGESTIONS = [
 
 export default function ChatMessageList({
   messages, loading, loadingLabel, sources, sourcesOpen,
-  accentColor, bottomRef, onSuggestion, onSourcesToggle,
+  accentColor, bottomRef, cacheHit, latencyMs,
+  onSuggestion, onSourcesToggle,
 }: Props) {
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
@@ -76,11 +79,23 @@ export default function ChatMessageList({
 
       {sources.length > 0 && !loading && (
         <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-          <button onClick={onSourcesToggle}
-            style={{ display: "flex", alignItems: "center", gap: "0.3rem", alignSelf: "flex-start", background: "transparent", border: "none", cursor: "pointer", padding: 0, fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
-            <span style={{ transform: sourcesOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-block" }}>›</span>
-            Sources ({sources.length})
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+            <button onClick={onSourcesToggle}
+              style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "transparent", border: "none", cursor: "pointer", padding: 0, fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
+              <span style={{ transform: sourcesOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-block" }}>›</span>
+              Sources ({sources.length})
+            </button>
+            {cacheHit && (
+              <span title="Response served from semantic cache" style={{ fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.05em", color: "#34d399", background: "#34d39918", borderRadius: 9999, padding: "1px 6px", textTransform: "uppercase" }}>
+                Cached
+              </span>
+            )}
+            {latencyMs != null && (
+              <span style={{ fontSize: "0.55rem", color: "var(--text3)" }}>
+                {latencyMs < 1000 ? `${latencyMs}ms` : `${(latencyMs / 1000).toFixed(1)}s`}
+              </span>
+            )}
+          </div>
           {sourcesOpen && sources.map((s, i) => (
             <RagSourceCard key={i} source={s.source} text={s.text} score={s.display_score ?? s.score} rawScore={s.score} accent={accentColor} />
           ))}

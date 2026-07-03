@@ -59,6 +59,17 @@ function GearIcon() {
     </svg>
   );
 }
+function TrashIcon() {
+  return (
+    <svg width={13} height={13} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+}
 function DeepSearchIcon() {
   return (
     <svg width={11} height={11} viewBox="0 0 24 24" fill="none"
@@ -81,6 +92,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
   const [useJina, setUseJina]         = useState(false);
   const [jinaStatus, setJinaStatus]   = useState<"idle"|"loading"|"ready"|"error">("idle");
   const [lowConfidence, setLowConfidence] = useState(false);
+  const [cacheHit, setCacheHit]   = useState(false);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   // Deep Search (LangGraph agent) state
   const [deepSearch, setDeepSearch]         = useState(false);
@@ -168,6 +181,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
     setSources([]);
     setSourcesOpen(false);
     setLowConfidence(false);
+    setCacheHit(false);
+    setLatencyMs(null);
     setAgentStep(null);
     setAgentDoneSteps([]);
     setAgentLoops(0);
@@ -225,6 +240,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               if (evt.rewritten) setAgentRewritten(true);
               setLowConfidence(!!evt.low_confidence && !useJina);
               if (evt.jina_status === "ready") setJinaStatus("ready");
+              setCacheHit(!!evt.cache_hit);
+              if (typeof evt.latency_ms === "number") setLatencyMs(evt.latency_ms);
 
             } else if (evt.type === "token") {
               assistantText += evt.text;
@@ -254,6 +271,12 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
       setAgentStep(null);
     }
   }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch]);
+
+  const clearChat = useCallback(() => {
+    setMessages([]); setSources([]); setSourcesOpen(false);
+    setLowConfidence(false); setCacheHit(false); setLatencyMs(null);
+    setAgentRewritten(false); setAgentLoops(0); setAgentStep(null);
+  }, []);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -311,6 +334,12 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
               style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
               <GearIcon />
             </button>
+            {messages.length > 0 && (
+              <button onClick={clearChat} title="Clear conversation"
+                style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
+                <TrashIcon />
+              </button>
+            )}
             <button onClick={() => setOpen(false)}
               style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: "2px 4px" }}>
               ×
@@ -365,6 +394,8 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             sourcesOpen={sourcesOpen}
             accentColor={accentColor}
             bottomRef={bottomRef}
+            cacheHit={cacheHit}
+            latencyMs={latencyMs}
             onSuggestion={q => { setInput(q); inputRef.current?.focus(); }}
             onSourcesToggle={() => setSourcesOpen(o => !o)}
           />
