@@ -1,23 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message  = { role: "user" | "assistant"; content: string };
 type RagSource = { source: string; text: string; score: number; display_score: number };
 
 interface Props {
-  messages:       Message[];
-  loading:        boolean;
-  loadingLabel:   string;
-  sources:        RagSource[];
-  sourcesOpen:    boolean;
-  accentColor:    string;
-  bottomRef:      React.RefObject<HTMLDivElement | null>;
-  cacheHit?:      boolean;
-  latencyMs?:     number | null;
-  onSuggestion:   (q: string) => void;
-  onSourcesToggle: () => void;
+  messages:          Message[];
+  loading:           boolean;
+  loadingLabel:      string;
+  sources:           RagSource[];
+  sourcesOpen:       boolean;
+  accentColor:       string;
+  bottomRef:         React.RefObject<HTMLDivElement | null>;
+  cacheHit?:         boolean;
+  latencyMs?:        number | null;
+  expandedQueries?:  string[];
+  candidatesRetrieved?: number | null;
+  onSuggestion:      (q: string) => void;
+  onSourcesToggle:   () => void;
 }
 
 const MD_COMPONENTS = {
@@ -43,8 +46,13 @@ const SUGGESTIONS = [
 export default function ChatMessageList({
   messages, loading, loadingLabel, sources, sourcesOpen,
   accentColor, bottomRef, cacheHit, latencyMs,
+  expandedQueries = [], candidatesRetrieved,
   onSuggestion, onSourcesToggle,
 }: Props) {
+  const [insightsOpen, setInsightsOpen] = useState(false);
+
+  const hasInsights = expandedQueries.length > 0 || candidatesRetrieved != null;
+
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
@@ -79,6 +87,7 @@ export default function ChatMessageList({
 
       {sources.length > 0 && !loading && (
         <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+          {/* Sources toggle row */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
             <button onClick={onSourcesToggle}
               style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "transparent", border: "none", cursor: "pointer", padding: 0, fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
@@ -86,7 +95,8 @@ export default function ChatMessageList({
               Sources ({sources.length})
             </button>
             {cacheHit && (
-              <span title="Response served from semantic cache" style={{ fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.05em", color: "#34d399", background: "#34d39918", borderRadius: 9999, padding: "1px 6px", textTransform: "uppercase" }}>
+              <span title="Response served from semantic cache"
+                style={{ fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.05em", color: "#34d399", background: "#34d39918", borderRadius: 9999, padding: "1px 6px", textTransform: "uppercase" }}>
                 Cached
               </span>
             )}
@@ -96,9 +106,48 @@ export default function ChatMessageList({
               </span>
             )}
           </div>
+
           {sourcesOpen && sources.map((s, i) => (
             <RagSourceCard key={i} source={s.source} text={s.text} score={s.display_score ?? s.score} rawScore={s.score} accent={accentColor} />
           ))}
+
+          {/* How I searched — collapsible retrieval insights */}
+          {hasInsights && (
+            <div style={{ marginTop: "0.1rem" }}>
+              <button onClick={() => setInsightsOpen(o => !o)}
+                style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "transparent", border: "none", cursor: "pointer", padding: 0, fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>
+                <span style={{ transform: insightsOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-block" }}>›</span>
+                How I searched
+              </button>
+
+              {insightsOpen && (
+                <div style={{
+                  marginTop: "0.35rem", padding: "0.5rem 0.65rem",
+                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: 8, display: "flex", flexDirection: "column", gap: "0.4rem",
+                }}>
+                  {candidatesRetrieved != null && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.57rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Retrieval</span>
+                      <span style={{ fontSize: "0.6rem", color: accentColor, background: `${accentColor}14`, borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>{candidatesRetrieved} candidates</span>
+                      <span style={{ fontSize: "0.57rem", color: "var(--text3)" }}>→ reranked to</span>
+                      <span style={{ fontSize: "0.6rem", color: accentColor, background: `${accentColor}14`, borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>{sources.length} chunks</span>
+                    </div>
+                  )}
+                  {expandedQueries.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                      <span style={{ fontSize: "0.57rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Query variants searched</span>
+                      {expandedQueries.map((q, i) => (
+                        <div key={i} style={{ fontSize: "0.62rem", color: "var(--text2)", padding: "0.2rem 0.5rem", background: "rgba(255,255,255,0.04)", borderRadius: 5, borderLeft: `2px solid ${accentColor}55`, lineHeight: 1.4 }}>
+                          {q}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
