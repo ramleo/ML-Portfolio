@@ -131,6 +131,22 @@ const capabilities: Capability[] = [
     internalLink: "/tools/ensemble",
   },
   {
+    id: "drift",
+    title: "Data Drift Detection",
+    subtitle: "Monitor Production Data",
+    description:
+      "Upload a new production batch CSV and compare it against the training baseline. PSI, KS test, and distribution histograms for numeric columns; category frequency shifts for categoricals. Trend sparkline tracks drift score across multiple batches.",
+    accent: "#fb923c",
+    stat: "PSI",
+    statLabel: "+ KS Test",
+    model: "Statistical tests",
+    input: "Trained model + batch CSV",
+    tags: ["PSI", "KS Test", "Distribution Shift", "Monitoring"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/drift",
+  },
+  {
     id: "pipeline-builder",
     title: "Pipeline Builder",
     subtitle: "End-to-End ML Canvas",
