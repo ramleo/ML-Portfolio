@@ -289,7 +289,7 @@ export default function CinemaScene({
           overflowY: "auto",
         }}
       >
-        <StageStory stage={viewingStage ?? activeStage} active={activeStage !== null || viewingStage !== null} frozen={viewingStage !== null && activeStage === null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} automlResults={automlResults} />
+        <StageStory stage={viewingStage ?? activeStage} active={activeStage !== null || viewingStage !== null} frozen={viewingStage !== null} taskType={taskType} csvPreviewCols={csvPreviewCols} csvPreviewRows={csvPreviewRows} stageColumns={stageColumns} automlResults={automlResults} />
       </div>
 
       {/* Narrator strip */}

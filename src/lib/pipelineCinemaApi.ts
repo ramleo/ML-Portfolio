@@ -159,10 +159,10 @@ export async function callFeatureSelect(
     csv: data.processed_csv_b64,
     lines: [
       `Evaluating ${data.features_before} features using mutual information scoring.`,
-      "Low-variance features carry little predictive signal — they'll be removed.",
+      "Features with low mutual information with the target carry little predictive signal — they'll be removed.",
       dropped > 0
-        ? `Dropping ${dropped} low-variance feature${dropped > 1 ? "s" : ""}: ${data.dropped_features?.slice(0, 3).join(", ")}${dropped > 3 ? "..." : ""}.`
-        : "All features pass the variance threshold!",
+        ? `Dropping ${dropped} low-signal feature${dropped > 1 ? "s" : ""}: ${data.dropped_features?.slice(0, 3).join(", ")}${dropped > 3 ? "..." : ""}.`
+        : "All features show meaningful signal — none dropped.",
       `Keeping ${data.features_after - 1} features for model training. Leaner = faster + less overfitting.`,
     ],
   };
