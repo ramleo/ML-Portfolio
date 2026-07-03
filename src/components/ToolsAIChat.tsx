@@ -304,61 +304,52 @@ export default function ToolsAIChat({ context }: { context: ToolChatContext }) {
             display: "flex", alignItems: "center", gap: "0.5rem",
             background: `linear-gradient(135deg, rgba(8,15,30,1) 0%, rgba(${accentColor === "#38bdf8" ? "56,189,248" : accentColor === "#f59e0b" ? "245,158,11" : "52,211,153"},0.08) 100%)`,
           }}>
-            <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
-              AI Assistant · {context.tool}
-            </span>
-            <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} onSessionId={id => setSessionId(id)} />
-            <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
-            {/* Deep Search toggle */}
-            <button
-              onClick={() => setDeepSearch(d => !d)}
-              title={deepSearch
-                ? "Deep Search active — LangGraph agentic loop (adds ~3–5 s). Click to disable."
-                : "Enable Deep Search — LangGraph agent refines query if retrieval quality is low (adds ~3–5 s)"}
-              style={{
-                background: deepSearch ? `${accentColor}22` : "transparent",
-                border: `1px solid ${deepSearch ? accentColor + "55" : "rgba(255,255,255,0.1)"}`,
-                borderRadius: 6, color: deepSearch ? accentColor : "var(--text3)",
-                cursor: "pointer", padding: "3px 6px",
-                display: "flex", alignItems: "center", gap: "3px",
-                fontSize: "0.58rem", fontWeight: 600,
-              }}>
-              <DeepSearchIcon />
-              {deepSearch ? "Deep" : "Std"}
-            </button>
-            <button onClick={enableJina}
-              title={useJina && jinaStatus === "loading" ? "Jina v3 loading…" : useJina ? "Jina v3 active — click to disable" : "Enable Jina v3 embeddings"}
-              style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
-              <SparkleIcon />{useJina ? "Jina" : "Std"}
-            </button>
-            <button onClick={() => setSettings(s => !s)}
-              style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
-              <GearIcon />
-            </button>
-            {messages.length > 0 && (
-              confirmClear ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                  <span style={{ fontSize: "0.58rem", color: "var(--text3)" }}>Clear?</span>
-                  <button onClick={() => { clearChat(); setConfirmClear(false); }}
-                    style={{ background: "#ef444418", border: "1px solid #ef444455", borderRadius: 6, color: "#ef4444", cursor: "pointer", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 700 }}>
-                    Yes
-                  </button>
-                  <button onClick={() => setConfirmClear(false)}
-                    style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 700 }}>
-                    No
-                  </button>
-                </div>
-              ) : (
-                <button onClick={() => setConfirmClear(true)} title="Clear conversation"
-                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
-                  <TrashIcon />
+            {confirmClear ? (
+              <>
+                <span style={{ fontSize: "0.7rem", color: "var(--text2)", flex: 1 }}>Clear conversation?</span>
+                <button onClick={() => { clearChat(); setConfirmClear(false); }}
+                  style={{ background: "#ef444418", border: "1px solid #ef444455", borderRadius: 6, color: "#ef4444", cursor: "pointer", padding: "3px 12px", fontSize: "0.65rem", fontWeight: 700 }}>
+                  Yes
                 </button>
-              )
+                <button onClick={() => setConfirmClear(false)}
+                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "var(--text2)", cursor: "pointer", padding: "3px 12px", fontSize: "0.65rem", fontWeight: 700 }}>
+                  No
+                </button>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
+                  AI Assistant · {context.tool}
+                </span>
+                <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} onSessionId={id => setSessionId(id)} />
+                <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
+                <button
+                  onClick={() => setDeepSearch(d => !d)}
+                  title={deepSearch ? "Deep Search active — click to disable." : "Enable Deep Search — LangGraph agent refines query if retrieval quality is low"}
+                  style={{ background: deepSearch ? `${accentColor}22` : "transparent", border: `1px solid ${deepSearch ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: deepSearch ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
+                  <DeepSearchIcon />{deepSearch ? "Deep" : "Std"}
+                </button>
+                <button onClick={enableJina}
+                  title={useJina && jinaStatus === "loading" ? "Jina v3 loading…" : useJina ? "Jina v3 active — click to disable" : "Enable Jina v3 embeddings"}
+                  style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
+                  <SparkleIcon />{useJina ? "Jina" : "Std"}
+                </button>
+                <button onClick={() => setSettings(s => !s)}
+                  style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
+                  <GearIcon />
+                </button>
+                {messages.length > 0 && (
+                  <button onClick={() => setConfirmClear(true)} title="Clear conversation"
+                    style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
+                    <TrashIcon />
+                  </button>
+                )}
+                <button onClick={() => setOpen(false)}
+                  style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: "2px 4px" }}>
+                  ×
+                </button>
+              </>
             )}
-            <button onClick={() => setOpen(false)}
-              style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: "2px 4px" }}>
-              ×
-            </button>
           </div>
 
           {settings && (
