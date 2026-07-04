@@ -27,6 +27,7 @@ function ShapPageInner() {
   const triggerRef = useRef<((f: File) => void) | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
+  const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[] } | null>(null);
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -104,12 +105,19 @@ function ShapPageInner() {
             }}
           />
         )}
-        <ShapRunner onReady={handleReady} />
+        <ShapRunner onReady={handleReady} onResult={setTrainResult} />
       </div>
 
       <ToolsAIChat context={{
         tool: "SHAP Explainability",
-        summary: "Interactive SHAP (SHapley Additive exPlanations) visualiser. Shows global feature importance (bar chart), individual prediction waterfall plots, and dependence plots to reveal feature interactions. Helps interpret why a model made a specific prediction.",
+        summary: trainResult
+          ? [
+              `Tool: SHAP Explainability | Winner model: ${trainResult.winner}`,
+              `Metrics: ${Object.entries(trainResult.winner_metrics).map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(4) : v}`).join(", ")}`,
+              `Top features by importance: ${trainResult.feature_importance.slice(0, 10).map(f => `${f.feature}(${f.importance.toFixed(3)})`).join(", ")}`,
+              `All model CV scores: ${trainResult.cv_results.map(c => `${c.name}=${c.score.toFixed(4)}`).join(", ")}`,
+            ].join("\n")
+          : "SHAP Explainability tool. No training run yet — upload a CSV and train a model first.",
       }} />
     </div>
   );

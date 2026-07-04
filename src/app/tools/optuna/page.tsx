@@ -27,6 +27,7 @@ function OptunaPageInner() {
   const triggerRef = useRef<((f: File) => void) | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
+  const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[]; best_params?: Record<string, number | string> } | null>(null);
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -104,12 +105,20 @@ function OptunaPageInner() {
             }}
           />
         )}
-        <OptunaRunner onReady={handleReady} />
+        <OptunaRunner onReady={handleReady} onResult={setTrainResult} />
       </div>
 
       <ToolsAIChat context={{
         tool: "Optuna Hyperparameter Tuning",
-        summary: "Optuna-powered hyperparameter optimisation visualiser using Tree-structured Parzen Estimator (TPE). Shows trial history, parameter importance, and convergence plots. Demonstrates efficient Bayesian search vs grid/random search.",
+        summary: trainResult
+          ? [
+              `Tool: Optuna Hyperparameter Tuning | Winner model: ${trainResult.winner}`,
+              `Metrics: ${Object.entries(trainResult.winner_metrics).map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(4) : v}`).join(", ")}`,
+              trainResult.best_params ? `Best hyperparameters: ${Object.entries(trainResult.best_params).map(([k, v]) => `${k}=${v}`).join(", ")}` : "",
+              `Top features: ${trainResult.feature_importance.slice(0, 8).map(f => `${f.feature}(${f.importance.toFixed(3)})`).join(", ")}`,
+              `All model CV scores: ${trainResult.cv_results.map(c => `${c.name}=${c.score.toFixed(4)}`).join(", ")}`,
+            ].filter(Boolean).join("\n")
+          : "Optuna Hyperparameter Tuning tool. No training run yet — upload a CSV and run tuning first.",
       }} />
     </div>
   );

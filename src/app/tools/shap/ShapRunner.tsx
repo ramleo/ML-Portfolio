@@ -43,9 +43,10 @@ const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
 interface ShapRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
+  onResult?: (r: TrainResult | null) => void;
 }
 
-export default function ShapRunner({ onReady }: ShapRunnerProps) {
+export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
@@ -166,7 +167,7 @@ export default function ShapRunner({ onReady }: ShapRunnerProps) {
             if (evt.msg) setStatus(evt.msg);
             if (evt.result) {
               const data: TrainResult = evt.result.automl ?? evt.result;
-              setResult(data);
+              setResult(data); onResult?.(data);
               // Write shapValues back to PipelineContext using feature_importance
               if (data?.feature_importance) {
                 const vals: Record<string, number> = {};

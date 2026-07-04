@@ -46,9 +46,10 @@ const MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees
 
 interface OptunaRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
+  onResult?: (r: TrainResult | null) => void;
 }
 
-export default function OptunaRunner({ onReady }: OptunaRunnerProps) {
+export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
@@ -167,7 +168,7 @@ export default function OptunaRunner({ onReady }: OptunaRunnerProps) {
             if (evt.result) {
               const raw = evt.result.automl ?? evt.result;
               const data: TrainResult = { ...raw, best_params: raw.optuna_params ?? raw.best_params };
-              setResult(data);
+              setResult(data); onResult?.(data);
               // Write tunedModel back to PipelineContext
               if (data?.best_params && data?.winner_metrics) {
                 setState(prev => ({

@@ -24,7 +24,7 @@ export default function ToolsAIChatSettings({
   onProviderChange, onModelChange, onKeyChange,
 }: Props) {
   return (
-    <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: "0.55rem", overscrollBehavior: "contain" }}>
+    <div onWheel={e => e.stopPropagation()} style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: "0.55rem", overscrollBehavior: "contain" }}>
       {/* Provider */}
       <div>
         <div style={{ fontSize: "0.6rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Provider</div>

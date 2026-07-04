@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
-import AutoMLModal from "@/components/modals/AutoMLModal";
+import AutoMLModal, { type TrainResult } from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -17,6 +17,7 @@ function AutoMLPageInner() {
 
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded]         = useState(false);
+  const [trainResult, setTrainResult]       = useState<TrainResult | null>(null);
 
   const handleReady = useCallback((trigger: (f: File) => void) => {
     triggerRef.current = trigger;
@@ -109,12 +110,19 @@ function AutoMLPageInner() {
             }}
           />
         )}
-        <AutoMLModal onClose={handleBack} isPage onReady={handleReady} />
+        <AutoMLModal onClose={handleBack} isPage onReady={handleReady} onResultChange={(r) => setTrainResult(r)} />
       </div>
 
       <ToolsAIChat context={{
         tool: "AutoML Pipeline",
-        summary: "Automated ML wizard that trains, evaluates, and compares multiple models (XGBoost, Random Forest, LightGBM, AdaBoost, SVM, Logistic Regression) on an uploaded dataset. Includes hyperparameter tuning, SHAP explainability, and model export.",
+        summary: trainResult?.automl
+          ? [
+              `Tool: AutoML Pipeline | Winner: ${trainResult.automl.winner} | Task: ${trainResult.automl.task}`,
+              trainResult.automl.winner_metrics ? `Metrics: ${Object.entries(trainResult.automl.winner_metrics).map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(4) : v}`).join(", ")}` : "",
+              trainResult.automl.feature_importance?.length ? `Top features: ${trainResult.automl.feature_importance.slice(0, 10).map(f => `${f.feature}(${f.importance.toFixed(3)})`).join(", ")}` : "",
+              `All model CV scores: ${trainResult.automl.cv_results.map(c => `${c.algorithm}=${c.score.toFixed(4)}`).join(", ")}`,
+            ].filter(Boolean).join("\n")
+          : "AutoML Pipeline. No training run yet — upload a CSV and start training first.",
       }} />
     </div>
   );

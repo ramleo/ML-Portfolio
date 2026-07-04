@@ -16,6 +16,7 @@ function EnsemblePageInner() {
   const triggerRef = useRef<((f: File) => void) | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
+  const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[] } | null>(null);
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -93,12 +94,19 @@ function EnsemblePageInner() {
             }}
           />
         )}
-        <EnsembleRunner onReady={handleReady} accent="#f472b6" />
+        <EnsembleRunner onReady={handleReady} onResult={setTrainResult} accent="#f472b6" />
       </div>
 
       <ToolsAIChat context={{
         tool: "Ensemble & Stacking",
-        summary: "Ensemble learning visualiser covering soft voting, hard voting, and stacking with a meta-learner. Shows how combining diverse base models (XGBoost, Random Forest, LightGBM) reduces variance and improves AUC over any single model.",
+        summary: trainResult
+          ? [
+              `Tool: Ensemble & Stacking | Winner: ${trainResult.winner}`,
+              `Metrics: ${Object.entries(trainResult.winner_metrics).map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(4) : v}`).join(", ")}`,
+              `Top features: ${trainResult.feature_importance.slice(0, 8).map(f => `${f.feature}(${f.importance.toFixed(3)})`).join(", ")}`,
+              `All model CV scores: ${trainResult.cv_results.map(c => `${c.name}=${c.score.toFixed(4)}`).join(", ")}`,
+            ].join("\n")
+          : "Ensemble & Stacking tool. No training run yet — upload a CSV and run ensemble training first.",
       }} />
     </div>
   );

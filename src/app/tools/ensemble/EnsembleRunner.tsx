@@ -40,10 +40,11 @@ const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra T
 
 interface EnsembleRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
+  onResult?: (r: TrainResult | null) => void;
   accent?: string;
 }
 
-export default function EnsembleRunner({ onReady, accent }: EnsembleRunnerProps) {
+export default function EnsembleRunner({ onReady, onResult, accent }: EnsembleRunnerProps) {
   const ACCENT = accent ?? "#10b981";
   const { state, setState } = usePipeline();
 
@@ -171,7 +172,7 @@ export default function EnsembleRunner({ onReady, accent }: EnsembleRunnerProps)
                   ...r, name: r.name ?? r.algorithm ?? "",
                 })),
               };
-              setResult(data);
+              setResult(data); onResult?.(data);
               // Write ensembleScore back to PipelineContext
               if (data?.winner_metrics) {
                 setState(prev => ({
