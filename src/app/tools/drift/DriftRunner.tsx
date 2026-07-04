@@ -6,6 +6,7 @@ import { ModelMeta, DriftResult, ACCENT } from "./driftTypes";
 import DriftFeatureCard   from "./DriftFeatureCard";
 import DriftOverview      from "./DriftOverview";
 import DriftRankingChart  from "./DriftRankingChart";
+import DriftRadarChart    from "./DriftRadarChart";
 import DriftAIExplain     from "./DriftAIExplain";
 
 export default function DriftRunner() {
@@ -125,6 +126,7 @@ export default function DriftRunner() {
         <>
           <DriftOverview result={result} />
           <DriftRankingChart features={result.features} />
+          <DriftRadarChart features={result.features} />
           <DriftAIExplain result={result} modelId={modelId} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

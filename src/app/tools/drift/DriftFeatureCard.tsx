@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FeatureDrift, levelColor, ACCENT } from "./driftTypes";
+import { NumericHistogram, CategoricalBars } from "./DriftCharts";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -133,120 +134,6 @@ function GaugeBar({ label, value, max = 1, lowT = 0.1, highT = 0.25, tip }: {
         <span style={{ color: "#f8717177" }}>≥{highT} high</span>
         <span>{max}</span>
       </div>
-    </div>
-  );
-}
-
-// ── Numeric histogram ──────────────────────────────────────────────────────────
-
-function NumericHistogram({ bins }: { bins: NonNullable<FeatureDrift["histogram"]> }) {
-  if (!bins.length) return null;
-  const maxH = Math.max(...bins.flatMap(b => [b.ref_h, b.actual_h]), 0.001);
-  const H = 96; const W_LABEL = 28;
-  const gridLines = [0.25, 0.5, 0.75, 1.0];
-
-  return (
-    <div>
-      <div style={{ display: "flex", gap: "1rem", fontSize: "0.55rem", color: "var(--text3)", marginBottom: 8 }}>
-        <span><span style={{ display: "inline-block", width: 10, height: 10, background: `${ACCENT}40`, borderRadius: 2, marginRight: 3, verticalAlign: "middle" }} />Training (reference)</span>
-        <span><span style={{ display: "inline-block", width: 10, height: 10, background: ACCENT, borderRadius: 2, marginRight: 3, verticalAlign: "middle" }} />Batch (observed)</span>
-        <span style={{ marginLeft: "auto", color: "var(--text3)", fontStyle: "italic" }}>hover bars for exact values</span>
-      </div>
-      <div style={{ display: "flex", gap: 0 }}>
-        {/* Y-axis label */}
-        <div style={{ width: W_LABEL, display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", paddingRight: 4, paddingBottom: 14 }}>
-          {gridLines.reverse().map(t => (
-            <span key={t} style={{ fontSize: "0.44rem", color: "var(--text3)" }}>{(t * 100).toFixed(0)}%</span>
-          ))}
-        </div>
-        {/* Chart area */}
-        <div style={{ flex: 1, position: "relative" }}>
-          {/* Grid lines */}
-          <div style={{ position: "absolute", inset: 0, paddingBottom: 14, display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
-            {[...gridLines].reverse().map(t => (
-              <div key={t} style={{ borderTop: "1px solid rgba(255,255,255,0.05)", width: "100%" }} />
-            ))}
-          </div>
-          {/* Bars */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 1, height: H + 14, paddingBottom: 14, position: "relative", zIndex: 1 }}>
-            {bins.map((b, i) => {
-              const rh = (b.ref_h / maxH) * H;
-              const bh = (b.actual_h / maxH) * H;
-              return (
-                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "stretch", minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: 0.5, height: H }}>
-                    <div
-                      title={`Training: ${(b.ref_h * 100).toFixed(1)}% | range [${b.lo.toFixed(1)}, ${b.hi.toFixed(1)}]`}
-                      style={{ flex: 1, height: Math.max(rh, 1), background: `linear-gradient(180deg, ${ACCENT}55, ${ACCENT}25)`, borderRadius: "2px 2px 0 0", minHeight: 1, cursor: "help" }}
-                    />
-                    <div
-                      title={`Batch: ${(b.actual_h * 100).toFixed(1)}% | range [${b.lo.toFixed(1)}, ${b.hi.toFixed(1)}]`}
-                      style={{ flex: 1, height: Math.max(bh, 1), background: `linear-gradient(180deg, ${ACCENT}, ${ACCENT}aa)`, borderRadius: "2px 2px 0 0", minHeight: 1, cursor: "help" }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {/* X-axis labels */}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.44rem", color: "var(--text3)", marginTop: -10 }}>
-            <span>{bins[0]?.lo.toFixed(1)}</span>
-            <span>{((bins[0]?.lo + bins[bins.length - 1]?.hi) / 2).toFixed(1)}</span>
-            <span>{bins[bins.length - 1]?.hi.toFixed(1)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Categorical bars ───────────────────────────────────────────────────────────
-
-function CategoricalBars({ f }: { f: FeatureDrift }) {
-  if (!f.options?.length) return null;
-  const maxVal = Math.max(...f.options.flatMap(o => [f.ref_dist?.[o] ?? 0, f.recent_dist?.[o] ?? 0]), 0.001);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-      <div style={{ display: "flex", gap: "1rem", fontSize: "0.55rem", color: "var(--text3)" }}>
-        <span><span style={{ display: "inline-block", width: 10, height: 10, background: `${ACCENT}40`, borderRadius: 2, marginRight: 3, verticalAlign: "middle" }} />Training freq</span>
-        <span><span style={{ display: "inline-block", width: 10, height: 10, background: ACCENT, borderRadius: 2, marginRight: 3, verticalAlign: "middle" }} />Batch freq</span>
-        {f.cat_baseline === "uniform" && <span style={{ color: "#fbbf24" }}>⚠ uniform fallback — no training freq stored</span>}
-      </div>
-      {f.options.map(opt => {
-        const ref  = f.ref_dist?.[opt] ?? 0;
-        const rec  = f.recent_dist?.[opt] ?? 0;
-        const diff = rec - ref;
-        const refW = (ref / maxVal) * 100;
-        const recW = (rec / maxVal) * 100;
-        const dc   = Math.abs(diff) > 0.1 ? (diff > 0 ? "#34d399" : "#f87171") : "var(--text3)";
-        return (
-          <div key={opt}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: "0.64rem", color: "var(--text2)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt}</span>
-              <span style={{ fontSize: "0.6rem", fontWeight: 700, color: dc, fontVariantNumeric: "tabular-nums" }}>
-                {diff > 0 ? "+" : ""}{(diff * 100).toFixed(1)} pp
-              </span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: "0.5rem", color: "var(--text3)", width: 16, flexShrink: 0 }}>ref</span>
-                <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-                  <div style={{ height: "100%", width: `${refW}%`, background: `linear-gradient(90deg, ${ACCENT}55, ${ACCENT}33)`, borderRadius: 3 }} />
-                </div>
-                <span style={{ fontSize: "0.52rem", color: "var(--text3)", width: 32, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(ref * 100).toFixed(1)}%</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: "0.5rem", color: "var(--text3)", width: 16, flexShrink: 0 }}>now</span>
-                <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-                  <div style={{ height: "100%", width: `${recW}%`, background: `linear-gradient(90deg, ${ACCENT}bb, ${ACCENT})`, borderRadius: 3 }} />
-                </div>
-                <span style={{ fontSize: "0.52rem", color: dc, width: 32, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(rec * 100).toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
