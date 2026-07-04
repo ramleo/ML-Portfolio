@@ -10,8 +10,9 @@ export function PercentileTable({ f }: { f: FeatureDrift }) {
 
   return (
     <div>
-      <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-        Percentile Shift
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Percentile Shift</div>
+        <div style={{ fontSize: "0.55rem", color: "var(--text3)", marginTop: 2 }}>P5–P95 reference (training baseline) vs this batch. Yellow = &gt;15% relative shift. Robust to outliers unlike mean/std alone.</div>
       </div>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.66rem" }}>
         <thead>
@@ -73,11 +74,16 @@ export function PSIWaterfall({ bins, psi }: {
 
   return (
     <div>
-      <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
-        Density Shift per Bin
-        <span style={{ fontSize: "0.55rem", color: psi > 0.25 ? "#f87171" : psi > 0.1 ? "#fbbf24" : "#34d399" }}>
-          PSI = {psi.toFixed(3)}
-        </span>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+          PSI Bin Breakdown
+          <span style={{ fontSize: "0.55rem", color: psi > 0.25 ? "#f87171" : psi > 0.1 ? "#fbbf24" : "#34d399" }}>
+            PSI = {psi.toFixed(3)}
+          </span>
+        </div>
+        <div style={{ fontSize: "0.55rem", color: "var(--text3)", marginTop: 2 }}>
+          Which value ranges drive the drift score. Orange = batch has more density here; blue = batch has less. Tall bars = biggest contributors to PSI.
+        </div>
       </div>
       <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", maxHeight: 110, display: "block" }} aria-label="PSI bin waterfall">
         {/* Zero baseline */}

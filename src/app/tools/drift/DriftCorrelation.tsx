@@ -39,8 +39,12 @@ export default function DriftCorrelation({ correlation }: { correlation: Correla
           <line x1="7" y1="19" x2="17" y2="19" /><line x1="19" y1="7" x2="19" y2="17" />
           <line x1="7" y1="7" x2="17" y2="17" />
         </svg>
-        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>Batch Feature Correlation</span>
-        <span style={{ fontSize: "0.62rem", color: "var(--text3)", marginLeft: 4 }}>{n} features · Pearson r</span>
+        <div>
+          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>Batch Feature Correlation</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 2 }}>
+            Pearson r between all numeric features in this upload. Red = positive correlation, blue = negative. Strong off-diagonal correlations may signal structural drift invisible in per-feature views.
+          </div>
+        </div>
       </div>
 
       <div style={{ overflowX: "auto" }}>

@@ -26,7 +26,7 @@ function scoreColor(s: number): string {
   return `rgb(${Math.round(251 + (248 - 251) * t)}, ${Math.round(191 - 78 * t)}, ${Math.round(36 + 77 * t)})`;
 }
 
-function formatBatchLabel(snap: HistSnap, idx: number): string {
+function formatBatchLabel(snap: HistSnap): string {
   if (snap.label) return snap.label.length > 9 ? snap.label.slice(0, 9) + "…" : snap.label;
   const d = new Date(snap.ts * 1000);
   return d.toLocaleDateString("en", { month: "short", day: "numeric" });
@@ -71,8 +71,12 @@ export default function DriftHeatmap({ modelId }: { modelId: string }) {
           <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
           <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
-        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>Drift Heatmap Over Time</span>
-        <span style={{ fontSize: "0.62rem", color: "var(--text3)", marginLeft: 4 }}>{history.length} batches</span>
+        <div>
+          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>Drift Heatmap Over Time</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 2 }}>
+            Features × batches matrix — shows which features drift consistently vs spike once. Each cell = drift score for that feature in that upload. {history.length} batches shown.
+          </div>
+        </div>
       </div>
 
       <div style={{ overflowX: "auto" }}>
@@ -85,7 +89,7 @@ export default function DriftHeatmap({ modelId }: { modelId: string }) {
               textAnchor="middle"
               transform={`rotate(-35 ${LABEL_W + j * CELL_W + CELL_W / 2} ${HEADER_H - 6})`}
               fill="var(--text3)" fontSize="9">
-              {formatBatchLabel(snap, j)}
+              {formatBatchLabel(snap)}
             </text>
           ))}
 

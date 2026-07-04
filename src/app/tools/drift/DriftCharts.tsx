@@ -161,13 +161,18 @@ export function CDFChart({ bins, ksLabel }: {
 
   return (
     <div>
-      <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
-        Empirical CDF
-        {ksLabel != null && (
-          <span style={{ fontSize: "0.55rem", color: ksLabel > 0.3 ? "#f87171" : ksLabel > 0.1 ? "#fbbf24" : "#34d399" }}>
-            KS = {ksLabel.toFixed(3)}
-          </span>
-        )}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+          Empirical CDF
+          {ksLabel != null && (
+            <span style={{ fontSize: "0.55rem", color: ksLabel > 0.3 ? "#f87171" : ksLabel > 0.1 ? "#fbbf24" : "#34d399" }}>
+              KS = {ksLabel.toFixed(3)}
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize: "0.55rem", color: "var(--text3)", marginTop: 2 }}>
+          Cumulative probability of each value. Max vertical gap between curves = KS statistic. Dashed = training ref, solid = batch.
+        </div>
       </div>
       <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", maxHeight: 120, display: "block" }} aria-label="CDF overlay">
         {grid.map(t => {
