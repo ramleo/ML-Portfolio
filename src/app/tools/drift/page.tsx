@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import DriftRunner from "./DriftRunner";
-import { DriftResult } from "./driftTypes";
+import { DriftResult, FeatureDrift } from "./driftTypes";
 
 function buildDriftContext(result: DriftResult | null): string {
   if (!result) {
