@@ -11,15 +11,13 @@ function fmt(v: number | undefined | null, decimals = 3): string {
 
 function InfoIcon({ tip }: { tip: string }) {
   return (
-    <svg
-      width="12" height="12" viewBox="0 0 12 12" fill="none"
-      stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round"
-      title={tip} style={{ cursor: "help", flexShrink: 0 }}
-    >
-      <circle cx="6" cy="6" r="5" />
-      <line x1="6" y1="5.5" x2="6" y2="8" />
-      <circle cx="6" cy="4" r="0.5" fill="var(--text3)" stroke="none" />
-    </svg>
+    <span title={tip} style={{ cursor: "help", flexShrink: 0, display: "inline-flex" }}>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round">
+        <circle cx="6" cy="6" r="5" />
+        <line x1="6" y1="5.5" x2="6" y2="8" />
+        <circle cx="6" cy="4" r="0.5" fill="var(--text3)" stroke="none" />
+      </svg>
+    </span>
   );
 }
 
@@ -40,24 +38,56 @@ function MetricCell({ label, value, color, tip }: { label: string; value: string
 // ── Stats comparison table ─────────────────────────────────────────────────────
 
 function StatsTable({ f }: { f: FeatureDrift }) {
+  const hasPartialNulls = f.null_rate > 0 && f.null_rate < 1 && f.n_recent > 0;
+  const nullPct = (f.null_rate * 100).toFixed(0);
+
   const rows: { label: string; ref: string; batch: string; highlight?: boolean }[] = [
-    { label: "Mean", ref: fmt(f.ref_mean), batch: fmt(f.recent_mean),
-      highlight: f.ref_mean != null && f.recent_mean != null && Math.abs(f.recent_mean - f.ref_mean) / (Math.abs(f.ref_mean) + 1e-9) > 0.1 },
-    { label: "Std Dev", ref: fmt(f.ref_std), batch: fmt(f.recent_std),
-      highlight: f.ref_std != null && f.recent_std != null && Math.abs(f.recent_std - f.ref_std) / (Math.abs(f.ref_std) + 1e-9) > 0.2 },
+    {
+      label: "Mean",
+      ref: fmt(f.ref_mean),
+      batch: fmt(f.recent_mean),
+      highlight: f.ref_mean != null && f.recent_mean != null
+        && Math.abs(f.recent_mean - f.ref_mean) / (Math.abs(f.ref_mean) + 1e-9) > 0.1,
+    },
+    {
+      label: "Std Dev",
+      ref: fmt(f.ref_std),
+      batch: fmt(f.recent_std),
+      highlight: f.ref_std != null && f.recent_std != null
+        && Math.abs(f.recent_std - f.ref_std) / (Math.abs(f.ref_std) + 1e-9) > 0.2,
+    },
   ];
+
   return (
     <div>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
         Reference vs Observed Stats
-        <InfoIcon tip="Reference = training baseline. Observed = this production batch. '—' means insufficient non-null values in batch." />
+        <InfoIcon tip="Reference = training baseline. Observed = this batch. Nulls are excluded before computing batch stats — '—' means no non-null values existed." />
       </div>
+
+      {/* Null exclusion note */}
+      {hasPartialNulls && (
+        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #fbbf2444" }}>
+          Batch stats computed on <strong style={{ color: "var(--text2)" }}>{f.n_recent} non-null rows</strong> ({nullPct}% nulls excluded).
+          Mean/std differences may be partly explained by which rows were non-null.
+        </div>
+      )}
+      {f.null_rate >= 1 && (
+        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #f8717144" }}>
+          All batch values are null — no non-null rows to compute stats from. Null rate shift is the signal here.
+        </div>
+      )}
+
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.68rem" }}>
         <thead>
           <tr>
-            <th style={{ textAlign: "left", fontWeight: 600, color: "var(--text3)", padding: "3px 0", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }}></th>
-            <th style={{ textAlign: "right", fontWeight: 600, color: "var(--text3)", padding: "3px 8px", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Reference</th>
-            <th style={{ textAlign: "right", fontWeight: 600, color: "var(--text3)", padding: "3px 0", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Observed (batch)</th>
+            <th style={{ textAlign: "left", fontWeight: 600, color: "var(--text3)", padding: "3px 0", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }} />
+            <th style={{ textAlign: "right", fontWeight: 600, color: "var(--text3)", padding: "3px 8px", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Reference (training)
+            </th>
+            <th style={{ textAlign: "right", fontWeight: 600, color: "var(--text3)", padding: "3px 0", fontSize: "0.58rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Observed (batch{hasPartialNulls ? `, n=${f.n_recent}` : ""})
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -66,8 +96,7 @@ function StatsTable({ f }: { f: FeatureDrift }) {
               <td style={{ padding: "5px 0", color: "var(--text2)", fontWeight: 500 }}>{r.label}</td>
               <td style={{ textAlign: "right", padding: "5px 8px", color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{r.ref}</td>
               <td style={{ textAlign: "right", padding: "5px 0", fontVariantNumeric: "tabular-nums", fontWeight: r.highlight ? 700 : 400, color: r.highlight ? "#fbbf24" : (r.batch === "—" ? "var(--text3)" : "var(--text)") }}>
-                {r.batch}
-                {r.highlight && r.batch !== "—" && " ⚠"}
+                {r.batch}{r.highlight && r.batch !== "—" && " ⚠"}
               </td>
             </tr>
           ))}
