@@ -54,7 +54,7 @@ export default function ChatMessageList({
   const hasInsights = expandedQueries.length > 0 || candidatesRetrieved != null;
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+    <div style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
       {messages.length === 0 && (
         <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
