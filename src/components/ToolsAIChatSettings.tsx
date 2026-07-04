@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useEffect } from "react";
+
 type ProviderConfig = {
   id: string;
   label: string;
@@ -23,8 +25,18 @@ export default function ToolsAIChatSettings({
   providers, provider, model, userKey, providerConfig,
   onProviderChange, onModelChange, onKeyChange,
 }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => e.stopPropagation();
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, []);
+
   return (
-    <div onWheel={e => e.stopPropagation()} style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: "0.55rem", overscrollBehavior: "contain" }}>
+    <div ref={ref} style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: "0.55rem", overscrollBehavior: "contain" }}>
       {/* Provider */}
       <div>
         <div style={{ fontSize: "0.6rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Provider</div>
