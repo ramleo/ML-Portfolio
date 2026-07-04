@@ -13,6 +13,21 @@ export type RagSource = { source: string; text: string; score: number; display_s
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
 const LS_KEY      = "tools_ai_key";
+
+// Sanitize history before sending: remove error/no-response turns, then ensure strictly alternating roles.
+// Prevents Gemini 400 caused by consecutive model turns when previous responses were errors.
+function sanitizeHistory(msgs: Message[]): Message[] {
+  const filtered = msgs.filter(m =>
+    !(m.role === "assistant" && (m.content.startsWith("Error:") || m.content === "No response."))
+  );
+  const result: Message[] = [];
+  for (const m of filtered) {
+    if (result.length === 0 || result[result.length - 1].role !== m.role) {
+      result.push(m);
+    }
+  }
+  return result;
+}
 const LS_SESSION  = "rag_session_id";
 
 export function useRagChat(context: ToolChatContext) {
@@ -120,12 +135,13 @@ export function useRagChat(context: ToolChatContext) {
     setExpandedQueries([]); setCandidatesRetrieved(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
+    const history = sanitizeHistory(messages.slice(-10)).slice(-6);
     const body = deepSearch
       ? { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
-          history: messages.slice(-6), provider, model,
+          history, provider, model,
           user_key: userKey || undefined, session_id: sessionId || undefined }
       : { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
-          history: messages.slice(-6), provider, model,
+          history, provider, model,
           user_key: userKey || undefined,
           embedding_model: useJina ? "jina" : "minilm",
           session_id: sessionId || undefined };
