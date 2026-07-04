@@ -255,10 +255,18 @@ export default function DriftRunner() {
           }}
         >
           <input ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={e => onFiles(e.target.files)} />
-          {busy
-            ? <span style={{ fontSize: "0.75rem", color: ACCENT }}>Analysing batch…</span>
-            : <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Drop new-batch CSV here, or click to browse</span>
-          }
+          {busy ? (
+            <span style={{ fontSize: "0.75rem", color: ACCENT }}>Analysing batch…</span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Drop new-batch CSV here, or click to browse</span>
+            </div>
+          )}
         </div>
 
         {error && <div style={{ fontSize: "0.7rem", color: "#f87171" }}>{error}</div>}
