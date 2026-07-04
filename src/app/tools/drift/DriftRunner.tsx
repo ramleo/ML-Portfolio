@@ -11,7 +11,7 @@ import DriftHeatmap       from "./DriftHeatmap";
 import DriftCorrelation   from "./DriftCorrelation";
 import DriftAIExplain     from "./DriftAIExplain";
 
-export default function DriftRunner() {
+export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult | null) => void }) {
   const [models,     setModels]     = useState<ModelMeta[]>([]);
   const [modelId,    setModelId]    = useState("");
   const [batchLabel, setBatchLabel] = useState("");
@@ -33,7 +33,7 @@ export default function DriftRunner() {
 
   async function runDrift(file: File) {
     if (!modelId) { setError("Select a model first."); return; }
-    setBusy(true); setError(""); setResult(null);
+    setBusy(true); setError(""); setResult(null); onResult?.(null);
     try {
       const fd  = new FormData();
       fd.append("file", file);
@@ -42,7 +42,8 @@ export default function DriftRunner() {
         : `${ML_UNIFIED_API}/drift/${modelId}/upload`;
       const res = await fetch(url, { method: "POST", body: fd });
       if (!res.ok) { const t = await res.text(); throw new Error(t); }
-      setResult(await res.json());
+      const r = await res.json();
+      setResult(r); onResult?.(r);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {

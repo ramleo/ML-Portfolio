@@ -156,6 +156,7 @@ export function useRagChat(context: ToolChatContext) {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let assistantText = "";
+      let hadError = false;
       const collectedSources: RagSource[] = [];
       let prevStep: string | null = null;
       let sseBuffer = "";
@@ -194,12 +195,13 @@ export function useRagChat(context: ToolChatContext) {
                   : [...m, { role: "assistant", content: assistantText }];
               });
             } else if (evt.type === "error") {
+              hadError = true;
               setMessages(m => [...m, { role: "assistant", content: `Error: ${evt.message}` }]);
             }
           } catch { /* skip malformed lines */ }
         }
       }
-      if (!assistantText)
+      if (!assistantText && !hadError)
         setMessages(m => [...m, { role: "assistant", content: "No response." }]);
     } catch (e) {
       setMessages(m => [...m, { role: "assistant",
