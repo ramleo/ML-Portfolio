@@ -22,7 +22,10 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
 
   return (
     <div>
-      <div style={{ fontSize: "0.58rem", color: "var(--text3)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Drift Trend · {points.length} batches</div>
+      <div style={{ fontSize: "0.58rem", color: "var(--text3)", marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.06em" }}>Drift Trend · {points.length} batches</div>
+      <div style={{ fontSize: "0.55rem", color: "var(--text3)", fontStyle: "italic", marginBottom: 6 }}>
+        Overall drift score across successive batch uploads. Rising = worsening shift.
+      </div>
       <svg width={W} height={H + 26} style={{ display: "block", overflow: "visible" }}>
         {/* Y-axis grid */}
         {yTicks.map(t => {
@@ -72,6 +75,9 @@ function FeatureBreakdown({ features }: { features: DriftResult["features"] }) {
       <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
         Feature Breakdown · {total} features
       </div>
+      <div style={{ fontSize: "0.57rem", color: "var(--text3)", fontStyle: "italic", marginBottom: 2 }}>
+        Count of features in each severity bucket — instantly shows how many columns are at risk.
+      </div>
       <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", gap: 2 }}>
         {high > 0 && <div style={{ flex: high, background: "#f87171", borderRadius: "4px 0 0 4px" }} title={`${high} high-drift`} />}
         {med  > 0 && <div style={{ flex: med,  background: "#fbbf24" }} title={`${med} medium-drift`} />}
@@ -93,7 +99,10 @@ function OverallScore({ score, level }: { score: number; level: string }) {
   const pct   = score * 100;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", minWidth: 160 }}>
-      <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Overall Drift</div>
+      <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Overall Drift Score</div>
+      <div style={{ fontSize: "0.57rem", color: "var(--text3)", fontStyle: "italic", marginBottom: 2 }}>
+        Weighted average PSI across all features. 0–10% = stable, 10–25% = moderate, &gt;25% = significant.
+      </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: "0.3rem" }}>
         <span style={{ fontSize: "2.8rem", fontWeight: 800, color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
           {pct.toFixed(0)}

@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { ModelMeta, DriftResult, ACCENT } from "./driftTypes";
-import DriftFeatureCard from "./DriftFeatureCard";
-import DriftOverview    from "./DriftOverview";
-import DriftAIExplain   from "./DriftAIExplain";
+import DriftFeatureCard   from "./DriftFeatureCard";
+import DriftOverview      from "./DriftOverview";
+import DriftRankingChart  from "./DriftRankingChart";
+import DriftAIExplain     from "./DriftAIExplain";
 
 export default function DriftRunner() {
   const [models,     setModels]     = useState<ModelMeta[]>([]);
@@ -123,6 +124,7 @@ export default function DriftRunner() {
       {result && (
         <>
           <DriftOverview result={result} />
+          <DriftRankingChart features={result.features} />
           <DriftAIExplain result={result} modelId={modelId} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
