@@ -67,7 +67,7 @@ export function useRagChat(context: ToolChatContext) {
     const s = localStorage.getItem(LS_SESSION);
     if (p) setProvider(p); if (m) setModel(m); if (k) setUserKey(k); if (s) setSessionId(s);
   }, []);
-  useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); }, [provider]);
+  useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); setUserKey(""); }, [provider]);
   useEffect(() => { localStorage.setItem(LS_MODEL, model); }, [model]);
   useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
   useEffect(() => { localStorage.setItem(LS_SESSION, sessionId); }, [sessionId]);
