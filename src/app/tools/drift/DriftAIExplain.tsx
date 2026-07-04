@@ -5,12 +5,13 @@ import { DriftResult, ACCENT } from "./driftTypes";
 import { ML_UNIFIED_API } from "@/config/urls";
 
 const PROVIDERS = [
-  { id: "groq"   as const, label: "Groq",   model: "Llama 3.3 70B",     color: "#f59e0b" },
-  { id: "gemini" as const, label: "Gemini", model: "Gemini 2.0 Flash",   color: "#34d399" },
-  { id: "cohere" as const, label: "Cohere", model: "Command A 03-2025",   color: "#a78bfa" },
+  { id: "groq",             label: "Groq",       model: "Llama 3.3 70B",    color: "#f59e0b" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5", model: "Gemini 2.5 Flash", color: "#34d399" },
+  { id: "gemini-3.5-flash", label: "Gemini 3.5", model: "Gemini 3.5 Flash", color: "#22d3ee" },
+  { id: "cohere",           label: "Cohere",     model: "Command A 03-2025",color: "#a78bfa" },
 ];
 
-type ProviderId = "groq" | "gemini" | "cohere";
+type ProviderId = "groq" | "gemini-2.5-flash" | "gemini-3.5-flash" | "cohere";
 
 // ── Recommendations ────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ function Recommendations({ result }: { result: DriftResult }) {
 // ── Main AI explain panel ──────────────────────────────────────────────────────
 
 export default function DriftAIExplain({ result, modelId }: { result: DriftResult; modelId: string }) {
-  const [provider, setProvider] = useState<ProviderId>("groq");
+  const [provider, setProvider] = useState<ProviderId>("gemini-2.5-flash");
   const [loading,  setLoading]  = useState(false);
   const [text,     setText]     = useState("");
   const [error,    setError]    = useState("");
