@@ -7,7 +7,7 @@ import { ML_UNIFIED_API } from "@/config/urls";
 const PROVIDERS = [
   { id: "groq"   as const, label: "Groq",   model: "Llama 3.3 70B",     color: "#f59e0b" },
   { id: "gemini" as const, label: "Gemini", model: "Gemini 2.0 Flash",   color: "#34d399" },
-  { id: "cohere" as const, label: "Cohere", model: "Command R+",          color: "#a78bfa" },
+  { id: "cohere" as const, label: "Cohere", model: "Command A 03-2025",   color: "#a78bfa" },
 ];
 
 type ProviderId = "groq" | "gemini" | "cohere";
