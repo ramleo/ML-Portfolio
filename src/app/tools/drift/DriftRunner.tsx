@@ -129,14 +129,14 @@ export default function DriftRunner() {
           <DriftOverview result={result} />
 
           {/* Ranking + Radar side by side */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem", alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem" }}>
             <DriftRankingChart features={result.features} />
             <DriftRadarChart features={result.features} />
           </div>
 
           {/* Heatmap + Correlation side by side (when both available) */}
           {result.correlation ? (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
               <DriftHeatmap modelId={modelId} />
               <DriftCorrelation correlation={result.correlation} />
             </div>
