@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FeatureDrift, levelColor, ACCENT } from "./driftTypes";
-import { NumericHistogram, CategoricalBars } from "./DriftCharts";
+import { FeatureDrift, levelColor } from "./driftTypes";
+import { NumericHistogram, CategoricalBars, CDFChart } from "./DriftCharts";
+import { PercentileTable, PSIWaterfall } from "./DriftExtraCharts";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -141,7 +142,8 @@ function GaugeBar({ label, value, max = 1, lowT = 0.1, highT = 0.25, tip }: {
 // ── Main feature card ──────────────────────────────────────────────────────────
 
 export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
-  const [open, setOpen] = useState(f.drift_level === "high");
+  const [open,      setOpen]      = useState(f.drift_level === "high");
+  const [showExtra, setShowExtra] = useState(false);
   const lc = levelColor(f.drift_level);
   const highNull = f.null_rate >= 0.8;
 
@@ -241,6 +243,34 @@ export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
               </div>
               <NumericHistogram bins={f.histogram} />
             </div>
+          )}
+
+          {/* CDF · Percentiles · PSI breakdown (expandable) */}
+          {f.type === "numeric" && f.histogram && f.histogram.length > 0 && !highNull && (
+            <>
+              <button onClick={() => setShowExtra(x => !x)} style={{
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                fontSize: "0.6rem", color: "var(--text3)", display: "flex", alignItems: "center", gap: 4,
+                textDecoration: "underline", textUnderlineOffset: 2,
+              }}>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+                  style={{ transform: showExtra ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
+                  <path d="M2.5 2.5l5 2.5-5 2.5" />
+                </svg>
+                {showExtra ? "Hide CDF · Percentiles · PSI" : "Show CDF · Percentiles · PSI breakdown"}
+              </button>
+              {showExtra && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+                  <CDFChart bins={f.histogram} ksLabel={f.ks_stat} />
+                  <PSIWaterfall bins={f.histogram} psi={f.psi} />
+                  {f.ref_pct && f.recent_pct && (
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <PercentileTable f={f} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
 
           {/* Categorical bars */}

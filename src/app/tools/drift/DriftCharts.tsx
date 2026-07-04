@@ -127,6 +127,71 @@ export function NumericHistogram({ bins }: { bins: NonNullable<FeatureDrift["his
   );
 }
 
+// ── CDF overlay ────────────────────────────────────────────────────────────────
+
+export function CDFChart({ bins, ksLabel }: {
+  bins: NonNullable<FeatureDrift["histogram"]>;
+  ksLabel?: number;
+}) {
+  if (!bins.length) return null;
+
+  const VW = 400, VH = 90;
+  const PAD = { l: 32, r: 6, t: 10, b: 20 };
+  const CW = VW - PAD.l - PAD.r;
+  const CH = VH - PAD.t - PAD.b;
+  const n = bins.length;
+
+  const refTotal = bins.reduce((s, b) => s + b.ref_h, 0) || 1;
+  const actTotal = bins.reduce((s, b) => s + b.actual_h, 0) || 1;
+
+  const refPts: [number, number][] = [[PAD.l, PAD.t + CH]];
+  const actPts: [number, number][] = [[PAD.l, PAD.t + CH]];
+  let rc = 0, ac = 0;
+  bins.forEach((b, i) => {
+    rc += b.ref_h / refTotal;
+    ac += b.actual_h / actTotal;
+    const x = PAD.l + ((i + 1) / n) * CW;
+    refPts.push([x, PAD.t + CH * (1 - rc)]);
+    actPts.push([x, PAD.t + CH * (1 - ac)]);
+  });
+
+  const refLine = smoothPath(refPts);
+  const actLine = smoothPath(actPts);
+  const grid = [0.25, 0.5, 0.75, 1.0];
+
+  return (
+    <div>
+      <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+        Empirical CDF
+        {ksLabel != null && (
+          <span style={{ fontSize: "0.55rem", color: ksLabel > 0.3 ? "#f87171" : ksLabel > 0.1 ? "#fbbf24" : "#34d399" }}>
+            KS = {ksLabel.toFixed(3)}
+          </span>
+        )}
+      </div>
+      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", maxHeight: 120, display: "block" }} aria-label="CDF overlay">
+        {grid.map(t => {
+          const y = PAD.t + CH * (1 - t);
+          return (
+            <g key={t}>
+              <line x1={PAD.l} x2={VW - PAD.r} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.8} />
+              <text x={PAD.l - 3} y={y + 3} textAnchor="end" fill="var(--text3)" fontSize="8">{(t * 100).toFixed(0)}%</text>
+            </g>
+          );
+        })}
+        <line x1={PAD.l} x2={VW - PAD.r} y1={PAD.t + CH} y2={PAD.t + CH} stroke="rgba(255,255,255,0.12)" strokeWidth={0.8} />
+        {refLine && <path d={refLine} fill="none" stroke={`${ACCENT}70`} strokeWidth={1.8} strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />}
+        {actLine && <path d={actLine} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
+        {[0, Math.floor(n / 2), n - 1].map(i => (
+          <text key={i} x={PAD.l + ((i + 0.5) / n) * CW} y={VH - 4} textAnchor="middle" fill="var(--text3)" fontSize="8">
+            {i === 0 ? bins[0].lo.toFixed(1) : i === n - 1 ? bins[n - 1].hi.toFixed(1) : ((bins[0].lo + bins[n - 1].hi) / 2).toFixed(1)}
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 // ── Categorical bars ───────────────────────────────────────────────────────────
 
 export function CategoricalBars({ f }: { f: FeatureDrift }) {

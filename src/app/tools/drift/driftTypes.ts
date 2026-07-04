@@ -24,6 +24,9 @@ export type FeatureDrift = {
   recent_dist?: Record<string, number>;
   cat_baseline?: string;
   high_cardinality?: boolean;
+  // percentiles [P5, P25, P50, P75, P95]
+  recent_pct?: number[];
+  ref_pct?: number[];
 };
 
 export type TrendPoint = {
@@ -31,6 +34,11 @@ export type TrendPoint = {
   overall_score: number;
   overall_level: string;
   label?: string;
+};
+
+export type CorrelationData = {
+  features: string[];
+  matrix: number[][];
 };
 
 export type DriftResult = {
@@ -43,6 +51,7 @@ export type DriftResult = {
   label?: string;
   features: FeatureDrift[];
   trend: TrendPoint[];
+  correlation?: CorrelationData;
 };
 
 export function levelColor(lv: string) {

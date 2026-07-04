@@ -7,6 +7,8 @@ import DriftFeatureCard   from "./DriftFeatureCard";
 import DriftOverview      from "./DriftOverview";
 import DriftRankingChart  from "./DriftRankingChart";
 import DriftRadarChart    from "./DriftRadarChart";
+import DriftHeatmap       from "./DriftHeatmap";
+import DriftCorrelation   from "./DriftCorrelation";
 import DriftAIExplain     from "./DriftAIExplain";
 
 export default function DriftRunner() {
@@ -127,6 +129,8 @@ export default function DriftRunner() {
           <DriftOverview result={result} />
           <DriftRankingChart features={result.features} />
           <DriftRadarChart features={result.features} />
+          <DriftHeatmap modelId={modelId} />
+          {result.correlation && <DriftCorrelation correlation={result.correlation} />}
           <DriftAIExplain result={result} modelId={modelId} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
