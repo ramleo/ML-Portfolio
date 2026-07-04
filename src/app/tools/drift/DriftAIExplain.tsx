@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import { DriftResult, ACCENT } from "./driftTypes";
 import { ML_UNIFIED_API } from "@/config/urls";
 
@@ -179,10 +180,25 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
       {(text || loading) && (
         <div style={{
           background: "rgba(0,0,0,0.22)", border: "1px solid rgba(255,255,255,0.06)",
-          borderRadius: 9, padding: "1rem", fontSize: "0.72rem", lineHeight: 1.7,
-          color: "var(--text2)", whiteSpace: "pre-wrap", minHeight: 80,
+          borderRadius: 9, padding: "1rem 1.2rem", fontSize: "0.72rem", lineHeight: 1.75,
+          color: "var(--text2)", minHeight: 80,
         }}>
-          {text}
+          <ReactMarkdown
+            components={{
+              h1: ({ children }) => <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)", margin: "0.75rem 0 0.3rem" }}>{children}</div>,
+              h2: ({ children }) => <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)", margin: "0.75rem 0 0.3rem" }}>{children}</div>,
+              h3: ({ children }) => <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)", margin: "0.6rem 0 0.25rem" }}>{children}</div>,
+              p:  ({ children }) => <p style={{ margin: "0.35rem 0", color: "var(--text2)" }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: "var(--text)", fontWeight: 700 }}>{children}</strong>,
+              hr: () => <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "0.75rem 0" }} />,
+              ul: ({ children }) => <ul style={{ margin: "0.3rem 0", paddingLeft: "1.2rem" }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ margin: "0.3rem 0", paddingLeft: "1.2rem" }}>{children}</ol>,
+              li: ({ children }) => <li style={{ margin: "0.15rem 0", color: "var(--text2)" }}>{children}</li>,
+              code: ({ children }) => <code style={{ background: "rgba(255,255,255,0.07)", borderRadius: 3, padding: "1px 5px", fontSize: "0.68rem", color: ACCENT }}>{children}</code>,
+            }}
+          >
+            {text}
+          </ReactMarkdown>
           {loading && <span style={{ color: ACCENT, opacity: 0.7 }}>▌</span>}
         </div>
       )}

@@ -32,7 +32,7 @@ function fillArea(pts: [number, number][], baseY: number): string {
 export function NumericHistogram({ bins }: { bins: NonNullable<FeatureDrift["histogram"]> }) {
   if (!bins.length) return null;
 
-  const VW = 400, VH = 140;
+  const VW = 400, VH = 100;
   const PAD = { l: 32, r: 6, t: 6, b: 20 };
   const CW = VW - PAD.l - PAD.r;
   const CH = VH - PAD.t - PAD.b;
@@ -71,7 +71,7 @@ export function NumericHistogram({ bins }: { bins: NonNullable<FeatureDrift["his
         <span style={{ marginLeft: "auto", fontStyle: "italic" }}>dashed = ref curve · solid = batch curve</span>
       </div>
 
-      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", display: "block" }} aria-label="Distribution histogram">
+      <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", maxHeight: 160, display: "block" }} aria-label="Distribution histogram">
         {/* Grid lines + y-axis labels */}
         {grid.map(t => {
           const y = PAD.t + CH - t * CH;

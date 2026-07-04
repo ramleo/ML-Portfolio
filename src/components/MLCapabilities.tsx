@@ -321,9 +321,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
 // Mobile always scrolls.
 export default function MLCapabilities() {
   const router    = useRouter();
-  const isOdd     = capabilities.length % 2 !== 0;
-  const isSmall   = capabilities.length < 6;
-  const useScroll = isOdd || isSmall;
+  const useScroll = capabilities.length % 3 !== 0;
 
   return (
     <>
