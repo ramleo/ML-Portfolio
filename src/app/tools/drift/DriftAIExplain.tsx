@@ -139,7 +139,7 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
         {/* Provider selector */}
         <div style={{ display: "flex", gap: "0.35rem" }}>
           {PROVIDERS.map(p => (
-            <button key={p.id} onClick={() => setProvider(p.id)} style={{
+            <button key={p.id} onClick={() => setProvider(p.id as ProviderId)} style={{
               fontSize: "0.62rem", fontWeight: 600, padding: "3px 10px", borderRadius: 6, cursor: "pointer",
               border: `1px solid ${provider === p.id ? p.color : "rgba(255,255,255,0.12)"}`,
               background: provider === p.id ? `${p.color}18` : "transparent",
