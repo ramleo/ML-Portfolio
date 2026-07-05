@@ -116,7 +116,7 @@ export default function ChatMessageList({
         </div>
       )}
 
-      {sources.length > 0 && !loading && (
+      {sources.length > 0 && !loading && answerSource !== "dataset" && (
         <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
           {/* Sources toggle row */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
