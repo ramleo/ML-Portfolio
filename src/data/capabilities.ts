@@ -178,6 +178,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/pipeline-cinema",
   },
+  {
+    id: "text-to-sql",
+    title: "Text-to-SQL Agent",
+    subtitle: "Natural Language → Database Queries",
+    description:
+      "Ask questions in plain English and get executable SQL instantly. The agent generates SQL, runs it against a real database, explains results, and retries automatically on errors. Supports Chinook demo DB, SQLite upload, and PostgreSQL.",
+    accent: "#6366f1",
+    stat: "3",
+    statLabel: "LLM Providers",
+    model: "Groq / Gemini / Cohere",
+    input: "Natural language question",
+    tags: ["SQL", "LLM", "Agent", "Database", "NLP"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/text-to-sql",
+  },
 ];
 
 export default capabilities;

@@ -3,3 +3,4 @@ if (!process.env.NEXT_PUBLIC_ML_UNIFIED_URL) {
 }
 
 export const ML_UNIFIED_API = (process.env.NEXT_PUBLIC_ML_UNIFIED_URL ?? "").replace(/\/$/, "");
+export const ML_SQL_API     = (process.env.NEXT_PUBLIC_ML_SQL_URL     ?? "").replace(/\/$/, "");
