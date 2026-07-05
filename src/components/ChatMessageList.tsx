@@ -19,6 +19,8 @@ interface Props {
   latencyMs?:        number | null;
   expandedQueries?:  string[];
   candidatesRetrieved?: number | null;
+  answerSource?:     string | null;
+  confidence?:       string | null;
   onSuggestion:      (q: string) => void;
   onSourcesToggle:   () => void;
 }
@@ -43,10 +45,19 @@ const SUGGESTIONS = [
   "When should I use frequency encoding?",
 ];
 
+const SOURCE_LABELS: Record<string, string> = {
+  dataset: "Dataset", uploaded_doc: "Your Doc",
+  knowledge_base: "Knowledge Base", web: "Web", none: "Dataset",
+};
+const CONFIDENCE_COLORS: Record<string, string> = {
+  high: "#34d399", medium: "#f59e0b", low: "#f87171",
+};
+
 export default function ChatMessageList({
   messages, loading, loadingLabel, sources, sourcesOpen,
   accentColor, bottomRef, cacheHit, latencyMs,
   expandedQueries = [], candidatesRetrieved,
+  answerSource, confidence,
   onSuggestion, onSourcesToggle,
 }: Props) {
   const [insightsOpen, setInsightsOpen] = useState(false);
@@ -84,6 +95,26 @@ export default function ChatMessageList({
             : <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>}
         </div>
       ))}
+
+      {/* Confidence + source badge — shown after last assistant message */}
+      {messages.length > 0 && messages[messages.length - 1].role === "assistant" && !loading && confidence && (
+        <div style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "0.35rem", marginTop: "-0.2rem" }}>
+          {answerSource && SOURCE_LABELS[answerSource] && (
+            <span style={{ fontSize: "0.54rem", color: "var(--text3)", fontWeight: 500 }}>
+              {SOURCE_LABELS[answerSource]}
+            </span>
+          )}
+          {answerSource && SOURCE_LABELS[answerSource] && <span style={{ fontSize: "0.5rem", color: "var(--text3)" }}>·</span>}
+          <span style={{
+            fontSize: "0.54rem", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
+            color: CONFIDENCE_COLORS[confidence] ?? "var(--text3)",
+            background: `${CONFIDENCE_COLORS[confidence] ?? "#888"}18`,
+            borderRadius: 9999, padding: "1px 6px",
+          }}>
+            {confidence} confidence
+          </span>
+        </div>
+      )}
 
       {sources.length > 0 && !loading && (
         <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>

@@ -52,6 +52,8 @@ export function useRagChat(context: ToolChatContext) {
   const [agentRewritten, setAgentRewritten] = useState(false);
   const [expandedQueries, setExpandedQueries] = useState<string[]>([]);
   const [candidatesRetrieved, setCandidatesRetrieved] = useState<number | null>(null);
+  const [answerSource, setAnswerSource] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<string | null>(null);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -59,6 +61,7 @@ export function useRagChat(context: ToolChatContext) {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
+  const mountedRef = useRef(false);
 
   useEffect(() => {
     const p = localStorage.getItem(LS_PROVIDER);
@@ -66,8 +69,13 @@ export function useRagChat(context: ToolChatContext) {
     const k = localStorage.getItem(LS_KEY);
     const s = localStorage.getItem(LS_SESSION);
     if (p) setProvider(p); if (m) setModel(m); if (k) setUserKey(k); if (s) setSessionId(s);
+    mountedRef.current = true;
   }, []);
-  useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); setUserKey(""); }, [provider]);
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    localStorage.setItem(LS_PROVIDER, provider);
+    setUserKey("");
+  }, [provider]);
   useEffect(() => { localStorage.setItem(LS_MODEL, model); }, [model]);
   useEffect(() => { localStorage.setItem(LS_KEY, userKey); }, [userKey]);
   useEffect(() => { localStorage.setItem(LS_SESSION, sessionId); }, [sessionId]);
@@ -122,6 +130,7 @@ export function useRagChat(context: ToolChatContext) {
     setLowConfidence(false); setCacheHit(false); setLatencyMs(null);
     setAgentRewritten(false); setAgentLoops(0); setAgentStep(null);
     setAgentDoneSteps([]); setExpandedQueries([]); setCandidatesRetrieved(null);
+    setAnswerSource(null); setConfidence(null);
   }, []);
 
   const send = useCallback(async () => {
@@ -133,6 +142,7 @@ export function useRagChat(context: ToolChatContext) {
     setCacheHit(false); setLatencyMs(null); setAgentStep(null);
     setAgentDoneSteps([]); setAgentLoops(0); setAgentRewritten(false);
     setExpandedQueries([]); setCandidatesRetrieved(null);
+    setAnswerSource(null); setConfidence(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
@@ -186,6 +196,8 @@ export function useRagChat(context: ToolChatContext) {
               if (typeof evt.latency_ms === "number") setLatencyMs(evt.latency_ms);
               if (Array.isArray(evt.expanded_queries)) setExpandedQueries(evt.expanded_queries);
               if (typeof evt.candidates_retrieved === "number") setCandidatesRetrieved(evt.candidates_retrieved);
+              if (evt.answer_source) setAnswerSource(evt.answer_source);
+              if (evt.confidence) setConfidence(evt.confidence);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -225,6 +237,7 @@ export function useRagChat(context: ToolChatContext) {
     deepSearch, setDeepSearch,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
+    answerSource, confidence,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     providerConfig, accentColor, loadingLabel,
