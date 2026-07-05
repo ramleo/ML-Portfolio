@@ -16,16 +16,23 @@ function buildDriftContext(result: DriftResult | null): string {
   const medium = result.features.filter(f => f.drift_level === "medium");
   const low    = result.features.filter(f => f.drift_level === "low");
 
-  const featLine = (f: FeatureDrift) =>
-    `${f.label ?? f.name} (${f.type}, drift=${pct(f.drift_score)}, PSI=${f.psi?.toFixed(3) ?? "n/a"}${f.ks_stat != null ? `, KS=${f.ks_stat.toFixed(3)}` : ""})`;
+  const featLine = (f: FeatureDrift) => {
+    const parts = [`${f.label ?? f.name}`, `type=${f.type}`, `drift=${pct(f.drift_score)}`, `PSI=${f.psi?.toFixed(3) ?? "n/a"}`];
+    if (f.ks_stat != null) parts.push(`KS=${f.ks_stat.toFixed(3)}`);
+    if (f.recent_mean != null) parts.push(`batch_mean=${f.recent_mean.toFixed(2)}`);
+    if (f.recent_std  != null) parts.push(`batch_std=${f.recent_std.toFixed(2)}`);
+    if (f.recent_pct?.length === 5) parts.push(`batch_range=[${f.recent_pct[0].toFixed(2)}, ${f.recent_pct[4].toFixed(2)}]`);
+    if (f.ref_mean    != null) parts.push(`ref_mean=${f.ref_mean.toFixed(2)}`);
+    if (f.ref_std     != null) parts.push(`ref_std=${f.ref_std.toFixed(2)}`);
+    return `  - ${parts.join(", ")}`;
+  };
 
   const lines = [
     `Tool: Data Drift Detection`,
     `Batch: ${result.label ?? result.filename ?? "unnamed"} | Rows: ${result.n_recent} | Overall drift: ${pct(result.overall_score)} (${result.overall_level})`,
     `Total features: ${result.features.length} | High drift: ${high.length} | Medium: ${medium.length} | Low: ${low.length}`,
-    high.length   ? `HIGH drift features: ${high.map(featLine).join("; ")}` : "",
-    medium.length ? `MEDIUM drift features: ${medium.map(featLine).join("; ")}` : "",
-    low.length    ? `LOW drift features: ${low.map(featLine).join("; ")}` : "",
+    `Feature statistics (batch vs reference):`,
+    ...result.features.map(featLine),
   ].filter(Boolean);
 
   return lines.join("\n");
