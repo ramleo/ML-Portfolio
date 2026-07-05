@@ -46,6 +46,7 @@ export function useRagChat(context: ToolChatContext) {
   const [latencyMs, setLatencyMs]     = useState<number | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [deepSearch, setDeepSearch]   = useState(false);
+  const [forceWeb, setForceWeb]       = useState(false);
   const [agentStep, setAgentStep]     = useState<string | null>(null);
   const [agentDoneSteps, setAgentDoneSteps] = useState<string[]>([]);
   const [agentLoops, setAgentLoops]   = useState(0);
@@ -149,12 +150,14 @@ export function useRagChat(context: ToolChatContext) {
     const body = deepSearch
       ? { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
           history, provider, model,
-          user_key: userKey || undefined, session_id: sessionId || undefined }
+          user_key: userKey || undefined, session_id: sessionId || undefined,
+          force_web: forceWeb || undefined }
       : { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
           history, provider, model,
           user_key: userKey || undefined,
           embedding_model: useJina ? "jina" : "minilm",
-          session_id: sessionId || undefined };
+          session_id: sessionId || undefined,
+          force_web: forceWeb || undefined };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
@@ -221,7 +224,7 @@ export function useRagChat(context: ToolChatContext) {
     } finally {
       setLoading(false); setAgentStep(null);
     }
-  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch]);
+  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -234,7 +237,7 @@ export function useRagChat(context: ToolChatContext) {
     ingestStatus, setIngestStatus,
     useJina, jinaStatus, setJinaStatus, lowConfidence,
     cacheHit, latencyMs, confirmClear, setConfirmClear,
-    deepSearch, setDeepSearch,
+    deepSearch, setDeepSearch, forceWeb, setForceWeb,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence,

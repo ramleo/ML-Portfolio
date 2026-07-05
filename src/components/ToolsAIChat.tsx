@@ -25,7 +25,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
     ingestStatus, setIngestStatus,
     useJina, jinaStatus, lowConfidence,
     cacheHit, latencyMs, confirmClear, setConfirmClear,
-    deepSearch, setDeepSearch,
+    deepSearch, setDeepSearch, forceWeb, setForceWeb,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence,
@@ -76,6 +76,12 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
                   title={deepSearch ? "Deep Search active — click to disable." : "Enable Deep Search — LangGraph agent refines query if retrieval quality is low"}
                   style={{ background: deepSearch ? `${accentColor}22` : "transparent", border: `1px solid ${deepSearch ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: deepSearch ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
                   <DeepSearchIcon />{deepSearch ? "Deep" : "Std"}
+                </button>
+                <button onClick={() => setForceWeb(w => !w)}
+                  title={forceWeb ? "Web override active — responses sourced from live web. Click to disable." : "Force web search — bypasses dataset/KB, searches the web directly"}
+                  style={{ background: forceWeb ? "#f59e0b22" : "transparent", border: `1px solid ${forceWeb ? "#f59e0b55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: forceWeb ? "#f59e0b" : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="5"/><path d="M6 1 C4 3 4 9 6 11"/><path d="M6 1 C8 3 8 9 6 11"/><line x1="1.5" y1="4.5" x2="10.5" y2="4.5"/><line x1="1.5" y1="7.5" x2="10.5" y2="7.5"/></svg>
+                  Web
                 </button>
                 <button onClick={enableJina}
                   title={useJina && jinaStatus === "loading" ? "Jina v3 loading…" : useJina ? "Jina v3 active — click to disable" : "Enable Jina v3 embeddings"}
