@@ -30,7 +30,7 @@ export default function ToolsAIChatSettings({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const handler = (e: WheelEvent) => e.stopPropagation();
+    const handler = (e: WheelEvent) => { e.preventDefault(); e.stopPropagation(); };
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
   }, []);
