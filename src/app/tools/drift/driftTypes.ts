@@ -41,6 +41,13 @@ export type CorrelationData = {
   matrix: number[][];
 };
 
+export type DriftVersion = {
+  version: number;
+  label: string;
+  ts: number | null;
+  is_training: boolean;
+};
+
 export type DriftResult = {
   n_recent: number;
   overall_score: number;
@@ -52,6 +59,10 @@ export type DriftResult = {
   features: FeatureDrift[];
   trend: TrendPoint[];
   correlation?: CorrelationData;
+  // versioning
+  version_num?: number;
+  compared_against?: string;
+  compared_against_v?: number;
 };
 
 export function levelColor(lv: string) {

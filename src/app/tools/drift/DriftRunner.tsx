@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { ModelMeta, DriftResult, ACCENT } from "./driftTypes";
+import { ModelMeta, DriftResult, DriftVersion, ACCENT } from "./driftTypes";
 import DriftFeatureCard   from "./DriftFeatureCard";
 import DriftOverview      from "./DriftOverview";
 import DriftRankingChart  from "./DriftRankingChart";
@@ -12,13 +12,15 @@ import DriftCorrelation   from "./DriftCorrelation";
 import DriftAIExplain     from "./DriftAIExplain";
 
 export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult | null) => void }) {
-  const [models,     setModels]     = useState<ModelMeta[]>([]);
-  const [modelId,    setModelId]    = useState("");
-  const [batchLabel, setBatchLabel] = useState("");
-  const [dragging,   setDragging]   = useState(false);
-  const [busy,       setBusy]       = useState(false);
-  const [result,     setResult]     = useState<DriftResult | null>(null);
-  const [error,      setError]      = useState("");
+  const [models,            setModels]            = useState<ModelMeta[]>([]);
+  const [modelId,           setModelId]           = useState("");
+  const [batchLabel,        setBatchLabel]         = useState("");
+  const [compareToTraining, setCompareToTraining]  = useState(false);
+  const [versions,          setVersions]           = useState<DriftVersion[]>([]);
+  const [dragging,          setDragging]           = useState(false);
+  const [busy,              setBusy]               = useState(false);
+  const [result,            setResult]             = useState<DriftResult | null>(null);
+  const [error,             setError]              = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,10 +28,22 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
       .then(r => r.json())
       .then((data: ModelMeta[]) => {
         setModels(data);
-        if (data.length > 0) setModelId(data[0].id);
+        if (data.length > 0) { setModelId(data[0].id); fetchVersions(data[0].id); }
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => { if (modelId) fetchVersions(modelId); }, [modelId]);
+
+  async function fetchVersions(mid: string) {
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/drift/${mid}/versions`);
+      if (res.ok) {
+        const data = await res.json();
+        setVersions(data.versions ?? []);
+      }
+    } catch { /* ignore */ }
+  }
 
   async function runDrift(file: File) {
     if (!modelId) { setError("Select a model first."); return; }
@@ -37,13 +51,15 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
     try {
       const fd  = new FormData();
       fd.append("file", file);
-      const url = batchLabel.trim()
-        ? `${ML_UNIFIED_API}/drift/${modelId}/upload?label=${encodeURIComponent(batchLabel.trim())}`
-        : `${ML_UNIFIED_API}/drift/${modelId}/upload`;
+      const params = new URLSearchParams();
+      if (batchLabel.trim()) params.set("label", batchLabel.trim());
+      if (compareToTraining) params.set("compare_to_training", "true");
+      const url = `${ML_UNIFIED_API}/drift/${modelId}/upload?${params.toString()}`;
       const res = await fetch(url, { method: "POST", body: fd });
       if (!res.ok) { const t = await res.text(); throw new Error(t); }
       const r = await res.json();
       setResult(r); onResult?.(r);
+      fetchVersions(modelId);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {
@@ -121,12 +137,53 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
           )}
         </div>
 
+        {/* Compare against training toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <button
+            onClick={() => setCompareToTraining(v => !v)}
+            style={{
+              width: 32, height: 18, borderRadius: 9999, border: "none", cursor: "pointer",
+              background: compareToTraining ? ACCENT : "rgba(255,255,255,0.12)",
+              position: "relative", transition: "background 0.2s", flexShrink: 0,
+            }}
+          >
+            <span style={{
+              position: "absolute", top: 2, left: compareToTraining ? 16 : 2,
+              width: 14, height: 14, borderRadius: "50%", background: "#fff",
+              transition: "left 0.2s",
+            }} />
+          </button>
+          <span style={{ fontSize: "0.68rem", color: compareToTraining ? ACCENT : "var(--text3)" }}>
+            Compare against training baseline (V1)
+          </span>
+          {!compareToTraining && versions.length > 1 && (
+            <span style={{ fontSize: "0.62rem", color: "var(--text3)" }}>
+              — will compare vs <strong style={{ color: "var(--text2)" }}>{versions[versions.length - 1].label}</strong>
+            </span>
+          )}
+        </div>
+
         {error && <div style={{ fontSize: "0.7rem", color: "#f87171" }}>{error}</div>}
       </div>
 
       {/* ── Results ── */}
       {result && (
         <>
+          {/* Version + comparison badge */}
+          {result.version_num && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.62rem", fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, borderRadius: 9999, padding: "2px 8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                V{result.version_num}
+              </span>
+              <span style={{ fontSize: "0.62rem", color: "var(--text3)" }}>
+                compared against
+              </span>
+              <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "var(--text2)" }}>
+                {result.compared_against_v === 1 ? "V1 · Training baseline" : `V${result.compared_against_v} · ${result.compared_against}`}
+              </span>
+            </div>
+          )}
+
           <DriftOverview result={result} />
 
           {/* Ranking + Radar side by side */}
