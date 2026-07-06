@@ -64,7 +64,8 @@ export default function TextToSqlRunner() {
     } catch { /* ignore */ }
   }, []);
 
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
+  const readerRef    = useRef<ReadableStreamDefaultReader | null>(null);
+  const questionRef  = useRef<HTMLTextAreaElement | null>(null);
 
   const loadDemoSchema = useCallback(async () => {
     setStatus("Loading Chinook schema…");
@@ -175,6 +176,10 @@ export default function TextToSqlRunner() {
 
   const drillDown = useCallback((label: string, colName: string) => {
     setQuestion(`Show me details where ${colName} is "${label}"`);
+    setTimeout(() => {
+      questionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      questionRef.current?.focus();
+    }, 50);
   }, []);
 
   const copySQL = useCallback(() => {
@@ -257,7 +262,7 @@ export default function TextToSqlRunner() {
 
         <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
           <div className="flex gap-2">
-            <textarea value={question} onChange={e => setQuestion(e.target.value)}
+            <textarea ref={questionRef} value={question} onChange={e => setQuestion(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(); } }}
               placeholder="Ask a question about your data… (Enter to run)"
               rows={2}
