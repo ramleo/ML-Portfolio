@@ -11,10 +11,10 @@ const ACCENT = "#6366f1";
 
 const SAMPLE_QUESTIONS = [
   "Show me the top 5 artists by total album count",
-  "What is the monthly revenue trend across all years?",
+  "What is the total revenue for each year?",
   "Show the top 6 genres by number of tracks",
   "List the top 10 customers by total spending",
-  "What is the average track duration vs unit price by media type?",
+  "What is the average track length in milliseconds vs average unit price per genre?",
 ];
 
 type DbSource = "demo" | "upload" | "postgres";
