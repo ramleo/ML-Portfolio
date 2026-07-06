@@ -339,6 +339,11 @@ export default function TextToSqlRunner() {
               {results.count > 20 && (
                 <p className="text-[11px] text-gray-500 px-4 py-2">{results.count - 20} more rows not shown</p>
               )}
+              {results.count >= 500 && (
+                <p className="text-[11px] text-amber-400/80 px-4 py-2">
+                  Results capped at 500 rows — your query matched more records. Add a LIMIT or WHERE clause to narrow results.
+                </p>
+              )}
             </div>
           </div>
         )}
