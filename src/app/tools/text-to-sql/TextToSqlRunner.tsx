@@ -328,7 +328,8 @@ export default function TextToSqlRunner() {
                     <tr key={i} className="border-b border-white/5 hover:bg-white/5">
                       {row.map((cell, j) => (
                         <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
-                          {cell === null ? <span className="text-gray-600">null</span> : String(cell)}
+                          {cell === null ? <span className="text-gray-600">null</span>
+                            : (() => { const n = Number(cell); return !isNaN(n) && String(cell).trim() !== "" && String(cell) !== String(Math.round(n)) ? n.toFixed(2) : String(cell); })()}
                         </td>
                       ))}
                     </tr>
