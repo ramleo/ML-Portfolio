@@ -17,6 +17,13 @@ const SAMPLE_QUESTIONS = [
 
 type Provider = "groq" | "gemini" | "cohere";
 
+interface HistoryTurn {
+  question: string;
+  sql: string;
+  result_summary: string;
+  count: number;
+}
+
 interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; }
 interface Viz {
   chart_type: string; labels?: string[]; values?: number[];
@@ -43,6 +50,8 @@ export default function TextToSqlRunner() {
   const [explanation, setExplanation] = useState("");
   const [error, setError]             = useState<string | null>(null);
   const [copied, setCopied]           = useState(false);
+  const [history, setHistory]         = useState<HistoryTurn[]>([]);
+  const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
 
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
 
@@ -89,10 +98,20 @@ export default function TextToSqlRunner() {
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
+
+    const historyPayload = history.slice(-4).map(t => ({
+      question: t.question,
+      sql: t.sql,
+      result_summary: t.result_summary,
+    }));
+
+    let finalSql = "";
+    let finalResults: { columns: string[]; rows: unknown[][]; count: number; exec_time_ms: number } | null = null;
+
     try {
       const res = await fetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, provider, db_ref: dbRef }),
+        body: JSON.stringify({ question, provider, db_ref: dbRef, history: historyPayload }),
       });
       if (!res.body) throw new Error("No response stream");
       const reader = res.body.getReader();
@@ -112,8 +131,8 @@ export default function TextToSqlRunner() {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.type === "schema_loaded")  setStatus(`Schema: ${evt.tables} tables`);
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
-            else if (evt.type === "sql_generated") { setGeneratedSql(evt.sql); setStatus("Executing…"); }
-            else if (evt.type === "results")   { setResults(evt); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
+            else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); setStatus("Executing…"); }
+            else if (evt.type === "results")   { finalResults = evt; setResults(evt); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
             else if (evt.type === "visualization") setViz(evt);
             else if (evt.type === "token")     setExplanation(prev => prev + evt.text);
             else if (evt.type === "error")     setError(evt.text);
@@ -121,10 +140,18 @@ export default function TextToSqlRunner() {
           } catch { /* ignore malformed */ }
         }
       }
+      if (finalSql && finalResults) {
+        const cols = finalResults.columns.join(", ");
+        const sample = finalResults.rows.slice(0, 2).map(r => `[${(r as unknown[]).join(", ")}]`).join("; ");
+        const summary = `${finalResults.count} rows. Columns: ${cols}${sample ? `. Sample: ${sample}` : ""}`;
+        setHistory(prev => [...prev, {
+          question, sql: finalSql, result_summary: summary, count: finalResults!.count,
+        }]);
+      }
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally { setRunning(false); }
-  }, [question, provider, dbRef, running]);
+  }, [question, provider, dbRef, running, history]);
 
   const copySQL = useCallback(() => {
     if (!generatedSql) return;
@@ -211,6 +238,39 @@ export default function TextToSqlRunner() {
           </div>
           {retryMsg && <p className="text-[11px] text-yellow-400">{retryMsg}</p>}
         </div>
+
+        {history.length > 0 && (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                Conversation ({history.length} {history.length === 1 ? "turn" : "turns"})
+              </span>
+              <button onClick={() => { setHistory([]); setExpandedTurn(null); }}
+                className="text-[10px] text-gray-500 hover:text-red-400 transition-colors">
+                Clear
+              </button>
+            </div>
+            <div className="flex flex-col gap-1">
+              {history.map((turn, i) => (
+                <div key={i} className="rounded-lg border border-white/5 bg-black/20 overflow-hidden">
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/5 transition-colors"
+                    onClick={() => setExpandedTurn(expandedTurn === i ? null : i)}>
+                    <span className="text-[10px] font-mono shrink-0" style={{ color: ACCENT }}>Q{i + 1}</span>
+                    <span className="text-[11px] text-gray-300 truncate flex-1">{turn.question}</span>
+                    <span className="text-[10px] text-gray-500 shrink-0">{turn.count} rows</span>
+                    <span className="text-[10px] text-gray-600">{expandedTurn === i ? "▲" : "▼"}</span>
+                  </button>
+                  {expandedTurn === i && (
+                    <pre className="px-3 pb-2 text-[10px] font-mono text-green-300/80 whitespace-pre-wrap border-t border-white/5 pt-1.5">
+                      {turn.sql}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL}
