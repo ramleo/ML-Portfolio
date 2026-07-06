@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  BarChart, HorizontalBarChart, AreaChart, ScatterChart,
-  DonutChart, StatCard, MultiBarChart,
+  BarChart, HorizontalBarChart, AreaChart, ScatterChart, MultiBarChart,
 } from "./SqlChart";
+import { AnimatedStatCard, HeatmapChart, TreemapChart } from "./SqlChartExtras";
+import { DonutChart } from "./SqlChart";
 
 const ACCENT = "#6366f1";
 
@@ -11,6 +12,7 @@ const CHART_LABEL: Record<string, string> = {
   bar: "Bar Chart", bar_h: "Horizontal Bar", area: "Area Chart",
   scatter: "Scatter Plot", donut: "Donut Chart", stat: "Result",
   multibar: "Multi-Series Bar", line: "Area Chart",
+  heatmap: "Heatmap", treemap: "Treemap",
 };
 
 interface Viz {
@@ -19,11 +21,15 @@ interface Viz {
   values?: number[];
   x_label: string;
   y_label: string;
+  v_label?: string;
   x?: number[];
   y?: number[];
   value?: string;
   label?: string;
   series?: { name: string; values: number[] }[];
+  rows?: string[];
+  cols?: string[];
+  data?: { row: string; col: string; value: number }[];
 }
 
 interface Results {
@@ -41,6 +47,7 @@ interface Props {
   viz: Viz | null;
   explanation: string;
   error: string | null;
+  onDrillDown?: (label: string, colName: string) => void;
 }
 
 function formatCell(cell: unknown): string {
@@ -52,7 +59,9 @@ function formatCell(cell: unknown): string {
   return String(cell);
 }
 
-export default function QueryResultPanel({ generatedSql, copied, copySQL, results, viz, explanation, error }: Props) {
+export default function QueryResultPanel({
+  generatedSql, copied, copySQL, results, viz, explanation, error, onDrillDown,
+}: Props) {
   return (
     <>
       {error && (
@@ -116,13 +125,18 @@ export default function QueryResultPanel({ generatedSql, copied, copySQL, result
           {viz.chart_type !== "stat" && (
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               {CHART_LABEL[viz.chart_type] ?? viz.chart_type}
+              {(viz.chart_type === "bar" || viz.chart_type === "bar_h") && onDrillDown && (
+                <span className="ml-2 text-[10px] text-gray-600 normal-case font-normal">click a bar to drill down</span>
+              )}
             </p>
           )}
           {viz.chart_type === "bar" && viz.labels && viz.values && (
-            <BarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            <BarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label}
+              accent={ACCENT} onLabelClick={onDrillDown ? (l) => onDrillDown(l, viz.x_label) : undefined} />
           )}
           {viz.chart_type === "bar_h" && viz.labels && viz.values && (
-            <HorizontalBarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            <HorizontalBarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label}
+              accent={ACCENT} onLabelClick={onDrillDown ? (l) => onDrillDown(l, viz.y_label) : undefined} />
           )}
           {(viz.chart_type === "area" || viz.chart_type === "line") && viz.labels && viz.values && (
             <AreaChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
@@ -134,10 +148,17 @@ export default function QueryResultPanel({ generatedSql, copied, copySQL, result
             <DonutChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} accent={ACCENT} />
           )}
           {viz.chart_type === "stat" && viz.value != null && (
-            <StatCard value={viz.value} label={viz.label ?? viz.x_label} accent={ACCENT} />
+            <AnimatedStatCard value={viz.value} label={viz.label ?? viz.x_label} accent={ACCENT} />
           )}
           {viz.chart_type === "multibar" && viz.labels && viz.series && (
             <MultiBarChart labels={viz.labels} series={viz.series} xLabel={viz.x_label} yLabel={viz.y_label} />
+          )}
+          {viz.chart_type === "heatmap" && viz.rows && viz.cols && viz.data && (
+            <HeatmapChart rows={viz.rows} cols={viz.cols} data={viz.data}
+              xLabel={viz.x_label} yLabel={viz.y_label} vLabel={viz.v_label ?? ""} />
+          )}
+          {viz.chart_type === "treemap" && viz.labels && viz.values && (
+            <TreemapChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} />
           )}
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { ML_SQL_API } from "@/config/urls";
 import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
@@ -52,6 +52,17 @@ export default function TextToSqlRunner() {
   const [copied, setCopied]           = useState(false);
   const [history, setHistory]         = useState<HistoryTurn[]>([]);
   const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
+  const [glossary, setGlossary]       = useState("");
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+
+  // Load few-shot examples from localStorage on mount
+  const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("ml_sql_fewshot");
+      if (stored) setFewShot(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
 
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
 
@@ -99,11 +110,14 @@ export default function TextToSqlRunner() {
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
 
-    const historyPayload = history.slice(-4).map(t => ({
-      question: t.question,
-      sql: t.sql,
-      result_summary: t.result_summary,
+    // Combine few-shot examples (from localStorage) + recent conversation turns
+    const fewShotPayload = fewShot.slice(-3).map(t => ({
+      question: t.question, sql: t.sql, result_summary: `Example. ${t.result_summary}`,
     }));
+    const historyPayload = [
+      ...fewShotPayload,
+      ...history.slice(-3).map(t => ({ question: t.question, sql: t.sql, result_summary: t.result_summary })),
+    ];
 
     let finalSql = "";
     let finalResults: { columns: string[]; rows: unknown[][]; count: number; exec_time_ms: number } | null = null;
@@ -111,7 +125,7 @@ export default function TextToSqlRunner() {
     try {
       const res = await fetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, provider, db_ref: dbRef, history: historyPayload }),
+        body: JSON.stringify({ question, provider, db_ref: dbRef, history: historyPayload, glossary }),
       });
       if (!res.body) throw new Error("No response stream");
       const reader = res.body.getReader();
@@ -144,14 +158,24 @@ export default function TextToSqlRunner() {
         const cols = finalResults.columns.join(", ");
         const sample = finalResults.rows.slice(0, 2).map(r => `[${(r as unknown[]).join(", ")}]`).join("; ");
         const summary = `${finalResults.count} rows. Columns: ${cols}${sample ? `. Sample: ${sample}` : ""}`;
-        setHistory(prev => [...prev, {
-          question, sql: finalSql, result_summary: summary, count: finalResults!.count,
-        }]);
+        const newTurn: HistoryTurn = { question, sql: finalSql, result_summary: summary, count: finalResults.count };
+        setHistory(prev => [...prev, newTurn]);
+        // Persist to localStorage for future-session few-shot
+        try {
+          const prev = JSON.parse(localStorage.getItem("ml_sql_fewshot") || "[]") as HistoryTurn[];
+          const updated = [...prev, newTurn].slice(-20);
+          localStorage.setItem("ml_sql_fewshot", JSON.stringify(updated));
+          setFewShot(updated);
+        } catch { /* ignore */ }
       }
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally { setRunning(false); }
   }, [question, provider, dbRef, running, history]);
+
+  const drillDown = useCallback((label: string, colName: string) => {
+    setQuestion(`Show me details where ${colName} is "${label}"`);
+  }, []);
 
   const copySQL = useCallback(() => {
     if (!generatedSql) return;
@@ -202,6 +226,22 @@ export default function TextToSqlRunner() {
               › {q}
             </button>
           ))}
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+          <button onClick={() => setGlossaryOpen(o => !o)}
+            className="text-[10px] font-semibold text-gray-400 mb-1 flex items-center gap-1 w-full uppercase tracking-wide">
+            <span>{glossaryOpen ? "▾" : "▸"}</span> Glossary
+          </button>
+          {glossaryOpen && (
+            <>
+              <textarea value={glossary} onChange={e => setGlossary(e.target.value)}
+                placeholder={"revenue: sum of invoice totals\nLTV: lifetime value of customer"}
+                rows={5}
+                className="w-full text-[10px] font-mono bg-black/30 border border-white/10 rounded px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1" />
+              <p className="text-[9px] text-gray-600 mt-1">Definitions injected into every SQL prompt</p>
+            </>
+          )}
         </div>
       </aside>
 
@@ -275,6 +315,7 @@ export default function TextToSqlRunner() {
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL}
           results={results} viz={viz} explanation={explanation} error={error}
+          onDrillDown={drillDown}
         />
       </div>
     </div>

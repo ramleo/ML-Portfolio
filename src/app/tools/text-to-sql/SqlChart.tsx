@@ -41,13 +41,13 @@ function donutArc(cx: number, cy: number, R: number, Ri: number, a0: number, a1:
 }
 
 // ── Interfaces ─────────────────────────────────────────────────────────────────
-interface S1 { labels: string[]; values: number[]; xLabel: string; yLabel: string; accent: string; }
+interface S1 { labels: string[]; values: number[]; xLabel: string; yLabel: string; accent: string; onLabelClick?: (label: string, value: number) => void; }
 interface SP { x: number[]; y: number[]; xLabel: string; yLabel: string; accent: string; labels?: string[]; }
 interface MB { labels: string[]; series: { name: string; values: number[] }[]; xLabel: string; yLabel: string; }
 interface SC { value: string; label: string; accent: string; }
 
 // ── BarChart ───────────────────────────────────────────────────────────────────
-export function BarChart({ labels, values, xLabel, yLabel, accent }: S1) {
+export function BarChart({ labels, values, xLabel, yLabel, accent, onLabelClick }: S1) {
   const W = 560, H = 230, PL = 52, PR = 16, PT = 28, PB = 60;
   const cW = W - PL - PR, cH = H - PT - PB;
   const max = Math.max(...values, 1);
@@ -73,9 +73,11 @@ export function BarChart({ labels, values, xLabel, yLabel, accent }: S1) {
         const x  = PL + i * (cW / labels.length) + 2;
         const y  = H - PB - bH;
         return (
-          <g key={i}>
-            <rect x={x} y={y} width={bW} height={bH} fill="url(#bg1)" rx={3}>
-              <title>{labels[i]}: {fmt(v)}</title>
+          <g key={i} onClick={() => onLabelClick?.(labels[i], v)}
+            style={{ cursor: onLabelClick ? "pointer" : "default" }}>
+            <rect x={x} y={y} width={bW} height={bH} fill="url(#bg1)" rx={3}
+              className={onLabelClick ? "hover:opacity-75 transition-opacity" : ""}>
+              <title>{labels[i]}: {fmt(v)}{onLabelClick ? " — click to drill down" : ""}</title>
             </rect>
             <text x={x + bW / 2} y={y - 4} fontSize={9} fill={accent} textAnchor="middle">{fmt(v)}</text>
             <text x={x + bW / 2} y={H - PB + 14} fontSize={9} fill={TX} textAnchor="end"
@@ -90,7 +92,7 @@ export function BarChart({ labels, values, xLabel, yLabel, accent }: S1) {
 }
 
 // ── HorizontalBarChart ─────────────────────────────────────────────────────────
-export function HorizontalBarChart({ labels, values, xLabel, yLabel, accent }: S1) {
+export function HorizontalBarChart({ labels, values, xLabel, yLabel, accent, onLabelClick }: S1) {
   const W = 560, H = Math.min(360, Math.max(160, labels.length * 30 + 50));
   const PL = 140, PR = 60, PT = 16, PB = 30;
   const cW = W - PL - PR, cH = H - PT - PB;
@@ -110,9 +112,11 @@ export function HorizontalBarChart({ labels, values, xLabel, yLabel, accent }: S
         const bW = (v / max) * cW;
         const y  = PT + i * (cH / labels.length) + 2;
         return (
-          <g key={i}>
-            <rect x={PL} y={y} width={bW} height={bH} fill="url(#hg1)" rx={3}>
-              <title>{labels[i]}: {fmt(v)}</title>
+          <g key={i} onClick={() => onLabelClick?.(labels[i], v)}
+            style={{ cursor: onLabelClick ? "pointer" : "default" }}>
+            <rect x={PL} y={y} width={bW} height={bH} fill="url(#hg1)" rx={3}
+              className={onLabelClick ? "hover:opacity-75 transition-opacity" : ""}>
+              <title>{labels[i]}: {fmt(v)}{onLabelClick ? " — click to drill down" : ""}</title>
             </rect>
             <text x={PL - 6} y={y + bH / 2 + 4} fontSize={10} fill={TX} textAnchor="end">{String(labels[i]).slice(0, 20)}</text>
             <text x={PL + bW + 5} y={y + bH / 2 + 4} fontSize={9} fill={accent}>{fmt(v)}</text>
