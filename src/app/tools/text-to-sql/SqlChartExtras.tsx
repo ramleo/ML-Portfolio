@@ -52,7 +52,12 @@ interface HeatmapProps {
 export function HeatmapChart({ rows, cols, data, xLabel, yLabel, vLabel }: HeatmapProps) {
   const CELL_W = Math.min(64, Math.max(24, 440 / Math.max(cols.length, 1)));
   const CELL_H = Math.min(36, Math.max(22, 280 / Math.max(rows.length, 1)));
-  const PL = 110, PT = 56, PR = 12, PB = 24;
+  const PL = 110, PR = 12, PB = 24;
+  // PT must accommodate rotated col headers: text of length L drops L×sin40° px downward
+  const maxColLen = Math.max(...cols.map(c => Math.min(String(c).length, 14)), 4);
+  const labelDropH = Math.ceil(maxColLen * 5.5 * Math.sin(40 * Math.PI / 180));
+  const PT = Math.max(40, labelDropH + 12);
+  const labelY = PT - labelDropH - 4; // anchor so rotated text ends 4px above cells
   const W   = PL + CELL_W * cols.length + PR;
   const H   = PT + CELL_H * rows.length + PB;
 
@@ -70,9 +75,9 @@ export function HeatmapChart({ rows, cols, data, xLabel, yLabel, vLabel }: Heatm
       <svg viewBox={`0 0 ${W} ${H}`} style={{ minWidth: W, maxHeight: H }}>
         {cols.map((col, ci) => (
           <text key={ci}
-            x={PL + ci * CELL_W + CELL_W / 2} y={PT - 6}
+            x={PL + ci * CELL_W + CELL_W / 2} y={labelY}
             fontSize={9} fill={TX} textAnchor="end"
-            transform={`rotate(-40,${PL + ci * CELL_W + CELL_W / 2},${PT - 6})`}>
+            transform={`rotate(-40,${PL + ci * CELL_W + CELL_W / 2},${labelY})`}>
             {String(col).slice(0, 14)}
           </text>
         ))}
