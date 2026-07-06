@@ -314,9 +314,9 @@ export default function TextToSqlRunner() {
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Results</span>
               <span className="text-[11px] text-gray-500">{results.count} rows · {results.exec_time_ms}ms</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-80 overflow-y-auto">
               <table className="w-full text-xs">
-                <thead>
+                <thead className="sticky top-0 bg-[#0f0f0f] z-10">
                   <tr className="border-b border-white/10">
                     {results.columns.map(c => (
                       <th key={c} className="px-3 py-2 text-left text-gray-400 font-medium whitespace-nowrap">{c}</th>
@@ -324,7 +324,7 @@ export default function TextToSqlRunner() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.rows.slice(0, 20).map((row, i) => (
+                  {results.rows.map((row, i) => (
                     <tr key={i} className="border-b border-white/5 hover:bg-white/5">
                       {row.map((cell, j) => (
                         <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
@@ -336,9 +336,6 @@ export default function TextToSqlRunner() {
                   ))}
                 </tbody>
               </table>
-              {results.count > 20 && (
-                <p className="text-[11px] text-gray-500 px-4 py-2">{results.count - 20} more rows not shown</p>
-              )}
               {results.count >= 500 && (
                 <p className="text-[11px] text-amber-400/80 px-4 py-2">
                   Results capped at 500 rows — your query matched more records. Add a LIMIT or WHERE clause to narrow results.
