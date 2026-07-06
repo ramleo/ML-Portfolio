@@ -14,7 +14,7 @@ const SAMPLE_QUESTIONS = [
   "What is the monthly revenue trend across all years?",
   "Show the top 6 genres by number of tracks",
   "List the top 10 customers by total spending",
-  "What is the average track duration vs unit price by genre?",
+  "What is the average track duration vs unit price by media type?",
 ];
 
 type DbSource = "demo" | "upload" | "postgres";
@@ -360,7 +360,7 @@ export default function TextToSqlRunner() {
               <AreaChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
             )}
             {viz.chart_type === "scatter" && viz.x && viz.y && (
-              <ScatterChart x={viz.x} y={viz.y} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+              <ScatterChart x={viz.x} y={viz.y} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} labels={viz.labels} />
             )}
             {viz.chart_type === "donut" && viz.labels && viz.values && (
               <DonutChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} accent={ACCENT} />

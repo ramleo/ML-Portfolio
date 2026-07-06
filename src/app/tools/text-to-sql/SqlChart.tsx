@@ -42,7 +42,7 @@ function donutArc(cx: number, cy: number, R: number, Ri: number, a0: number, a1:
 
 // ── Interfaces ─────────────────────────────────────────────────────────────────
 interface S1 { labels: string[]; values: number[]; xLabel: string; yLabel: string; accent: string; }
-interface SP { x: number[]; y: number[]; xLabel: string; yLabel: string; accent: string; }
+interface SP { x: number[]; y: number[]; xLabel: string; yLabel: string; accent: string; labels?: string[]; }
 interface MB { labels: string[]; series: { name: string; values: number[] }[]; xLabel: string; yLabel: string; }
 interface SC { value: string; label: string; accent: string; }
 
@@ -173,7 +173,7 @@ export function AreaChart({ labels, values, xLabel, yLabel, accent }: S1) {
 }
 
 // ── ScatterChart ───────────────────────────────────────────────────────────────
-export function ScatterChart({ x, y, xLabel, yLabel, accent }: SP) {
+export function ScatterChart({ x, y, xLabel, yLabel, accent, labels }: SP) {
   const W = 560, H = 230, PL = 52, PR = 16, PT = 20, PB = 48;
   const cW = W - PL - PR, cH = H - PT - PB;
   const xMax = Math.max(...x, 1), xMin = Math.min(...x, 0), xR = xMax - xMin || 1;
@@ -195,7 +195,7 @@ export function ScatterChart({ x, y, xLabel, yLabel, accent }: SP) {
           cx={PL + ((xv - xMin) / xR) * cW}
           cy={H - PB - ((y[i] - yMin) / yR) * cH}
           r={4} fill={accent} fillOpacity={0.65} stroke={accent} strokeOpacity={0.25} strokeWidth={1.5}>
-          <title>{xLabel}: {fmt(xv)}, {yLabel}: {fmt(y[i])}</title>
+          <title>{labels?.[i] ? `${labels[i]} — ` : ""}{xLabel}: {fmt(xv)}, {yLabel}: {fmt(y[i])}</title>
         </circle>
       ))}
       <text x={W / 2} y={H - 2} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
@@ -222,7 +222,7 @@ export function DonutChart({ labels, values, xLabel, accent }: Omit<S1, "yLabel"
         </path>
       ))}
       <text x={cx} y={cy - 8} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
-      <text x={cx} y={cy + 12} fontSize={18} fontWeight="bold" fill="white" textAnchor="middle">{fmt(total)}</text>
+      <text x={cx} y={cy + 12} fontSize={18} fontWeight="bold" fill={accent} textAnchor="middle">{fmt(total)}</text>
       <text x={cx} y={cy + 27} fontSize={9} fill={TX} textAnchor="middle">total</text>
       {slices.map((s, i) => (
         <g key={i} transform={`translate(240,${20 + i * 26})`}>
