@@ -2,7 +2,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { ML_SQL_API } from "@/config/urls";
-import { BarChart, LineChart } from "./SqlChart";
+import {
+  BarChart, HorizontalBarChart, AreaChart, ScatterChart,
+  DonutChart, StatCard, MultiBarChart,
+} from "./SqlChart";
 
 const ACCENT = "#6366f1";
 
@@ -18,7 +21,24 @@ type DbSource = "demo" | "upload" | "postgres";
 type Provider = "groq" | "gemini" | "cohere";
 
 interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; }
-interface Viz { chart_type: string; labels?: string[]; values?: number[]; x_label: string; y_label: string; x?: number[]; y?: number[]; }
+interface Viz {
+  chart_type: string;
+  labels?: string[];
+  values?: number[];
+  x_label: string;
+  y_label: string;
+  x?: number[];
+  y?: number[];
+  value?: string;
+  label?: string;
+  series?: { name: string; values: number[] }[];
+}
+
+const CHART_LABEL: Record<string, string> = {
+  bar: "Bar Chart", bar_h: "Horizontal Bar", area: "Area Chart",
+  scatter: "Scatter Plot", donut: "Donut Chart", stat: "Result",
+  multibar: "Multi-Series Bar", line: "Area Chart",
+};
 
 export default function TextToSqlRunner() {
   const [dbSource, setDbSource] = useState<DbSource>("demo");
@@ -322,17 +342,34 @@ export default function TextToSqlRunner() {
           </div>
         )}
 
-        {/* Chart */}
+        {/* Chart / Visualization */}
         {viz && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              {viz.chart_type === "bar" ? "Bar Chart" : viz.chart_type === "line" ? "Line Chart" : "Scatter"}
-            </p>
-            {viz.chart_type === "bar" && viz.labels && viz.values && (
+            {viz.chart_type !== "stat" && (
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                {CHART_LABEL[viz.chart_type] ?? viz.chart_type}
+              </p>
+            )}
+            {(viz.chart_type === "bar") && viz.labels && viz.values && (
               <BarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
             )}
-            {viz.chart_type === "line" && viz.labels && viz.values && (
-              <LineChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            {viz.chart_type === "bar_h" && viz.labels && viz.values && (
+              <HorizontalBarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            )}
+            {(viz.chart_type === "area" || viz.chart_type === "line") && viz.labels && viz.values && (
+              <AreaChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            )}
+            {viz.chart_type === "scatter" && viz.x && viz.y && (
+              <ScatterChart x={viz.x} y={viz.y} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
+            )}
+            {viz.chart_type === "donut" && viz.labels && viz.values && (
+              <DonutChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} accent={ACCENT} />
+            )}
+            {viz.chart_type === "stat" && viz.value != null && (
+              <StatCard value={viz.value} label={viz.label ?? viz.x_label} accent={ACCENT} />
+            )}
+            {viz.chart_type === "multibar" && viz.labels && viz.series && (
+              <MultiBarChart labels={viz.labels} series={viz.series} xLabel={viz.x_label} yLabel={viz.y_label} />
             )}
           </div>
         )}
