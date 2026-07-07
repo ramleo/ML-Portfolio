@@ -59,6 +59,20 @@ function formatCell(cell: unknown): string {
   return String(cell);
 }
 
+function csvEscape(v: unknown): string {
+  const s = v === null ? "" : String(v);
+  return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function downloadFile(content: string, name: string, mime: string) {
+  const a = Object.assign(document.createElement("a"), {
+    href: URL.createObjectURL(new Blob([content], { type: mime })),
+    download: name,
+  });
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, viz, explanation, error, onDrillDown,
 }: Props) {
@@ -87,6 +101,24 @@ export default function QueryResultPanel({
           <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Results</span>
             <span className="text-[11px] text-gray-500">{results.count} rows · {results.exec_time_ms}ms</span>
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={() => downloadFile(
+                  [results.columns.map(csvEscape).join(","), ...results.rows.map(r => (r as unknown[]).map(csvEscape).join(","))].join("\n"),
+                  "results.csv", "text/csv"
+                )}
+                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
+                CSV
+              </button>
+              <button
+                onClick={() => downloadFile(
+                  JSON.stringify(results.rows.map(r => Object.fromEntries(results.columns.map((c, i) => [c, (r as unknown[])[i]]))), null, 2),
+                  "results.json", "application/json"
+                )}
+                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
+                JSON
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto max-h-80 overflow-y-auto">
             <table className="w-full text-xs">
