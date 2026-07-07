@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { ML_SQL_API } from "@/config/urls";
 import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
+import SchemaDiagram from "./SchemaDiagram";
 
 const ACCENT = "#6366f1";
 
@@ -24,7 +25,8 @@ interface HistoryTurn {
   count: number;
 }
 
-interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; }
+interface FKRel { from_col: string; to_table: string; to_col: string; }
+interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; foreign_keys?: FKRel[]; }
 interface Viz {
   chart_type: string; labels?: string[]; values?: number[];
   x_label: string; y_label: string; x?: number[]; y?: number[];
@@ -54,6 +56,7 @@ export default function TextToSqlRunner() {
   const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
   const [glossary, setGlossary]       = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [diagramOpen, setDiagramOpen] = useState(false);
 
   // Load few-shot examples from localStorage on mount
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
@@ -213,14 +216,31 @@ export default function TextToSqlRunner() {
   );
 
   return (
+    <div className="relative">
+    {diagramOpen && schema && (
+      <SchemaDiagram schema={schema} onClose={() => setDiagramOpen(false)} />
+    )}
     <div className="flex gap-4 w-full max-w-7xl mx-auto px-4 pb-16">
       <aside className="hidden lg:flex flex-col w-52 shrink-0 gap-3 pt-2">
         <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-          <button onClick={() => setSchemaOpen(o => !o)}
-            className="text-xs font-semibold text-gray-300 mb-2 flex items-center gap-1 w-full">
-            <span>{schemaOpen ? "▾" : "▸"}</span> Schema
-            {schema && <span className="ml-auto text-[10px] text-gray-500">{Object.keys(schema).length} tables</span>}
-          </button>
+          <div className="flex items-center mb-2">
+            <button onClick={() => setSchemaOpen(o => !o)}
+              className="text-xs font-semibold text-gray-300 flex items-center gap-1 flex-1">
+              <span>{schemaOpen ? "▾" : "▸"}</span> Schema
+              {schema && <span className="ml-1 text-[10px] text-gray-500">{Object.keys(schema).length} tables</span>}
+            </button>
+            {schema && (
+              <button onClick={() => setDiagramOpen(true)} title="View schema diagram"
+                className="text-[10px] text-gray-500 hover:text-indigo-400 transition-colors px-1">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                  <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                  <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                  <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
+          </div>
           {schemaOpen && schemaPanel}
         </div>
         <div className="rounded-xl border border-white/10 bg-white/5 p-3">
@@ -323,6 +343,7 @@ export default function TextToSqlRunner() {
           onDrillDown={drillDown}
         />
       </div>
+    </div>
     </div>
   );
 }
