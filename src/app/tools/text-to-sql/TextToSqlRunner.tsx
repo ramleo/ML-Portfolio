@@ -7,6 +7,7 @@ import QueryResultPanel from "./QueryResultPanel";
 import SchemaDiagram from "./SchemaDiagram";
 import MobileSidebar from "./MobileSidebar";
 import SchemaPanel from "./SchemaPanel";
+import QueryHistoryPanel from "./QueryHistoryPanel";
 
 const ACCENT = "#6366f1";
 
@@ -58,7 +59,6 @@ export default function TextToSqlRunner() {
   const [error, setError]             = useState<string | null>(null);
   const [copied, setCopied]           = useState(false);
   const [history, setHistory]         = useState<HistoryTurn[]>([]);
-  const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
   const [glossary, setGlossary]       = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [shared, setShared] = useState(false);
@@ -354,36 +354,11 @@ export default function TextToSqlRunner() {
         </div>
 
         {history.length > 0 && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
-                Conversation ({history.length} {history.length === 1 ? "turn" : "turns"})
-              </span>
-              <button onClick={() => { setHistory([]); setExpandedTurn(null); }}
-                className="text-[10px] text-gray-500 hover:text-red-400 transition-colors">
-                Clear
-              </button>
-            </div>
-            <div className="flex flex-col gap-1">
-              {history.map((turn, i) => (
-                <div key={i} className="rounded-lg border border-white/5 bg-black/20 overflow-hidden">
-                  <button
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/5 transition-colors"
-                    onClick={() => setExpandedTurn(expandedTurn === i ? null : i)}>
-                    <span className="text-[10px] font-mono shrink-0" style={{ color: ACCENT }}>Q{i + 1}</span>
-                    <span className="text-[11px] text-gray-300 truncate flex-1">{turn.question}</span>
-                    <span className="text-[10px] text-gray-500 shrink-0">{turn.count} rows</span>
-                    <span className="text-[10px] text-gray-600">{expandedTurn === i ? "▲" : "▼"}</span>
-                  </button>
-                  {expandedTurn === i && (
-                    <pre className="px-3 pb-2 text-[10px] font-mono text-green-300/80 whitespace-pre-wrap border-t border-white/5 pt-1.5">
-                      {turn.sql}
-                    </pre>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <QueryHistoryPanel
+            history={history}
+            onClear={() => setHistory([])}
+            onReuse={setQuestion}
+          />
         )}
 
         <QueryResultPanel
