@@ -80,6 +80,9 @@ export default function TextToSqlRunner() {
     } catch (e: unknown) { setStatus(`Schema load failed: ${(e as Error).message}`); }
   }, []);
 
+  // Auto-load Chinook schema on mount so schema panel + diagram are ready immediately
+  useEffect(() => { loadDemoSchema(); }, [loadDemoSchema]);
+
   const uploadDb = useCallback(async (file: File) => {
     setStatus("Uploading…");
     const form = new FormData();
