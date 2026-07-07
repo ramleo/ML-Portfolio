@@ -6,6 +6,7 @@ import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
 import SchemaDiagram from "./SchemaDiagram";
 import MobileSidebar from "./MobileSidebar";
+import SchemaPanel from "./SchemaPanel";
 
 const ACCENT = "#6366f1";
 
@@ -41,7 +42,9 @@ export default function TextToSqlRunner() {
   const [mysqlConn, setMysqlConn] = useState("");
   const [schema, setSchema]     = useState<Record<string, SchemaTable> | null>(null);
   const [schemaOpen, setSchemaOpen] = useState(true);
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get("q") ?? ""; } catch { return ""; }
+  });
   const [provider, setProvider] = useState<Provider>("groq");
 
   const [running, setRunning]         = useState(false);
@@ -57,7 +60,7 @@ export default function TextToSqlRunner() {
   const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
   const [glossary, setGlossary]       = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
-  const [schemaSearch, setSchemaSearch] = useState("");
+  const [shared, setShared] = useState(false);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
 
@@ -197,39 +200,13 @@ export default function TextToSqlRunner() {
     setCopied(true); setTimeout(() => setCopied(false), 1500);
   }, [generatedSql]);
 
-  const schemaPanel = schema ? (() => {
-    const q = schemaSearch.toLowerCase();
-    const filtered = Object.entries(schema).filter(([tn, t]) =>
-      !q || tn.toLowerCase().includes(q) || t.columns.some(c => c.name.toLowerCase().includes(q)));
-    return (
-      <div className="flex flex-col gap-1">
-        <div className="relative mb-1">
-          <input value={schemaSearch} onChange={e => setSchemaSearch(e.target.value)}
-            placeholder="Search tables / columns…"
-            className="w-full text-[10px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none pr-6"/>
-          {schemaSearch && <button onClick={() => setSchemaSearch("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-[10px]">✕</button>}
-        </div>
-        {!filtered.length && <p className="text-[10px] text-gray-600 px-2">No match</p>}
-        {filtered.map(([tn, t]) => (
-          <details key={tn} className="group" open={!!q}>
-            <summary className="cursor-pointer text-xs font-mono px-2 py-1 rounded hover:bg-white/5 flex items-center gap-1">
-              <span style={{ color: ACCENT }}>▶</span> {tn}
-              <span className="ml-auto text-[10px] text-gray-500">{t.row_count.toLocaleString()}</span>
-            </summary>
-            <div className="pl-4 pb-1">
-              {t.columns.map(c => (
-                <div key={c.name} className="text-[10px] font-mono text-gray-400 flex gap-2">
-                  <span style={{ color: c.pk ? ACCENT : (q && c.name.toLowerCase().includes(q)) ? "#fbbf24" : undefined }}>{c.name}</span>
-                  <span className="text-gray-600">{c.type}</span>
-                  {c.pk && <span style={{ color: ACCENT }} className="text-[9px]">PK</span>}
-                </div>
-              ))}
-            </div>
-          </details>
-        ))}
-      </div>
-    );
-  })() : <p className="text-xs text-gray-500 px-2">No DB loaded yet.</p>;
+  const schemaPanel = <SchemaPanel schema={schema} accent={ACCENT} />;
+
+  const shareQuery = useCallback(() => {
+    const url = `${window.location.origin}/tools/text-to-sql?q=${encodeURIComponent(question)}`;
+    navigator.clipboard.writeText(url);
+    setShared(true); setTimeout(() => setShared(false), 2000);
+  }, [question]);
 
   return (
     <div className="relative">
@@ -353,6 +330,11 @@ export default function TextToSqlRunner() {
             </div>
           </div>
           {retryMsg && <p className="text-[11px] text-yellow-400">{retryMsg}</p>}
+          {generatedSql && dbRef === "chinook" && (
+            <button onClick={shareQuery} className="text-[10px] self-start transition-colors" style={{ color: shared ? "#10b981" : "#6b7280" }}>
+              {shared ? "✓ Link copied!" : "Share this query"}
+            </button>
+          )}
         </div>
 
         {history.length > 0 && (
