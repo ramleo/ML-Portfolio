@@ -57,6 +57,7 @@ export default function TextToSqlRunner() {
   const [expandedTurn, setExpandedTurn] = useState<number | null>(null);
   const [glossary, setGlossary]       = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [schemaSearch, setSchemaSearch] = useState("");
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
 
@@ -196,29 +197,39 @@ export default function TextToSqlRunner() {
     setCopied(true); setTimeout(() => setCopied(false), 1500);
   }, [generatedSql]);
 
-  const schemaPanel = schema ? (
-    <div className="flex flex-col gap-1">
-      {Object.entries(schema).map(([tname, t]) => (
-        <details key={tname} className="group">
-          <summary className="cursor-pointer text-xs font-mono px-2 py-1 rounded hover:bg-white/5 flex items-center gap-1">
-            <span style={{ color: ACCENT }}>▶</span> {tname}
-            <span className="ml-auto text-[10px] text-gray-500">{t.row_count.toLocaleString()}</span>
-          </summary>
-          <div className="pl-4 pb-1">
-            {t.columns.map(c => (
-              <div key={c.name} className="text-[10px] font-mono text-gray-400 flex gap-2">
-                <span style={{ color: c.pk ? ACCENT : undefined }}>{c.name}</span>
-                <span className="text-gray-600">{c.type}</span>
-                {c.pk && <span style={{ color: ACCENT }} className="text-[9px]">PK</span>}
-              </div>
-            ))}
-          </div>
-        </details>
-      ))}
-    </div>
-  ) : (
-    <p className="text-xs text-gray-500 px-2">No DB loaded yet.</p>
-  );
+  const schemaPanel = schema ? (() => {
+    const q = schemaSearch.toLowerCase();
+    const filtered = Object.entries(schema).filter(([tn, t]) =>
+      !q || tn.toLowerCase().includes(q) || t.columns.some(c => c.name.toLowerCase().includes(q)));
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="relative mb-1">
+          <input value={schemaSearch} onChange={e => setSchemaSearch(e.target.value)}
+            placeholder="Search tables / columns…"
+            className="w-full text-[10px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none pr-6"/>
+          {schemaSearch && <button onClick={() => setSchemaSearch("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-[10px]">✕</button>}
+        </div>
+        {!filtered.length && <p className="text-[10px] text-gray-600 px-2">No match</p>}
+        {filtered.map(([tn, t]) => (
+          <details key={tn} className="group" open={!!q}>
+            <summary className="cursor-pointer text-xs font-mono px-2 py-1 rounded hover:bg-white/5 flex items-center gap-1">
+              <span style={{ color: ACCENT }}>▶</span> {tn}
+              <span className="ml-auto text-[10px] text-gray-500">{t.row_count.toLocaleString()}</span>
+            </summary>
+            <div className="pl-4 pb-1">
+              {t.columns.map(c => (
+                <div key={c.name} className="text-[10px] font-mono text-gray-400 flex gap-2">
+                  <span style={{ color: c.pk ? ACCENT : (q && c.name.toLowerCase().includes(q)) ? "#fbbf24" : undefined }}>{c.name}</span>
+                  <span className="text-gray-600">{c.type}</span>
+                  {c.pk && <span style={{ color: ACCENT }} className="text-[9px]">PK</span>}
+                </div>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    );
+  })() : <p className="text-xs text-gray-500 px-2">No DB loaded yet.</p>;
 
   return (
     <div className="relative">
