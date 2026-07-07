@@ -63,6 +63,8 @@ export default function TextToSqlRunner() {
   const [shared, setShared] = useState(false);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(-1);
 
   // Load few-shot examples from localStorage on mount
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
@@ -75,6 +77,7 @@ export default function TextToSqlRunner() {
 
   const readerRef    = useRef<ReadableStreamDefaultReader | null>(null);
   const questionRef  = useRef<HTMLTextAreaElement | null>(null);
+  const currentSqlRef = useRef<string | null>(null);
 
   const loadDemoSchema = useCallback(async () => {
     setStatus("Loading Chinook schema…");
@@ -122,6 +125,7 @@ export default function TextToSqlRunner() {
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
+    setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null;
 
     // Combine few-shot examples (from localStorage) + recent conversation turns
     const fewShotPayload = fewShot.slice(-3).map(t => ({
@@ -158,8 +162,8 @@ export default function TextToSqlRunner() {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.type === "schema_loaded")  setStatus(`Schema: ${evt.tables} tables`);
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
-            else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); setStatus("Executing…"); }
-            else if (evt.type === "results")   { finalResults = evt; setResults(evt); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
+            else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; setStatus("Executing…"); }
+            else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
             else if (evt.type === "visualization") setViz(evt);
             else if (evt.type === "token")     setExplanation(prev => prev + evt.text);
             else if (evt.type === "error")     setError(evt.text);
@@ -199,6 +203,16 @@ export default function TextToSqlRunner() {
     navigator.clipboard.writeText(generatedSql);
     setCopied(true); setTimeout(() => setCopied(false), 1500);
   }, [generatedSql]);
+
+  const changePage = useCallback(async (page: number) => {
+    if (!currentSqlRef.current) return;
+    const res = await fetch(`${ML_SQL_API}/sql/page`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql: currentSqlRef.current, db_ref: dbRef, page, page_size: 50 }),
+    });
+    const data = await res.json();
+    if (!data.error) { setResults(data); setCurrentPage(page); }
+  }, [dbRef]);
 
   const schemaPanel = <SchemaPanel schema={schema} accent={ACCENT} />;
 
@@ -374,6 +388,8 @@ export default function TextToSqlRunner() {
           generatedSql={generatedSql} copied={copied} copySQL={copySQL}
           results={results} viz={viz} explanation={explanation} error={error}
           onDrillDown={drillDown}
+          currentPage={currentPage} totalCount={totalCount} pageSize={50}
+          onPageChange={changePage}
         />
       </div>
     </div>

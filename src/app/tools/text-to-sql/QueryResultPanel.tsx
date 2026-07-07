@@ -48,6 +48,10 @@ interface Props {
   explanation: string;
   error: string | null;
   onDrillDown?: (label: string, colName: string) => void;
+  currentPage?: number;
+  totalCount?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
 }
 
 function formatCell(cell: unknown): string {
@@ -75,6 +79,7 @@ function downloadFile(content: string, name: string, mime: string) {
 
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, viz, explanation, error, onDrillDown,
+  currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
 }: Props) {
   return (
     <>
@@ -143,10 +148,29 @@ export default function QueryResultPanel({
                 ))}
               </tbody>
             </table>
-            {results.count >= 500 && (
-              <p className="text-[11px] text-amber-400/80 px-4 py-2">
-                Results capped at 500 rows — add a LIMIT or WHERE clause to narrow results.
-              </p>
+            {totalCount > 0 && onPageChange && (
+              <div className="flex items-center justify-between px-4 py-2 border-t border-white/5">
+                <span className="text-[11px] text-gray-500">
+                  Rows {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                    ← Prev
+                  </button>
+                  <span className="text-[11px] text-gray-500 px-1">
+                    {currentPage} / {Math.ceil(totalCount / pageSize)}
+                  </span>
+                  <button
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                    Next →
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
