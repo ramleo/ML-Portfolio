@@ -239,9 +239,10 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
                   onPointerDown={e => { e.stopPropagation(); onPDown(e, "tbl", name); }}>
 
                   <rect x={3} y={4} width={TW} height={h} rx={7} fill="rgba(0,0,0,0.5)" pointerEvents="none"/>
+                  {/* Card body — no pointerEvents="none" so it acts as the hit area for the whole card */}
                   <rect width={TW} height={h} rx={7}
                     fill="#0d0d18" stroke={sel ? clr : "rgba(255,255,255,0.08)"}
-                    strokeWidth={sel ? 1.5 : 1} pointerEvents="none"/>
+                    strokeWidth={sel ? 1.5 : 1}/>
                   <rect width={3} height={h} rx={1.5} fill={clr} opacity={0.9} pointerEvents="none"/>
                   <rect width={TW} height={HEADER_H} rx={7} fill={`${clr}18`} pointerEvents="none"/>
                   <rect y={HEADER_H - 8} width={TW} height={8} fill={`${clr}18`} pointerEvents="none"/>
