@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface FKRel  { from_col: string; to_table: string; to_col: string; }
 interface Col    { name: string; type: string; pk: boolean; }
 interface Table  { columns: Col[]; row_count: number; foreign_keys?: FKRel[]; }
+interface Props  { schema: Record<string, Table>; onClose: () => void; }
 
-interface Props { schema: Record<string, Table>; onClose: () => void; }
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-const TW       = 186;   // table card width
+const TW       = 186;
 const HEADER_H = 34;
 const ROW_H    = 18;
 const COL_GAP  = 240;
@@ -24,7 +21,6 @@ const PALETTE = [
   "#f97316","#84cc16","#3b82f6","#a78bfa",
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const th = (cols: Col[]) => HEADER_H + cols.length * ROW_H + 6;
 
 function autoLayout(names: string[], schema: Record<string, Table>) {
@@ -45,7 +41,6 @@ function bezier(sx: number, sy: number, tx: number, ty: number): string {
   return `M${sx},${sy} C${sx > tx ? sx - cx : sx + cx},${sy} ${tx > sx ? tx - cx : tx + cx},${ty} ${tx},${ty}`;
 }
 
-// ── Key SVG icon ──────────────────────────────────────────────────────────────
 function KeyIcon() {
   return (
     <svg width="9" height="9" viewBox="0 0 12 12" fill="none" style={{ display: "inline", verticalAlign: "middle" }}>
@@ -64,16 +59,17 @@ function LinkIcon() {
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
 export default function SchemaDiagram({ schema, onClose }: Props) {
   const names = useMemo(() => Object.keys(schema), [schema]);
 
-  const [pos, setPos]         = useState(() => autoLayout(names, schema));
+  const [pos, setPos]           = useState(() => autoLayout(names, schema));
   const [selected, setSelected] = useState<string | null>(null);
-  const [vp, setVp]           = useState({ x: 0, y: 0, s: 0.85 });
-  const drag = useRef<{ kind: "tbl" | "bg"; name?: string; sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const [vp, setVp]             = useState({ x: 0, y: 0, s: 0.85 });
 
-  // Tables connected to selection
+  const drag  = useRef<{ kind: "tbl" | "bg"; name?: string; sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const vpRef = useRef(vp);
+  vpRef.current = vp;
+
   const related = useMemo(() => {
     if (!selected) return new Set<string>();
     const s = new Set([selected]);
@@ -82,7 +78,6 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
     return s;
   }, [selected, schema, names]);
 
-  // All FK edges
   const edges = useMemo(() => {
     const e: { from: string; fc: string; to: string; tc: string }[] = [];
     names.forEach(n => {
@@ -106,27 +101,43 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
 
   const onPDown = useCallback((e: React.PointerEvent, kind: "tbl" | "bg", name?: string) => {
     e.stopPropagation();
+    const cur = vpRef.current;
     drag.current = {
       kind, name,
       sx: e.clientX, sy: e.clientY,
-      ox: name ? pos[name].x : vp.x,
-      oy: name ? pos[name].y : vp.y,
+      ox: name ? pos[name].x : cur.x,
+      oy: name ? pos[name].y : cur.y,
     };
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-  }, [pos, vp]);
+  }, [pos]);
 
-  const onPMove = useCallback((e: React.PointerEvent) => {
-    if (!drag.current) return;
-    const dx = e.clientX - drag.current.sx, dy = e.clientY - drag.current.sy;
-    if (drag.current.kind === "tbl" && drag.current.name) {
-      const n = drag.current.name;
-      setPos(p => ({ ...p, [n]: { x: drag.current!.ox + dx / vp.s, y: drag.current!.oy + dy / vp.s } }));
-    } else {
-      setVp(v => ({ ...v, x: drag.current!.ox + dx, y: drag.current!.oy + dy }));
-    }
-  }, [vp.s]);
-
-  const onPUp = useCallback(() => { drag.current = null; }, []);
+  // Document-level handlers — fixes pointer-capture issue where captured events
+  // stop reaching SVG-level React handlers when fired on child elements.
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (!drag.current) return;
+      const dx = e.clientX - drag.current.sx, dy = e.clientY - drag.current.sy;
+      if (drag.current.kind === "tbl" && drag.current.name) {
+        const n = drag.current.name;
+        setPos(p => ({ ...p, [n]: { x: drag.current!.ox + dx / vpRef.current.s, y: drag.current!.oy + dy / vpRef.current.s } }));
+      } else {
+        setVp(v => ({ ...v, x: drag.current!.ox + dx, y: drag.current!.oy + dy }));
+      }
+    };
+    const up = (e: PointerEvent) => {
+      if (drag.current) {
+        const dx = e.clientX - drag.current.sx, dy = e.clientY - drag.current.sy;
+        // Short movement = click → toggle selection
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5 && drag.current.kind === "tbl" && drag.current.name) {
+          const n = drag.current.name;
+          setSelected(s => s === n ? null : n);
+        }
+      }
+      drag.current = null;
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+  }, []);
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -154,7 +165,7 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
           <span className="text-xs text-gray-500">{names.length} tables · {edges.length} relationships</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:block text-[10px] text-gray-600">drag tables · scroll to zoom · click to select</span>
+          <span className="hidden sm:block text-[10px] text-gray-600">drag tables · scroll to zoom · tap to select</span>
           <button onClick={reset} className="text-[11px] px-2.5 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">Reset</button>
           <button onClick={onClose} className="text-gray-400 hover:text-white p-1 transition-colors">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -166,34 +177,53 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
 
       {/* Canvas */}
       <div className="flex-1 overflow-hidden" style={{ cursor: "grab" }}>
-        <svg className="w-full h-full" onPointerDown={e => onPDown(e, "bg")}
-          onPointerMove={onPMove} onPointerUp={onPUp} onWheel={onWheel}
-          style={{ userSelect: "none" }}>
-          {/* Dot-grid background */}
+        <svg className="w-full h-full" onPointerDown={e => onPDown(e, "bg")} onWheel={onWheel} style={{ userSelect: "none" }}>
           <defs>
             <pattern id="dot" width="24" height="24" patternUnits="userSpaceOnUse">
               <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.04)"/>
             </pattern>
+            {/* Subtle glow for normal edges */}
+            <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            {/* Stronger glow for highlighted edges */}
+            <filter id="glow-hi" x="-35%" y="-35%" width="170%" height="170%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
+          {/* Flow animation for arrows */}
+          <style>{`
+            @keyframes flow { from { stroke-dashoffset: 18; } to { stroke-dashoffset: 0; } }
+            .fk-path     { animation: flow 1.6s linear infinite; }
+            .fk-path-hi  { animation: flow 0.9s linear infinite; }
+          `}</style>
           <rect width="100%" height="100%" fill="url(#dot)"/>
 
           <g transform={`translate(${vp.x},${vp.y}) scale(${vp.s})`}>
-            {/* Pass 1: FK bezier paths — behind tables, no arrowheads */}
+
+            {/* Pass 1: FK bezier paths with flow glow */}
             {edges.map((e, i) => {
               const p = edgePts(e);
               if (!p) return null;
-              const hi = selected !== null && (selected === e.from || selected === e.to);
+              const hi  = selected !== null && (selected === e.from || selected === e.to);
               const dim = selected !== null && !related.has(e.from) && !related.has(e.to);
               return (
                 <path key={i} d={bezier(p.sx, p.sy, p.tx, p.ty)}
-                  fill="none" stroke={hi ? ACCENT : "rgba(99,102,241,0.45)"}
-                  strokeWidth={hi ? 2 : 1} strokeDasharray={hi ? undefined : "5 3"}
-                  opacity={dim ? 0.08 : 1}
-                  style={{ transition: "opacity 0.2s, stroke 0.15s" }}/>
+                  fill="none"
+                  stroke={hi ? ACCENT : "rgba(99,102,241,0.6)"}
+                  strokeWidth={hi ? 2 : 1.2}
+                  strokeDasharray={hi ? "10 5" : "7 4"}
+                  className={hi ? "fk-path-hi" : "fk-path"}
+                  filter={dim ? undefined : hi ? "url(#glow-hi)" : "url(#glow)"}
+                  opacity={dim ? 0.07 : 1}
+                  style={{ transition: "opacity 0.2s, stroke 0.15s" }}
+                  pointerEvents="none"/>
               );
             })}
 
-            {/* Pass 2: Table cards */}
+            {/* Pass 2: Table cards — full card is draggable via <g> onPointerDown */}
             {names.map((name, ti) => {
               const p   = pos[name];
               const t   = schema[name];
@@ -205,46 +235,26 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
               return (
                 <g key={name} transform={`translate(${p.x},${p.y})`}
                   opacity={dim ? 0.18 : 1}
-                  style={{ transition: "opacity 0.2s" }}
-                  onClick={e => { e.stopPropagation(); setSelected(s => s === name ? null : name); }}>
+                  style={{ cursor: "grab", transition: "opacity 0.2s" }}
+                  onPointerDown={e => { e.stopPropagation(); onPDown(e, "tbl", name); }}>
 
-                  {/* Card shadow */}
-                  <rect x={3} y={4} width={TW} height={h} rx={7} fill="rgba(0,0,0,0.5)"/>
-
-                  {/* Card body */}
+                  <rect x={3} y={4} width={TW} height={h} rx={7} fill="rgba(0,0,0,0.5)" pointerEvents="none"/>
                   <rect width={TW} height={h} rx={7}
                     fill="#0d0d18" stroke={sel ? clr : "rgba(255,255,255,0.08)"}
-                    strokeWidth={sel ? 1.5 : 1}/>
+                    strokeWidth={sel ? 1.5 : 1} pointerEvents="none"/>
+                  <rect width={3} height={h} rx={1.5} fill={clr} opacity={0.9} pointerEvents="none"/>
+                  <rect width={TW} height={HEADER_H} rx={7} fill={`${clr}18`} pointerEvents="none"/>
+                  <rect y={HEADER_H - 8} width={TW} height={8} fill={`${clr}18`} pointerEvents="none"/>
 
-                  {/* Left color bar */}
-                  <rect width={3} height={h} rx={1.5} fill={clr} opacity={0.9}/>
-
-                  {/* Header gradient */}
-                  <rect width={TW} height={HEADER_H} rx={7} fill={`${clr}18`}/>
-                  <rect y={HEADER_H - 8} width={TW} height={8} fill={`${clr}18`}/>
-
-                  {/* Header drag area */}
-                  <rect width={TW} height={HEADER_H} fill="transparent" rx={7}
-                    style={{ cursor: "grab" }}
-                    onPointerDown={e => { e.stopPropagation(); onPDown(e, "tbl", name); }}
-                    onClick={e => e.stopPropagation()}/>
-
-                  {/* Table name */}
                   <text x={14} y={21} fontSize={10.5} fontWeight="700"
                     fill={sel ? clr : "rgba(255,255,255,0.92)"} style={{ pointerEvents: "none" }}>
                     {name}
                   </text>
-                  {/* Row count */}
-                  <text x={TW - 8} y={21} fontSize={8} fill={`${clr}80`} textAnchor="end"
-                    style={{ pointerEvents: "none" }}>
+                  <text x={TW - 8} y={21} fontSize={8} fill={`${clr}80`} textAnchor="end" style={{ pointerEvents: "none" }}>
                     {t.row_count.toLocaleString()}
                   </text>
+                  <line x1={0} y1={HEADER_H} x2={TW} y2={HEADER_H} stroke="rgba(255,255,255,0.06)" strokeWidth={1} style={{ pointerEvents: "none" }}/>
 
-                  {/* Divider */}
-                  <line x1={0} y1={HEADER_H} x2={TW} y2={HEADER_H}
-                    stroke="rgba(255,255,255,0.06)" strokeWidth={1}/>
-
-                  {/* Columns */}
                   {t.columns.map((col, ci) => {
                     const cy  = HEADER_H + ci * ROW_H;
                     const fk  = (t.foreign_keys ?? []).some(f => f.from_col === col.name);
@@ -252,23 +262,13 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
                     return (
                       <g key={col.name} style={{ pointerEvents: "none" }}>
                         {ci % 2 === 0 && <rect x={0} y={cy} width={TW} height={ROW_H} fill="rgba(255,255,255,0.015)"/>}
-                        {/* icon column — 14px wide */}
-                        {col.pk && (
-                          <foreignObject x={5} y={cy + 4} width={10} height={10}>
-                            <KeyIcon/>
-                          </foreignObject>
-                        )}
-                        {fk && !col.pk && (
-                          <foreignObject x={5} y={cy + 4} width={10} height={10}>
-                            <LinkIcon/>
-                          </foreignObject>
-                        )}
+                        {col.pk && <foreignObject x={5} y={cy + 4} width={10} height={10}><KeyIcon/></foreignObject>}
+                        {fk && !col.pk && <foreignObject x={5} y={cy + 4} width={10} height={10}><LinkIcon/></foreignObject>}
                         <text x={col.pk || fk ? 20 : 10} y={cy + 13} fontSize={9}
                           fill={col.pk ? "#f59e0b" : fk ? ACCENT : "rgba(255,255,255,0.65)"}>
                           {col.name}
                         </text>
-                        <text x={TW - 8} y={cy + 13} fontSize={7.5}
-                          fill="rgba(255,255,255,0.2)" textAnchor="end">
+                        <text x={TW - 8} y={cy + 13} fontSize={7.5} fill="rgba(255,255,255,0.2)" textAnchor="end">
                           {lbl}
                         </text>
                       </g>
@@ -278,24 +278,24 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
               );
             })}
 
-            {/* Pass 3: Arrowheads rendered on top of table cards so they're always visible */}
+            {/* Pass 3: Arrowheads rendered after cards — always on top, with glow */}
             {edges.map((e, i) => {
               const p = edgePts(e);
               if (!p) return null;
-              const hi = selected !== null && (selected === e.from || selected === e.to);
+              const hi  = selected !== null && (selected === e.from || selected === e.to);
               const dim = selected !== null && !related.has(e.from) && !related.has(e.to);
               const { tx, ty, fromRight } = p;
-              // Triangle tip sits ON the card edge, pointing inward to show direction
               const aw = 8, ah = 5;
               const pts = fromRight
                 ? `${tx},${ty} ${tx + aw},${ty - ah} ${tx + aw},${ty + ah}`
                 : `${tx},${ty} ${tx - aw},${ty - ah} ${tx - aw},${ty + ah}`;
               return (
                 <polygon key={i} points={pts}
-                  fill={hi ? ACCENT : "rgba(99,102,241,0.7)"}
-                  opacity={dim ? 0.08 : 1}
+                  fill={hi ? ACCENT : "rgba(99,102,241,0.75)"}
+                  filter={dim ? undefined : hi ? "url(#glow-hi)" : "url(#glow)"}
+                  opacity={dim ? 0.07 : 1}
                   style={{ transition: "opacity 0.2s" }}
-                  pointerEvents="none" />
+                  pointerEvents="none"/>
               );
             })}
           </g>
@@ -321,11 +321,11 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
           <svg width="16" height="6" viewBox="0 0 16 6" fill="none">
             <path d="M1 3h14" stroke="rgba(99,102,241,0.4)" strokeWidth="1" strokeDasharray="3 2"/>
           </svg>
-          Relationship line
+          Relationship
         </span>
         {selected && (
           <span className="ml-auto text-[10px]" style={{ color: ACCENT }}>
-            {selected} selected — click again to clear
+            {selected} selected — tap again to clear
           </span>
         )}
       </div>
