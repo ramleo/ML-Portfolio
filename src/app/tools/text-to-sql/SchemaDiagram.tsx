@@ -101,7 +101,7 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
     const fy = fp.y + HEADER_H + (fi >= 0 ? fi * ROW_H + ROW_H / 2 : ROW_H / 2);
     const ty = tp.y + HEADER_H + (ti >= 0 ? ti * ROW_H + ROW_H / 2 : ROW_H / 2);
     const fromRight = fp.x + TW / 2 > tp.x + TW / 2;
-    return { sx: fromRight ? fp.x : fp.x + TW, sy: fy, tx: fromRight ? tp.x + TW : tp.x, ty };
+    return { sx: fromRight ? fp.x : fp.x + TW, sy: fy, tx: fromRight ? tp.x + TW : tp.x, ty, fromRight };
   }, [pos, schema]);
 
   const onPDown = useCallback((e: React.PointerEvent, kind: "tbl" | "bg", name?: string) => {
@@ -174,17 +174,11 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
             <pattern id="dot" width="24" height="24" patternUnits="userSpaceOnUse">
               <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.04)"/>
             </pattern>
-            <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L6,3z" fill="rgba(99,102,241,0.5)"/>
-            </marker>
-            <marker id="arr-hi" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L6,3z" fill={ACCENT}/>
-            </marker>
           </defs>
           <rect width="100%" height="100%" fill="url(#dot)"/>
 
           <g transform={`translate(${vp.x},${vp.y}) scale(${vp.s})`}>
-            {/* FK edges — rendered behind tables */}
+            {/* Pass 1: FK bezier paths — behind tables, no arrowheads */}
             {edges.map((e, i) => {
               const p = edgePts(e);
               if (!p) return null;
@@ -192,14 +186,14 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
               const dim = selected !== null && !related.has(e.from) && !related.has(e.to);
               return (
                 <path key={i} d={bezier(p.sx, p.sy, p.tx, p.ty)}
-                  fill="none" stroke={hi ? ACCENT : "rgba(99,102,241,0.22)"}
-                  strokeWidth={hi ? 1.5 : 1} strokeDasharray={hi ? undefined : "4 3"}
-                  opacity={dim ? 0.08 : 1} markerEnd={hi ? "url(#arr-hi)" : "url(#arr)"}
+                  fill="none" stroke={hi ? ACCENT : "rgba(99,102,241,0.45)"}
+                  strokeWidth={hi ? 2 : 1} strokeDasharray={hi ? undefined : "5 3"}
+                  opacity={dim ? 0.08 : 1}
                   style={{ transition: "opacity 0.2s, stroke 0.15s" }}/>
               );
             })}
 
-            {/* Table cards */}
+            {/* Pass 2: Table cards */}
             {names.map((name, ti) => {
               const p   = pos[name];
               const t   = schema[name];
@@ -281,6 +275,27 @@ export default function SchemaDiagram({ schema, onClose }: Props) {
                     );
                   })}
                 </g>
+              );
+            })}
+
+            {/* Pass 3: Arrowheads rendered on top of table cards so they're always visible */}
+            {edges.map((e, i) => {
+              const p = edgePts(e);
+              if (!p) return null;
+              const hi = selected !== null && (selected === e.from || selected === e.to);
+              const dim = selected !== null && !related.has(e.from) && !related.has(e.to);
+              const { tx, ty, fromRight } = p;
+              // Triangle tip sits ON the card edge, pointing inward to show direction
+              const aw = 8, ah = 5;
+              const pts = fromRight
+                ? `${tx},${ty} ${tx + aw},${ty - ah} ${tx + aw},${ty + ah}`
+                : `${tx},${ty} ${tx - aw},${ty - ah} ${tx - aw},${ty + ah}`;
+              return (
+                <polygon key={i} points={pts}
+                  fill={hi ? ACCENT : "rgba(99,102,241,0.7)"}
+                  opacity={dim ? 0.08 : 1}
+                  style={{ transition: "opacity 0.2s" }}
+                  pointerEvents="none" />
               );
             })}
           </g>
