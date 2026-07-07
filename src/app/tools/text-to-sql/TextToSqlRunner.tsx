@@ -40,6 +40,7 @@ export default function TextToSqlRunner() {
   const [dbRef, setDbRef]       = useState("chinook");
   const [pgConn, setPgConn]     = useState("");
   const [mysqlConn, setMysqlConn] = useState("");
+  const [mssqlConn, setMssqlConn] = useState("");
   const [schema, setSchema]     = useState<Record<string, SchemaTable> | null>(null);
   const [schemaOpen, setSchemaOpen] = useState(true);
   const [question, setQuestion] = useState(() => {
@@ -105,7 +106,7 @@ export default function TextToSqlRunner() {
     } catch (e: unknown) { setStatus(`Upload failed: ${(e as Error).message}`); }
   }, []);
 
-  const connectRemote = useCallback(async (connStr: string, dbType: "postgresql" | "mysql") => {
+  const connectRemote = useCallback(async (connStr: string, dbType: "postgresql" | "mysql" | "mssql") => {
     if (!connStr.trim()) return;
     setStatus(`Connecting to ${dbType === "mysql" ? "MySQL" : "PostgreSQL"}…`);
     try {
@@ -293,6 +294,7 @@ export default function TextToSqlRunner() {
           uploadDb={uploadDb}
           pgConn={pgConn} setPgConn={setPgConn} connectPg={() => connectRemote(pgConn, "postgresql")}
           mysqlConn={mysqlConn} setMysqlConn={setMysqlConn} connectMySQL={() => connectRemote(mysqlConn, "mysql")}
+          mssqlConn={mssqlConn} setMssqlConn={setMssqlConn} connectMssql={() => connectRemote(mssqlConn, "mssql")}
           loadDemoSchema={loadDemoSchema}
           status={status}
         />

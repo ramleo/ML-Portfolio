@@ -2,7 +2,7 @@
 
 const ACCENT = "#6366f1";
 
-export type DbSource = "demo" | "upload" | "postgres" | "mysql";
+export type DbSource = "demo" | "upload" | "postgres" | "mysql" | "mssql";
 
 interface Props {
   dbSource: DbSource;
@@ -14,6 +14,9 @@ interface Props {
   mysqlConn: string;
   setMysqlConn: (s: string) => void;
   connectMySQL: () => void;
+  mssqlConn: string;
+  setMssqlConn: (s: string) => void;
+  connectMssql: () => void;
   loadDemoSchema: () => void;
   status: string;
 }
@@ -23,6 +26,7 @@ const TABS: { id: DbSource; label: string }[] = [
   { id: "upload",   label: "Upload File" },
   { id: "postgres", label: "PostgreSQL" },
   { id: "mysql",    label: "MySQL" },
+  { id: "mssql",    label: "SQL Server" },
 ];
 
 export default function DbConnectPanel({
@@ -30,6 +34,7 @@ export default function DbConnectPanel({
   uploadDb,
   pgConn, setPgConn, connectPg,
   mysqlConn, setMysqlConn, connectMySQL,
+  mssqlConn, setMssqlConn, connectMssql,
   loadDemoSchema,
   status,
 }: Props) {
@@ -74,19 +79,21 @@ export default function DbConnectPanel({
         </div>
       )}
 
-      {(dbSource === "postgres" || dbSource === "mysql") && (
+      {(dbSource === "postgres" || dbSource === "mysql" || dbSource === "mssql") && (
         <div className="flex gap-2">
           <input
-            value={dbSource === "postgres" ? pgConn : mysqlConn}
-            onChange={e => dbSource === "postgres" ? setPgConn(e.target.value) : setMysqlConn(e.target.value)}
+            value={dbSource === "postgres" ? pgConn : dbSource === "mysql" ? mysqlConn : mssqlConn}
+            onChange={e => dbSource === "postgres" ? setPgConn(e.target.value) : dbSource === "mysql" ? setMysqlConn(e.target.value) : setMssqlConn(e.target.value)}
             placeholder={
               dbSource === "postgres"
                 ? "postgresql://user:pass@host:5432/db"
-                : "mysql://user:pass@host:3306/db"
+                : dbSource === "mysql"
+                ? "mysql://user:pass@host:3306/db"
+                : "mssql://user:pass@host:1433/db"
             }
             className="flex-1 text-xs bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-gray-200 placeholder-gray-600 outline-none" />
           <button
-            onClick={dbSource === "postgres" ? connectPg : connectMySQL}
+            onClick={dbSource === "postgres" ? connectPg : dbSource === "mysql" ? connectMySQL : connectMssql}
             className="text-xs px-3 py-1 rounded-lg text-white shrink-0"
             style={{ background: ACCENT }}>
             Connect
