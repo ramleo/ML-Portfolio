@@ -83,11 +83,11 @@ export default function TextToSqlRunner() {
   const loadDemoSchema = useCallback(async () => {
     setStatus("Loading Chinook schema…");
     try {
-      const res  = await fetch(`${ML_SQL_API}/sql/schema?db_ref=chinook`);
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const res = await fetch(`${ML_SQL_API}/sql/schema?db_ref=chinook`);
+      const data = await res.json().catch(() => { throw new Error("Backend warming up — wait 30s and click Load Schema again."); });
+      if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`);
       setSchema(data.tables); setDbRef("chinook"); setStatus("");
-    } catch (e: unknown) { setStatus(`Schema load failed: ${(e as Error).message}`); }
+    } catch (e: unknown) { setStatus((e as Error).message); }
   }, []);
 
   // Auto-load Chinook schema on mount so schema panel + diagram are ready immediately
