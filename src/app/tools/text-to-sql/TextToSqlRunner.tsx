@@ -226,11 +226,11 @@ export default function TextToSqlRunner() {
         body: JSON.stringify({ sql: currentSqlRef.current, db_ref: dbRef, filter_text: filterText, columns: results.columns, provider }),
       });
       const data = await res.json();
-      if (data.error) return;
+      if (data.error) { setError(data.error); return; }
       setResults(data); setCurrentPage(1); setTotalCount(data.total_count ?? -1);
       currentSqlRef.current = data.filtered_sql;
       setActiveFilter(filterText);
-    } catch { /* ignore */ }
+    } catch (e: unknown) { setError(`Filter failed: ${(e as Error).message}`); }
   }, [dbRef, results, provider]);
 
   const clearFilter = useCallback(async () => {
