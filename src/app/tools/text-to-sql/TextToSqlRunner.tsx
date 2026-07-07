@@ -232,18 +232,19 @@ export default function TextToSqlRunner() {
               <span>{schemaOpen ? "▾" : "▸"}</span> Schema
               {schema && <span className="ml-1 text-[10px] text-gray-500">{Object.keys(schema).length} tables</span>}
             </button>
-            {schema && (
-              <button onClick={() => setDiagramOpen(true)} title="View schema diagram"
-                className="text-[10px] text-gray-500 hover:text-indigo-400 transition-colors px-1">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-                  <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-                  <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-                  <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-                </svg>
-              </button>
-            )}
           </div>
+          {schema && (
+            <button onClick={() => setDiagramOpen(true)}
+              className="w-full mb-2 flex items-center justify-center gap-1.5 text-[11px] py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+              </svg>
+              View Diagram
+            </button>
+          )}
           {schemaOpen && schemaPanel}
         </div>
         <div className="rounded-xl border border-white/10 bg-white/5 p-3">
