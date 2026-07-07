@@ -76,9 +76,12 @@ export default function TextToSqlRunner() {
     } catch { /* ignore */ }
   }, []);
 
-  const readerRef    = useRef<ReadableStreamDefaultReader | null>(null);
-  const questionRef  = useRef<HTMLTextAreaElement | null>(null);
-  const currentSqlRef = useRef<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const readerRef     = useRef<ReadableStreamDefaultReader | null>(null);
+  const questionRef   = useRef<HTMLTextAreaElement | null>(null);
+  const currentSqlRef  = useRef<string | null>(null);
+  const originalSqlRef = useRef<string | null>(null);
 
   const loadDemoSchema = useCallback(async () => {
     setStatus("Loading Chinook schema…");
@@ -126,7 +129,7 @@ export default function TextToSqlRunner() {
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
-    setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null;
+    setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null; originalSqlRef.current = null; setActiveFilter(null);
 
     // Combine few-shot examples (from localStorage) + recent conversation turns
     const fewShotPayload = fewShot.slice(-3).map(t => ({
@@ -163,7 +166,7 @@ export default function TextToSqlRunner() {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.type === "schema_loaded")  setStatus(`Schema: ${evt.tables} tables`);
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
-            else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; setStatus("Executing…"); }
+            else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; originalSqlRef.current = evt.sql; setStatus("Executing…"); }
             else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
             else if (evt.type === "visualization") setViz(evt);
             else if (evt.type === "token")     setExplanation(prev => prev + evt.text);
@@ -214,6 +217,28 @@ export default function TextToSqlRunner() {
     const data = await res.json();
     if (!data.error) { setResults(data); setCurrentPage(page); }
   }, [dbRef]);
+
+  const filterResults = useCallback(async (filterText: string) => {
+    if (!currentSqlRef.current || !results) return;
+    try {
+      const res = await fetch(`${ML_SQL_API}/sql/filter`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql: currentSqlRef.current, db_ref: dbRef, filter_text: filterText, columns: results.columns, provider }),
+      });
+      const data = await res.json();
+      if (data.error) return;
+      setResults(data); setCurrentPage(1); setTotalCount(data.total_count ?? -1);
+      currentSqlRef.current = data.filtered_sql;
+      setActiveFilter(filterText);
+    } catch { /* ignore */ }
+  }, [dbRef, results, provider]);
+
+  const clearFilter = useCallback(async () => {
+    if (!originalSqlRef.current) return;
+    currentSqlRef.current = originalSqlRef.current;
+    setActiveFilter(null);
+    await changePage(1);
+  }, [changePage]);
 
   const schemaPanel = <SchemaPanel schema={schema} accent={ACCENT} />;
 
@@ -367,6 +392,7 @@ export default function TextToSqlRunner() {
           onDrillDown={drillDown}
           currentPage={currentPage} totalCount={totalCount} pageSize={50}
           onPageChange={changePage}
+          onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}
         />
       </div>
     </div>

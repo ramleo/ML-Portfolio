@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   BarChart, HorizontalBarChart, AreaChart, ScatterChart, MultiBarChart,
 } from "./SqlChart";
@@ -53,6 +54,9 @@ interface Props {
   totalCount?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  onFilter?: (text: string) => Promise<void>;
+  onClearFilter?: () => void;
+  filterActive?: boolean;
 }
 
 function formatCell(cell: unknown): string {
@@ -102,7 +106,20 @@ function exportNotebook(question: string, sql: string, explanation: string) {
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, viz, explanation, error, question,
   onDrillDown, currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
+  onFilter, onClearFilter, filterActive,
 }: Props) {
+  const [filterText, setFilterText] = useState("");
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  useEffect(() => { if (!filterActive) setFilterText(""); }, [filterActive]);
+
+  const handleFilter = async () => {
+    if (!filterText.trim() || !onFilter) return;
+    setFilterLoading(true);
+    await onFilter(filterText.trim());
+    setFilterLoading(false);
+  };
+
   return (
     <>
       {error && (
@@ -128,6 +145,9 @@ export default function QueryResultPanel({
           <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Results</span>
             <span className="text-[11px] text-gray-500">{results.count} rows · {results.exec_time_ms}ms</span>
+            {filterActive && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Filter active</span>
+            )}
             <div className="ml-auto flex items-center gap-1">
               <button
                 onClick={() => downloadFile(
@@ -202,6 +222,28 @@ export default function QueryResultPanel({
               </div>
             )}
           </div>
+          {onFilter && (
+            <div className="px-3 py-2 border-t border-white/5 flex items-center gap-2">
+              <input
+                value={filterText}
+                onChange={e => setFilterText(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && filterText.trim()) handleFilter(); }}
+                placeholder="Filter rows… e.g. revenue > 1000, country is USA"
+                className="flex-1 text-[11px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none"
+              />
+              {filterActive && onClearFilter && (
+                <button onClick={onClearFilter} className="text-[10px] text-amber-400 hover:text-white shrink-0 transition-colors">
+                  × Clear
+                </button>
+              )}
+              <button
+                onClick={handleFilter}
+                disabled={!filterText.trim() || filterLoading}
+                className="text-[10px] px-2 py-1 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-40 transition-colors shrink-0">
+                {filterLoading ? "Filtering…" : "Filter"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
