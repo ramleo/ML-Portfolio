@@ -5,6 +5,7 @@ import { ML_SQL_API } from "@/config/urls";
 import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
 import SchemaDiagram from "./SchemaDiagram";
+import MobileSidebar from "./MobileSidebar";
 
 const ACCENT = "#6366f1";
 
@@ -57,6 +58,7 @@ export default function TextToSqlRunner() {
   const [glossary, setGlossary]       = useState("");
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [diagramOpen, setDiagramOpen] = useState(false);
+  const [mobileSidebar, setMobileSidebar] = useState(false);
 
   // Load few-shot examples from localStorage on mount
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
@@ -223,6 +225,15 @@ export default function TextToSqlRunner() {
     {diagramOpen && schema && (
       <SchemaDiagram schema={schema} onClose={() => setDiagramOpen(false)} />
     )}
+
+    <MobileSidebar
+      open={mobileSidebar} onClose={() => setMobileSidebar(false)}
+      hasSchema={!!schema} schemaPanel={schemaPanel}
+      sampleQuestions={SAMPLE_QUESTIONS} onQuestion={setQuestion}
+      glossary={glossary} onGlossaryChange={setGlossary}
+      onOpenDiagram={() => setDiagramOpen(true)}
+    />
+
     <div className="flex gap-4 w-full max-w-7xl mx-auto px-4 pb-16">
       <aside className="hidden lg:flex flex-col w-52 shrink-0 gap-3 pt-2">
         <div className="rounded-xl border border-white/10 bg-white/5 p-3">
@@ -284,18 +295,30 @@ export default function TextToSqlRunner() {
           status={status}
         />
 
-        {schema && (
-          <button onClick={() => setDiagramOpen(true)}
-            className="lg:hidden w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
+        {/* Mobile bar — Schema drawer + Diagram, hidden on desktop */}
+        <div className="lg:hidden flex gap-2">
+          <button onClick={() => setMobileSidebar(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white transition-colors shrink-0">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-              <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-              <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-              <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+              <rect x="1" y="4" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+              <rect x="1" y="8" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+              <rect x="1" y="12" width="12" height="1.5" rx="0.75" fill="currentColor"/>
             </svg>
-            View Schema Diagram
+            Schema &amp; Tools
           </button>
-        )}
+          {schema && (
+            <button onClick={() => setDiagramOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+              </svg>
+              View Diagram
+            </button>
+          )}
+        </div>
 
         <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
           <div className="flex gap-2">
