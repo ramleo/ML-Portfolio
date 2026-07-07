@@ -47,6 +47,7 @@ interface Props {
   viz: Viz | null;
   explanation: string;
   error: string | null;
+  question?: string;
   onDrillDown?: (label: string, colName: string) => void;
   currentPage?: number;
   totalCount?: number;
@@ -77,9 +78,30 @@ function downloadFile(content: string, name: string, mime: string) {
   URL.revokeObjectURL(a.href);
 }
 
+function exportNotebook(question: string, sql: string, explanation: string) {
+  const codeLines = [
+    "import sqlite3\nimport pandas as pd\n\n",
+    "# Download Chinook DB: https://github.com/lerocha/chinook-database\n",
+    "conn = sqlite3.connect('chinook.db')\n\n",
+    `df = pd.read_sql_query("""\n${sql}\n""", conn)\n`,
+    "df",
+  ].join("");
+  const cells = [
+    { cell_type: "markdown", metadata: {}, source: [`# ${question}`] },
+    { cell_type: "code", metadata: {}, execution_count: null, outputs: [], source: [codeLines] },
+    ...(explanation ? [{ cell_type: "markdown", metadata: {}, source: [`## Explanation\n\n${explanation}`] }] : []),
+  ];
+  const nb = {
+    nbformat: 4, nbformat_minor: 5,
+    metadata: { kernelspec: { display_name: "Python 3", language: "python", name: "python3" }, language_info: { name: "python", version: "3.10.0" } },
+    cells,
+  };
+  downloadFile(JSON.stringify(nb, null, 2), "query.ipynb", "application/json");
+}
+
 export default function QueryResultPanel({
-  generatedSql, copied, copySQL, results, viz, explanation, error, onDrillDown,
-  currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
+  generatedSql, copied, copySQL, results, viz, explanation, error, question,
+  onDrillDown, currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
 }: Props) {
   return (
     <>
@@ -123,6 +145,13 @@ export default function QueryResultPanel({
                 className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
                 JSON
               </button>
+              {generatedSql && (
+                <button
+                  onClick={() => exportNotebook(question ?? "", generatedSql, explanation)}
+                  className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
+                  .ipynb
+                </button>
+              )}
             </div>
           </div>
           <div className="overflow-x-auto max-h-80 overflow-y-auto">

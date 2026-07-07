@@ -387,7 +387,7 @@ export default function TextToSqlRunner() {
         )}
 
         <QueryResultPanel
-          generatedSql={generatedSql} copied={copied} copySQL={copySQL}
+          generatedSql={generatedSql} copied={copied} copySQL={copySQL} question={question}
           results={results} viz={viz} explanation={explanation} error={error}
           onDrillDown={drillDown}
           currentPage={currentPage} totalCount={totalCount} pageSize={50}
