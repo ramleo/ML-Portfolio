@@ -141,11 +141,13 @@ export default function TextToSqlRunner() {
 
     let finalSql = "";
     let finalResults: { columns: string[]; rows: unknown[][]; count: number; exec_time_ms: number } | null = null;
-
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90_000);
     try {
       const res = await fetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question, provider, db_ref: dbRef, history: historyPayload, glossary }),
+        signal: controller.signal,
       });
       if (!res.body) throw new Error("No response stream");
       const reader = res.body.getReader();
@@ -188,8 +190,8 @@ export default function TextToSqlRunner() {
         } catch { /* ignore */ }
       }
     } catch (e: unknown) {
-      setError((e as Error).message);
-    } finally { setRunning(false); }
+      setError((e as Error).name === "AbortError" ? "Backend is waking up — wait 30 seconds and try again." : (e as Error).message);
+    } finally { clearTimeout(timeoutId); setRunning(false); }
   }, [question, provider, dbRef, running, history]);
   const drillDown = useCallback((label: string, colName: string) => {
     setQuestion(`Show me details where ${colName} is "${label}"`);
@@ -359,10 +361,10 @@ export default function TextToSqlRunner() {
                 <option value="gemini">Gemini</option>
                 <option value="cohere">Cohere</option>
               </select>
-              <button onClick={runQuery} disabled={running || !question.trim()}
+              <button onClick={runQuery} disabled={running || !question.trim() || !schema}
                 className={`text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-all ${running ? "opacity-80" : "hover:brightness-110"}`}
                 style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
-                {running ? "Running…" : "Ask"}
+                {running ? "Running…" : !schema ? "Load DB" : "Ask"}
               </button>
             </div>
           </div>
