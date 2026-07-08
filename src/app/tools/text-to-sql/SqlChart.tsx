@@ -285,10 +285,15 @@ export function MultiBarChart({ labels, series, xLabel }: MB) {
           );
         })
       )}
-      {labels.map((lbl, gi) => (
-        <text key={gi} x={PL + gi * gW + gW / 2} y={H - PB + 14}
-          fontSize={9} fill={TX} textAnchor="middle">{String(lbl).slice(0, 10)}</text>
-      ))}
+      {labels.map((lbl, gi) => {
+        const lx = PL + gi * gW + gW / 2;
+        return (
+          <text key={gi} x={lx} y={H - PB + 14} fontSize={9} fill={TX}
+            textAnchor="end" transform={`rotate(-38,${lx},${H - PB + 14})`}>
+            {String(lbl).slice(0, 14)}
+          </text>
+        );
+      })}
       {series.map((s, i) => (
         <g key={i} transform={`translate(${W - PR + 6},${PT + i * 18})`}>
           <rect width={8} height={8} rx={1} fill={SERIES_COLORS[i % SERIES_COLORS.length]} opacity={0.85} />
