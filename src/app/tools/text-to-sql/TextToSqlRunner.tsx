@@ -9,6 +9,7 @@ import MobileSidebar from "./MobileSidebar";
 import SchemaPanel from "./SchemaPanel";
 import QueryHistoryPanel from "./QueryHistoryPanel";
 import PipelineStatus from "./PipelineStatus";
+import SavedQueriesPanel from "./SavedQueriesPanel";
 
 const ACCENT = "#6366f1";
 
@@ -310,6 +311,7 @@ export default function TextToSqlRunner() {
             </>
           )}
         </div>
+        <SavedQueriesPanel currentQuery={generatedSql ? { question, sql: generatedSql } : null} onLoad={setQuestion} />
       </aside>
 
       <div className="flex-1 flex flex-col gap-4 min-w-0 pt-2">
@@ -376,9 +378,7 @@ export default function TextToSqlRunner() {
                 {shared ? "✓ Link copied!" : "Share this query"}</button>)}
           </div>
         </div>
-        {history.length > 0 && (
-          <QueryHistoryPanel history={history} onClear={() => setHistory([])} onReuse={setQuestion} />
-        )}
+        {history.length > 0 && <QueryHistoryPanel history={history} onClear={() => setHistory([])} onReuse={setQuestion} />}
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL} question={question}
           results={results} viz={viz} explanation={explanation} error={error}
