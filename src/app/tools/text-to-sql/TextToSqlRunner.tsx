@@ -179,7 +179,6 @@ export default function TextToSqlRunner() {
         const summary = `${finalResults.count} rows. Columns: ${cols}${sample ? `. Sample: ${sample}` : ""}`;
         const newTurn: HistoryTurn = { question, sql: finalSql, result_summary: summary, count: finalResults.count };
         setHistory(prev => [...prev, newTurn]);
-        // Persist to localStorage for future-session few-shot
         try {
           const prev = JSON.parse(localStorage.getItem("ml_sql_fewshot") || "[]") as HistoryTurn[];
           const updated = [...prev, newTurn].slice(-20);
@@ -371,11 +370,12 @@ export default function TextToSqlRunner() {
             </div>
           </div>
           <PipelineStatus running={running} retryMsg={retryMsg} hasSql={!!generatedSql} hasResults={!!results} hasExplanation={!!explanation} />
-          {generatedSql && dbRef === "chinook" && (
-            <button onClick={shareQuery} className="text-[10px] self-start transition-colors" style={{ color: shared ? "#10b981" : "#6b7280" }}>
-              {shared ? "✓ Link copied!" : "Share this query"}
-            </button>
-          )}
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] text-gray-600">SQL is AI-generated — accuracy depends on the LLM. Verify results before use.</p>
+            {generatedSql && dbRef === "chinook" && (
+              <button onClick={shareQuery} className="text-[10px] shrink-0 transition-colors" style={{ color: shared ? "#10b981" : "#6b7280" }}>
+                {shared ? "✓ Link copied!" : "Share this query"}</button>)}
+          </div>
         </div>
 
         {history.length > 0 && (
