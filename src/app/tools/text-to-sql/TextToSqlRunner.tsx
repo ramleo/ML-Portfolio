@@ -28,6 +28,7 @@ interface HistoryTurn {
   sql: string;
   result_summary: string;
   count: number;
+  timestamp?: number;
 }
 
 interface FKRel { from_col: string; to_table: string; to_col: string; }
@@ -181,7 +182,7 @@ export default function TextToSqlRunner() {
         const cols = finalResults.columns.join(", ");
         const sample = finalResults.rows.slice(0, 2).map(r => `[${(r as unknown[]).join(", ")}]`).join("; ");
         const summary = `${finalResults.count} rows. Columns: ${cols}${sample ? `. Sample: ${sample}` : ""}`;
-        const newTurn: HistoryTurn = { question, sql: finalSql, result_summary: summary, count: finalResults.count };
+        const newTurn: HistoryTurn = { question, sql: finalSql, result_summary: summary, count: finalResults.count, timestamp: Date.now() };
         setHistory(prev => [...prev, newTurn]);
         try {
           const prev = JSON.parse(localStorage.getItem("ml_sql_fewshot") || "[]") as HistoryTurn[];

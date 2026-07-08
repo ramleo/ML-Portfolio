@@ -4,12 +4,19 @@ import { useState } from "react";
 
 const ACCENT = "#6366f1";
 
-interface HistoryTurn { question: string; sql: string; result_summary: string; count: number; }
+interface HistoryTurn { question: string; sql: string; result_summary: string; count: number; timestamp?: number; }
 
 interface Props {
   history: HistoryTurn[];
   onClear: () => void;
   onReuse: (q: string) => void;
+}
+
+function relTime(ts: number): string {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  return `${Math.floor(s / 3600)}h ago`;
 }
 
 function dotColor(count: number): string {
@@ -35,7 +42,7 @@ export default function QueryHistoryPanel({ history, onClear, onReuse }: Props) 
       </div>
 
       <div className="relative">
-        <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/10" />
+        <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/20" />
         <div className="flex flex-col gap-2">
           {history.map((turn, i) => {
             const clr = dotColor(turn.count);
@@ -50,7 +57,10 @@ export default function QueryHistoryPanel({ history, onClear, onReuse }: Props) 
                   <button
                     className="w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-white/5 transition-colors"
                     onClick={() => setExpanded(expanded === i ? null : i)}>
-                    <span className="text-[9px] font-mono shrink-0 mt-0.5 text-gray-500">Q{i + 1}</span>
+                    <div className="flex flex-col items-start shrink-0 mt-0.5 gap-0.5">
+                      <span className="text-[9px] font-mono text-gray-500">Q{i + 1}</span>
+                      {turn.timestamp && <span className="text-[9px] text-gray-600 tabular-nums">{relTime(turn.timestamp)}</span>}
+                    </div>
                     <span className="text-[11px] text-gray-300 flex-1 leading-snug">{turn.question}</span>
                     <div className="flex flex-col items-end gap-0.5 shrink-0">
                       <span className="text-[10px] font-mono" style={{ color: clr }}>
