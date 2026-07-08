@@ -382,7 +382,7 @@ export default function TextToSqlRunner() {
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL} question={question}
           results={results} viz={viz} explanation={explanation} error={error}
-          onDrillDown={drillDown}
+          onDrillDown={drillDown} onRetry={runQuery} provider={provider}
           currentPage={currentPage} totalCount={totalCount} pageSize={50}
           onPageChange={changePage}
           onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}

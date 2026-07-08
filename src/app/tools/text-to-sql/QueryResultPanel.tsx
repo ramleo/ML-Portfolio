@@ -57,6 +57,8 @@ interface Props {
   onFilter?: (text: string) => Promise<void>;
   onClearFilter?: () => void;
   filterActive?: boolean;
+  onRetry?: () => void;
+  provider?: string;
 }
 
 function highlightSQL(sql: string) {
@@ -122,7 +124,7 @@ function exportNotebook(question: string, sql: string, explanation: string) {
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, viz, explanation, error, question,
   onDrillDown, currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
-  onFilter, onClearFilter, filterActive,
+  onFilter, onClearFilter, filterActive, onRetry, provider,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
@@ -138,15 +140,32 @@ export default function QueryResultPanel({
 
   return (
     <>
-      {error && (
-        <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 flex items-start gap-2.5">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5">
-            <circle cx="8" cy="8" r="6.5" stroke="#f87171" strokeWidth="1.3"/>
-            <path d="M8 5v4M8 11v.5" stroke="#f87171" strokeWidth="1.3" strokeLinecap="round"/>
-          </svg>
-          <p className="text-xs text-red-400 leading-relaxed">{error}</p>
-        </div>
-      )}
+      {error && (() => {
+        const isConfigErr = /API_KEY not configured/.test(error);
+        const isExhausted = error.includes("All providers failed");
+        const providerLabel = provider ? provider.charAt(0).toUpperCase() + provider.slice(1) : "Provider";
+        const canRetry = !isConfigErr && !isExhausted;
+        return (
+          <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 flex items-start gap-2.5">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5">
+              <circle cx="8" cy="8" r="6.5" stroke="#f87171" strokeWidth="1.3"/>
+              <path d="M8 5v4M8 11v.5" stroke="#f87171" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-red-400 leading-relaxed">{error}</p>
+              {isConfigErr && (
+                <p className="text-[11px] text-gray-500 mt-1">{providerLabel} key isn&apos;t configured — switch provider in the dropdown.</p>
+              )}
+              {canRetry && onRetry && (
+                <button onClick={onRetry} className="mt-2 flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M10 6A4 4 0 112 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M10 3v3h-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Try again
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {generatedSql && (
         <div className="rounded-xl border border-indigo-500/20 bg-black/50 p-4">
