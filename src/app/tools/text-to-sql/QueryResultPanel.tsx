@@ -289,10 +289,10 @@ export default function QueryResultPanel({
       {viz && (
         <div className="rounded-xl border border-white/10 bg-white/5 p-4">
           {viz.chart_type !== "stat" && (
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            <p className="text-sm font-semibold text-white/75 tracking-tight mb-3">
               {CHART_LABEL[viz.chart_type] ?? viz.chart_type}
               {(viz.chart_type === "bar" || viz.chart_type === "bar_h") && onDrillDown && (
-                <span className="ml-2 text-[10px] text-gray-600 normal-case font-normal">click a bar to drill down</span>
+                <span className="ml-2 text-[11px] text-gray-600 font-normal">· click a bar to drill down</span>
               )}
             </p>
           )}

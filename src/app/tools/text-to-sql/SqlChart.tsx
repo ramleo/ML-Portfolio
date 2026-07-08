@@ -85,8 +85,8 @@ export function BarChart({ labels, values, xLabel, yLabel, accent, onLabelClick 
           </g>
         );
       })}
-      <text x={W / 2} y={H - 2} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
-      <text x={10} y={H / 2} fontSize={10} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
+      <text x={W / 2} y={H - 2} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={10} y={H / 2} fontSize={11} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
     </svg>
   );
 }
@@ -123,8 +123,8 @@ export function HorizontalBarChart({ labels, values, xLabel, yLabel, accent, onL
           </g>
         );
       })}
-      <text x={PL + cW / 2} y={H - 4} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
-      <text x={10} y={H / 2} fontSize={10} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
+      <text x={PL + cW / 2} y={H - 4} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={10} y={H / 2} fontSize={11} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
     </svg>
   );
 }
@@ -170,8 +170,8 @@ export function AreaChart({ labels, values, xLabel, yLabel, accent }: S1) {
           </g>
         );
       })}
-      <text x={W / 2} y={H - 2} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
-      <text x={10} y={H / 2} fontSize={10} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
+      <text x={W / 2} y={H - 2} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={10} y={H / 2} fontSize={11} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
     </svg>
   );
 }
@@ -202,8 +202,8 @@ export function ScatterChart({ x, y, xLabel, yLabel, accent, labels }: SP) {
           <title>{labels?.[i] ? `${labels[i]} — ` : ""}{xLabel}: {fmt(xv)}, {yLabel}: {fmt(y[i])}</title>
         </circle>
       ))}
-      <text x={W / 2} y={H - 2} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
-      <text x={10} y={H / 2} fontSize={10} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
+      <text x={W / 2} y={H - 2} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={10} y={H / 2} fontSize={11} fill={TX} textAnchor="middle" transform={`rotate(-90,10,${H / 2})`}>{yLabel}</text>
     </svg>
   );
 }
@@ -225,7 +225,7 @@ export function DonutChart({ labels, values, xLabel, accent }: Omit<S1, "yLabel"
           <title>{labels[i]}: {fmt(s.v)} ({((s.v / total) * 100).toFixed(1)}%)</title>
         </path>
       ))}
-      <text x={cx} y={cy - 8} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={cx} y={cy - 8} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
       <text x={cx} y={cy + 12} fontSize={18} fontWeight="bold" fill={accent} textAnchor="middle">{fmt(total)}</text>
       <text x={cx} y={cy + 27} fontSize={9} fill={TX} textAnchor="middle">total</text>
       {slices.map((s, i) => (
@@ -275,10 +275,13 @@ export function MultiBarChart({ labels, series, xLabel }: MB) {
           const x  = PL + gi * gW + si * (bW + 2) + 2;
           const y  = H - PB - bH;
           return (
-            <rect key={`${gi}-${si}`} x={x} y={y} width={bW} height={bH}
-              fill={SERIES_COLORS[si % SERIES_COLORS.length]} rx={2} opacity={0.85}>
-              <title>{s.name} / {lbl}: {fmt(v)}</title>
-            </rect>
+            <g key={`${gi}-${si}`}>
+              <rect x={x} y={y} width={bW} height={bH}
+                fill={SERIES_COLORS[si % SERIES_COLORS.length]} rx={2} opacity={0.85}>
+                <title>{s.name} / {lbl}: {fmt(v)}</title>
+              </rect>
+              {bH > 12 && bW > 10 && <text x={x + bW / 2} y={y - 3} fontSize={7} fill={SERIES_COLORS[si % SERIES_COLORS.length]} textAnchor="middle" opacity={0.9}>{fmt(v)}</text>}
+            </g>
           );
         })
       )}
@@ -292,7 +295,7 @@ export function MultiBarChart({ labels, series, xLabel }: MB) {
           <text x={12} y={8} fontSize={9} fill={TX}>{s.name.slice(0, 14)}</text>
         </g>
       ))}
-      <text x={PL + cW / 2} y={H - 2} fontSize={10} fill={TX} textAnchor="middle">{xLabel}</text>
+      <text x={PL + cW / 2} y={H - 2} fontSize={11} fill={TX} textAnchor="middle">{xLabel}</text>
     </svg>
   );
 }
