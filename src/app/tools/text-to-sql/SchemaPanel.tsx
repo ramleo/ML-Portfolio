@@ -88,13 +88,13 @@ export default function SchemaPanel({ schema, accent }: Props) {
                         {c.pk
                           ? <span className="text-[8px] px-1 py-px rounded font-bold shrink-0" style={{ background: `${accent}22`, color: accent }}>PK</span>
                           : fkTarget
-                            ? <span title={fkTarget} className="text-[8px] px-1 py-px rounded font-bold shrink-0 cursor-help" style={{ background: "#7c3aed22", color: "#a78bfa" }}>FK</span>
+                            ? <span title={fkTarget} className="text-[8px] px-1 py-px rounded font-bold shrink-0 cursor-help" style={{ background: "#6d28d940", color: "#c4b5fd" }}>FK</span>
                             : <span className="text-[8px] px-1 py-px rounded font-medium shrink-0" style={{ background: tc.bg, color: tc.text }}>{tc.label}</span>
                         }
-                        <span className={`text-[10px] font-mono truncate ${hi ? "text-amber-300" : c.pk ? "text-indigo-300/90" : fkTarget ? "text-violet-300/80" : "text-gray-400"}`}>
+                        <span className={`text-[10px] font-mono truncate ${hi ? "text-amber-300" : c.pk ? "text-indigo-300/90" : fkTarget ? "text-violet-300" : "text-gray-400"}`}>
                           {c.name}
                         </span>
-                        {fkTarget && <span className="text-[8px] text-violet-900/80 shrink-0 font-sans">{fkTarget.split(".")[0]}</span>}
+                        {fkTarget && <span className="text-[8px] text-violet-400/70 shrink-0 font-sans">{fkTarget.split(".")[0]}</span>}
                       </div>
                     );
                   });
