@@ -59,6 +59,22 @@ interface Props {
   filterActive?: boolean;
 }
 
+function highlightSQL(sql: string) {
+  const re = /("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|(\b(?:SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|CROSS|ON|AS|GROUP BY|ORDER BY|HAVING|LIMIT|OFFSET|AND|OR|NOT|IN|LIKE|IS|NULL|DISTINCT|COUNT|SUM|AVG|MAX|MIN|ROUND|WITH|UNION|ALL|BY|DESC|ASC|CASE|WHEN|THEN|ELSE|END)\b)/gi;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parts: any[] = [];
+  let last = 0, m: RegExpExecArray | null;
+  while ((m = re.exec(sql)) !== null) {
+    if (m.index > last) parts.push(sql.slice(last, m.index));
+    if (m[1] || m[2])  parts.push(<span key={m.index} className="text-emerald-400">{m[0]}</span>);
+    else if (m[3])     parts.push(<span key={m.index} className="text-amber-400">{m[0]}</span>);
+    else if (m[4])     parts.push(<span key={m.index} className="text-indigo-400 font-semibold">{m[0]}</span>);
+    last = m.index + m[0].length;
+  }
+  if (last < sql.length) parts.push(sql.slice(last));
+  return parts;
+}
+
 function formatCell(cell: unknown): string {
   if (cell === null) return "";
   const n = Number(cell);
@@ -123,20 +139,24 @@ export default function QueryResultPanel({
   return (
     <>
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-xs text-red-400">{error}</p>
+        <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 flex items-start gap-2.5">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5">
+            <circle cx="8" cy="8" r="6.5" stroke="#f87171" strokeWidth="1.3"/>
+            <path d="M8 5v4M8 11v.5" stroke="#f87171" strokeWidth="1.3" strokeLinecap="round"/>
+          </svg>
+          <p className="text-xs text-red-400 leading-relaxed">{error}</p>
         </div>
       )}
 
       {generatedSql && (
-        <div className="rounded-xl border border-white/10 bg-black/40 p-4">
+        <div className="rounded-xl border border-indigo-500/20 bg-black/50 p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Generated SQL</span>
+            <span className="text-xs font-semibold text-indigo-400/80 uppercase tracking-wide">Generated SQL</span>
             <button onClick={copySQL} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
               {copied ? "Copied!" : "Copy"}
             </button>
           </div>
-          <pre className="text-xs font-mono text-green-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{generatedSql}</pre>
+          <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{generatedSql ? highlightSQL(generatedSql) : null}</pre>
         </div>
       )}
 
@@ -185,7 +205,7 @@ export default function QueryResultPanel({
               </thead>
               <tbody>
                 {results.rows.map((row, i) => (
-                  <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.07] transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
                     {(row as unknown[]).map((cell, j) => (
                       <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
                         {cell === null
@@ -291,8 +311,13 @@ export default function QueryResultPanel({
       )}
 
       {explanation && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Explanation</p>
+        <div className="rounded-xl border border-indigo-500/15 bg-indigo-950/20 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2a5 5 0 100 10A5 5 0 007 2zM7 5v3M7 9.5v.5" stroke="#818cf8" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            <p className="text-[10px] font-semibold text-indigo-400/70 uppercase tracking-widest">Explanation</p>
+          </div>
           <p className="text-sm text-gray-300 leading-relaxed">{explanation}</p>
         </div>
       )}

@@ -8,6 +8,7 @@ import SchemaDiagram from "./SchemaDiagram";
 import MobileSidebar from "./MobileSidebar";
 import SchemaPanel from "./SchemaPanel";
 import QueryHistoryPanel from "./QueryHistoryPanel";
+import PipelineStatus from "./PipelineStatus";
 
 const ACCENT = "#6366f1";
 
@@ -67,7 +68,6 @@ export default function TextToSqlRunner() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(-1);
 
-  // Load few-shot examples from localStorage on mount
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
   useEffect(() => {
     try {
@@ -93,7 +93,6 @@ export default function TextToSqlRunner() {
     } catch (e: unknown) { setStatus((e as Error).message); }
   }, []);
 
-  // Auto-load Chinook schema on mount so schema panel + diagram are ready immediately
   useEffect(() => { loadDemoSchema(); }, [loadDemoSchema]);
 
   const uploadDb = useCallback(async (file: File) => {
@@ -131,7 +130,6 @@ export default function TextToSqlRunner() {
     setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
     setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null; originalSqlRef.current = null; setActiveFilter(null);
 
-    // Combine few-shot examples (from localStorage) + recent conversation turns
     const fewShotPayload = fewShot.slice(-3).map(t => ({
       question: t.question, sql: t.sql, result_summary: `Example. ${t.result_summary}`,
     }));
@@ -263,51 +261,53 @@ export default function TextToSqlRunner() {
     />
 
     <div className="flex gap-4 w-full max-w-7xl mx-auto px-4 pb-16">
-      <aside className="hidden lg:flex flex-col w-52 shrink-0 gap-3 pt-2">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-          <div className="flex items-center mb-2">
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 gap-2.5 pt-2">
+        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+          <div className="flex items-center gap-1.5 mb-2">
             <button onClick={() => setSchemaOpen(o => !o)}
-              className="text-xs font-semibold text-gray-300 flex items-center gap-1 flex-1">
-              <span>{schemaOpen ? "▾" : "▸"}</span> Schema
-              {schema && <span className="ml-1 text-[10px] text-gray-500">{Object.keys(schema).length} tables</span>}
+              className="text-[11px] font-semibold text-gray-300 flex items-center gap-1.5 flex-1 hover:text-white transition-colors">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d={schemaOpen ? "M2 4l4 4 4-4" : "M4 2l4 4-4 4"} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Schema
+              {schema && <span className="ml-auto text-[9px] text-gray-600 font-normal">{Object.keys(schema).length} tables</span>}
             </button>
           </div>
           {schema && (
             <button onClick={() => setDiagramOpen(true)}
-              className="w-full mb-2 flex items-center justify-center gap-1.5 text-[11px] py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              className="w-full mb-2 flex items-center justify-center gap-1.5 text-[10px] py-1 rounded-lg border border-white/8 text-gray-500 hover:text-indigo-300 hover:border-indigo-500/40 transition-colors">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
                 <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                 <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                 <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                 <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
               </svg>
-              View Diagram
+              View ER Diagram
             </button>
           )}
           {schemaOpen && schemaPanel}
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-          <p className="text-[10px] font-semibold text-gray-400 mb-2 uppercase tracking-wide">Sample Questions</p>
+        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+          <p className="text-[9px] font-semibold text-indigo-400/50 mb-2 uppercase tracking-widest">Try asking</p>
           {SAMPLE_QUESTIONS.map(q => (
             <button key={q} onClick={() => setQuestion(q)}
-              className="text-[10px] text-left text-gray-400 hover:text-white w-full py-0.5 hover:pl-1 transition-all">
-              › {q}
+              className="w-full text-left text-[10px] text-gray-500 hover:text-indigo-300 py-1 px-1.5 rounded-lg hover:bg-indigo-500/8 transition-all flex gap-1.5 group">
+              <span className="text-indigo-700 group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors">›</span><span>{q}</span>
             </button>
           ))}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
           <button onClick={() => setGlossaryOpen(o => !o)}
-            className="text-[10px] font-semibold text-gray-400 mb-1 flex items-center gap-1 w-full uppercase tracking-wide">
-            <span>{glossaryOpen ? "▾" : "▸"}</span> Glossary
+            className="text-[9px] font-semibold text-indigo-400/50 mb-1 flex items-center gap-1 w-full uppercase tracking-widest hover:text-indigo-400 transition-colors">
+            <svg width="9" height="9" viewBox="0 0 8 8" fill="none"><path d={glossaryOpen ? "M1 3l3 3 3-3" : "M3 1l3 3-3 3"} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Glossary
           </button>
           {glossaryOpen && (
             <>
               <textarea value={glossary} onChange={e => setGlossary(e.target.value)}
                 placeholder={"revenue: sum of invoice totals\nLTV: lifetime value of customer"}
                 rows={5}
-                className="w-full text-[10px] font-mono bg-black/30 border border-white/10 rounded px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1" />
-              <p className="text-[9px] text-gray-600 mt-1">Definitions injected into every SQL prompt</p>
+                className="w-full text-[10px] font-mono bg-black/40 border border-white/8 rounded-lg px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1 focus:border-indigo-500/40 transition-colors" />
+              <p className="text-[9px] text-gray-700 mt-1">Injected into every SQL prompt</p>
             </>
           )}
         </div>
@@ -349,13 +349,13 @@ export default function TextToSqlRunner() {
           )}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
+        <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 ${running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-white/10 bg-white/5"}`}>
           <div className="flex gap-2">
             <textarea ref={questionRef} value={question} onChange={e => setQuestion(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(); } }}
               placeholder="Ask a question about your data… (Enter to run)"
               rows={2}
-              className="flex-1 text-sm bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-600 outline-none resize-none" />
+              className="flex-1 text-sm bg-black/30 border border-white/10 focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] rounded-lg px-3 py-2 text-gray-200 placeholder-gray-600 outline-none resize-none transition-all duration-200" />
             <div className="flex flex-col gap-2 shrink-0">
               <select value={provider} onChange={e => setProvider(e.target.value as Provider)}
                 className="text-xs bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-gray-300 outline-none">
@@ -364,13 +364,13 @@ export default function TextToSqlRunner() {
                 <option value="cohere">Cohere</option>
               </select>
               <button onClick={runQuery} disabled={running || !question.trim()}
-                className="text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-opacity"
-                style={{ background: ACCENT }}>
+                className={`text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-all ${running ? "opacity-80" : "hover:brightness-110"}`}
+                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
                 {running ? "Running…" : "Ask"}
               </button>
             </div>
           </div>
-          {retryMsg && <p className="text-[11px] text-yellow-400">{retryMsg}</p>}
+          <PipelineStatus running={running} retryMsg={retryMsg} hasSql={!!generatedSql} hasResults={!!results} hasExplanation={!!explanation} />
           {generatedSql && dbRef === "chinook" && (
             <button onClick={shareQuery} className="text-[10px] self-start transition-colors" style={{ color: shared ? "#10b981" : "#6b7280" }}>
               {shared ? "✓ Link copied!" : "Share this query"}
