@@ -69,12 +69,13 @@ export default function TextToSqlRunner() {
   const [totalCount, setTotalCount] = useState(-1);
 
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
+  useEffect(() => { try { const s = localStorage.getItem("ml_sql_fewshot"); if (s) setFewShot(JSON.parse(s)); } catch {} }, []);
+  const [dynQ, setDynQ] = useState(SAMPLE_QUESTIONS);
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("ml_sql_fewshot");
-      if (stored) setFewShot(JSON.parse(stored));
-    } catch { /* ignore */ }
-  }, []);
+    if (dbRef === "chinook") { setDynQ(SAMPLE_QUESTIONS); return; }
+    fetch(`${ML_SQL_API}/sql/sample-questions?db_ref=${dbRef}&provider=${provider}`)
+      .then(r => r.json()).then(d => { if (d.questions?.length) setDynQ(d.questions); }).catch(() => {});
+  }, [dbRef, provider]);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
@@ -254,7 +255,7 @@ export default function TextToSqlRunner() {
     <MobileSidebar
       open={mobileSidebar} onClose={() => setMobileSidebar(false)}
       hasSchema={!!schema} schemaPanel={schemaPanel}
-      sampleQuestions={SAMPLE_QUESTIONS} onQuestion={setQuestion}
+      sampleQuestions={dynQ} onQuestion={setQuestion}
       glossary={glossary} onGlossaryChange={setGlossary}
       onOpenDiagram={() => setDiagramOpen(true)}
     />
@@ -286,7 +287,7 @@ export default function TextToSqlRunner() {
         </div>
         <div className="rounded-xl border border-white/8 bg-black/30 p-3">
           <p className="text-[9px] font-semibold text-indigo-400/50 mb-2 uppercase tracking-widest">Try asking</p>
-          {SAMPLE_QUESTIONS.map(q => (
+          {dynQ.map(q => (
             <button key={q} onClick={() => setQuestion(q)}
               className="w-full text-left text-[10px] text-gray-500 hover:text-indigo-300 py-1 px-1.5 rounded-lg hover:bg-indigo-500/8 transition-all flex gap-1.5 group">
               <span className="text-indigo-700 group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors">›</span><span>{q}</span>
@@ -323,7 +324,6 @@ export default function TextToSqlRunner() {
           status={status}
         />
 
-        {/* Mobile bar — Schema drawer + Diagram, hidden on desktop */}
         <div className="lg:hidden flex gap-2">
           <button onClick={() => setMobileSidebar(true)}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white transition-colors shrink-0">
