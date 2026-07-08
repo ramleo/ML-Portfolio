@@ -191,7 +191,6 @@ export default function TextToSqlRunner() {
       setError((e as Error).message);
     } finally { setRunning(false); }
   }, [question, provider, dbRef, running, history]);
-
   const drillDown = useCallback((label: string, colName: string) => {
     setQuestion(`Show me details where ${colName} is "${label}"`);
     setTimeout(() => {
@@ -199,13 +198,11 @@ export default function TextToSqlRunner() {
       questionRef.current?.focus();
     }, 50);
   }, []);
-
   const copySQL = useCallback(() => {
     if (!generatedSql) return;
     navigator.clipboard.writeText(generatedSql);
     setCopied(true); setTimeout(() => setCopied(false), 1500);
   }, [generatedSql]);
-
   const changePage = useCallback(async (page: number) => {
     if (!currentSqlRef.current) return;
     const res = await fetch(`${ML_SQL_API}/sql/page`, {
@@ -352,7 +349,7 @@ export default function TextToSqlRunner() {
           <div className="flex gap-2">
             <textarea ref={questionRef} value={question} onChange={e => setQuestion(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(); } }}
-              placeholder="Ask a question about your data… (Enter to run)"
+              placeholder={results ? "Ask a follow-up or new question… (Enter to run)" : "Ask a question about your data… (Enter to run)"}
               rows={2}
               className="flex-1 text-sm bg-black/30 border border-white/10 focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] rounded-lg px-3 py-2 text-gray-200 placeholder-gray-600 outline-none resize-none transition-all duration-200" />
             <div className="flex flex-col gap-2 shrink-0">
@@ -377,15 +374,9 @@ export default function TextToSqlRunner() {
                 {shared ? "✓ Link copied!" : "Share this query"}</button>)}
           </div>
         </div>
-
         {history.length > 0 && (
-          <QueryHistoryPanel
-            history={history}
-            onClear={() => setHistory([])}
-            onReuse={setQuestion}
-          />
+          <QueryHistoryPanel history={history} onClear={() => setHistory([])} onReuse={setQuestion} />
         )}
-
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL} question={question}
           results={results} viz={viz} explanation={explanation} error={error}
@@ -394,6 +385,12 @@ export default function TextToSqlRunner() {
           onPageChange={changePage}
           onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}
         />
+        {(results || explanation) && !running && (
+          <button onClick={() => { questionRef.current?.scrollIntoView({behavior:"smooth",block:"center"}); questionRef.current?.focus(); }}
+            className="text-[11px] text-gray-600 hover:text-indigo-400 transition-colors mx-auto flex items-center gap-1.5">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M9 2H4a2 2 0 00-2 2v2M3 8L1 6l2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Ask a follow-up — this query&apos;s context is retained</button>
+        )}
       </div>
     </div>
     </div>
