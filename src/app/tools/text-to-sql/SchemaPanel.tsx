@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 interface Col { name: string; type: string; pk: boolean; }
-interface Table { columns: Col[]; row_count: number; }
+interface FKRel { from_col: string; to_table: string; to_col: string; }
+interface Table { columns: Col[]; row_count: number; foreign_keys?: FKRel[]; }
 interface Props { schema: Record<string, Table> | null; accent: string; }
 
 function typeColor(t: string) {
@@ -76,21 +77,28 @@ export default function SchemaPanel({ schema, accent }: Props) {
 
             {isOpen && (
               <div className="border-t border-white/5 px-2 py-1.5 flex flex-col gap-0.5">
-                {t.columns.map(c => {
-                  const tc = typeColor(c.type);
-                  const hi = q && c.name.toLowerCase().includes(q);
-                  return (
-                    <div key={c.name} className="flex items-center gap-1.5 py-[2px]">
-                      {c.pk
-                        ? <span className="text-[8px] px-1 py-px rounded font-bold shrink-0" style={{ background: `${accent}22`, color: accent }}>PK</span>
-                        : <span className="text-[8px] px-1 py-px rounded font-medium shrink-0" style={{ background: tc.bg, color: tc.text }}>{tc.label}</span>
-                      }
-                      <span className={`text-[10px] font-mono truncate ${hi ? "text-amber-300" : c.pk ? "text-indigo-300/90" : "text-gray-400"}`}>
-                        {c.name}
-                      </span>
-                    </div>
-                  );
-                })}
+                {(() => {
+                  const fkMap = new Map<string, string>((t.foreign_keys ?? []).map(fk => [fk.from_col, `→ ${fk.to_table}.${fk.to_col}`]));
+                  return t.columns.map(c => {
+                    const tc = typeColor(c.type);
+                    const hi = q && c.name.toLowerCase().includes(q);
+                    const fkTarget = fkMap.get(c.name);
+                    return (
+                      <div key={c.name} className="flex items-center gap-1.5 py-[2px]">
+                        {c.pk
+                          ? <span className="text-[8px] px-1 py-px rounded font-bold shrink-0" style={{ background: `${accent}22`, color: accent }}>PK</span>
+                          : fkTarget
+                            ? <span title={fkTarget} className="text-[8px] px-1 py-px rounded font-bold shrink-0 cursor-help" style={{ background: "#7c3aed22", color: "#a78bfa" }}>FK</span>
+                            : <span className="text-[8px] px-1 py-px rounded font-medium shrink-0" style={{ background: tc.bg, color: tc.text }}>{tc.label}</span>
+                        }
+                        <span className={`text-[10px] font-mono truncate ${hi ? "text-amber-300" : c.pk ? "text-indigo-300/90" : fkTarget ? "text-violet-300/80" : "text-gray-400"}`}>
+                          {c.name}
+                        </span>
+                        {fkTarget && <span className="text-[8px] text-violet-900/80 shrink-0 font-sans">{fkTarget.split(".")[0]}</span>}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
