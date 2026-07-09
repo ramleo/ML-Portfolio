@@ -121,8 +121,9 @@ export default function TextToSqlRunner() {
     } catch (e: unknown) { setStatus(`Connection failed: ${(e as Error).message}`); }
   }, []);
 
-  const runQuery = useCallback(async () => {
-    if (!question.trim() || running) return;
+  const runQuery = useCallback(async (questionOverride?: string) => {
+    const activeQ = questionOverride ?? question;
+    if (!activeQ.trim() || running) return;
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
@@ -143,7 +144,7 @@ export default function TextToSqlRunner() {
     try {
       const res = await fetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, provider, db_ref: dbRef, history: historyPayload, glossary }),
+        body: JSON.stringify({ question: activeQ, provider, db_ref: dbRef, history: historyPayload, glossary }),
         signal: controller.signal,
       });
       if (!res.body) throw new Error("No response stream");
@@ -177,7 +178,7 @@ export default function TextToSqlRunner() {
         const cols = finalResults.columns.join(", ");
         const sample = finalResults.rows.slice(0, 2).map(r => `[${(r as unknown[]).join(", ")}]`).join("; ");
         const summary = `${finalResults.count} rows. Columns: ${cols}${sample ? `. Sample: ${sample}` : ""}`;
-        const newTurn: HistoryTurn = { question, sql: finalSql, result_summary: summary, count: finalResults.count, timestamp: Date.now() };
+        const newTurn: HistoryTurn = { question: activeQ, sql: finalSql, result_summary: summary, count: finalResults.count, timestamp: Date.now() };
         setHistory(prev => [...prev, newTurn]);
         try {
           const prev = JSON.parse(localStorage.getItem("ml_sql_fewshot") || "[]") as HistoryTurn[];
@@ -352,7 +353,7 @@ export default function TextToSqlRunner() {
                 <option value="gemini">Gemini</option>
                 <option value="cohere">Cohere</option>
               </select>
-              <button onClick={runQuery} disabled={running || !question.trim() || !schema}
+              <button onClick={() => runQuery()} disabled={running || !question.trim() || !schema}
                 className={`text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-all ${running ? "opacity-80" : "hover:brightness-110"}`}
                 style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
                 {running ? "Running…" : !schema ? "Load DB" : "Ask"}
@@ -381,7 +382,7 @@ export default function TextToSqlRunner() {
             <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest">You might also ask</p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((q, i) => (
-                <button key={i} onClick={() => setQuestion(q)}
+                <button key={i} onClick={() => { setQuestion(q); runQuery(q); }}
                   className="text-[11px] px-3 py-1.5 rounded-full border border-indigo-500/25 text-indigo-300/70 hover:text-indigo-200 hover:border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all text-left">{q}</button>
               ))}
             </div>
