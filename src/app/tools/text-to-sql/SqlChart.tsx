@@ -77,24 +77,27 @@ function Bar({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
 function BarH({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
   const vals = rows.map(r=>toN((r as unknown[])[s.n[0]]));
   const mx = Math.max(...vals, 0.001);
-  const [LW,PR,PT,bH,gap,W] = [115,56,6,16,5,520];
+  const [LW,PR,PT,bH,gap,W] = [115,56,22,16,5,520];
   const iW = W-LW-PR;
+  const svgH = PT + rows.length*(bH+gap) + 8;
   return (
-    <svg viewBox={`0 0 ${W} ${PT*2+rows.length*(bH+gap)}`} className="w-full">
-      <text x={LW+iW/2} y={PT-1} textAnchor="middle" fill="#6b7280" fontSize={9}>{cols[s.n[0]]}</text>
-      {rows.map((r,i)=>{
-        const v = toN((r as unknown[])[s.n[0]]);
-        const bW = Math.max(2,(v/mx)*iW);
-        const y = PT+i*(bH+gap);
-        return (
-          <g key={i}>
-            <text x={LW-5} y={y+bH/2+4} textAnchor="end" fill="#9ca3af" fontSize={9}>{String((r as unknown[])[s.cx]??i).slice(0,17)}</text>
-            <rect x={LW} y={y} width={bW} height={bH} fill={P[0]} rx={2} opacity={0.85}/>
-            <text x={LW+bW+5} y={y+bH/2+4} fill="#d1d5db" fontSize={9}>{fmt(v)}</text>
-          </g>
-        );
-      })}
-    </svg>
+    <div className="max-h-[420px] overflow-y-auto">
+      <svg viewBox={`0 0 ${W} ${svgH}`} style={{height:svgH,minWidth:"100%"}} className="w-full">
+        <text x={LW+iW/2} y={14} textAnchor="middle" fill="#6b7280" fontSize={9}>{cols[s.n[0]]}</text>
+        {rows.map((r,i)=>{
+          const v = toN((r as unknown[])[s.n[0]]);
+          const bW = Math.max(2,(v/mx)*iW);
+          const y = PT+i*(bH+gap);
+          return (
+            <g key={i}>
+              <text x={LW-5} y={y+bH/2+4} textAnchor="end" fill="#9ca3af" fontSize={9}>{String((r as unknown[])[s.cx]??i).slice(0,17)}</text>
+              <rect x={LW} y={y} width={bW} height={bH} fill={P[0]} rx={2} opacity={0.85}/>
+              <text x={LW+bW+5} y={y+bH/2+4} fill="#d1d5db" fontSize={9}>{fmt(v)}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
