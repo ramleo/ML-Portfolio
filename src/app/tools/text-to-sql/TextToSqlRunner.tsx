@@ -164,7 +164,7 @@ export default function TextToSqlRunner() {
           try {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.type === "schema_loaded")  setStatus(`Schema: ${evt.tables} tables`);
-            else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
+            else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${/429|Too Many Requests/i.test(evt.error??'') ? "Rate limit reached — switch provider or wait ~60s" : (evt.error??'')}`);
             else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; originalSqlRef.current = evt.sql; setStatus("Executing…"); }
             else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
             else if (evt.type === "token")       setExplanation(prev => prev + evt.text);
