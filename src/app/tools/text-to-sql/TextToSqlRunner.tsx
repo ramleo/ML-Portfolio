@@ -63,6 +63,7 @@ export default function TextToSqlRunner() {
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(-1);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const [fewShot, setFewShot]         = useState<HistoryTurn[]>([]);
   useEffect(() => { try { const s = localStorage.getItem("ml_sql_fewshot"); if (s) setFewShot(JSON.parse(s)); } catch {} }, []);
@@ -125,7 +126,7 @@ export default function TextToSqlRunner() {
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
     setResults(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
-    setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null; originalSqlRef.current = null; setActiveFilter(null);
+    setCurrentPage(1); setTotalCount(-1); setSuggestions([]); currentSqlRef.current = null; originalSqlRef.current = null; setActiveFilter(null);
 
     const fewShotPayload = fewShot.slice(-3).map(t => ({
       question: t.question, sql: t.sql, result_summary: `Example. ${t.result_summary}`,
@@ -165,9 +166,10 @@ export default function TextToSqlRunner() {
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
             else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; originalSqlRef.current = evt.sql; setStatus("Executing…"); }
             else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
-            else if (evt.type === "token")     setExplanation(prev => prev + evt.text);
-            else if (evt.type === "error")     setError(evt.text);
-            else if (evt.type === "done")      setRunning(false);
+            else if (evt.type === "token")       setExplanation(prev => prev + evt.text);
+            else if (evt.type === "suggestions") setSuggestions(evt.questions ?? []);
+            else if (evt.type === "error")       setError(evt.text);
+            else if (evt.type === "done")        setRunning(false);
           } catch { /* ignore malformed */ }
         }
       }
@@ -374,6 +376,17 @@ export default function TextToSqlRunner() {
           onPageChange={changePage}
           onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}
         />
+        {suggestions.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest">You might also ask</p>
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((q, i) => (
+                <button key={i} onClick={() => setQuestion(q)}
+                  className="text-[11px] px-3 py-1.5 rounded-full border border-indigo-500/25 text-indigo-300/70 hover:text-indigo-200 hover:border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all text-left">{q}</button>
+              ))}
+            </div>
+          </div>
+        )}
         {(results || explanation) && !running && (
           <button onClick={() => { questionRef.current?.scrollIntoView({behavior:"smooth",block:"center"}); questionRef.current?.focus(); }}
             className="text-[11px] text-gray-600 hover:text-indigo-400 transition-colors mx-auto flex items-center gap-1.5">
