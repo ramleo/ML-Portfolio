@@ -358,6 +358,7 @@ export default function TextToSqlRunner() {
                 style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
                 {running ? "Running…" : !schema ? "Load DB" : "Ask"}
               </button>
+              <button onClick={() => { const sq = dynQ[Math.floor(Math.random() * dynQ.length)]; setQuestion(sq); runQuery(sq); }} disabled={running || !schema} className="text-[11px] px-4 py-1.5 rounded-lg border border-indigo-500/25 text-indigo-300/60 hover:text-indigo-200 hover:border-indigo-500/40 disabled:opacity-40 transition-all">Surprise me</button>
             </div>
           </div>
           <PipelineStatus running={running} retryMsg={retryMsg} hasSql={!!generatedSql} hasResults={!!results} hasExplanation={!!explanation} />
@@ -391,8 +392,7 @@ export default function TextToSqlRunner() {
         {(results || explanation) && !running && (
           <button onClick={() => { questionRef.current?.scrollIntoView({behavior:"smooth",block:"center"}); questionRef.current?.focus(); }}
             className="text-[11px] text-gray-600 hover:text-indigo-400 transition-colors mx-auto flex items-center gap-1.5">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M9 2H4a2 2 0 00-2 2v2M3 8L1 6l2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Ask a follow-up — this query&apos;s context is retained</button>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M9 2H4a2 2 0 00-2 2v2M3 8L1 6l2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>Ask a follow-up — this query&apos;s context is retained</button>
         )}
       </div>
     </div>
