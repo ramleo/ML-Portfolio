@@ -1,37 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  BarChart, HorizontalBarChart, AreaChart, ScatterChart, MultiBarChart,
-} from "./SqlChart";
-import { AnimatedStatCard, HeatmapChart, TreemapChart } from "./SqlChartExtras";
-import { DonutChart } from "./SqlChart";
-
 const ACCENT = "#6366f1";
-
-const CHART_LABEL: Record<string, string> = {
-  bar: "Bar Chart", bar_h: "Horizontal Bar", area: "Area Chart",
-  scatter: "Scatter Plot", donut: "Donut Chart", stat: "Result",
-  multibar: "Multi-Series Bar", line: "Area Chart",
-  heatmap: "Heatmap", treemap: "Treemap",
-};
-
-interface Viz {
-  chart_type: string;
-  labels?: string[];
-  values?: number[];
-  x_label: string;
-  y_label: string;
-  v_label?: string;
-  x?: number[];
-  y?: number[];
-  value?: string;
-  label?: string;
-  series?: { name: string; values: number[] }[];
-  rows?: string[];
-  cols?: string[];
-  data?: { row: string; col: string; value: number }[];
-}
 
 interface Results {
   columns: string[];
@@ -45,11 +15,9 @@ interface Props {
   copied: boolean;
   copySQL: () => void;
   results: Results | null;
-  viz: Viz | null;
   explanation: string;
   error: string | null;
   question?: string;
-  onDrillDown?: (label: string, colName: string) => void;
   currentPage?: number;
   totalCount?: number;
   pageSize?: number;
@@ -122,8 +90,8 @@ function exportNotebook(question: string, sql: string, explanation: string) {
 }
 
 export default function QueryResultPanel({
-  generatedSql, copied, copySQL, results, viz, explanation, error, question,
-  onDrillDown, currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
+  generatedSql, copied, copySQL, results, explanation, error, question,
+  currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
   onFilter, onClearFilter, filterActive, onRetry, provider,
 }: Props) {
   const [filterText, setFilterText] = useState("");
@@ -282,49 +250,6 @@ export default function QueryResultPanel({
                 {filterLoading ? "Filtering…" : "Filter"}
               </button>
             </div>
-          )}
-        </div>
-      )}
-
-      {viz && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          {viz.chart_type !== "stat" && (
-            <p className="text-sm font-semibold text-white/75 tracking-tight mb-3">
-              {CHART_LABEL[viz.chart_type] ?? viz.chart_type}
-              {(viz.chart_type === "bar" || viz.chart_type === "bar_h") && onDrillDown && (
-                <span className="ml-2 inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full border border-white/10 text-gray-500 font-normal">click bar to drill down</span>
-              )}
-            </p>
-          )}
-          {viz.chart_type === "bar" && viz.labels && viz.values && (
-            <BarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label}
-              accent={ACCENT} onLabelClick={onDrillDown ? (l) => onDrillDown(l, viz.x_label) : undefined} />
-          )}
-          {viz.chart_type === "bar_h" && viz.labels && viz.values && (
-            <HorizontalBarChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label}
-              accent={ACCENT} onLabelClick={onDrillDown ? (l) => onDrillDown(l, viz.y_label) : undefined} />
-          )}
-          {(viz.chart_type === "area" || viz.chart_type === "line") && viz.labels && viz.values && (
-            <AreaChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} />
-          )}
-          {viz.chart_type === "scatter" && viz.x && viz.y && (
-            <ScatterChart x={viz.x} y={viz.y} xLabel={viz.x_label} yLabel={viz.y_label} accent={ACCENT} labels={viz.labels} />
-          )}
-          {viz.chart_type === "donut" && viz.labels && viz.values && (
-            <DonutChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} accent={ACCENT} />
-          )}
-          {viz.chart_type === "stat" && viz.value != null && (
-            <AnimatedStatCard value={viz.value} label={viz.label ?? viz.x_label} accent={ACCENT} />
-          )}
-          {viz.chart_type === "multibar" && viz.labels && viz.series && (
-            <MultiBarChart labels={viz.labels} series={viz.series} xLabel={viz.x_label} yLabel={viz.y_label} />
-          )}
-          {viz.chart_type === "heatmap" && viz.rows && viz.cols && viz.data && (
-            <HeatmapChart rows={viz.rows} cols={viz.cols} data={viz.data}
-              xLabel={viz.x_label} yLabel={viz.y_label} vLabel={viz.v_label ?? ""} />
-          )}
-          {viz.chart_type === "treemap" && viz.labels && viz.values && (
-            <TreemapChart labels={viz.labels} values={viz.values} xLabel={viz.x_label} />
           )}
         </div>
       )}

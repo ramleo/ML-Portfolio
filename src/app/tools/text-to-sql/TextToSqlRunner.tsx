@@ -33,11 +33,6 @@ interface HistoryTurn {
 
 interface FKRel { from_col: string; to_table: string; to_col: string; }
 interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; foreign_keys?: FKRel[]; }
-interface Viz {
-  chart_type: string; labels?: string[]; values?: number[];
-  x_label: string; y_label: string; x?: number[]; y?: number[];
-  value?: string; label?: string; series?: { name: string; values: number[] }[];
-}
 
 export default function TextToSqlRunner() {
   const [dbSource, setDbSource] = useState<DbSource>("demo");
@@ -57,7 +52,6 @@ export default function TextToSqlRunner() {
   const [retryMsg, setRetryMsg]       = useState("");
   const [generatedSql, setGeneratedSql] = useState<string | null>(null);
   const [results, setResults]         = useState<{ columns: string[]; rows: unknown[][]; count: number; exec_time_ms: number } | null>(null);
-  const [viz, setViz]                 = useState<Viz | null>(null);
   const [explanation, setExplanation] = useState("");
   const [error, setError]             = useState<string | null>(null);
   const [copied, setCopied]           = useState(false);
@@ -130,7 +124,7 @@ export default function TextToSqlRunner() {
     if (!question.trim() || running) return;
     readerRef.current?.cancel();
     setRunning(true); setError(null); setGeneratedSql(null);
-    setResults(null); setViz(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
+    setResults(null); setExplanation(""); setRetryMsg(""); setStatus("Sending query…");
     setCurrentPage(1); setTotalCount(-1); currentSqlRef.current = null; originalSqlRef.current = null; setActiveFilter(null);
 
     const fewShotPayload = fewShot.slice(-3).map(t => ({
@@ -171,7 +165,6 @@ export default function TextToSqlRunner() {
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${evt.error}`);
             else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; originalSqlRef.current = evt.sql; setStatus("Executing…"); }
             else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
-            else if (evt.type === "visualization") setViz(evt);
             else if (evt.type === "token")     setExplanation(prev => prev + evt.text);
             else if (evt.type === "error")     setError(evt.text);
             else if (evt.type === "done")      setRunning(false);
@@ -195,13 +188,6 @@ export default function TextToSqlRunner() {
       setError((e as Error).name === "AbortError" ? "Backend is waking up — wait 30 seconds and try again." : (e as Error).message);
     } finally { clearTimeout(timeoutId); setRunning(false); }
   }, [question, provider, dbRef, running, history]);
-  const drillDown = useCallback((label: string, colName: string) => {
-    setQuestion(`Show me details where ${colName} is "${label}"`);
-    setTimeout(() => {
-      questionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      questionRef.current?.focus();
-    }, 50);
-  }, []);
   const copySQL = useCallback(() => {
     if (!generatedSql) return;
     navigator.clipboard.writeText(generatedSql);
@@ -382,8 +368,8 @@ export default function TextToSqlRunner() {
         {history.length > 0 && <QueryHistoryPanel history={history} onClear={() => setHistory([])} onReuse={setQuestion} />}
         <QueryResultPanel
           generatedSql={generatedSql} copied={copied} copySQL={copySQL} question={question}
-          results={results} viz={viz} explanation={explanation} error={error}
-          onDrillDown={drillDown} onRetry={runQuery} provider={provider}
+          results={results} explanation={explanation} error={error}
+          onRetry={runQuery} provider={provider}
           currentPage={currentPage} totalCount={totalCount} pageSize={50}
           onPageChange={changePage}
           onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}
