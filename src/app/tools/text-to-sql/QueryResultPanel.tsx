@@ -292,7 +292,7 @@ export default function QueryResultPanel({
             <p className="text-sm font-semibold text-white/75 tracking-tight mb-3">
               {CHART_LABEL[viz.chart_type] ?? viz.chart_type}
               {(viz.chart_type === "bar" || viz.chart_type === "bar_h") && onDrillDown && (
-                <span className="ml-2 text-[11px] text-gray-600 font-normal">· click a bar to drill down</span>
+                <span className="ml-2 inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full border border-white/10 text-gray-500 font-normal">click bar to drill down</span>
               )}
             </p>
           )}

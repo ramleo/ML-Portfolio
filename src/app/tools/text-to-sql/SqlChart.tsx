@@ -139,6 +139,8 @@ export function AreaChart({ labels, values, xLabel, yLabel, accent }: S1) {
   const cW = W - PL - PR, cH = H - PT - PB;
   const max = Math.max(...values, 1), min = Math.min(...values, 0), rng = max - min || 1;
   const n   = values.length;
+  const avgLen = labels.reduce((s, l) => s + String(l).length, 0) / Math.max(labels.length, 1);
+  const rotateLabels = (cW / Math.min(n, 8)) < avgLen * 6.5;
   const pts = values.map((v, i) => ({
     x: PL + (i / Math.max(n - 1, 1)) * cW,
     y: H - PB - ((v - min) / rng) * cH,
@@ -170,7 +172,10 @@ export function AreaChart({ labels, values, xLabel, yLabel, accent }: S1) {
             <circle cx={x} cy={y} r={3.5} fill={accent}>
               <title>{labels[i]}: {fmt(values[i])}</title>
             </circle>
-            {show && <text x={x} y={H - PB + 14} fontSize={9} fill={TX} textAnchor="middle">{String(labels[i]).slice(0, 10)}</text>}
+            {show && <text x={x} y={H - PB + 14} fontSize={9} fill={TX}
+              textAnchor={rotateLabels ? "end" : "middle"}
+              transform={rotateLabels ? `rotate(-38,${x},${H - PB + 14})` : undefined}>
+              {String(labels[i]).slice(0, 12)}</text>}
           </g>
         );
       })}
