@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import SqlChart from "./SqlChart";
 const ACCENT = "#6366f1";
 
 interface Results {
@@ -253,6 +254,8 @@ export default function QueryResultPanel({
           )}
         </div>
       )}
+
+      {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} />}
 
       {explanation && (
         <div className="rounded-xl border border-indigo-500/15 bg-indigo-950/20 p-4">
