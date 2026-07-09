@@ -16,7 +16,7 @@ const isNC  = (i: number, rows: unknown[][]) => {
   const s = rows.slice(0,15).filter(r => (r as unknown[])[i] !== null);
   return s.length > 0 && s.every(r => isNum((r as unknown[])[i]));
 };
-const isD = (c: string) => /\b(year|date|month|week|quarter|day|time|period)\b/i.test(c);
+const isD = (c: string) => /(year|date|month|week|quarter|day|time|period)/i.test(c);
 
 // ── Detection ─────────────────────────────────────────────────────────────────
 export function detectViz(cols: string[], rows: unknown[][]): VS | null {
