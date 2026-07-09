@@ -52,6 +52,8 @@ export function BarChart({ labels, values, xLabel, yLabel, accent, onLabelClick 
   const cW = W - PL - PR, cH = H - PT - PB;
   const max = Math.max(...values, 1);
   const bW  = Math.max(6, cW / labels.length - 5);
+  const avgLen = labels.reduce((s, l) => s + String(l).length, 0) / Math.max(labels.length, 1);
+  const rotateLabels = (cW / labels.length) < avgLen * 6.5;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 230 }}>
       <defs>
@@ -80,8 +82,10 @@ export function BarChart({ labels, values, xLabel, yLabel, accent, onLabelClick 
               <title>{labels[i]}: {fmt(v)}{onLabelClick ? " — click to drill down" : ""}</title>
             </rect>
             <text x={x + bW / 2} y={y - 4} fontSize={9} fill={accent} textAnchor="middle">{fmt(v)}</text>
-            <text x={x + bW / 2} y={H - PB + 14} fontSize={9} fill={TX} textAnchor="end"
-              transform={`rotate(-38,${x + bW / 2},${H - PB + 14})`}>{String(labels[i]).slice(0, 14)}</text>
+            <text x={x + bW / 2} y={H - PB + 14} fontSize={9} fill={TX}
+              textAnchor={rotateLabels ? "end" : "middle"}
+              transform={rotateLabels ? `rotate(-38,${x + bW / 2},${H - PB + 14})` : undefined}>
+              {String(labels[i]).slice(0, 14)}</text>
           </g>
         );
       })}
@@ -258,6 +262,8 @@ export function MultiBarChart({ labels, series, xLabel }: MB) {
   const max = Math.max(...allVals, 1);
   const gW  = cW / labels.length;
   const bW  = Math.max(4, gW / series.length - 2);
+  const avgLen = labels.reduce((s, l) => s + String(l).length, 0) / Math.max(labels.length, 1);
+  const rotateLabels = gW < avgLen * 6.5;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 230 }}>
       {hGrid(PT, cH, max).map(({ y, val }, i) => (
@@ -289,7 +295,8 @@ export function MultiBarChart({ labels, series, xLabel }: MB) {
         const lx = PL + gi * gW + gW / 2;
         return (
           <text key={gi} x={lx} y={H - PB + 14} fontSize={9} fill={TX}
-            textAnchor="end" transform={`rotate(-38,${lx},${H - PB + 14})`}>
+            textAnchor={rotateLabels ? "end" : "middle"}
+            transform={rotateLabels ? `rotate(-38,${lx},${H - PB + 14})` : undefined}>
             {String(lbl).slice(0, 14)}
           </text>
         );
