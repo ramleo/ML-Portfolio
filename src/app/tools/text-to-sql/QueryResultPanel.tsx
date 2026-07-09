@@ -55,6 +55,12 @@ function formatCell(cell: unknown): string {
   return String(cell);
 }
 
+function cleanErr(e: string): string {
+  if (/429|Too Many Requests|rate.?limit/i.test(e)) return "Rate limit reached — wait ~60 seconds, then try again or switch to a different provider.";
+  if (/All providers failed/i.test(e)) return "All providers failed — API keys may be rate-limited. Wait a moment or switch provider.";
+  return e;
+}
+
 function csvEscape(v: unknown): string {
   const s = v === null ? "" : String(v);
   return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
@@ -121,7 +127,7 @@ export default function QueryResultPanel({
               <path d="M8 5v4M8 11v.5" stroke="#f87171" strokeWidth="1.3" strokeLinecap="round"/>
             </svg>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-red-400 leading-relaxed">{error}</p>
+              <p className="text-xs text-red-400 leading-relaxed">{cleanErr(error)}</p>
               {isConfigErr && (
                 <p className="text-[11px] text-gray-500 mt-1">{providerLabel} key isn&apos;t configured — switch provider in the dropdown.</p>
               )}
