@@ -337,11 +337,21 @@ export default function TextToSqlRunner() {
 
         <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 ${running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-white/10 bg-white/5"}`}>
           <div className="flex gap-2">
-            <textarea ref={questionRef} value={question} onChange={e => setQuestion(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(); } }}
-              placeholder={results ? "Ask a follow-up or new question… (Enter to run)" : "Ask a question about your data… (Enter to run)"}
-              rows={2}
-              className="flex-1 text-sm bg-black/30 border border-white/10 focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] rounded-lg px-3 py-2 text-gray-200 placeholder-gray-600 outline-none resize-none transition-all duration-200" />
+            <div className="relative flex-1">
+              <textarea ref={questionRef} value={question} onChange={e => setQuestion(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(); } }}
+                placeholder={results ? "Ask a follow-up or new question… (Enter to run)" : "Ask a question about your data… (Enter to run)"}
+                rows={2}
+                className="w-full text-sm bg-black/30 border border-white/10 focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] rounded-lg px-3 py-2 pr-7 text-gray-200 placeholder-gray-600 outline-none resize-none transition-all duration-200" />
+              {question && (
+                <button onClick={() => setQuestion("")} title="Clear"
+                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-300 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <div className="flex flex-col gap-2 shrink-0">
               <select value={provider} onChange={e => setProvider(e.target.value as Provider)}
                 className="text-xs bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-gray-300 outline-none">
