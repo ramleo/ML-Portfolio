@@ -21,8 +21,9 @@ const isD = (c: string) => /(year|date|month|week|quarter|day|time|period)/i.tes
 // ── Detection ─────────────────────────────────────────────────────────────────
 export function detectViz(cols: string[], rows: unknown[][]): VS | null {
   if (!rows.length || !cols.length) return null;
-  const ni = cols.map((_,i)=>i).filter(i=>isNC(i,rows));
-  const ac = cols.map((_,i)=>i).filter(i=>!isNC(i,rows));
+  // date-name check wins over numeric-value check (Year=2021 is a date, not a measure)
+  const ni = cols.map((_,i)=>i).filter(i=>!isD(cols[i]) && isNC(i,rows));
+  const ac = cols.map((_,i)=>i).filter(i=>isD(cols[i]) || !isNC(i,rows));
   const di = ac.filter(i=>isD(cols[i]));
   const ci = ac.filter(i=>!isD(cols[i]));
   const n  = rows.length;
