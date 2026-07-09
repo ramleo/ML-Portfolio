@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import SqlChart from "./SqlChart";
-const ACCENT = "#6366f1";
+
+const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
 
 interface Results {
   columns: string[];
@@ -16,7 +17,6 @@ interface Props {
   copied: boolean;
   copySQL: () => void;
   results: Results | null;
-  explanation: string;
   error: string | null;
   question?: string;
   currentPage?: number;
@@ -97,14 +97,64 @@ function exportNotebook(question: string, sql: string, explanation: string) {
 }
 
 export default function QueryResultPanel({
-  generatedSql, copied, copySQL, results, explanation, error, question,
+  generatedSql, copied, copySQL, results, error, question,
   currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
   onFilter, onClearFilter, filterActive, onRetry, provider,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
+  const [localExpl, setLocalExpl] = useState("");
+  const [explLoading, setExplLoading] = useState(false);
+  const [explErr, setExplErr] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => { if (!filterActive) setFilterText(""); }, [filterActive]);
+  useEffect(() => { setLocalExpl(""); setSuggestions([]); setExplErr(null); }, [results]);
+
+  const fetchExplanation = async () => {
+    if (!results || !generatedSql || explLoading) return;
+    setExplLoading(true);
+    setExplErr(null);
+    setLocalExpl("");
+    setSuggestions([]);
+    try {
+      const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: question ?? "",
+          sql: generatedSql,
+          columns: results.columns,
+          rows: results.rows.slice(0, 10),
+          provider: provider ?? "groq",
+        }),
+      });
+      const reader = resp.body?.getReader();
+      const dec = new TextDecoder();
+      if (!reader) throw new Error("No response body");
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const ev = JSON.parse(line.slice(6));
+            if (ev.type === "token") setLocalExpl(prev => prev + ev.text);
+            else if (ev.type === "suggestions") setSuggestions(ev.questions ?? []);
+            else if (ev.type === "error") setExplErr(cleanErr(ev.text));
+          } catch { /* skip malformed */ }
+        }
+      }
+    } catch (e) {
+      setExplErr(e instanceof Error ? e.message : "Explanation failed");
+    } finally {
+      setExplLoading(false);
+    }
+  };
 
   const handleFilter = async () => {
     if (!filterText.trim() || !onFilter) return;
@@ -181,7 +231,7 @@ export default function QueryResultPanel({
               </button>
               {generatedSql && (
                 <button
-                  onClick={() => exportNotebook(question ?? "", generatedSql, explanation)}
+                  onClick={() => exportNotebook(question ?? "", generatedSql, localExpl)}
                   className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
                   .ipynb
                 </button>
@@ -263,7 +313,31 @@ export default function QueryResultPanel({
 
       {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} />}
 
-      {explanation && (
+      {results && !localExpl && !explLoading && (
+        <button
+          onClick={fetchExplanation}
+          className="self-start flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-lg border border-indigo-500/25 text-indigo-400/70 hover:text-indigo-300 hover:border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2a5 5 0 100 10A5 5 0 007 2zM7 5v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          </svg>
+          Explain with AI
+        </button>
+      )}
+
+      {explLoading && (
+        <div className="flex items-center gap-2 text-[11px] text-indigo-400/60">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="animate-spin">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28 56" strokeLinecap="round"/>
+          </svg>
+          Generating explanation…
+        </div>
+      )}
+
+      {explErr && (
+        <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 text-xs text-red-400">{explErr}</div>
+      )}
+
+      {localExpl && (
         <div className="rounded-xl border border-indigo-500/15 bg-indigo-950/20 p-4">
           <div className="flex items-center gap-2 mb-2">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -271,7 +345,17 @@ export default function QueryResultPanel({
             </svg>
             <p className="text-[10px] font-semibold text-indigo-400/70 uppercase tracking-widest">Explanation</p>
           </div>
-          <p className="text-sm text-gray-300 leading-relaxed">{explanation}</p>
+          <p className="text-sm text-gray-300 leading-relaxed">{localExpl}</p>
+          {suggestions.length > 0 && (
+            <div className="mt-3 flex flex-col gap-1.5">
+              <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest">You might also ask</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((q, i) => (
+                  <span key={i} className="text-[11px] px-3 py-1.5 rounded-full border border-indigo-500/25 text-indigo-300/70 bg-indigo-500/5">{q}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
