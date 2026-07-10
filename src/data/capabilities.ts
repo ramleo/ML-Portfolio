@@ -179,6 +179,22 @@ const capabilities: Capability[] = [
     internalLink: "/tools/pipeline-cinema",
   },
   {
+    id: "realtime-analytics",
+    title: "Real-Time Analytics",
+    subtitle: "Live Event Dashboard",
+    description:
+      "Track every page view and tool interaction on this portfolio in real time. Events flow from the browser into a PostgreSQL database via a FastAPI ingestion API, then Supabase Realtime pushes each row to the dashboard the moment it lands — no polling, no refresh.",
+    accent: "#10b981",
+    stat: "∞",
+    statLabel: "Live Events",
+    model: "Supabase Realtime · asyncpg",
+    input: "Browser events (page views, tool opens)",
+    tags: ["Real-Time", "WebSocket", "PostgreSQL", "FastAPI", "Supabase"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/realtime-analytics",
+  },
+  {
     id: "text-to-sql",
     title: "Text-to-SQL Agent",
     subtitle: "Natural Language → Database Queries",
