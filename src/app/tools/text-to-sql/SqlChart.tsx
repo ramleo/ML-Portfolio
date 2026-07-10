@@ -252,7 +252,7 @@ function Heatmap({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }
 function Donut({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
   const vals = rows.map(r=>toN((r as unknown[])[s.n[0]]));
   const total = vals.reduce((a,b)=>a+b,0)||1;
-  const [cx,cy,R,ri] = [100,96,74,46];
+  const [cx,cy,R,ri] = [78,76,56,34];
   let ang = -Math.PI/2;
   const segs = vals.map((v,i)=>{
     const sw = (v/total)*2*Math.PI;
@@ -265,14 +265,14 @@ function Donut({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) 
     return { d:`M${x1},${y1}A${R},${R},0,${lg},1,${x2},${y2}L${ix2},${iy2}A${ri},${ri},0,${lg},0,${ix1},${iy1}Z`, c:P[i%P.length], pct:Math.round(v/total*100) };
   });
   return (
-    <svg viewBox="0 0 340 192" className="w-full">
+    <svg viewBox="0 0 290 155" className="w-full">
       {segs.map((sg,i)=><path key={i} d={sg.d} fill={sg.c} opacity={0.9}/>)}
-      <text x={cx} y={cy+5} textAnchor="middle" fill="#e5e7eb" fontSize={13} fontWeight={600}>{fmt(total)}</text>
-      <text x={cx} y={cy+19} textAnchor="middle" fill="#6b7280" fontSize={8}>{cols[s.n[0]]}</text>
+      <text x={cx} y={cy+4} textAnchor="middle" fill="#e5e7eb" fontSize={11} fontWeight={600}>{fmt(total)}</text>
+      <text x={cx} y={cy+15} textAnchor="middle" fill="#6b7280" fontSize={7}>{cols[s.n[0]]}</text>
       {rows.map((r,i)=>(
-        <g key={i} transform={`translate(210,${14+i*30})`}>
-          <rect width={10} height={10} rx={2} fill={P[i%P.length]}/>
-          <text x={15} y={9} fill="#9ca3af" fontSize={10}>{String((r as unknown[])[s.cx]).slice(0,18)}<tspan fill="#d1d5db"> {segs[i].pct}%</tspan></text>
+        <g key={i} transform={`translate(162,${12+i*22})`}>
+          <rect width={8} height={8} rx={2} fill={P[i%P.length]}/>
+          <text x={12} y={7} fill="#9ca3af" fontSize={9}>{String((r as unknown[])[s.cx]).slice(0,18)}<tspan fill="#d1d5db"> {segs[i].pct}%</tspan></text>
         </g>
       ))}
     </svg>
