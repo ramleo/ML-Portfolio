@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Sparkline, TopPagesBar, TypeDonut } from "./AnalyticsCharts";
 import type { PerMinute, TopPage, ByType } from "./AnalyticsCharts";
-import { ML_ANALYTICS_API } from "@/config/urls";
-
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
@@ -60,13 +58,13 @@ export default function AnalyticsDashboard() {
   const [feed, setFeed]     = useState<FeedEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState<string | null>(null);
-  const configured = !!(ML_ANALYTICS_API && SB_URL && SB_KEY);
+  const configured = !!(SB_URL && SB_KEY);
 
   useEffect(() => {
     if (!configured) { setLoading(false); return; }
     Promise.all([
-      fetch(`${ML_ANALYTICS_API}/stats`).then(r => r.json()),
-      fetch(`${ML_ANALYTICS_API}/events/recent`).then(r => r.json()),
+      fetch("/api/stats").then(r => r.json()),
+      fetch("/api/events/recent").then(r => r.json()),
     ])
       .then(([s, e]) => { setStats(s); setFeed(e.events ?? []); })
       .catch(err => setError(err.message))
