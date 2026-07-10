@@ -9,7 +9,7 @@ import MobileSidebar from "./MobileSidebar";
 import SchemaPanel from "./SchemaPanel";
 import QueryHistoryPanel from "./QueryHistoryPanel";
 import PipelineStatus from "./PipelineStatus";
-import SavedQueriesPanel from "./SavedQueriesPanel";
+import DesktopSidebar from "./DesktopSidebar";
 
 const ACCENT = "#6366f1";
 
@@ -187,6 +187,20 @@ export default function TextToSqlRunner() {
       setError((e as Error).name === "AbortError" ? "Backend is waking up — wait 30 seconds and try again." : (e as Error).message);
     } finally { clearTimeout(timeoutId); setRunning(false); }
   }, [question, provider, dbRef, running, history]);
+  const runDirectSQL = useCallback(async (sql: string) => {
+    setError(null);
+    try {
+      const res = await fetch(`${ML_SQL_API}/sql/page`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql, db_ref: dbRef, page: 1, page_size: 50 }),
+      });
+      const data = await res.json();
+      if (data.error) { setError(data.error); return; }
+      setResults(data); setCurrentPage(1); setTotalCount(data.total_count ?? -1);
+      setGeneratedSql(sql); currentSqlRef.current = sql; originalSqlRef.current = sql;
+    } catch (e: unknown) { setError(`Execution failed: ${(e as Error).message}`); }
+  }, [dbRef]);
+
   const copySQL = useCallback(() => {
     if (!generatedSql) return;
     navigator.clipboard.writeText(generatedSql);
@@ -247,58 +261,15 @@ export default function TextToSqlRunner() {
     />
 
     <div className="flex gap-4 w-full max-w-7xl mx-auto px-4 pb-16">
-      <aside className="hidden lg:flex flex-col w-56 shrink-0 gap-2.5 pt-2">
-        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
-          <div className="flex items-center gap-1.5 mb-2">
-            <button onClick={() => setSchemaOpen(o => !o)}
-              className="text-[11px] font-semibold text-gray-300 flex items-center gap-1.5 flex-1 hover:text-white transition-colors">
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d={schemaOpen ? "M2 4l4 4 4-4" : "M4 2l4 4-4 4"} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Schema
-              {schema && <span className="ml-auto text-[9px] text-gray-600 font-normal">{Object.keys(schema).length} tables</span>}
-            </button>
-          </div>
-          {schema && (
-            <button onClick={() => setDiagramOpen(true)}
-              className="w-full mb-2 flex items-center justify-center gap-1.5 text-[10px] py-1 rounded-lg border border-white/8 text-gray-500 hover:text-indigo-300 hover:border-indigo-500/40 transition-colors">
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-                <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                <rect x="1" y="11" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                <path d="M6 3h4M8 5v6M6 13h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-              </svg>
-              View ER Diagram
-            </button>
-          )}
-          {schemaOpen && schemaPanel}
-        </div>
-        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
-          <p className="text-[9px] font-semibold text-indigo-400/50 mb-2 uppercase tracking-widest">Try asking</p>
-          {dynQ.map(q => (
-            <button key={q} onClick={() => setQuestion(q)}
-              className="w-full text-left text-[10px] text-gray-500 hover:text-indigo-300 py-1 px-1.5 rounded-lg hover:bg-indigo-500/8 transition-all flex gap-1.5 group">
-              <span className="text-indigo-700 group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors">›</span><span>{q}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-white/8 bg-black/30 p-3">
-          <button onClick={() => setGlossaryOpen(o => !o)}
-            className="text-[9px] font-semibold text-indigo-400/50 mb-1 flex items-center gap-1 w-full uppercase tracking-widest hover:text-indigo-400 transition-colors">
-            <svg width="9" height="9" viewBox="0 0 8 8" fill="none"><path d={glossaryOpen ? "M1 3l3 3 3-3" : "M3 1l3 3-3 3"} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Glossary
-          </button>
-          {glossaryOpen && (
-            <>
-              <textarea value={glossary} onChange={e => setGlossary(e.target.value)}
-                placeholder={"revenue: sum of invoice totals\nLTV: lifetime value of customer"}
-                rows={5}
-                className="w-full text-[10px] font-mono bg-black/40 border border-white/8 rounded-lg px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1 focus:border-indigo-500/40 transition-colors" />
-              <p className="text-[9px] text-gray-700 mt-1">Injected into every SQL prompt</p>
-            </>
-          )}
-        </div>
-        <SavedQueriesPanel currentQuery={generatedSql ? { question, sql: generatedSql } : null} onLoad={setQuestion} />
-      </aside>
+      <DesktopSidebar
+        schemaOpen={schemaOpen} onToggleSchema={() => setSchemaOpen(o => !o)}
+        schema={schema} onOpenDiagram={() => setDiagramOpen(true)}
+        schemaPanel={schemaPanel} sampleQuestions={dynQ} onSelectQuestion={setQuestion}
+        glossary={glossary} onGlossaryChange={setGlossary}
+        glossaryOpen={glossaryOpen} onToggleGlossary={() => setGlossaryOpen(o => !o)}
+        currentQuery={generatedSql ? { question, sql: generatedSql } : null}
+        onLoadSaved={setQuestion}
+      />
 
       <div className="flex-1 flex flex-col gap-4 min-w-0 pt-2">
         <DbConnectPanel
@@ -383,6 +354,7 @@ export default function TextToSqlRunner() {
           currentPage={currentPage} totalCount={totalCount} pageSize={50}
           onPageChange={changePage}
           onFilter={filterResults} onClearFilter={clearFilter} filterActive={!!activeFilter}
+          onRunSQL={runDirectSQL}
         />
         {results && !running && (
           <button onClick={() => { questionRef.current?.scrollIntoView({behavior:"smooth",block:"center"}); questionRef.current?.focus(); }}

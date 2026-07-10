@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import SqlChart from "./SqlChart";
+import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
 
@@ -28,78 +29,13 @@ interface Props {
   filterActive?: boolean;
   onRetry?: () => void;
   provider?: string;
-}
-
-function highlightSQL(sql: string) {
-  const re = /("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|(\b(?:SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|CROSS|ON|AS|GROUP BY|ORDER BY|HAVING|LIMIT|OFFSET|AND|OR|NOT|IN|LIKE|IS|NULL|DISTINCT|COUNT|SUM|AVG|MAX|MIN|ROUND|WITH|UNION|ALL|BY|DESC|ASC|CASE|WHEN|THEN|ELSE|END)\b)/gi;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parts: any[] = [];
-  let last = 0, m: RegExpExecArray | null;
-  while ((m = re.exec(sql)) !== null) {
-    if (m.index > last) parts.push(sql.slice(last, m.index));
-    if (m[1] || m[2])  parts.push(<span key={m.index} className="text-emerald-400">{m[0]}</span>);
-    else if (m[3])     parts.push(<span key={m.index} className="text-amber-400">{m[0]}</span>);
-    else if (m[4])     parts.push(<span key={m.index} className="text-indigo-400 font-semibold">{m[0]}</span>);
-    last = m.index + m[0].length;
-  }
-  if (last < sql.length) parts.push(sql.slice(last));
-  return parts;
-}
-
-function formatCell(cell: unknown): string {
-  if (cell === null) return "";
-  const n = Number(cell);
-  if (!isNaN(n) && String(cell).trim() !== "" && String(cell) !== String(Math.round(n))) {
-    return n.toFixed(2);
-  }
-  return String(cell);
-}
-
-function cleanErr(e: string): string {
-  if (/429|Too Many Requests|rate.?limit/i.test(e)) return "Rate limit reached — wait ~60 seconds, then try again or switch to a different provider.";
-  if (/All providers failed/i.test(e)) return "All providers failed — API keys may be rate-limited. Wait a moment or switch provider.";
-  return e;
-}
-
-function csvEscape(v: unknown): string {
-  const s = v === null ? "" : String(v);
-  return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-function downloadFile(content: string, name: string, mime: string) {
-  const a = Object.assign(document.createElement("a"), {
-    href: URL.createObjectURL(new Blob([content], { type: mime })),
-    download: name,
-  });
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function exportNotebook(question: string, sql: string, explanation: string) {
-  const codeLines = [
-    "import sqlite3\nimport pandas as pd\n\n",
-    "# Download Chinook DB: https://github.com/lerocha/chinook-database\n",
-    "conn = sqlite3.connect('chinook.db')\n\n",
-    `df = pd.read_sql_query("""\n${sql}\n""", conn)\n`,
-    "df",
-  ].join("");
-  const cells = [
-    { cell_type: "markdown", metadata: {}, source: [`# ${question}`] },
-    { cell_type: "code", metadata: {}, execution_count: null, outputs: [], source: [codeLines] },
-    ...(explanation ? [{ cell_type: "markdown", metadata: {}, source: [`## Explanation\n\n${explanation}`] }] : []),
-  ];
-  const nb = {
-    nbformat: 4, nbformat_minor: 5,
-    metadata: { kernelspec: { display_name: "Python 3", language: "python", name: "python3" }, language_info: { name: "python", version: "3.10.0" } },
-    cells,
-  };
-  downloadFile(JSON.stringify(nb, null, 2), "query.ipynb", "application/json");
+  onRunSQL?: (sql: string) => Promise<void>;
 }
 
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, error, question,
   currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
-  onFilter, onClearFilter, filterActive, onRetry, provider,
+  onFilter, onClearFilter, filterActive, onRetry, provider, onRunSQL,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
@@ -107,27 +43,37 @@ export default function QueryResultPanel({
   const [explLoading, setExplLoading] = useState(false);
   const [explErr, setExplErr] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [editedSql, setEditedSql] = useState("");
+  const [sqlEdited, setSqlEdited] = useState(false);
 
   useEffect(() => { if (!filterActive) setFilterText(""); }, [filterActive]);
   useEffect(() => { setLocalExpl(""); setSuggestions([]); setExplErr(null); }, [results]);
+  useEffect(() => {
+    setEditedSql(generatedSql ?? "");
+    setSqlEdited(false);
+    setEditing(false);
+  }, [generatedSql]);
+
+  const handleSqlChange = (val: string) => {
+    setEditedSql(val);
+    if (!sqlEdited && val !== generatedSql) {
+      setSqlEdited(true);
+      const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
+      fetch("/api/track", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "sql_edited", path: window.location.pathname, session_id: sid, meta: {} }),
+      }).catch(() => {});
+    }
+  };
 
   const fetchExplanation = async () => {
     if (!results || !generatedSql || explLoading) return;
-    setExplLoading(true);
-    setExplErr(null);
-    setLocalExpl("");
-    setSuggestions([]);
+    setExplLoading(true); setExplErr(null); setLocalExpl(""); setSuggestions([]);
     try {
       const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: question ?? "",
-          sql: generatedSql,
-          columns: results.columns,
-          rows: results.rows.slice(0, 10),
-          provider: provider ?? "groq",
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: results.columns, rows: results.rows.slice(0, 10), provider: provider ?? "groq" }),
       });
       const reader = resp.body?.getReader();
       const dec = new TextDecoder();
@@ -137,8 +83,7 @@ export default function QueryResultPanel({
         const { done, value } = await reader.read();
         if (done) break;
         buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() ?? "";
+        const lines = buf.split("\n"); buf = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           try {
@@ -151,9 +96,7 @@ export default function QueryResultPanel({
       }
     } catch (e) {
       setExplErr(e instanceof Error ? e.message : "Explanation failed");
-    } finally {
-      setExplLoading(false);
-    }
+    } finally { setExplLoading(false); }
   };
 
   const handleFilter = async () => {
@@ -195,12 +138,43 @@ export default function QueryResultPanel({
       {generatedSql && (
         <div className="rounded-xl border border-indigo-500/20 bg-black/50 p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-indigo-400/80 uppercase tracking-wide">Generated SQL</span>
-            <button onClick={copySQL} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
-              {copied ? "Copied!" : "Copy"}
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-indigo-400/80 uppercase tracking-wide">Generated SQL</span>
+              {sqlEdited && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/25 text-amber-400">Edited</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setEditing(e => !e)}
+                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-indigo-300 hover:border-indigo-500/30 transition-colors">
+                {editing ? "Done" : "Edit"}
+              </button>
+              <button onClick={copySQL} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
           </div>
-          <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{generatedSql ? highlightSQL(generatedSql) : null}</pre>
+          {editing ? (
+            <div className="flex flex-col gap-2">
+              <textarea
+                value={editedSql}
+                onChange={e => handleSqlChange(e.target.value)}
+                rows={Math.max(3, editedSql.split("\n").length + 1)}
+                spellCheck={false}
+                className="w-full text-xs font-mono bg-black/60 border border-indigo-500/30 rounded-lg px-3 py-2 text-gray-300 outline-none resize-none focus:border-indigo-500/60 transition-colors leading-relaxed"
+              />
+              {onRunSQL && (
+                <button
+                  onClick={async () => { await onRunSQL(editedSql); setEditing(false); }}
+                  className="self-end flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 transition-all">
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 2l7 4-7 4V2z" fill="currentColor"/></svg>
+                  Run edited SQL
+                </button>
+              )}
+            </div>
+          ) : (
+            <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{highlightSQL(editedSql)}</pre>
+          )}
         </div>
       )}
 
@@ -213,28 +187,13 @@ export default function QueryResultPanel({
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Filter active</span>
             )}
             <div className="ml-auto flex items-center gap-1">
-              <button
-                onClick={() => downloadFile(
-                  [results.columns.map(csvEscape).join(","), ...results.rows.map(r => (r as unknown[]).map(csvEscape).join(","))].join("\n"),
-                  "results.csv", "text/csv"
-                )}
-                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
-                CSV
-              </button>
-              <button
-                onClick={() => downloadFile(
-                  JSON.stringify(results.rows.map(r => Object.fromEntries(results.columns.map((c, i) => [c, (r as unknown[])[i]]))), null, 2),
-                  "results.json", "application/json"
-                )}
-                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
-                JSON
-              </button>
+              <button onClick={() => downloadFile([results.columns.map(csvEscape).join(","), ...results.rows.map(r => (r as unknown[]).map(csvEscape).join(","))].join("\n"), "results.csv", "text/csv")}
+                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">CSV</button>
+              <button onClick={() => downloadFile(JSON.stringify(results.rows.map(r => Object.fromEntries(results.columns.map((c, i) => [c, (r as unknown[])[i]]))), null, 2), "results.json", "application/json")}
+                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">JSON</button>
               {generatedSql && (
-                <button
-                  onClick={() => exportNotebook(question ?? "", generatedSql, localExpl)}
-                  className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
-                  .ipynb
-                </button>
+                <button onClick={() => exportNotebook(question ?? "", generatedSql, localExpl)}
+                  className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">.ipynb</button>
               )}
             </div>
           </div>
@@ -252,9 +211,7 @@ export default function QueryResultPanel({
                   <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.07] transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
                     {(row as unknown[]).map((cell, j) => (
                       <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
-                        {cell === null
-                          ? <span className="text-gray-600">null</span>
-                          : formatCell(cell)}
+                        {cell === null ? <span className="text-gray-600">null</span> : formatCell(cell)}
                       </td>
                     ))}
                   </tr>
@@ -267,42 +224,25 @@ export default function QueryResultPanel({
                   Rows {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}
                 </span>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                    ← Prev
-                  </button>
-                  <span className="text-[11px] text-gray-500 px-1">
-                    {currentPage} / {Math.ceil(totalCount / pageSize)}
-                  </span>
-                  <button
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage >= Math.ceil(totalCount / pageSize)}
-                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                    Next →
-                  </button>
+                  <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage <= 1}
+                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">← Prev</button>
+                  <span className="text-[11px] text-gray-500 px-1">{currentPage} / {Math.ceil(totalCount / pageSize)}</span>
+                  <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">Next →</button>
                 </div>
               </div>
             )}
           </div>
           {onFilter && (
             <div className="px-3 py-2 border-t border-white/5 flex items-center gap-2">
-              <input
-                value={filterText}
-                onChange={e => setFilterText(e.target.value)}
+              <input value={filterText} onChange={e => setFilterText(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && filterText.trim()) handleFilter(); }}
                 placeholder="Filter rows… e.g. revenue > 1000, country is USA"
-                className="flex-1 text-[11px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none"
-              />
+                className="flex-1 text-[11px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none" />
               {filterActive && onClearFilter && (
-                <button onClick={onClearFilter} className="text-[10px] text-amber-400 hover:text-white shrink-0 transition-colors">
-                  × Clear
-                </button>
+                <button onClick={onClearFilter} className="text-[10px] text-amber-400 hover:text-white shrink-0 transition-colors">× Clear</button>
               )}
-              <button
-                onClick={handleFilter}
-                disabled={!filterText.trim() || filterLoading}
+              <button onClick={handleFilter} disabled={!filterText.trim() || filterLoading}
                 className="text-[10px] px-2 py-1 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-40 transition-colors shrink-0">
                 {filterLoading ? "Filtering…" : "Filter"}
               </button>
@@ -314,8 +254,7 @@ export default function QueryResultPanel({
       {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} />}
 
       {results && !localExpl && !explLoading && (
-        <button
-          onClick={fetchExplanation}
+        <button onClick={fetchExplanation}
           className="self-start flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-lg border border-indigo-500/25 text-indigo-400/70 hover:text-indigo-300 hover:border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all">
           <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
             <path d="M7 2a5 5 0 100 10A5 5 0 007 2zM7 5v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -333,9 +272,7 @@ export default function QueryResultPanel({
         </div>
       )}
 
-      {explErr && (
-        <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 text-xs text-red-400">{explErr}</div>
-      )}
+      {explErr && <div className="rounded-xl border border-red-500/25 bg-red-500/8 p-3 text-xs text-red-400">{explErr}</div>}
 
       {localExpl && (
         <div className="rounded-xl border border-indigo-500/15 bg-indigo-950/20 p-4">
