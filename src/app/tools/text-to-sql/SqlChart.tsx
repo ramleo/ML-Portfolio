@@ -265,7 +265,7 @@ function Donut({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) 
     return { d:`M${x1},${y1}A${R},${R},0,${lg},1,${x2},${y2}L${ix2},${iy2}A${ri},${ri},0,${lg},0,${ix1},${iy1}Z`, c:P[i%P.length], pct:Math.round(v/total*100) };
   });
   return (
-    <svg viewBox="0 0 290 155" className="w-full">
+    <svg viewBox="0 0 290 155" className="w-full" style={{maxHeight:"180px"}}>
       {segs.map((sg,i)=><path key={i} d={sg.d} fill={sg.c} opacity={0.9}/>)}
       <text x={cx} y={cy+4} textAnchor="middle" fill="#e5e7eb" fontSize={11} fontWeight={600}>{fmt(total)}</text>
       <text x={cx} y={cy+15} textAnchor="middle" fill="#6b7280" fontSize={7}>{cols[s.n[0]]}</text>
