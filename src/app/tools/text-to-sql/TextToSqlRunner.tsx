@@ -65,10 +65,17 @@ export default function TextToSqlRunner() {
   const [shared, setShared]     = useState(false);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
-  const [tabs, setTabs]         = useState<ResultTab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [tabs, setTabs]         = useState<ResultTab[]>(() => {
+    try { const s = sessionStorage.getItem("ml_sql_tabs"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
+    try { return sessionStorage.getItem("ml_sql_active_tab") ?? null; } catch { return null; }
+  });
 
   const activeTab = tabs.find(t => t.id === activeTabId) ?? null;
+
+  useEffect(() => { try { sessionStorage.setItem("ml_sql_tabs", JSON.stringify(tabs)); } catch {} }, [tabs]);
+  useEffect(() => { try { if (activeTabId) sessionStorage.setItem("ml_sql_active_tab", activeTabId); else sessionStorage.removeItem("ml_sql_active_tab"); } catch {} }, [activeTabId]);
 
   const [fewShot, setFewShot] = useState<HistoryTurn[]>([]);
   useEffect(() => { try { const s = localStorage.getItem("ml_sql_fewshot"); if (s) setFewShot(JSON.parse(s)); } catch {} }, []);

@@ -239,6 +239,12 @@ export default function QueryResultPanel({
                 className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">CSV</button>
               <button onClick={() => downloadFile(JSON.stringify(results.rows.map(r => Object.fromEntries(results.columns.map((c, i) => [c, (r as unknown[])[i]]))), null, 2), "results.json", "application/json")}
                 className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">JSON</button>
+              <button onClick={() => {
+                const sep = "| " + results.columns.join(" | ") + " |";
+                const div = "| " + results.columns.map(() => "---").join(" | ") + " |";
+                const rows = results.rows.map(r => "| " + (r as unknown[]).map(c => String(c ?? "")).join(" | ") + " |");
+                navigator.clipboard.writeText([sep, div, ...rows].join("\n"));
+              }} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">MD</button>
               {generatedSql && (
                 <button onClick={() => exportNotebook(question ?? "", generatedSql, localExpl)}
                   className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">.ipynb</button>
