@@ -135,20 +135,27 @@ export default function TextToSqlRunner() {
     } catch (e: unknown) { setStatus(`Connection failed: ${(e as Error).message}`); }
   }, []);
 
-  const runQuery = useCallback(async (questionOverride?: string) => {
+  const runQuery = useCallback(async (questionOverride?: string, existingTabId?: string) => {
     const activeQ = questionOverride ?? question;
     if (!activeQ.trim() || running) return;
     readerRef.current?.cancel();
 
-    const tabId = Date.now().toString();
-    const newTab: ResultTab = { id: tabId, question: activeQ, sql: null, currentSql: null, originalSql: null, results: null, error: null, currentPage: 1, totalCount: -1, activeFilter: null };
-    setTabs(prev => {
-      const pinned = prev.filter(t => t.pinned);
-      const unpinned = prev.filter(t => !t.pinned);
-      const kept = unpinned.slice(-(Math.max(0, 4 - pinned.length)));
-      return [...pinned, ...kept, newTab];
-    });
-    setActiveTabId(tabId);
+    let tabId: string;
+    if (existingTabId) {
+      tabId = existingTabId;
+      patchTab(tabId, { sql: null, currentSql: null, originalSql: null, results: null, error: null, currentPage: 1, totalCount: -1, activeFilter: null });
+      setActiveTabId(tabId);
+    } else {
+      tabId = Date.now().toString();
+      const newTab: ResultTab = { id: tabId, question: activeQ, sql: null, currentSql: null, originalSql: null, results: null, error: null, currentPage: 1, totalCount: -1, activeFilter: null };
+      setTabs(prev => {
+        const pinned = prev.filter(t => t.pinned);
+        const unpinned = prev.filter(t => !t.pinned);
+        const kept = unpinned.slice(-(Math.max(0, 4 - pinned.length)));
+        return [...pinned, ...kept, newTab];
+      });
+      setActiveTabId(tabId);
+    }
     setRunning(true); setRetryMsg(""); setStatus("Sending query…");
 
     const fewShotPayload = fewShot.slice(-3).map(t => ({ question: t.question, sql: t.sql, result_summary: `Example. ${t.result_summary}` }));
@@ -366,7 +373,7 @@ export default function TextToSqlRunner() {
             generatedSql={activeTab?.sql ?? null} copied={copied} copySQL={copySQL}
             question={activeTab?.question ?? question}
             results={activeTab?.results ?? null} error={activeTab?.error ?? null}
-            onRetry={runQuery} provider={provider}
+            onRetry={() => runQuery(activeTab?.question, activeTabId ?? undefined)} provider={provider}
             currentPage={activeTab?.currentPage ?? 1} totalCount={activeTab?.totalCount ?? -1} pageSize={50}
             onPageChange={changePage} onFilter={filterResults} onClearFilter={clearFilter}
             filterActive={!!activeTab?.activeFilter} onRunSQL={runDirectSQL}
