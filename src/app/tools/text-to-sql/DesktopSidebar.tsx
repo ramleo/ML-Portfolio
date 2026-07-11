@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import SavedQueriesPanel from "./SavedQueriesPanel";
+import UserGuideModal from "./UserGuideModal";
 
 const TEMPLATES = [
   "Top [N] [column] by [metric]",
@@ -34,7 +35,10 @@ export default function DesktopSidebar({
   glossaryOpen, onToggleGlossary, currentQuery, onLoadSaved,
 }: Props) {
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   return (
+    <>
+    {guideOpen && <UserGuideModal onClose={() => setGuideOpen(false)} />}
     <aside className="hidden lg:flex flex-col w-56 shrink-0 gap-2.5 pt-2">
       <div className="rounded-xl border border-white/8 bg-black/30 p-3" data-wt="schema">
         <div className="flex items-center gap-1.5 mb-2">
@@ -111,6 +115,17 @@ export default function DesktopSidebar({
         )}
       </div>
       <SavedQueriesPanel currentQuery={currentQuery} onLoad={onLoadSaved} />
+
+      {/* User Guide button */}
+      <button onClick={() => setGuideOpen(true)}
+        className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-xl border border-white/8 text-[10px] text-gray-600 hover:text-indigo-300 hover:border-indigo-500/30 transition-all">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+          <path d="M6 8.5V6M6 4v-.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+        </svg>
+        User Guide
+      </button>
     </aside>
+    </>
   );
 }
