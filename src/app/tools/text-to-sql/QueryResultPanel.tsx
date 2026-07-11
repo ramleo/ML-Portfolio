@@ -43,12 +43,16 @@ export default function QueryResultPanel({
   const [explLoading, setExplLoading] = useState(false);
   const [explErr, setExplErr] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [sqlExpl, setSqlExpl] = useState("");
+  const [sqlExplLoading, setSqlExplLoading] = useState(false);
+  const [sqlExplErr, setSqlExplErr] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editedSql, setEditedSql] = useState("");
   const [sqlEdited, setSqlEdited] = useState(false);
 
   useEffect(() => { if (!filterActive) setFilterText(""); }, [filterActive]);
   useEffect(() => { setLocalExpl(""); setSuggestions([]); setExplErr(null); }, [results]);
+  useEffect(() => { setSqlExpl(""); setSqlExplErr(null); }, [generatedSql]);
   useEffect(() => {
     setEditedSql(generatedSql ?? "");
     setSqlEdited(false);
@@ -65,6 +69,36 @@ export default function QueryResultPanel({
         body: JSON.stringify({ type: "sql_edited", path: window.location.pathname, session_id: sid, meta: {} }),
       }).catch(() => {});
     }
+  };
+
+  const fetchSqlExplanation = async () => {
+    if (!generatedSql || sqlExplLoading) return;
+    setSqlExplLoading(true); setSqlExplErr(null); setSqlExpl("");
+    try {
+      const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: [], rows: [], provider: provider ?? "groq" }),
+      });
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error("No response body");
+      const dec = new TextDecoder(); let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n"); buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const ev = JSON.parse(line.slice(6));
+            if (ev.type === "token") setSqlExpl(prev => prev + ev.text);
+            else if (ev.type === "error") setSqlExplErr(cleanErr(ev.text));
+          } catch { /* skip */ }
+        }
+      }
+    } catch (e) {
+      setSqlExplErr(e instanceof Error ? e.message : "Explanation failed");
+    } finally { setSqlExplLoading(false); }
   };
 
   const fetchExplanation = async () => {
@@ -145,6 +179,10 @@ export default function QueryResultPanel({
               )}
             </div>
             <div className="flex items-center gap-1.5">
+              <button onClick={fetchSqlExplanation} disabled={sqlExplLoading}
+                className="text-[10px] px-2 py-0.5 rounded border border-indigo-500/20 text-indigo-400/60 hover:text-indigo-300 hover:border-indigo-500/40 disabled:opacity-40 transition-colors">
+                {sqlExplLoading ? "…" : "Explain"}
+              </button>
               <button onClick={() => setEditing(e => !e)}
                 className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-indigo-300 hover:border-indigo-500/30 transition-colors">
                 {editing ? "Done" : "Edit"}
@@ -174,6 +212,15 @@ export default function QueryResultPanel({
             </div>
           ) : (
             <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{highlightSQL(editedSql)}</pre>
+          )}
+          {sqlExplErr && (
+            <p className="mt-2 text-[11px] text-red-400">{sqlExplErr}</p>
+          )}
+          {sqlExpl && (
+            <div className="mt-3 pt-3 border-t border-indigo-500/15">
+              <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest mb-1.5">Query explanation</p>
+              <p className="text-[12px] text-gray-300 leading-relaxed">{sqlExpl}</p>
+            </div>
           )}
         </div>
       )}
