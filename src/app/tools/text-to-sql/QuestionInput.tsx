@@ -1,9 +1,12 @@
 "use client";
 
-import { type RefObject } from "react";
+import { type RefObject, useState, useEffect, useRef } from "react";
 import PipelineStatus from "./PipelineStatus";
 
 type Provider = "groq" | "gemini" | "cohere";
+
+interface SchemaCol { name: string; type: string; pk: boolean; }
+interface SchemaTable { columns: SchemaCol[]; row_count: number; }
 
 interface Props {
   questionRef: RefObject<HTMLTextAreaElement | null>;
@@ -23,11 +26,62 @@ interface Props {
   canShare: boolean;
 }
 
+function extractTerms(schema: Record<string, unknown> | null): string[] {
+  if (!schema) return [];
+  const terms: string[] = [];
+  for (const [table, def] of Object.entries(schema)) {
+    terms.push(table);
+    const cols = (def as SchemaTable).columns ?? [];
+    for (const col of cols) terms.push(col.name);
+  }
+  return [...new Set(terms)];
+}
+
 export default function QuestionInput({
   questionRef, question, onQuestionChange, onSubmit,
   provider, onProviderChange, running, schema, onSurprise,
   retryMsg, hasSql, hasResults, shared, onShare, canShare,
 }: Props) {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggIdx, setSuggIdx] = useState(0);
+  const terms = useRef<string[]>([]);
+
+  useEffect(() => { terms.current = extractTerms(schema); }, [schema]);
+
+  useEffect(() => {
+    const lastWord = question.split(/\s+/).pop() ?? "";
+    if (lastWord.length < 2) { setSuggestions([]); return; }
+    const lw = lastWord.toLowerCase();
+    const matches = terms.current
+      .filter(t => t.toLowerCase().startsWith(lw) && t.toLowerCase() !== lw)
+      .slice(0, 5);
+    setSuggestions(matches);
+    setSuggIdx(0);
+  }, [question]);
+
+  const applySuggestion = (term: string) => {
+    const words = question.split(/(\s+)/);
+    const lastIdx = words.length - 1;
+    words[lastIdx] = term;
+    onQuestionChange(words.join(""));
+    setSuggestions([]);
+    questionRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (suggestions.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSuggIdx(i => Math.min(i + 1, suggestions.length - 1)); return; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); setSuggIdx(i => Math.max(i - 1, 0)); return; }
+      if (e.key === "Tab" || e.key === "Enter") {
+        e.preventDefault();
+        if (e.key === "Tab") { applySuggestion(suggestions[suggIdx]); return; }
+        if (e.key === "Enter" && !e.shiftKey) { applySuggestion(suggestions[suggIdx]); return; }
+      }
+      if (e.key === "Escape") { setSuggestions([]); return; }
+    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); }
+  };
+
   return (
     <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 ${
       running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-white/10 bg-white/5"
@@ -35,17 +89,33 @@ export default function QuestionInput({
       <div className="flex gap-2">
         <div className="relative flex-1">
           <textarea ref={questionRef} value={question} onChange={e => onQuestionChange(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); } }}
+            onKeyDown={handleKeyDown}
             placeholder={hasResults ? "Ask a follow-up or new question… (Enter to run)" : "Ask a question about your data… (Enter to run)"}
             rows={2}
             className="w-full text-sm bg-black/30 border border-white/10 focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] rounded-lg px-3 py-2 pr-7 text-gray-200 placeholder-gray-600 outline-none resize-none transition-all duration-200" />
-          {question && (
+          {question && !suggestions.length && (
             <button onClick={() => onQuestionChange("")} title="Clear"
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-300 transition-colors">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
               </svg>
             </button>
+          )}
+          {suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-lg border border-indigo-500/30 bg-[#0f0f1a] shadow-xl overflow-hidden">
+              {suggestions.map((s, i) => (
+                <button key={s} onMouseDown={e => { e.preventDefault(); applySuggestion(s); }}
+                  className={`w-full text-left px-3 py-1.5 text-[12px] flex items-center gap-2 transition-colors ${
+                    i === suggIdx ? "bg-indigo-500/20 text-indigo-200" : "text-gray-400 hover:bg-white/5"
+                  }`}>
+                  <span className="text-[9px] text-indigo-500/60 font-mono uppercase">
+                    {Object.keys(schema ?? {}).includes(s) ? "table" : "col"}
+                  </span>
+                  {s}
+                </button>
+              ))}
+              <p className="px-3 py-1 text-[9px] text-gray-600 border-t border-white/5">Tab to complete · ↑↓ to navigate · Esc to dismiss</p>
+            </div>
           )}
         </div>
         <div className="flex flex-col gap-2 shrink-0">
