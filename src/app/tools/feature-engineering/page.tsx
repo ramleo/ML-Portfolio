@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -319,6 +320,7 @@ function FeatureEngineeringPageInner() {
 }
 
 export default function FeatureEngineeringPage() {
+  useAnalytics("tool_open", { tool: "feature-engineering" });
   return (
     <PipelineProvider>
       <FeatureEngineeringPageInner />

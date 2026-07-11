@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -344,6 +345,7 @@ function PreprocessingPageInner() {
 }
 
 export default function PreprocessingPage() {
+  useAnalytics("tool_open", { tool: "preprocessing" });
   return (
     <PipelineProvider>
       <PreprocessingPageInner />

@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -129,6 +130,7 @@ function AutoMLPageInner() {
 }
 
 export default function AutoMLPage() {
+  useAnalytics("tool_open", { tool: "automl" });
   return (
     <PipelineProvider>
       <AutoMLPageInner />

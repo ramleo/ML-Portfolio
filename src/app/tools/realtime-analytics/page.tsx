@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import AnalyticsDashboard from "./AnalyticsDashboard";
 const ACCENT = "#10b981";
 
 export default function RealtimeAnalyticsPage() {
+  useAnalytics("tool_open", { tool: "realtime-analytics" });
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 

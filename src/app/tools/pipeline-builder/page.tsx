@@ -1,4 +1,5 @@
 "use client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -61,6 +62,7 @@ function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): st
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PipelineBuilderPage() {
+  useAnalytics("tool_open", { tool: "pipeline-builder" });
   const router = useRouter();
   const handleHome = useCallback(() => router.push("/#capabilities"), [router]);
   const [mode, setMode] = useState<PipelineMode>(null);
