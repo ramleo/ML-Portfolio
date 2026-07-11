@@ -82,7 +82,7 @@ export default function DesktopSidebar({
         {glossaryOpen && (
           <>
             <textarea value={glossary} onChange={e => onGlossaryChange(e.target.value)}
-              placeholder={"revenue: sum of invoice totals\nLTV: lifetime value of customer"}
+              placeholder={"e.g. revenue: total of all sales\nLTV: lifetime value of a customer"}
               rows={5}
               className="w-full text-[10px] font-mono bg-black/40 border border-white/8 rounded-lg px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1 focus:border-indigo-500/40 transition-colors" />
             <p className="text-[9px] text-gray-700 mt-1">Injected into every SQL prompt</p>

@@ -58,7 +58,7 @@ export default function MobileSidebar({
           <p className="text-[10px] font-semibold text-gray-400 mb-2 uppercase tracking-wide">Glossary</p>
           <textarea
             value={glossary} onChange={e => onGlossaryChange(e.target.value)}
-            placeholder={"revenue: sum of invoice totals\nLTV: lifetime value"}
+            placeholder={"e.g. revenue: total of all sales\nLTV: lifetime value of a customer"}
             rows={4}
             className="w-full text-[10px] font-mono bg-black/30 border border-white/10 rounded px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none"/>
           <p className="text-[9px] text-gray-600 mt-1">Injected into every SQL prompt</p>
