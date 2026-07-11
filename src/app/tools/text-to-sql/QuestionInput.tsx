@@ -55,7 +55,7 @@ export default function QuestionInput({
             <option value="gemini">Gemini</option>
             <option value="cohere">Cohere</option>
           </select>
-          <button onClick={onSubmit} disabled={running || !question.trim() || !schema}
+          <button onClick={() => onSubmit()} disabled={running || !question.trim() || !schema}
             className={`text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-all ${running ? "opacity-80" : "hover:brightness-110"}`}
             style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
             {running ? "Running…" : !schema ? "Load DB" : "Ask"}
