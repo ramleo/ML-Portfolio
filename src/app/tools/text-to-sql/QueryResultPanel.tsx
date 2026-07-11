@@ -30,12 +30,13 @@ interface Props {
   onRetry?: () => void;
   provider?: string;
   onRunSQL?: (sql: string) => Promise<void>;
+  onSuggest?: (q: string) => void;
 }
 
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, error, question,
   currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
-  onFilter, onClearFilter, filterActive, onRetry, provider, onRunSQL,
+  onFilter, onClearFilter, filterActive, onRetry, provider, onRunSQL, onSuggest,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
@@ -335,7 +336,10 @@ export default function QueryResultPanel({
               <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest">You might also ask</p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((q, i) => (
-                  <span key={i} className="text-[11px] px-3 py-1.5 rounded-full border border-indigo-500/25 text-indigo-300/70 bg-indigo-500/5">{q}</span>
+                  <button key={i} onClick={() => onSuggest?.(q)}
+                    className="text-[11px] px-3 py-1.5 rounded-full border border-indigo-500/25 text-indigo-300/70 bg-indigo-500/5 hover:bg-indigo-500/15 hover:text-indigo-200 hover:border-indigo-500/50 transition-all text-left">
+                    {q}
+                  </button>
                 ))}
               </div>
             </div>

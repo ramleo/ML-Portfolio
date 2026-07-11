@@ -364,7 +364,8 @@ export default function TextToSqlRunner() {
             onRetry={runQuery} provider={provider}
             currentPage={activeTab?.currentPage ?? 1} totalCount={activeTab?.totalCount ?? -1} pageSize={50}
             onPageChange={changePage} onFilter={filterResults} onClearFilter={clearFilter}
-            filterActive={!!activeTab?.activeFilter} onRunSQL={runDirectSQL} />
+            filterActive={!!activeTab?.activeFilter} onRunSQL={runDirectSQL}
+            onSuggest={q => { setQuestion(q); runQuery(q); }} />
 
           {activeTab?.results && !running && (
             <button onClick={() => { questionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); questionRef.current?.focus(); }}
