@@ -20,6 +20,7 @@ const STEPS: Step[] = [
 
 const GAP = 12;
 const CARD_W = 280;
+const CARD_H = 170;
 
 interface Rect { top: number; left: number; width: number; height: number; }
 
@@ -30,13 +31,22 @@ function getRect(target: string): Rect | null {
   return { top: r.top, left: r.left, width: r.width, height: r.height };
 }
 
-function cardPos(rect: Rect, position: Step["position"]): React.CSSProperties {
+function cardPos(rect: Rect, position: Step["position"]): { top: number; left: number } {
   switch (position) {
-    case "bottom": return { top: rect.top + rect.height + GAP, left: Math.max(8, rect.left + rect.width / 2 - CARD_W / 2) };
-    case "top":    return { top: rect.top - GAP - 140, left: Math.max(8, rect.left + rect.width / 2 - CARD_W / 2) };
-    case "right":  return { top: rect.top + rect.height / 2 - 70, left: rect.left + rect.width + GAP };
-    case "left":   return { top: rect.top + rect.height / 2 - 70, left: Math.max(8, rect.left - CARD_W - GAP) };
+    case "bottom": return { top: rect.top + rect.height + GAP, left: rect.left + rect.width / 2 - CARD_W / 2 };
+    case "top":    return { top: rect.top - GAP - CARD_H,      left: rect.left + rect.width / 2 - CARD_W / 2 };
+    case "right":  return { top: rect.top + rect.height / 2 - CARD_H / 2, left: rect.left + rect.width + GAP };
+    case "left":   return { top: rect.top + rect.height / 2 - CARD_H / 2, left: rect.left - CARD_W - GAP };
   }
+}
+
+function clamp(pos: { top: number; left: number }): { top: number; left: number } {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  return {
+    top:  Math.max(8, Math.min(pos.top,  vh - CARD_H - 8)),
+    left: Math.max(8, Math.min(pos.left, vw - CARD_W - 8)),
+  };
 }
 
 export default function WalkthroughTooltip() {
@@ -71,7 +81,7 @@ export default function WalkthroughTooltip() {
 
   if (done || !rect) return null;
 
-  const pos = cardPos(rect, current.position);
+  const pos = clamp(cardPos(rect, current.position));
 
   return (
     <>
