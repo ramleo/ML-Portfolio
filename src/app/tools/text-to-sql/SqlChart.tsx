@@ -47,7 +47,7 @@ function Bar({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
   const [W,PL,PR,PT,PB,iH] = [520,44,10,12,52,150];
   const iW = W-PL-PR, bW = Math.max(4, iW/rows.length-6);
   return (
-    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full" style={{maxHeight:"200px"}}>
       <text x={PL+iW/2} y={9} textAnchor="middle" fill="#6b7280" fontSize={9}>{cols[s.n[0]]}</text>
       {[0,.25,.5,.75,1].map(f=>(
         <g key={f}>
@@ -78,11 +78,11 @@ function Bar({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
 function BarH({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
   const vals = rows.map(r=>toN((r as unknown[])[s.n[0]]));
   const mx = Math.max(...vals, 0.001);
-  const [LW,PR,PT,bH,gap,W] = [115,56,22,16,5,520];
+  const [LW,PR,PT,bH,gap,W] = [115,56,18,12,4,520];
   const iW = W-LW-PR;
   const svgH = PT + rows.length*(bH+gap) + 8;
   return (
-    <div className="max-h-[420px] overflow-y-auto">
+    <div className="max-h-[260px] overflow-y-auto">
       <svg viewBox={`0 0 ${W} ${svgH}`} style={{height:svgH,minWidth:"100%"}} className="w-full">
         <text x={LW+iW/2} y={14} textAnchor="middle" fill="#6b7280" fontSize={9}>{cols[s.n[0]]}</text>
         {rows.map((r,i)=>{
@@ -110,7 +110,7 @@ function GroupedBar({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: V
   const iW = W-PL-PR;
   const grpW = iW/rows.length, bW = Math.max(2, grpW/s.n.length-3);
   return (
-    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full" style={{maxHeight:"200px"}}>
       {s.n.map((ni,si)=>(
         <g key={si} transform={`translate(${8+si*80},8)`}>
           <rect width={9} height={9} rx={2} fill={P[si%P.length]}/>
@@ -152,7 +152,7 @@ function LineArea({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS 
   const xOf  = (i: number) => PL+i*xStep;
   const yOf  = (v: number) => PT+iH-(v/mx)*iH;
   return (
-    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full" style={{maxHeight:"200px"}}>
       {[0,.25,.5,.75,1].map(f=>(
         <g key={f}>
           <line x1={PL} x2={W-PR} y1={PT+iH*(1-f)} y2={PT+iH*(1-f)} stroke="#ffffff0e" strokeWidth={1}/>
@@ -200,7 +200,7 @@ function Scatter({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }
   const sx = (v:number)=>PL+((v-minX)/(maxX-minX||1))*iW;
   const sy = (v:number)=>PT+iH-((v-minY)/(maxY-minY||1))*iH;
   return (
-    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${PT+iH+PB}`} className="w-full" style={{maxHeight:"200px"}}>
       <line x1={PL} x2={PL} y1={PT} y2={PT+iH} stroke="#ffffff20" strokeWidth={1}/>
       <line x1={PL} x2={W-PR} y1={PT+iH} y2={PT+iH} stroke="#ffffff20" strokeWidth={1}/>
       <text x={PL+iW/2} y={PT+iH+24} textAnchor="middle" fill="#6b7280" fontSize={9}>{cols[s.n[0]]}</text>
