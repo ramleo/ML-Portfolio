@@ -1,7 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import SavedQueriesPanel from "./SavedQueriesPanel";
+
+const TEMPLATES = [
+  "Top [N] [column] by [metric]",
+  "Show [metric] by [time period]",
+  "Compare [A] vs [B] on [metric]",
+  "Find [entity] where [condition]",
+  "Count [entity] grouped by [attribute]",
+  "Average [metric] per [category]",
+];
 
 interface Props {
   schemaOpen: boolean;
@@ -24,6 +33,7 @@ export default function DesktopSidebar({
   sampleQuestions, onSelectQuestion, glossary, onGlossaryChange,
   glossaryOpen, onToggleGlossary, currentQuery, onLoadSaved,
 }: Props) {
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   return (
     <aside className="hidden lg:flex flex-col w-56 shrink-0 gap-2.5 pt-2">
       <div className="rounded-xl border border-white/8 bg-black/30 p-3">
@@ -77,6 +87,27 @@ export default function DesktopSidebar({
               className="w-full text-[10px] font-mono bg-black/40 border border-white/8 rounded-lg px-2 py-1.5 text-gray-300 placeholder-gray-600 outline-none resize-none mt-1 focus:border-indigo-500/40 transition-colors" />
             <p className="text-[9px] text-gray-700 mt-1">Injected into every SQL prompt</p>
           </>
+        )}
+      </div>
+      <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+        <button onClick={() => setTemplatesOpen(o => !o)}
+          className="text-[9px] font-semibold text-indigo-400/50 mb-1 flex items-center gap-1 w-full uppercase tracking-widest hover:text-indigo-400 transition-colors">
+          <svg width="9" height="9" viewBox="0 0 8 8" fill="none">
+            <path d={templatesOpen ? "M1 3l3 3 3-3" : "M3 1l3 3-3 3"} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Templates
+        </button>
+        {templatesOpen && (
+          <div className="mt-1 flex flex-col gap-0.5">
+            {TEMPLATES.map(t => (
+              <button key={t} onClick={() => onSelectQuestion(t)}
+                className="w-full text-left text-[10px] text-gray-500 hover:text-indigo-300 py-1 px-1.5 rounded-lg hover:bg-indigo-500/8 transition-all flex gap-1.5 group">
+                <span className="text-indigo-700 group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors">›</span>
+                <span className="font-mono">{t}</span>
+              </button>
+            ))}
+            <p className="text-[9px] text-gray-700 mt-1 px-1">Replace [placeholders] then click Ask</p>
+          </div>
         )}
       </div>
       <SavedQueriesPanel currentQuery={currentQuery} onLoad={onLoadSaved} />

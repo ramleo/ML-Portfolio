@@ -44,18 +44,29 @@ export default function QuestionInput({
 }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [suggIdx, setSuggIdx] = useState(0);
+  const [pastMatches, setPastMatches] = useState<string[]>([]);
   const terms = useRef<string[]>([]);
+  const history = useRef<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ml_sql_fewshot");
+      if (raw) history.current = (JSON.parse(raw) as { question: string }[]).map(t => t.question);
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => { terms.current = extractTerms(schema); }, [schema]);
 
   useEffect(() => {
     const lastWord = question.split(/\s+/).pop() ?? "";
-    if (lastWord.length < 2) { setSuggestions([]); return; }
-    const lw = lastWord.toLowerCase();
-    const matches = terms.current
-      .filter(t => t.toLowerCase().startsWith(lw) && t.toLowerCase() !== lw)
-      .slice(0, 5);
-    setSuggestions(matches);
+    if (lastWord.length < 2) { setSuggestions([]); } else {
+      const lw = lastWord.toLowerCase();
+      setSuggestions(terms.current.filter(t => t.toLowerCase().startsWith(lw) && t.toLowerCase() !== lw).slice(0, 4));
+    }
+    if (question.trim().length >= 3) {
+      const q = question.toLowerCase();
+      setPastMatches(history.current.filter(h => h.toLowerCase().includes(q) && h.toLowerCase() !== q).slice(0, 3));
+    } else { setPastMatches([]); }
     setSuggIdx(0);
   }, [question]);
 
@@ -101,7 +112,7 @@ export default function QuestionInput({
               </svg>
             </button>
           )}
-          {suggestions.length > 0 && (
+          {(suggestions.length > 0 || pastMatches.length > 0) && (
             <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-lg border border-indigo-500/30 bg-[#0f0f1a] shadow-xl overflow-hidden">
               {suggestions.map((s, i) => (
                 <button key={s} onMouseDown={e => { e.preventDefault(); applySuggestion(s); }}
@@ -114,7 +125,19 @@ export default function QuestionInput({
                   {s}
                 </button>
               ))}
-              <p className="px-3 py-1 text-[9px] text-gray-600 border-t border-white/5">Tab to complete · ↑↓ to navigate · Esc to dismiss</p>
+              {pastMatches.length > 0 && (
+                <>
+                  {suggestions.length > 0 && <div className="border-t border-white/8 mx-2" />}
+                  <p className="px-3 pt-1.5 text-[9px] text-gray-600 uppercase tracking-widest">Past queries</p>
+                  {pastMatches.map(q => (
+                    <button key={q} onMouseDown={e => { e.preventDefault(); onQuestionChange(q); setSuggestions([]); setPastMatches([]); questionRef.current?.focus(); }}
+                      className="w-full text-left px-3 py-1.5 text-[11px] text-gray-400 hover:bg-white/5 hover:text-indigo-200 transition-colors truncate">
+                      {q}
+                    </button>
+                  ))}
+                </>
+              )}
+              {suggestions.length > 0 && <p className="px-3 py-1 text-[9px] text-gray-600 border-t border-white/5">Tab to complete · ↑↓ navigate · Esc dismiss</p>}
             </div>
           )}
         </div>
