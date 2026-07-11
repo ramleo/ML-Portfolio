@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import SqlChart from "./SqlChart";
-import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook } from "./_utils";
+import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
 
@@ -50,6 +50,7 @@ export default function QueryResultPanel({
   const [editing, setEditing] = useState(false);
   const [editedSql, setEditedSql] = useState("");
   const [sqlEdited, setSqlEdited] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -179,7 +180,10 @@ export default function QueryResultPanel({
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-indigo-400/80 uppercase tracking-wide">Generated SQL</span>
               {sqlEdited && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/25 text-amber-400">Edited</span>
+                <button onClick={() => setShowDiff(d => !d)}
+                  className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 transition-colors">
+                  {showDiff ? "Edited ▲" : "Edited · diff"}
+                </button>
               )}
             </div>
             <div className="flex items-center gap-1.5">
@@ -217,6 +221,7 @@ export default function QueryResultPanel({
           ) : (
             <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{highlightSQL(editedSql)}</pre>
           )}
+          {showDiff && sqlEdited && generatedSql && <SqlDiff original={generatedSql} edited={editedSql} />}
           {sqlExplErr && (
             <p className="mt-2 text-[11px] text-red-400">{sqlExplErr}</p>
           )}

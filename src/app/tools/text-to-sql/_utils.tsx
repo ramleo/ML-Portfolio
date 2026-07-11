@@ -41,6 +41,31 @@ export function downloadFile(content: string, name: string, mime: string) {
   URL.revokeObjectURL(a.href);
 }
 
+export function SqlDiff({ original, edited }: { original: string; edited: string }) {
+  const orig = original.split("\n"); const edit = edited.split("\n");
+  const maxLen = Math.max(orig.length, edit.length);
+  const lines = Array.from({ length: maxLen }, (_, i) => {
+    const o = orig[i] ?? ""; const e = edit[i] ?? "";
+    const type = o === e ? "same" : o === "" ? "add" : e === "" ? "del" : "chg";
+    return { o, e, type };
+  }).filter(l => l.type !== "same");
+  if (!lines.length) return null;
+  return (
+    <div className="mt-2 rounded border border-white/8 overflow-hidden text-[10px] font-mono">
+      {lines.map((l, i) => (
+        <div key={i}>
+          {(l.type === "del" || l.type === "chg") && (
+            <div className="px-2 py-0.5 bg-red-500/10 text-red-400 flex gap-2"><span className="opacity-40">−</span><span>{l.o}</span></div>
+          )}
+          {(l.type === "add" || l.type === "chg") && (
+            <div className="px-2 py-0.5 bg-green-500/10 text-green-400 flex gap-2"><span className="opacity-40">+</span><span>{l.e}</span></div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function exportNotebook(question: string, sql: string, explanation: string) {
   const codeLines = [
     "import sqlite3\nimport pandas as pd\n\n",
