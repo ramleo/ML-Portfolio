@@ -296,31 +296,60 @@ function Stat({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
 // ── Main component ────────────────────────────────────────────────────────────
 const LABELS: Record<CT,string> = { bar:"Bar Chart", bar_h:"Horizontal Bar", grouped_bar:"Grouped Bar", line:"Line Chart", area:"Area Chart", scatter:"Scatter Plot", donut:"Donut Chart", heatmap:"Heatmap", stat:"Key Metrics" };
 
+const TYPE_ICONS: Record<CT, string> = {
+  bar:"Bar", bar_h:"H-Bar", grouped_bar:"Grouped", line:"Line", area:"Area",
+  scatter:"Scatter", donut:"Donut", heatmap:"Heat", stat:"Stat"
+};
+const COMPATIBLE: CT[] = ["bar","bar_h","line","area","donut","scatter","grouped_bar","stat"];
+
 export default function SqlChart({ cols, rows }: { cols: string[]; rows: unknown[][] }) {
   const spec = useMemo(()=>detectViz(cols,rows),[cols,rows]);
   const [open, setOpen] = useState(true);
-  if (!spec) return null;
+  const [overrideType, setOverrideType] = useState<CT|null>(null);
+  const activeType = overrideType ?? spec?.type ?? null;
+  const activeSpec = spec && activeType ? { ...spec, type: activeType } : spec;
+
+  if (!spec || !activeSpec) return null;
+  const isOverridden = overrideType !== null && overrideType !== spec.type;
+
   return (
     <div className="rounded-xl border border-white/10 bg-black/40 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/8">
         <div className="flex items-center gap-2">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="6" width="2" height="5" rx="0.5" fill="#6366f1"/><rect x="5" y="3" width="2" height="8" rx="0.5" fill="#8b5cf6"/><rect x="9" y="1" width="2" height="10" rx="0.5" fill="#06b6d4"/></svg>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{LABELS[spec.type]}</span>
-          <span className="text-[9px] text-gray-600">{rows.length} rows · auto-detected</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{LABELS[activeSpec.type]}</span>
+          <span className="text-[9px] text-gray-600">{rows.length} rows · {isOverridden ? "manual" : "auto"}</span>
+          {isOverridden && (
+            <button onClick={()=>setOverrideType(null)} className="text-[9px] text-indigo-400/60 hover:text-indigo-300 transition-colors">reset</button>
+          )}
         </div>
         <button onClick={()=>setOpen(o=>!o)} className="text-[10px] text-gray-600 hover:text-gray-300 transition-colors">{open?"Hide":"Show"}</button>
       </div>
       {open && (
-        <div className="p-3">
-          {spec.type==="bar"          && <Bar         cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="bar_h"        && <BarH        cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="grouped_bar"  && <GroupedBar  cols={cols} rows={rows} s={spec}/>}
-          {(spec.type==="line"||spec.type==="area") && <LineArea cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="scatter"      && <Scatter     cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="heatmap"      && <Heatmap     cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="donut"        && <Donut       cols={cols} rows={rows} s={spec}/>}
-          {spec.type==="stat"         && <Stat        cols={cols} rows={rows} s={spec}/>}
-        </div>
+        <>
+          <div className="flex items-center gap-1 px-3 pt-2 pb-0 flex-wrap">
+            {COMPATIBLE.map(t => (
+              <button key={t} onClick={()=>setOverrideType(t===spec.type ? null : t)}
+                className={`text-[9px] px-2 py-0.5 rounded border transition-all ${
+                  activeSpec.type===t
+                    ? "border-indigo-500/50 bg-indigo-500/15 text-indigo-300"
+                    : "border-white/8 text-gray-600 hover:text-gray-300 hover:border-white/20"
+                }`}>
+                {TYPE_ICONS[t]}
+              </button>
+            ))}
+          </div>
+          <div className="p-3">
+            {activeSpec.type==="bar"         && <Bar         cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="bar_h"       && <BarH        cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="grouped_bar" && <GroupedBar  cols={cols} rows={rows} s={activeSpec}/>}
+            {(activeSpec.type==="line"||activeSpec.type==="area") && <LineArea cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="scatter"     && <Scatter     cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="heatmap"     && <Heatmap     cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="donut"       && <Donut       cols={cols} rows={rows} s={activeSpec}/>}
+            {activeSpec.type==="stat"        && <Stat        cols={cols} rows={rows} s={activeSpec}/>}
+          </div>
+        </>
       )}
     </div>
   );

@@ -50,7 +50,10 @@ export default function QueryResultPanel({
   const [editing, setEditing] = useState(false);
   const [editedSql, setEditedSql] = useState("");
   const [sqlEdited, setSqlEdited] = useState(false);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
+  useEffect(() => { setSortCol(null); }, [results]);
   useEffect(() => { if (!filterActive) setFilterText(""); }, [filterActive]);
   useEffect(() => { setLocalExpl(""); setSuggestions([]); setExplErr(null); }, [results]);
   useEffect(() => { setSqlExpl(""); setSqlExplErr(null); }, [generatedSql]);
@@ -255,13 +258,34 @@ export default function QueryResultPanel({
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-[#0f0f0f] z-10">
                 <tr className="border-b border-white/10">
-                  {results.columns.map(c => (
-                    <th key={c} className="px-3 py-2 text-left text-gray-400 font-medium whitespace-nowrap">{c}</th>
-                  ))}
+                  {results.columns.map(c => {
+                    const active = sortCol === c;
+                    return (
+                      <th key={c} onClick={() => {
+                        if (active) setSortDir(d => d === "asc" ? "desc" : "asc");
+                        else { setSortCol(c); setSortDir("asc"); }
+                      }} className="px-3 py-2 text-left text-gray-400 font-medium whitespace-nowrap cursor-pointer select-none hover:text-indigo-300 transition-colors group">
+                        <span className="flex items-center gap-1">
+                          {c}
+                          <span className={`text-[9px] transition-opacity ${active ? "opacity-100 text-indigo-400" : "opacity-0 group-hover:opacity-40"}`}>
+                            {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                          </span>
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
-                {results.rows.map((row, i) => (
+                {(sortCol
+                  ? [...results.rows].sort((a, b) => {
+                      const ci = results.columns.indexOf(sortCol);
+                      const av = (a as unknown[])[ci]; const bv = (b as unknown[])[ci];
+                      const cmp = av === null ? -1 : bv === null ? 1 : typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
+                      return sortDir === "asc" ? cmp : -cmp;
+                    })
+                  : results.rows
+                ).map((row, i) => (
                   <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.07] transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
                     {(row as unknown[]).map((cell, j) => (
                       <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
