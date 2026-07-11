@@ -11,6 +11,7 @@ import QueryHistoryPanel from "./QueryHistoryPanel";
 import DesktopSidebar from "./DesktopSidebar";
 import QuestionInput from "./QuestionInput";
 import TabBar from "./TabBar";
+import WalkthroughTooltip from "./WalkthroughTooltip";
 
 const ACCENT = "#6366f1";
 
@@ -300,8 +301,13 @@ export default function TextToSqlRunner() {
 
   const schemaPanel = <SchemaPanel schema={schema} accent={ACCENT} />;
 
+  const [showWalkthrough] = useState(() => {
+    try { return !localStorage.getItem("ml_sql_walked"); } catch { return false; }
+  });
+
   return (
     <div className="relative">
+      {showWalkthrough && <WalkthroughTooltip />}
       {diagramOpen && schema && <SchemaDiagram schema={schema} onClose={() => setDiagramOpen(false)} />}
       <MobileSidebar open={mobileSidebar} onClose={() => setMobileSidebar(false)}
         hasSchema={!!schema} schemaPanel={schemaPanel}

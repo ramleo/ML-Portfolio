@@ -98,7 +98,7 @@ export default function QuestionInput({
       running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-white/10 bg-white/5"
     }`}>
       <div className="flex gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-1" data-wt="question">
           <textarea ref={questionRef} value={question} onChange={e => onQuestionChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={hasResults ? "Ask a follow-up or new question… (Enter to run)" : "Ask a question about your data… (Enter to run)"}
@@ -141,7 +141,7 @@ export default function QuestionInput({
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2 shrink-0">
+        <div className="flex flex-col gap-2 shrink-0" data-wt="provider">
           <select value={provider} onChange={e => onProviderChange(e.target.value as Provider)}
             className="text-xs bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-gray-300 outline-none">
             <option value="groq">Groq</option>

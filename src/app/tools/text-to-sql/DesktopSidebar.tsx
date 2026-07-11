@@ -36,7 +36,7 @@ export default function DesktopSidebar({
   const [templatesOpen, setTemplatesOpen] = useState(false);
   return (
     <aside className="hidden lg:flex flex-col w-56 shrink-0 gap-2.5 pt-2">
-      <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+      <div className="rounded-xl border border-white/8 bg-black/30 p-3" data-wt="schema">
         <div className="flex items-center gap-1.5 mb-2">
           <button onClick={onToggleSchema}
             className="text-[11px] font-semibold text-gray-300 flex items-center gap-1.5 flex-1 hover:text-white transition-colors">
@@ -61,7 +61,7 @@ export default function DesktopSidebar({
         )}
         {schemaOpen && schemaPanel}
       </div>
-      <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+      <div className="rounded-xl border border-white/8 bg-black/30 p-3" data-wt="try-asking">
         <p className="text-[9px] font-semibold text-indigo-400/50 mb-2 uppercase tracking-widest">Try asking</p>
         {sampleQuestions.map(q => (
           <button key={q} onClick={() => onSelectQuestion(q)}
