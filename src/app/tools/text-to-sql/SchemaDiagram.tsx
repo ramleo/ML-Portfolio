@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import ColumnProfileView from "./ColumnProfileView";
 
 interface FKRel  { from_col: string; to_table: string; to_col: string; }
 interface Col    { name: string; type: string; pk: boolean; }
@@ -59,7 +60,16 @@ function LinkIcon() {
   );
 }
 
+
 export default function SchemaDiagram({ schema, onClose }: Props) {
+  const names = Object.keys(schema);
+  if (names.length === 1 && (schema[names[0]].foreign_keys?.length ?? 0) === 0) {
+    return <ColumnProfileView schema={schema} onClose={onClose} />;
+  }
+  return <SchemaDiagramCanvas schema={schema} onClose={onClose} />;
+}
+
+function SchemaDiagramCanvas({ schema, onClose }: Props) {
   const names = useMemo(() => Object.keys(schema), [schema]);
 
   const [pos, setPos]           = useState(() => autoLayout(names, schema));

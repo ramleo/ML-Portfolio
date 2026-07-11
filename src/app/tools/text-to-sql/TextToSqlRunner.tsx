@@ -68,6 +68,9 @@ export default function TextToSqlRunner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]);
 
+  // Clear glossary when switching databases — old glossary terms don't apply to new schema
+  useEffect(() => { setGlossary(""); }, [dbRef]);
+
   const runQueryRef = useRef<(() => void) | null>(null);
 
   const [fewShot, setFewShot] = useState<HistoryTurn[]>([]);
