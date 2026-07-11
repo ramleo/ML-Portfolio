@@ -164,7 +164,13 @@ export default function TextToSqlRunner() {
             if (evt.type === "schema_loaded")  setStatus(`Schema: ${evt.tables} tables`);
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${/429|Too Many Requests/i.test(evt.error??'') ? "Rate limit reached — switch provider or wait ~60s" : (evt.error??'')}`);
             else if (evt.type === "sql_generated") { finalSql = evt.sql; setGeneratedSql(evt.sql); currentSqlRef.current = evt.sql; originalSqlRef.current = evt.sql; setStatus("Executing…"); }
-            else if (evt.type === "results")   { finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`); }
+            else if (evt.type === "results")   {
+              finalResults = evt; setResults(evt); setTotalCount(evt.total_count ?? -1); setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`);
+              const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
+              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, meta: { rows: evt.count, provider } }),
+              }).catch(() => {});
+            }
             else if (evt.type === "error")       setError(evt.text);
             else if (evt.type === "done")        setRunning(false);
           } catch { /* ignore malformed */ }
