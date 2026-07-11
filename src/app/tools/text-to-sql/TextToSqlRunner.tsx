@@ -79,7 +79,7 @@ export default function TextToSqlRunner() {
   useEffect(() => {
     if (dbRef === "chinook") { setDynQ(SAMPLE_QUESTIONS); return; }
     fetch(`${ML_SQL_API}/sql/sample-questions?db_ref=${dbRef}&provider=${provider}`)
-      .then(r => r.json()).then(d => { if (d.questions?.length) setDynQ(d.questions); }).catch(() => {});
+      .then(r => r.json()).then(d => { if (d.questions?.length) setDynQ(d.questions.map((q: unknown) => String(q))); }).catch(() => {});
   }, [dbRef, provider]);
 
   const readerRef   = useRef<ReadableStreamDefaultReader | null>(null);
@@ -136,7 +136,7 @@ export default function TextToSqlRunner() {
   }, []);
 
   const runQuery = useCallback(async (questionOverride?: string, existingTabId?: string) => {
-    const activeQ = questionOverride ?? question;
+    const activeQ = String(questionOverride ?? question);
     if (!activeQ.trim() || running) return;
     readerRef.current?.cancel();
 

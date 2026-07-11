@@ -26,13 +26,13 @@ const TYPE_META: Record<string, { color: string; bg: string; label: string }> = 
   BLOB:      { color: "#94a3b8", bg: "rgba(148,163,184,0.12)", label: "BLOB"    },
 };
 
-function getTypeMeta(rawType: string) {
-  const base = rawType.split("(")[0].toUpperCase().trim();
-  return TYPE_META[base] ?? { color: "#94a3b8", bg: "rgba(148,163,184,0.10)", label: base.slice(0, 7) };
+function getTypeMeta(rawType: string | null | undefined) {
+  const base = (rawType ?? "").split("(")[0].toUpperCase().trim();
+  return TYPE_META[base] ?? { color: "#94a3b8", bg: "rgba(148,163,184,0.10)", label: base.slice(0, 7) || "?" };
 }
 
-function TypeIcon({ rawType }: { rawType: string }) {
-  const base = rawType.split("(")[0].toUpperCase().trim();
+function TypeIcon({ rawType }: { rawType: string | null | undefined }) {
+  const base = (rawType ?? "").split("(")[0].toUpperCase().trim();
   // TEXT
   if (["VARCHAR","TEXT","CHAR"].includes(base)) return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
