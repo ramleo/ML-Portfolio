@@ -20,7 +20,7 @@ const STEPS: Step[] = [
 
 const GAP = 12;
 const CARD_W = 280;
-const CARD_H = 170;
+const CARD_H = 210;
 
 interface Rect { top: number; left: number; width: number; height: number; }
 
@@ -44,7 +44,7 @@ function clamp(pos: { top: number; left: number }): { top: number; left: number 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   return {
-    top:  Math.max(8, Math.min(pos.top,  vh - CARD_H - 8)),
+    top:  Math.max(8, Math.min(pos.top,  vh - CARD_H - 20)),
     left: Math.max(8, Math.min(pos.left, vw - CARD_W - 8)),
   };
 }
