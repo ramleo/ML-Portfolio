@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import SqlChart from "./SqlChart";
+import SqlChart, { type CT } from "./SqlChart";
 import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
@@ -31,12 +31,15 @@ interface Props {
   provider?: string;
   onRunSQL?: (sql: string) => Promise<void>;
   onSuggest?: (q: string) => void;
+  chartOverride?: CT | null;
+  onChartOverride?: (t: CT | null) => void;
 }
 
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, error, question,
   currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
   onFilter, onClearFilter, filterActive, onRetry, provider, onRunSQL, onSuggest,
+  chartOverride, onChartOverride,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
@@ -334,7 +337,7 @@ export default function QueryResultPanel({
         </div>
       )}
 
-      {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} />}
+      {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} overrideType={chartOverride} onOverrideChange={onChartOverride} />}
 
       {results && !localExpl && !explLoading && (
         <button onClick={fetchExplanation}

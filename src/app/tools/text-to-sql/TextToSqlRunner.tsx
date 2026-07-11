@@ -12,39 +12,10 @@ import DesktopSidebar from "./DesktopSidebar";
 import QuestionInput from "./QuestionInput";
 import TabBar from "./TabBar";
 import WalkthroughTooltip from "./WalkthroughTooltip";
+import type { Provider, HistoryTurn, SchemaTable, Results, ResultTab } from "./_types";
+import { SAMPLE_QUESTIONS } from "./_types";
 
 const ACCENT = "#6366f1";
-
-const SAMPLE_QUESTIONS = [
-  "Show me the top 5 artists by total album count",
-  "What is the total revenue for each year?",
-  "Show the top 6 genres by number of tracks",
-  "List the top 10 customers by total spending",
-  "What is the average track length in milliseconds vs average unit price per genre?",
-];
-
-type Provider = "groq" | "gemini" | "cohere";
-
-interface HistoryTurn {
-  question: string; sql: string; result_summary: string; count: number; timestamp?: number;
-}
-interface FKRel { from_col: string; to_table: string; to_col: string; }
-interface SchemaTable { columns: { name: string; type: string; pk: boolean }[]; row_count: number; foreign_keys?: FKRel[]; }
-type Results = { columns: string[]; rows: unknown[][]; count: number; exec_time_ms: number };
-
-interface ResultTab {
-  id: string;
-  question: string;
-  sql: string | null;
-  currentSql: string | null;
-  originalSql: string | null;
-  results: Results | null;
-  error: string | null;
-  currentPage: number;
-  totalCount: number;
-  activeFilter: string | null;
-  pinned?: boolean;
-}
 
 export default function TextToSqlRunner() {
   const [dbSource, setDbSource] = useState<DbSource>("demo");
@@ -68,17 +39,34 @@ export default function TextToSqlRunner() {
   const [shared, setShared]     = useState(false);
   const [diagramOpen, setDiagramOpen] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
-  const [tabs, setTabs]         = useState<ResultTab[]>(() => {
-    try { const s = sessionStorage.getItem("ml_sql_tabs"); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
-  const [activeTabId, setActiveTabId] = useState<string | null>(() => {
-    try { return sessionStorage.getItem("ml_sql_active_tab") ?? null; } catch { return null; }
-  });
+  const [tabs, setTabs]         = useState<ResultTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const activeTab = tabs.find(t => t.id === activeTabId) ?? null;
+  const tabsRef = useRef<ResultTab[]>(tabs);
+  tabsRef.current = tabs;
 
-  useEffect(() => { try { sessionStorage.setItem("ml_sql_tabs", JSON.stringify(tabs)); } catch {} }, [tabs]);
-  useEffect(() => { try { if (activeTabId) sessionStorage.setItem("ml_sql_active_tab", activeTabId); else sessionStorage.removeItem("ml_sql_active_tab"); } catch {} }, [activeTabId]);
+  // Restore from sessionStorage after mount (avoids SSR/CSR hydration mismatch)
+  useEffect(() => {
+    try {
+      const s = sessionStorage.getItem("ml_sql_tabs");
+      if (s) setTabs(JSON.parse(s));
+      setActiveTabId(sessionStorage.getItem("ml_sql_active_tab") ?? null);
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  // Persist tabs (only after hydration to avoid wiping sessionStorage on mount)
+  useEffect(() => { if (!hydrated) return; try { sessionStorage.setItem("ml_sql_tabs", JSON.stringify(tabs)); } catch {} }, [tabs, hydrated]);
+  useEffect(() => { if (!hydrated) return; try { if (activeTabId) sessionStorage.setItem("ml_sql_active_tab", activeTabId); else sessionStorage.removeItem("ml_sql_active_tab"); } catch {} }, [activeTabId, hydrated]);
+
+  // Sync question input to active tab's question when switching tabs
+  useEffect(() => {
+    const tab = tabsRef.current.find(t => t.id === activeTabId);
+    if (tab?.question) setQuestion(tab.question);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId]);
 
   const runQueryRef = useRef<(() => void) | null>(null);
 
@@ -379,7 +367,9 @@ export default function TextToSqlRunner() {
             currentPage={activeTab?.currentPage ?? 1} totalCount={activeTab?.totalCount ?? -1} pageSize={50}
             onPageChange={changePage} onFilter={filterResults} onClearFilter={clearFilter}
             filterActive={!!activeTab?.activeFilter} onRunSQL={runDirectSQL}
-            onSuggest={q => { setQuestion(q); runQuery(q); }} />
+            onSuggest={q => { setQuestion(q); runQuery(q); }}
+            chartOverride={activeTab?.chartOverride ?? null}
+            onChartOverride={t => activeTabId && patchTab(activeTabId, { chartOverride: t })} />
 
           {activeTab?.results && !running && (
             <button onClick={() => { questionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); questionRef.current?.focus(); }}

@@ -302,12 +302,16 @@ const TYPE_ICONS: Record<CT, string> = {
 };
 const COMPATIBLE: CT[] = ["bar","bar_h","line","area","donut","scatter","grouped_bar","stat"];
 
-export default function SqlChart({ cols, rows }: { cols: string[]; rows: unknown[][] }) {
+export default function SqlChart({ cols, rows, overrideType = null, onOverrideChange }: {
+  cols: string[]; rows: unknown[][];
+  overrideType?: CT | null;
+  onOverrideChange?: (t: CT | null) => void;
+}) {
   const spec = useMemo(()=>detectViz(cols,rows),[cols,rows]);
   const [open, setOpen] = useState(true);
-  const [overrideType, setOverrideType] = useState<CT|null>(null);
   const activeType = overrideType ?? spec?.type ?? null;
   const activeSpec = spec && activeType ? { ...spec, type: activeType } : spec;
+  const setOverrideType = (t: CT | null) => onOverrideChange?.(t);
 
   if (!spec || !activeSpec) return null;
   const isOverridden = overrideType !== null && overrideType !== spec.type;
