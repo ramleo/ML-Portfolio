@@ -10,6 +10,7 @@ import SchemaPanel from "./SchemaPanel";
 import QueryHistoryPanel from "./QueryHistoryPanel";
 import DesktopSidebar from "./DesktopSidebar";
 import QuestionInput from "./QuestionInput";
+import TabBar from "./TabBar";
 
 const ACCENT = "#6366f1";
 
@@ -41,6 +42,7 @@ interface ResultTab {
   currentPage: number;
   totalCount: number;
   activeFilter: string | null;
+  pinned?: boolean;
 }
 
 export default function TextToSqlRunner() {
@@ -76,6 +78,8 @@ export default function TextToSqlRunner() {
 
   useEffect(() => { try { sessionStorage.setItem("ml_sql_tabs", JSON.stringify(tabs)); } catch {} }, [tabs]);
   useEffect(() => { try { if (activeTabId) sessionStorage.setItem("ml_sql_active_tab", activeTabId); else sessionStorage.removeItem("ml_sql_active_tab"); } catch {} }, [activeTabId]);
+
+  const runQueryRef = useRef<(() => void) | null>(null);
 
   const [fewShot, setFewShot] = useState<HistoryTurn[]>([]);
   useEffect(() => { try { const s = localStorage.getItem("ml_sql_fewshot"); if (s) setFewShot(JSON.parse(s)); } catch {} }, []);
@@ -146,7 +150,12 @@ export default function TextToSqlRunner() {
 
     const tabId = Date.now().toString();
     const newTab: ResultTab = { id: tabId, question: activeQ, sql: null, currentSql: null, originalSql: null, results: null, error: null, currentPage: 1, totalCount: -1, activeFilter: null };
-    setTabs(prev => [...prev.slice(-4), newTab]);
+    setTabs(prev => {
+      const pinned = prev.filter(t => t.pinned);
+      const unpinned = prev.filter(t => !t.pinned);
+      const kept = unpinned.slice(-(Math.max(0, 4 - pinned.length)));
+      return [...pinned, ...kept, newTab];
+    });
     setActiveTabId(tabId);
     setRunning(true); setRetryMsg(""); setStatus("Sending query…");
 
@@ -212,6 +221,17 @@ export default function TextToSqlRunner() {
       patchTab(tabId, { error: (e as Error).name === "AbortError" ? "Backend is waking up — wait 30 seconds and try again." : (e as Error).message });
     } finally { clearTimeout(timeoutId); setRunning(false); }
   }, [question, provider, dbRef, running, history, fewShot, glossary, patchTab]);
+
+  runQueryRef.current = runQuery;
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key === "k") { e.preventDefault(); questionRef.current?.focus(); questionRef.current?.select(); }
+      if (ctrl && e.key === "Enter") { e.preventDefault(); runQueryRef.current?.(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const runDirectSQL = useCallback(async (sql: string) => {
     if (!activeTabId) return;
@@ -341,28 +361,9 @@ export default function TextToSqlRunner() {
 
           {history.length > 0 && <QueryHistoryPanel history={history} onClear={() => setHistory([])} onReuse={setQuestion} />}
 
-          {tabs.length > 0 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-              {tabs.map((tab, i) => (
-                <div key={tab.id} onClick={() => setActiveTabId(tab.id)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] shrink-0 cursor-pointer transition-all ${
-                    tab.id === activeTabId
-                      ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-300"
-                      : "border-white/8 text-gray-500 hover:text-gray-300 hover:border-white/15"
-                  }`}>
-                  <span className="text-[9px] text-gray-600">{i + 1}</span>
-                  <span className="max-w-[130px] truncate">{tab.question || "Query"}</span>
-                  {tab.results && <span className="text-[9px] text-gray-600 ml-0.5">{tab.results.count}r</span>}
-                  <button onClick={e => { e.stopPropagation(); closeTab(tab.id); }}
-                    className="ml-0.5 opacity-40 hover:opacity-100 transition-opacity">
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                      <path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <TabBar tabs={tabs} activeTabId={activeTabId} onSelect={setActiveTabId}
+            onPin={id => patchTab(id, { pinned: !tabs.find(t => t.id === id)?.pinned })}
+            onClose={closeTab} />
 
           <QueryResultPanel
             generatedSql={activeTab?.sql ?? null} copied={copied} copySQL={copySQL}
