@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import SqlChart, { type CT } from "./SqlChart";
+import AutoInsights from "./AutoInsights";
 import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
@@ -336,6 +337,8 @@ export default function QueryResultPanel({
           )}
         </div>
       )}
+
+      {results && results.columns.length > 0 && <AutoInsights columns={results.columns} rows={results.rows} />}
 
       {results && results.columns.length > 0 && <SqlChart cols={results.columns} rows={results.rows} overrideType={chartOverride} onOverrideChange={onChartOverride} />}
 
