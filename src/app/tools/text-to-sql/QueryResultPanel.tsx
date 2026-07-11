@@ -78,7 +78,7 @@ export default function QueryResultPanel({
     try {
       const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: [], rows: [], provider: provider ?? "groq" }),
+        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: results?.columns ?? [], rows: results?.rows?.slice(0, 5) ?? [], provider: provider ?? "groq" }),
       });
       const reader = resp.body?.getReader();
       if (!reader) throw new Error("No response body");
