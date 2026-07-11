@@ -115,7 +115,7 @@ export default function TextToSqlRunner() {
       const res = await fetch(`${ML_SQL_API}/sql/upload`, { method: "POST", body: form });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setSchema(data.schema.tables); setDbRef(data.db_ref);
+      setSchema(data.schema.tables); setDbRef(data.db_ref); setGlossary("");
       setStatus(`Loaded: ${Object.keys(data.schema.tables).length} tables`);
     } catch (e: unknown) { setStatus(`Upload failed: ${(e as Error).message}`); }
   }, []);
@@ -130,7 +130,7 @@ export default function TextToSqlRunner() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setSchema(data.tables); setDbRef(data.db_ref);
+      setSchema(data.tables); setDbRef(data.db_ref); setGlossary("");
       setStatus(`Connected: ${Object.keys(data.tables).length} tables`);
     } catch (e: unknown) { setStatus(`Connection failed: ${(e as Error).message}`); }
   }, []);
