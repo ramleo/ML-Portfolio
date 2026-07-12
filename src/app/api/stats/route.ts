@@ -22,21 +22,21 @@ export async function GET() {
     const fiveMinAgo   = new Date(Date.now() -  5 * 60 * 1000).toISOString();
 
     const [{ data: todayEvents }, { data: recentEvents }] = await Promise.all([
-      supabase.from("events").select("type, path, session_id").gte("created_at", todayStart),
+      supabase.from("events").select("type, path, session_id, country, meta").gte("created_at", todayStart),
       supabase.from("events").select("created_at, type, path, session_id").gte("created_at", thirtyMinAgo),
     ]);
 
     const today = todayEvents ?? [];
     const recent = recentEvents ?? [];
 
-    // active_now: distinct sessions in last 5 min
+    // active_now
     const fiveMin = recent.filter(e => e.created_at >= fiveMinAgo);
     const active_now = new Set(fiveMin.map(e => e.session_id).filter(Boolean)).size;
 
-    // per_minute buckets
+    // per_minute
     const minuteMap: Record<string, number> = {};
     for (const e of recent) {
-      const m = e.created_at.slice(11, 16); // "HH:MM"
+      const m = e.created_at.slice(11, 16);
       minuteMap[m] = (minuteMap[m] ?? 0) + 1;
     }
     const per_minute = Object.entries(minuteMap)
@@ -57,12 +57,34 @@ export async function GET() {
       .sort(([, a], [, b]) => b - a)
       .map(([type, count]) => ({ type, count }));
 
+    // top_countries
+    const countryMap: Record<string, number> = {};
+    for (const e of today) if (e.country) countryMap[e.country] = (countryMap[e.country] ?? 0) + 1;
+    const top_countries = Object.entries(countryMap)
+      .sort(([, a], [, b]) => b - a).slice(0, 8)
+      .map(([country, count]) => ({ country, count }));
+
+    // funnel
+    const funnel = {
+      page_view: today.filter(e => e.type === "page_view").length,
+      tool_open: today.filter(e => e.type === "tool_open").length,
+      query_run: today.filter(e => e.type === "query_run").length,
+    };
+
+    // query success rate
+    const queryRuns = today.filter(e => e.type === "query_run");
+    const successCount = queryRuns.filter(e => e.meta?.success === true).length;
+    const query_success_rate = queryRuns.length > 0 ? Math.round((successCount / queryRuns.length) * 100) : null;
+
     return NextResponse.json({
       active_now,
       today_count: today.length,
       per_minute,
       top_pages,
       by_type,
+      top_countries,
+      funnel,
+      query_success_rate,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
