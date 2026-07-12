@@ -90,8 +90,7 @@ export function TopPagesBar({ data }: { data: TopPage[] }) {
 
 // ── Horizontal bar (top referrers) ───────────────────────────────────────────
 function truncateRef(ref: string): string {
-  try { return new URL(ref).hostname.replace(/^www\./, ""); }
-  catch { return ref.slice(0, 25); }
+  return ref.length > 32 ? ref.slice(0, 31) + "…" : ref;
 }
 
 export function TopReferrersBar({ data }: { data: Referrer[] }) {

@@ -20,28 +20,51 @@ function getRangeWindow(range: string): { start: string; end?: string } {
       return { start: d.toISOString(), end: end.toISOString() };
     }
     case "7d": {
-      const d = new Date(now);
-      d.setUTCDate(d.getUTCDate() - 7);
+      const d = new Date(now); d.setUTCDate(d.getUTCDate() - 7);
       return { start: d.toISOString() };
     }
     case "30d": {
-      const d = new Date(now);
-      d.setUTCDate(d.getUTCDate() - 30);
+      const d = new Date(now); d.setUTCDate(d.getUTCDate() - 30);
       return { start: d.toISOString() };
     }
     default: {
-      const d = new Date(now);
-      d.setUTCHours(0, 0, 0, 0);
+      const d = new Date(now); d.setUTCHours(0, 0, 0, 0);
       return { start: d.toISOString() };
     }
   }
 }
 
+// Group referrers by hostname + pathname (not just domain, not full URL with params)
+function refKey(ref: string): string {
+  try {
+    const u = new URL(ref);
+    const path = u.pathname === "/" ? "" : u.pathname;
+    return u.hostname.replace(/^www\./, "") + path;
+  } catch { return ref; }
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const range = req.nextUrl.searchParams.get("range") ?? "today";
-    const { start, end } = getRangeWindow(range);
-    const supabase = getClient();
+    const range      = req.nextUrl.searchParams.get("range") ?? "today";
+    const startParam = req.nextUrl.searchParams.get("start");
+    const endParam   = req.nextUrl.searchParams.get("end");
+
+    let start: string, end: string | undefined, is_range: boolean, useDay: boolean;
+
+    if (startParam) {
+      start    = `${startParam}T00:00:00.000Z`;
+      end      = `${endParam ?? startParam}T23:59:59.999Z`;
+      is_range = startParam !== (endParam ?? startParam);
+      useDay   = is_range;
+    } else {
+      const w  = getRangeWindow(range);
+      start    = w.start;
+      end      = w.end;
+      is_range = range !== "today";
+      useDay   = range === "7d" || range === "30d";
+    }
+
+    const supabase  = getClient();
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
     let query = supabase
@@ -53,14 +76,12 @@ export async function GET(req: NextRequest) {
     const { data: rangeEvents } = await query;
     const events = rangeEvents ?? [];
 
-    // active_now for today; unique sessions for other ranges
-    const is_range = range !== "today";
-    const active_now = is_range
-      ? new Set(events.map(e => e.session_id).filter(Boolean)).size
-      : new Set(events.filter(e => e.created_at >= fiveMinAgo).map(e => e.session_id).filter(Boolean)).size;
+    // active_now (today) / unique_sessions (other ranges)
+    const active_now = !is_range
+      ? new Set(events.filter(e => e.created_at >= fiveMinAgo).map(e => e.session_id).filter(Boolean)).size
+      : new Set(events.map(e => e.session_id).filter(Boolean)).size;
 
-    // sparkline — hour bucket for today/yesterday, day bucket for 7d/30d
-    const useDay = range === "7d" || range === "30d";
+    // sparkline buckets
     const bucketMap: Record<string, number> = {};
     for (const e of events) {
       const key = useDay ? e.created_at.slice(0, 10) : e.created_at.slice(11, 13) + ":00";
@@ -91,15 +112,11 @@ export async function GET(req: NextRequest) {
       .sort(([, a], [, b]) => b - a).slice(0, 8)
       .map(([country, count]) => ({ country, count }));
 
-    // top_referrers — group by domain, not full URL
-    function refDomain(ref: string): string {
-      try { return new URL(ref).hostname.replace(/^www\./, ""); }
-      catch { return ref; }
-    }
+    // top_referrers — grouped by hostname+pathname (page-level granularity, no query params)
     const refMap: Record<string, number> = {};
     for (const e of events) if (e.referrer) {
-      const d = refDomain(e.referrer);
-      refMap[d] = (refMap[d] ?? 0) + 1;
+      const k = refKey(e.referrer);
+      refMap[k] = (refMap[k] ?? 0) + 1;
     }
     const top_referrers = Object.entries(refMap)
       .sort(([, a], [, b]) => b - a).slice(0, 8)
@@ -113,21 +130,13 @@ export async function GET(req: NextRequest) {
     };
 
     // query success rate
-    const queryRuns = events.filter(e => e.type === "query_run");
+    const queryRuns    = events.filter(e => e.type === "query_run");
     const successCount = queryRuns.filter(e => e.meta?.success === true).length;
     const query_success_rate = queryRuns.length > 0 ? Math.round((successCount / queryRuns.length) * 100) : null;
 
     return NextResponse.json({
-      active_now,
-      is_range,
-      today_count: events.length,
-      per_minute,
-      top_pages,
-      by_type,
-      top_countries,
-      top_referrers,
-      funnel,
-      query_success_rate,
+      active_now, is_range, today_count: events.length,
+      per_minute, top_pages, by_type, top_countries, top_referrers, funnel, query_success_rate,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

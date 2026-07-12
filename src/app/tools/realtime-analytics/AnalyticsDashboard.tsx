@@ -4,21 +4,17 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap } from "./AnalyticsCharts";
 import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer } from "./AnalyticsCharts";
+import SessionPathPanel from "./AnalyticsSessionPanel";
+import type { SessionEvent } from "./AnalyticsSessionPanel";
+import AnalyticsCalendar from "./AnalyticsCalendar";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
-type Range = "today" | "yesterday" | "7d" | "30d";
+type Range = "today" | "yesterday" | "7d" | "30d" | "custom";
 
 const RANGE_LABELS: Record<Range, string> = {
-  today: "Today", yesterday: "Yesterday", "7d": "7 days", "30d": "30 days",
-};
-
-const SPARKLINE_LABEL: Record<Range, string> = {
-  today: "Events by Hour — today",
-  yesterday: "Events by Hour — yesterday",
-  "7d": "Events by Day — last 7 days",
-  "30d": "Events by Day — last 30 days",
+  today: "Today", yesterday: "Yesterday", "7d": "7 days", "30d": "30 days", custom: "Custom",
 };
 
 interface Stats {
@@ -43,46 +39,9 @@ interface FeedEvent {
   session_id: string;
 }
 
-interface SessionEvent {
-  id: number;
-  created_at: string;
-  type: string;
-  path: string;
-  duration_ms: number;
-  meta: Record<string, unknown>;
-}
-
-interface EventGroup {
-  events: SessionEvent[];
-  type: string;
-  path: string;
-}
-
-function groupEvents(events: SessionEvent[]): EventGroup[] {
-  const groups: EventGroup[] = [];
-  for (const ev of events) {
-    const last = groups[groups.length - 1];
-    if (last && last.type === ev.type && last.path === ev.path) {
-      last.events.push(ev);
-    } else {
-      groups.push({ events: [ev], type: ev.type, path: ev.path });
-    }
-  }
-  return groups;
-}
-
-const Arrow = () => (
-  <svg width="16" height="10" viewBox="0 0 16 10" fill="none" className="shrink-0 self-center mb-4">
-    <path d="M1 5h12M10 2l3 3-3 3" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
 const TYPE_DOT: Record<string, string> = {
-  page_view: "#6366f1",
-  tool_open: "#10b981",
-  query_run: "#f59e0b",
-  tool_close: "#8b5cf6",
-  custom:    "#6b7280",
+  page_view: "#6366f1", tool_open: "#10b981", query_run: "#f59e0b",
+  tool_close: "#8b5cf6", custom: "#6b7280",
 };
 
 function timeAgo(iso: string) {
@@ -108,13 +67,15 @@ function StatCard({ label, value, live, suffix, raw }: { label: string; value: s
 }
 
 export default function AnalyticsDashboard() {
-  const [range, setRange]        = useState<Range>("today");
-  const [stats, setStats]        = useState<Stats | null>(null);
-  const [feed, setFeed]          = useState<FeedEvent[]>([]);
-  const [loading, setLoading]    = useState(true);
-  const [error, setError]        = useState<string | null>(null);
-  const [selectedSid, setSid]    = useState<string | null>(null);
-  const [sessionEvs, setSessEvs] = useState<SessionEvent[]>([]);
+  const [range, setRange]          = useState<Range>("today");
+  const [customRange, setCustomRange] = useState<{ start: string; end: string } | null>(null);
+  const [showCal, setShowCal]      = useState(false);
+  const [stats, setStats]          = useState<Stats | null>(null);
+  const [feed, setFeed]            = useState<FeedEvent[]>([]);
+  const [loading, setLoading]      = useState(true);
+  const [error, setError]          = useState<string | null>(null);
+  const [selectedSid, setSid]      = useState<string | null>(null);
+  const [sessionEvs, setSessEvs]   = useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
   const [sessError, setSessError]     = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
@@ -129,14 +90,18 @@ export default function AnalyticsDashboard() {
       .finally(() => setLoading(false));
   }, [configured]);
 
-  // Stats — re-fetched whenever range changes
+  // Stats — re-fetched whenever range or customRange changes
   useEffect(() => {
     if (!configured) return;
-    fetch(`/api/stats?range=${range}`).then(r => r.json())
+    const url = range === "custom" && customRange
+      ? `/api/stats?start=${customRange.start}&end=${customRange.end}`
+      : `/api/stats?range=${range}`;
+    fetch(url).then(r => r.json())
       .then(s => setStats(s))
       .catch(err => setError(err.message));
-  }, [configured, range]);
+  }, [configured, range, customRange]);
 
+  // Realtime subscription
   useEffect(() => {
     if (!configured) return;
     const supabase = createClient(SB_URL, SB_KEY);
@@ -146,6 +111,7 @@ export default function AnalyticsDashboard() {
         (payload) => {
           const ev = payload.new as FeedEvent;
           setFeed(prev => [ev, ...prev].slice(0, 50));
+          if (range !== "today") return;
           setStats(prev => {
             if (!prev) return prev;
             const hour = new Date().toISOString().slice(11, 13) + ":00";
@@ -174,7 +140,7 @@ export default function AnalyticsDashboard() {
         })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [configured]);
+  }, [configured, range]);
 
   const openSession = async (sid: string) => {
     if (selectedSid === sid) { setSid(null); setSessError(null); return; }
@@ -184,12 +150,17 @@ export default function AnalyticsDashboard() {
       const data = await r.json();
       if (data.error) { setSessError(data.error); setSessEvs([]); }
       else setSessEvs(data.events ?? []);
-    } catch (e) {
-      setSessError(String(e));
-      setSessEvs([]);
-    }
+    } catch (e) { setSessError(String(e)); setSessEvs([]); }
     setSessLoading(false);
   };
+
+  const toggleGroup = (gi: number) => setExpandedGroups(prev => {
+    const next = new Set(prev);
+    next.has(gi) ? next.delete(gi) : next.add(gi);
+    return next;
+  });
+
+  const closeSession = () => { setSid(null); setSessError(null); setExpandedGroups(new Set()); };
 
   if (!configured) return (
     <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col items-center gap-3 text-center">
@@ -217,13 +188,23 @@ export default function AnalyticsDashboard() {
   );
 
   const qsr = stats?.query_success_rate;
+  const rangeLabel = range === "custom" && customRange
+    ? customRange.start === customRange.end ? customRange.start : `${customRange.start} → ${customRange.end}`
+    : RANGE_LABELS[range].toLowerCase();
+  const sparklineLabel = range === "custom" && customRange
+    ? customRange.start === customRange.end
+      ? `Events by Hour — ${customRange.start}`
+      : `Events by Day — ${customRange.start} → ${customRange.end}`
+    : range === "7d" || range === "30d"
+      ? `Events by Day — ${RANGE_LABELS[range].toLowerCase()}`
+      : `Events by Hour — ${RANGE_LABELS[range].toLowerCase()}`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
       {/* Range selector */}
-      <div className="flex items-center gap-1 self-start">
+      <div className="relative flex items-center gap-1 self-start">
         {(["today","yesterday","7d","30d"] as const).map(r => (
-          <button key={r} onClick={() => setRange(r)}
+          <button key={r} onClick={() => { setRange(r); setShowCal(false); }}
             className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
             style={range === r
               ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
@@ -231,6 +212,18 @@ export default function AnalyticsDashboard() {
             {RANGE_LABELS[r]}
           </button>
         ))}
+        <button onClick={() => setShowCal(v => !v)}
+          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
+          style={range === "custom"
+            ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
+            : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+          {range === "custom" && customRange ? rangeLabel : "Custom"}
+        </button>
+        {showCal && (
+          <AnalyticsCalendar onSelect={(start, end) => {
+            setCustomRange({ start, end }); setRange("custom"); setShowCal(false);
+          }}/>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -243,11 +236,11 @@ export default function AnalyticsDashboard() {
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">{SPARKLINE_LABEL[range]}</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">{sparklineLabel}</p>
           <Sparkline data={stats?.per_minute ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Conversion Funnel — {RANGE_LABELS[range].toLowerCase()}</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Conversion Funnel — {rangeLabel}</p>
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
       </div>
@@ -255,7 +248,7 @@ export default function AnalyticsDashboard() {
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Pages — {RANGE_LABELS[range].toLowerCase()}</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Pages — {rangeLabel}</p>
           <TopPagesBar data={stats?.top_pages ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
@@ -266,7 +259,7 @@ export default function AnalyticsDashboard() {
 
       {/* Top Referrers */}
       <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Referrers</p>
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Referrers — {rangeLabel}</p>
         <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
 
@@ -313,82 +306,15 @@ export default function AnalyticsDashboard() {
       </div>
 
       {selectedSid && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-emerald-500/20 bg-[#080f1e]/95 backdrop-blur-md p-4 shadow-2xl">
-          <div className="max-w-7xl mx-auto flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Session Path</p>
-              <code className="text-[9px] text-emerald-400/60">{selectedSid.slice(0, 16)}…</code>
-              <button onClick={() => { setSid(null); setSessError(null); }} className="ml-auto text-gray-600 hover:text-gray-400 text-[10px]">&#x2715; close</button>
-            </div>
-            {sessLoading && <p className="text-xs text-gray-600">Loading…</p>}
-            {!sessLoading && sessError && <p className="text-xs text-red-400">Error: {sessError}</p>}
-            {!sessLoading && !sessError && (
-              <div className="flex items-start gap-1 overflow-x-auto pb-1">
-                {sessionEvs.length === 0 && <p className="text-xs text-gray-600">No events found for this session.</p>}
-                {groupEvents(sessionEvs).map((group, gi, groups) => {
-                  const color = TYPE_DOT[group.type] ?? "#6b7280";
-                  const isMulti = group.events.length > 1;
-                  const isExpanded = expandedGroups.has(gi);
-                  const toggleGroup = () => setExpandedGroups(prev => {
-                    const next = new Set(prev);
-                    next.has(gi) ? next.delete(gi) : next.add(gi);
-                    return next;
-                  });
-                  const isLast = gi === groups.length - 1;
-
-                  const SingleCard = ({ ev, showTs }: { ev: SessionEvent; showTs: boolean }) => (
-                    <div className="flex flex-col items-center gap-1 shrink-0">
-                      <div className="px-2 py-1.5 rounded-lg border text-center w-[82px]"
-                        style={{ borderColor: `${color}40`, background: `${color}10` }}>
-                        <p className="text-[9px] font-semibold truncate" style={{ color }}>{ev.type}</p>
-                        <p className="text-[8px] text-gray-500 truncate">{ev.path || "/"}</p>
-                        {ev.duration_ms > 0 && <p className="text-[8px] text-gray-600">{ev.duration_ms}ms</p>}
-                      </div>
-                      {showTs && <p className="text-[8px] text-gray-700">{new Date(ev.created_at).toTimeString().slice(0, 8)}</p>}
-                    </div>
-                  );
-
-                  return (
-                    <div key={gi} className="flex items-start gap-1 shrink-0">
-                      {/* collapsed: single badge card */}
-                      {isMulti && !isExpanded && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button onClick={toggleGroup} className="flex flex-col items-center gap-1 shrink-0 group">
-                            <div className="px-2 py-1.5 rounded-lg border text-center w-[82px] cursor-pointer transition-colors"
-                              style={{ borderColor: `${color}60`, background: `${color}15` }}>
-                              <p className="text-[9px] font-semibold truncate" style={{ color }}>{group.type}</p>
-                              <p className="text-[8px] text-gray-500 truncate">{group.path || "/"}</p>
-                              <p className="text-[8px] mt-0.5 font-mono" style={{ color }}>×{group.events.length}</p>
-                            </div>
-                            <p className="text-[8px] text-gray-700 group-hover:text-gray-500">expand</p>
-                          </button>
-                          {!isLast && <Arrow />}
-                        </div>
-                      )}
-
-                      {/* expanded: all individual cards inline */}
-                      {(isExpanded || !isMulti) && (
-                        <div className="flex items-start gap-1 shrink-0">
-                          {group.events.map((ev, ei) => (
-                            <div key={ev.id} className="flex items-start gap-1 shrink-0">
-                              <div onClick={isMulti ? toggleGroup : undefined} className={isMulti ? "cursor-pointer" : ""}>
-                                <SingleCard ev={ev} showTs />
-                              </div>
-                              {/* arrow between expanded cards */}
-                              {ei < group.events.length - 1 && <Arrow />}
-                            </div>
-                          ))}
-                          {/* arrow to next group */}
-                          {!isLast && <Arrow />}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+        <SessionPathPanel
+          selectedSid={selectedSid}
+          sessionEvs={sessionEvs}
+          sessLoading={sessLoading}
+          sessError={sessError}
+          expandedGroups={expandedGroups}
+          onClose={closeSession}
+          onToggleGroup={toggleGroup}
+        />
       )}
     </div>
   );
