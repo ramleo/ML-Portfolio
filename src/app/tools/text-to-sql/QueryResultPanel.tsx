@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SqlChart, { type CT } from "./SqlChart";
 import AutoInsights from "./AutoInsights";
 import ReasoningPanel from "./ReasoningPanel";
+import ColumnLineageGraph from "./ColumnLineageGraph";
 import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
@@ -346,6 +347,8 @@ export default function QueryResultPanel({
           question={question ?? ""} sql={generatedSql} columns={results?.columns ?? []}
           provider={provider ?? "groq"} dbRef={dbRef} onRerun={onRerun} />
       )}
+
+      {generatedSql && <ColumnLineageGraph sql={generatedSql} />}
 
       {results && results.columns.length > 0 && <AutoInsights columns={results.columns} rows={results.rows} />}
 
