@@ -14,6 +14,23 @@ interface Props {
   onRerun: (correction: string) => void;
 }
 
+function renderMd(text: string): React.ReactNode[] {
+  return text.split("\n").map((line, i) => {
+    // bold: **text**
+    const parts = line.split(/\*\*(.+?)\*\*/g).map((seg, j) =>
+      j % 2 === 1 ? <strong key={j} className="text-gray-100 font-semibold">{seg}</strong> : seg
+    );
+    // indent sub-bullets (lines starting with spaces + *)
+    const isSub = /^\s+\*/.test(line);
+    const isBullet = /^\s*\*\s/.test(line) && !/^\*\*/.test(line.trim());
+    return (
+      <span key={i} className={`block ${isSub ? "pl-4" : ""} ${isBullet ? "pl-2" : ""}`}>
+        {parts}
+      </span>
+    );
+  });
+}
+
 function cleanErr(e: string): string {
   if (/429|rate.?limit/i.test(e)) return "Rate limit reached — switch provider or wait ~60s.";
   return e;
@@ -108,9 +125,10 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
           )}
           {err && <p className="text-[11px] text-red-400">{err}</p>}
           {reasoning && (
-            <p className="text-[12px] text-gray-300 leading-relaxed whitespace-pre-wrap">{reasoning}
+            <div className="text-[12px] text-gray-300 leading-relaxed space-y-0.5">
+              {renderMd(reasoning)}
               {loading && <span className="inline-block w-1.5 h-3.5 bg-indigo-400 ml-0.5 animate-pulse rounded-sm" />}
-            </p>
+            </div>
           )}
 
           {!loading && (reasoning || err) && (
