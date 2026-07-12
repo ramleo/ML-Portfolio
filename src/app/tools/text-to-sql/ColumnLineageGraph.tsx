@@ -6,7 +6,12 @@ interface SrcCol { table: string; column: string }
 interface LineageCol { output: string; sources: SrcCol[] }
 
 function parseLineage(sql: string): LineageCol[] {
-  const clean = sql.replace(/--[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "").trim();
+  // Strip identifier quotes ("Name" → Name, `col` → col) then remove comments
+  const clean = sql
+    .replace(/--[^\n]*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/["'`](\w+)["'`]/g, "$1")
+    .trim();
   const upper = clean.toUpperCase();
 
   // Find first FROM at depth 0 (handles spaces, newlines, tabs before FROM)
@@ -72,11 +77,23 @@ function parseLineage(sql: string): LineageCol[] {
     }));
     if (qRefs.length > 0) return [{ output, sources: qRefs }];
 
-    // Bare column (no function)
-    const bare = expr.replace(/\bAS\s+\w+\s*$/i, "").replace(/\w+\s*\(.*\)/g, "").trim();
-    const bareId = bare.match(/^(\w+)$/)?.[1];
+    // Bare column: simple `col` or `col AS alias`
+    const stripped = expr.replace(/\bAS\s+\w+\s*$/i, "").trim();
+    const bareId = stripped.match(/^(\w+)$/)?.[1];
     if (bareId && !SKIP.has(bareId.toLowerCase())) {
       return [{ output, sources: [{ table: "", column: bareId }] }];
+    }
+
+    // Column inside function: COUNT(DISTINCT col), SUM(tbl.col), etc.
+    const funcBody = stripped.match(/\((.+)\)/)?.[1]?.replace(/\bDISTINCT\b/gi, "").trim();
+    if (funcBody) {
+      const fq = [...funcBody.matchAll(/\b(\w+)\.(\w+)\b/g)].map(m => ({
+        table: aliasMap.get(m[1].toLowerCase()) ?? m[1],
+        column: m[2],
+      }));
+      if (fq.length > 0) return [{ output, sources: fq }];
+      const fb = funcBody.match(/^(\w+)$/)?.[1];
+      if (fb && !SKIP.has(fb.toLowerCase())) return [{ output, sources: [{ table: "", column: fb }] }];
     }
     return [];
   });
