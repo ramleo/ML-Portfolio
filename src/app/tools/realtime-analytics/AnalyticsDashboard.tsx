@@ -37,6 +37,31 @@ interface SessionEvent {
   meta: Record<string, unknown>;
 }
 
+interface EventGroup {
+  events: SessionEvent[];
+  type: string;
+  path: string;
+}
+
+function groupEvents(events: SessionEvent[]): EventGroup[] {
+  const groups: EventGroup[] = [];
+  for (const ev of events) {
+    const last = groups[groups.length - 1];
+    if (last && last.type === ev.type && last.path === ev.path) {
+      last.events.push(ev);
+    } else {
+      groups.push({ events: [ev], type: ev.type, path: ev.path });
+    }
+  }
+  return groups;
+}
+
+const Arrow = () => (
+  <svg width="16" height="10" viewBox="0 0 16 10" fill="none" className="shrink-0 self-center mb-4">
+    <path d="M1 5h12M10 2l3 3-3 3" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const TYPE_DOT: Record<string, string> = {
   page_view: "#6366f1",
   tool_open: "#10b981",
@@ -76,6 +101,7 @@ export default function AnalyticsDashboard() {
   const [sessionEvs, setSessEvs]= useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
   const [sessError, setSessError] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const configured = !!(SB_URL && SB_KEY);
 
   useEffect(() => {
@@ -250,26 +276,68 @@ export default function AnalyticsDashboard() {
             {sessLoading && <p className="text-xs text-gray-600">Loading…</p>}
             {!sessLoading && sessError && <p className="text-xs text-red-400">Error: {sessError}</p>}
             {!sessLoading && !sessError && (
-              <div className="flex items-start gap-2 overflow-x-auto pb-1">
+              <div className="flex items-start gap-1 overflow-x-auto pb-1">
                 {sessionEvs.length === 0 && <p className="text-xs text-gray-600">No events found for this session.</p>}
-                {sessionEvs.map((ev, i) => (
-                  <div key={ev.id} className="flex items-center gap-2 shrink-0">
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="px-2 py-1.5 rounded-lg border text-center min-w-[90px]"
-                        style={{ borderColor: `${TYPE_DOT[ev.type] ?? "#6b7280"}40`, background: `${TYPE_DOT[ev.type] ?? "#6b7280"}10` }}>
-                        <p className="text-[9px] font-semibold" style={{ color: TYPE_DOT[ev.type] ?? "#6b7280" }}>{ev.type}</p>
-                        <p className="text-[8px] text-gray-500 truncate max-w-[80px]">{ev.path || "/"}</p>
+                {groupEvents(sessionEvs).map((group, gi, groups) => {
+                  const color = TYPE_DOT[group.type] ?? "#6b7280";
+                  const isMulti = group.events.length > 1;
+                  const isExpanded = expandedGroups.has(gi);
+                  const toggleGroup = () => setExpandedGroups(prev => {
+                    const next = new Set(prev);
+                    next.has(gi) ? next.delete(gi) : next.add(gi);
+                    return next;
+                  });
+                  const isLast = gi === groups.length - 1;
+
+                  const SingleCard = ({ ev, showTs }: { ev: SessionEvent; showTs: boolean }) => (
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <div className="px-2 py-1.5 rounded-lg border text-center w-[82px]"
+                        style={{ borderColor: `${color}40`, background: `${color}10` }}>
+                        <p className="text-[9px] font-semibold truncate" style={{ color }}>{ev.type}</p>
+                        <p className="text-[8px] text-gray-500 truncate">{ev.path || "/"}</p>
                         {ev.duration_ms > 0 && <p className="text-[8px] text-gray-600">{ev.duration_ms}ms</p>}
                       </div>
-                      <p className="text-[8px] text-gray-700">{new Date(ev.created_at).toTimeString().slice(0, 8)}</p>
+                      {showTs && <p className="text-[8px] text-gray-700">{new Date(ev.created_at).toTimeString().slice(0, 8)}</p>}
                     </div>
-                    {i < sessionEvs.length - 1 && (
-                      <svg width="16" height="10" viewBox="0 0 16 10" fill="none" className="shrink-0 mb-4">
-                        <path d="M1 5h12M10 2l3 3-3 3" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </div>
-                ))}
+                  );
+
+                  return (
+                    <div key={gi} className="flex items-start gap-1 shrink-0">
+                      {/* collapsed: single badge card */}
+                      {isMulti && !isExpanded && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={toggleGroup} className="flex flex-col items-center gap-1 shrink-0 group">
+                            <div className="px-2 py-1.5 rounded-lg border text-center w-[82px] cursor-pointer transition-colors"
+                              style={{ borderColor: `${color}60`, background: `${color}15` }}>
+                              <p className="text-[9px] font-semibold truncate" style={{ color }}>{group.type}</p>
+                              <p className="text-[8px] text-gray-500 truncate">{group.path || "/"}</p>
+                              <p className="text-[8px] mt-0.5 font-mono" style={{ color }}>×{group.events.length}</p>
+                            </div>
+                            <p className="text-[8px] text-gray-700 group-hover:text-gray-500">expand</p>
+                          </button>
+                          {!isLast && <Arrow />}
+                        </div>
+                      )}
+
+                      {/* expanded: all individual cards inline */}
+                      {(isExpanded || !isMulti) && (
+                        <div className="flex items-start gap-1 shrink-0">
+                          {group.events.map((ev, ei) => (
+                            <div key={ev.id} className="flex items-start gap-1 shrink-0">
+                              <div onClick={isMulti ? toggleGroup : undefined} className={isMulti ? "cursor-pointer" : ""}>
+                                <SingleCard ev={ev} showTs />
+                              </div>
+                              {/* arrow between expanded cards */}
+                              {ei < group.events.length - 1 && <Arrow />}
+                            </div>
+                          ))}
+                          {/* arrow to next group */}
+                          {!isLast && <Arrow />}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
