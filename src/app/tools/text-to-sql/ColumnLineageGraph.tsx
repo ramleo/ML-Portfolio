@@ -9,12 +9,14 @@ function parseLineage(sql: string): LineageCol[] {
   const clean = sql.replace(/--[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "").trim();
   const upper = clean.toUpperCase();
 
-  // Find FROM position at depth 0
+  // Find first FROM at depth 0 (handles spaces, newlines, tabs before FROM)
   let depth = 0, fromIdx = -1;
-  for (let i = 0; i < clean.length - 4; i++) {
+  for (let i = 1; i < clean.length - 3; i++) {
     if (clean[i] === "(") depth++;
     else if (clean[i] === ")") depth--;
-    else if (depth === 0 && upper.slice(i, i + 5) === " FROM") { fromIdx = i; break; }
+    else if (depth === 0 && /\s/.test(clean[i - 1]) && upper.slice(i, i + 4) === "FROM" && /[\s(]/.test(clean[i + 4] ?? " ")) {
+      fromIdx = i; break;
+    }
   }
   const selStart = upper.indexOf("SELECT");
   if (selStart < 0 || fromIdx < 0) return [];
