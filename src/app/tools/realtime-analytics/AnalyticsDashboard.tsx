@@ -249,6 +249,12 @@ export default function AnalyticsDashboard() {
                 <span className="text-gray-500 font-mono shrink-0 w-20 truncate">{ev.type}</span>
                 <span className="text-gray-400 flex-1 truncate">{ev.path || "/"}</span>
                 {ev.country && <span className="text-gray-600 shrink-0 text-[10px]">{ev.country}</span>}
+                {ev.session_id && (
+                  <span className="text-[9px] font-mono shrink-0 tabular-nums"
+                    style={{ color: selectedSid === ev.session_id ? "#10b981" : "#374151" }}>
+                    {ev.session_id.slice(0, 8)}
+                  </span>
+                )}
                 <span className="text-gray-700 shrink-0 text-[10px]">{timeAgo(ev.created_at)}</span>
                 {ev.session_id && (
                   <button onClick={() => openSession(ev.session_id)}
