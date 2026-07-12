@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ ses
     const supabase = getClient();
     const { data, error } = await supabase
       .from("events")
-      .select("id, created_at, type, path, duration_ms, meta")
+      .select("*")
       .eq("session_id", session_id)
       .order("created_at", { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
