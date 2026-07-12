@@ -269,6 +269,56 @@ export default function UserGuideModal({ onClose }: Props) {
             />
           </Section>
 
+          {/* Teach the AI */}
+          <Section title="Teach the AI">
+            <div className="mb-3 p-3 rounded-xl border border-amber-500/20" style={{ background: "rgba(245,158,11,0.05)" }}>
+              <p className="text-[11px] text-gray-300 leading-relaxed">
+                When the AI gets something wrong, <span className="text-amber-400 font-semibold">Teach the AI</span> lets you correct it — permanently. Corrections are saved to localStorage and injected into every future prompt for that database, so you only need to explain something once.
+              </p>
+            </div>
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1v2M6 9v2M1 6h2M9 6h2M2.93 2.93l1.41 1.41M7.66 7.66l1.41 1.41M2.93 9.07l1.41-1.41M7.66 4.34l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
+              title="How to use it"
+              desc="After clicking 'Show Reasoning', a text box appears at the bottom of the AI Reasoning panel. Type what the AI got wrong — e.g. 'revenue means UnitPrice × Quantity, not just UnitPrice' — and click Fix & Re-run. The query re-runs immediately with your correction applied."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2zM5 6l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              title="Saved corrections"
+              desc="Once saved, a green banner shows your active correction for that question. To remove it, click the × on the banner — the correction is deleted and the next query runs without it."
+            />
+            <div className="flex items-start gap-2 p-2.5 rounded-lg border border-amber-500/25 mt-1" style={{ background: "rgba(245,158,11,0.06)" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 mt-0.5 text-amber-400">
+                <path d="M6 1l5 9H1L6 1z" stroke="#f59e0b" strokeWidth="1.2" strokeLinejoin="round"/>
+                <path d="M6 5v2.5M6 9v.3" stroke="#f59e0b" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <p className="text-[10px] text-amber-300/80 leading-relaxed"><span className="font-semibold">Per-database and per-question</span> — corrections are scoped to your current database reference and the exact question text. Switching databases or rephrasing the question starts fresh.</p>
+            </div>
+          </Section>
+
+          {/* Column Lineage */}
+          <Section title="Column Lineage Graph">
+            <div className="mb-3 p-3 rounded-xl border border-violet-500/20" style={{ background: "rgba(139,92,246,0.05)" }}>
+              <p className="text-[11px] text-gray-300 leading-relaxed">
+                The <span className="text-violet-400 font-semibold">Column Lineage Graph</span> answers: <span className="italic text-gray-400">"where did each output column come from?"</span> — a pure-frontend SVG diagram that maps source table.column pairs to the output column names without any extra API call.
+              </p>
+            </div>
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 12 12" fill="none"><circle cx="1.5" cy="6" r="1.5" fill="currentColor"/><circle cx="10.5" cy="2" r="1.5" fill="currentColor"/><circle cx="10.5" cy="10" r="1.5" fill="currentColor"/><path d="M3 6L9 2M3 6L9 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.7"/></svg>}
+              title="Reading the graph"
+              desc="Left nodes = source columns (colored by table). Right nodes = output column names. Bezier curves connect them. A color legend below the graph identifies each table."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              title="What it handles"
+              desc={`Qualified refs (table.column), bare column refs, aliased columns (AS name), quoted identifiers ("Name"), multi-word aliases ("Track Count"), and function arguments like COUNT(DISTINCT col).`}
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              title="When it's hidden"
+              desc="The panel only appears when lineage can be detected. SELECT * queries, subqueries with no detectable columns, or expressions without a recognisable source column are silently skipped."
+            />
+          </Section>
+
           {/* Schema & Glossary */}
           <Section title="Schema Explorer & Glossary">
             <Feature
