@@ -7,6 +7,7 @@ import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer } from "./An
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
 import AnalyticsCalendar from "./AnalyticsCalendar";
+import AnalyticsUserGuide from "./AnalyticsUserGuide";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -70,6 +71,7 @@ export default function AnalyticsDashboard() {
   const [range, setRange]          = useState<Range>("today");
   const [customRange, setCustomRange] = useState<{ start: string; end: string } | null>(null);
   const [showCal, setShowCal]      = useState(false);
+  const [showGuide, setShowGuide]  = useState(false);
   const [stats, setStats]          = useState<Stats | null>(null);
   const [feed, setFeed]            = useState<FeedEvent[]>([]);
   const [loading, setLoading]      = useState(true);
@@ -202,29 +204,42 @@ export default function AnalyticsDashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
       {/* Range selector */}
-      <div className="relative flex items-center gap-1 self-start">
-        {(["today","yesterday","7d","30d"] as const).map(r => (
-          <button key={r} onClick={() => { setRange(r); setShowCal(false); }}
+      <div className="flex items-center gap-3 self-start">
+        <div className="relative flex items-center gap-1">
+          {(["today","yesterday","7d","30d"] as const).map(r => (
+            <button key={r} onClick={() => { setRange(r); setShowCal(false); }}
+              className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
+              style={range === r
+                ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
+                : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+              {RANGE_LABELS[r]}
+            </button>
+          ))}
+          <button onClick={() => setShowCal(v => !v)}
             className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
-            style={range === r
+            style={range === "custom"
               ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
               : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
-            {RANGE_LABELS[r]}
+            {range === "custom" && customRange ? rangeLabel : "Custom"}
           </button>
-        ))}
-        <button onClick={() => setShowCal(v => !v)}
-          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
-          style={range === "custom"
-            ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
-            : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
-          {range === "custom" && customRange ? rangeLabel : "Custom"}
+          {showCal && (
+            <AnalyticsCalendar onSelect={(start, end) => {
+              setCustomRange({ start, end }); setRange("custom"); setShowCal(false);
+            }}/>
+          )}
+        </div>
+        <button onClick={() => setShowGuide(true)}
+          className="w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors hover:border-white/20"
+          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}
+          title="User guide">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M6 8.5V5.8M6 4.2v-.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
         </button>
-        {showCal && (
-          <AnalyticsCalendar onSelect={(start, end) => {
-            setCustomRange({ start, end }); setRange("custom"); setShowCal(false);
-          }}/>
-        )}
       </div>
+
+      {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
