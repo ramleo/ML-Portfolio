@@ -247,7 +247,7 @@ export default function AnalyticsDashboard() {
           <Sparkline data={stats?.per_minute ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Conversion Funnel — today</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Conversion Funnel — {RANGE_LABELS[range].toLowerCase()}</p>
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
       </div>
@@ -255,7 +255,7 @@ export default function AnalyticsDashboard() {
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Pages Today</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Pages — {RANGE_LABELS[range].toLowerCase()}</p>
           <TopPagesBar data={stats?.top_pages ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
