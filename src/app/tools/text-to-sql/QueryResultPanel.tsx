@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SqlChart, { type CT } from "./SqlChart";
 import AutoInsights from "./AutoInsights";
+import ReasoningPanel from "./ReasoningPanel";
 import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
 
 const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
@@ -34,13 +35,15 @@ interface Props {
   onSuggest?: (q: string) => void;
   chartOverride?: CT | null;
   onChartOverride?: (t: CT | null) => void;
+  dbRef?: string;
+  onRerun?: (correction: string) => void;
 }
 
 export default function QueryResultPanel({
   generatedSql, copied, copySQL, results, error, question,
   currentPage = 1, totalCount = -1, pageSize = 50, onPageChange,
   onFilter, onClearFilter, filterActive, onRetry, provider, onRunSQL, onSuggest,
-  chartOverride, onChartOverride,
+  chartOverride, onChartOverride, dbRef, onRerun,
 }: Props) {
   const [filterText, setFilterText] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
@@ -336,6 +339,12 @@ export default function QueryResultPanel({
             </div>
           )}
         </div>
+      )}
+
+      {generatedSql && dbRef && onRerun && (
+        <ReasoningPanel
+          question={question ?? ""} sql={generatedSql} columns={results?.columns ?? []}
+          provider={provider ?? "groq"} dbRef={dbRef} onRerun={onRerun} />
       )}
 
       {results && results.columns.length > 0 && <AutoInsights columns={results.columns} rows={results.rows} />}

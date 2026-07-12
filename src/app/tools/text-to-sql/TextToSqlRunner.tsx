@@ -13,6 +13,7 @@ import QuestionInput from "./QuestionInput";
 import TabBar from "./TabBar";
 import WalkthroughTooltip from "./WalkthroughTooltip";
 import type { Provider, HistoryTurn, SchemaTable, Results, ResultTab } from "./_types";
+import { getCorrection } from "./_corrections";
 import { SAMPLE_QUESTIONS } from "./_types";
 
 const ACCENT = "#6366f1";
@@ -167,7 +168,7 @@ export default function TextToSqlRunner() {
     try {
       const res = await fetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: activeQ, provider, db_ref: dbRef, history: historyPayload, glossary }),
+        body: JSON.stringify({ question: activeQ, provider, db_ref: dbRef, history: historyPayload, glossary, correction: getCorrection(dbRef, activeQ) }),
         signal: controller.signal,
       });
       if (!res.body) throw new Error("No response stream");
@@ -374,6 +375,7 @@ export default function TextToSqlRunner() {
             question={activeTab?.question ?? question}
             results={activeTab?.results ?? null} error={activeTab?.error ?? null}
             onRetry={() => runQuery(activeTab?.question, activeTabId ?? undefined)} provider={provider}
+            dbRef={dbRef} onRerun={() => runQuery(activeTab?.question, activeTabId ?? undefined)}
             currentPage={activeTab?.currentPage ?? 1} totalCount={activeTab?.totalCount ?? -1} pageSize={50}
             onPageChange={changePage} onFilter={filterResults} onClearFilter={clearFilter}
             filterActive={!!activeTab?.activeFilter} onRunSQL={runDirectSQL}
