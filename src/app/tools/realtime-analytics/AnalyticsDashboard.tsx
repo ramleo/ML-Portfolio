@@ -239,41 +239,40 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Session path panel */}
       {selectedSid && (
-        <div className="rounded-xl border border-emerald-500/20 bg-white/[0.02] p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Session Path</p>
-            <code className="text-[9px] text-emerald-400/60">{selectedSid.slice(0, 16)}…</code>
-            <button onClick={() => { setSid(null); setSessError(null); }} className="ml-auto text-gray-600 hover:text-gray-400 text-[10px]">✕ close</button>
-          </div>
-          {sessLoading ? (
-            <p className="text-xs text-gray-600">Loading…</p>
-          ) : sessError ? (
-            <p className="text-xs text-red-400">Error: {sessError}</p>
-          ) : (
-            <div className="flex items-start gap-2 overflow-x-auto pb-2">
-              {sessionEvs.map((ev, i) => (
-                <div key={ev.id} className="flex items-center gap-2 shrink-0">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="px-2 py-1.5 rounded-lg border text-center min-w-[90px]"
-                      style={{ borderColor: `${TYPE_DOT[ev.type] ?? "#6b7280"}40`, background: `${TYPE_DOT[ev.type] ?? "#6b7280"}10` }}>
-                      <p className="text-[9px] font-semibold" style={{ color: TYPE_DOT[ev.type] ?? "#6b7280" }}>{ev.type}</p>
-                      <p className="text-[8px] text-gray-500 truncate max-w-[80px]">{ev.path || "/"}</p>
-                      {ev.duration_ms > 0 && <p className="text-[8px] text-gray-600">{ev.duration_ms}ms</p>}
-                    </div>
-                    <p className="text-[8px] text-gray-700">{new Date(ev.created_at).toTimeString().slice(0, 8)}</p>
-                  </div>
-                  {i < sessionEvs.length - 1 && (
-                    <svg width="16" height="10" viewBox="0 0 16 10" fill="none" className="shrink-0 mb-4">
-                      <path d="M1 5h12M10 2l3 3-3 3" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
-              ))}
-              {sessionEvs.length === 0 && <p className="text-xs text-gray-600">No events found for this session.</p>}
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-emerald-500/20 bg-[#080f1e]/95 backdrop-blur-md p-4 shadow-2xl">
+          <div className="max-w-7xl mx-auto flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Session Path</p>
+              <code className="text-[9px] text-emerald-400/60">{selectedSid.slice(0, 16)}…</code>
+              <button onClick={() => { setSid(null); setSessError(null); }} className="ml-auto text-gray-600 hover:text-gray-400 text-[10px]">&#x2715; close</button>
             </div>
-          )}
+            {sessLoading && <p className="text-xs text-gray-600">Loading…</p>}
+            {!sessLoading && sessError && <p className="text-xs text-red-400">Error: {sessError}</p>}
+            {!sessLoading && !sessError && (
+              <div className="flex items-start gap-2 overflow-x-auto pb-1">
+                {sessionEvs.length === 0 && <p className="text-xs text-gray-600">No events found for this session.</p>}
+                {sessionEvs.map((ev, i) => (
+                  <div key={ev.id} className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="px-2 py-1.5 rounded-lg border text-center min-w-[90px]"
+                        style={{ borderColor: `${TYPE_DOT[ev.type] ?? "#6b7280"}40`, background: `${TYPE_DOT[ev.type] ?? "#6b7280"}10` }}>
+                        <p className="text-[9px] font-semibold" style={{ color: TYPE_DOT[ev.type] ?? "#6b7280" }}>{ev.type}</p>
+                        <p className="text-[8px] text-gray-500 truncate max-w-[80px]">{ev.path || "/"}</p>
+                        {ev.duration_ms > 0 && <p className="text-[8px] text-gray-600">{ev.duration_ms}ms</p>}
+                      </div>
+                      <p className="text-[8px] text-gray-700">{new Date(ev.created_at).toTimeString().slice(0, 8)}</p>
+                    </div>
+                    {i < sessionEvs.length - 1 && (
+                      <svg width="16" height="10" viewBox="0 0 16 10" fill="none" className="shrink-0 mb-4">
+                        <path d="M1 5h12M10 2l3 3-3 3" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
