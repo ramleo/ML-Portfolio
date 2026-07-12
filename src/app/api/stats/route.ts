@@ -91,9 +91,16 @@ export async function GET(req: NextRequest) {
       .sort(([, a], [, b]) => b - a).slice(0, 8)
       .map(([country, count]) => ({ country, count }));
 
-    // top_referrers
+    // top_referrers — group by domain, not full URL
+    function refDomain(ref: string): string {
+      try { return new URL(ref).hostname.replace(/^www\./, ""); }
+      catch { return ref; }
+    }
     const refMap: Record<string, number> = {};
-    for (const e of events) if (e.referrer) refMap[e.referrer] = (refMap[e.referrer] ?? 0) + 1;
+    for (const e of events) if (e.referrer) {
+      const d = refDomain(e.referrer);
+      refMap[d] = (refMap[d] ?? 0) + 1;
+    }
     const top_referrers = Object.entries(refMap)
       .sort(([, a], [, b]) => b - a).slice(0, 8)
       .map(([referrer, count]) => ({ referrer, count }));
