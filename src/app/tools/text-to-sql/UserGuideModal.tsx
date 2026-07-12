@@ -213,7 +213,14 @@ export default function UserGuideModal({ onClose }: Props) {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600 leading-relaxed">Up to 8 insights are shown, ranked by interestingness. Amber = warning (act on it), indigo = informational. Requires at least 4 result rows to activate. Click the panel header to collapse/expand.</p>
+            <div className="flex items-start gap-2 p-2.5 rounded-lg border border-amber-500/25 mt-1" style={{ background: "rgba(245,158,11,0.06)" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 mt-0.5 text-amber-400">
+                <path d="M6 1l5 9H1L6 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                <path d="M6 5v2.5M6 9v.3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <p className="text-[10px] text-amber-300/80 leading-relaxed"><span className="font-semibold">Requires at least 4 result rows</span> — queries returning 2–3 rows won&apos;t show insights (too few data points for meaningful statistics).</p>
+            </div>
+            <p className="text-[10px] text-gray-600 leading-relaxed mt-2">Up to 8 insights shown, ranked by interestingness. Amber = warning (act on it), indigo = informational. Click the panel header to collapse/expand.</p>
           </Section>
 
           {/* Multi-Tab */}
