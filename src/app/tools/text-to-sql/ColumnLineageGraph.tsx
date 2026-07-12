@@ -149,7 +149,7 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
 
       {open && (
         <div className="px-4 pb-3 pt-1 border-t border-white/5 overflow-x-auto">
-          <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ minWidth: 300 }}>
+          <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ minWidth: 300, maxWidth: W }}>
             {/* Bezier edges */}
             {columns.map((col, oi) =>
               col.sources.map((src, si) => {
