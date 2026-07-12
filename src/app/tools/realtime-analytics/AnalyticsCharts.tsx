@@ -5,6 +5,7 @@ export interface TopPage   { path: string;   count: number; }
 export interface ByType    { type: string;   count: number; }
 export interface Country   { country: string; count: number; }
 export interface Funnel    { page_view: number; tool_open: number; query_run: number; }
+export interface Referrer  { referrer: string; count: number; }
 
 const P = ["#6366f1","#10b981","#f59e0b","#8b5cf6","#ef4444","#ec4899","#14b8a6","#f97316"];
 
@@ -78,6 +79,37 @@ export function TopPagesBar({ data }: { data: TopPage[] }) {
             <g key={i}>
               <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{label || "/"}</text>
               <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#10b981" opacity="0.75"/>
+              <text x={PL+bW+4} y={y+13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ── Horizontal bar (top referrers) ───────────────────────────────────────────
+function truncateRef(ref: string): string {
+  try { return new URL(ref).hostname.replace(/^www\./, ""); }
+  catch { return ref.slice(0, 25); }
+}
+
+export function TopReferrersBar({ data }: { data: Referrer[] }) {
+  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No referrer data yet</div>;
+  const shown = data.slice(0, 8);
+  const max = Math.max(...shown.map(d => d.count), 1);
+  const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
+  const svgH = PT + shown.length * ROW;
+  return (
+    <div className="max-h-52 overflow-y-auto">
+      <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
+        {shown.map((d, i) => {
+          const y = PT + i * ROW;
+          const bW = Math.max(((d.count / max) * (W - PL - PR)), 4);
+          return (
+            <g key={i}>
+              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{truncateRef(d.referrer)}</text>
+              <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#6366f1" opacity="0.75"/>
               <text x={PL+bW+4} y={y+13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
             </g>
           );

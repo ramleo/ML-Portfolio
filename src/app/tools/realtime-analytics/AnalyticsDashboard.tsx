@@ -2,19 +2,34 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Sparkline, TopPagesBar, TypeDonut, FunnelChart, GeoMap } from "./AnalyticsCharts";
-import type { PerMinute, TopPage, ByType, Country, Funnel } from "./AnalyticsCharts";
+import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap } from "./AnalyticsCharts";
+import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer } from "./AnalyticsCharts";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+type Range = "today" | "yesterday" | "7d" | "30d";
+
+const RANGE_LABELS: Record<Range, string> = {
+  today: "Today", yesterday: "Yesterday", "7d": "7 days", "30d": "30 days",
+};
+
+const SPARKLINE_LABEL: Record<Range, string> = {
+  today: "Events by Hour — today",
+  yesterday: "Events by Hour — yesterday",
+  "7d": "Events by Day — last 7 days",
+  "30d": "Events by Day — last 30 days",
+};
+
 interface Stats {
   active_now: number;
+  is_range: boolean;
   today_count: number;
   per_minute: PerMinute[];
   top_pages: TopPage[];
   by_type: ByType[];
   top_countries: Country[];
+  top_referrers: Referrer[];
   funnel: Funnel;
   query_success_rate: number | null;
 }
@@ -93,27 +108,34 @@ function StatCard({ label, value, live, suffix, raw }: { label: string; value: s
 }
 
 export default function AnalyticsDashboard() {
-  const [stats, setStats]       = useState<Stats | null>(null);
-  const [feed, setFeed]         = useState<FeedEvent[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
-  const [selectedSid, setSid]   = useState<string | null>(null);
-  const [sessionEvs, setSessEvs]= useState<SessionEvent[]>([]);
+  const [range, setRange]        = useState<Range>("today");
+  const [stats, setStats]        = useState<Stats | null>(null);
+  const [feed, setFeed]          = useState<FeedEvent[]>([]);
+  const [loading, setLoading]    = useState(true);
+  const [error, setError]        = useState<string | null>(null);
+  const [selectedSid, setSid]    = useState<string | null>(null);
+  const [sessionEvs, setSessEvs] = useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
-  const [sessError, setSessError] = useState<string | null>(null);
+  const [sessError, setSessError]     = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const configured = !!(SB_URL && SB_KEY);
 
+  // Feed — fetched once on mount
   useEffect(() => {
     if (!configured) { setLoading(false); return; }
-    Promise.all([
-      fetch("/api/stats").then(r => r.json()),
-      fetch("/api/events/recent").then(r => r.json()),
-    ])
-      .then(([s, e]) => { setStats(s); setFeed(e.events ?? []); })
+    fetch("/api/events/recent").then(r => r.json())
+      .then(e => setFeed(e.events ?? []))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [configured]);
+
+  // Stats — re-fetched whenever range changes
+  useEffect(() => {
+    if (!configured) return;
+    fetch(`/api/stats?range=${range}`).then(r => r.json())
+      .then(s => setStats(s))
+      .catch(err => setError(err.message));
+  }, [configured, range]);
 
   useEffect(() => {
     if (!configured) return;
@@ -198,17 +220,30 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
+      {/* Range selector */}
+      <div className="flex items-center gap-1 self-start">
+        {(["today","yesterday","7d","30d"] as const).map(r => (
+          <button key={r} onClick={() => setRange(r)}
+            className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
+            style={range === r
+              ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
+              : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+            {RANGE_LABELS[r]}
+          </button>
+        ))}
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Active Now" value={stats?.active_now ?? 0} live suffix="users"/>
-        <StatCard label="Events Today" value={stats?.today_count ?? 0}/>
+        <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
+        <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
         <StatCard label="Query Success" value={0} raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}/>
       </div>
 
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Events by Hour — today</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">{SPARKLINE_LABEL[range]}</p>
           <Sparkline data={stats?.per_minute ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
@@ -227,6 +262,12 @@ export default function AnalyticsDashboard() {
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Visitors by Country</p>
           <GeoMap data={stats?.top_countries ?? []}/>
         </div>
+      </div>
+
+      {/* Top Referrers */}
+      <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Referrers</p>
+        <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
 
       {/* Donut + Live feed */}
