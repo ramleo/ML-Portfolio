@@ -58,6 +58,8 @@ function parseLineage(sql: string): LineageCol[] {
       else if (expr[i] === "(") d--;
       else if (d === 0 && i >= 2 && expr.slice(i - 1, i + 2).toUpperCase() === " AS") {
         const after = expr.slice(i + 2).trim();
+        const quoted = after.match(/^["'`]([^"'`]+)["'`]$/)?.[1];
+        if (quoted) return quoted;
         return after.match(/^(\w+)$/)?.[1];
       }
     }
