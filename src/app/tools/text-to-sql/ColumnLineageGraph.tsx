@@ -47,8 +47,9 @@ function parseLineage(sql: string): LineageCol[] {
 
   return exprs.flatMap(expr => {
     const aliasM = expr.match(/\bAS\s+(\w+)\s*$/i);
-    const fallback = expr.replace(/.*\.\s*/, "").replace(/\s*\(.*/, "").replace(/\bAS\b.*/i, "").trim().slice(0, 28) || "?";
-    const output = aliasM?.[1] ?? fallback;
+    const simpleRef = expr.trim().match(/^(?:\w+\.)?(\w+)$/)?.[1];
+    const funcName = expr.match(/^(\w+)\s*\(/)?.[1]?.toLowerCase();
+    const output: string = aliasM?.[1] ?? simpleRef ?? funcName ?? "?";
 
     // Qualified refs: tbl.col
     const qRefs = [...expr.matchAll(/\b(\w+)\.(\w+)\b/g)].map(m => ({
@@ -85,7 +86,7 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
     if (s.table && !tableColor.has(s.table)) tableColor.set(s.table, PALETTE[ci++ % PALETTE.length]);
   }));
 
-  const ROW = 30, PAD = 14;
+  const ROW = 30, PAD = 24;
   const H = Math.max(srcKeys.length, columns.length) * ROW + PAD;
   const W = 460, LX = 132, RX = W - 104;
   const srcY = (i: number) => PAD / 2 + i * ROW;
@@ -143,10 +144,10 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
               const y = srcY(i);
               return (
                 <g key={k}>
-                  <rect x="1" y={y - 10} width={LX - 10} height={20} rx="4"
+                  <rect x="1" y={y - 11} width={LX - 10} height={22} rx="4"
                     fill={color} fillOpacity="0.08" stroke={color} strokeOpacity="0.22" strokeWidth="0.8" />
-                  {tbl && <text x="6" y={y - 2} fontSize="6.5" fill={color} fillOpacity="0.6">{tbl}</text>}
-                  <text x="6" y={y + (tbl ? 7 : 4)} fontSize="9" fill={color} fontFamily="monospace">{col}</text>
+                  {tbl && <text x="6" y={y - 3} fontSize="6" fill={color} fillOpacity="0.6">{tbl}</text>}
+                  <text x="6" y={y + (tbl ? 6 : 4)} fontSize="8" fill={color} fontFamily="monospace">{col}</text>
                   <circle cx={LX - 4} cy={y} r="2.5" fill={color} fillOpacity="0.8" />
                 </g>
               );
@@ -158,9 +159,9 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
               return (
                 <g key={col.output}>
                   <circle cx={RX + 4} cy={y} r="2.5" fill="#a78bfa" fillOpacity="0.8" />
-                  <rect x={RX + 9} y={y - 10} width={W - RX - 14} height={20} rx="4"
+                  <rect x={RX + 9} y={y - 11} width={W - RX - 14} height={22} rx="4"
                     fill="rgba(167,139,250,0.07)" stroke="rgba(167,139,250,0.2)" strokeWidth="0.8" />
-                  <text x={RX + 15} y={y + 4} fontSize="9" fill="#c4b5fd" fontFamily="monospace">{col.output}</text>
+                  <text x={RX + 15} y={y + 4} fontSize="8" fill="#c4b5fd" fontFamily="monospace">{col.output}</text>
                 </g>
               );
             })}
