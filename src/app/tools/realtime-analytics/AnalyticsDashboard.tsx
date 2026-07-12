@@ -75,6 +75,7 @@ export default function AnalyticsDashboard() {
   const [selectedSid, setSid]   = useState<string | null>(null);
   const [sessionEvs, setSessEvs]= useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
+  const [sessError, setSessError] = useState<string | null>(null);
   const configured = !!(SB_URL && SB_KEY);
 
   useEffect(() => {
@@ -128,10 +129,17 @@ export default function AnalyticsDashboard() {
   }, [configured]);
 
   const openSession = async (sid: string) => {
-    if (selectedSid === sid) { setSid(null); return; }
-    setSid(sid); setSessLoading(true);
-    const data = await fetch(`/api/events/session/${sid}`).then(r => r.json()).catch(() => ({ events: [] }));
-    setSessEvs(data.events ?? []);
+    if (selectedSid === sid) { setSid(null); setSessError(null); return; }
+    setSid(sid); setSessLoading(true); setSessError(null);
+    try {
+      const r = await fetch(`/api/events/session/${encodeURIComponent(sid)}`);
+      const data = await r.json();
+      if (data.error) { setSessError(data.error); setSessEvs([]); }
+      else setSessEvs(data.events ?? []);
+    } catch (e) {
+      setSessError(String(e));
+      setSessEvs([]);
+    }
     setSessLoading(false);
   };
 
@@ -237,10 +245,12 @@ export default function AnalyticsDashboard() {
           <div className="flex items-center gap-3 mb-3">
             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Session Path</p>
             <code className="text-[9px] text-emerald-400/60">{selectedSid.slice(0, 16)}…</code>
-            <button onClick={() => setSid(null)} className="ml-auto text-gray-600 hover:text-gray-400 text-[10px]">✕ close</button>
+            <button onClick={() => { setSid(null); setSessError(null); }} className="ml-auto text-gray-600 hover:text-gray-400 text-[10px]">✕ close</button>
           </div>
           {sessLoading ? (
             <p className="text-xs text-gray-600">Loading…</p>
+          ) : sessError ? (
+            <p className="text-xs text-red-400">Error: {sessError}</p>
           ) : (
             <div className="flex items-start gap-2 overflow-x-auto pb-2">
               {sessionEvs.map((ev, i) => (
