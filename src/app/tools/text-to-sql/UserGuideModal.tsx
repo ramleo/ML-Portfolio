@@ -188,6 +188,34 @@ export default function UserGuideModal({ onClose }: Props) {
             />
           </Section>
 
+          {/* Auto-Insights */}
+          <Section title="Auto-Insights">
+            <div className="mb-3 p-3 rounded-xl border border-emerald-500/20" style={{ background: "rgba(16,185,129,0.05)" }}>
+              <p className="text-[11px] text-gray-300 leading-relaxed">
+                After every query, the <span className="text-emerald-400 font-semibold">Auto-Insights</span> panel automatically scans the result rows and surfaces patterns — no extra click needed. It appears between the results table and the chart, collapsed or expanded.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {[
+                { label: "Nulls", color: "#f59e0b", desc: "Columns with >5% null values. Warning badge if >30% null." },
+                { label: "Outliers", color: "#f59e0b", desc: "Numeric values more than 2.5 standard deviations from the mean." },
+                { label: "Dominant value", color: "#818cf8", desc: "A single value appears in >40% of non-null rows." },
+                { label: "Unique key", color: "#818cf8", desc: "100% distinct values — column is likely a primary key." },
+                { label: "Constant column", color: "#94a3b8", desc: "Every row has the same value — column adds no information." },
+                { label: "Skew", color: "#818cf8", desc: "Numeric range spans more than 100× (e.g. min=1, max=450)." },
+              ].map(({ label, color, desc }) => (
+                <div key={label} className="p-2.5 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <span className="inline-block text-[9px] font-semibold rounded px-1.5 py-0.5 mb-1 font-mono"
+                    style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
+                    {label}
+                  </span>
+                  <p className="text-[10px] text-gray-500 leading-snug">{desc}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-600 leading-relaxed">Up to 8 insights are shown, ranked by interestingness. Amber = warning (act on it), indigo = informational. Requires at least 4 result rows to activate. Click the panel header to collapse/expand.</p>
+          </Section>
+
           {/* Multi-Tab */}
           <Section title="Multi-Tab Workflow">
             <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
