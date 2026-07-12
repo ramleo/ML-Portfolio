@@ -114,10 +114,14 @@ export default function TextToSqlRunner() {
     const form = new FormData(); form.append("file", file);
     try {
       const res = await fetch(`${ML_SQL_API}/sql/upload`, { method: "POST", body: form });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setSchema(data.schema.tables); setDbRef(data.db_ref); setGlossary("");
-      setStatus(`Loaded: ${Object.keys(data.schema.tables).length} tables`);
+      const text = await res.text();
+      let data: Record<string, unknown>;
+      try { data = JSON.parse(text); }
+      catch { throw new Error("Backend is waking up — wait ~15s and try again"); }
+      if (data.error) throw new Error(data.error as string);
+      const schema = data.schema as { tables: Record<string, unknown> };
+      setSchema(schema.tables as Record<string, SchemaTable>); setDbRef(data.db_ref as string); setGlossary("");
+      setStatus(`Loaded: ${Object.keys(schema.tables).length} tables`);
     } catch (e: unknown) { setStatus(`Upload failed: ${(e as Error).message}`); }
   }, []);
 
@@ -129,10 +133,14 @@ export default function TextToSqlRunner() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conn_str: connStr, db_type: dbType }),
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setSchema(data.tables); setDbRef(data.db_ref); setGlossary("");
-      setStatus(`Connected: ${Object.keys(data.tables).length} tables`);
+      const text2 = await res.text();
+      let data: Record<string, unknown>;
+      try { data = JSON.parse(text2); }
+      catch { throw new Error("Backend is waking up — wait ~15s and try again"); }
+      if (data.error) throw new Error(data.error as string);
+      const tables2 = data.tables as Record<string, SchemaTable>;
+      setSchema(tables2); setDbRef(data.db_ref as string); setGlossary("");
+      setStatus(`Connected: ${Object.keys(tables2).length} tables`);
     } catch (e: unknown) { setStatus(`Connection failed: ${(e as Error).message}`); }
   }, []);
 
