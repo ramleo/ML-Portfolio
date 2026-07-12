@@ -100,11 +100,11 @@ export default function AnalyticsDashboard() {
           setFeed(prev => [ev, ...prev].slice(0, 50));
           setStats(prev => {
             if (!prev) return prev;
-            const minute = new Date().toTimeString().slice(0, 5);
+            const hour = new Date().toISOString().slice(11, 13) + ":00";
             const pm = [...prev.per_minute];
-            const mi = pm.findIndex(m => m.minute === minute);
+            const mi = pm.findIndex(m => m.minute === hour);
             if (mi >= 0) pm[mi] = { ...pm[mi], count: pm[mi].count + 1 };
-            else pm.push({ minute, count: 1 });
+            else pm.push({ minute: hour, count: 1 });
             const tp = [...prev.top_pages];
             if (ev.path) {
               const pi = tp.findIndex(p => p.path === ev.path);
@@ -182,7 +182,7 @@ export default function AnalyticsDashboard() {
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Events / Minute — last 30 min</p>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Events by Hour — today</p>
           <Sparkline data={stats?.per_minute ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">

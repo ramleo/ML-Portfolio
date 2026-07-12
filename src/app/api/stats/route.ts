@@ -18,28 +18,26 @@ export async function GET() {
   try {
     const supabase = getClient();
     const todayStart = startOfDayUTC();
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    const fiveMinAgo   = new Date(Date.now() -  5 * 60 * 1000).toISOString();
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-    const [{ data: todayEvents }, { data: recentEvents }] = await Promise.all([
-      supabase.from("events").select("type, path, session_id, country, meta").gte("created_at", todayStart),
-      supabase.from("events").select("created_at, type, path, session_id").gte("created_at", thirtyMinAgo),
-    ]);
+    const { data: todayEvents } = await supabase
+      .from("events")
+      .select("created_at, type, path, session_id, country, meta")
+      .gte("created_at", todayStart);
 
     const today = todayEvents ?? [];
-    const recent = recentEvents ?? [];
 
     // active_now
-    const fiveMin = recent.filter(e => e.created_at >= fiveMinAgo);
+    const fiveMin = today.filter(e => e.created_at >= fiveMinAgo);
     const active_now = new Set(fiveMin.map(e => e.session_id).filter(Boolean)).size;
 
-    // per_minute
-    const minuteMap: Record<string, number> = {};
-    for (const e of recent) {
-      const m = e.created_at.slice(11, 16);
-      minuteMap[m] = (minuteMap[m] ?? 0) + 1;
+    // per_hour — sparkline bucketed by UTC hour across today
+    const hourMap: Record<string, number> = {};
+    for (const e of today) {
+      const h = e.created_at.slice(11, 13) + ":00";
+      hourMap[h] = (hourMap[h] ?? 0) + 1;
     }
-    const per_minute = Object.entries(minuteMap)
+    const per_minute = Object.entries(hourMap)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([minute, count]) => ({ minute, count }));
 
