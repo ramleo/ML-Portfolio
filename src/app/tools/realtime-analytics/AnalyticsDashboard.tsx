@@ -28,6 +28,7 @@ interface Stats {
   top_countries: Country[];
   top_referrers: Referrer[];
   funnel: Funnel;
+  avg_session_duration_ms: number | null;
   bounce_rate: number | null;
   bounce_session_count: number;
   total_session_count: number;
@@ -49,6 +50,13 @@ const TYPE_DOT: Record<string, string> = {
   page_view: "#6366f1", tool_open: "#10b981", query_run: "#f59e0b",
   tool_close: "#8b5cf6", custom: "#6b7280",
 };
+
+function formatDuration(ms: number): string {
+  if (ms < 60_000) return `${Math.round(ms / 1000)}s`;
+  const m = Math.floor(ms / 60_000);
+  const s = Math.round((ms % 60_000) / 1000);
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
 
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -244,9 +252,12 @@ export default function AnalyticsDashboard() {
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
         <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
+        <StatCard label="Avg Duration" value={0}
+          raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
+          sub={stats?.avg_session_duration_ms != null ? "per tool visit" : "no tool_close data yet"}/>
         <StatCard label="Bounce Rate" value={0}
           raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
           sub={stats ? `${stats.bounce_session_count ?? 0} / ${stats.total_session_count ?? 0} sessions` : undefined}/>

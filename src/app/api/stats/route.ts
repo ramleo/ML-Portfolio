@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from("events")
-      .select("created_at, type, path, session_id, country, meta, referrer")
+      .select("created_at, type, path, session_id, country, meta, referrer, duration_ms")
       .gte("created_at", start);
     if (end) query = query.lte("created_at", end);
 
@@ -129,6 +129,12 @@ export async function GET(req: NextRequest) {
       query_run: events.filter(e => e.type === "query_run").length,
     };
 
+    // avg session duration from tool_close events
+    const toolCloses = events.filter(e => e.type === "tool_close" && (e.duration_ms ?? 0) > 0);
+    const avg_session_duration_ms = toolCloses.length > 0
+      ? Math.round(toolCloses.reduce((sum, e) => sum + (e.duration_ms ?? 0), 0) / toolCloses.length)
+      : null;
+
     // bounce rate: sessions with exactly 1 event
     const sessionEventCount: Record<string, number> = {};
     for (const e of events) if (e.session_id) sessionEventCount[e.session_id] = (sessionEventCount[e.session_id] ?? 0) + 1;
@@ -144,6 +150,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
       per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
+      avg_session_duration_ms,
       bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
       query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
     });
