@@ -106,6 +106,11 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
               title="Custom Calendar"
               desc="Click Custom → a calendar popover opens. Click one date for a single day (hourly sparkline). Click a start date, hover to preview the range, click an end date for a multi-day range (daily sparkline). Future dates are disabled."
             />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h10M4 10V6l3-4 3 4v4M6 10V8h2v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              title="Export CSV"
+              desc="Downloads all events for the active range (up to 5 000 rows) as a CSV file with columns: id, created_at, type, path, session_id, country, duration_ms, meta. Filename includes the range and today's date. Useful for offline analysis in Excel or Pandas."
+            />
           </Section>
 
           {/* Stat Cards */}
@@ -164,6 +169,15 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
             <p className="text-[10px] text-gray-600 mt-2 leading-relaxed">Low page_view → tool_open = visitors land but don&apos;t explore. Low tool_open → query_run = visitors open tools but don&apos;t use them.</p>
           </Section>
 
+          {/* Per-Tool Success Rate */}
+          <Section title="Query Success by Tool">
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11h10M2 8h7M2 5h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              title="Per-tool breakdown of SQL success rate"
+              desc="Horizontal bar chart showing the query success rate for each tool that has fired query_run events. Bar color is green (≥ 90%), amber (70–89%), or red (< 70%). Each row also shows the raw count (success / total). The section is hidden entirely when no query_run events exist in the selected range."
+            />
+          </Section>
+
           {/* Top Pages */}
           <Section title="Top Pages">
             <Feature
@@ -217,45 +231,36 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
           {/* Live Feed */}
           <Section title="Live Feed">
             <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
-              Every event appears here instantly via WebSocket — no refresh. Holds the last 50 events. Each row:
+              Every event appears here instantly via WebSocket — no refresh. Holds the last 50 events. Each row has a <span className="text-white/70">3 px left color strip</span> matching the event type, a fixed-width type badge, a dimmed <code className="text-indigo-300 text-[10px]">/tools/</code> prefix with the tool name highlighted, country chip, session ID, and time ago. <code className="text-purple-400 text-[10px]">tool_close</code> rows also show a duration chip (e.g. <span className="text-purple-400 font-mono text-[10px]">2m 31s</span>) indicating how long that tool was open.
             </p>
-            <div className="rounded-xl border border-white/8 overflow-hidden mb-3" style={{ background: "rgba(255,255,255,0.02)" }}>
-              {[
-                { color: "#f59e0b", type: "query_run", path: "/tools/text-to-sql", country: "IN", sid: "a3f8c210", ago: "2s", active: false },
-                { color: "#10b981", type: "tool_open",  path: "/tools/automl",      country: "US", sid: "a3f8c210", ago: "14s", active: true },
-              ].map((ev, i) => (
-                <div key={i} className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 last:border-0 font-mono text-[10px]">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ev.color }}/>
-                  <span className="text-gray-500 w-[76px] shrink-0 truncate">{ev.type}</span>
-                  <span className="text-gray-300 flex-1 truncate">{ev.path}</span>
-                  <span className="text-gray-600 shrink-0">{ev.country}</span>
-                  <span className="shrink-0" style={{ color: ev.active ? ACCENT : "#374151" }}>{ev.sid}</span>
-                  <span className="text-gray-700 shrink-0">{ev.ago}</span>
-                  <span className="shrink-0 px-1.5 py-0.5 rounded border text-[9px]"
-                    style={ev.active ? { borderColor: ACCENT, color: ACCENT, background: "rgba(16,185,129,0.1)" } : { borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
-                    trace
-                  </span>
-                </div>
-              ))}
-            </div>
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1 4h12M1 7h8M1 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              title="Type + Country filters"
+              desc="When the feed contains more than one event type or country, filter pills appear below the header. Click a type pill to show only that event type; click a country pill to narrow by country. Click All or the active pill again to clear. Filters are client-side — they work instantly on the 50 cached events without a network request."
+            />
             <Feature
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4.5 7h5M7 4.5v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
-              title="Session ID column"
-              desc="The 8-character hex between country and timestamp is the first 8 chars of the anonymous session ID. Events sharing the same ID came from the same browser. It turns green when that session's trace is open — so you can see at a glance which feed rows belong together before clicking trace."
+              title="Session ID — click to trace"
+              desc="The 8-character hex is the first 8 chars of the anonymous session ID. Click it (or the trace button that appears on row hover) to open the Session Trace drawer for that session. The ID turns green and the row is tinted while that trace is open."
             />
           </Section>
 
           {/* Session Trace */}
           <Section title="Session Trace">
             <Feature
-              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M2 4h7M2 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M10 1h2a1 1 0 011 1v10a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M4 7h6M4 4.5h4M4 9.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
               title="Opening a trace"
-              desc="Click trace on any feed row → a panel slides up from the bottom showing all events for that session in chronological order with timestamps. Click the same trace button again, or × close, to dismiss."
+              desc="Click a session ID (or the trace button on row hover) in the Live Feed → a 320 px drawer slides in from the right. A blurred overlay covers the rest of the dashboard. Click outside the drawer or the × button to close."
             />
             <Feature
-              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="5" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="8" y="3" width="5" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/><path d="M6 7h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
-              title="Collapsed groups"
-              desc="Consecutive events with the same type + path are collapsed into one card with a ×N badge. Click to expand and see each event's individual timestamp. Click again to collapse. Arrows connecting cards to the next step never break whether a group is collapsed or expanded."
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M4 7h6M5 10h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+              title="Time per Tool — horizontal bars"
+              desc="The top section of the drawer shows every tool the session visited, ordered by time spent, as proportional horizontal bars. Each bar shows the tool name, its share (%), and formatted duration (e.g. 2m 31s). Only populated when tool_close events with duration_ms > 0 exist for this session."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="4" cy="4" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="4" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4 5.5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M7 4h4M7 10h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
+              title="Event Path — vertical timeline"
+              desc="Below the bars, every event is listed in chronological order as a vertical timeline with a color-coded dot, connecting spine line, event type + duration chip (for tool_close), tool name, and timestamp."
             />
             <div className="space-y-1.5 mt-2">
               {[

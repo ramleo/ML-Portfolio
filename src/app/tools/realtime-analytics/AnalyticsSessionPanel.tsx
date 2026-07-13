@@ -26,14 +26,10 @@ interface Props {
   sessionEvs: SessionEvent[];
   sessLoading: boolean;
   sessError: string | null;
-  expandedGroups: Set<number>;
   onClose: () => void;
-  onToggleGroup: (gi: number) => void;
 }
 
-export default function SessionPathPanel({
-  selectedSid, sessionEvs, sessLoading, sessError, onClose,
-}: Props) {
+export default function SessionPathPanel({ selectedSid, sessionEvs, sessLoading, sessError, onClose }: Props) {
   // Time per tool from tool_close events
   const toolTimes: Record<string, number> = {};
   for (const ev of sessionEvs) {

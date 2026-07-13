@@ -77,7 +77,6 @@ export default function AnalyticsDashboard() {
   const [sessionEvs, setSessEvs]   = useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
   const [sessError, setSessError]     = useState<string | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const configured = !!(SB_URL && SB_KEY);
 
   // Feed — fetched once on mount
@@ -153,13 +152,7 @@ export default function AnalyticsDashboard() {
     setSessLoading(false);
   };
 
-  const toggleGroup = (gi: number) => setExpandedGroups(prev => {
-    const next = new Set(prev);
-    next.has(gi) ? next.delete(gi) : next.add(gi);
-    return next;
-  });
-
-  const closeSession = () => { setSid(null); setSessError(null); setExpandedGroups(new Set()); };
+  const closeSession = () => { setSid(null); setSessError(null); };
 
   if (!configured) return (
     <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col items-center gap-3 text-center">
@@ -328,9 +321,7 @@ export default function AnalyticsDashboard() {
           sessionEvs={sessionEvs}
           sessLoading={sessLoading}
           sessError={sessError}
-          expandedGroups={expandedGroups}
           onClose={closeSession}
-          onToggleGroup={toggleGroup}
         />
       )}
     </div>
