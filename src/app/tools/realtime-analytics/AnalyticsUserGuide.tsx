@@ -115,7 +115,7 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
                 { tag: "#10b981", label: "Active Now", desc: "Sessions that sent an event in the last 5 minutes. Today range only — switches to Unique Sessions for all other ranges." },
                 { tag: "#6366f1", label: "Unique Sessions", desc: "Distinct anonymous session IDs in the selected range. One session = one browser. Shown for Yesterday, 7 days, 30 days, and Custom." },
                 { tag: "#f59e0b", label: "Total Events", desc: "Count of all event records in the selected range across all event types." },
-                { tag: "#8b5cf6", label: "Query Success", desc: "Percentage of query_run events where success: true was recorded. Shows — if no query_run events exist in the range yet." },
+                { tag: "#8b5cf6", label: "Query Success", desc: "Percentage of query_run events where success: true was recorded. Only the Text-to-SQL tool fires query_run events — visiting Preprocessing, Feature Engineering, or other ML tools does not count. Shows — if no SQL queries have been run yet in the range." },
               ].map(({ tag, label, desc }) => (
                 <div key={label} className="flex gap-3 items-start p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <Tag color={tag} label={label}/>
@@ -151,7 +151,7 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
               {[
                 { color: "#6366f1", label: "page_view", desc: "Visitor landed on a page." },
                 { color: "#10b981", label: "tool_open", desc: "Visitor navigated into a tool." },
-                { color: "#f59e0b", label: "query_run", desc: "Visitor ran a prediction, query, or analysis." },
+                { color: "#f59e0b", label: "query_run", desc: "Visitor submitted a SQL question in Text-to-SQL. This event does not fire for ML tools like Preprocessing, Feature Engineering, or Feature Selection." },
               ].map(({ color, label, desc }) => (
                 <div key={label} className="flex gap-3 items-center p-2.5 rounded-lg border border-white/5" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <EventChip color={color} label={label}/>
@@ -200,8 +200,8 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
               {[
                 { color: "#6366f1", type: "page_view", when: "On app / page load", data: "path, referrer, session_id" },
                 { color: "#10b981", type: "tool_open", when: "User selects a tool", data: "meta.tool" },
-                { color: "#f59e0b", type: "query_run", when: "Query / analysis completes", data: "meta.tool, meta.success" },
-                { color: "#8b5cf6", type: "tool_close", when: "User leaves a tool (pending)", data: "duration_ms, meta.tool" },
+                { color: "#f59e0b", type: "query_run", when: "SQL query run in Text-to-SQL only", data: "meta.success, meta.rows, duration_ms" },
+                { color: "#8b5cf6", type: "tool_close", when: "User navigates away from a tool", data: "duration_ms, meta.tool" },
               ].map(({ color, type, when, data }) => (
                 <div key={type} className="p-3 rounded-xl border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <EventChip color={color} label={type}/>
