@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -125,7 +125,7 @@ function ShapPageInner() {
 }
 
 export default function ShapPage() {
-  useAnalytics("tool_open", { tool: "shap" });
+  useToolTracking("shap");
   return (
     <PipelineProvider>
       <ShapPageInner />

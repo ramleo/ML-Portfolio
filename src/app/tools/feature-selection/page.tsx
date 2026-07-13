@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -350,7 +350,7 @@ function FeatureSelectionPageInner() {
 // ── Wrapper ───────────────────────────────────────────────────────────────────
 
 export default function FeatureSelectionPage() {
-  useAnalytics("tool_open", { tool: "feature-selection" });
+  useToolTracking("feature-selection");
   return (
     <PipelineProvider>
       <FeatureSelectionPageInner />

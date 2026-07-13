@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,7 @@ function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: s
 }
 
 export default function PipelineCinemaPage() {
-  useAnalytics("tool_open", { tool: "pipeline-cinema" });
+  useToolTracking("pipeline-cinema");
   const router = useRouter();
   const handleHome = useCallback(() => router.push("/#capabilities"), [router]);
 

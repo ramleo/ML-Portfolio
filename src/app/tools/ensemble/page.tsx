@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -114,7 +114,7 @@ function EnsemblePageInner() {
 }
 
 export default function EnsemblePage() {
-  useAnalytics("tool_open", { tool: "ensemble" });
+  useToolTracking("ensemble");
   return (
     <PipelineProvider>
       <EnsemblePageInner />

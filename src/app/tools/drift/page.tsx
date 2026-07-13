@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,7 @@ function buildDriftContext(result: DriftResult | null): string {
 }
 
 export default function DriftPage() {
-  useAnalytics("tool_open", { tool: "drift" });
+  useToolTracking("drift");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
   const [driftResult, setDriftResult] = useState<DriftResult | null>(null);

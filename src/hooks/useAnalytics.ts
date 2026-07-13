@@ -11,20 +11,34 @@ function getOrCreateSession(): string {
   return id;
 }
 
+function track(type: string, extra: Record<string, unknown> = {}) {
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type,
+      path: window.location.pathname,
+      session_id: getOrCreateSession(),
+      referrer: document.referrer,
+      ...extra,
+    }),
+  }).catch(() => {});
+}
+
 export function useAnalytics(type: string, meta?: Record<string, unknown>) {
   useEffect(() => {
-    const sessionId = getOrCreateSession();
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        path: window.location.pathname,
-        session_id: sessionId,
-        referrer: document.referrer,
-        meta: meta ?? {},
-      }),
-    }).catch(() => {});
+    track(type, { meta: meta ?? {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
+export function useToolTracking(toolName: string) {
+  useEffect(() => {
+    const t0 = Date.now();
+    track("tool_open", { meta: { tool: toolName } });
+    return () => {
+      track("tool_close", { duration_ms: Date.now() - t0, meta: { tool: toolName } });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

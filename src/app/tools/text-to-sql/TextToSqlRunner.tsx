@@ -171,6 +171,7 @@ export default function TextToSqlRunner() {
     const historyPayload = [...fewShotPayload, ...history.slice(-3).map(t => ({ question: t.question, sql: t.sql, result_summary: t.result_summary }))];
 
     let finalSql = ""; let finalResults: Results | null = null;
+    const t0 = Date.now();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
     try {
@@ -204,10 +205,16 @@ export default function TextToSqlRunner() {
               setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`);
               const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
               fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, meta: { rows: evt.count, provider } }),
+                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { rows: evt.count, provider, success: true } }),
               }).catch(() => {});
             }
-            else if (evt.type === "error") patchTab(tabId, { error: evt.text });
+            else if (evt.type === "error") {
+              patchTab(tabId, { error: evt.text });
+              const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
+              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { provider, success: false } }),
+              }).catch(() => {});
+            }
             else if (evt.type === "done")  setRunning(false);
           } catch { /* ignore malformed */ }
         }

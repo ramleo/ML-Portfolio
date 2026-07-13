@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -126,7 +126,7 @@ function OptunaPageInner() {
 }
 
 export default function OptunaPage() {
-  useAnalytics("tool_open", { tool: "optuna" });
+  useToolTracking("optuna");
   return (
     <PipelineProvider>
       <OptunaPageInner />

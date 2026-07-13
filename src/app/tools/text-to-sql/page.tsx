@@ -1,5 +1,5 @@
 "use client";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import TextToSqlRunner from "./TextToSqlRunner";
 const ACCENT = "#6366f1";
 
 export default function TextToSqlPage() {
-  useAnalytics("tool_open", { tool: "text-to-sql" });
+  useToolTracking("text-to-sql");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
