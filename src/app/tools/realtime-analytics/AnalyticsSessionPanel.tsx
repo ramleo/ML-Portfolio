@@ -21,6 +21,13 @@ function groupEvents(events: SessionEvent[]): EventGroup[] {
   return groups;
 }
 
+function fmtMs(ms: number): string {
+  if (ms < 60_000) return `${Math.round(ms / 1000)}s`;
+  const m = Math.floor(ms / 60_000);
+  const s = Math.round((ms % 60_000) / 1000);
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
 const TYPE_DOT: Record<string, string> = {
   page_view: "#6366f1", tool_open: "#10b981", query_run: "#f59e0b",
   tool_close: "#8b5cf6", custom: "#6b7280",
@@ -55,6 +62,27 @@ export default function SessionPathPanel({
         </div>
         {sessLoading && <p className="text-xs text-gray-600">Loading…</p>}
         {!sessLoading && sessError && <p className="text-xs text-red-400">Error: {sessError}</p>}
+        {!sessLoading && !sessError && (() => {
+          const toolTimes: Record<string, number> = {};
+          for (const ev of sessionEvs) {
+            if (ev.type === "tool_close" && ev.duration_ms > 0) {
+              const tool = String(ev.meta?.tool ?? ev.path ?? "unknown");
+              toolTimes[tool] = (toolTimes[tool] ?? 0) + ev.duration_ms;
+            }
+          }
+          const toolEntries = Object.entries(toolTimes).sort(([, a], [, b]) => b - a);
+          return toolEntries.length > 0 ? (
+            <div className="flex items-center gap-2 flex-wrap pb-1 border-b border-white/5">
+              <span className="text-[9px] font-semibold text-gray-600 uppercase tracking-widest shrink-0">Time per tool</span>
+              {toolEntries.map(([tool, ms]) => (
+                <span key={tool} className="text-[10px] px-2 py-0.5 rounded font-mono"
+                  style={{ background: "rgba(139,92,246,0.1)", color: "#8b5cf6", border: "1px solid rgba(139,92,246,0.25)" }}>
+                  {tool}: {fmtMs(ms)}
+                </span>
+              ))}
+            </div>
+          ) : null;
+        })()}
         {!sessLoading && !sessError && (
           <div className="flex items-start gap-1 overflow-x-auto pb-1">
             {sessionEvs.length === 0 && <p className="text-xs text-gray-600">No events found for this session.</p>}
