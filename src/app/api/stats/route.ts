@@ -136,7 +136,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
-      per_minute, top_pages, by_type, top_countries, top_referrers, funnel, query_success_rate,
+      per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
+      query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

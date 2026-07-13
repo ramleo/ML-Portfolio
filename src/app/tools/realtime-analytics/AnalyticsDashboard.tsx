@@ -29,6 +29,8 @@ interface Stats {
   top_referrers: Referrer[];
   funnel: Funnel;
   query_success_rate: number | null;
+  query_success_count: number;
+  query_total_count: number;
 }
 
 interface FeedEvent {
@@ -52,7 +54,7 @@ function timeAgo(iso: string) {
   return `${Math.floor(s / 3600)}h`;
 }
 
-function StatCard({ label, value, live, suffix, raw }: { label: string; value: string | number; live?: boolean; suffix?: string; raw?: string }) {
+function StatCard({ label, value, live, suffix, raw, sub }: { label: string; value: string | number; live?: boolean; suffix?: string; raw?: string; sub?: string }) {
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
       <div className="flex items-center gap-2 mb-1">
@@ -63,6 +65,7 @@ function StatCard({ label, value, live, suffix, raw }: { label: string; value: s
         {raw ?? (typeof value === "number" ? value.toLocaleString() : value)}
         {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
       </p>
+      {sub && <p className="text-[10px] text-gray-600 mt-1 tabular-nums">{sub}</p>}
     </div>
   );
 }
@@ -229,13 +232,9 @@ export default function AnalyticsDashboard() {
           )}
         </div>
         <button onClick={() => setShowGuide(true)}
-          className="w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors hover:border-white/20"
-          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}
-          title="User guide">
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.3"/>
-            <path d="M6 8.5V5.8M6 4.2v-.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-          </svg>
+          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-white/20"
+          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+          User Guide
         </button>
       </div>
 
@@ -245,7 +244,9 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-3 gap-4">
         <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
         <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
-        <StatCard label="Query Success" value={0} raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}/>
+        <StatCard label="Query Success" value={0}
+          raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
+          sub={stats && stats.query_total_count > 0 ? `${stats.query_success_count} / ${stats.query_total_count} queries` : undefined}/>
       </div>
 
       {/* Sparkline + Funnel */}
