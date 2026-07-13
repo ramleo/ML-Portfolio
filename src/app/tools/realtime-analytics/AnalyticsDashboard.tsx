@@ -246,7 +246,7 @@ export default function AnalyticsDashboard() {
         <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
         <StatCard label="Query Success" value={0}
           raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-          sub={stats && stats.query_total_count > 0 ? `${stats.query_success_count} / ${stats.query_total_count} queries` : undefined}/>
+          sub={stats ? `${stats.query_success_count ?? 0} / ${stats.query_total_count ?? 0} queries` : undefined}/>
       </div>
 
       {/* Sparkline + Funnel */}
