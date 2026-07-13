@@ -28,6 +28,9 @@ interface Stats {
   top_countries: Country[];
   top_referrers: Referrer[];
   funnel: Funnel;
+  bounce_rate: number | null;
+  bounce_session_count: number;
+  total_session_count: number;
   query_success_rate: number | null;
   query_success_count: number;
   query_total_count: number;
@@ -241,9 +244,12 @@ export default function AnalyticsDashboard() {
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
         <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
+        <StatCard label="Bounce Rate" value={0}
+          raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
+          sub={stats ? `${stats.bounce_session_count ?? 0} / ${stats.total_session_count ?? 0} sessions` : undefined}/>
         <StatCard label="Query Success" value={0}
           raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
           sub={stats ? `${stats.query_success_count ?? 0} / ${stats.query_total_count ?? 0} queries` : undefined}/>

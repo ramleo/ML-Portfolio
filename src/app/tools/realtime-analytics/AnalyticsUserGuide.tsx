@@ -115,6 +115,7 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
                 { tag: "#10b981", label: "Active Now", desc: "Sessions that sent an event in the last 5 minutes. Today range only — switches to Unique Sessions for all other ranges." },
                 { tag: "#6366f1", label: "Unique Sessions", desc: "Distinct anonymous session IDs in the selected range. One session = one browser. Shown for Yesterday, 7 days, 30 days, and Custom." },
                 { tag: "#f59e0b", label: "Total Events", desc: "Count of all event records in the selected range across all event types." },
+                { tag: "#ef4444", label: "Bounce Rate", desc: "Percentage of sessions that produced exactly 1 event — the visitor loaded a page and left without any further interaction. Lower is better. Sub-line shows bounced / total sessions." },
                 { tag: "#8b5cf6", label: "Query Success", desc: "Percentage of query_run events where success: true was recorded. Only the Text-to-SQL tool fires query_run events — visiting Preprocessing, Feature Engineering, or other ML tools does not count. Shows — if no SQL queries have been run yet in the range." },
               ].map(({ tag, label, desc }) => (
                 <div key={label} className="flex gap-3 items-start p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>

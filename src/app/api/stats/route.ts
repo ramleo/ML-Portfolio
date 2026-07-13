@@ -129,6 +129,13 @@ export async function GET(req: NextRequest) {
       query_run: events.filter(e => e.type === "query_run").length,
     };
 
+    // bounce rate: sessions with exactly 1 event
+    const sessionEventCount: Record<string, number> = {};
+    for (const e of events) if (e.session_id) sessionEventCount[e.session_id] = (sessionEventCount[e.session_id] ?? 0) + 1;
+    const sessionCounts = Object.values(sessionEventCount);
+    const bounceSessions = sessionCounts.filter(c => c === 1).length;
+    const bounce_rate = sessionCounts.length > 0 ? Math.round((bounceSessions / sessionCounts.length) * 100) : null;
+
     // query success rate
     const queryRuns    = events.filter(e => e.type === "query_run");
     const successCount = queryRuns.filter(e => e.meta?.success === true).length;
@@ -137,6 +144,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
       per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
+      bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
       query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
     });
   } catch (e) {
