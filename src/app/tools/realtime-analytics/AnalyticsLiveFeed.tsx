@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 export interface FeedEvent {
   id: number;
   created_at: string;
@@ -36,6 +38,16 @@ interface Props {
 }
 
 export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }: Props) {
+  const [typeFilter, setTypeFilter]       = useState<string | null>(null);
+  const [countryFilter, setCountryFilter] = useState<string | null>(null);
+
+  const types     = [...new Set(feed.map(e => e.type))];
+  const countries = [...new Set(feed.map(e => e.country).filter(Boolean))];
+  const filtered  = feed.filter(ev =>
+    (!typeFilter || ev.type === typeFilter) &&
+    (!countryFilter || ev.country === countryFilter)
+  );
+
   return (
     <div className="rounded-xl overflow-hidden" style={{
       background: "linear-gradient(160deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.02) 100%)",
@@ -55,10 +67,41 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
         </span>
         <span className="text-[9px] text-gray-700 ml-auto">click session ID to trace</span>
       </div>
+      {/* Filter bar — only renders when there's something to filter */}
+      {(types.length > 1 || countries.length > 1) && (
+        <div className="flex items-center gap-1.5 px-4 py-2 flex-wrap border-b border-white/[0.04]">
+          <button onClick={() => { setTypeFilter(null); setCountryFilter(null); }}
+            className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
+            style={!typeFilter && !countryFilter
+              ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
+              : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+            All
+          </button>
+          {types.map(t => (
+            <button key={t} onClick={() => setTypeFilter(typeFilter === t ? null : t)}
+              className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
+              style={typeFilter === t
+                ? { borderColor: TYPE_DOT[t] ?? "#6b7280", color: TYPE_DOT[t] ?? "#6b7280", background: `${TYPE_DOT[t] ?? "#6b7280"}18` }
+                : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+              {t}
+            </button>
+          ))}
+          {countries.length > 1 && <span className="text-[8px] text-gray-800 mx-0.5">|</span>}
+          {countries.length > 1 && countries.map(c => (
+            <button key={c} onClick={() => setCountryFilter(countryFilter === c ? null : c)}
+              className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
+              style={countryFilter === c
+                ? { borderColor: "#64748b", color: "#94a3b8", background: "rgba(100,116,139,0.1)" }
+                : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
       {/* Feed rows */}
       <div className="flex flex-col max-h-[260px] overflow-y-auto">
-        {feed.length === 0 && <p className="text-xs text-gray-600 px-4 py-3">Waiting for events…</p>}
-        {feed.map((ev, i) => {
+        {filtered.length === 0 && <p className="text-xs text-gray-600 px-4 py-3">{feed.length === 0 ? "Waiting for events…" : "No events match filter."}</p>}
+        {filtered.map((ev, i) => {
           const color = TYPE_DOT[ev.type] ?? "#6b7280";
           const isActive = selectedSid === ev.session_id;
           const isToolPath = ev.path?.startsWith("/tools/");

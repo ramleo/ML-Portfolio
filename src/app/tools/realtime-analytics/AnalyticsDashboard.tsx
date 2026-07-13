@@ -37,6 +37,7 @@ interface Stats {
   query_success_rate: number | null;
   query_success_count: number;
   query_total_count: number;
+  query_by_tool: { path: string; success_count: number; total_count: number; success_rate: number }[];
 }
 
 function formatDuration(ms: number): string {
@@ -229,6 +230,14 @@ export default function AnalyticsDashboard() {
           style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
           User Guide
         </button>
+        <a href={range === "custom" && customRange
+            ? `/api/events/export?start=${customRange.start}&end=${customRange.end}`
+            : `/api/events/export?range=${range}`}
+          download
+          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-white/20"
+          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+          Export CSV
+        </a>
       </div>
 
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
@@ -277,6 +286,32 @@ export default function AnalyticsDashboard() {
         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Referrers — {rangeLabel}</p>
         <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
+
+      {/* Per-tool Query Success Rate — only shown when query_run data exists */}
+      {(stats?.query_by_tool ?? []).length > 0 && (
+        <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Query Success by Tool — {rangeLabel}</p>
+          <div className="flex flex-col gap-3">
+            {stats!.query_by_tool.map(t => {
+              const barColor = t.success_rate >= 90 ? "#10b981" : t.success_rate >= 70 ? "#f59e0b" : "#ef4444";
+              return (
+                <div key={t.path}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[9px] font-mono text-gray-400">{t.path.replace("/tools/", "")}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] tabular-nums" style={{ color: "#374151" }}>{t.success_count}/{t.total_count}</span>
+                      <span className="text-[10px] font-semibold tabular-nums" style={{ color: barColor }}>{t.success_rate}%</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${t.success_rate}%`, background: barColor }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Donut + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -142,10 +142,25 @@ export async function GET(req: NextRequest) {
     const bounceSessions = sessionCounts.filter(c => c === 1).length;
     const bounce_rate = sessionCounts.length > 0 ? Math.round((bounceSessions / sessionCounts.length) * 100) : null;
 
-    // query success rate
+    // query success rate (overall)
     const queryRuns    = events.filter(e => e.type === "query_run");
     const successCount = queryRuns.filter(e => e.meta?.success === true).length;
     const query_success_rate = queryRuns.length > 0 ? Math.round((successCount / queryRuns.length) * 100) : null;
+
+    // per-tool query success rate
+    const toolMap: Record<string, { success: number; total: number }> = {};
+    for (const e of queryRuns) {
+      const key = e.path ?? "unknown";
+      if (!toolMap[key]) toolMap[key] = { success: 0, total: 0 };
+      toolMap[key].total++;
+      if (e.meta?.success === true) toolMap[key].success++;
+    }
+    const query_by_tool = Object.entries(toolMap)
+      .map(([path, { success, total }]) => ({
+        path, success_count: success, total_count: total,
+        success_rate: Math.round((success / total) * 100),
+      }))
+      .sort((a, b) => b.total_count - a.total_count);
 
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
@@ -153,6 +168,7 @@ export async function GET(req: NextRequest) {
       avg_session_duration_ms,
       bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
       query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
+      query_by_tool,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
