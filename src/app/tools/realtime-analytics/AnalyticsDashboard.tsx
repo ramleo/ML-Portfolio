@@ -255,7 +255,7 @@ export default function AnalyticsDashboard() {
           sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
         <StatCard label="Query Success" value={0}
           raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries${(stats.error_count ?? 0) > 0 ? ` · ${stats.error_count} errors` : ""}` : undefined}/>
+          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors` : undefined}/>
       </div>
 
       {/* Sparkline + Funnel */}
@@ -338,13 +338,11 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* AI Provider usage — only when query_run data with provider exists */}
-      {(stats?.provider_breakdown ?? []).length > 0 && (
-        <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Provider Usage — {rangeLabel}</p>
-          <ProviderBreakdownBar data={stats!.provider_breakdown}/>
-        </div>
-      )}
+      {/* AI Provider usage — always visible */}
+      <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Provider Usage — {rangeLabel}</p>
+        <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
+      </div>
 
       {/* Donut + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
