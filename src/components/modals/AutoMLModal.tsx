@@ -117,6 +117,10 @@ export default function AutoMLModal({
       } else {
         setError(e instanceof Error ? e.message : "Analysis failed.");
       }
+      const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "error", path: "/tools/automl", session_id: sid, meta: { tool: "automl", error_type: "analyze_error" } }),
+      }).catch(() => {});
     } finally {
       clearTimeout(timer);
       setAnalyzing(false);

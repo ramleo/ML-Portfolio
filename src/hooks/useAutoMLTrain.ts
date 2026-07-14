@@ -24,6 +24,14 @@ interface TrainCallbacks {
   addHistory:    (entry: HistoryEntry) => void;
 }
 
+function trackEvent(type: string, meta: Record<string, unknown>) {
+  const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+  fetch("/api/track", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, path: "/tools/automl", session_id: sid, meta }),
+  }).catch(() => {});
+}
+
 export function useAutoMLTrain() {
   const handleTrain = useCallback(async (params: TrainParams, cb: TrainCallbacks) => {
     const { file, target, taskType, modelName, selectedModels, colEncodings, dropCols, useSMOTE } = params;
@@ -72,6 +80,11 @@ export function useAutoMLTrain() {
                 const r: TrainResult = { ...evt.result, fileName: file?.name };
                 cb.onResult(r);
                 cb.addHistory({ ts: new Date().toLocaleTimeString(), result: r });
+                trackEvent("query_run", {
+                  tool: "automl", action: "train",
+                  winner: r.automl?.winner ?? (r as unknown as Record<string, string>).winner,
+                  models: [...selectedModels],
+                });
               }
             }
           } catch (parseErr) {
@@ -81,6 +94,7 @@ export function useAutoMLTrain() {
       }
     } catch (e) {
       cb.onError(e instanceof Error ? e.message : "Training failed.");
+      trackEvent("error", { tool: "automl", error_type: "train_error" });
     }
   }, []);
 
