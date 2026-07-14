@@ -18,9 +18,10 @@ function fmt(n: number) {
 }
 
 // ── Sparkline with anomaly markers + hover tooltip ────────────────────────────
-export function Sparkline({ data }: { data: PerMinute[] }) {
+export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; color?: string }) {
   const [tip, setTip] = useState<{ x: number; y: number; minute: string; count: number } | null>(null);
   if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No data yet</div>;
+  const gid = `sg-${color.replace("#", "")}`;
   const W = 480, H = 80, PL = 32, PR = 8, PT = 8, PB = 20;
   const iW = W - PL - PR, iH = H - PT - PB;
   const max = Math.max(...data.map(d => d.count), 1);
@@ -40,24 +41,24 @@ export function Sparkline({ data }: { data: PerMinute[] }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setTip(null)}>
       <defs>
-        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.25"/>
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0"/>
         </linearGradient>
       </defs>
       <line x1={PL} y1={PT} x2={PL} y2={PT+iH} stroke="#ffffff0e" strokeWidth="1"/>
       <line x1={PL} y1={PT+iH} x2={PL+iW} y2={PT+iH} stroke="#ffffff0e" strokeWidth="1"/>
       <text x={PL-4} y={PT+4} textAnchor="end" fontSize="8" fill="#6b7280">{fmt(max)}</text>
       <text x={PL-4} y={PT+iH} textAnchor="end" fontSize="8" fill="#6b7280">0</text>
-      <path d={area} fill="url(#sg)"/>
-      <path d={line} fill="none" stroke="#10b981" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+      <path d={area} fill={`url(#${gid})`}/>
+      <path d={line} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
       {pts.map((p, i) => p.count > threshold && std > 0 ? (
         <g key={i}>
           <circle cx={p.x} cy={p.y - 5} r="3" fill="#ef4444" opacity="0.85"/>
           <text x={p.x} y={p.y - 9} textAnchor="middle" fontSize="6" fill="#ef4444">↑</text>
         </g>
       ) : data.length <= 10 ? (
-        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#10b981"/>
+        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={color}/>
       ) : null)}
       <text x={PL} y={H-4} fontSize="8" fill="#6b7280">{data[0]?.minute}</text>
       <text x={PL+iW} y={H-4} textAnchor="end" fontSize="8" fill="#6b7280">{data[data.length-1]?.minute}</text>
@@ -74,8 +75,8 @@ export function Sparkline({ data }: { data: PerMinute[] }) {
         const ty = Math.max(tip.y - TH - 6, PT);
         return (
           <g pointerEvents="none">
-            <line x1={tip.x} y1={tip.y} x2={tip.x} y2={PT + iH} stroke="#10b981" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.4"/>
-            <circle cx={tip.x} cy={tip.y} r="3" fill="#10b981"/>
+            <line x1={tip.x} y1={tip.y} x2={tip.x} y2={PT + iH} stroke={color} strokeWidth="0.75" strokeDasharray="2 2" opacity="0.4"/>
+            <circle cx={tip.x} cy={tip.y} r="3" fill={color}/>
             <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
             <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">
               {tip.minute} · {tip.count} events

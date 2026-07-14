@@ -91,6 +91,16 @@ export async function GET(req: NextRequest) {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([minute, count]) => ({ minute, count }));
 
+    // error sparkline buckets (same bucketing as per_minute)
+    const errorBucketMap: Record<string, number> = {};
+    for (const e of events.filter(ev => ev.type === "error")) {
+      const key = useDay ? e.created_at.slice(0, 10) : e.created_at.slice(11, 13) + ":00";
+      errorBucketMap[key] = (errorBucketMap[key] ?? 0) + 1;
+    }
+    const error_per_minute = Object.entries(errorBucketMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([minute, count]) => ({ minute, count }));
+
     // top_pages
     const pageMap: Record<string, number> = {};
     for (const e of events) if (e.path) pageMap[e.path] = (pageMap[e.path] ?? 0) + 1;
@@ -251,7 +261,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
-      per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
+      per_minute, error_per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
       avg_session_duration_ms,
       bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
       query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,

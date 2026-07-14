@@ -34,6 +34,25 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend }: {
   );
 }
 
+export function EngagementRow({ by_type, error_count, query_total_count, export_conversion_pct }: {
+  by_type: { type: string; count: number }[];
+  error_count: number;
+  query_total_count: number;
+  export_conversion_pct: number | null;
+}) {
+  const copyCount   = by_type.find(t => t.type === "copy")?.count ?? 0;
+  const exportCount = by_type.find(t => t.type === "export")?.count ?? 0;
+  const errRate     = query_total_count > 0 ? Math.round((error_count / query_total_count) * 100) : 0;
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <StatCard label="Error Rate" raw={`${errRate}%`} value={0} sub={`${error_count} failed queries`}/>
+      <StatCard label="SQL Copies" value={copyCount} sub="copy events — SQL tool"/>
+      <StatCard label="CSV Exports" value={exportCount}
+        sub={export_conversion_pct != null ? `${export_conversion_pct}% of query sessions exported` : "export events — analytics"}/>
+    </div>
+  );
+}
+
 export function SkeletonCard() {
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4 animate-pulse">

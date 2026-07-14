@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar, ModelBreakdownBar } from "./AnalyticsCharts";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
 import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat, ModelStat } from "./AnalyticsCharts";
-import { StatCard, SkeletonCard, formatDuration } from "./AnalyticsStatCard";
+import { StatCard, SkeletonCard, formatDuration, EngagementRow } from "./AnalyticsStatCard";
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
 import AnalyticsLiveFeed from "./AnalyticsLiveFeed";
@@ -27,6 +27,7 @@ interface Stats {
   is_range: boolean;
   today_count: number;
   per_minute: PerMinute[];
+  error_per_minute: PerMinute[];
   top_pages: TopPage[];
   by_type: ByType[];
   top_countries: Country[];
@@ -277,6 +278,10 @@ export default function AnalyticsDashboard() {
             )}
           </div>
           <Sparkline data={stats?.per_minute ?? []}/>
+          {(stats?.error_per_minute ?? []).length > 0 && <>
+            <p className="text-[9px] text-gray-600 uppercase tracking-wider mt-4 mb-1">Error Events</p>
+            <Sparkline data={stats!.error_per_minute} color="#ef4444"/>
+          </>}
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Conversion Funnel — {rangeLabel}</p>
@@ -360,20 +365,12 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Error Rate + User Actions */}
-      {(() => {
-        const copyCount   = (stats?.by_type ?? []).find(t => t.type === "copy")?.count ?? 0;
-        const exportCount = (stats?.by_type ?? []).find(t => t.type === "export")?.count ?? 0;
-        const errRate     = (stats?.query_total_count ?? 0) > 0
-          ? Math.round(((stats?.error_count ?? 0) / stats!.query_total_count) * 100) : 0;
-        return (
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard label="Error Rate" raw={`${errRate}%`} value={0} sub={`${stats?.error_count ?? 0} failed queries`}/>
-            <StatCard label="SQL Copies" value={copyCount} sub="copy events — SQL tool"/>
-            <StatCard label="CSV Exports" value={exportCount}
-              sub={stats?.export_conversion_pct != null ? `${stats.export_conversion_pct}% of query sessions exported` : "export events — analytics"}/>
-          </div>
-        );
-      })()}
+      <EngagementRow
+        by_type={stats?.by_type ?? []}
+        error_count={stats?.error_count ?? 0}
+        query_total_count={stats?.query_total_count ?? 0}
+        export_conversion_pct={stats?.export_conversion_pct ?? null}
+      />
 
       {/* Donut + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
