@@ -10,6 +10,8 @@ export interface FeedEvent {
   country: string;
   session_id: string;
   duration_ms?: number;
+  meta?: Record<string, unknown>;
+  referrer?: string;
 }
 
 const TYPE_DOT: Record<string, string> = {
@@ -37,9 +39,31 @@ interface Props {
   onTraceSession: (sid: string) => void;
 }
 
+function EventDetail({ ev }: { ev: FeedEvent }) {
+  const meta = ev.meta ?? {};
+  const rows: [string, string][] = [
+    ["time", new Date(ev.created_at).toLocaleString()],
+    ...(ev.referrer ? [["referrer", ev.referrer] as [string, string]] : []),
+    ...(ev.duration_ms ? [["duration", fmtDuration(ev.duration_ms)] as [string, string]] : []),
+    ...Object.entries(meta).map(([k, v]) => [k, String(v)] as [string, string]),
+  ];
+  return (
+    <div className="mx-4 mb-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col gap-1">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex gap-2 text-[9px]">
+          <span className="text-gray-600 w-20 shrink-0">{k}</span>
+          <span className="text-gray-400 font-mono truncate">{v}</span>
+        </div>
+      ))}
+      {rows.length === 0 && <span className="text-[9px] text-gray-700">No extra details</span>}
+    </div>
+  );
+}
+
 export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }: Props) {
   const [typeFilter, setTypeFilter]       = useState<string | null>(null);
   const [countryFilter, setCountryFilter] = useState<string | null>(null);
+  const [expandedId, setExpandedId]       = useState<number | null>(null);
 
   const types     = [...new Set(feed.map(e => e.type))];
   const countries = [...new Set(feed.map(e => e.country).filter(Boolean))];
@@ -104,12 +128,15 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
         {filtered.map((ev, i) => {
           const color = TYPE_DOT[ev.type] ?? "#6b7280";
           const isActive = selectedSid === ev.session_id;
+          const isExpanded = expandedId === ev.id;
           const isToolPath = ev.path?.startsWith("/tools/");
           const toolName = isToolPath ? ev.path.replace("/tools/", "") : (ev.path || "/");
           const showDur = ev.type === "tool_close" && (ev.duration_ms ?? 0) > 0;
           return (
-            <div key={ev.id ?? i}
-              className="group relative flex items-center gap-2 pr-4 border-b border-white/[0.04] transition-colors hover:bg-white/[0.015]"
+            <div key={ev.id ?? i} className="border-b border-white/[0.04]">
+            <div
+              className="group relative flex items-center gap-2 pr-4 transition-colors hover:bg-white/[0.015] cursor-pointer"
+              onClick={() => setExpandedId(isExpanded ? null : ev.id)}
               style={{
                 paddingLeft: "14px", paddingTop: "11px", paddingBottom: "11px",
                 background: isActive ? "rgba(16,185,129,0.055)" : undefined,
@@ -146,7 +173,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
               )}
               {/* Session ID — clickable */}
               {ev.session_id && (
-                <button onClick={() => onTraceSession(ev.session_id)}
+                <button onClick={e => { e.stopPropagation(); onTraceSession(ev.session_id); }}
                   className="text-[8px] font-mono shrink-0 tabular-nums transition-colors hover:opacity-80"
                   style={{ color: isActive ? "#10b981" : "#4b5563" }}>
                   {ev.session_id.slice(0, 8)}
@@ -159,7 +186,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
               </span>
               {/* Trace button — visible on hover only */}
               {ev.session_id && (
-                <button onClick={() => onTraceSession(ev.session_id)}
+                <button onClick={e => { e.stopPropagation(); onTraceSession(ev.session_id); }}
                   className="text-[9px] shrink-0 px-1.5 py-[2px] rounded border transition-all opacity-0 group-hover:opacity-100"
                   style={isActive
                     ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
@@ -167,6 +194,8 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
                   trace
                 </button>
               )}
+            </div>
+            {isExpanded && <EventDetail ev={ev}/>}
             </div>
           );
         })}

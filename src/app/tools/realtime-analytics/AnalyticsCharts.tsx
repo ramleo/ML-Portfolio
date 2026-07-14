@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 export interface PerMinute { minute: string; count: number; }
 export interface TopPage   { path: string;   count: number; }
 export interface ByType    { type: string;   count: number; }
@@ -13,8 +15,9 @@ function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
 }
 
-// ── Sparkline with anomaly markers ────────────────────────────────────────────
+// ── Sparkline with anomaly markers + hover tooltip ────────────────────────────
 export function Sparkline({ data }: { data: PerMinute[] }) {
+  const [tip, setTip] = useState<{ x: number; y: number; minute: string; count: number } | null>(null);
   if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No data yet</div>;
   const W = 480, H = 80, PL = 32, PR = 8, PT = 8, PB = 20;
   const iW = W - PL - PR, iH = H - PT - PB;
@@ -26,15 +29,14 @@ export function Sparkline({ data }: { data: PerMinute[] }) {
   });
   const area = `M${pts[0].x},${pts[0].y} L${pts.map(p => `${p.x},${p.y}`).join(" L")} L${PL + iW},${PT + iH} L${PL},${PT + iH} Z`;
   const line = `M${pts.map(p => `${p.x},${p.y}`).join(" L")}`;
-
-  // Anomaly detection: mean + 2σ
   const counts = data.map(d => d.count);
   const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
   const std = Math.sqrt(counts.reduce((a, b) => a + (b - mean) ** 2, 0) / counts.length);
   const threshold = mean + 2 * std;
+  const colW = data.length > 1 ? iW / (data.length - 1) : iW;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setTip(null)}>
       <defs>
         <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#10b981" stopOpacity="0.25"/>
@@ -57,6 +59,28 @@ export function Sparkline({ data }: { data: PerMinute[] }) {
       ) : null)}
       <text x={PL} y={H-4} fontSize="8" fill="#6b7280">{data[0]?.minute}</text>
       <text x={PL+iW} y={H-4} textAnchor="end" fontSize="8" fill="#6b7280">{data[data.length-1]?.minute}</text>
+      {/* Hover capture rects */}
+      {pts.map((p, i) => (
+        <rect key={i} x={p.x - colW / 2} y={PT} width={colW} height={iH}
+          fill="transparent"
+          onMouseEnter={() => setTip({ x: p.x, y: p.y, minute: p.minute, count: p.count })}/>
+      ))}
+      {/* Tooltip */}
+      {tip && (() => {
+        const TW = 90, TH = 16;
+        const tx = Math.min(Math.max(tip.x - TW / 2, PL), PL + iW - TW);
+        const ty = Math.max(tip.y - TH - 6, PT);
+        return (
+          <g pointerEvents="none">
+            <line x1={tip.x} y1={tip.y} x2={tip.x} y2={PT + iH} stroke="#10b981" strokeWidth="0.75" strokeDasharray="2 2" opacity="0.4"/>
+            <circle cx={tip.x} cy={tip.y} r="3" fill="#10b981"/>
+            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
+            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">
+              {tip.minute} · {tip.count} events
+            </text>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -181,6 +205,32 @@ export function FunnelChart({ data }: { data: Funnel }) {
   );
 }
 
+// ── Tool comparison bar ───────────────────────────────────────────────────────
+export function ToolComparisonBar({ data }: { data: TopPage[] }) {
+  const tools = data.filter(d => d.path.startsWith("/tools/")).slice(0, 6);
+  if (!tools.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No tool data yet</div>;
+  const COLORS = ["#10b981","#6366f1","#f59e0b","#ec4899","#8b5cf6","#14b8a6"];
+  const max = Math.max(...tools.map(d => d.count), 1);
+  const ROW = 24, W = 480, PL = 110, PR = 48, PT = 4;
+  const svgH = PT + tools.length * ROW;
+  return (
+    <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
+      {tools.map((d, i) => {
+        const y = PT + i * ROW;
+        const bW = Math.max((d.count / max) * (W - PL - PR), 4);
+        const label = d.path.replace("/tools/", "");
+        return (
+          <g key={i}>
+            <text x={PL - 6} y={y + 15} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
+            <rect x={PL} y={y + 4} width={bW} height={15} rx="3" fill={COLORS[i % COLORS.length]} opacity="0.8"/>
+            <text x={PL + bW + 5} y={y + 15} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 // ── Geo map (equirectangular, country dots) ───────────────────────────────────
 const CENTROIDS: Record<string, [number, number]> = {
   US:[37,-95],IN:[20,78],CN:[35,104],GB:[55,-3],DE:[51,10],FR:[46,2],JP:[36,138],
@@ -194,14 +244,14 @@ const CENTROIDS: Record<string, [number, number]> = {
 };
 
 export function GeoMap({ data }: { data: Country[] }) {
+  const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const W = 480, H = 130;
   const toX = (lon: number) => ((lon + 180) / 360) * W;
   const toY = (lat: number) => ((90 - lat) / 180) * H;
   const max = Math.max(...data.map(d => d.count), 1);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setTip(null)}>
       <rect width={W} height={H} fill="#0a0f1e" rx="6"/>
-      {/* Grid lines */}
       {[-60,-30,0,30,60].map(lat => (
         <line key={lat} x1={0} y1={toY(lat)} x2={W} y2={toY(lat)} stroke="#ffffff07" strokeWidth="0.5"/>
       ))}
@@ -212,16 +262,30 @@ export function GeoMap({ data }: { data: Country[] }) {
         const c = CENTROIDS[d.country];
         if (!c) return null;
         const r = 3 + (d.count / max) * 8;
+        const cx = toX(c[1]), cy = toY(c[0]);
         return (
-          <g key={d.country}>
-            <circle cx={toX(c[1])} cy={toY(c[0])} r={r} fill="#10b981" fillOpacity="0.6" stroke="#10b981" strokeWidth="0.5" strokeOpacity="0.4"/>
-            <text x={toX(c[1])} y={toY(c[0]) - r - 2} textAnchor="middle" fontSize="6" fill="#6b7280">{d.country}</text>
+          <g key={d.country}
+            onMouseEnter={() => setTip({ x: cx, y: cy - r - 4, label: `${d.country} · ${d.count}` })}
+            className="cursor-default">
+            <circle cx={cx} cy={cy} r={r} fill="#10b981" fillOpacity="0.6" stroke="#10b981" strokeWidth="0.5" strokeOpacity="0.4"/>
+            <text x={cx} y={cy - r - 2} textAnchor="middle" fontSize="6" fill="#6b7280">{d.country}</text>
           </g>
         );
       })}
       {data.length === 0 && (
         <text x={W/2} y={H/2} textAnchor="middle" fontSize="10" fill="#374151">No geo data yet</text>
       )}
+      {tip && (() => {
+        const TW = 70, TH = 16;
+        const tx = Math.min(Math.max(tip.x - TW / 2, 2), W - TW - 2);
+        const ty = Math.max(tip.y - TH, 2);
+        return (
+          <g pointerEvents="none">
+            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
+            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">{tip.label}</text>
+          </g>
+        );
+      })()}
     </svg>
   );
 }

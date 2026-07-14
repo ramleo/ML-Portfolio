@@ -13,7 +13,7 @@ export async function GET() {
     const supabase = getClient();
     const { data, error } = await supabase
       .from("events")
-      .select("id, created_at, type, path, country, session_id, duration_ms")
+      .select("id, created_at, type, path, country, session_id, duration_ms, meta, referrer")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

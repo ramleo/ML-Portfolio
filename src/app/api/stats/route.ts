@@ -162,6 +162,34 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => b.total_count - a.total_count);
 
+    // Previous period count (same duration, shifted back) for trend delta
+    const rangeMs = (end ? new Date(end).getTime() : Date.now()) - new Date(start).getTime();
+    const prevStart = new Date(new Date(start).getTime() - rangeMs).toISOString();
+    const prevEnd   = new Date(start).toISOString();
+    const { count: prev_period_count } = await supabase
+      .from("events").select("id", { count: "exact", head: true })
+      .gte("created_at", prevStart).lt("created_at", prevEnd);
+
+    // 7-day hourly heatmap (always fixed window, independent of range)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: heatmapRows } = await supabase
+      .from("events").select("created_at").gte("created_at", sevenDaysAgo);
+    const heatMap: Record<string, number> = {};
+    for (const e of heatmapRows ?? []) {
+      const d = new Date(e.created_at);
+      const key = `${d.getUTCDay()}-${d.getUTCHours()}`;
+      heatMap[key] = (heatMap[key] ?? 0) + 1;
+    }
+    const heatmap = Object.entries(heatMap).map(([k, count]) => {
+      const [day, hour] = k.split("-").map(Number);
+      return { day, hour, count };
+    });
+    const hourTotals: Record<number, number> = {};
+    for (const { hour, count } of heatmap) hourTotals[hour] = (hourTotals[hour] ?? 0) + count;
+    const peak_hour = Object.keys(hourTotals).length > 0
+      ? Number(Object.entries(hourTotals).sort(([,a],[,b]) => b - a)[0][0])
+      : null;
+
     return NextResponse.json({
       active_now, is_range, today_count: events.length,
       per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
@@ -169,6 +197,9 @@ export async function GET(req: NextRequest) {
       bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
       query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
       query_by_tool,
+      prev_period_count: prev_period_count ?? 0,
+      heatmap,
+      peak_hour,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

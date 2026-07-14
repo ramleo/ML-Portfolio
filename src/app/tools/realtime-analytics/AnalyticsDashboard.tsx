@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap } from "./AnalyticsCharts";
+import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar } from "./AnalyticsCharts";
+import AnalyticsHeatmap from "./AnalyticsHeatmap";
 import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer } from "./AnalyticsCharts";
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
@@ -38,6 +39,9 @@ interface Stats {
   query_success_count: number;
   query_total_count: number;
   query_by_tool: { path: string; success_count: number; total_count: number; success_rate: number }[];
+  prev_period_count: number;
+  heatmap: { day: number; hour: number; count: number }[];
+  peak_hour: number | null;
 }
 
 function formatDuration(ms: number): string {
@@ -48,18 +52,38 @@ function formatDuration(ms: number): string {
 }
 
 
-function StatCard({ label, value, live, suffix, raw, sub }: { label: string; value: string | number; live?: boolean; suffix?: string; raw?: string; sub?: string }) {
+function StatCard({ label, value, live, suffix, raw, sub, trend }: {
+  label: string; value: string | number; live?: boolean;
+  suffix?: string; raw?: string; sub?: string; trend?: number | null;
+}) {
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
       <div className="flex items-center gap-2 mb-1">
         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">{label}</p>
         {live && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>}
+        {trend != null && (
+          <span className="ml-auto text-[9px] font-semibold px-1.5 py-[1px] rounded-full tabular-nums"
+            style={trend >= 0
+              ? { background: "rgba(16,185,129,0.12)", color: "#10b981" }
+              : { background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
+            {trend >= 0 ? "↑" : "↓"}{Math.abs(trend)}%
+          </span>
+        )}
       </div>
       <p className="text-2xl font-bold text-white tabular-nums">
         {raw ?? (typeof value === "number" ? value.toLocaleString() : value)}
         {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
       </p>
       {sub && <p className="text-[10px] text-gray-600 mt-1 tabular-nums">{sub}</p>}
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4 animate-pulse">
+      <div className="h-2.5 w-20 rounded bg-white/[0.06] mb-3"/>
+      <div className="h-7 w-16 rounded bg-white/[0.08]"/>
     </div>
   );
 }
@@ -98,6 +122,15 @@ export default function AnalyticsDashboard() {
       .then(s => setStats(s))
       .catch(err => setError(err.message));
   }, [configured, range, customRange]);
+
+  // Auto-refresh stats every 60s when on "today"
+  useEffect(() => {
+    if (range !== "today" || !configured) return;
+    const id = setInterval(() => {
+      fetch("/api/stats?range=today").then(r => r.json()).then(s => setStats(s)).catch(() => {});
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [range, configured]);
 
   // Realtime subscription
   useEffect(() => {
@@ -167,11 +200,11 @@ export default function AnalyticsDashboard() {
   );
 
   if (loading) return (
-    <div className="max-w-7xl mx-auto px-4 py-12 flex items-center gap-2 text-gray-500 text-sm">
-      <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28 56" strokeLinecap="round"/>
-      </svg>
-      Loading analytics…
+    <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">{Array.from({length:5}).map((_,i) => <SkeletonCard key={i}/>)}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {[0,1].map(i => <div key={i} className="rounded-xl border border-white/8 bg-white/[0.03] p-4 animate-pulse h-32"/>)}
+      </div>
     </div>
   );
 
@@ -180,6 +213,12 @@ export default function AnalyticsDashboard() {
   );
 
   const qsr = stats?.query_success_rate;
+  const trend = (stats?.prev_period_count ?? 0) > 0
+    ? Math.round(((stats!.today_count - stats!.prev_period_count) / stats!.prev_period_count) * 100)
+    : null;
+  const peakHour = stats?.peak_hour != null
+    ? `${stats.peak_hour}:00–${(stats.peak_hour + 1) % 24}:00`
+    : null;
   const rangeLabel = range === "custom" && customRange
     ? customRange.start === customRange.end ? customRange.start : `${customRange.start} → ${customRange.end}`
     : RANGE_LABELS[range].toLowerCase();
@@ -238,7 +277,7 @@ export default function AnalyticsDashboard() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
-        <StatCard label="Total Events" value={stats?.today_count ?? 0}/>
+        <StatCard label="Total Events" value={stats?.today_count ?? 0} trend={trend}/>
         <StatCard label="Avg Duration" value={0}
           raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
           sub={stats?.avg_session_duration_ms != null ? "per tool visit" : "no tool_close data yet"}/>
@@ -253,7 +292,15 @@ export default function AnalyticsDashboard() {
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">{sparklineLabel}</p>
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">{sparklineLabel}</p>
+            {peakHour && (
+              <span className="ml-auto text-[9px] px-2 py-[2px] rounded-full"
+                style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
+                Peak {peakHour}
+              </span>
+            )}
+          </div>
           <Sparkline data={stats?.per_minute ?? []}/>
         </div>
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
@@ -279,6 +326,22 @@ export default function AnalyticsDashboard() {
         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Top Referrers — {rangeLabel}</p>
         <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
+
+      {/* Hourly heatmap — last 7 days */}
+      {(stats?.heatmap ?? []).length > 0 && (
+        <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Activity Heatmap — Last 7 Days</p>
+          <AnalyticsHeatmap data={stats!.heatmap}/>
+        </div>
+      )}
+
+      {/* Tool comparison */}
+      {(stats?.top_pages ?? []).some(p => p.path.startsWith("/tools/")) && (
+        <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Tool Usage Comparison — {rangeLabel}</p>
+          <ToolComparisonBar data={stats?.top_pages ?? []}/>
+        </div>
+      )}
 
       {/* Per-tool Query Success Rate — only shown when query_run data exists */}
       {(stats?.query_by_tool ?? []).length > 0 && (
