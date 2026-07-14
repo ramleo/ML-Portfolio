@@ -63,7 +63,7 @@ function EventDetail({ ev }: { ev: FeedEvent }) {
 export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }: Props) {
   const [typeFilter, setTypeFilter]       = useState<string | null>(null);
   const [countryFilter, setCountryFilter] = useState<string | null>(null);
-  const [expandedId, setExpandedId]       = useState<number | null>(null);
+  const [expandedId, setExpandedId]       = useState<string | null>(null);
 
   const types     = [...new Set(feed.map(e => e.type))];
   const countries = [...new Set(feed.map(e => e.country).filter(Boolean))];
@@ -127,8 +127,9 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
         {filtered.length === 0 && <p className="text-xs text-gray-600 px-4 py-3">{feed.length === 0 ? "Waiting for events…" : "No events match filter."}</p>}
         {filtered.map((ev, i) => {
           const color = TYPE_DOT[ev.type] ?? "#6b7280";
+          const evKey = `${ev.session_id}:${ev.created_at}`;
           const isActive = selectedSid === ev.session_id;
-          const isExpanded = expandedId === ev.id;
+          const isExpanded = expandedId === evKey;
           const isToolPath = ev.path?.startsWith("/tools/");
           const toolName = isToolPath ? ev.path.replace("/tools/", "") : (ev.path || "/");
           const showDur = ev.type === "tool_close" && (ev.duration_ms ?? 0) > 0;
@@ -136,7 +137,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
             <div key={ev.id ?? i} className="border-b border-white/[0.04]">
             <div
               className="group relative flex items-center gap-2 pr-4 transition-colors hover:bg-white/[0.015] cursor-pointer"
-              onClick={() => setExpandedId(isExpanded ? null : ev.id)}
+              onClick={() => setExpandedId(isExpanded ? null : evKey)}
               style={{
                 paddingLeft: "14px", paddingTop: "11px", paddingBottom: "11px",
                 background: isActive ? "rgba(16,185,129,0.055)" : undefined,
