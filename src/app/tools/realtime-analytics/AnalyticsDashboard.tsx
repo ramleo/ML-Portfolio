@@ -47,6 +47,8 @@ interface Stats {
   error_count: number;
   device_breakdown: { device: string; count: number }[];
   returning_pct: number | null;
+  avg_query_length: number | null;
+  avg_queries_per_session: number | null;
 }
 
 
@@ -249,13 +251,15 @@ export default function AnalyticsDashboard() {
         <StatCard label="Total Events" value={stats?.today_count ?? 0} trend={trend}/>
         <StatCard label="Avg Duration" value={0}
           raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
-          sub={stats?.avg_session_duration_ms != null ? "per tool visit" : "no tool_close data yet"}/>
+          sub={stats?.avg_session_duration_ms != null
+            ? `per visit${stats.avg_queries_per_session != null ? ` · ${stats.avg_queries_per_session} queries/session` : ""}`
+            : "no tool_close data yet"}/>
         <StatCard label="Bounce Rate" value={0}
           raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
           sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
         <StatCard label="Query Success" value={0}
           raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors` : undefined}/>
+          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors${stats.avg_query_length != null ? ` · avg ${stats.avg_query_length}ch` : ""}` : undefined}/>
       </div>
 
       {/* Sparkline + Funnel */}
@@ -343,6 +347,21 @@ export default function AnalyticsDashboard() {
         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Provider Usage — {rangeLabel}</p>
         <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
       </div>
+
+      {/* Error Rate + User Actions */}
+      {(() => {
+        const copyCount   = (stats?.by_type ?? []).find(t => t.type === "copy")?.count ?? 0;
+        const exportCount = (stats?.by_type ?? []).find(t => t.type === "export")?.count ?? 0;
+        const errRate     = (stats?.query_total_count ?? 0) > 0
+          ? Math.round(((stats?.error_count ?? 0) / stats!.query_total_count) * 100) : 0;
+        return (
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard label="Error Rate" raw={`${errRate}%`} value={0} sub={`${stats?.error_count ?? 0} failed queries`}/>
+            <StatCard label="SQL Copies" value={copyCount} sub="copy events — SQL tool"/>
+            <StatCard label="CSV Exports" value={exportCount} sub="export events — analytics"/>
+          </div>
+        );
+      })()}
 
       {/* Donut + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

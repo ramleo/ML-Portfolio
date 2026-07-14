@@ -162,6 +162,18 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => b.total_count - a.total_count);
 
+    // Avg query length (chars) from query_run meta
+    const queryLengths = queryRuns.map(e => Number(e.meta?.query_length)).filter(n => n > 0 && !isNaN(n));
+    const avg_query_length = queryLengths.length > 0
+      ? Math.round(queryLengths.reduce((a, b) => a + b, 0) / queryLengths.length)
+      : null;
+
+    // Avg queries per session from tool_close meta
+    const toolClosesWithCount = events.filter(e => e.type === "tool_close" && typeof e.meta?.queries_run === "number");
+    const avg_queries_per_session = toolClosesWithCount.length > 0
+      ? Math.round((toolClosesWithCount.reduce((s, e) => s + Number(e.meta!.queries_run), 0) / toolClosesWithCount.length) * 10) / 10
+      : null;
+
     // Provider breakdown from query_run meta
     const providerMap: Record<string, number> = {};
     for (const e of queryRuns) {
@@ -231,6 +243,8 @@ export async function GET(req: NextRequest) {
       error_count,
       device_breakdown,
       returning_pct,
+      avg_query_length,
+      avg_queries_per_session,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
