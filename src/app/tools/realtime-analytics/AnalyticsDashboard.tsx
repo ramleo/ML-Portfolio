@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useState, useEffect, useCallback } from "react";
 import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar, ModelBreakdownBar } from "./AnalyticsCharts";
+import { DeviceDonut } from "./AnalyticsDeviceDonut";
+import { useRealtimeFeed } from "./useRealtimeFeed";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
 import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat, ModelStat } from "./AnalyticsCharts";
 import { StatCard, SkeletonCard, formatDuration, EngagementRow } from "./AnalyticsStatCard";
@@ -100,45 +101,10 @@ export default function AnalyticsDashboard() {
   }, [range, configured]);
 
   // Realtime subscription
-  useEffect(() => {
-    if (!configured) return;
-    const supabase = createClient(SB_URL, SB_KEY);
-    const channel = supabase
-      .channel("events-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "events" },
-        (payload) => {
-          const ev = payload.new as FeedEvent;
-          setFeed(prev => [ev, ...prev].slice(0, 50));
-          if (range !== "today") return;
-          setStats(prev => {
-            if (!prev) return prev;
-            const hour = new Date().toISOString().slice(11, 13) + ":00";
-            const pm = [...prev.per_minute];
-            const mi = pm.findIndex(m => m.minute === hour);
-            if (mi >= 0) pm[mi] = { ...pm[mi], count: pm[mi].count + 1 };
-            else pm.push({ minute: hour, count: 1 });
-            const tp = [...prev.top_pages];
-            if (ev.path) {
-              const pi = tp.findIndex(p => p.path === ev.path);
-              if (pi >= 0) tp[pi] = { ...tp[pi], count: tp[pi].count + 1 };
-              else tp.push({ path: ev.path, count: 1 });
-              tp.sort((a, b) => b.count - a.count);
-            }
-            const bt = [...prev.by_type];
-            const ti = bt.findIndex(t => t.type === ev.type);
-            if (ti >= 0) bt[ti] = { ...bt[ti], count: bt[ti].count + 1 };
-            else bt.push({ type: ev.type, count: 1 });
-            const fn = { ...prev.funnel };
-            if (ev.type === "page_view") fn.page_view++;
-            else if (ev.type === "tool_open") fn.tool_open++;
-            else if (ev.type === "query_run") fn.query_run++;
-            return { ...prev, today_count: prev.today_count + 1,
-              per_minute: pm.slice(-30), top_pages: tp.slice(0, 10), by_type: bt, funnel: fn };
-          });
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [configured, range]);
+  const realtimeSetFeed = useCallback((updater: (prev: FeedEvent[]) => FeedEvent[]) => setFeed(updater), []);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const realtimeSetStats = useCallback((updater: (prev: any) => any) => setStats(updater), []);
+  useRealtimeFeed({ configured, sbUrl: SB_URL, sbKey: SB_KEY, range, setFeed: realtimeSetFeed, setStats: realtimeSetStats });
 
   const openSession = async (sid: string) => {
     if (selectedSid === sid) { setSid(null); setSessError(null); return; }
@@ -372,11 +338,13 @@ export default function AnalyticsDashboard() {
         export_conversion_pct={stats?.export_conversion_pct ?? null}
       />
 
-      {/* Donut + Live feed */}
+      {/* Donuts + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Events by Type</p>
           <TypeDonut data={stats?.by_type ?? []}/>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mt-4 mb-2">Device Split</p>
+          <DeviceDonut data={stats?.device_breakdown ?? []}/>
         </div>
         <AnalyticsLiveFeed feed={feed} selectedSid={selectedSid} onTraceSession={openSession}/>
       </div>
