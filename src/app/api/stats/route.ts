@@ -162,6 +162,33 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => b.total_count - a.total_count);
 
+    // Provider breakdown from query_run meta
+    const providerMap: Record<string, number> = {};
+    for (const e of queryRuns) {
+      const p = typeof e.meta?.provider === "string" ? e.meta.provider : null;
+      if (p) providerMap[p] = (providerMap[p] ?? 0) + 1;
+    }
+    const provider_breakdown = Object.entries(providerMap)
+      .sort(([, a], [, b]) => b - a)
+      .map(([provider, count]) => ({ provider, count }));
+
+    // Error events count
+    const error_count = events.filter(e => e.type === "error").length;
+
+    // Device breakdown + returning visitor rate from page_view meta
+    const deviceMap: Record<string, number> = {};
+    let returningSum = 0, newVisitorSum = 0;
+    for (const e of events.filter(ev => ev.type === "page_view")) {
+      const d = typeof e.meta?.device === "string" ? e.meta.device : null;
+      if (d) deviceMap[d] = (deviceMap[d] ?? 0) + 1;
+      if (e.meta?.returning === true) returningSum++;
+      else if (e.meta?.returning === false) newVisitorSum++;
+    }
+    const device_breakdown = Object.entries(deviceMap).sort(([, a], [, b]) => b - a).map(([device, count]) => ({ device, count }));
+    const returning_pct = (returningSum + newVisitorSum) > 0
+      ? Math.round((returningSum / (returningSum + newVisitorSum)) * 100)
+      : null;
+
     // Previous period count (same duration, shifted back) for trend delta
     const rangeMs = (end ? new Date(end).getTime() : Date.now()) - new Date(start).getTime();
     const prevStart = new Date(new Date(start).getTime() - rangeMs).toISOString();
@@ -200,6 +227,10 @@ export async function GET(req: NextRequest) {
       prev_period_count: prev_period_count ?? 0,
       heatmap,
       peak_hour,
+      provider_breakdown,
+      error_count,
+      device_breakdown,
+      returning_pct,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

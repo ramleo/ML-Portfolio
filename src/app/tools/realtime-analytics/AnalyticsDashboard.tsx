@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar } from "./AnalyticsCharts";
+import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar } from "./AnalyticsCharts";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
-import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer } from "./AnalyticsCharts";
+import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat } from "./AnalyticsCharts";
+import { StatCard, SkeletonCard, formatDuration } from "./AnalyticsStatCard";
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
 import AnalyticsLiveFeed from "./AnalyticsLiveFeed";
@@ -42,51 +43,12 @@ interface Stats {
   prev_period_count: number;
   heatmap: { day: number; hour: number; count: number }[];
   peak_hour: number | null;
+  provider_breakdown: ProviderStat[];
+  error_count: number;
+  device_breakdown: { device: string; count: number }[];
+  returning_pct: number | null;
 }
 
-function formatDuration(ms: number): string {
-  if (ms < 60_000) return `${Math.round(ms / 1000)}s`;
-  const m = Math.floor(ms / 60_000);
-  const s = Math.round((ms % 60_000) / 1000);
-  return s > 0 ? `${m}m ${s}s` : `${m}m`;
-}
-
-
-function StatCard({ label, value, live, suffix, raw, sub, trend }: {
-  label: string; value: string | number; live?: boolean;
-  suffix?: string; raw?: string; sub?: string; trend?: number | null;
-}) {
-  return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-      <div className="flex items-center gap-2 mb-1">
-        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">{label}</p>
-        {live && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>}
-        {trend != null && (
-          <span className="ml-auto text-[9px] font-semibold px-1.5 py-[1px] rounded-full tabular-nums"
-            style={trend >= 0
-              ? { background: "rgba(16,185,129,0.12)", color: "#10b981" }
-              : { background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
-            {trend >= 0 ? "↑" : "↓"}{Math.abs(trend)}%
-          </span>
-        )}
-      </div>
-      <p className="text-2xl font-bold text-white tabular-nums">
-        {raw ?? (typeof value === "number" ? value.toLocaleString() : value)}
-        {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
-      </p>
-      {sub && <p className="text-[10px] text-gray-600 mt-1 tabular-nums">{sub}</p>}
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4 animate-pulse">
-      <div className="h-2.5 w-20 rounded bg-white/[0.06] mb-3"/>
-      <div className="h-7 w-16 rounded bg-white/[0.08]"/>
-    </div>
-  );
-}
 
 export default function AnalyticsDashboard() {
   const [range, setRange]          = useState<Range>("today");
@@ -266,6 +228,12 @@ export default function AnalyticsDashboard() {
             ? `/api/events/export?start=${customRange.start}&end=${customRange.end}`
             : `/api/events/export?range=${range}`}
           download
+          onClick={() => {
+            const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+            fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ type: "export", path: "/tools/realtime-analytics", session_id: sid, meta: { format: "csv", range } }),
+            }).catch(() => {});
+          }}
           className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-white/20"
           style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
           Export CSV
@@ -276,17 +244,18 @@ export default function AnalyticsDashboard() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}/>
+        <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}
+          sub={(stats?.device_breakdown ?? []).length > 0 ? stats!.device_breakdown.map(d => `${d.count} ${d.device}`).join(" · ") : undefined}/>
         <StatCard label="Total Events" value={stats?.today_count ?? 0} trend={trend}/>
         <StatCard label="Avg Duration" value={0}
           raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
           sub={stats?.avg_session_duration_ms != null ? "per tool visit" : "no tool_close data yet"}/>
         <StatCard label="Bounce Rate" value={0}
           raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
-          sub={stats ? `${stats.bounce_session_count ?? 0} / ${stats.total_session_count ?? 0} sessions` : undefined}/>
+          sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
         <StatCard label="Query Success" value={0}
           raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-          sub={stats ? `${stats.query_success_count ?? 0} / ${stats.query_total_count ?? 0} queries` : undefined}/>
+          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries${(stats.error_count ?? 0) > 0 ? ` · ${stats.error_count} errors` : ""}` : undefined}/>
       </div>
 
       {/* Sparkline + Funnel */}
@@ -366,6 +335,14 @@ export default function AnalyticsDashboard() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* AI Provider usage — only when query_run data with provider exists */}
+      {(stats?.provider_breakdown ?? []).length > 0 && (
+        <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Provider Usage — {rangeLabel}</p>
+          <ProviderBreakdownBar data={stats!.provider_breakdown}/>
         </div>
       )}
 

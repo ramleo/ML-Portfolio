@@ -15,6 +15,7 @@ import WalkthroughTooltip from "./WalkthroughTooltip";
 import type { Provider, HistoryTurn, SchemaTable, Results, ResultTab } from "./_types";
 import { getCorrection } from "./_corrections";
 import { SAMPLE_QUESTIONS } from "./_types";
+import { incrementQueryCount } from "@/hooks/useAnalytics";
 
 const ACCENT = "#6366f1";
 
@@ -204,15 +205,19 @@ export default function TextToSqlRunner() {
               patchTab(tabId, { results: evt, totalCount: evt.total_count ?? -1 });
               setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`);
               const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
+              incrementQueryCount("text-to-sql");
               fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { rows: evt.count, provider, success: true } }),
+                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { rows: evt.count, provider, success: true, query_length: activeQ.length } }),
               }).catch(() => {});
             }
             else if (evt.type === "error") {
               patchTab(tabId, { error: evt.text });
               const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
               fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { provider, success: false } }),
+                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { provider, success: false, query_length: activeQ.length } }),
+              }).catch(() => {});
+              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "error", path: "/tools/text-to-sql", session_id: sid, meta: { tool: "text-to-sql", message: (evt.text ?? "").slice(0, 120) } }),
               }).catch(() => {});
             }
             else if (evt.type === "done")  setRunning(false);
@@ -266,6 +271,10 @@ export default function TextToSqlRunner() {
     if (!activeTab?.sql) return;
     navigator.clipboard.writeText(activeTab.sql);
     setCopied(true); setTimeout(() => setCopied(false), 1500);
+    const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+    fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "copy", path: "/tools/text-to-sql", session_id: sid, meta: { tool: "text-to-sql", content_type: "sql" } }),
+    }).catch(() => {});
   }, [activeTab]);
 
   const changePage = useCallback(async (page: number) => {

@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 
-export interface PerMinute { minute: string; count: number; }
-export interface TopPage   { path: string;   count: number; }
-export interface ByType    { type: string;   count: number; }
-export interface Country   { country: string; count: number; }
-export interface Funnel    { page_view: number; tool_open: number; query_run: number; }
-export interface Referrer  { referrer: string; count: number; }
+export interface PerMinute    { minute: string; count: number; }
+export interface TopPage      { path: string;   count: number; }
+export interface ByType       { type: string;   count: number; }
+export interface Country      { country: string; count: number; }
+export interface Funnel       { page_view: number; tool_open: number; query_run: number; }
+export interface Referrer     { referrer: string; count: number; }
+export interface ProviderStat { provider: string; count: number; }
 
 const P = ["#6366f1","#10b981","#f59e0b","#8b5cf6","#ef4444","#ec4899","#14b8a6","#f97316"];
 
@@ -236,6 +237,35 @@ export function ToolComparisonBar({ data }: { data: TopPage[] }) {
             <text x={PL - 6} y={y + 15} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
             <rect x={PL} y={y + 4} width={bW} height={15} rx="3" fill={COLORS[i % COLORS.length]} opacity="0.8"/>
             <text x={PL + bW + 5} y={y + 15} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Provider breakdown bar ────────────────────────────────────────────────────
+const PROVIDER_COLORS: Record<string, string> = {
+  groq: "#10b981", openai: "#6366f1", anthropic: "#f59e0b",
+  cohere: "#ec4899", mistral: "#8b5cf6",
+};
+
+export function ProviderBreakdownBar({ data }: { data: ProviderStat[] }) {
+  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-gray-600">No query data yet</div>;
+  const max = Math.max(...data.map(d => d.count), 1);
+  const ROW = 22, W = 480, PL = 80, PR = 48, PT = 4;
+  const svgH = PT + data.length * ROW;
+  return (
+    <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
+      {data.map((d, i) => {
+        const y = PT + i * ROW;
+        const bW = Math.max((d.count / max) * (W - PL - PR), 4);
+        const color = PROVIDER_COLORS[d.provider.toLowerCase()] ?? "#6b7280";
+        return (
+          <g key={i}>
+            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="#9ca3af">{d.provider}</text>
+            <rect x={PL} y={y + 3} width={bW} height={13} rx="3" fill={color} opacity="0.8"/>
+            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
           </g>
         );
       })}
