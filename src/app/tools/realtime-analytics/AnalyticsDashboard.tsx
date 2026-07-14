@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar } from "./AnalyticsCharts";
+import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar, ModelBreakdownBar } from "./AnalyticsCharts";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
-import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat } from "./AnalyticsCharts";
+import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat, ModelStat } from "./AnalyticsCharts";
 import { StatCard, SkeletonCard, formatDuration } from "./AnalyticsStatCard";
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
@@ -44,6 +44,7 @@ interface Stats {
   heatmap: { day: number; hour: number; count: number }[];
   peak_hour: number | null;
   provider_breakdown: ProviderStat[];
+  model_breakdown: ModelStat[];
   error_count: number;
   device_breakdown: { device: string; count: number }[];
   returning_pct: number | null;
@@ -343,10 +344,19 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* AI Provider usage — always visible */}
+      {/* AI Provider + Model usage — always visible */}
       <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Provider Usage — {rangeLabel}</p>
-        <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
+        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">AI Model Usage — {rangeLabel}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <p className="text-[9px] text-gray-600 uppercase tracking-wider mb-2">By Provider</p>
+            <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
+          </div>
+          <div>
+            <p className="text-[9px] text-gray-600 uppercase tracking-wider mb-2">By Model</p>
+            <ModelBreakdownBar data={stats?.model_breakdown ?? []}/>
+          </div>
+        </div>
       </div>
 
       {/* Error Rate + User Actions */}

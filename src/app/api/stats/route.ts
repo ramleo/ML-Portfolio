@@ -194,6 +194,16 @@ export async function GET(req: NextRequest) {
       .sort(([, a], [, b]) => b - a)
       .map(([provider, count]) => ({ provider, count }));
 
+    // Model breakdown from query_run meta
+    const modelMap: Record<string, number> = {};
+    for (const e of queryRuns) {
+      const m = typeof e.meta?.model === "string" ? e.meta.model : null;
+      if (m) modelMap[m] = (modelMap[m] ?? 0) + 1;
+    }
+    const model_breakdown = Object.entries(modelMap)
+      .sort(([, a], [, b]) => b - a)
+      .map(([model, count]) => ({ model, count }));
+
     // Error events count
     const error_count = events.filter(e => e.type === "error").length;
 
@@ -250,6 +260,7 @@ export async function GET(req: NextRequest) {
       heatmap,
       peak_hour,
       provider_breakdown,
+      model_breakdown,
       error_count,
       device_breakdown,
       returning_pct,
