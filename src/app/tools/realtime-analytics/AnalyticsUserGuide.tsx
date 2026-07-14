@@ -119,7 +119,7 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
               {[
                 { tag: "#10b981", label: "Active Now", desc: "Sessions that sent an event in the last 5 minutes. Today range only — switches to Unique Sessions for all other ranges." },
                 { tag: "#6366f1", label: "Unique Sessions", desc: "Distinct anonymous session IDs in the selected range. One session = one browser. Shown for Yesterday, 7 days, 30 days, and Custom." },
-                { tag: "#f59e0b", label: "Total Events", desc: "Count of all event records in the selected range across all event types." },
+                { tag: "#f59e0b", label: "Total Events", desc: "Count of all event records in the selected range. Shows a ↑/↓% trend badge comparing against the equivalent previous period (e.g. yesterday when viewing Today)." },
                 { tag: "#14b8a6", label: "Avg Duration", desc: "Average time a visitor spent in a tool before navigating away — computed from tool_close events which carry a duration_ms field. Shows — until tool_close events are collected in the range." },
                 { tag: "#ef4444", label: "Bounce Rate", desc: "Percentage of sessions that produced exactly 1 event — the visitor loaded a page and left without any further interaction. Lower is better. Sub-line shows bounced / total sessions." },
                 { tag: "#8b5cf6", label: "Query Success", desc: "Percentage of query_run events where success: true was recorded. Only the Text-to-SQL tool fires query_run events — visiting Preprocessing, Feature Engineering, or other ML tools does not count. Shows — if no SQL queries have been run yet in the range." },
@@ -137,7 +137,12 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
             <Feature
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1 10l3-4 3 2 3-5 3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               title="Area chart"
-              desc="Shows event volume over time. Buckets by UTC hour for Today / Yesterday / single custom day. Buckets by calendar date for 7 days / 30 days / multi-day custom range."
+              desc="Shows event volume over time. Buckets by UTC hour for Today / Yesterday / single custom day. Buckets by calendar date for 7 days / 30 days / multi-day custom range. Hover any point to see the exact bucket label and count in a tooltip."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="7" cy="7" r="3" stroke="currentColor" strokeWidth="1.3"/></svg>}
+              title="Peak hour badge"
+              desc="A green pill in the top-right of the sparkline card shows the single busiest hour across the last 7 days (e.g. Peak 14:00–15:00). Computed independently of the range selector — always based on the trailing 7-day window."
             />
             <div className="flex items-start gap-2 p-3 rounded-lg border mt-1"
               style={{ background: "rgba(239,68,68,0.06)", borderColor: "rgba(239,68,68,0.2)" }}>
@@ -170,6 +175,33 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
           </Section>
 
           {/* Per-Tool Success Rate */}
+          {/* Visitors by Country */}
+          <Section title="Visitors by Country">
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M7 1.5C7 1.5 5 4 5 7s2 5.5 2 5.5M7 1.5C7 1.5 9 4 9 7s-2 5.5-2 5.5M1.5 7h11" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>}
+              title="Equirectangular dot map"
+              desc="Circles are plotted at each country's geographic centroid. Radius scales with event count — bigger dot = more traffic. Hover any circle to see the country code and exact count. Countries not in the known centroid list are silently omitted."
+            />
+          </Section>
+
+          {/* Activity Heatmap */}
+          <Section title="Activity Heatmap">
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.3"/><rect x="5.5" y="1" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.8"/><rect x="1" y="5.5" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="5.5" y="5.5" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.15"/><rect x="1" y="10" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="5.5" y="10" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.95"/></svg>}
+              title="7 × 24 grid — day vs hour"
+              desc="Fixed to the last 7 days regardless of the range selector. Rows are days of the week (Sun–Sat), columns are UTC hours (0–23). Cell intensity is proportional to event count — darker green = more events. Hover any cell for the exact count. Hidden when there is no data."
+            />
+          </Section>
+
+          {/* Tool Usage Comparison */}
+          <Section title="Tool Usage Comparison">
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h4M2 7h7M2 4h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
+              title="Side-by-side bar chart per tool"
+              desc="Filters top pages to only /tools/* paths and shows each tool as a proportional horizontal bar with its own color. Compares which tool gets the most engagement in the selected range. Hidden when no tool-path events exist."
+            />
+          </Section>
+
           <Section title="Query Success by Tool">
             <Feature
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 11h10M2 8h7M2 5h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
@@ -242,6 +274,16 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4.5 7h5M7 4.5v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
               title="Session ID — click to trace"
               desc="The 8-character hex is the first 8 chars of the anonymous session ID. Click it (or the trace button that appears on row hover) to open the Session Trace drawer for that session. The ID turns green and the row is tinted while that trace is open."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 6.5h6M4 9h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
+              title="Event detail — click row to expand"
+              desc="Click anywhere on a feed row (except the session ID or trace button) to expand an inline detail panel showing the full timestamp, referrer, duration, and any meta fields attached to that event (e.g. success, provider, rows for query_run events). Click the row again to collapse."
+            />
+            <Feature
+              icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v3M7 10v3M1 7h3M10 7h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="7" cy="7" r="3" stroke="currentColor" strokeWidth="1.3"/></svg>}
+              title="Auto-refresh (Today only)"
+              desc="When the Today range is active, stat cards and charts silently re-fetch from the server every 60 seconds in the background. The live feed updates instantly via WebSocket regardless of range."
             />
           </Section>
 
