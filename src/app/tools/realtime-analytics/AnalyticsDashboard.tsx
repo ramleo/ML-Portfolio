@@ -49,6 +49,7 @@ interface Stats {
   returning_pct: number | null;
   avg_query_length: number | null;
   avg_queries_per_session: number | null;
+  export_conversion_pct: number | null;
 }
 
 
@@ -358,7 +359,8 @@ export default function AnalyticsDashboard() {
           <div className="grid grid-cols-3 gap-4">
             <StatCard label="Error Rate" raw={`${errRate}%`} value={0} sub={`${stats?.error_count ?? 0} failed queries`}/>
             <StatCard label="SQL Copies" value={copyCount} sub="copy events — SQL tool"/>
-            <StatCard label="CSV Exports" value={exportCount} sub="export events — analytics"/>
+            <StatCard label="CSV Exports" value={exportCount}
+              sub={stats?.export_conversion_pct != null ? `${stats.export_conversion_pct}% of query sessions exported` : "export events — analytics"}/>
           </div>
         );
       })()}

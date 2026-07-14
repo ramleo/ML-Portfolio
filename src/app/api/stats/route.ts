@@ -162,6 +162,16 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => b.total_count - a.total_count);
 
+    // Export conversion: % of sessions that ran a query AND exported
+    const sessionsThatQueried = new Set(queryRuns.map(e => e.session_id).filter(Boolean));
+    const sessionsThatExported = new Set(
+      events.filter(e => e.type === "export").map(e => e.session_id).filter(Boolean)
+    );
+    const exportedAndQueried = [...sessionsThatExported].filter(s => sessionsThatQueried.has(s)).length;
+    const export_conversion_pct = sessionsThatQueried.size > 0
+      ? Math.round((exportedAndQueried / sessionsThatQueried.size) * 100)
+      : null;
+
     // Avg query length (chars) from query_run meta
     const queryLengths = queryRuns.map(e => Number(e.meta?.query_length)).filter(n => n > 0 && !isNaN(n));
     const avg_query_length = queryLengths.length > 0
@@ -245,6 +255,7 @@ export async function GET(req: NextRequest) {
       returning_pct,
       avg_query_length,
       avg_queries_per_session,
+      export_conversion_pct,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

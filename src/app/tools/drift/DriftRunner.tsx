@@ -60,8 +60,17 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
       const r = await res.json();
       setResult(r); onResult?.(r);
       fetchVersions(modelId);
+      const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "query_run", path: "/tools/drift", session_id: sid,
+          meta: { tool: "drift", action: "detect_drift", features: r.features?.length ?? 0, high_drift: r.features?.filter((f: { drift_level: string }) => f.drift_level === "high").length ?? 0 } }),
+      }).catch(() => {});
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed.");
+      const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
+      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "error", path: "/tools/drift", session_id: sid, meta: { tool: "drift", error_type: "drift_error" } }),
+      }).catch(() => {});
     } finally {
       setBusy(false);
     }
