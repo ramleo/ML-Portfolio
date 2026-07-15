@@ -1,5 +1,5 @@
 "use client";
-import { useToolTracking } from "@/hooks/useAnalytics";
+import { useToolTracking, track } from "@/hooks/useAnalytics";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -105,6 +105,19 @@ function FeatureEngineeringPageInner() {
     else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [step]);
+
+  const uploadTrackedRef = useRef(false);
+  useEffect(() => {
+    if (step === "configure" && cols.length > 0 && !uploadTrackedRef.current) {
+      uploadTrackedRef.current = true;
+      track("tool_open", { meta: { tool: "feature-engineering", action: "upload_csv", rows: rawRows.length - 1, cols: cols.length } });
+    }
+  }, [step, cols.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!result) return;
+    track("query_run", { meta: { tool: "feature-engineering", action: "apply_transforms", new_cols: result.newColumns.length } });
+  }, [result]);
 
   const { handleFile, handleDrop } = useFEFileLoad({
     setError, setFilename, setRawRows, setCols, setColTransforms,

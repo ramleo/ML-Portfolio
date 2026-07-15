@@ -1,5 +1,5 @@
 "use client";
-import { useToolTracking } from "@/hooks/useAnalytics";
+import { useToolTracking, track } from "@/hooks/useAnalytics";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -95,6 +95,7 @@ function PreprocessingPageInner() {
       try {
         const data = analyzeCSV(rows);
         setAnalyzed(data); setTarget(data.suggested_target); setStep("configure");
+        track("tool_open", { meta: { tool: "preprocessing", action: "upload_csv", rows: data.rows, cols: data.columns.length } });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Analysis failed");
       } finally { setAnalyzing(false); }
@@ -134,6 +135,7 @@ function PreprocessingPageInner() {
             encode_method: encodeMethod, standardize,
           }, file.name);
           setResult(data); setStep("results");
+          track("query_run", { meta: { tool: "preprocessing", action: "preprocess", rows_before: data.rows_before, rows_after: data.rows_after, preset: activePreset } });
           // Store preprocessed CSV in context for FE/FS/AutoML pages
           const csvText = data.csvText;
           try {
@@ -150,7 +152,7 @@ function PreprocessingPageInner() {
         }
       }, 50);
     }, (err) => { setError(err); setStep("configure"); });
-  }, [file, analyzed, target, dropCols, mvNum, mvCat, removeDups, removeOutliers, fixSkewness, encodeMethod, standardize]);
+  }, [file, analyzed, target, dropCols, mvNum, mvCat, removeDups, removeOutliers, fixSkewness, encodeMethod, standardize, activePreset]);
 
   const downloadCSV = useCallback(() => {
     if (!result) return;
@@ -158,6 +160,7 @@ function PreprocessingPageInner() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = result.preprocessed_filename; a.click(); URL.revokeObjectURL(url);
+    track("query_run", { meta: { tool: "preprocessing", action: "download" } });
   }, [result]);
 
   const passToAutoML = useCallback(() => {
@@ -166,6 +169,7 @@ function PreprocessingPageInner() {
       const csv_b64 = btoa(encodeURIComponent(result.csvText).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
       sessionStorage.setItem("prep_handoff", JSON.stringify({ csv_b64, filename: result.preprocessed_filename }));
     } catch {}
+    track("query_run", { meta: { tool: "preprocessing", action: "pass_to_automl" } });
     router.push("/tools/automl");
   }, [result, router]);
 

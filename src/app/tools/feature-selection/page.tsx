@@ -1,5 +1,5 @@
 "use client";
-import { useToolTracking } from "@/hooks/useAnalytics";
+import { useToolTracking, track } from "@/hooks/useAnalytics";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -111,6 +111,7 @@ function FeatureSelectionPageInner() {
           kBestMethod: last.type === "categorical" ? "f_classif" : "f_regression",
         }));
       }
+      track("tool_open", { meta: { tool: "feature-selection", action: "upload_csv", rows: rows.length, cols: analyzed.length } });
     }, () => {});
   }, []);
 
@@ -160,6 +161,7 @@ function FeatureSelectionPageInner() {
   const handleRun = useCallback(() => {
     if (!cols.length || typeof window === "undefined") return;
     setRunning(true);
+    track("query_run", { meta: { tool: "feature-selection", action: "run_selection", cols: cols.length } });
     runSelectionWorker(excludedCols.length ? cols.filter(c => !excludedCols.includes(c.name)) : cols, opts);
   }, [cols, opts, excludedCols, runSelectionWorker]);
 
@@ -174,6 +176,11 @@ function FeatureSelectionPageInner() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opts, excludedCols]);
+
+  useEffect(() => {
+    if (!result) return;
+    track("query_run", { meta: { tool: "feature-selection", action: "selection_complete", kept: result.keptCount, dropped: result.droppedCount } });
+  }, [result]);
 
   const handleReset = useCallback(() => {
     setResult(null);
