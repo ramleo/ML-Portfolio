@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
+import { track } from "@/hooks/useAnalytics";
 import OptunaResults from "./OptunaResults";
 import OptunaStepBar from "@/components/OptunaSteps/OptunaStepBar";
 import OptunaConfigForm from "@/components/OptunaSteps/OptunaConfigForm";
@@ -102,6 +103,7 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
       setTarget(data.suggested_target);
       setTask(data.suggested_task);
       setStep(2);
+      track("tool_open", { meta: { tool: "optuna", action: "upload_csv", rows: data.rows, cols: data.columns.length } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to analyze CSV");
     } finally {
@@ -133,6 +135,7 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
     setStatus("Starting...");
     setResult(null);
     setStep(3);
+    track("query_run", { meta: { tool: "optuna", action: "optuna_start", model, n_trials: nTrials, task, sampler } });
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -169,6 +172,7 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
               const raw = evt.result.automl ?? evt.result;
               const data: TrainResult = { ...raw, best_params: raw.optuna_params ?? raw.best_params };
               setResult(data); onResult?.(data);
+              track("query_run", { meta: { tool: "optuna", action: "optuna", model, n_trials: nTrials, winner: raw.winner, metric_value: Number(Object.values(raw.winner_metrics ?? {})[0] ?? 0), success: true } });
               // Write tunedModel back to PipelineContext
               if (data?.best_params && data?.winner_metrics) {
                 setState(prev => ({
@@ -188,6 +192,7 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Training failed");
+      track("error", { meta: { tool: "optuna", action: "optuna_error", model } });
     } finally {
       setTraining(false);
     }

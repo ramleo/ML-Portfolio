@@ -17,7 +17,7 @@ export function incrementQueryCount(toolName: string) {
   _queryCounters[toolName] = (_queryCounters[toolName] ?? 0) + 1;
 }
 
-function track(type: string, extra: Record<string, unknown> = {}) {
+export function track(type: string, extra: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
   let enrichedMeta: Record<string, unknown> = typeof extra.meta === "object" && extra.meta ? { ...extra.meta as Record<string, unknown> } : {};
   if (type === "page_view") {
