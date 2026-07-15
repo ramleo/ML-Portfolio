@@ -214,6 +214,16 @@ export async function GET(req: NextRequest) {
       .sort(([, a], [, b]) => b - a)
       .map(([model, count]) => ({ model, count }));
 
+    // HF Space tools breakdown (ml-unified, eda, vision) by action
+    const hfTools: Record<string, Record<string, number>> = {};
+    for (const e of events) {
+      const tool   = e.meta?.tool as string | undefined;
+      const action = (e.meta?.action as string | undefined) ?? "other";
+      if (!tool || !["ml-unified", "eda", "vision"].includes(tool)) continue;
+      if (!hfTools[tool]) hfTools[tool] = {};
+      hfTools[tool][action] = (hfTools[tool][action] ?? 0) + 1;
+    }
+
     // Error events count
     const error_count = events.filter(e => e.type === "error").length;
 
@@ -277,6 +287,7 @@ export async function GET(req: NextRequest) {
       avg_query_length,
       avg_queries_per_session,
       export_conversion_pct,
+      hf_tools: hfTools,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

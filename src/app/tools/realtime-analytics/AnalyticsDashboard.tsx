@@ -13,6 +13,7 @@ import AnalyticsLiveFeed from "./AnalyticsLiveFeed";
 import type { FeedEvent } from "./AnalyticsLiveFeed";
 import AnalyticsCalendar from "./AnalyticsCalendar";
 import AnalyticsUserGuide from "./AnalyticsUserGuide";
+import AnalyticsHFTools from "./AnalyticsHFTools";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -53,6 +54,7 @@ interface Stats {
   avg_query_length: number | null;
   avg_queries_per_session: number | null;
   export_conversion_pct: number | null;
+  hf_tools: Record<string, Record<string, number>>;
 }
 
 
@@ -254,6 +256,9 @@ export default function AnalyticsDashboard() {
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
       </div>
+
+      {/* HF Space Tools breakdown */}
+      <AnalyticsHFTools hfTools={stats?.hf_tools ?? {}} />
 
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
