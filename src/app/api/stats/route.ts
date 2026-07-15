@@ -224,6 +224,17 @@ export async function GET(req: NextRequest) {
       hfTools[tool][action] = (hfTools[tool][action] ?? 0) + 1;
     }
 
+    // Portfolio tools breakdown by action
+    const PORTFOLIO_TOOL_KEYS = ["automl", "preprocessing", "feature-engineering", "feature-selection", "optuna", "shap", "drift", "ensemble", "text-to-sql"];
+    const portfolioTools: Record<string, Record<string, number>> = {};
+    for (const e of events) {
+      const tool   = e.meta?.tool as string | undefined;
+      const action = (e.meta?.action as string | undefined) ?? "other";
+      if (!tool || !PORTFOLIO_TOOL_KEYS.includes(tool)) continue;
+      if (!portfolioTools[tool]) portfolioTools[tool] = {};
+      portfolioTools[tool][action] = (portfolioTools[tool][action] ?? 0) + 1;
+    }
+
     // Error events count
     const error_count = events.filter(e => e.type === "error").length;
 
@@ -288,6 +299,7 @@ export async function GET(req: NextRequest) {
       avg_queries_per_session,
       export_conversion_pct,
       hf_tools: hfTools,
+      portfolio_tools: portfolioTools,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

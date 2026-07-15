@@ -14,6 +14,7 @@ import type { FeedEvent } from "./AnalyticsLiveFeed";
 import AnalyticsCalendar from "./AnalyticsCalendar";
 import AnalyticsUserGuide from "./AnalyticsUserGuide";
 import AnalyticsHFTools from "./AnalyticsHFTools";
+import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -55,6 +56,7 @@ interface Stats {
   avg_queries_per_session: number | null;
   export_conversion_pct: number | null;
   hf_tools: Record<string, Record<string, number>>;
+  portfolio_tools: Record<string, Record<string, number>>;
 }
 
 
@@ -259,6 +261,7 @@ export default function AnalyticsDashboard() {
 
       {/* HF Space Tools breakdown */}
       <AnalyticsHFTools hfTools={stats?.hf_tools ?? {}} />
+      <AnalyticsPortfolioTools portfolioTools={stats?.portfolio_tools ?? {}} />
 
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
