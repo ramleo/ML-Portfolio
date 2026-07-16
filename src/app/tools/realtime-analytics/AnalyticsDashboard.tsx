@@ -145,7 +145,7 @@ export default function AnalyticsDashboard() {
     <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">{Array.from({length:5}).map((_,i) => <SkeletonCard key={i}/>)}</div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {[0,1].map(i => <div key={i} className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5 animate-pulse h-32"/>)}
+        {[0,1].map(i => <div key={i} className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 animate-pulse h-32"/>)}
       </div>
     </div>
   );
@@ -253,7 +253,7 @@ export default function AnalyticsDashboard() {
           }}
           onToggleAI={() => setShowAI(v => !v)}
         />
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
+        <div className="grid grid-cols-2 gap-4 content-start">
           <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}
             accent="#10b981"
             sub={(stats?.device_breakdown ?? []).length > 0 ? stats!.device_breakdown.map(d => `${d.count} ${d.device}`).join(" · ") : undefined}/>
@@ -266,10 +266,12 @@ export default function AnalyticsDashboard() {
           <StatCard label="Bounce Rate" value={0} accent="#f59e0b"
             raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
             sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
-          <StatCard label="Query Success" value={0}
-            accent={qsr != null ? (qsr >= 80 ? "#10b981" : qsr >= 50 ? "#f59e0b" : "#ef4444") : "#6b7280"}
-            raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-            sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors${stats.avg_query_length != null ? ` · avg ${stats.avg_query_length}ch` : ""}` : undefined}/>
+          <div className="col-span-2">
+            <StatCard label="Query Success" value={0}
+              accent={qsr != null ? (qsr >= 80 ? "#10b981" : qsr >= 50 ? "#f59e0b" : "#ef4444") : "#6b7280"}
+              raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
+              sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors${stats.avg_query_length != null ? ` · avg ${stats.avg_query_length}ch` : ""}` : undefined}/>
+          </div>
         </div>
       </div>
 
@@ -278,7 +280,7 @@ export default function AnalyticsDashboard() {
 
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <div className="flex items-center gap-2 mb-3">
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">{sparklineLabel}</p>
             {peakHour && (
@@ -294,7 +296,7 @@ export default function AnalyticsDashboard() {
             <Sparkline data={stats!.error_per_minute} color="#ef4444"/>
           </>}
         </div>
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Conversion Funnel — {rangeLabel}</p>
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
@@ -306,25 +308,25 @@ export default function AnalyticsDashboard() {
 
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Top Pages — {rangeLabel}</p>
           <TopPagesBar data={stats?.top_pages ?? []}/>
         </div>
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Visitors by Country</p>
           <GeoMap data={stats?.top_countries ?? []}/>
         </div>
       </div>
 
       {/* Top Referrers */}
-      <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Top Referrers — {rangeLabel}</p>
         <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
 
       {/* Hourly heatmap — last 7 days */}
       {(stats?.heatmap ?? []).length > 0 && (
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Activity Heatmap — Last 7 Days</p>
           <AnalyticsHeatmap data={stats!.heatmap}/>
         </div>
@@ -332,7 +334,7 @@ export default function AnalyticsDashboard() {
 
       {/* Tool comparison */}
       {(stats?.top_pages ?? []).some(p => p.path.startsWith("/tools/")) && (
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Tool Usage Comparison — {rangeLabel}</p>
           <ToolComparisonBar data={stats?.top_pages ?? []}/>
         </div>
@@ -342,7 +344,7 @@ export default function AnalyticsDashboard() {
       <AnalyticsQueryByTool data={stats?.query_by_tool ?? []} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — always visible */}
-      <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">AI Model Usage — {rangeLabel}</p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
@@ -366,7 +368,7 @@ export default function AnalyticsDashboard() {
 
       {/* Donuts + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Events by Type</p>
           <TypeDonut data={stats?.by_type ?? []}/>
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mt-4 mb-2">Device Split</p>

@@ -8,7 +8,7 @@ interface Props {
 }
 
 const PANEL: React.CSSProperties = {
-  background: "rgba(14,22,40,0.72)",
+  background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
   borderRadius: 14,
   padding: "1.25rem",

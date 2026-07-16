@@ -18,7 +18,7 @@ export default function AnalyticsQueryByTool({ data, rangeLabel }: Props) {
   const best = data.reduce((b, t) => t.success_rate > b.success_rate ? t : b, data[0]);
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
       <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">
         Query Success by Tool — {rangeLabel}
       </p>
