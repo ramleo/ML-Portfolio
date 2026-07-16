@@ -4,8 +4,23 @@ const P = ["#6366f1","#10b981","#f59e0b","#8b5cf6","#ef4444","#ec4899","#14b8a6"
 const COLORS: Record<string, string> = { desktop: "#6366f1", mobile: "#10b981" };
 
 export function DeviceDonut({ data }: { data: { device: string; count: number }[] }) {
-  if (!data.length) return <div className="h-16 flex items-center justify-center text-xs text-gray-600">No device data yet</div>;
+  if (!data.length) return <div className="h-10 flex items-center text-xs text-gray-600">No device data yet</div>;
+
   const total = data.reduce((s, d) => s + d.count, 0);
+
+  // Single device — SVG arcs break at 100%; render as simple chips instead
+  if (data.length === 1) {
+    const color = COLORS[data[0].device] ?? P[0];
+    return (
+      <div className="flex items-center gap-3 py-1">
+        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: color }} />
+        <span className="text-[11px] font-semibold text-gray-300 capitalize">{data[0].device}</span>
+        <span className="text-[11px] tabular-nums" style={{ color }}>100%</span>
+        <span className="text-[10px] text-gray-600">· {total} sessions</span>
+      </div>
+    );
+  }
+
   const CX = 50, CY = 50, R = 38, r = 22;
   let angle = -Math.PI / 2;
   const slices = data.map((d, i) => {
@@ -30,11 +45,11 @@ export function DeviceDonut({ data }: { data: { device: string; count: number }[
         <text key={i} x={s.lx} y={s.ly + 3.5} textAnchor="middle" fontSize="7" fill="#fff" fontWeight="700" opacity="0.9">{s.pct}%</text>
       ))}
       <text x={CX} y={CY + 4} textAnchor="middle" fontSize="9" fill="#e5e7eb" fontWeight="600">{total}</text>
-      <text x={CX} y={CY + 13} textAnchor="middle" fontSize="6" fill="#6b7280">views</text>
+      <text x={CX} y={CY + 13} textAnchor="middle" fontSize="6" fill="#6b7280">sessions</text>
       {slices.map((s, i) => (
         <g key={i} transform={`translate(108, ${28 + i * 18})`}>
           <rect width="7" height="7" rx="1.5" fill={s.color} opacity="0.85"/>
-          <text x="11" y="7" fontSize="8" fill="#9ca3af">{s.label} — {s.pct}%</text>
+          <text x="11" y="7" fontSize="8" fill="#9ca3af" className="capitalize">{s.label} — {s.pct}%</text>
         </g>
       ))}
     </svg>

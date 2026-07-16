@@ -218,20 +218,6 @@ export default function AnalyticsDashboard() {
           style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
           Export CSV
         </a>
-        <button
-          onClick={() => {
-            if (!stats) return;
-            const md = generateMarkdownReport(stats, rangeLabel);
-            const blob = new Blob([md], { type: "text/markdown" });
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement("a");
-            a.href = url; a.download = `analytics-report-${range}-${new Date().toISOString().slice(0,10)}.md`;
-            a.click(); URL.revokeObjectURL(url);
-          }}
-          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-white/20"
-          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
-          ↓ Report
-        </button>
       </div>
 
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
@@ -343,20 +329,29 @@ export default function AnalyticsDashboard() {
       {/* Per-tool Query Success Rate */}
       <AnalyticsQueryByTool data={stats?.query_by_tool ?? []} rangeLabel={rangeLabel} />
 
-      {/* AI Provider + Model usage — always visible */}
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">AI Model Usage — {rangeLabel}</p>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">By Provider</p>
-            <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">By Model</p>
-            <ModelBreakdownBar data={stats?.model_breakdown ?? []}/>
-          </div>
+      {/* AI Provider + Model usage — only shown when there is data */}
+      {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">AI Model Usage — {rangeLabel}</p>
+          {(stats?.provider_breakdown ?? []).length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">By Provider</p>
+                <ProviderBreakdownBar data={stats?.provider_breakdown ?? []}/>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">By Model</p>
+                <ModelBreakdownBar data={stats?.model_breakdown ?? []}/>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">By Model</p>
+              <ModelBreakdownBar data={stats?.model_breakdown ?? []}/>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Error Rate + User Actions */}
       <EngagementRow
@@ -371,7 +366,7 @@ export default function AnalyticsDashboard() {
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Events by Type</p>
           <TypeDonut data={stats?.by_type ?? []}/>
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mt-4 mb-2">Device Split</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mt-4 mb-2">Visitors by Device</p>
           <DeviceDonut data={stats?.device_breakdown ?? []}/>
         </div>
         <AnalyticsLiveFeed feed={feed} selectedSid={selectedSid} onTraceSession={openSession}/>

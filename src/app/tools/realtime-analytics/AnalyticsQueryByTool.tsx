@@ -7,6 +7,27 @@ interface QueryByToolItem {
   success_rate: number;
 }
 
+const PATH_NAMES: Record<string, string> = {
+  "/tools/text-to-sql":         "Text → SQL",
+  "/tools/automl":              "AutoML",
+  "/tools/preprocessing":       "Preprocessing",
+  "/tools/feature-engineering": "Feature Eng.",
+  "/tools/feature-selection":   "Feature Sel.",
+  "/tools/optuna":              "Optuna",
+  "/tools/shap":                "SHAP",
+  "/tools/drift":               "Drift",
+  "/tools/ensemble":            "Ensemble",
+  "/tools/pipeline-builder":    "Pipeline",
+  "/tools/pipeline-cinema":     "Cinema",
+  "/eda":                       "EDA",
+  "/vision":                    "Vision",
+  "/":                          "ML Unified",
+};
+
+function pathLabel(path: string): string {
+  return PATH_NAMES[path] ?? (path.replace("/tools/", "").replace("/", "") || "Home");
+}
+
 interface Props {
   data: QueryByToolItem[];
   rangeLabel: string;
@@ -30,11 +51,11 @@ export default function AnalyticsQueryByTool({ data, rangeLabel }: Props) {
             <div key={t.path}>
               <div className="flex justify-between items-center mb-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-mono text-gray-400">{t.path.replace("/tools/", "")}</span>
+                  <span className="text-[10px] font-semibold text-gray-300">{pathLabel(t.path)}</span>
                   {isBest && (
                     <span className="text-[7px] font-bold px-1.5 py-[1px] rounded-full uppercase tracking-wider"
                       style={{ background: `${barColor}22`, color: barColor, border: `1px solid ${barColor}44` }}>
-                      BEST
+                      Highest SR
                     </span>
                   )}
                 </div>
