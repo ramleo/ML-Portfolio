@@ -41,10 +41,85 @@ interface HFToolsProps {
   hfTools: Record<string, Record<string, number>>;
 }
 
-export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
-  const hasAny = TOOL_ORDER.some(t => Object.keys(hfTools[t] ?? {}).length > 0);
+function ToolCard({ tool, actions }: { tool: string; actions: Record<string, number> }) {
+  const name  = TOOL_NAMES[tool] ?? tool;
+  const color = TOOL_COLORS[tool] ?? "#6b7280";
+  const total = Object.values(actions).reduce((s, n) => s + n, 0);
 
-  // Overall totals per tool
+  const sorted   = Object.entries(actions).sort(([, a], [, b]) => b - a);
+  const maxCount = sorted[0]?.[1] ?? 1;
+
+  return (
+    <div
+      className="flex flex-col rounded-xl overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderLeft: `4px solid ${color}`,
+      }}
+    >
+      {/* Header with color tint */}
+      <div className="px-4 pt-4 pb-3" style={{ background: `${color}08` }}>
+        <span
+          className="text-[9px] font-bold uppercase tracking-[0.12em] block mb-2"
+          style={{ color: `${color}cc` }}
+        >
+          {name}
+        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span
+            className="text-[2rem] font-bold tabular-nums leading-none"
+            style={{ color }}
+          >
+            {total.toLocaleString()}
+          </span>
+          <span className="text-[10px] text-gray-600 font-medium">events</span>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: `${color}18` }} />
+
+      {/* Action breakdown */}
+      <div className="px-4 py-3 flex flex-col gap-2.5 flex-1">
+        {sorted.length === 0 ? (
+          <p className="text-[10px] text-gray-700 italic">no actions yet</p>
+        ) : (
+          sorted.map(([action, count]) => {
+            const pct      = total > 0 ? Math.round((count / total) * 100) : 0;
+            const barWidth = Math.round((count / maxCount) * 100);
+            return (
+              <div key={action}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] text-gray-400">{labelAction(action)}</span>
+                  <span className="text-[10px] tabular-nums">
+                    <span className="font-semibold text-gray-300">{count}</span>
+                    <span className="text-gray-600 ml-1">{pct}%</span>
+                  </span>
+                </div>
+                <div
+                  className="h-[3px] rounded-full overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.05)" }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${barWidth}%`, background: color, opacity: 0.72 }}
+                  />
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
+  const activeTools = TOOL_ORDER.filter(
+    t => Object.keys(hfTools[t] ?? {}).length > 0
+  );
+
   const totals = TOOL_ORDER.reduce<Record<string, number>>((acc, tool) => {
     acc[tool] = Object.values(hfTools[tool] ?? {}).reduce((s, n) => s + n, 0);
     return acc;
@@ -56,83 +131,45 @@ export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
         HF Space Tools
       </p>
 
-      {/* Overall summary row */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {TOOL_ORDER.map(tool => {
-          const color = TOOL_COLORS[tool] ?? "#6b7280";
-          return (
-            <div
-              key={tool}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-              style={{ background: `${color}10`, border: `1px solid ${color}25` }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
-              <span className="text-[10px] font-semibold text-gray-400">{TOOL_NAMES[tool]}</span>
-              <span className="text-[11px] font-bold tabular-nums" style={{ color }}>
-                {totals[tool].toLocaleString()}
-              </span>
-              <span className="text-[9px] text-gray-600">events</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {!hasAny ? (
-        <p className="text-[10px] text-gray-600">No HF Space activity in this period</p>
-      ) : (
-        <div className="flex flex-col divide-y divide-white/[0.05]">
+      {/* Summary chips */}
+      {activeTools.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
           {TOOL_ORDER.map(tool => {
-            const actions = hfTools[tool] ?? {};
-            const total   = totals[tool];
-            const sorted  = Object.entries(actions).sort(([, a], [, b]) => b - a);
-            const max     = sorted[0]?.[1] ?? 1;
-            const color   = TOOL_COLORS[tool] ?? "#6b7280";
-
-            if (sorted.length === 0) return null;
-
+            const color = TOOL_COLORS[tool] ?? "#6b7280";
+            const total = totals[tool];
+            if (total === 0) return null;
             return (
-              <div key={tool} className="pt-4 first:pt-0 pb-4 last:pb-0">
-                {/* Tool header */}
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                      {TOOL_NAMES[tool] ?? tool}
-                    </span>
-                  </div>
-                  <span className="text-[10px] tabular-nums text-gray-600">
-                    <span className="font-bold" style={{ color }}>{total.toLocaleString()}</span>
-                    <span className="ml-1">total events</span>
-                  </span>
-                </div>
-
-                {/* Action rows — 2-column grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-                  {sorted.map(([action, count]) => {
-                    const barPct   = Math.round((count / max) * 100);
-                    const totalPct = total > 0 ? Math.round((count / total) * 100) : 0;
-                    return (
-                      <div key={action} className="flex flex-col gap-[3px]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-gray-500">{labelAction(action)}</span>
-                          <span className="text-[10px] tabular-nums text-gray-600">
-                            {count}
-                            <span className="text-gray-700 ml-1">{totalPct}%</span>
-                          </span>
-                        </div>
-                        <div className="h-1 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${barPct}%`, background: color, opacity: 0.65 }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div
+                key={tool}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                style={{ background: `${color}0e`, border: `1px solid ${color}28` }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: color }}
+                />
+                <span className="text-[10px] font-semibold text-gray-400">
+                  {TOOL_NAMES[tool]}
+                </span>
+                <span
+                  className="text-[11px] font-bold tabular-nums"
+                  style={{ color }}
+                >
+                  {total.toLocaleString()}
+                </span>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {activeTools.length === 0 ? (
+        <p className="text-[10px] text-gray-600">No HF Space activity in this period</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {activeTools.map(tool => (
+            <ToolCard key={tool} tool={tool} actions={hfTools[tool] ?? {}} />
+          ))}
         </div>
       )}
     </div>
