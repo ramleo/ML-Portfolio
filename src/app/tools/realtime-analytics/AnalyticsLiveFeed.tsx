@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { pathLabel } from "./AnalyticsQueryByTool";
 
 export interface FeedEvent {
   id: number;
@@ -130,8 +131,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
           const evKey = `${ev.session_id}:${ev.created_at}`;
           const isActive = selectedSid === ev.session_id;
           const isExpanded = expandedId === evKey;
-          const isToolPath = ev.path?.startsWith("/tools/");
-          const toolName = isToolPath ? ev.path.replace("/tools/", "") : (ev.path || "/");
+          const friendlyPath = pathLabel(ev.path || "/");
           const showDur = ev.type === "tool_close" && (ev.duration_ms ?? 0) > 0;
           return (
             <div key={ev.id ?? i} className="border-b border-white/[0.04]">
@@ -153,10 +153,9 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
                 style={{ minWidth: "86px", background: `${color}18`, color, border: `1px solid ${color}25` }}>
                 {ev.type}
               </span>
-              {/* Path — /tools/ prefix dimmed, tool name bright */}
-              <span className="flex-1 font-mono truncate text-[11px]">
-                {isToolPath && <span style={{ color: "#2d3748" }}>/tools/</span>}
-                <span style={{ color: "#94a3b8" }}>{toolName}</span>
+              {/* Path — friendly name */}
+              <span className="flex-1 font-mono truncate text-[11px]" style={{ color: "#94a3b8" }}>
+                {friendlyPath}
               </span>
               {/* Duration chip — tool_close only */}
               {showDur && (

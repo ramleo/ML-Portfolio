@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDuration } from "./AnalyticsStatCard";
+import { pathLabel } from "./AnalyticsQueryByTool";
 
 interface SummaryStats {
   active_now?: number;
@@ -108,7 +109,7 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
           Period Summary
         </p>
         <div className="flex flex-col gap-1.5">
-          <KVRow label="Top Page" value={topPage ? topPage.path.replace("/tools/", "").replace("/", "") || "/" : "—"} />
+          <KVRow label="Top Page" value={topPage ? pathLabel(topPage.path) : "—"} />
           <KVRow label="Top Tool" value={topTool ? topTool.tool : "—"} />
           <KVRow label="Peak Hour" value={peakHour} />
           <KVRow label="Bounce" value={stats?.bounce_rate != null ? `${stats.bounce_rate}%` : "—"} />
