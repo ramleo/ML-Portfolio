@@ -17,7 +17,7 @@ export default function RealtimeAnalyticsPage() {
 
   return (
     <PipelineProvider>
-      <div className="relative min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      <div className="relative min-h-screen text-white overflow-x-hidden">
         <ConstellationBackground />
         <ToolsAIChat context={{ tool: "Real-Time Analytics Dashboard", summary: "Live event tracking for the ml-portfolio site. Events (page views, tool opens) are ingested via FastAPI, stored in Supabase PostgreSQL, and streamed to this dashboard via Supabase Realtime WebSocket subscriptions." }} />
 

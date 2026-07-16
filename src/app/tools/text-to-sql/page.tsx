@@ -17,7 +17,7 @@ export default function TextToSqlPage() {
 
   return (
     <PipelineProvider>
-      <div className="relative min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      <div className="relative min-h-screen text-white overflow-x-hidden">
         <ConstellationBackground />
         <ToolsAIChat context={{ tool: "Text-to-SQL Agent", summary: "AI agent that converts natural language questions to SQL, executes them, and explains results." }} />
 
