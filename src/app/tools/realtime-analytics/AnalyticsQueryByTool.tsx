@@ -24,7 +24,7 @@ const PATH_NAMES: Record<string, string> = {
   "/":                          "ML Unified",
 };
 
-function pathLabel(path: string): string {
+export function pathLabel(path: string): string {
   return PATH_NAMES[path] ?? (path.replace("/tools/", "").replace("/", "") || "Home");
 }
 

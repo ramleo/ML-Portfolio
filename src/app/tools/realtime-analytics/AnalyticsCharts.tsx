@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { pathLabel } from "./AnalyticsQueryByTool";
 
 export interface PerMinute    { minute: string; count: number; }
 export interface TopPage      { path: string;   count: number; }
@@ -101,10 +102,11 @@ export function TopPagesBar({ data }: { data: TopPage[] }) {
         {shown.map((d, i) => {
           const y = PT + i * ROW;
           const bW = Math.max(((d.count / max) * (W - PL - PR)), 4);
-          const label = d.path.length > 22 ? d.path.slice(0, 21) + "…" : d.path;
+          const name = pathLabel(d.path);
+          const label = name.length > 22 ? name.slice(0, 21) + "…" : name;
           return (
             <g key={i}>
-              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{label || "/"}</text>
+              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
               <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#10b981" opacity="0.75"/>
               <text x={PL+bW+4} y={y+13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
             </g>
