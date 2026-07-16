@@ -14,7 +14,11 @@ import type { FeedEvent } from "./AnalyticsLiveFeed";
 import AnalyticsCalendar from "./AnalyticsCalendar";
 import AnalyticsUserGuide from "./AnalyticsUserGuide";
 import AnalyticsHFTools from "./AnalyticsHFTools";
+import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
+import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
+import AnalyticsAIPanel from "./AnalyticsAIPanel";
+import { generateMarkdownReport } from "@/lib/analyticsReport";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -69,6 +73,7 @@ export default function AnalyticsDashboard() {
   const [feed, setFeed]            = useState<FeedEvent[]>([]);
   const [loading, setLoading]      = useState(true);
   const [error, setError]          = useState<string | null>(null);
+  const [showAI, setShowAI]        = useState(false);
   const [selectedSid, setSid]      = useState<string | null>(null);
   const [sessionEvs, setSessEvs]   = useState<SessionEvent[]>([]);
   const [sessLoading, setSessLoading] = useState(false);
@@ -213,29 +218,63 @@ export default function AnalyticsDashboard() {
           style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
           Export CSV
         </a>
+        <button
+          onClick={() => {
+            if (!stats) return;
+            const md = generateMarkdownReport(stats, rangeLabel);
+            const blob = new Blob([md], { type: "text/markdown" });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href = url; a.download = `analytics-report-${range}-${new Date().toISOString().slice(0,10)}.md`;
+            a.click(); URL.revokeObjectURL(url);
+          }}
+          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-white/20"
+          style={{ borderColor: "rgba(255,255,255,0.08)", color: "#4b5563" }}>
+          ↓ Report
+        </button>
       </div>
 
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}
-          accent="#10b981"
-          sub={(stats?.device_breakdown ?? []).length > 0 ? stats!.device_breakdown.map(d => `${d.count} ${d.device}`).join(" · ") : undefined}/>
-        <StatCard label="Total Events" value={stats?.today_count ?? 0} trend={trend} accent="#818cf8"/>
-        <StatCard label="Avg Duration" value={0} accent="#38bdf8"
-          raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
-          sub={stats?.avg_session_duration_ms != null
-            ? `per visit${stats.avg_queries_per_session != null ? ` · ${stats.avg_queries_per_session} queries/session` : ""}`
-            : "no tool_close data yet"}/>
-        <StatCard label="Bounce Rate" value={0} accent="#f59e0b"
-          raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
-          sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
-        <StatCard label="Query Success" value={0}
-          accent={qsr != null ? (qsr >= 80 ? "#10b981" : qsr >= 50 ? "#f59e0b" : "#ef4444") : "#6b7280"}
-          raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
-          sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors${stats.avg_query_length != null ? ` · avg ${stats.avg_query_length}ch` : ""}` : undefined}/>
+      {/* Summary card + Stat cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+        <AnalyticsSummaryCard
+          stats={stats}
+          rangeLabel={rangeLabel}
+          showAI={showAI}
+          onGenerateReport={() => {
+            if (!stats) return;
+            const md = generateMarkdownReport(stats, rangeLabel);
+            const blob = new Blob([md], { type: "text/markdown" });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href = url; a.download = `analytics-report-${range}-${new Date().toISOString().slice(0,10)}.md`;
+            a.click(); URL.revokeObjectURL(url);
+          }}
+          onToggleAI={() => setShowAI(v => !v)}
+        />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
+          <StatCard label={stats?.is_range ? "Unique Sessions" : "Active Now"} value={stats?.active_now ?? 0} live={!stats?.is_range} suffix={stats?.is_range ? "sessions" : "users"}
+            accent="#10b981"
+            sub={(stats?.device_breakdown ?? []).length > 0 ? stats!.device_breakdown.map(d => `${d.count} ${d.device}`).join(" · ") : undefined}/>
+          <StatCard label="Total Events" value={stats?.today_count ?? 0} trend={trend} accent="#818cf8"/>
+          <StatCard label="Avg Duration" value={0} accent="#38bdf8"
+            raw={stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—"}
+            sub={stats?.avg_session_duration_ms != null
+              ? `per visit${stats.avg_queries_per_session != null ? ` · ${stats.avg_queries_per_session} queries/session` : ""}`
+              : "no tool_close data yet"}/>
+          <StatCard label="Bounce Rate" value={0} accent="#f59e0b"
+            raw={stats?.bounce_rate !== null && stats?.bounce_rate !== undefined ? `${stats.bounce_rate}%` : "—"}
+            sub={stats ? `${stats.bounce_session_count ?? 0}/${stats.total_session_count ?? 0} sessions${stats.returning_pct != null ? ` · ${stats.returning_pct}% returning` : ""}` : undefined}/>
+          <StatCard label="Query Success" value={0}
+            accent={qsr != null ? (qsr >= 80 ? "#10b981" : qsr >= 50 ? "#f59e0b" : "#ef4444") : "#6b7280"}
+            raw={qsr !== null && qsr !== undefined ? `${qsr}%` : "—"}
+            sub={stats ? `${stats.query_success_count ?? 0}/${stats.query_total_count ?? 0} queries · ${stats.error_count ?? 0} errors${stats.avg_query_length != null ? ` · avg ${stats.avg_query_length}ch` : ""}` : undefined}/>
+        </div>
       </div>
+
+      {/* AI Explanation panel — manually triggered */}
+      {showAI && <AnalyticsAIPanel stats={stats} rangeLabel={rangeLabel} />}
 
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -299,31 +338,8 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* Per-tool Query Success Rate — only shown when query_run data exists */}
-      {(stats?.query_by_tool ?? []).length > 0 && (
-        <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Query Success by Tool — {rangeLabel}</p>
-          <div className="flex flex-col gap-3">
-            {stats!.query_by_tool.map(t => {
-              const barColor = t.success_rate >= 90 ? "#10b981" : t.success_rate >= 70 ? "#f59e0b" : "#ef4444";
-              return (
-                <div key={t.path}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] font-mono text-gray-400">{t.path.replace("/tools/", "")}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[8px] tabular-nums" style={{ color: "#374151" }}>{t.success_count}/{t.total_count}</span>
-                      <span className="text-[10px] font-semibold tabular-nums" style={{ color: barColor }}>{t.success_rate}%</span>
-                    </div>
-                  </div>
-                  <div className="h-2 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${t.success_rate}%`, background: barColor }}/>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Per-tool Query Success Rate */}
+      <AnalyticsQueryByTool data={stats?.query_by_tool ?? []} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — always visible */}
       <div className="rounded-xl border border-white/[0.08] bg-[rgba(14,22,40,0.72)] p-5">

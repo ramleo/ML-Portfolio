@@ -41,7 +41,7 @@ interface HFToolsProps {
   hfTools: Record<string, Record<string, number>>;
 }
 
-function ToolCard({ tool, actions }: { tool: string; actions: Record<string, number> }) {
+function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<string, number>; isTop?: boolean }) {
   const name  = TOOL_NAMES[tool] ?? tool;
   const color = TOOL_COLORS[tool] ?? "#6b7280";
   const total = Object.values(actions).reduce((s, n) => s + n, 0);
@@ -60,12 +60,17 @@ function ToolCard({ tool, actions }: { tool: string; actions: Record<string, num
     >
       {/* Header with color tint */}
       <div className="px-4 pt-4 pb-3" style={{ background: `${color}08` }}>
-        <span
-          className="text-[9px] font-bold uppercase tracking-[0.12em] block mb-2"
-          style={{ color: `${color}cc` }}
-        >
-          {name}
-        </span>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: `${color}cc` }}>
+            {name}
+          </span>
+          {isTop && (
+            <span className="text-[7px] font-bold px-1.5 py-[1px] rounded-full uppercase tracking-wider"
+              style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}>
+              TOP
+            </span>
+          )}
+        </div>
         <div className="flex items-baseline gap-1.5">
           <span
             className="text-[2rem] font-bold tabular-nums leading-none"
@@ -125,6 +130,8 @@ export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
     return acc;
   }, {});
 
+  const topTool = activeTools.reduce((best, t) => (totals[t] > (totals[best] ?? 0) ? t : best), activeTools[0]);
+
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
       <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
@@ -168,7 +175,7 @@ export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {activeTools.map(tool => (
-            <ToolCard key={tool} tool={tool} actions={hfTools[tool] ?? {}} />
+            <ToolCard key={tool} tool={tool} actions={hfTools[tool] ?? {}} isTop={tool === topTool} />
           ))}
         </div>
       )}
