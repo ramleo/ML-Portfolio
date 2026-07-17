@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { ExtractedField } from "./_types";
+import type { ExtractedField, FieldValidation } from "./_types";
 
 const ACCENT = "#06b6d4";
 const RING_SIZE = 28;
@@ -55,6 +55,25 @@ function CopyBtn({ value }: { value: string }) {
         : <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 11H3.5A1.5 1.5 0 012 9.5v-7A1.5 1.5 0 013.5 1h7A1.5 1.5 0 0112 2.5V3" stroke="currentColor" strokeWidth="1.3"/></svg>
       }
     </button>
+  );
+}
+
+function ValidationBadge({ v }: { v: FieldValidation }) {
+  if (v.status === "ok") return null;
+  const cfg = v.status === "corrected"
+    ? { color: "#818cf8", bg: "rgba(99,102,241,0.12)", icon: "M12 2l-1.5 9H6l6 4-2.5 7L16 16h4l-5.5-4L16 2z", label: "Corrected" }
+    : v.status === "flagged"
+    ? { color: "#f59e0b", bg: "rgba(245,158,11,0.12)", icon: "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01", label: "Flagged" }
+    : { color: "#ef4444", bg: "rgba(239,68,68,0.12)", icon: "M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM12 8v4M12 16h.01", label: "Low confidence" };
+  return (
+    <span title={v.note}
+      className="flex items-center gap-0.5 text-[7px] px-1 py-px rounded cursor-help shrink-0"
+      style={{ background: cfg.bg, color: cfg.color }}>
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+        <path d={cfg.icon} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      {cfg.label}
+    </span>
   );
 }
 
@@ -246,7 +265,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                 >
                   <ConfidenceRing confidence={field.confidence} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
+                    <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span className="text-[9px] font-bold uppercase tracking-wide"
                         style={{ color: "rgba(255,255,255,0.4)" }}>
                         {field.label}
@@ -261,6 +280,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                           Located
                         </span>
                       )}
+                      {field.validation && <ValidationBadge v={field.validation} />}
                     </div>
                     <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
                       {field.value}
@@ -280,6 +300,10 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
           <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.25)" }}>
             {fields.length} field{fields.length !== 1 ? "s" : ""} extracted
             {" · "}{fields.filter(f => f.confidence >= 0.9).length} high confidence
+            {(() => {
+              const flagged = fields.filter(f => f.validation && f.validation.status !== "ok").length;
+              return flagged > 0 ? <span style={{ color: "#f59e0b" }}>{" · "}{flagged} need review</span> : null;
+            })()}
           </p>
         </div>
       )}

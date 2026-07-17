@@ -1,3 +1,8 @@
+export interface FieldValidation {
+  status: "ok" | "corrected" | "flagged" | "low_confidence";
+  note: string;
+}
+
 export interface ExtractedField {
   name: string;
   label: string;
@@ -6,6 +11,7 @@ export interface ExtractedField {
   field_type: "text" | "date" | "currency";
   bbox: [number, number, number, number] | null; // [left, top, width, height] normalized 0-1
   page: number;
+  validation?: FieldValidation;
 }
 
 export interface StepEvent {
