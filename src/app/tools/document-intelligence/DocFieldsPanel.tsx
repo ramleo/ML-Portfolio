@@ -31,9 +31,9 @@ function ConfidenceRing({ confidence }: { confidence: number }) {
         strokeDashoffset={RING_CIRC * 0.25}
         style={{ transition: "stroke-dasharray 0.5s ease" }}
       />
-      <text x={RING_SIZE / 2} y={RING_SIZE / 2 + 3.5}
-        textAnchor="middle" fontSize={7} fill={color} fontWeight="bold">
-        {Math.round(pct * 100)}
+      <text x={RING_SIZE / 2} y={RING_SIZE / 2 + 2.5}
+        textAnchor="middle" fontSize={6.5} fill={color} fontWeight="bold">
+        {Math.round(pct * 100)}%
       </text>
     </svg>
   );

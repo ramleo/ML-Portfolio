@@ -55,7 +55,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
     STEPS.map(s => ({ key: s.key, label: s.label, status: "pending" } as StepState))
   );
   const [fields, setFields]           = useState<ExtractedField[]>([]);
-  const [pageImage, setPageImage]     = useState<string | null>(null);
+  const [pageImages, setPageImages]   = useState<string[]>([]);
   const [docType, setDocType]         = useState<string>("auto");
   const [detectedType, setDetectedType] = useState<string | null>(null);
   const [detectedConf, setDetectedConf] = useState(0);
@@ -78,7 +78,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const runAnalysis = useCallback(async (file: File) => {
     setError(null);
     setFields([]);
-    setPageImage(null);
+    setPageImages([]);
     setDetectedType(null);
     setDocTypeLabel(null);
     setProcessingMode(null);
@@ -125,7 +125,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
 
             if (evt.done) {
               setStep("done");
-              if (evt.page_image) setPageImage(evt.page_image);
+              if (evt.page_images?.length) setPageImages(evt.page_images);
               if (evt.doc_type) { setDetectedType(evt.doc_type); setDocTypeLabel(evt.doc_type_label ?? null); }
               if (evt.processing_mode) setProcessingMode(evt.processing_mode);
             }
@@ -231,7 +231,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             {/* Viewer + Fields side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
               <DocViewerPanel
-                pageImage={pageImage}
+                pageImages={pageImages}
                 fields={fields}
                 activeField={activeField}
                 onFieldClick={setActiveField}

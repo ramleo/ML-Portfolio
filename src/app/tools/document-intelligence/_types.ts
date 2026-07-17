@@ -23,7 +23,7 @@ export interface DoneEvent {
   doc_type_label: string;
   processing_mode: "digital" | "scanned" | "image";
   pages: number;
-  page_image: string | null;
+  page_images: string[];
   field_count: number;
   classification_confidence: number;
 }
