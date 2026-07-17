@@ -96,11 +96,14 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let buf = "";
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        const lines = decoder.decode(value).split("\n").filter(Boolean);
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? ""; // keep incomplete last line in buffer
         for (const line of lines) {
           if (!line.startsWith("data:")) continue;
           try {
@@ -144,7 +147,6 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   };
 
   const isProcessing = !["idle", "done", "error"].includes(step);
-  const showResults  = step === "done" || fields.length > 0;
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)",
