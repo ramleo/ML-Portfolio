@@ -1,0 +1,78 @@
+"use client";
+
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useToolTracking } from "@/hooks/useAnalytics";
+import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
+import DocIntelRunner from "./DocIntelRunner";
+
+const ACCENT = "#06b6d4";
+
+const DOC_TYPES_STATIC = [
+  { id: "invoice",        label: "Invoice",        description: "Vendor invoice or bill",                fields: [] },
+  { id: "receipt",        label: "Receipt",        description: "Purchase receipt",                      fields: [] },
+  { id: "contract",       label: "Contract",       description: "Legal contract or agreement",           fields: [] },
+  { id: "resume",         label: "Resume / CV",    description: "Professional resume or CV",             fields: [] },
+  { id: "medical_report", label: "Medical Report", description: "Medical examination or lab report",     fields: [] },
+  { id: "bank_statement", label: "Bank Statement", description: "Bank account statement",               fields: [] },
+  { id: "id_card",        label: "ID Card",        description: "Government-issued identity document",  fields: [] },
+  { id: "purchase_order", label: "Purchase Order", description: "Purchase order or procurement doc",    fields: [] },
+];
+
+export default function DocumentIntelligencePage() {
+  useToolTracking("document-intelligence");
+  const router = useRouter();
+  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+
+  return (
+    <div className="relative min-h-screen text-white overflow-x-hidden">
+      <ConstellationBackground />
+      <ToolsAIChat context={{
+        tool: "Document Intelligence",
+        summary: "AI-powered document data extraction. Upload PDF invoices, contracts, resumes, medical reports, and more to extract structured fields with confidence scores using OCR and LLM analysis.",
+      }} />
+
+      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
+        <div className="max-w-7xl mx-auto px-4 w-full">
+          {/* Back button */}
+          <button onClick={handleBack}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
+          </button>
+
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: `${ACCENT}18`, border: `1px solid ${ACCENT}30` }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+                  stroke={ACCENT} strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M14 2v6h6M9 13h6M9 17h4"
+                  stroke={ACCENT} strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold">Document Intelligence</h1>
+                <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
+                  style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
+                  AI Extraction
+                </span>
+              </div>
+              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Extract structured data from invoices, contracts, resumes & more — powered by LLM analysis
+              </p>
+            </div>
+          </div>
+
+          {/* Main runner */}
+          <DocIntelRunner docTypes={DOC_TYPES_STATIC} />
+        </div>
+      </div>
+    </div>
+  );
+}

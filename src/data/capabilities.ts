@@ -210,6 +210,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/text-to-sql",
   },
+  {
+    id: "document-intelligence",
+    title: "Document Intelligence",
+    subtitle: "AI-Powered Document Data Extraction",
+    description:
+      "Upload invoices, contracts, resumes, medical reports, bank statements, and more. AI classifies the document type, extracts structured fields with confidence scores, and highlights each field's location with bounding box overlays.",
+    accent: "#06b6d4",
+    stat: "8",
+    statLabel: "Document Types",
+    model: "Groq / Gemini / Cohere",
+    input: "PDF, PNG, JPG, JPEG, WEBP",
+    tags: ["OCR", "LLM", "PDF", "Extraction", "NLP"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/document-intelligence",
+  },
 ];
 
 export default capabilities;
