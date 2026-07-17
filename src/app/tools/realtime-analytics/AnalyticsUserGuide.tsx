@@ -10,11 +10,12 @@ const NAV = [
   { id: "ug-range", label: "Range" }, { id: "ug-stats", label: "Stat Cards" },
   { id: "ug-sparkline", label: "Sparkline" }, { id: "ug-funnel", label: "Funnel" },
   { id: "ug-geo", label: "Geo Map" }, { id: "ug-heatmap", label: "Heatmap" },
+  { id: "ug-hf-tools", label: "HF Tools" }, { id: "ug-portfolio-tools", label: "Portfolio Tools" },
   { id: "ug-tools", label: "Tool Comparison" }, { id: "ug-qsr", label: "Query SR" },
   { id: "ug-provider", label: "AI Provider" }, { id: "ug-engage", label: "Engagement" },
   { id: "ug-pages", label: "Top Pages" }, { id: "ug-refs", label: "Referrers" },
-  { id: "ug-types", label: "Event Types" }, { id: "ug-feed", label: "Live Feed" },
-  { id: "ug-session", label: "Session Trace" },
+  { id: "ug-types", label: "Event Types" }, { id: "ug-device", label: "By Device" },
+  { id: "ug-feed", label: "Live Feed" }, { id: "ug-session", label: "Session Trace" },
 ];
 
 export default function AnalyticsUserGuide({ onClose }: Props) {

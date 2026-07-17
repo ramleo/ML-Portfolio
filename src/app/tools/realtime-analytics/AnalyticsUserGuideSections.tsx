@@ -159,6 +159,22 @@ export default function GuideSections() {
           desc="Fixed to the last 7 days (rows = Sun–Sat, columns = 0–23 h). Cell intensity = event count. Hover any cell for the exact count. Hidden when there is no data."/>
       </Sec>
 
+      <Sec id="ug-hf-tools" title="HF Space Tools">
+        <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 1v2M10 1v2M1 7h12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
+          title="ML Unified API activity"
+          desc="Shows tool_open events tracked from the HF Space backend (ml-unified). Each card displays the tool name, total event count, and a proportional activity bar. Only tools with at least one event in the selected range appear."/>
+        <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M7 4.5v3l2 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+          title="Page-Copy-Open counts"
+          desc="Sub-line under each tool shows page views, copy events (sql_copy), and tool opens separately — so you can see whether visitors viewed a tool page without opening it."/>
+      </Sec>
+
+      <Sec id="ug-portfolio-tools" title="Portfolio Tools">
+        <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+          title="Per-tool event cards on the portfolio"
+          desc="Shows tool_open events fired from the Vercel-hosted portfolio (ml-portfolio-rho.vercel.app). Covers AutoML, Text-to-SQL, SHAP, Feature Engineering, Drift, Ensemble, Pipeline Builder, Pipeline Cinema, Preprocessing, Optuna, and Document Intelligence. Hidden when no tool events exist."/>
+        <p className="text-[9.5px] text-gray-700 mt-2 leading-relaxed">HF Space Tools and Portfolio Tools are separate sections because they run on different origins — session IDs do not overlap between them.</p>
+      </Sec>
+
       <Sec id="ug-tools" title="Tool Usage Comparison">
         <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h4M2 7h7M2 4h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
           title="Side-by-side bars per tool"
@@ -188,8 +204,11 @@ export default function GuideSections() {
           ))}
         </div>
         <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h10M2 7h7M2 4h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
-          title="Bar length = query share"
+          title="By Provider — bar length = query share"
           desc="Each bar is proportional to that provider's share of all query_run events in the active range. Provider is read from meta.provider on each query_run event. Hidden when no query_run events exist."/>
+        <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h10M2 7h8M2 4h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
+          title="By Model — specific model breakdown"
+          desc="Second chart below the provider bars. Shows the exact model name used (e.g. llama-3.3-70b-versatile, gemini-2.0-flash, command-r-plus) from meta.model on each query_run event. Useful for tracking which models handle the most load."/>
       </Sec>
 
       <Sec id="ug-engage" title="Engagement Metrics">
@@ -255,6 +274,12 @@ export default function GuideSections() {
             </div>
           ))}
         </div>
+      </Sec>
+
+      <Sec id="ug-device" title="Visitors by Device">
+        <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.3"/><path d="M9 5h3a1 1 0 011 1v2a1 1 0 01-1 1h-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M5 9v2M3 11h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
+          title="Desktop / Mobile / Tablet split"
+          desc="Donut chart showing the device type breakdown from meta.device on page_view events. Device is detected from the user agent at track time. Hidden when no page_view events with device data exist in range."/>
       </Sec>
 
       <Sec id="ug-feed" title="Live Feed">
