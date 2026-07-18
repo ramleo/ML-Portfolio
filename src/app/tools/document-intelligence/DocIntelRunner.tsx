@@ -63,6 +63,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const [processingMode, setProcessingMode] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [error, setError]             = useState<string | null>(null);
+  const [warning, setWarning]         = useState<string | null>(null);
   const [isDragging, setIsDragging]   = useState(false);
   const [fileName, setFileName]       = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +78,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
 
   const runAnalysis = useCallback(async (file: File) => {
     setError(null);
+    setWarning(null);
     setFields([]);
     setPageImages([]);
     setDetectedType(null);
@@ -110,6 +112,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             const evt = JSON.parse(line.slice(5).trim());
 
             if (evt.error) { setError(evt.error); setStep("error"); return; }
+            if (evt.warning) setWarning(evt.warning);
 
             if (evt.step) {
               setStep(evt.step as ProcessingStep);
@@ -225,6 +228,12 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               <div className="px-4 py-3 rounded-xl text-[11px]"
                 style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
                 {error}
+              </div>
+            )}
+            {warning && !error && (
+              <div className="px-4 py-3 rounded-xl text-[11px]"
+                style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", color: "#fbbf24" }}>
+                {warning}
               </div>
             )}
 
