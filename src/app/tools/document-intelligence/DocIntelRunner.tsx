@@ -136,7 +136,11 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
+      const msg = err instanceof Error ? err.message : "Analysis failed";
+      const isNetwork = msg.toLowerCase().includes("network") || msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("failed to fetch");
+      setError(isNetwork
+        ? "Connection lost — the server may be restarting. Please wait a few seconds and try again."
+        : msg);
       setStep("error");
     }
   }, [docType]);
