@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
 import type { ExtractedField } from "./_types";
 
 const ACCENT = "#06b6d4";
@@ -23,19 +22,6 @@ interface Props {
 export default function DocViewerPanel({
   pageImages, fields, activeField, onFieldClick, isScanning, processingMode,
 }: Props) {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
-
-  useEffect(() => {
-    const el = imgRef.current;
-    if (!el) return;
-    const update = () => setImgSize({ w: el.offsetWidth, h: el.offsetHeight });
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [pageImages]);
-
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -85,34 +71,31 @@ export default function DocViewerPanel({
                   pg {idx + 1}
                 </div>
                 <img
-                  ref={idx === 0 ? imgRef : undefined}
                   src={`data:image/png;base64,${b64}`}
                   alt={`Page ${idx + 1}`}
                   className="rounded w-full object-contain"
                   style={{ display: "block", border: "1px solid rgba(255,255,255,0.1)" }}
                 />
-                {/* Bounding box overlay — page 1 only (bboxes come from page 1 text search) */}
-                {idx === 0 && imgSize.w > 0 && (
-                  <svg className="absolute inset-0 pointer-events-none"
-                    width={imgSize.w} height={imgSize.h}
-                    style={{ position: "absolute", top: 0, left: 0 }}>
-                    {fields.filter(f => f.bbox).map(field => {
-                      const [lx, ly, lw, lh] = field.bbox!;
-                      const x = lx * imgSize.w, y = ly * imgSize.h;
-                      const w = lw * imgSize.w, h = lh * imgSize.h;
-                      const stroke = FIELD_TYPE_STROKE[field.field_type] ?? "#818cf8";
-                      const isActive = activeField === field.name;
-                      return (
-                        <rect key={field.name} x={x} y={y} width={w} height={h}
-                          fill={isActive ? `${stroke}18` : "transparent"}
-                          stroke={stroke} strokeWidth={isActive ? 2 : 1}
-                          strokeDasharray={isActive ? "none" : "4 3"} rx={2}
-                          style={{ cursor: "pointer", transition: "all 0.2s" }}
-                          onClick={() => onFieldClick(field.name)} />
-                      );
-                    })}
-                  </svg>
-                )}
+                {/* Bounding box overlay — each field renders on its own page */}
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+                  className="absolute inset-0"
+                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+                  {fields.filter(f => f.bbox && (f.page ?? 1) === idx + 1).map(field => {
+                    const [lx, ly, lw, lh] = field.bbox!;
+                    const stroke = FIELD_TYPE_STROKE[field.field_type] ?? "#818cf8";
+                    const isActive = activeField === field.name;
+                    return (
+                      <rect key={field.name}
+                        x={lx * 100} y={ly * 100} width={lw * 100} height={lh * 100}
+                        fill={isActive ? `${stroke}18` : "transparent"}
+                        stroke={stroke} strokeWidth={isActive ? 2 : 1}
+                        strokeDasharray={isActive ? "none" : "4 3"} rx={0.3}
+                        vectorEffect="non-scaling-stroke"
+                        style={{ cursor: "pointer", transition: "all 0.2s", pointerEvents: "auto" }}
+                        onClick={() => onFieldClick(field.name)} />
+                    );
+                  })}
+                </svg>
               </div>
             ))}
             {/* Scanning animation over first page */}
