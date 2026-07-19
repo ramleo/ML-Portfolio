@@ -55,6 +55,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
           <div style={{
             padding: "0.7rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)",
             display: "flex", alignItems: "center", gap: "0.5rem",
+            flexWrap: helpMode ? "nowrap" : "wrap", rowGap: "0.4rem",
             background: `linear-gradient(135deg, rgba(8,15,30,1) 0%, rgba(${accentColor === "#38bdf8" ? "56,189,248" : accentColor === "#f59e0b" ? "245,158,11" : "52,211,153"},0.08) 100%)`,
           }}>
             {confirmClear ? (
@@ -72,7 +73,9 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
             ) : (
               <>
                 <span title={context.tool}
-                  style={{ fontSize: helpMode ? "0.68rem" : "0.55rem", fontWeight: 700, color: accentColor, letterSpacing: "0.04em", textTransform: "uppercase", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  style={helpMode
+                    ? { fontSize: "0.68rem", fontWeight: 700, color: accentColor, letterSpacing: "0.04em", textTransform: "uppercase", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+                    : { fontSize: "0.64rem", fontWeight: 700, color: accentColor, letterSpacing: "0.04em", textTransform: "uppercase", flexBasis: "100%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {context.tool}
                 </span>
                 {!helpMode && <>
