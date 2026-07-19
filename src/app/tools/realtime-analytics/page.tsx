@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import { ANALYTICS_GUIDE, ANALYTICS_SUGGESTIONS } from "./userGuide";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 
@@ -19,7 +20,12 @@ export default function RealtimeAnalyticsPage() {
     <PipelineProvider>
       <div className="relative min-h-screen text-white overflow-x-hidden">
         <ConstellationBackground />
-        <ToolsAIChat context={{ tool: "Real-Time Analytics Dashboard", summary: "Live event tracking for the ml-portfolio site. Events (page views, tool opens) are ingested via FastAPI, stored in Supabase PostgreSQL, and streamed to this dashboard via Supabase Realtime WebSocket subscriptions." }} />
+        <ToolsAIChat context={{
+          tool: "Real-Time Analytics Dashboard",
+          summary: "Live event tracking for the ml-portfolio site. Events (page views, tool opens) are ingested via FastAPI, stored in Supabase PostgreSQL, and streamed to this dashboard via Supabase Realtime WebSocket subscriptions.",
+          guide: ANALYTICS_GUIDE,
+          suggestions: ANALYTICS_SUGGESTIONS,
+        }} />
 
         <div className="relative z-10 flex flex-col gap-6 pt-6">
           <div className="max-w-7xl mx-auto px-4 w-full">

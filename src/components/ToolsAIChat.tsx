@@ -71,7 +71,8 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
               </>
             ) : (
               <>
-                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
+                <span title={`AI Assistant · ${context.tool}`}
+                  style={{ fontSize: "0.62rem", fontWeight: 700, color: accentColor, letterSpacing: "0.05em", textTransform: "uppercase", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   AI Assistant · {context.tool}
                 </span>
                 {!helpMode && <>
