@@ -5,6 +5,7 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import DocSidebar from "./DocSidebar";
 import DocViewerPanel from "./DocViewerPanel";
 import DocFieldsPanel from "./DocFieldsPanel";
+import DocChatPanel from "./DocChatPanel";
 import type { ExtractedField, DocTypeInfo, ProcessingStep, StepState } from "./_types";
 
 const ACCENT = "#06b6d4";
@@ -65,6 +66,8 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const [error, setError]             = useState<string | null>(null);
   const [warning, setWarning]         = useState<string | null>(null);
   const [provider, setProvider]       = useState<string | null>(null);
+  const [docText, setDocText]         = useState<string>("");
+  const [customFields, setCustomFields] = useState<string>("");
   const [isDragging, setIsDragging]   = useState(false);
   const [fileName, setFileName]       = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +84,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
     setError(null);
     setWarning(null);
     setProvider(null);
+    setDocText("");
     setFields([]);
     setPageImages([]);
     setDetectedType(null);
@@ -93,6 +97,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
     const fd = new FormData();
     fd.append("file", file);
     fd.append("doc_type", docType);
+    if (customFields.trim()) fd.append("custom_fields", customFields.trim());
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}/document/analyze`, { method: "POST", body: fd });
@@ -134,6 +139,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               if (evt.page_images?.length) setPageImages(evt.page_images);
               if (evt.doc_type) { setDetectedType(evt.doc_type); setDocTypeLabel(evt.doc_type_label ?? null); }
               if (evt.processing_mode) setProcessingMode(evt.processing_mode);
+              if (evt.doc_text) setDocText(evt.doc_text);
             }
           } catch { /* skip malformed lines */ }
         }
@@ -146,9 +152,16 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
         : msg);
       setStep("error");
     }
-  }, [docType]);
+  }, [docType, customFields]);
 
   const handleFile = (file: File) => { runAnalysis(file); };
+
+  const handleFieldEdit = (name: string, value: string) => {
+    setFields(prev => prev.map(f => f.name === name
+      ? { ...f, value, confidence: 1,
+          validation: { status: "corrected", note: "Edited by you — human-verified" } }
+      : f));
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault(); setIsDragging(false);
@@ -210,6 +223,24 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
           </div>
         )}
 
+        {/* Custom fields — extra field names to extract, applied on next upload */}
+        {step === "idle" && (
+          <div style={cardStyle} className="px-4 py-3 flex flex-col gap-1.5">
+            <label className="text-[9px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: "rgba(255,255,255,0.35)" }}>
+              Extra fields to extract <span className="normal-case font-normal">(optional, comma-separated)</span>
+            </label>
+            <input
+              value={customFields}
+              onChange={e => setCustomFields(e.target.value)}
+              onClick={e => e.stopPropagation()}
+              placeholder="e.g. GST Number, HSN Code, PO Reference"
+              className="bg-transparent text-[11px] px-3 py-2 rounded-lg border outline-none"
+              style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
+            />
+          </div>
+        )}
+
         {/* Processing / results area */}
         {step !== "idle" && (
           <>
@@ -260,8 +291,14 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
                 onFieldHover={setActiveField}
                 docTypeLabel={docTypeLabel}
                 provider={provider}
+                onFieldEdit={handleFieldEdit}
               />
             </div>
+
+            {/* Chat with the analyzed document */}
+            {step === "done" && docText && (
+              <DocChatPanel docText={docText} fields={fields} />
+            )}
           </>
         )}
       </div>

@@ -15,6 +15,7 @@ interface Props {
   onFieldHover: (name: string | null) => void;
   docTypeLabel: string | null;
   provider?: string | null;
+  onFieldEdit?: (name: string, value: string) => void;
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -208,7 +209,9 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
   );
 }
 
-export default function DocFieldsPanel({ fields, activeField, onFieldHover, docTypeLabel, provider }: Props) {
+export default function DocFieldsPanel({ fields, activeField, onFieldHover, docTypeLabel, provider, onFieldEdit }: Props) {
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -302,10 +305,52 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                       )}
                       {field.validation && <ValidationBadge v={field.validation} />}
                     </div>
-                    <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
-                      {field.value}
-                    </p>
+                    {editing === field.name ? (
+                      <div className="flex flex-col gap-1.5 mt-1" onClick={e => e.stopPropagation()}>
+                        <textarea
+                          value={draft}
+                          onChange={e => setDraft(e.target.value)}
+                          rows={Math.min(5, Math.max(2, Math.ceil(draft.length / 60)))}
+                          autoFocus
+                          className="w-full bg-transparent text-[11px] px-2 py-1.5 rounded-lg border outline-none resize-y"
+                          style={{ borderColor: "rgba(6,182,212,0.4)", color: "rgba(255,255,255,0.9)" }}
+                        />
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => { onFieldEdit?.(field.name, draft); setEditing(null); }}
+                            className="text-[9px] px-2 py-1 rounded-md font-medium"
+                            style={{ background: "rgba(16,185,129,0.15)", color: "#10b981",
+                                     border: "1px solid rgba(16,185,129,0.3)" }}>
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditing(null)}
+                            className="text-[9px] px-2 py-1 rounded-md"
+                            style={{ color: "rgba(255,255,255,0.4)",
+                                     border: "1px solid rgba(255,255,255,0.12)" }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
+                        {field.value}
+                      </p>
+                    )}
                   </div>
+                  {onFieldEdit && editing !== field.name && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setEditing(field.name); setDraft(field.value); }}
+                      className="shrink-0 transition-opacity opacity-0 group-hover:opacity-100"
+                      style={{ color: "#4b5563" }} title="Edit value">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  )}
                   <CopyBtn value={field.value} />
                 </motion.div>
               );
