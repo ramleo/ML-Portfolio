@@ -40,10 +40,12 @@ export default function DocViewerPanel({
         </span>
         {processingMode && (
           <span className="text-[8px] px-2 py-[2px] rounded-full font-medium"
-            style={processingMode === "digital"
+            style={["digital", "docx"].includes(processingMode)
               ? { background: "rgba(6,182,212,0.12)", color: ACCENT, border: "1px solid rgba(6,182,212,0.2)" }
               : { background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
-            {processingMode === "digital" ? "Digital PDF" : processingMode === "scanned" ? "Scanned — OCR" : "Image"}
+            {processingMode === "digital" ? "Digital PDF"
+              : processingMode === "docx" ? "Word — DOCX"
+              : processingMode === "scanned" ? "Scanned — OCR" : "Image"}
           </span>
         )}
       </div>
@@ -58,7 +60,9 @@ export default function DocViewerPanel({
               <path d="M8 7h8M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
             <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-              {isScanning ? "Processing document…" : "Document preview will appear here"}
+              {isScanning ? "Processing document…"
+                : processingMode === "docx" ? "Word documents have no visual preview — fields are extracted from text"
+                : "Document preview will appear here"}
             </p>
           </div>
         ) : (

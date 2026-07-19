@@ -192,7 +192,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden"
+            <input ref={inputRef} type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" className="hidden"
               onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
               style={{ color: isDragging ? ACCENT : "rgba(255,255,255,0.2)" }}>
@@ -204,7 +204,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
                 {isDragging ? "Drop to analyze" : "Drag & drop or click to upload"}
               </p>
               <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
-                PDF, PNG, JPG, WEBP · Max 10 MB
+                PDF, DOCX, PNG, JPG, WEBP · Max 10 MB
               </p>
             </div>
           </div>

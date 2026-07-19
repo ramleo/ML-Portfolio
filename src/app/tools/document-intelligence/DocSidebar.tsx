@@ -3,7 +3,7 @@
 import type { DocTypeInfo } from "./_types";
 
 const ACCENT = "#06b6d4";
-const FORMATS = ["PDF", "PNG", "JPG", "JPEG", "WEBP"];
+const FORMATS = ["PDF", "DOCX", "PNG", "JPG", "JPEG", "WEBP"];
 
 interface Props {
   docTypes: DocTypeInfo[];
