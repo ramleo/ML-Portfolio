@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import DocIntelRunner from "./DocIntelRunner";
+import DocUserGuideModal from "./DocUserGuideModal";
 import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#06b6d4";
@@ -25,6 +26,7 @@ export default function DocumentIntelligencePage() {
   useToolTracking("document-intelligence");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen text-white overflow-x-hidden">
@@ -58,7 +60,7 @@ export default function DocumentIntelligencePage() {
                   stroke={ACCENT} strokeWidth="1.3" strokeLinecap="round"/>
               </svg>
             </div>
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold">Document Intelligence</h1>
                 <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
@@ -70,7 +72,18 @@ export default function DocumentIntelligencePage() {
                 Extract structured data from invoices, contracts, resumes & more — powered by LLM analysis
               </p>
             </div>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
           </div>
+
+          <DocUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
           {/* Main runner */}
           <DocIntelRunner docTypes={DOC_TYPES_STATIC} />

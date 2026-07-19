@@ -18,6 +18,10 @@ const PANEL_W = 370;
 const PANEL_H = 540;
 
 export default function ToolsAIChat({ context }: { context: import("./useRagChat").ToolChatContext }) {
+  // Guide mode: the assistant is a scoped help bot for this tool — hide the
+  // dataset-RAG controls (doc upload, Deep Search, Web override, Jina) that
+  // would confuse or undermine the guide-only scope.
+  const helpMode = !!context.guide;
   const {
     open, setOpen, settings, setSettings,
     messages, input, setInput, loading,
@@ -70,6 +74,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
                 <span style={{ fontSize: "0.7rem", fontWeight: 700, color: accentColor, letterSpacing: "0.06em", textTransform: "uppercase", flex: 1 }}>
                   AI Assistant · {context.tool}
                 </span>
+                {!helpMode && <>
                 <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} onSessionId={id => setSessionId(id)} />
                 <RagUploadsPanel accent={accentColor} onStatusChange={setIngestStatus} />
                 <button onClick={() => setDeepSearch(d => !d)}
@@ -88,6 +93,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
                   style={{ background: useJina ? `${accentColor}22` : "transparent", border: `1px solid ${useJina ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: useJina ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center", gap: "3px", fontSize: "0.58rem", fontWeight: 600 }}>
                   <SparkleIcon />{useJina ? "Jina" : "Std"}
                 </button>
+                </>}
                 <button onClick={() => setSettings(s => !s)}
                   style={{ background: settings ? `${accentColor}22` : "transparent", border: `1px solid ${settings ? accentColor + "55" : "rgba(255,255,255,0.1)"}`, borderRadius: 6, color: settings ? accentColor : "var(--text3)", cursor: "pointer", padding: "3px 6px", display: "flex", alignItems: "center" }}>
                   <GearIcon />
@@ -114,12 +120,12 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
             />
           )}
 
-          {ingestStatus.kind !== "idle" && (
+          {!helpMode && ingestStatus.kind !== "idle" && (
             <div style={{ padding: "0.5rem 1rem 0" }}>
               <RagIngestBanner status={ingestStatus} accent={accentColor} />
             </div>
           )}
-          {(useJina || lowConfidence) && (
+          {!helpMode && (useJina || lowConfidence) && (
             <div style={{ padding: "0.3rem 1rem 0" }}>
               <RagJinaBanner jinaStatus={jinaStatus} useJina={useJina} lowConfidence={lowConfidence} accent={accentColor} onEnableJina={enableJina} />
             </div>
@@ -171,7 +177,9 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
           {/* Input */}
           <div style={{ padding: "0.6rem 0.75rem", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
-              onKeyDown={onKeyDown} placeholder="Ask about your data or ML techniques…" rows={1}
+              onKeyDown={onKeyDown}
+              placeholder={helpMode ? `Ask about ${context.tool} or this website…` : "Ask about your data or ML techniques…"}
+              rows={1}
               style={{ flex: 1, resize: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: "var(--text)", fontSize: "0.74rem", padding: "0.45rem 0.6rem", outline: "none", lineHeight: 1.5, maxHeight: 100, overflowY: "auto", fontFamily: "inherit" }}
             />
             <button onClick={send} disabled={!input.trim() || loading}
