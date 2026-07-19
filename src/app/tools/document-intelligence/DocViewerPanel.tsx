@@ -54,17 +54,37 @@ export default function DocViewerPanel({
       <div className="relative flex-1 flex items-center justify-center p-3 min-h-[320px]"
         style={{ background: "rgba(255,255,255,0.015)" }}>
         {pageImages.length === 0 ? (
+          processingMode === "docx" && !isScanning ? (
+            <div className="text-center max-w-[340px] px-6 py-8 rounded-xl"
+              style={{ background: "rgba(6,182,212,0.05)", border: "1px solid rgba(6,182,212,0.15)" }}>
+              <svg className="mx-auto mb-3" width="36" height="36" viewBox="0 0 24 24" fill="none"
+                style={{ color: ACCENT }}>
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M8.5 12l1.5 5 2-5 2 5 1.5-5" stroke="currentColor" strokeWidth="1.3"
+                  strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <p className="text-[11px] font-semibold mb-1.5" style={{ color: ACCENT }}>
+                Word document processed successfully
+              </p>
+              <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+                All fields on the right were extracted from the document&apos;s full text.
+                A visual page preview with field highlighting is available when you upload
+                a PDF or image instead.
+              </p>
+            </div>
+          ) : (
           <div className="text-center">
             <svg className="mx-auto mb-2 opacity-20" width="40" height="40" viewBox="0 0 24 24" fill="none">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M8 7h8M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
             <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-              {isScanning ? "Processing document…"
-                : processingMode === "docx" ? "Word documents have no visual preview — fields are extracted from text"
-                : "Document preview will appear here"}
+              {isScanning ? "Processing document…" : "Document preview will appear here"}
             </p>
           </div>
+          )
         ) : (
           <div className="flex flex-col gap-2 w-full overflow-y-auto" style={{ maxHeight: 600 }}>
             {pageImages.map((b64, idx) => (
