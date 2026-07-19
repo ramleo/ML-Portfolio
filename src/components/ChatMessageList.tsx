@@ -23,6 +23,8 @@ interface Props {
   confidence?:       string | null;
   onSuggestion:      (q: string) => void;
   onSourcesToggle:   () => void;
+  suggestions?:      string[];
+  emptyHint?:        string;
 }
 
 const MD_COMPONENTS = {
@@ -59,6 +61,7 @@ export default function ChatMessageList({
   expandedQueries = [], candidatesRetrieved,
   answerSource, confidence,
   onSuggestion, onSourcesToggle,
+  suggestions, emptyHint,
 }: Props) {
   const [insightsOpen, setInsightsOpen] = useState(false);
 
@@ -69,9 +72,9 @@ export default function ChatMessageList({
 
       {messages.length === 0 && (
         <div style={{ margin: "auto", textAlign: "center", color: "var(--text3)", fontSize: "0.72rem", lineHeight: 1.7, padding: "1rem" }}>
-          Ask anything about your data, transforms, or ML concepts.
+          {emptyHint ?? "Ask anything about your data, transforms, or ML concepts."}
           <div style={{ marginTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-            {SUGGESTIONS.map(q => (
+            {(suggestions ?? SUGGESTIONS).map(q => (
               <button key={q} onClick={() => onSuggestion(q)}
                 style={{ background: `${accentColor}0f`, border: `1px solid ${accentColor}28`, borderRadius: 8, color: accentColor, fontSize: "0.65rem", padding: "0.3rem 0.6rem", cursor: "pointer", textAlign: "left" }}>
                 {q}

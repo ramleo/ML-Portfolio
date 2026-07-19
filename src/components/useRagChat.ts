@@ -6,7 +6,32 @@ import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { STEP_LABELS } from "./ToolsAIChatIcons";
 
-export type ToolChatContext = { tool: string; summary: string };
+export type ToolChatContext = {
+  tool: string;
+  summary: string;
+  /** Markdown user guide — when set, the assistant answers ONLY from it + website topics */
+  guide?: string;
+  /** Page-specific suggestion chips shown in the empty chat */
+  suggestions?: string[];
+};
+
+const SITE_SUMMARY =
+  "This website is AIRaML, the ML engineering portfolio of Ramakrishnasai Wuppalapati. " +
+  "It hosts interactive AI/ML tools: AutoML model training, EDA, Pipeline Builder, " +
+  "Text-to-SQL Agent, Document Intelligence, drift detection, RAG chat, and analytics.";
+
+function buildToolContext(context: ToolChatContext): string {
+  if (!context.guide) {
+    return `Tool: ${context.tool}\n${context.summary}`;
+  }
+  return [
+    `You are the help assistant for the "${context.tool}" tool on the AIRaML portfolio website.`,
+    `SCOPE RULES (strict): Answer ONLY questions about (a) the ${context.tool} tool — using the user guide below as your source of truth — or (b) this website and its tools in general. ` +
+      `If the question is about anything else (general ML theory, coding help, unrelated topics), politely reply that you only help with the ${context.tool} tool and this website, and suggest asking about those instead. Do not answer off-topic questions even partially.`,
+    `ABOUT THIS WEBSITE: ${SITE_SUMMARY}`,
+    `USER GUIDE for ${context.tool}:\n${context.guide}`,
+  ].join("\n\n");
+}
 export type Message  = { role: "user" | "assistant"; content: string };
 export type RagSource = { source: string; text: string; score: number; display_score: number };
 
@@ -147,12 +172,13 @@ export function useRagChat(context: ToolChatContext) {
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
+    const toolContext = buildToolContext(context);
     const body = deepSearch
-      ? { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
+      ? { query: text, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined, session_id: sessionId || undefined,
           force_web: forceWeb || undefined }
-      : { query: text, tool_context: `Tool: ${context.tool}\n${context.summary}`,
+      : { query: text, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined,
           embedding_model: useJina ? "jina" : "minilm",

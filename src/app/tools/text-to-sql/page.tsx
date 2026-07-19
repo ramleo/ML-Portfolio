@@ -7,6 +7,7 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import { PipelineProvider } from "@/context/PipelineContext";
 import TextToSqlRunner from "./TextToSqlRunner";
+import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#6366f1";
 
@@ -19,7 +20,12 @@ export default function TextToSqlPage() {
     <PipelineProvider>
       <div className="relative min-h-screen text-white overflow-x-hidden">
         <ConstellationBackground />
-        <ToolsAIChat context={{ tool: "Text-to-SQL Agent", summary: "AI agent that converts natural language questions to SQL, executes them, and explains results." }} />
+        <ToolsAIChat context={{
+          tool: "Text-to-SQL Agent",
+          summary: "AI agent that converts natural language questions to SQL, executes them, and explains results.",
+          guide: TEXT_TO_SQL_GUIDE,
+          suggestions: TEXT_TO_SQL_SUGGESTIONS,
+        }} />
 
         <div className="relative z-10 flex flex-col gap-6 pt-6">
           {/* Header */}

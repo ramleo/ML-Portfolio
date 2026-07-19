@@ -6,6 +6,7 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import DocIntelRunner from "./DocIntelRunner";
+import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#06b6d4";
 
@@ -31,6 +32,8 @@ export default function DocumentIntelligencePage() {
       <ToolsAIChat context={{
         tool: "Document Intelligence",
         summary: "AI-powered document data extraction. Upload PDF invoices, contracts, resumes, medical reports, and more to extract structured fields with confidence scores using OCR and LLM analysis.",
+        guide: DOC_INTEL_GUIDE,
+        suggestions: DOC_INTEL_SUGGESTIONS,
       }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
