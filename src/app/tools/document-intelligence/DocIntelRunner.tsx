@@ -64,6 +64,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const [activeField, setActiveField] = useState<string | null>(null);
   const [error, setError]             = useState<string | null>(null);
   const [warning, setWarning]         = useState<string | null>(null);
+  const [provider, setProvider]       = useState<string | null>(null);
   const [isDragging, setIsDragging]   = useState(false);
   const [fileName, setFileName]       = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,6 +80,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const runAnalysis = useCallback(async (file: File) => {
     setError(null);
     setWarning(null);
+    setProvider(null);
     setFields([]);
     setPageImages([]);
     setDetectedType(null);
@@ -113,6 +115,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
 
             if (evt.error) { setError(evt.error); setStep("error"); return; }
             if (evt.warning) setWarning(evt.warning);
+            if (evt.provider) setProvider(evt.provider);
 
             if (evt.step) {
               setStep(evt.step as ProcessingStep);
@@ -256,6 +259,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
                 activeField={activeField}
                 onFieldHover={setActiveField}
                 docTypeLabel={docTypeLabel}
+                provider={provider}
               />
             </div>
           </>

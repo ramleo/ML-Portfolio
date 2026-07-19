@@ -14,6 +14,18 @@ interface Props {
   activeField: string | null;
   onFieldHover: (name: string | null) => void;
   docTypeLabel: string | null;
+  provider?: string | null;
+}
+
+const PROVIDER_LABELS: Record<string, string> = {
+  groq: "Groq", mistral: "Mistral", gemini: "Gemini",
+  cohere: "Cohere", cerebras: "Cerebras",
+};
+
+function providerLabel(p: string): string {
+  const [base, ...rest] = p.split(" ");
+  const name = PROVIDER_LABELS[base] ?? base;
+  return rest.length ? `${name} ${rest.join(" ")}` : name;
 }
 
 function ConfidenceRing({ confidence }: { confidence: number }) {
@@ -196,7 +208,7 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
   );
 }
 
-export default function DocFieldsPanel({ fields, activeField, onFieldHover, docTypeLabel }: Props) {
+export default function DocFieldsPanel({ fields, activeField, onFieldHover, docTypeLabel, provider }: Props) {
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -220,6 +232,14 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
             <span className="ml-2 text-[8px] px-1.5 py-px rounded"
               style={{ background: "rgba(6,182,212,0.1)", color: ACCENT }}>
               {docTypeLabel}
+            </span>
+          )}
+          {provider && (
+            <span className="ml-1.5 text-[8px] px-1.5 py-px rounded"
+              title="AI provider that served this extraction"
+              style={{ background: "rgba(129,140,248,0.1)", color: "#818cf8",
+                       border: "1px solid rgba(129,140,248,0.2)" }}>
+              via {providerLabel(provider)}
             </span>
           )}
         </div>
