@@ -138,17 +138,6 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
     download(csv, "extracted_fields.csv", "text/csv");
   };
 
-  const exportExcel = () => {
-    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    const cell = (v: string, type = "String") => `<Cell><Data ss:Type="${type}">${esc(v)}</Data></Cell>`;
-    const rows = [
-      ["Field Name", "Label", "Value", "Confidence %"],
-      ...fields.map(f => [f.name, f.label, f.value, Math.round(f.confidence * 100).toString()]),
-    ].map(r => `<Row>${r.map(v => cell(v)).join("")}</Row>`).join("");
-    const xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Extracted Fields"><Table>${rows}</Table></Worksheet></Workbook>`;
-    download(xml, "extracted_fields.xls", "application/vnd.ms-excel");
-  };
-
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50,
     background: "rgba(15,20,30,0.97)", border: "1px solid rgba(255,255,255,0.1)",
@@ -193,15 +182,6 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
               <path d="M2 6h12M2 10h12M6 2v12" stroke="currentColor" strokeWidth="1.2"/>
             </svg>
             CSV
-          </button>
-          <button style={itemStyle} onClick={exportExcel}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#10b981" strokeWidth="1.2"/>
-              <path d="M2 6h12M2 10h12M6 2v12" stroke="#10b981" strokeWidth="1.2"/>
-            </svg>
-            <span style={{ color: "#10b981" }}>Excel</span>
           </button>
         </div>
       )}
