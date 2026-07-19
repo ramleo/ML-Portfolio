@@ -71,9 +71,9 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
               </>
             ) : (
               <>
-                <span title={`AI Assistant · ${context.tool}`}
-                  style={{ fontSize: "0.62rem", fontWeight: 700, color: accentColor, letterSpacing: "0.05em", textTransform: "uppercase", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  AI Assistant · {context.tool}
+                <span title={context.tool}
+                  style={{ fontSize: helpMode ? "0.68rem" : "0.55rem", fontWeight: 700, color: accentColor, letterSpacing: "0.04em", textTransform: "uppercase", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {context.tool}
                 </span>
                 {!helpMode && <>
                 <RagIngestButton busy={ingestStatus.kind === "uploading" || ingestStatus.kind === "processing"} onStatusChange={setIngestStatus} onSessionId={id => setSessionId(id)} />
