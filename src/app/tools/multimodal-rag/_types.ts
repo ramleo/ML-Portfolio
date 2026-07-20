@@ -6,7 +6,8 @@ export type IngestState =
   | { kind: "extracting" }
   | { kind: "embedding" }
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
-      pageImages: string[]; cached: boolean; saveScope: "session" | "shared" }
+      pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
+      embeddingMode: EmbeddingMode }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";

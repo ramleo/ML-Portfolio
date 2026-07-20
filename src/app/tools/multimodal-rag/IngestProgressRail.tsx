@@ -10,6 +10,10 @@ type Props = {
   sessionId: string;
   ensureSessionId: () => string;
   onIngested: (result: Extract<IngestState, { kind: "done" }>) => void;
+  /** Source of the currently-loaded document, if any — deleted before a new
+   * upload starts so a session never holds more than one document at once
+   * (avoids retrieval/citations silently mixing content from two uploads). */
+  previousSource?: string | null;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -33,7 +37,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, previousSource }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -46,10 +50,19 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     setDoneStep(new Set());
     setFileName(file.name);
     const sid = sessionId || ensureSessionId();
+    const embeddingMode: EmbeddingMode = findSimilar ? "caption+clip" : "caption";
+
+    if (previousSource) {
+      // One document per session at a time — remove the old one first so
+      // retrieval/citations can never mix content from two uploads.
+      try {
+        await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(previousSource)}`, { method: "DELETE" });
+      } catch { /* best-effort — a stale chunk left behind is not fatal */ }
+    }
 
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("embedding_mode", findSimilar ? "caption+clip" : "caption");
+    fd.append("embedding_mode", embeddingMode);
     fd.append("save_scope", (shared ? "shared" : "session") as SaveScope);
     fd.append("session_id", sid);
 
@@ -89,6 +102,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 pageImages: evt.page_images ?? [],
                 cached: !!evt.cached,
                 saveScope: evt.save_scope,
+                embeddingMode,
               };
               setState(result);
               onIngested(result);
@@ -99,9 +113,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     } catch (err) {
       setState({ kind: "error", message: err instanceof Error ? err.message : "Upload failed" });
     }
-  }, [sessionId, ensureSessionId, findSimilar, shared, onIngested]);
-
-  const isBusy = state.kind === "uploading" || state.kind === "extracting" || state.kind === "embedding";
+  }, [sessionId, ensureSessionId, findSimilar, shared, onIngested, previousSource]);
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,

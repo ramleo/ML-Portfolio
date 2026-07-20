@@ -13,12 +13,13 @@ const ACCENT = "#a78bfa";
 const CONTEXT = {
   tool: "Multimodal RAG",
   summary: "Upload a PDF with tables and figures; ask questions grounded in the document's text, tables, and AI-captioned charts, with page citations.",
+  restrictToUploads: true,
 };
 
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [ingested, setIngested] = useState<Extract<IngestState, { kind: "done" }> | null>(null);
-  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null } | null>(null);
+  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
 
   const ensureSessionId = useCallback(() => {
     if (chat.sessionId) return chat.sessionId;
@@ -29,7 +30,9 @@ export default function MmRagRunner() {
 
   const handleIngested = useCallback((result: Extract<IngestState, { kind: "done" }>) => {
     setIngested(result);
-    setActiveCitation(null);
+    // Show page 1 immediately — don't make the user click a citation just to
+    // discover a preview exists at all.
+    setActiveCitation({ page: 1, chunkType: null, source: result.source });
     chat.clearChat();
   }, [chat]);
 
@@ -39,7 +42,8 @@ export default function MmRagRunner() {
 
   return (
     <div className="flex flex-col gap-4">
-      <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
+      <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested}
+        previousSource={ingested?.source ?? null} />
 
       {ingested && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -70,7 +74,13 @@ export default function MmRagRunner() {
                 ))
               )}
               {chat.loading && (
-                <div className="self-start text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>Thinking…</div>
+                <div className="self-start flex items-center gap-1 px-1 py-1" style={{ color: `${ACCENT}99` }}>
+                  {[0, 1, 2].map(i => (
+                    <span key={i} className="inline-block w-1.5 h-1.5 rounded-full"
+                      style={{ background: "currentColor", animation: `mmragBounce 1.1s ${i * 0.15}s infinite ease-in-out` }} />
+                  ))}
+                  <style>{`@keyframes mmragBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-3px); opacity: 1; } }`}</style>
+                </div>
               )}
 
               {chat.sources.length > 0 && (
@@ -81,7 +91,7 @@ export default function MmRagRunner() {
                       <RagSourceCard key={i} source={s.source} text={s.text}
                         score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                         chunkType={withMeta.chunk_type} page={withMeta.page}
-                        onSelect={() => setActiveCitation({ page: withMeta.page ?? null, chunkType: withMeta.chunk_type ?? null })}
+                        onSelect={() => setActiveCitation({ page: withMeta.page ?? null, chunkType: withMeta.chunk_type ?? null, source: s.source })}
                       />
                     );
                   })}
@@ -111,9 +121,16 @@ export default function MmRagRunner() {
 
           {/* Citation thumbnail */}
           <div className="flex flex-col gap-3">
-            {activeCitation ? (
+            {activeCitation && activeCitation.source && activeCitation.source !== ingested.source ? (
+              <div style={cardStyle} className="flex items-center justify-center py-16">
+                <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+                  No preview — this citation is from a previously uploaded document that&apos;s no longer loaded.
+                </p>
+              </div>
+            ) : activeCitation ? (
               <CitationThumbnailPanel pageImages={ingested.pageImages} page={activeCitation.page}
-                chunkType={activeCitation.chunkType} source={ingested.source} />
+                chunkType={activeCitation.chunkType} source={ingested.source}
+                canFindSimilar={ingested.embeddingMode === "caption+clip"} />
             ) : (
               <div style={cardStyle} className="flex items-center justify-center py-16">
                 <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

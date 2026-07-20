@@ -12,11 +12,15 @@ type Props = {
   page: number | null | undefined;
   chunkType: string | null | undefined;
   source: string;
+  /** Whether "find visually similar figures" was enabled at upload time —
+   * hides the button entirely instead of showing one that always says
+   * "not available" for the common (unchecked) default. */
+  canFindSimilar: boolean;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image" };
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, source }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, source, canFindSimilar }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -53,7 +57,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, so
         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
           Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
         </span>
-        {(chunkType === "figure" || chunkType === "image") && (
+        {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
           <button onClick={findSimilar} disabled={loadingSimilar}
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>

@@ -13,6 +13,9 @@ export type ToolChatContext = {
   guide?: string;
   /** Page-specific suggestion chips shown in the empty chat */
   suggestions?: string[];
+  /** Answer ONLY from this session's uploaded document(s) — no KB, no web fallback.
+   * For tools whose whole point is Q&A over one specific upload. */
+  restrictToUploads?: boolean;
 };
 
 const SITE_SUMMARY =
@@ -177,13 +180,15 @@ export function useRagChat(context: ToolChatContext) {
       ? { query: text, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined, session_id: sessionId || undefined,
-          force_web: forceWeb || undefined }
+          force_web: forceWeb || undefined,
+          restrict_to_uploads: context.restrictToUploads || undefined }
       : { query: text, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined,
           embedding_model: useJina ? "jina" : "minilm",
           session_id: sessionId || undefined,
-          force_web: forceWeb || undefined };
+          force_web: forceWeb || undefined,
+          restrict_to_uploads: context.restrictToUploads || undefined };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
