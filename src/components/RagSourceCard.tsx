@@ -72,7 +72,7 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
   );
 }
 
-const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure" };
+const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image" };
 
 export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect }: Props) {
   const [open, setOpen] = useState(false);

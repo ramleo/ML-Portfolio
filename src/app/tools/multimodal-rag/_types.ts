@@ -1,4 +1,4 @@
-export type ChunkSummary = { text: number; table: number; figure: number };
+export type ChunkSummary = { text: number; table: number; figure: number; image?: number };
 
 export type IngestState =
   | { kind: "idle" }

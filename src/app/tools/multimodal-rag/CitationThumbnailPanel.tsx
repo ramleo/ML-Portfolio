@@ -14,7 +14,7 @@ type Props = {
   source: string;
 };
 
-const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text" };
+const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image" };
 
 export default function CitationThumbnailPanel({ pageImages, page, chunkType, source }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
@@ -53,7 +53,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, so
         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
           Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
         </span>
-        {chunkType === "figure" && (
+        {(chunkType === "figure" || chunkType === "image") && (
           <button onClick={findSimilar} disabled={loadingSimilar}
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>

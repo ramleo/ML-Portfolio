@@ -22,7 +22,7 @@ export default function MultimodalRagPage() {
       <ConstellationBackground />
       <ToolsAIChat context={{
         tool: "Multimodal RAG",
-        summary: "Upload PDFs mixing text, tables, and figures. Tables are read as structured data and charts get AI captions, so questions about numbers in a table or trends in a chart get grounded, page-cited answers.",
+        summary: "Upload PDFs mixing text, tables, and figures, or a standalone image. Tables are read as structured data and charts/images get AI captions, so questions about numbers in a table, trends in a chart, or what's in a photo get grounded, cited answers.",
         guide: MM_RAG_GUIDE,
         suggestions: MM_RAG_SUGGESTIONS,
       }} />
@@ -55,7 +55,7 @@ export default function MultimodalRagPage() {
                 </span>
               </div>
               <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Ask questions about a PDF&apos;s tables and charts — not just its prose — with page citations
+                Ask questions about a PDF&apos;s tables and charts, or upload a standalone image — with citations
               </p>
             </div>
             <button onClick={() => setGuideOpen(true)}

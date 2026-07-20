@@ -118,16 +118,18 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) upload(f); }}
           >
-            <input ref={inputRef} type="file" accept=".pdf" className="hidden"
+            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" className="hidden"
               onChange={e => { if (e.target.files?.[0]) upload(e.target.files[0]); }} />
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Drag & drop or click to upload a PDF
+              Drag & drop or click to upload a PDF or image
             </p>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>Max 10 MB · first 8 pages</p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+              PDF, PNG, JPG, GIF, WEBP · Max 10 MB · PDFs: first 8 pages
+            </p>
           </div>
           {state.kind === "error" && (
             <div className="px-3 py-2 rounded-lg text-[11px]"
@@ -174,7 +176,14 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
           </div>
           {state.kind === "done" && (
             <div className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              <span>{state.summary.text} text · {state.summary.table} table · {state.summary.figure} figure chunk{state.summary.figure !== 1 ? "s" : ""}</span>
+              <span>
+                {[
+                  state.summary.text ? `${state.summary.text} text` : null,
+                  state.summary.table ? `${state.summary.table} table` : null,
+                  state.summary.figure ? `${state.summary.figure} figure` : null,
+                  state.summary.image ? `${state.summary.image} image` : null,
+                ].filter(Boolean).join(" · ")} chunk{(state.summary.text + state.summary.table + state.summary.figure + (state.summary.image ?? 0)) !== 1 ? "s" : ""}
+              </span>
               {state.cached && <span style={{ color: ACCENT }}>(cached)</span>}
               {state.saveScope === "shared" && (
                 <span className="px-1.5 py-px rounded" style={{ background: `${ACCENT}15`, color: ACCENT }}>
