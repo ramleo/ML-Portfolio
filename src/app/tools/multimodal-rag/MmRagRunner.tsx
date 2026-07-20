@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
+import ToolsAIChatSettings from "@/components/ToolsAIChatSettings";
+import { PROVIDERS } from "@/components/toolsAiProviders";
 import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import type { IngestState } from "./_types";
@@ -20,6 +22,7 @@ export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [ingested, setIngested] = useState<Extract<IngestState, { kind: "done" }> | null>(null);
   const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const ensureSessionId = useCallback(() => {
     if (chat.sessionId) return chat.sessionId;
@@ -49,11 +52,26 @@ export default function MmRagRunner() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Chat */}
           <div style={cardStyle} className="flex flex-col min-h-0" >
-            <div className="px-4 py-2.5 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: `${ACCENT}99` }}>
                 Ask about your document
               </span>
+              <button onClick={() => setSettingsOpen(o => !o)}
+                title="Provider & API key settings"
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                style={settingsOpen
+                  ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+                  : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                {chat.userKey ? "Using your key" : "Provider"}
+              </button>
             </div>
+            {settingsOpen && (
+              <ToolsAIChatSettings
+                providers={PROVIDERS} provider={chat.providerConfig.id} model={chat.model} userKey={chat.userKey}
+                providerConfig={chat.providerConfig}
+                onProviderChange={chat.handleProviderChange} onModelChange={chat.setModel} onKeyChange={chat.setUserKey}
+              />
+            )}
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}>
               {chat.messages.length === 0 ? (
                 <p className="text-[10px] text-center py-8" style={{ color: "rgba(255,255,255,0.25)" }}>
