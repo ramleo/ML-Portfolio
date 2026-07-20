@@ -8,6 +8,10 @@ type Props = {
   score: number;
   rawScore?: number;
   accent: string;
+  /** Multimodal RAG additions — undefined for ordinary text citations, no visual change when omitted */
+  chunkType?: string | null;
+  page?: number | null;
+  onSelect?: () => void;
 };
 
 function DocIcon() {
@@ -68,7 +72,9 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent }: Props) {
+const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure" };
+
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect }: Props) {
   const [open, setOpen] = useState(false);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
   const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
@@ -76,10 +82,11 @@ export default function RagSourceCard({ source, text, score, rawScore, accent }:
   const confFull = rawPct <= 50 ? "Low confidence" : rawPct <= 80 ? "Medium confidence" : "High confidence";
   const cat = categorize(source);
   const name = displayName(source, cat);
+  const typeLabel = chunkType && CHUNK_TYPE_LABEL[chunkType];
 
   return (
     <div
-      onClick={() => setOpen(o => !o)}
+      onClick={() => { setOpen(o => !o); onSelect?.(); }}
       style={{
         background: "rgba(255,255,255,0.03)",
         border: `1px solid ${accent}28`,
@@ -93,8 +100,17 @@ export default function RagSourceCard({ source, text, score, rawScore, accent }:
         <span style={{ color: accent, flexShrink: 0 }}><DocIcon /></span>
         <CategoryBadge cat={cat} />
         <span style={{ flex: 1, fontSize: "0.65rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {name}
+          {name}{page ? ` · p.${page}` : ""}
         </span>
+        {typeLabel && (
+          <span style={{
+            fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.03em",
+            color: accent, background: `${accent}1a`, borderRadius: 9999,
+            padding: "1px 5px", flexShrink: 0, textTransform: "uppercase",
+          }}>
+            {typeLabel}
+          </span>
+        )}
         <span
           title={`${confFull} — raw model confidence: ${rawPct}%`}
           style={{

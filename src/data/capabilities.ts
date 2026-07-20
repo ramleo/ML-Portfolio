@@ -226,6 +226,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/document-intelligence",
   },
+  {
+    id: "multimodal-rag",
+    title: "Multimodal RAG",
+    subtitle: "Tables & Figures as Citable Knowledge",
+    description:
+      "Upload a PDF mixing prose, tables, and charts. Tables are read as structured data and figures get an AI-written caption, so questions whose answer lives in a number or a chart — not just a paragraph — get a grounded, page-cited answer.",
+    accent: "#a78bfa",
+    stat: "3",
+    statLabel: "Chunk Types",
+    model: "Groq / Mistral / Gemini",
+    input: "PDF (text, tables, figures)",
+    tags: ["RAG", "Multimodal", "PDF", "Citations", "LLM"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/multimodal-rag",
+  },
 ];
 
 export default capabilities;
