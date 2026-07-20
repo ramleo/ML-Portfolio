@@ -76,18 +76,18 @@ marker disappears. Edits live in your browser session only — they are captured
 in exports but reset if you re-upload or refresh.
 
 **The tool learns from corrections.** Every edit is also reported to the
-server as an (AI value → human value) pair for that document type, saved to
-disk so the memory survives ordinary server restarts. Recent correction pairs
-for a document type are fed into every future extraction of that same type as
-guidance — the AI is shown "a human previously corrected this field from X to
-Y" and is explicitly instructed to apply the *pattern* behind the correction,
-never to copy the literal value into an unrelated document. This has been
-verified end-to-end: correcting a merchant name on one receipt caused a
-later, completely different receipt — different date, items, amount, receipt
-number — to have its own (differently-worded) merchant field extracted using
-the corrected phrasing, confirming the AI generalized the correction rather
-than replaying it. The most recent ~12 corrections per document type are kept
-and expire after 7 days.
+server as an (AI value → human value) pair for that document type. Recent
+correction pairs for a document type are fed into every future extraction of
+that same type as guidance — the AI is shown "a human previously corrected
+this field from X to Y" and is explicitly instructed to apply the *pattern*
+behind the correction, never to copy the literal value into an unrelated
+document. This has been verified end-to-end: correcting a merchant name on
+one receipt caused a later, completely different receipt — different date,
+items, amount, receipt number — to have its own (differently-worded) merchant
+field extracted using the corrected phrasing, confirming the AI generalized
+the correction rather than replaying it. The most recent ~12 corrections per
+document type are kept and expire after 7 days; this memory resets whenever
+the server restarts.
 
 ## Recent documents (history)
 Your last 5 analyses are remembered in your browser (localStorage) and listed
