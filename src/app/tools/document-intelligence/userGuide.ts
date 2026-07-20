@@ -1,6 +1,6 @@
-// User guide for Document Intelligence — rendered nowhere yet, but injected
-// into the floating AI Assistant as its ONLY tool knowledge. Keep factual and
-// in sync with the actual feature set.
+// User guide for Document Intelligence — rendered in DocUserGuideModal (the
+// "User Guide" header button) AND injected into the floating AI Assistant as
+// its ONLY tool knowledge. Keep factual and in sync with the actual feature set.
 
 export const DOC_INTEL_GUIDE = `
 # Document Intelligence — User Guide
@@ -31,6 +31,26 @@ PDF, DOCX (Word), PNG, JPG, JPEG, WEBP. Max 10 MB per file.
 5. Results appear as field cards on the right; the document preview on the left
    shows bounding boxes for located fields (PDF/image only).
 
+## Smart processing under the hood
+- **Complexity-based model routing:** every document is scored before AI
+  extraction. Short, single-page digital documents with no tables count as
+  "simple" and are routed to a small, very fast model first; multi-page, long,
+  table-heavy, scanned or photographed documents count as "complex" and go to
+  the full large-model cascade. If the fast model's output fails validation,
+  the document is automatically retried on the large models — you never trade
+  accuracy for speed. When the fast path serves your document, the provider
+  chip reads "via Groq · fast".
+- **Multi-column reading order:** two-column layouts (common in designed
+  resumes) are detected per page and reassembled column by column — the whole
+  left column is read before the right column — so extracted text follows the
+  order a human would read, instead of interleaving unrelated lines from both
+  columns.
+- **Automatic straightening:** uploaded photos are auto-rotated using their
+  EXIF orientation (sideways phone shots), and tilted scans are deskewed —
+  the tool measures the text tilt and counter-rotates anything between about
+  1° and 5° before OCR, which noticeably improves recognition of crooked
+  photos of receipts and invoices.
+
 ## Reading the results
 - Confidence ring: percentage on each field (green ≥90%, amber 70–89%, red <70%).
 - "Located" badge: the field's position was found; its box is drawn on the preview.
@@ -42,14 +62,29 @@ PDF, DOCX (Word), PNG, JPG, JPEG, WEBP. Max 10 MB per file.
 - "Corrected" badge: the value was fixed — either by the AI's self-correction
   pass or by you editing it.
 - "via <Provider>" chip in the header: which AI provider served the extraction
-  (Groq, Mistral, Gemini, Cohere). "(cached)" means this exact file was analyzed
+  (Groq, Mistral, Gemini, Cohere; "Groq · fast" means the small fast model
+  handled a simple document). "(cached)" means this exact file was analyzed
   before and the stored result was replayed instantly without new AI calls.
 
 ## Editing fields (human-in-the-loop)
 Hover any field card and click the pencil icon to edit its value. Saving marks
-the field "Corrected" (human-verified) and sets confidence to 100%. Edits live
-in your browser session only — they are captured in exports but reset if you
-re-upload or refresh.
+the field "Corrected" (human-verified) and sets confidence to 100%. The card
+then shows a small struck-through "AI: <original value>" line underneath your
+value, so you can always compare what the AI extracted with what you changed
+it to. If you edit the value back to exactly what the AI extracted, the edit
+marker disappears. Edits live in your browser session only — they are captured
+in exports but reset if you re-upload or refresh.
+
+## Recent documents (history)
+Your last 5 analyses are remembered in your browser (localStorage) and listed
+in a "Recent documents" card on the upload screen — file name, detected type,
+field count and how long ago. Click an entry to restore that analysis
+instantly: all extracted fields, the provider chip and the document chat come
+back without re-uploading or new AI calls. The page preview image is not
+stored (it would exceed browser storage limits), so the preview panel stays
+empty on restore. History is stored only on your device — nothing is kept on
+the server — and the Clear button removes it entirely. Restored results show
+the AI's original extraction, not manual edits made afterwards.
 
 ## Ask this document (chat)
 After analysis, a chat box appears below the results. Ask free-form questions
@@ -60,7 +95,10 @@ keep conversation context.
 
 ## Export
 The Export menu offers JSON (fields with confidence values) and CSV (opens as
-a table in Excel, Numbers, Google Sheets). Exports include your manual edits.
+a table in Excel, Numbers, Google Sheets). Exports include your manual edits;
+in JSON, any field you edited also carries "original_value" (what the AI
+extracted) and "human_edited": true, so downstream systems can tell reviewed
+values from raw AI output.
 
 ## Notes & limits
 - Repeat uploads of the same unchanged file return instantly from a server-side
@@ -73,7 +111,7 @@ a table in Excel, Numbers, Google Sheets). Exports include your manual edits.
 `.trim();
 
 export const DOC_INTEL_SUGGESTIONS = [
-  "What file formats are supported?",
   "What does the Flagged badge mean?",
-  "How do custom extra fields work?",
+  "How does document history work?",
+  "What happens when I edit a field?",
 ];
