@@ -121,6 +121,8 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
         label: f.label,
         value: f.value,
         confidence: Math.round(f.confidence * 100) / 100,
+        ...(f.originalValue !== undefined && f.originalValue !== f.value
+          ? { original_value: f.originalValue, human_edited: true } : {}),
       })),
     };
     download(JSON.stringify(data, null, 2), "extracted_fields.json", "application/json");
@@ -313,9 +315,17 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                         </div>
                       </div>
                     ) : (
-                      <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
-                        {field.value}
-                      </p>
+                      <>
+                        <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
+                          {field.value}
+                        </p>
+                        {field.originalValue !== undefined && field.originalValue !== field.value && (
+                          <p className="text-[9px] truncate mt-0.5" title={`AI extracted: ${field.originalValue}`}
+                            style={{ color: "rgba(248,113,113,0.55)", textDecoration: "line-through" }}>
+                            AI: {field.originalValue}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                   {onFieldEdit && editing !== field.name && (

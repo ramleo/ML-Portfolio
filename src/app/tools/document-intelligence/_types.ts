@@ -12,6 +12,17 @@ export interface ExtractedField {
   bbox: [number, number, number, number] | null; // [left, top, width, height] normalized 0-1
   page: number;
   validation?: FieldValidation;
+  originalValue?: string; // AI-extracted value before the first human edit
+}
+
+export interface HistoryEntry {
+  id: string;
+  fileName: string;
+  docTypeLabel: string | null;
+  provider: string | null;
+  at: string; // ISO timestamp
+  fields: ExtractedField[];
+  docText: string;
 }
 
 export interface StepEvent {

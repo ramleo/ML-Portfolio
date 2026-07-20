@@ -6,7 +6,8 @@ import DocSidebar from "./DocSidebar";
 import DocViewerPanel from "./DocViewerPanel";
 import DocFieldsPanel from "./DocFieldsPanel";
 import DocChatPanel from "./DocChatPanel";
-import type { ExtractedField, DocTypeInfo, ProcessingStep, StepState } from "./_types";
+import DocHistory, { saveHistoryEntry } from "./DocHistory";
+import type { ExtractedField, DocTypeInfo, HistoryEntry, ProcessingStep, StepState } from "./_types";
 
 const ACCENT = "#06b6d4";
 
@@ -106,6 +107,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      const collected: ExtractedField[] = []; // fields state is async — collect for history
 
       while (true) {
         const { value, done } = await reader.read();
@@ -132,7 +134,10 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               }
             }
 
-            if (evt.field) setFields(prev => [...prev, evt.field as ExtractedField]);
+            if (evt.field) {
+              collected.push(evt.field as ExtractedField);
+              setFields(prev => [...prev, evt.field as ExtractedField]);
+            }
 
             if (evt.done) {
               setStep("done");
@@ -140,6 +145,17 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               if (evt.doc_type) { setDetectedType(evt.doc_type); setDocTypeLabel(evt.doc_type_label ?? null); }
               if (evt.processing_mode) setProcessingMode(evt.processing_mode);
               if (evt.doc_text) setDocText(evt.doc_text);
+              if (collected.length) {
+                saveHistoryEntry({
+                  id: `${file.name}-${file.size}-${evt.doc_type ?? ""}`,
+                  fileName: file.name,
+                  docTypeLabel: evt.doc_type_label ?? null,
+                  provider: evt.provider ?? null,
+                  at: new Date().toISOString(),
+                  fields: collected,
+                  docText: evt.doc_text ?? "",
+                });
+              }
             }
           } catch { /* skip malformed lines */ }
         }
@@ -157,10 +173,30 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const handleFile = (file: File) => { runAnalysis(file); };
 
   const handleFieldEdit = (name: string, value: string) => {
-    setFields(prev => prev.map(f => f.name === name
-      ? { ...f, value, confidence: 1,
-          validation: { status: "corrected", note: "Edited by you — human-verified" } }
-      : f));
+    setFields(prev => prev.map(f => {
+      if (f.name !== name) return f;
+      if (value === (f.originalValue ?? f.value)) {
+        // Edited back to the AI's value — drop the edit marker entirely
+        const { originalValue: _o, ...rest } = f;
+        return { ...rest, value, confidence: f.confidence };
+      }
+      return { ...f, value, confidence: 1,
+               originalValue: f.originalValue ?? f.value,
+               validation: { status: "corrected", note: "Edited by you — human-verified" } };
+    }));
+  };
+
+  const restoreFromHistory = (e: HistoryEntry) => {
+    setError(null); setWarning(null);
+    setFields(e.fields);
+    setPageImages([]);           // page previews are not persisted
+    setProcessingMode(null);
+    setDocTypeLabel(e.docTypeLabel);
+    setProvider(e.provider);
+    setDocText(e.docText);
+    setFileName(e.fileName);
+    setStepStates(STEPS.map(s => ({ key: s.key, label: s.label, status: "done" } as StepState)));
+    setStep("done");
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -240,6 +276,9 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             />
           </div>
         )}
+
+        {/* Recent documents — restore a previous analysis from localStorage */}
+        {step === "idle" && <DocHistory onRestore={restoreFromHistory} />}
 
         {/* Processing / results area */}
         {step !== "idle" && (
