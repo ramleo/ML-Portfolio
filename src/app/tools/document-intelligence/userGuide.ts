@@ -75,6 +75,17 @@ it to. If you edit the value back to exactly what the AI extracted, the edit
 marker disappears. Edits live in your browser session only — they are captured
 in exports but reset if you re-upload or refresh.
 
+**The tool learns from corrections.** Every edit is also reported to the
+server as an (AI value → human value) pair for that document type. Recent
+correction pairs are fed into future extractions of the same document type as
+guidance — for example, if users keep correcting an invoice "total" from the
+pre-tax to the post-tax figure, the AI is shown those corrections and infers
+the pattern for the next invoice. It applies the *pattern*, not the literal
+value, so one document's data never leaks into another. This memory is
+short-lived by design: it holds the last ~12 corrections per document type,
+expires after 7 days, resets when the server restarts, and is not applied to
+cached replays of a previously analyzed file.
+
 ## Recent documents (history)
 Your last 5 analyses are remembered in your browser (localStorage) and listed
 in a "Recent documents" card on the upload screen — file name, detected type,

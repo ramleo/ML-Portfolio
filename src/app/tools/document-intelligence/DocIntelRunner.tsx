@@ -173,6 +173,23 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
   const handleFile = (file: File) => { runAnalysis(file); };
 
   const handleFieldEdit = (name: string, value: string) => {
+    // HITL feedback loop: report the correction so future extractions of this
+    // document type get it as few-shot guidance. Fire-and-forget.
+    const edited = fields.find(f => f.name === name);
+    const aiValue = edited?.originalValue ?? edited?.value ?? "";
+    if (edited && value !== aiValue) {
+      fetch(`${ML_UNIFIED_API}/document/correction`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doc_type: detectedType ?? docType,
+          name,
+          label: edited.label,
+          original_value: aiValue,
+          corrected_value: value,
+        }),
+      }).catch(() => { /* feedback is best-effort */ });
+    }
     setFields(prev => prev.map(f => {
       if (f.name !== name) return f;
       if (value === (f.originalValue ?? f.value)) {
