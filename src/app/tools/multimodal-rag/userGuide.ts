@@ -54,6 +54,16 @@ figure) it came from.
   relevant is found, it says so instead of guessing.
 - Nothing uploaded here is permanent. For document field extraction with
   human-editable results and export, use Document Intelligence instead.
+
+## Your data is not stored anywhere permanently
+The original PDF file itself is never saved — only the extracted text,
+table, and figure-caption chunks are indexed, and only in this server's
+temporary memory/disk for as long as it keeps running. There is no database
+backup, no export of your file to any other system, and no persistence
+layer behind this demo. A server restart (which can happen at any time on
+this free-tier demo) wipes everything — your upload, its chunks, and any
+"shared" copy — with no way to recover it. Treat this as a scratch space for
+trying the tool, not a place to keep anything you need later.
 `.trim();
 
 export const MM_RAG_SUGGESTIONS = [
