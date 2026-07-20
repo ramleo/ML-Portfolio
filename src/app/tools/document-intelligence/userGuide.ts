@@ -76,15 +76,18 @@ marker disappears. Edits live in your browser session only — they are captured
 in exports but reset if you re-upload or refresh.
 
 **The tool learns from corrections.** Every edit is also reported to the
-server as an (AI value → human value) pair for that document type. Recent
-correction pairs are fed into future extractions of the same document type as
-guidance — for example, if users keep correcting an invoice "total" from the
-pre-tax to the post-tax figure, the AI is shown those corrections and infers
-the pattern for the next invoice. It applies the *pattern*, not the literal
-value, so one document's data never leaks into another. This memory is
-short-lived by design: it holds the last ~12 corrections per document type,
-expires after 7 days, resets when the server restarts, and is not applied to
-cached replays of a previously analyzed file.
+server as an (AI value → human value) pair for that document type, saved to
+disk so the memory survives ordinary server restarts. Recent correction pairs
+for a document type are fed into every future extraction of that same type as
+guidance — the AI is shown "a human previously corrected this field from X to
+Y" and is explicitly instructed to apply the *pattern* behind the correction,
+never to copy the literal value into an unrelated document. This has been
+verified end-to-end: correcting a merchant name on one receipt caused a
+later, completely different receipt — different date, items, amount, receipt
+number — to have its own (differently-worded) merchant field extracted using
+the corrected phrasing, confirming the AI generalized the correction rather
+than replaying it. The most recent ~12 corrections per document type are kept
+and expire after 7 days.
 
 ## Recent documents (history)
 Your last 5 analyses are remembered in your browser (localStorage) and listed
