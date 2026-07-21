@@ -20,6 +20,9 @@ You can also upload a single photo or image (PNG, JPG, GIF, WEBP) on its own
 can then ask follow-up questions about that description in the same chat,
 just like with a document.
 
+A CSV file works too — its rows and columns are indexed the same way a
+PDF's embedded tables are, so you can ask questions about the data directly.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
@@ -36,6 +39,9 @@ just like with a document.
    strip on the far right lets you browse every page of the document on
    your own, independent of citations (hidden for single-page/image
    uploads, since there's nothing else to browse).
+5. Click "summary" next to any uploaded document's name to see everything
+   extracted from it — every table (shown as an actual table) and every
+   figure/image caption — without asking a question first.
 
 ## Two upload choices, both with real tradeoffs
 - **Find visually similar figures (optional)**: off by default. Turning it on
@@ -79,7 +85,8 @@ this server or logged anywhere.
 - Each citation shows its source document, page number, and content type
   (Text / Table / Figure / Image) when known.
 - Table citations mean the answer came from a detected table's actual rows
-  and columns, not from prose that happened to mention similar numbers.
+  and columns, not from prose that happened to mention similar numbers —
+  shown as a real table, not raw markdown text.
 - Figure and Image citations mean the answer came from an AI-written
   description of a chart, diagram, or photo, PLUS an OCR pass that reads
   exact text/numbers out of the image (e.g. every date in a dense timeline
