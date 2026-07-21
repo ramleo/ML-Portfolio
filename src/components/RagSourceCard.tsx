@@ -12,6 +12,9 @@ type Props = {
   chunkType?: string | null;
   page?: number | null;
   onSelect?: () => void;
+  /** Hides the confidence badge — for contexts (e.g. a document summary
+   * view) where there's no query relevance score to speak of. */
+  hideConfidence?: boolean;
 };
 
 function DocIcon() {
@@ -117,7 +120,7 @@ function TableView({ text, accent }: { text: string; accent: string }) {
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence }: Props) {
   const [open, setOpen] = useState(false);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
   const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
@@ -154,15 +157,17 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             {typeLabel}
           </span>
         )}
-        <span
-          title={`${confFull} — raw model confidence: ${rawPct}%`}
-          style={{
-            fontSize: "0.58rem", fontWeight: 700, color: confColor,
-            background: `${confColor}18`, borderRadius: 9999,
-            padding: "1px 6px", flexShrink: 0,
-          }}>
-          {confLabel}
-        </span>
+        {!hideConfidence && (
+          <span
+            title={`${confFull} — raw model confidence: ${rawPct}%`}
+            style={{
+              fontSize: "0.58rem", fontWeight: 700, color: confColor,
+              background: `${confColor}18`, borderRadius: 9999,
+              padding: "1px 6px", flexShrink: 0,
+            }}>
+            {confLabel}
+          </span>
+        )}
         <span style={{ color: "var(--text3)", flexShrink: 0 }}><ChevronIcon open={open} /></span>
       </div>
 
@@ -175,7 +180,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           borderTop: `1px solid rgba(255,255,255,0.06)`,
           paddingTop: "0.35rem",
         }}>
-          {rawPct !== null && (
+          {!hideConfidence && rawPct !== null && (
             <div style={{ marginBottom: "0.3rem", color: "var(--text2)" }}>
               Raw model confidence: <strong>{rawPct}%</strong>
             </div>

@@ -27,6 +27,7 @@ export default function MmRagRunner() {
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
 
   const ensureSessionId = useCallback(() => {
     if (chat.sessionId) return chat.sessionId;
@@ -69,12 +70,37 @@ export default function MmRagRunner() {
             <span key={d.source} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
               style={{ background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, color: "rgba(255,255,255,0.7)" }}>
               {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
+              <button onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
+                title="Show extracted structure (tables, figures)"
+                style={{ color: summaryOpenFor === d.source ? ACCENT : `${ACCENT}99`, lineHeight: 1 }}>
+                {summaryOpenFor === d.source ? "▾" : "▸"} summary
+              </button>
               <button onClick={() => removeDocument(d.source)} title="Remove this document"
                 style={{ color: `${ACCENT}99`, lineHeight: 1 }}>×</button>
             </span>
           ))}
         </div>
       )}
+
+      {documents.map(d => summaryOpenFor === d.source && (
+        <div key={`summary-${d.source}`} style={cardStyle} className="p-3 flex flex-col gap-1.5">
+          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
+          </span>
+          {d.notableChunks.length === 0 ? (
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+              No tables or figures were detected — only plain text.
+            </p>
+          ) : (
+            d.notableChunks.map((c, i) => (
+              <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={ACCENT}
+                chunkType={c.chunkType} page={c.page} hideConfidence
+                onSelect={() => setActiveCitation({ page: c.page, chunkType: c.chunkType, source: d.source })}
+              />
+            ))
+          )}
+        </div>
+      ))}
 
       {documents.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

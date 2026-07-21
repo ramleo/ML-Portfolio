@@ -1,4 +1,5 @@
 export type ChunkSummary = { text: number; table: number; figure: number; image?: number };
+export type NotableChunk = { chunkType: string | null; page: number | null; text: string };
 
 export type IngestState =
   | { kind: "idle" }
@@ -7,7 +8,7 @@ export type IngestState =
   | { kind: "embedding" }
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
-      embeddingMode: EmbeddingMode }
+      embeddingMode: EmbeddingMode; notableChunks: NotableChunk[] }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";
