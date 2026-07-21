@@ -10,10 +10,6 @@ type Props = {
   sessionId: string;
   ensureSessionId: () => string;
   onIngested: (result: Extract<IngestState, { kind: "done" }>) => void;
-  /** Source of the currently-loaded document, if any — deleted before a new
-   * upload starts so a session never holds more than one document at once
-   * (avoids retrieval/citations silently mixing content from two uploads). */
-  previousSource?: string | null;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -37,7 +33,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, previousSource }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -51,14 +47,6 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     setFileName(file.name);
     const sid = sessionId || ensureSessionId();
     const embeddingMode: EmbeddingMode = findSimilar ? "caption+clip" : "caption";
-
-    if (previousSource) {
-      // One document per session at a time — remove the old one first so
-      // retrieval/citations can never mix content from two uploads.
-      try {
-        await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(previousSource)}`, { method: "DELETE" });
-      } catch { /* best-effort — a stale chunk left behind is not fatal */ }
-    }
 
     const fd = new FormData();
     fd.append("file", file);
@@ -116,7 +104,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     } catch (err) {
       setState({ kind: "error", message: err instanceof Error ? err.message : "Upload failed" });
     }
-  }, [sessionId, ensureSessionId, findSimilar, shared, onIngested, previousSource]);
+  }, [sessionId, ensureSessionId, findSimilar, shared, onIngested]);
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
@@ -236,7 +224,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               <button onClick={() => { setState({ kind: "idle" }); setFileName(null); }}
                 className="ml-auto text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-white/5"
                 style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
-                New document
+                Add another document
               </button>
             </div>
           )}

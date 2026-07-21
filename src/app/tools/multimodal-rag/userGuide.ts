@@ -21,6 +21,10 @@ can then ask follow-up questions about that description in the same chat,
 just like with a document.
 
 ## How to use it
+0. You can upload more than one file into the same chat — each stays listed
+   above the chat with a way to remove it, and questions are answered across
+   all of them together, with citations naming which document each part of
+   the answer came from. Good for "compare these two reports" style questions.
 1. Upload a PDF or an image (max 10 MB; PDFs process their first 8 pages).
 2. Watch the ingestion steps: for a PDF — page extraction → table detection →
    figure captioning → embedding; for a standalone image — captioning →

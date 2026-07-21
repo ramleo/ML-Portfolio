@@ -6,6 +6,7 @@ import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
 import ToolsAIChatSettings from "@/components/ToolsAIChatSettings";
 import { PROVIDERS } from "@/components/toolsAiProviders";
+import { ML_UNIFIED_API } from "@/config/urls";
 import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
@@ -15,13 +16,15 @@ const ACCENT = "#a78bfa";
 
 const CONTEXT = {
   tool: "Multimodal RAG",
-  summary: "Upload a PDF with tables and figures; ask questions grounded in the document's text, tables, and AI-captioned charts, with page citations.",
+  summary: "Upload PDFs, images, or CSVs with tables and figures; ask questions grounded across all of them, with page citations naming the source document.",
   restrictToUploads: true,
 };
 
+type Doc = Extract<IngestState, { kind: "done" }>;
+
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
-  const [ingested, setIngested] = useState<Extract<IngestState, { kind: "done" }> | null>(null);
+  const [documents, setDocuments] = useState<Doc[]>([]);
   const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -32,13 +35,22 @@ export default function MmRagRunner() {
     return id;
   }, [chat]);
 
-  const handleIngested = useCallback((result: Extract<IngestState, { kind: "done" }>) => {
-    setIngested(result);
-    // Show page 1 immediately — don't make the user click a citation just to
-    // discover a preview exists at all.
+  const handleIngested = useCallback((result: Doc) => {
+    setDocuments(docs => [...docs, result]);
+    // Show page 1 of the just-uploaded doc immediately — don't make the user
+    // click a citation just to discover a preview exists at all.
     setActiveCitation({ page: 1, chunkType: null, source: result.source });
-    chat.clearChat();
-  }, [chat]);
+  }, []);
+
+  const removeDocument = useCallback(async (source: string) => {
+    try {
+      await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" });
+    } catch { /* best-effort — a stale chunk left behind is not fatal */ }
+    setDocuments(docs => docs.filter(d => d.source !== source));
+    setActiveCitation(c => (c?.source === source ? null : c));
+  }, []);
+
+  const activeDoc = documents.find(d => d.source === activeCitation?.source) ?? null;
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
@@ -46,16 +58,31 @@ export default function MmRagRunner() {
 
   return (
     <div className="flex flex-col gap-4">
-      <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested}
-        previousSource={ingested?.source ?? null} />
+      <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
 
-      {ingested && (
+      {documents.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Documents in this chat:
+          </span>
+          {documents.map(d => (
+            <span key={d.source} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
+              style={{ background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, color: "rgba(255,255,255,0.7)" }}>
+              {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
+              <button onClick={() => removeDocument(d.source)} title="Remove this document"
+                style={{ color: `${ACCENT}99`, lineHeight: 1 }}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {documents.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Chat */}
           <div style={cardStyle} className="flex flex-col min-h-0" >
             <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: `${ACCENT}99` }}>
-                Ask about your document
+                Ask about your document{documents.length > 1 ? "s" : ""}
               </span>
               <div className="flex items-center gap-1.5">
                 {chat.servedProvider && !chat.loading && (
@@ -94,6 +121,7 @@ export default function MmRagRunner() {
               {chat.messages.length === 0 ? (
                 <p className="text-[10px] text-center py-8" style={{ color: "rgba(255,255,255,0.25)" }}>
                   Ask a question — e.g. &quot;What does the table on page 2 show?&quot;
+                  {documents.length > 1 ? " or “compare these documents”" : ""}
                 </p>
               ) : (
                 chat.messages.map((m, i) => (
@@ -158,16 +186,16 @@ export default function MmRagRunner() {
           {/* Citation thumbnail + full-document browser */}
           <div className="flex gap-3">
             <div className="flex-1 flex flex-col gap-3 min-w-0">
-              {activeCitation && activeCitation.source && activeCitation.source !== ingested.source ? (
+              {activeCitation && activeCitation.source && !activeDoc ? (
                 <div style={cardStyle} className="flex items-center justify-center py-16">
                   <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
-                    No preview — this citation is from a previously uploaded document that&apos;s no longer loaded.
+                    No preview — this citation is from a document that&apos;s no longer loaded.
                   </p>
                 </div>
-              ) : activeCitation ? (
-                <CitationThumbnailPanel pageImages={ingested.pageImages} page={activeCitation.page}
-                  chunkType={activeCitation.chunkType} source={ingested.source}
-                  canFindSimilar={ingested.embeddingMode === "caption+clip"} />
+              ) : activeCitation && activeDoc ? (
+                <CitationThumbnailPanel pageImages={activeDoc.pageImages} page={activeCitation.page}
+                  chunkType={activeCitation.chunkType} source={activeDoc.source}
+                  canFindSimilar={activeDoc.embeddingMode === "caption+clip"} />
               ) : (
                 <div style={cardStyle} className="flex items-center justify-center py-16">
                   <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
@@ -176,9 +204,11 @@ export default function MmRagRunner() {
                 </div>
               )}
             </div>
-            <PageThumbnailRail pageImages={ingested.pageImages}
-              activePage={activeCitation?.source === ingested.source ? activeCitation.page : null}
-              onSelect={(page) => setActiveCitation({ page, chunkType: null, source: ingested.source })} />
+            {activeDoc && (
+              <PageThumbnailRail pageImages={activeDoc.pageImages}
+                activePage={activeCitation?.source === activeDoc.source ? activeCitation.page : null}
+                onSelect={(page) => setActiveCitation({ page, chunkType: null, source: activeDoc.source })} />
+            )}
           </div>
         </div>
       )}
