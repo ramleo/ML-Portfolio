@@ -58,11 +58,19 @@ export default function MmRagRunner() {
               </span>
               <div className="flex items-center gap-1.5">
                 {chat.servedProvider && !chat.loading && (
-                  <span title={chat.servedModel ?? undefined}
-                    className="text-[8px] px-1.5 py-0.5 rounded"
-                    style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)" }}>
-                    Answered via {chat.servedProvider}
-                  </span>
+                  chat.primaryProvider && chat.primaryProvider !== chat.servedProvider ? (
+                    <span title={`Tried ${chat.primaryProvider} first (${chat.primaryFailure}), used ${chat.servedModel ?? chat.servedProvider} instead.`}
+                      className="text-[8px] px-1.5 py-0.5 rounded cursor-help"
+                      style={{ background: "rgba(245,158,11,0.1)", color: "#fbbf24" }}>
+                      {chat.primaryProvider} unavailable ({chat.primaryFailure}) — answered via {chat.servedProvider}
+                    </span>
+                  ) : (
+                    <span title={chat.servedModel ?? undefined}
+                      className="text-[8px] px-1.5 py-0.5 rounded"
+                      style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)" }}>
+                      Answered via {chat.servedProvider}
+                    </span>
+                  )
                 )}
                 <button onClick={() => setSettingsOpen(o => !o)}
                   title="Provider & API key settings"

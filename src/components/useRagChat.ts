@@ -85,6 +85,8 @@ export function useRagChat(context: ToolChatContext) {
   const [confidence, setConfidence] = useState<string | null>(null);
   const [servedProvider, setServedProvider] = useState<string | null>(null);
   const [servedModel, setServedModel] = useState<string | null>(null);
+  const [primaryProvider, setPrimaryProvider] = useState<string | null>(null);
+  const [primaryFailure, setPrimaryFailure] = useState<string | null>(null);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -163,6 +165,7 @@ export function useRagChat(context: ToolChatContext) {
     setAgentDoneSteps([]); setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
+    setPrimaryProvider(null); setPrimaryFailure(null);
   }, []);
 
   const send = useCallback(async () => {
@@ -176,6 +179,7 @@ export function useRagChat(context: ToolChatContext) {
     setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
+    setPrimaryProvider(null); setPrimaryFailure(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
@@ -238,6 +242,8 @@ export function useRagChat(context: ToolChatContext) {
               if (evt.confidence) setConfidence(evt.confidence);
               if (evt.served_provider) setServedProvider(evt.served_provider);
               if (evt.served_model) setServedModel(evt.served_model);
+              setPrimaryProvider(evt.primary_provider ?? null);
+              setPrimaryFailure(evt.primary_failure ?? null);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -277,7 +283,7 @@ export function useRagChat(context: ToolChatContext) {
     deepSearch, setDeepSearch, forceWeb, setForceWeb,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
-    answerSource, confidence, servedProvider, servedModel,
+    answerSource, confidence, servedProvider, servedModel, primaryProvider, primaryFailure,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     providerConfig, accentColor, loadingLabel,
