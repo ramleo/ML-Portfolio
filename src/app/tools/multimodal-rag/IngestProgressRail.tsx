@@ -133,14 +133,14 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) upload(f); }}
           >
-            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" className="hidden"
+            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.csv" className="hidden"
               onChange={e => { if (e.target.files?.[0]) upload(e.target.files[0]); }} />
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Drag & drop or click to upload a PDF or image
+              Drag & drop or click to upload a PDF, image, or CSV
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
               PDF, PNG, JPG, GIF, WEBP · Max 10 MB · PDFs: first 8 pages

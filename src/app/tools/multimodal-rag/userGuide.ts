@@ -88,8 +88,9 @@ this server or logged anywhere.
   text-heavy page is no longer skipped.
 
 ## What it can't do
-- PDF and standalone images (PNG/JPG/GIF/WEBP) are supported; DOCX files are
-  not — see the separate Document Intelligence tool for those.
+- PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), and CSV files are
+  supported (CSV rows up to 500); DOCX and XLSX are not — see the separate
+  Document Intelligence tool for DOCX.
 - It won't fabricate an answer that isn't in the document/image — if nothing
   relevant is found, it says so instead of guessing.
 - Nothing uploaded here is permanent. For document field extraction with
