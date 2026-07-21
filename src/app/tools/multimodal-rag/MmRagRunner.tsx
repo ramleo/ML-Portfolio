@@ -8,6 +8,7 @@ import ToolsAIChatSettings from "@/components/ToolsAIChatSettings";
 import { PROVIDERS } from "@/components/toolsAiProviders";
 import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
+import PageThumbnailRail from "./PageThumbnailRail";
 import type { IngestState } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -154,25 +155,30 @@ export default function MmRagRunner() {
             </div>
           </div>
 
-          {/* Citation thumbnail */}
-          <div className="flex flex-col gap-3">
-            {activeCitation && activeCitation.source && activeCitation.source !== ingested.source ? (
-              <div style={cardStyle} className="flex items-center justify-center py-16">
-                <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
-                  No preview — this citation is from a previously uploaded document that&apos;s no longer loaded.
-                </p>
-              </div>
-            ) : activeCitation ? (
-              <CitationThumbnailPanel pageImages={ingested.pageImages} page={activeCitation.page}
-                chunkType={activeCitation.chunkType} source={ingested.source}
-                canFindSimilar={ingested.embeddingMode === "caption+clip"} />
-            ) : (
-              <div style={cardStyle} className="flex items-center justify-center py-16">
-                <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
-                  Click a citation to see its page
-                </p>
-              </div>
-            )}
+          {/* Citation thumbnail + full-document browser */}
+          <div className="flex gap-3">
+            <div className="flex-1 flex flex-col gap-3 min-w-0">
+              {activeCitation && activeCitation.source && activeCitation.source !== ingested.source ? (
+                <div style={cardStyle} className="flex items-center justify-center py-16">
+                  <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    No preview — this citation is from a previously uploaded document that&apos;s no longer loaded.
+                  </p>
+                </div>
+              ) : activeCitation ? (
+                <CitationThumbnailPanel pageImages={ingested.pageImages} page={activeCitation.page}
+                  chunkType={activeCitation.chunkType} source={ingested.source}
+                  canFindSimilar={ingested.embeddingMode === "caption+clip"} />
+              ) : (
+                <div style={cardStyle} className="flex items-center justify-center py-16">
+                  <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    Click a citation to see its page
+                  </p>
+                </div>
+              )}
+            </div>
+            <PageThumbnailRail pageImages={ingested.pageImages}
+              activePage={activeCitation?.source === ingested.source ? activeCitation.page : null}
+              onSelect={(page) => setActiveCitation({ page, chunkType: null, source: ingested.source })} />
           </div>
         </div>
       )}
