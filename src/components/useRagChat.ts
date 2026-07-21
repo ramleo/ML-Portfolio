@@ -83,6 +83,8 @@ export function useRagChat(context: ToolChatContext) {
   const [candidatesRetrieved, setCandidatesRetrieved] = useState<number | null>(null);
   const [answerSource, setAnswerSource] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<string | null>(null);
+  const [servedProvider, setServedProvider] = useState<string | null>(null);
+  const [servedModel, setServedModel] = useState<string | null>(null);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -160,6 +162,7 @@ export function useRagChat(context: ToolChatContext) {
     setAgentRewritten(false); setAgentLoops(0); setAgentStep(null);
     setAgentDoneSteps([]); setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
+    setServedProvider(null); setServedModel(null);
   }, []);
 
   const send = useCallback(async () => {
@@ -172,6 +175,7 @@ export function useRagChat(context: ToolChatContext) {
     setAgentDoneSteps([]); setAgentLoops(0); setAgentRewritten(false);
     setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
+    setServedProvider(null); setServedModel(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
@@ -232,6 +236,8 @@ export function useRagChat(context: ToolChatContext) {
               if (typeof evt.candidates_retrieved === "number") setCandidatesRetrieved(evt.candidates_retrieved);
               if (evt.answer_source) setAnswerSource(evt.answer_source);
               if (evt.confidence) setConfidence(evt.confidence);
+              if (evt.served_provider) setServedProvider(evt.served_provider);
+              if (evt.served_model) setServedModel(evt.served_model);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -271,7 +277,7 @@ export function useRagChat(context: ToolChatContext) {
     deepSearch, setDeepSearch, forceWeb, setForceWeb,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
-    answerSource, confidence,
+    answerSource, confidence, servedProvider, servedModel,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     providerConfig, accentColor, loadingLabel,

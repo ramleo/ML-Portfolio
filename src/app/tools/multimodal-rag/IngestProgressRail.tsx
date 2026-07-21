@@ -86,6 +86,9 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
           try {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.error) { setState({ kind: "error", message: evt.error }); return; }
+            if (evt.step === "extract" && evt.status === "running") {
+              setState({ kind: "extracting", page: evt.page, pages: evt.pages, indeterminate: !!evt.indeterminate });
+            }
             if (evt.step === "extract" && evt.status === "done") {
               setDoneStep(s => new Set(s).add("extract"));
               setState({ kind: "embedding" });
@@ -186,6 +189,34 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               );
             })}
           </div>
+          {state.kind === "extracting" && (
+            <div className="flex flex-col gap-1">
+              {state.indeterminate ? (
+                <>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                    <div style={{
+                      width: "40%", height: "100%", borderRadius: 9999,
+                      background: ACCENT, animation: "mmragIndeterminate 1.3s ease-in-out infinite",
+                    }} />
+                  </div>
+                  <style>{`@keyframes mmragIndeterminate { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }`}</style>
+                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>Analyzing image…</span>
+                </>
+              ) : state.pages ? (
+                <>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                    <div style={{
+                      width: `${Math.round(((state.page ?? 0) / state.pages) * 100)}%`, height: "100%",
+                      borderRadius: 9999, background: ACCENT, transition: "width 0.3s ease",
+                    }} />
+                  </div>
+                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    Page {state.page ?? 0} of {state.pages}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          )}
           {state.kind === "done" && (
             <div className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
               <span>

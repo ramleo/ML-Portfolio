@@ -3,7 +3,7 @@ export type ChunkSummary = { text: number; table: number; figure: number; image?
 export type IngestState =
   | { kind: "idle" }
   | { kind: "uploading" }
-  | { kind: "extracting" }
+  | { kind: "extracting"; page?: number; pages?: number; indeterminate?: boolean }
   | { kind: "embedding" }
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";

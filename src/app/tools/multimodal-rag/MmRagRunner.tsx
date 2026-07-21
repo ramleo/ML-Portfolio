@@ -56,14 +56,23 @@ export default function MmRagRunner() {
               <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: `${ACCENT}99` }}>
                 Ask about your document
               </span>
-              <button onClick={() => setSettingsOpen(o => !o)}
-                title="Provider & API key settings"
-                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                style={settingsOpen
-                  ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-                  : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
-                {chat.userKey ? "Using your key" : "Provider"}
-              </button>
+              <div className="flex items-center gap-1.5">
+                {chat.servedProvider && !chat.loading && (
+                  <span title={chat.servedModel ?? undefined}
+                    className="text-[8px] px-1.5 py-0.5 rounded"
+                    style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)" }}>
+                    Answered via {chat.servedProvider}
+                  </span>
+                )}
+                <button onClick={() => setSettingsOpen(o => !o)}
+                  title="Provider & API key settings"
+                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                  style={settingsOpen
+                    ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+                    : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                  {chat.userKey ? "Using your key" : "Provider"}
+                </button>
+              </div>
             </div>
             {settingsOpen && (
               <ToolsAIChatSettings
