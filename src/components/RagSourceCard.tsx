@@ -74,6 +74,49 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
 
 const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image" };
 
+/** Parses the pipe-table markdown produced by extract_tables_markdown()
+ * (e.g. "### Table (Page N)\n| a | b |\n| --- | --- |\n| 1 | 2 |") into
+ * rows of cells. Returns null if the text doesn't look like a pipe table,
+ * so callers can fall back to plain text. No markdown library needed —
+ * the source format is fixed and fully known. */
+function parsePipeTable(text: string): string[][] | null {
+  const rows = text.split("\n")
+    .map(l => l.trim())
+    .filter(l => l.startsWith("|"))
+    .map(l => l.slice(1, l.endsWith("|") ? -1 : undefined).split("|").map(c => c.trim()));
+  if (rows.length < 2) return null;
+  // Drop the "| --- | --- |" separator row (all cells are dashes/colons).
+  return rows.filter(r => !r.every(c => /^:?-+:?$/.test(c)));
+}
+
+function TableView({ text, accent }: { text: string; accent: string }) {
+  const rows = parsePipeTable(text);
+  if (!rows || rows.length === 0) return <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>;
+  const [header, ...body] = rows;
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6rem" }}>
+        <thead>
+          <tr>
+            {header.map((c, i) => (
+              <th key={i} style={{ textAlign: "left", padding: "2px 6px", color: accent, borderBottom: `1px solid ${accent}40`, whiteSpace: "nowrap" }}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((r, ri) => (
+            <tr key={ri}>
+              {r.map((c, ci) => (
+                <td key={ci} style={{ padding: "2px 6px", color: "var(--text3)", borderBottom: "1px solid rgba(255,255,255,0.05)", whiteSpace: "nowrap" }}>{c}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect }: Props) {
   const [open, setOpen] = useState(false);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
@@ -137,7 +180,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
               Raw model confidence: <strong>{rawPct}%</strong>
             </div>
           )}
-          {text.slice(0, 200)}{text.length > 200 ? "…" : ""}
+          {chunkType === "table" ? <TableView text={text} accent={accent} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
         </div>
       )}
     </div>
