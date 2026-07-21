@@ -28,6 +28,10 @@ just like with a document.
    were found.
 3. Ask questions in the chat below. Answers stream in with citations you can
    expand to see the source page, content type, and a thumbnail.
+4. Clicking a citation jumps the preview panel to that page. A thumbnail
+   strip on the far right lets you browse every page of the document on
+   your own, independent of citations (hidden for single-page/image
+   uploads, since there's nothing else to browse).
 
 ## Two upload choices, both with real tradeoffs
 - **Find visually similar figures (optional)**: off by default. Turning it on
@@ -75,8 +79,14 @@ this server or logged anywhere.
 - Figure and Image citations mean the answer came from an AI-written
   description of a chart, diagram, or photo — retrieval quality here depends
   on how well that description captures the image, so very unusual images
-  may be harder to find than a table's exact numbers.
+  may be harder to find than a table's exact numbers. Dense graphics (e.g. a
+  timeline with many small dates) may only get a summarized description
+  rather than every exact value.
 - Click a citation to expand it and see a thumbnail of that page or image.
+- A page that mixes real text with an embedded graphic (e.g. a resume with
+  a text sidebar plus a chart) gets both extracted: the text as usual, and
+  a separate AI caption for the graphic — so image content on an otherwise
+  text-heavy page is no longer skipped.
 
 ## What it can't do
 - PDF and standalone images (PNG/JPG/GIF/WEBP) are supported; DOCX files are
