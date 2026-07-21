@@ -77,11 +77,10 @@ this server or logged anywhere.
 - Table citations mean the answer came from a detected table's actual rows
   and columns, not from prose that happened to mention similar numbers.
 - Figure and Image citations mean the answer came from an AI-written
-  description of a chart, diagram, or photo — retrieval quality here depends
-  on how well that description captures the image, so very unusual images
-  may be harder to find than a table's exact numbers. Dense graphics (e.g. a
-  timeline with many small dates) may only get a summarized description
-  rather than every exact value.
+  description of a chart, diagram, or photo, PLUS an OCR pass that reads
+  exact text/numbers out of the image (e.g. every date in a dense timeline
+  graphic) — so both the gist and the precise values are searchable, not
+  just a summary.
 - Click a citation to expand it and see a thumbnail of that page or image.
 - A page that mixes real text with an embedded graphic (e.g. a resume with
   a text sidebar plus a chart) gets both extracted: the text as usual, and
