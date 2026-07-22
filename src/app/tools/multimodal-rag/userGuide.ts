@@ -23,13 +23,16 @@ just like with a document.
 A CSV file works too — its rows and columns are indexed the same way a
 PDF's embedded tables are, so you can ask questions about the data directly.
 
-You can also upload a short video (MP4, MOV, WEBM, AVI, MKV). It samples 6
-frames evenly across the video, describes and OCRs each one just like a
-PDF's figures (the caption itself notes what timestamp the frame was taken
-at), and citations are labeled "Video Frame." If the video has an audio
-track, it's also transcribed and indexed as regular text — so you can ask
-about what's visually shown AND what was said. A silent video, or one whose
-audio can't be transcribed, still ingests normally using just its frames.
+You can also upload a short video (MP4, MOV, WEBM, AVI, MKV). If it has an
+audio track, that's transcribed first and indexed as regular text — so you
+can ask what was said, not just what's shown. Once a real transcript
+exists, only 2 visual frames are sampled (rather than 6): for a
+talking-head video the audio already carries the content, so extra frames
+mostly just confirm the scene hasn't changed. A silent video, or one whose
+audio can't be transcribed, samples the full 6 frames instead, since frames
+are then the only available signal. Each sampled frame is described and
+OCRed just like a PDF's figures (the caption itself notes what timestamp it
+was taken at), and citations are labeled "Video Frame."
 
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
@@ -109,13 +112,14 @@ this server or logged anywhere.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
-  (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: 6 sampled
-  frames + audio transcript when present); DOCX and XLSX are not — see the
-  separate Document Intelligence tool for DOCX.
-- A video's visual understanding still only comes from 6 sampled frames,
-  not every frame — something that flashes on screen briefly between
-  samples could be missed, even though the audio transcript (if present)
-  covers the entire runtime.
+  (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: up to 6
+  sampled frames — fewer once a real transcript exists — plus an audio
+  transcript when present); DOCX and XLSX are not — see the separate
+  Document Intelligence tool for DOCX.
+- A video's visual understanding only comes from a handful of sampled
+  frames, not every frame — something that flashes on screen briefly
+  between samples could be missed, even though the audio transcript (if
+  present) covers the entire runtime.
 - It won't fabricate an answer that isn't in the document/image — if nothing
   relevant is found, it says so instead of guessing.
 - Nothing uploaded here is permanent. For document field extraction with
