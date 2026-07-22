@@ -26,9 +26,10 @@ PDF's embedded tables are, so you can ask questions about the data directly.
 You can also upload a short video (MP4, MOV, WEBM, AVI, MKV). It samples 6
 frames evenly across the video, describes and OCRs each one just like a
 PDF's figures (the caption itself notes what timestamp the frame was taken
-at), and citations are labeled "Video Frame." This is visual-only for now
-— there's no audio transcript, so a question that depends on narration or
-dialogue won't be answerable, only what's visibly on screen.
+at), and citations are labeled "Video Frame." If the video has an audio
+track, it's also transcribed and indexed as regular text — so you can ask
+about what's visually shown AND what was said. A silent video, or one whose
+audio can't be transcribed, still ingests normally using just its frames.
 
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
@@ -109,10 +110,12 @@ this server or logged anywhere.
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
   (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: 6 sampled
-  frames, no audio); DOCX and XLSX are not — see the separate Document
-  Intelligence tool for DOCX.
-- Video support doesn't transcribe speech or narration — only what's
-  visually on screen in the 6 sampled frames.
+  frames + audio transcript when present); DOCX and XLSX are not — see the
+  separate Document Intelligence tool for DOCX.
+- A video's visual understanding still only comes from 6 sampled frames,
+  not every frame — something that flashes on screen briefly between
+  samples could be missed, even though the audio transcript (if present)
+  covers the entire runtime.
 - It won't fabricate an answer that isn't in the document/image — if nothing
   relevant is found, it says so instead of guessing.
 - Nothing uploaded here is permanent. For document field extraction with
