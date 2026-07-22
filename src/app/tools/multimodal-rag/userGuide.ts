@@ -87,11 +87,12 @@ this server or logged anywhere.
 - Table citations mean the answer came from a detected table's actual rows
   and columns, not from prose that happened to mention similar numbers —
   shown as a real table, not raw markdown text.
-- Figure and Image citations mean the answer came from an AI-written
-  description of a chart, diagram, or photo, PLUS an OCR pass that reads
-  exact text/numbers out of the image (e.g. every date in a dense timeline
-  graphic) — so both the gist and the precise values are searchable, not
-  just a summary.
+- Figure and Image citations (including standalone image uploads) mean the
+  answer came from an AI-written description of a chart, diagram, or photo,
+  PLUS an OCR pass that reads exact text/numbers out of the image (e.g.
+  every date in a dense timeline graphic, or every line-item on an invoice)
+  — so both the gist and the precise values are searchable, not just a
+  summary.
 - Click a citation to expand it and see a thumbnail of that page or image.
 - A page that mixes real text with an embedded graphic (e.g. a resume with
   a text sidebar plus a chart) gets both extracted: the text as usual, and
