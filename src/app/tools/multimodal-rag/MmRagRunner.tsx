@@ -116,7 +116,7 @@ export default function MmRagRunner() {
                     <span title={`Tried ${chat.primaryProvider} first (${chat.primaryFailure}), used ${chat.servedModel ?? chat.servedProvider} instead.`}
                       className="text-[8px] px-1.5 py-0.5 rounded cursor-help"
                       style={{ background: "rgba(245,158,11,0.1)", color: "#fbbf24" }}>
-                      {chat.primaryProvider} unavailable ({chat.primaryFailure}) — answered via {chat.servedProvider}
+                      {chat.primaryProvider} failed ({chat.primaryFailure}) — answered via {chat.servedProvider}
                     </span>
                   ) : (
                     <span title={chat.servedModel ?? undefined}
