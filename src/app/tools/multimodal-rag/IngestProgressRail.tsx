@@ -135,7 +135,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
               PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV · Max 10 MB ·
-              PDFs: first 8 pages · Videos: 6 sampled frames, visuals only (no audio)
+              PDFs: first 8 pages · Videos: 6 sampled frames + audio transcript
             </p>
           </div>
           {state.kind === "error" && (
