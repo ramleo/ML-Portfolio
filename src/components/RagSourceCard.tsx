@@ -75,7 +75,7 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
   );
 }
 
-const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image" };
+const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image", video: "Video Frame" };
 
 /** Parses the pipe-table markdown produced by extract_tables_markdown()
  * (e.g. "### Table (Page N)\n| a | b |\n| --- | --- |\n| 1 | 2 |") into

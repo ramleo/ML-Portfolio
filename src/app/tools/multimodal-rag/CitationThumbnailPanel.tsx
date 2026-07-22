@@ -18,7 +18,7 @@ type Props = {
   canFindSimilar: boolean;
 };
 
-const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image" };
+const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 
 export default function CitationThumbnailPanel({ pageImages, page, chunkType, source, canFindSimilar }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);

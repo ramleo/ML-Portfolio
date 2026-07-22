@@ -1,4 +1,4 @@
-export type ChunkSummary = { text: number; table: number; figure: number; image?: number };
+export type ChunkSummary = { text: number; table: number; figure: number; image?: number; video?: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string };
 
 export type IngestState =

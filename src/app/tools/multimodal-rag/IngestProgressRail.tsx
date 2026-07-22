@@ -124,17 +124,18 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) upload(f); }}
           >
-            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.csv" className="hidden"
+            <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.csv,.mp4,.mov,.webm,.avi,.mkv" className="hidden"
               onChange={e => { if (e.target.files?.[0]) upload(e.target.files[0]); }} />
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Drag & drop or click to upload a PDF, image, or CSV
+              Drag & drop or click to upload a PDF, image, CSV, or video
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
-              PDF, PNG, JPG, GIF, WEBP · Max 10 MB · PDFs: first 8 pages
+              PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV · Max 10 MB ·
+              PDFs: first 8 pages · Videos: 6 sampled frames, visuals only (no audio)
             </p>
           </div>
           {state.kind === "error" && (
@@ -216,7 +217,8 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                   state.summary.table ? `${state.summary.table} table` : null,
                   state.summary.figure ? `${state.summary.figure} figure` : null,
                   state.summary.image ? `${state.summary.image} image` : null,
-                ].filter(Boolean).join(" · ")} chunk{(state.summary.text + state.summary.table + state.summary.figure + (state.summary.image ?? 0)) !== 1 ? "s" : ""}
+                  state.summary.video ? `${state.summary.video} video` : null,
+                ].filter(Boolean).join(" · ")} chunk{(state.summary.text + state.summary.table + state.summary.figure + (state.summary.image ?? 0) + (state.summary.video ?? 0)) !== 1 ? "s" : ""}
               </span>
               {state.cached && <span style={{ color: ACCENT }}>(cached)</span>}
               {state.saveScope === "shared" && (

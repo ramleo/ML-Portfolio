@@ -23,6 +23,13 @@ just like with a document.
 A CSV file works too — its rows and columns are indexed the same way a
 PDF's embedded tables are, so you can ask questions about the data directly.
 
+You can also upload a short video (MP4, MOV, WEBM, AVI, MKV). It samples 6
+frames evenly across the video, describes and OCRs each one just like a
+PDF's figures (the caption itself notes what timestamp the frame was taken
+at), and citations are labeled "Video Frame." This is visual-only for now
+— there's no audio transcript, so a question that depends on narration or
+dialogue won't be answerable, only what's visibly on screen.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
@@ -100,9 +107,12 @@ this server or logged anywhere.
   text-heavy page is no longer skipped.
 
 ## What it can't do
-- PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), and CSV files are
-  supported (CSV rows up to 500); DOCX and XLSX are not — see the separate
-  Document Intelligence tool for DOCX.
+- PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
+  (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: 6 sampled
+  frames, no audio); DOCX and XLSX are not — see the separate Document
+  Intelligence tool for DOCX.
+- Video support doesn't transcribe speech or narration — only what's
+  visually on screen in the 6 sampled frames.
 - It won't fabricate an answer that isn't in the document/image — if nothing
   relevant is found, it says so instead of guessing.
 - Nothing uploaded here is permanent. For document field extraction with
