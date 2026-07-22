@@ -87,6 +87,7 @@ export function useRagChat(context: ToolChatContext) {
   const [servedModel, setServedModel] = useState<string | null>(null);
   const [primaryProvider, setPrimaryProvider] = useState<string | null>(null);
   const [primaryFailure, setPrimaryFailure] = useState<string | null>(null);
+  const [likelyUsedSources, setLikelyUsedSources] = useState<number[] | null>(null);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -166,6 +167,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
+    setLikelyUsedSources(null);
   }, []);
 
   const send = useCallback(async () => {
@@ -180,6 +182,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
+    setLikelyUsedSources(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
@@ -244,6 +247,7 @@ export function useRagChat(context: ToolChatContext) {
               if (evt.served_model) setServedModel(evt.served_model);
               setPrimaryProvider(evt.primary_provider ?? null);
               setPrimaryFailure(evt.primary_failure ?? null);
+              if (Array.isArray(evt.likely_used_sources)) setLikelyUsedSources(evt.likely_used_sources);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -284,6 +288,7 @@ export function useRagChat(context: ToolChatContext) {
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence, servedProvider, servedModel, primaryProvider, primaryFailure,
+    likelyUsedSources,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     providerConfig, accentColor, loadingLabel,

@@ -173,20 +173,45 @@ export default function MmRagRunner() {
                 </div>
               )}
 
-              {chat.sources.length > 0 && (
-                <div className="flex flex-col gap-1.5 mt-1">
-                  {chat.sources.map((s, i) => {
-                    const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null };
-                    return (
-                      <RagSourceCard key={i} source={s.source} text={s.text}
-                        score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
-                        chunkType={withMeta.chunk_type} page={withMeta.page}
-                        onSelect={() => setActiveCitation({ page: withMeta.page ?? null, chunkType: withMeta.chunk_type ?? null, source: s.source })}
-                      />
-                    );
-                  })}
-                </div>
-              )}
+              {chat.sources.length > 0 && (() => {
+                const used = chat.likelyUsedSources;
+                // Only split into two groups when the signal is meaningful —
+                // some sources flagged used AND some not. An all-or-nothing
+                // result (e.g. heavy paraphrasing with low literal overlap)
+                // falls back to one flat list rather than mislabeling everything.
+                const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
+                const renderCard = (s: typeof chat.sources[number], i: number) => {
+                  const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null };
+                  return (
+                    <RagSourceCard key={i} source={s.source} text={s.text}
+                      score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
+                      chunkType={withMeta.chunk_type} page={withMeta.page}
+                      onSelect={() => setActiveCitation({ page: withMeta.page ?? null, chunkType: withMeta.chunk_type ?? null, source: s.source })}
+                    />
+                  );
+                };
+                if (!canSplit) {
+                  return <div className="flex flex-col gap-1.5 mt-1">{chat.sources.map(renderCard)}</div>;
+                }
+                const usedSet = new Set(used);
+                return (
+                  <div className="flex flex-col gap-2.5 mt-1">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
+                        Directly cited
+                      </span>
+                      {chat.sources.map((s, i) => usedSet.has(i) ? renderCard(s, i) : null)}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}
+                        title="Sent to the AI as context, but the answer doesn't appear to draw from this">
+                        Additional context (not used in this answer)
+                      </span>
+                      {chat.sources.map((s, i) => usedSet.has(i) ? null : renderCard(s, i))}
+                    </div>
+                  </div>
+                );
+              })()}
               <div ref={chat.bottomRef} />
             </div>
             <div className="p-3 border-t flex gap-2 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
