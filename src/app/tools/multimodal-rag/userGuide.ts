@@ -34,6 +34,10 @@ are then the only available signal. Each sampled frame is described and
 OCRed just like a PDF's figures (the caption itself notes what timestamp it
 was taken at), and citations are labeled "Video Frame."
 
+The full transcript (not just the chunked pieces used for chat retrieval)
+is readable in a video's "▸ summary" panel, with a "Download" button to
+save it as a .txt file.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across

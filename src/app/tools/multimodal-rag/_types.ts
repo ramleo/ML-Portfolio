@@ -8,7 +8,7 @@ export type IngestState =
   | { kind: "embedding" }
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
-      embeddingMode: EmbeddingMode; notableChunks: NotableChunk[] }
+      embeddingMode: EmbeddingMode; notableChunks: NotableChunk[]; transcript: string | null }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";

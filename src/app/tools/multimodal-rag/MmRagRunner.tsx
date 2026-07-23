@@ -22,6 +22,16 @@ const CONTEXT = {
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 
+function downloadText(filename: string, text: string) {
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [documents, setDocuments] = useState<Doc[]>([]);
@@ -87,6 +97,28 @@ export default function MmRagRunner() {
           <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
             Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
           </span>
+          {d.transcript && (
+            <div className="flex flex-col gap-1 mb-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
+                  Transcript
+                </span>
+                <button
+                  onClick={() => downloadText(
+                    `${d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "")}-transcript.txt`,
+                    d.transcript ?? ""
+                  )}
+                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                  Download
+                </button>
+              </div>
+              <p className="text-[10px] leading-relaxed overflow-y-auto p-2 rounded-lg"
+                style={{ color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
+                {d.transcript}
+              </p>
+            </div>
+          )}
           {d.notableChunks.length === 0 ? (
             <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
               No tables or figures were detected — only plain text.
