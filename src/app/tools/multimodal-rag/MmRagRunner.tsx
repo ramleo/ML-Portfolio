@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
@@ -52,12 +52,34 @@ function buildSrt(segments: TranscriptSegment[]): string {
   ).join("\n");
 }
 
+// A citation's chunk text is a chunk_document()-derived window over the
+// flat transcript, so it won't align exactly with Whisper's own segment
+// boundaries — find whichever segment shares the most words with it, to
+// jump/highlight the closest real match rather than requiring an exact one.
+function bestMatchingSegmentIndex(segments: TranscriptSegment[], citationText: string): number | null {
+  const citWords = new Set(citationText.toLowerCase().match(/\w+/g) ?? []);
+  if (citWords.size === 0) return null;
+  let bestIdx: number | null = null;
+  let bestScore = 0;
+  segments.forEach((seg, i) => {
+    const segWords = seg.text.toLowerCase().match(/\w+/g) ?? [];
+    if (segWords.length === 0) return;
+    let overlap = 0;
+    for (const w of segWords) if (citWords.has(w)) overlap++;
+    const score = overlap / segWords.length;
+    if (score > bestScore) { bestScore = score; bestIdx = i; }
+  });
+  return bestScore > 0 ? bestIdx : null;
+}
+
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
+  const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
+  const segmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
   const ensureSessionId = useCallback(() => {
     if (chat.sessionId) return chat.sessionId;
@@ -82,6 +104,27 @@ export default function MmRagRunner() {
   }, []);
 
   const activeDoc = documents.find(d => d.source === activeCitation?.source) ?? null;
+
+  // A transcript-chunk citation (chunkType "text", same tag plain PDF text
+  // chunks use — harmless here since non-video docs always have empty
+  // transcriptSegments) additionally opens that document's summary panel
+  // and highlights/scrolls to the closest-matching transcript segment.
+  const jumpToCitation = useCallback((source: string, chunkType: string | null | undefined,
+                                      page: number | null | undefined, text: string) => {
+    setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source });
+    if (chunkType !== "text") return;
+    const doc = documents.find(d => d.source === source);
+    if (!doc || doc.transcriptSegments.length === 0) return;
+    const idx = bestMatchingSegmentIndex(doc.transcriptSegments, text);
+    if (idx === null) return;
+    setSummaryOpenFor(source);
+    setHighlightedSegment({ source, index: idx });
+  }, [documents]);
+
+  useEffect(() => {
+    if (!highlightedSegment) return;
+    segmentRefs.current[highlightedSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [highlightedSegment]);
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
@@ -147,11 +190,17 @@ export default function MmRagRunner() {
                 <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
                   style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
                   {hasSegments ? (
-                    d.transcriptSegments.map((seg, i) => (
-                      <p key={i} className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                        <span style={{ color: `${ACCENT}99` }}>[{mmss(seg.start)}]</span> {seg.text}
-                      </p>
-                    ))
+                    d.transcriptSegments.map((seg, i) => {
+                      const isHighlighted = highlightedSegment?.source === d.source && highlightedSegment.index === i;
+                      return (
+                        <p key={i}
+                          ref={el => { if (summaryOpenFor === d.source) segmentRefs.current[i] = el; }}
+                          className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
+                          style={{ color: "rgba(255,255,255,0.6)", background: isHighlighted ? `${ACCENT}22` : "transparent" }}>
+                          <span style={{ color: `${ACCENT}99` }}>[{mmss(seg.start)}]</span> {seg.text}
+                        </p>
+                      );
+                    })
                   ) : (
                     <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
                       {d.transcript}
@@ -169,7 +218,7 @@ export default function MmRagRunner() {
             d.notableChunks.map((c, i) => (
               <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={ACCENT}
                 chunkType={c.chunkType} page={c.page} hideConfidence
-                onSelect={() => setActiveCitation({ page: c.page, chunkType: c.chunkType, source: d.source })}
+                onSelect={() => jumpToCitation(d.source, c.chunkType, c.page, c.text)}
               />
             ))
           )}
@@ -260,7 +309,7 @@ export default function MmRagRunner() {
                     <RagSourceCard key={i} source={s.source} text={s.text}
                       score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                       chunkType={withMeta.chunk_type} page={withMeta.page}
-                      onSelect={() => setActiveCitation({ page: withMeta.page ?? null, chunkType: withMeta.chunk_type ?? null, source: s.source })}
+                      onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text)}
                     />
                   );
                 };
