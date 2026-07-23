@@ -144,7 +144,7 @@ export default function MmRagRunner() {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg"
+                <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
                   style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
                   {hasSegments ? (
                     d.transcriptSegments.map((seg, i) => (
