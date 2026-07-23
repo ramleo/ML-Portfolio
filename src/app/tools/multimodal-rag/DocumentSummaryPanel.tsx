@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import RagSourceCard from "@/components/RagSourceCard";
 import type { IngestState, TranscriptSegment } from "./_types";
 
@@ -45,10 +46,39 @@ function buildSrt(segments: TranscriptSegment[]): string {
   ).join("\n");
 }
 
+function highlightMatches(text: string, query: string, accent: string) {
+  const q = query.trim();
+  if (!q) return text;
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return parts.map((part, i) =>
+    i % 2 === 1
+      ? <mark key={i} style={{ background: `${accent}55`, color: "inherit", borderRadius: 2 }}>{part}</mark>
+      : part
+  );
+}
+
 export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex,
                                                onSegmentRef, onSelectChunk, onSelectChapter }: Props) {
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
   const hasSegments = d.transcriptSegments.length > 0;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [matchCursor, setMatchCursor] = useState(0);
+  const searchRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+
+  const q = searchQuery.trim().toLowerCase();
+  const matchIndices = q ? d.transcriptSegments
+    .map((seg, i) => (seg.text.toLowerCase().includes(q) ? i : -1))
+    .filter(i => i >= 0) : [];
+
+  useEffect(() => { setMatchCursor(0); }, [searchQuery]);
+  useEffect(() => {
+    if (matchIndices.length === 0) return;
+    const idx = matchIndices[matchCursor % matchIndices.length];
+    searchRefs.current[idx]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchCursor, searchQuery]);
 
   return (
     <div style={cardStyle} className="p-3 flex flex-col gap-1.5">
@@ -91,17 +121,52 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               ))}
             </div>
           )}
+          {hasSegments && (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search transcript…"
+                className="flex-1 text-[9px] px-2 py-1 rounded border bg-transparent outline-none"
+                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+              />
+              {q && (
+                <>
+                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    {matchIndices.length ? `${(matchCursor % matchIndices.length) + 1}/${matchIndices.length}` : "0"}
+                  </span>
+                  <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchIndices.length}
+                    className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
+                    style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                    ↑
+                  </button>
+                  <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchIndices.length}
+                    className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
+                    style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                    ↓
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
             style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
             {hasSegments ? (
-              d.transcriptSegments.map((seg, i) => (
-                <p key={i}
-                  ref={el => onSegmentRef(i, el)}
-                  className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
-                  style={{ color: "rgba(255,255,255,0.6)", background: highlightedIndex === i ? `${accent}22` : "transparent" }}>
-                  <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span> {seg.text}
-                </p>
-              ))
+              d.transcriptSegments.map((seg, i) => {
+                const isCurrentMatch = matchIndices.length > 0 && matchIndices[matchCursor % matchIndices.length] === i;
+                return (
+                  <p key={i}
+                    ref={el => { onSegmentRef(i, el); searchRefs.current[i] = el; }}
+                    className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
+                    style={{
+                      color: "rgba(255,255,255,0.6)",
+                      background: isCurrentMatch ? `${accent}33` : highlightedIndex === i ? `${accent}22` : "transparent",
+                    }}>
+                    <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span> {highlightMatches(seg.text, searchQuery, accent)}
+                  </p>
+                );
+              })
             ) : (
               <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
                 {d.transcript}

@@ -41,7 +41,8 @@ timestamped .srt subtitle file. If the video has enough content, a row of
 clickable chapter markers (like YouTube's auto-chapters) appears above the
 transcript — click one to jump straight to that part. Clicking a
 transcript-based citation in the chat also jumps to and highlights the
-exact segment it came from.
+exact segment it came from. A search box above the transcript highlights
+every matching word and lets you step through matches one at a time.
 
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
