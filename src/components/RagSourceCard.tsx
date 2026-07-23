@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ML_UNIFIED_API } from "@/config/urls";
 
 type Props = {
   source: string;
@@ -15,7 +16,12 @@ type Props = {
   /** Hides the confidence badge — for contexts (e.g. a document summary
    * view) where there's no query relevance score to speak of. */
   hideConfidence?: boolean;
+  /** True when this figure's AI caption and its OCR read disagreed on a
+   * number — shows a warning badge instead of silently trusting either. */
+  numberMismatch?: boolean;
 };
+
+type PageChunk = { text: string; chunk_type: string | null; page: number };
 
 function DocIcon() {
   return (
@@ -120,8 +126,9 @@ function TableView({ text, accent }: { text: string; accent: string }) {
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch }: Props) {
   const [open, setOpen] = useState(false);
+  const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
   const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
   const confLabel = rawPct <= 50 ? "Low" : rawPct <= 80 ? "Medium" : "High";
@@ -129,6 +136,18 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const cat = categorize(source);
   const name = displayName(source, cat);
   const typeLabel = chunkType && CHUNK_TYPE_LABEL[chunkType];
+
+  const loadPageChunks = async () => {
+    if (!page) return;
+    setPageChunks("loading");
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/rag/page-chunks/${encodeURIComponent(source)}?page=${page}`);
+      const data = await res.json();
+      setPageChunks((data.chunks ?? []).filter((c: PageChunk) => c.text !== text));
+    } catch {
+      setPageChunks(null);
+    }
+  };
 
   return (
     <div
@@ -155,6 +174,23 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             padding: "1px 5px", flexShrink: 0, textTransform: "uppercase",
           }}>
             {typeLabel}
+          </span>
+        )}
+        {numberMismatch && (
+          <span
+            title="This figure's AI description and a separate OCR reading disagree on at least one number — verify the exact value against the original."
+            style={{
+              display: "flex", alignItems: "center", gap: "2px",
+              fontSize: "0.55rem", fontWeight: 700, color: "#f87171",
+              background: "#f8717118", borderRadius: 9999,
+              padding: "1px 6px", flexShrink: 0,
+            }}>
+            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Verify number
           </span>
         )}
         {!hideConfidence && (
@@ -186,6 +222,37 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             </div>
           )}
           {chunkType === "table" ? <TableView text={text} accent={accent} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
+          {page && (
+            <div style={{ marginTop: "0.4rem" }}>
+              {pageChunks === null && (
+                <button onClick={(e) => { e.stopPropagation(); loadPageChunks(); }}
+                  style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
+                  Show everything else on this page
+                </button>
+              )}
+              {pageChunks === "loading" && (
+                <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>Loading…</span>
+              )}
+              {Array.isArray(pageChunks) && (
+                pageChunks.length === 0 ? (
+                  <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>Nothing else was extracted from page {page}.</span>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                    {pageChunks.map((c, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 6, padding: "0.3rem 0.45rem" }}>
+                        {c.chunk_type && c.chunk_type !== "text" && (
+                          <span style={{ fontSize: "0.55rem", fontWeight: 700, color: accent, textTransform: "uppercase", marginRight: "0.3rem" }}>
+                            {CHUNK_TYPE_LABEL[c.chunk_type] ?? c.chunk_type}
+                          </span>
+                        )}
+                        {c.text.slice(0, 200)}{c.text.length > 200 ? "…" : ""}
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
