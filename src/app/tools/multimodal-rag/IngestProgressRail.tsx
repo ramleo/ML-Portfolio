@@ -138,7 +138,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               Drag & drop or click to upload a PDF, image, CSV, or video
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
-              PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV · Max 10 MB ·
+              PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV · Max 20 MB ·
               PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames
             </p>
           </div>

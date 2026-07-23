@@ -44,7 +44,10 @@ timestamped .srt subtitle file.
    above the chat with a way to remove it, and questions are answered across
    all of them together, with citations naming which document each part of
    the answer came from. Good for "compare these two reports" style questions.
-1. Upload a PDF or an image (max 10 MB; PDFs process their first 8 pages).
+1. Upload a PDF or an image (max 20 MB; PDFs process their first 8 pages).
+   A video's audio is automatically split into smaller pieces for
+   transcription if needed, so a longer recording still works within the
+   same 20 MB upload limit.
 2. Watch the ingestion steps: for a PDF — page extraction → table detection →
    figure captioning → embedding; for a standalone image — captioning →
    embedding. A summary shows how many text, table, figure, or image chunks
