@@ -133,6 +133,16 @@ this server or logged anywhere.
   a text sidebar plus a chart) gets both extracted: the text as usual, and
   a separate AI caption for the graphic — so image content on an otherwise
   text-heavy page is no longer skipped.
+- Expanding a citation also shows a "Show everything else on this page"
+  link — click it to see every other text, table, or figure chunk that
+  came from that same page, not just the one piece the answer cited.
+- If a figure's AI-written caption and its separate OCR pass read a
+  different number off the SAME chart or table (e.g. one says "$42M", the
+  other reads "$24M"), that citation shows a red "Verify number" warning —
+  a sign one of the two misread the value, so check the original page
+  before trusting either number. The AI is also told about this directly,
+  so its answer will hedge any number drawn from that citation instead of
+  stating it as fact.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
