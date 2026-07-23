@@ -43,7 +43,7 @@ function srtTimestamp(seconds: number): string {
 
 function buildSrt(segments: TranscriptSegment[]): string {
   return segments.map((seg, i) =>
-    `${i + 1}\n${srtTimestamp(seg.start)} --> ${srtTimestamp(seg.end)}\n${seg.text}\n`
+    `${i + 1}\n${srtTimestamp(seg.start)} --> ${srtTimestamp(seg.end)}\n${seg.speaker ? `${seg.speaker}: ` : ""}${seg.text}\n`
   ).join("\n");
 }
 
@@ -182,7 +182,9 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
                       background: isCurrentMatch ? `${accent}33` : highlightedIndex === i ? `${accent}22` : "transparent",
                       cursor: isVideo ? "pointer" : "default",
                     }}>
-                    <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span> {highlightMatches(seg.text, searchQuery, accent)}
+                    <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span>{" "}
+                    {seg.speaker && <span style={{ color: `${accent}dd`, fontWeight: 600 }}>{seg.speaker}: </span>}
+                    {highlightMatches(seg.text, searchQuery, accent)}
                   </p>
                 );
               })

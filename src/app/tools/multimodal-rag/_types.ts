@@ -1,6 +1,6 @@
 export type ChunkSummary = { text: number; table: number; figure: number; image?: number; video?: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string };
-export type TranscriptSegment = { start: number; end: number; text: string };
+export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
 
 export type IngestState =

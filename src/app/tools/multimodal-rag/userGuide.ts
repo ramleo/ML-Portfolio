@@ -49,6 +49,12 @@ clicking any transcript line, a chapter, or a transcript-based citation
 seeks playback to that exact moment, the same way YouTube's transcript
 panel works.
 
+For videos with more than one person talking, each transcript segment is
+also labeled with who's speaking ("Speaker 1," "Speaker 2," etc.) when
+that can be reliably determined — included in the .srt export too. A
+video with just one speaker won't show labels, since there's nothing to
+distinguish.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
