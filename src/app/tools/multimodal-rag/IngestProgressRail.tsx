@@ -98,6 +98,9 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                   chunkType: c.chunk_type, page: c.page, text: c.text,
                 })),
                 transcript: evt.transcript ?? null,
+                transcriptSegments: (evt.transcript_segments ?? []).map((s: { start: number; end: number; text: string }) => ({
+                  start: s.start, end: s.end, text: s.text,
+                })),
               };
               setState(result);
               onIngested(result);

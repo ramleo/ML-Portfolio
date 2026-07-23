@@ -10,7 +10,7 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
-import type { IngestState } from "./_types";
+import type { IngestState, TranscriptSegment } from "./_types";
 
 const ACCENT = "#a78bfa";
 
@@ -30,6 +30,26 @@ function downloadText(filename: string, text: string) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function mmss(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function srtTimestamp(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const ms = Math.round((seconds - Math.floor(seconds)) * 1000);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")},${String(ms).padStart(3, "0")}`;
+}
+
+function buildSrt(segments: TranscriptSegment[]): string {
+  return segments.map((seg, i) =>
+    `${i + 1}\n${srtTimestamp(seg.start)} --> ${srtTimestamp(seg.end)}\n${seg.text}\n`
+  ).join("\n");
 }
 
 export default function MmRagRunner() {
@@ -97,28 +117,50 @@ export default function MmRagRunner() {
           <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
             Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
           </span>
-          {d.transcript && (
-            <div className="flex flex-col gap-1 mb-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
-                  Transcript
-                </span>
-                <button
-                  onClick={() => downloadText(
-                    `${d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "")}-transcript.txt`,
-                    d.transcript ?? ""
+          {d.transcript && (() => {
+            const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
+            const hasSegments = d.transcriptSegments.length > 0;
+            return (
+              <div className="flex flex-col gap-1 mb-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
+                    Transcript
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => downloadText(`${baseName}-transcript.txt`, d.transcript ?? "")}
+                      className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                      style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                      .txt
+                    </button>
+                    {hasSegments && (
+                      <button
+                        onClick={() => downloadText(`${baseName}-transcript.srt`, buildSrt(d.transcriptSegments))}
+                        title="Subtitle file with timestamps"
+                        className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                        style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                        .srt
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg"
+                  style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
+                  {hasSegments ? (
+                    d.transcriptSegments.map((seg, i) => (
+                      <p key={i} className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        <span style={{ color: `${ACCENT}99` }}>[{mmss(seg.start)}]</span> {seg.text}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                      {d.transcript}
+                    </p>
                   )}
-                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-                  Download
-                </button>
+                </div>
               </div>
-              <p className="text-[10px] leading-relaxed overflow-y-auto p-2 rounded-lg"
-                style={{ color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
-                {d.transcript}
-              </p>
-            </div>
-          )}
+            );
+          })()}
           {d.notableChunks.length === 0 ? (
             <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
               No tables or figures were detected — only plain text.
