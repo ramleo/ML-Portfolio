@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import RagSourceCard from "@/components/RagSourceCard";
+import { ML_UNIFIED_API } from "@/config/urls";
 import type { IngestState, TranscriptSegment } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
@@ -66,6 +67,17 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
   const [searchQuery, setSearchQuery] = useState("");
   const [matchCursor, setMatchCursor] = useState(0);
   const searchRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isVideo = (d.summary.video ?? 0) > 0;
+
+  // Seeks the actual video playback to whichever segment gets highlighted —
+  // covers both a chapter click (below) and a transcript citation clicked
+  // in the chat (the highlightedIndex prop, set by the parent either way).
+  useEffect(() => {
+    if (highlightedIndex === null || !videoRef.current) return;
+    const seg = d.transcriptSegments[highlightedIndex];
+    if (seg) videoRef.current.currentTime = seg.start;
+  }, [highlightedIndex, d.transcriptSegments]);
 
   const q = searchQuery.trim().toLowerCase();
   const matchIndices = q ? d.transcriptSegments
@@ -85,6 +97,11 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
       <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
         Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
       </span>
+      {isVideo && (
+        <video ref={videoRef} controls preload="metadata" className="w-full rounded-lg"
+          style={{ maxHeight: 220, background: "#000" }}
+          src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
+      )}
       {d.transcript && (
         <div className="flex flex-col gap-1 mb-1">
           <div className="flex items-center justify-between">
@@ -158,10 +175,12 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
                 return (
                   <p key={i}
                     ref={el => { onSegmentRef(i, el); searchRefs.current[i] = el; }}
+                    onClick={isVideo ? () => { if (videoRef.current) videoRef.current.currentTime = seg.start; } : undefined}
                     className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
                     style={{
                       color: "rgba(255,255,255,0.6)",
                       background: isCurrentMatch ? `${accent}33` : highlightedIndex === i ? `${accent}22` : "transparent",
+                      cursor: isVideo ? "pointer" : "default",
                     }}>
                     <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span> {highlightMatches(seg.text, searchQuery, accent)}
                   </p>

@@ -44,6 +44,11 @@ transcript-based citation in the chat also jumps to and highlights the
 exact segment it came from. A search box above the transcript highlights
 every matching word and lets you step through matches one at a time.
 
+The actual video is also playable right there in the summary panel —
+clicking any transcript line, a chapter, or a transcript-based citation
+seeks playback to that exact moment, the same way YouTube's transcript
+panel works.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
@@ -139,15 +144,19 @@ this server or logged anywhere.
   human-editable results and export, use Document Intelligence instead.
 
 ## Your data is not stored anywhere permanently
-The original file you upload — PDF or image — is never saved. Only the
-extracted text, table, figure-caption, or image-caption chunks are indexed,
-and only in this server's temporary memory/disk for as long as it keeps
-running. There is no database backup, no export of your file to any other
-system, and no persistence layer behind this demo. A server restart (which
-can happen at any time on this free-tier demo) wipes everything — your
-upload, its chunks, and any "shared" copy — with no way to recover it. Treat
-this as a scratch space for trying the tool, not a place to keep anything
-you need later.
+The original PDF, image, or CSV you upload is never saved — only the
+extracted text, table, figure-caption, or image-caption chunks are indexed.
+A video is the one exception: its raw file is kept in memory for this
+session only, specifically so you can play it back and click-to-seek in
+the transcript — capped to only a few videos in memory at once, evicted
+immediately when you remove the document, and never written to disk.
+Everything here lives only in this server's temporary memory for as long
+as it keeps running. There is no database backup, no export of your file
+to any other system, and no persistence layer behind this demo. A server
+restart (which can happen at any time on this free-tier demo) wipes
+everything — every upload, its chunks, and any "shared" copy — with no way
+to recover it. Treat this as a scratch space for trying the tool, not a
+place to keep anything you need later.
 `.trim();
 
 export const MM_RAG_SUGGESTIONS = [
