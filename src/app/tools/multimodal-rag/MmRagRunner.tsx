@@ -10,7 +10,19 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
+import DocumentSummaryPanel from "./DocumentSummaryPanel";
 import type { IngestState, TranscriptSegment } from "./_types";
+
+function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
+  if (segments.length === 0) return null;
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  segments.forEach((seg, i) => {
+    const dist = Math.abs(seg.start - time);
+    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+  });
+  return bestIdx;
+}
 
 const ACCENT = "#a78bfa";
 
@@ -21,36 +33,6 @@ const CONTEXT = {
 };
 
 type Doc = Extract<IngestState, { kind: "done" }>;
-
-function downloadText(filename: string, text: string) {
-  const blob = new Blob([text], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function mmss(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-function srtTimestamp(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const ms = Math.round((seconds - Math.floor(seconds)) * 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")},${String(ms).padStart(3, "0")}`;
-}
-
-function buildSrt(segments: TranscriptSegment[]): string {
-  return segments.map((seg, i) =>
-    `${i + 1}\n${srtTimestamp(seg.start)} --> ${srtTimestamp(seg.end)}\n${seg.text}\n`
-  ).join("\n");
-}
 
 // A citation's chunk text is a chunk_document()-derived window over the
 // flat transcript, so it won't align exactly with Whisper's own segment
@@ -121,6 +103,13 @@ export default function MmRagRunner() {
     setHighlightedSegment({ source, index: idx });
   }, [documents]);
 
+  const jumpToChapter = useCallback((source: string, segments: TranscriptSegment[], time: number) => {
+    const idx = nearestSegmentIndex(segments, time);
+    if (idx === null) return;
+    setSummaryOpenFor(source);
+    setHighlightedSegment({ source, index: idx });
+  }, []);
+
   useEffect(() => {
     if (!highlightedSegment) return;
     segmentRefs.current[highlightedSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -156,73 +145,12 @@ export default function MmRagRunner() {
       )}
 
       {documents.map(d => summaryOpenFor === d.source && (
-        <div key={`summary-${d.source}`} style={cardStyle} className="p-3 flex flex-col gap-1.5">
-          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
-          </span>
-          {d.transcript && (() => {
-            const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
-            const hasSegments = d.transcriptSegments.length > 0;
-            return (
-              <div className="flex flex-col gap-1 mb-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
-                    Transcript
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => downloadText(`${baseName}-transcript.txt`, d.transcript ?? "")}
-                      className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                      style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-                      .txt
-                    </button>
-                    {hasSegments && (
-                      <button
-                        onClick={() => downloadText(`${baseName}-transcript.srt`, buildSrt(d.transcriptSegments))}
-                        title="Subtitle file with timestamps"
-                        className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                        style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-                        .srt
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
-                  style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
-                  {hasSegments ? (
-                    d.transcriptSegments.map((seg, i) => {
-                      const isHighlighted = highlightedSegment?.source === d.source && highlightedSegment.index === i;
-                      return (
-                        <p key={i}
-                          ref={el => { if (summaryOpenFor === d.source) segmentRefs.current[i] = el; }}
-                          className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
-                          style={{ color: "rgba(255,255,255,0.6)", background: isHighlighted ? `${ACCENT}22` : "transparent" }}>
-                          <span style={{ color: `${ACCENT}99` }}>[{mmss(seg.start)}]</span> {seg.text}
-                        </p>
-                      );
-                    })
-                  ) : (
-                    <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                      {d.transcript}
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-          {d.notableChunks.length === 0 ? (
-            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-              No tables or figures were detected — only plain text.
-            </p>
-          ) : (
-            d.notableChunks.map((c, i) => (
-              <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={ACCENT}
-                chunkType={c.chunkType} page={c.page} hideConfidence
-                onSelect={() => jumpToCitation(d.source, c.chunkType, c.page, c.text)}
-              />
-            ))
-          )}
-        </div>
+        <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
+          highlightedIndex={highlightedSegment?.source === d.source ? highlightedSegment.index : null}
+          onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
+          onSelectChunk={(chunkType, page, text) => jumpToCitation(d.source, chunkType, page, text)}
+          onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
+        />
       ))}
 
       {documents.length > 0 && (

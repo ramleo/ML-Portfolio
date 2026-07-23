@@ -37,7 +37,11 @@ was taken at), and citations are labeled "Video Frame."
 The full transcript (not just the chunked pieces used for chat retrieval)
 is readable in a video's "▸ summary" panel, timestamped by segment
 (e.g. "[0:07] ..."). Download it as a plain .txt file, or as a
-timestamped .srt subtitle file.
+timestamped .srt subtitle file. If the video has enough content, a row of
+clickable chapter markers (like YouTube's auto-chapters) appears above the
+transcript — click one to jump straight to that part. Clicking a
+transcript-based citation in the chat also jumps to and highlights the
+exact segment it came from.
 
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
