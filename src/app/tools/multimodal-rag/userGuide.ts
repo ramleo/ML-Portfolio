@@ -121,7 +121,8 @@ this server or logged anywhere.
   (Text / Table / Figure / Image) when known.
 - Table citations mean the answer came from a detected table's actual rows
   and columns, not from prose that happened to mention similar numbers —
-  shown as a real table, not raw markdown text.
+  shown as a real table, not raw markdown text. A "Download CSV" link above
+  the table lets you save those exact rows/columns as a real .csv file.
 - Figure and Image citations (including standalone image uploads) mean the
   answer came from an AI-written description of a chart, diagram, or photo,
   PLUS an OCR pass that reads exact text/numbers out of the image (e.g.

@@ -98,12 +98,34 @@ function parsePipeTable(text: string): string[][] | null {
   return rows.filter(r => !r.every(c => /^:?-+:?$/.test(c)));
 }
 
-function TableView({ text, accent }: { text: string; accent: string }) {
+/** Wraps a cell in quotes (doubling any internal quotes) only when it
+ * contains a comma, quote, or newline — plain cells stay unquoted. */
+function csvCell(cell: string): string {
+  return /[",\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell;
+}
+
+function downloadTableCsv(filename: string, rows: string[][]) {
+  const csv = rows.map(row => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function TableView({ text, accent, filename }: { text: string; accent: string; filename: string }) {
   const rows = parsePipeTable(text);
   if (!rows || rows.length === 0) return <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>;
   const [header, ...body] = rows;
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div>
+      <button onClick={(e) => { e.stopPropagation(); downloadTableCsv(filename, rows); }}
+        style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, marginBottom: "0.3rem", cursor: "pointer", textDecoration: "underline" }}>
+        Download CSV
+      </button>
+      <div style={{ overflowX: "auto" }}>
       <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6rem" }}>
         <thead>
           <tr>
@@ -122,6 +144,7 @@ function TableView({ text, accent }: { text: string; accent: string }) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -221,7 +244,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
               Raw model confidence: <strong>{rawPct}%</strong>
             </div>
           )}
-          {chunkType === "table" ? <TableView text={text} accent={accent} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
+          {chunkType === "table" ? <TableView text={text} accent={accent} filename={`${displayName(source, cat).replace(/\.[^.]+$/, "") || "table"}-p${page ?? 1}.csv`} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
           {page && (
             <div style={{ marginTop: "0.4rem" }}>
               {pageChunks === null && (
