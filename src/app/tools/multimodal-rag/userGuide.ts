@@ -118,6 +118,16 @@ failed and a fallback stepped in, it says so plainly instead — e.g.
 "cohere unavailable (rate limited) — answered via groq" — so a different
 provider answering is never a silent surprise.
 
+## Answer length
+A "Concise / Normal / Detailed" toggle sits next to the Provider button.
+"Concise" asks the AI for the shortest complete answer — 1-3 sentences,
+no extra context — good for a quick fact check like "what's the invoice
+total?" "Detailed" asks it to explain its reasoning and pull in related
+details from the source, good for "walk me through how this pricing table
+is structured." "Normal" (default) is unchanged from before this toggle
+existed. It only changes how the SAME retrieved information is written up
+— it doesn't change what's retrieved or which citations show.
+
 ## Using your own API key (optional)
 The "Provider" button above the chat lets you pick a specific AI provider
 and model, and optionally paste in your own API key for it. This is entirely

@@ -92,6 +92,7 @@ export function useRagChat(context: ToolChatContext) {
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
   const [sessionId, setSessionId]     = useState("");
+  const [answerLength, setAnswerLength] = useState<"concise" | "normal" | "detailed">("normal");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -199,7 +200,8 @@ export function useRagChat(context: ToolChatContext) {
           embedding_model: useJina ? "jina" : "minilm",
           session_id: sessionId || undefined,
           force_web: forceWeb || undefined,
-          restrict_to_uploads: context.restrictToUploads || undefined };
+          restrict_to_uploads: context.restrictToUploads || undefined,
+          answer_length: answerLength };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
@@ -291,6 +293,7 @@ export function useRagChat(context: ToolChatContext) {
     likelyUsedSources,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
+    answerLength, setAnswerLength,
     providerConfig, accentColor, loadingLabel,
     handleProviderChange, enableJina, send, clearChat, onKeyDown,
     bottomRef, inputRef,

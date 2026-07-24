@@ -177,6 +177,20 @@ export default function MmRagRunner() {
                     </span>
                   )
                 )}
+                <div className="flex items-center rounded border overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.12)" }}>
+                  {(["concise", "normal", "detailed"] as const).map(len => (
+                    <button key={len} onClick={() => chat.setAnswerLength(len)}
+                      title={len === "concise" ? "1-3 sentences, no extra context"
+                           : len === "detailed" ? "Thorough — includes reasoning and related details"
+                           : "Default answer length"}
+                      className="text-[9px] px-1.5 py-0.5 capitalize transition-colors"
+                      style={chat.answerLength === len
+                        ? { background: `${ACCENT}22`, color: ACCENT }
+                        : { color: "rgba(255,255,255,0.4)" }}>
+                      {len}
+                    </button>
+                  ))}
+                </div>
                 <button onClick={() => setSettingsOpen(o => !o)}
                   title="Provider & API key settings"
                   className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
