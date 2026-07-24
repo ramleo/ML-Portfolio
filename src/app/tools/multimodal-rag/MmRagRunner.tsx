@@ -25,6 +25,7 @@ function nearestSegmentIndex(segments: TranscriptSegment[], time: number): numbe
 }
 
 const ACCENT = "#a78bfa";
+const CHUNK_TYPE_FILTER_LABEL: Record<string, string> = { text: "Text", table: "Table", figure: "Figure", image: "Image", video: "Video Frame" };
 
 const CONTEXT = {
   tool: "Multimodal RAG",
@@ -119,6 +120,15 @@ export default function MmRagRunner() {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
   };
 
+  // Only worth offering a filter once 2+ distinct chunk types actually exist
+  // across the uploaded document(s) — a single-type document has nothing to filter.
+  const availableChunkTypes = Array.from(new Set(
+    documents.flatMap(d => Object.entries(d.summary).filter(([, v]) => (v ?? 0) > 0).map(([k]) => k))
+  ));
+  const toggleChunkType = (t: string) => {
+    chat.setChunkTypeFilter(cur => cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t]);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
@@ -140,6 +150,30 @@ export default function MmRagRunner() {
               <button onClick={() => removeDocument(d.source)} title="Remove this document"
                 style={{ color: `${ACCENT}99`, lineHeight: 1 }}>×</button>
             </span>
+          ))}
+        </div>
+      )}
+
+      {documents.length > 0 && availableChunkTypes.length > 1 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Only search:
+          </span>
+          <button onClick={() => chat.setChunkTypeFilter([])}
+            className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
+            style={chat.chunkTypeFilter.length === 0
+              ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+              : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+            All
+          </button>
+          {availableChunkTypes.map(t => (
+            <button key={t} onClick={() => toggleChunkType(t)}
+              className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
+              style={chat.chunkTypeFilter.includes(t)
+                ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+                : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+              {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
+            </button>
           ))}
         </div>
       )}

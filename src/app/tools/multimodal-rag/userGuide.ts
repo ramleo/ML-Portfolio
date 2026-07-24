@@ -127,6 +127,19 @@ is structured." "Normal" (default) is unchanged from before this toggle
 existed. It only changes how the SAME retrieved information is written up
 — it doesn't change what's retrieved or which citations show.
 
+## Only search specific content types
+When your document(s) contain more than one kind of content (say a PDF
+with both prose and tables), an "Only search: All / Text / Table / Figure
+/ Image / Video Frame" row of chips appears above the citations. Selecting
+one or more restricts retrieval to just that type — genuinely excluded
+before the AI even sees it, not just hidden afterward. Example: click
+"Table" before asking "what were the totals" and the AI can only answer
+from detected tables, ignoring any prose that happens to mention similar
+numbers — useful when you specifically want the structured-data answer,
+not a paraphrase from surrounding text. Click "All" to go back to normal.
+This only appears when a document actually has 2+ distinct content types
+to choose between — a plain-text-only upload has nothing to filter.
+
 ## Using your own API key (optional)
 The "Provider" button above the chat lets you pick a specific AI provider
 and model, and optionally paste in your own API key for it. This is entirely

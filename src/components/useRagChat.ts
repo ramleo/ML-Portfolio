@@ -93,6 +93,7 @@ export function useRagChat(context: ToolChatContext) {
   const [userKey, setUserKey]         = useState("");
   const [sessionId, setSessionId]     = useState("");
   const [answerLength, setAnswerLength] = useState<"concise" | "normal" | "detailed">("normal");
+  const [chunkTypeFilter, setChunkTypeFilter] = useState<string[]>([]);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -201,7 +202,8 @@ export function useRagChat(context: ToolChatContext) {
           session_id: sessionId || undefined,
           force_web: forceWeb || undefined,
           restrict_to_uploads: context.restrictToUploads || undefined,
-          answer_length: answerLength };
+          answer_length: answerLength,
+          chunk_type_filter: chunkTypeFilter.length > 0 ? chunkTypeFilter : undefined };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
@@ -273,7 +275,8 @@ export function useRagChat(context: ToolChatContext) {
     } finally {
       setLoading(false); setAgentStep(null);
     }
-  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb]);
+  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb,
+      answerLength, chunkTypeFilter]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -294,6 +297,7 @@ export function useRagChat(context: ToolChatContext) {
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     answerLength, setAnswerLength,
+    chunkTypeFilter, setChunkTypeFilter,
     providerConfig, accentColor, loadingLabel,
     handleProviderChange, enableJina, send, clearChat, onKeyDown,
     bottomRef, inputRef,
