@@ -94,8 +94,8 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 cached: !!evt.cached,
                 saveScope: evt.save_scope,
                 embeddingMode,
-                notableChunks: (evt.notable_chunks ?? []).map((c: { chunk_type: string | null; page: number | null; text: string; number_mismatch?: boolean | null }) => ({
-                  chunkType: c.chunk_type, page: c.page, text: c.text, numberMismatch: !!c.number_mismatch,
+                notableChunks: (evt.notable_chunks ?? []).map((c: { chunk_type: string | null; page: number | null; text: string; number_mismatch?: boolean | null; pii_types?: string | null }) => ({
+                  chunkType: c.chunk_type, page: c.page, text: c.text, numberMismatch: !!c.number_mismatch, piiTypes: c.pii_types ?? null,
                 })),
                 transcript: evt.transcript ?? null,
                 transcriptSegments: (evt.transcript_segments ?? []).map((s: { start: number; end: number; text: string; speaker?: string | null }) => ({

@@ -144,6 +144,11 @@ this server or logged anywhere.
   before trusting either number. The AI is also told about this directly,
   so its answer will hedge any number drawn from that citation instead of
   stating it as fact.
+- If a chunk's own text contains an email address, phone number, SSN, or
+  credit card number (common in an uploaded resume or invoice), that
+  citation shows an amber "Contains [type]" badge — a heads-up before you
+  screenshot or share it, not an automatic redaction. The underlying text
+  and the AI's answers are unaffected; only the citation display flags it.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos

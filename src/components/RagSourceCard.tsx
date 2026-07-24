@@ -19,7 +19,12 @@ type Props = {
   /** True when this figure's AI caption and its OCR read disagreed on a
    * number — shows a warning badge instead of silently trusting either. */
   numberMismatch?: boolean;
+  /** Comma-separated PII categories found in this chunk's own text (e.g.
+   * "email,phone") — shows an amber badge naming what was detected. */
+  piiTypes?: string | null;
 };
+
+const PII_LABEL: Record<string, string> = { email: "Email", phone: "Phone", ssn: "SSN", credit_card: "Card number" };
 
 type PageChunk = { text: string; chunk_type: string | null; page: number };
 
@@ -149,7 +154,8 @@ function TableView({ text, accent, filename }: { text: string; accent: string; f
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes }: Props) {
+  const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
@@ -214,6 +220,21 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
             Verify number
+          </span>
+        )}
+        {piiList.length > 0 && (
+          <span
+            title={`Detected: ${piiList.join(", ")} — this document's own text contains this, be mindful before sharing a screenshot.`}
+            style={{
+              display: "flex", alignItems: "center", gap: "2px",
+              fontSize: "0.55rem", fontWeight: 700, color: "#fbbf24",
+              background: "#fbbf2418", borderRadius: 9999,
+              padding: "1px 6px", flexShrink: 0,
+            }}>
+            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v4H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3z" />
+            </svg>
+            Contains {piiList.join(", ")}
           </span>
         )}
         {!hideConfidence && (
