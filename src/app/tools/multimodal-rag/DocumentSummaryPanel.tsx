@@ -60,6 +60,31 @@ function highlightMatches(text: string, query: string, accent: string) {
 }
 
 const REPLAY_BUCKETS = 32;
+const KDE_GRID_POINTS = 100;
+
+/** Kernel density estimate over the replay-bucket counts — treats each
+ * bucket's count as that many point-samples at the bucket's center time,
+ * then sums a Gaussian kernel per sample across a fine grid. Turns the
+ * same sparse click/seek data into one smooth curve instead of discrete
+ * bars — a rendering choice, not a change in what's actually measured. */
+function computeKdeCurve(replayCounts: number[]): number[] {
+  const bucketWidth = 1 / REPLAY_BUCKETS;
+  const bandwidth = bucketWidth * 1.5;
+  const grid = new Array(KDE_GRID_POINTS).fill(0);
+  for (let g = 0; g < KDE_GRID_POINTS; g++) {
+    const t = g / (KDE_GRID_POINTS - 1);
+    let sum = 0;
+    for (let b = 0; b < REPLAY_BUCKETS; b++) {
+      const count = replayCounts[b];
+      if (!count) continue;
+      const bt = (b + 0.5) * bucketWidth;
+      const z = (t - bt) / bandwidth;
+      sum += count * Math.exp(-0.5 * z * z);
+    }
+    grid[g] = sum;
+  }
+  return grid;
+}
 
 export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex,
                                                onSegmentRef, onSelectChunk, onSelectChapter }: Props) {
@@ -123,23 +148,34 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
       )}
       {isVideo && duration > 0 && replayCounts.some(c => c > 0) && (() => {
-        const max = Math.max(...replayCounts);
+        const curve = computeKdeCurve(replayCounts);
+        const max = Math.max(...curve) || 1;
+        const H = 20;
+        const points = curve.map((v, g) => {
+          const x = (g / (KDE_GRID_POINTS - 1)) * 100;
+          const y = H - (v / max) * H;
+          return `${x},${y}`;
+        });
+        const areaPath = `M0,${H} L${points.join(" L")} L100,${H} Z`;
+        const linePath = `M${points.join(" L")}`;
         return (
           <div title="Parts of the video you've jumped back to and replayed in this session — resets when you leave.">
             <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
               Your most re-watched moments (this session)
             </span>
-            <div className="flex items-end gap-[1px]" style={{ height: 18 }}>
-              {replayCounts.map((c, i) => (
-                <div key={i}
-                  onClick={() => { if (videoRef.current) videoRef.current.currentTime = (i / REPLAY_BUCKETS) * duration; }}
-                  title={`${mmss((i / REPLAY_BUCKETS) * duration)} — replayed ${c}×`}
-                  style={{
-                    flex: 1, cursor: "pointer", borderRadius: 1,
-                    height: `${Math.max(12, (c / max) * 100)}%`,
-                    background: c > 0 ? `${accent}${c === max ? "ff" : "77"}` : "rgba(255,255,255,0.08)",
-                  }} />
-              ))}
+            <div className="relative" style={{ height: 18 }}>
+              <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
+                <path d={areaPath} fill={`${accent}44`} />
+                <path d={linePath} fill="none" stroke={accent} strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
+              </svg>
+              <div className="absolute inset-0 flex">
+                {replayCounts.map((c, i) => (
+                  <div key={i}
+                    onClick={() => { if (videoRef.current) videoRef.current.currentTime = (i / REPLAY_BUCKETS) * duration; }}
+                    title={`${mmss((i / REPLAY_BUCKETS) * duration)} — replayed ${c}×`}
+                    style={{ flex: 1, cursor: "pointer" }} />
+                ))}
+              </div>
             </div>
           </div>
         );

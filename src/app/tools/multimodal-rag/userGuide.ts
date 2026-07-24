@@ -55,17 +55,16 @@ that can be reliably determined — included in the .srt export too. A
 video with just one speaker won't show labels, since there's nothing to
 distinguish.
 
-As you watch, a thin bar chart appears above the transcript labeled "Your
-most re-watched moments (this session)" — every time you scrub the video
-back or click a transcript line/chapter to jump to it, that moment gets
-one taller/brighter bar. Example: if you watch straight through once,
-then go back twice to re-listen to the 1:20 mark, the bar around 1:20
-becomes the tallest one — a quick visual of what YOU personally rewound
-to, similar in spirit to YouTube's "most replayed" graph but scoped to
-just your own session (there's no cross-viewer data here to draw on,
-since each upload is private to whoever uploaded it). It only appears
-once you've actually jumped around at least once; a linear first watch
-shows nothing yet.
+As you watch, a smooth density curve appears above the transcript labeled
+"Your most re-watched moments (this session)" — every time you scrub the
+video back or click a transcript line/chapter to jump to it, that moment
+raises the curve there. Example: if you watch straight through once, then
+go back twice to re-listen to the 1:20 mark, the curve peaks around 1:20
+— a quick visual of what YOU personally rewound to, similar in spirit to
+YouTube's "most replayed" graph but scoped to just your own session
+(there's no cross-viewer data here to draw on, since each upload is
+private to whoever uploaded it). It only appears once you've actually
+jumped around at least once; a linear first watch shows nothing yet.
 
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
