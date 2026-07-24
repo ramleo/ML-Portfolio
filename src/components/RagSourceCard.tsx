@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import RagTableChart, { detectNumericColumns } from "./RagTableChart";
 
 type Props = {
   source: string;
@@ -121,35 +122,58 @@ function downloadTableCsv(filename: string, rows: string[][]) {
 }
 
 function TableView({ text, accent, filename }: { text: string; accent: string; filename: string }) {
+  const [view, setView] = useState<"table" | "chart">("table");
   const rows = parsePipeTable(text);
   if (!rows || rows.length === 0) return <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>;
   const [header, ...body] = rows;
+  const canChart = detectNumericColumns(header, body).length > 0;
+
   return (
     <div>
-      <button onClick={(e) => { e.stopPropagation(); downloadTableCsv(filename, rows); }}
-        style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, marginBottom: "0.3rem", cursor: "pointer", textDecoration: "underline" }}>
-        Download CSV
-      </button>
-      <div style={{ overflowX: "auto" }}>
-      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6rem" }}>
-        <thead>
-          <tr>
-            {header.map((c, i) => (
-              <th key={i} style={{ textAlign: "left", padding: "2px 6px", color: accent, borderBottom: `1px solid ${accent}40`, whiteSpace: "nowrap" }}>{c}</th>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.3rem" }}>
+        <button onClick={(e) => { e.stopPropagation(); downloadTableCsv(filename, rows); }}
+          style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
+          Download CSV
+        </button>
+        {canChart && (
+          <div style={{ display: "flex", borderRadius: 9999, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)" }}>
+            {(["table", "chart"] as const).map(v => (
+              <button key={v} onClick={(e) => { e.stopPropagation(); setView(v); }}
+                style={{
+                  fontSize: "0.55rem", padding: "1px 8px", textTransform: "capitalize", cursor: "pointer",
+                  background: view === v ? `${accent}22` : "transparent",
+                  color: view === v ? accent : "rgba(255,255,255,0.4)",
+                }}>
+                {v}
+              </button>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {body.map((r, ri) => (
-            <tr key={ri}>
-              {r.map((c, ci) => (
-                <td key={ci} style={{ padding: "2px 6px", color: "var(--text3)", borderBottom: "1px solid rgba(255,255,255,0.05)", whiteSpace: "nowrap" }}>{c}</td>
+          </div>
+        )}
+      </div>
+      {view === "chart" && canChart ? (
+        <RagTableChart header={header} body={body} accent={accent} />
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6rem" }}>
+          <thead>
+            <tr>
+              {header.map((c, i) => (
+                <th key={i} style={{ textAlign: "left", padding: "2px 6px", color: accent, borderBottom: `1px solid ${accent}40`, whiteSpace: "nowrap" }}>{c}</th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-      </div>
+          </thead>
+          <tbody>
+            {body.map((r, ri) => (
+              <tr key={ri}>
+                {r.map((c, ci) => (
+                  <td key={ci} style={{ padding: "2px 6px", color: "var(--text3)", borderBottom: "1px solid rgba(255,255,255,0.05)", whiteSpace: "nowrap" }}>{c}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </div>
+      )}
     </div>
   );
 }

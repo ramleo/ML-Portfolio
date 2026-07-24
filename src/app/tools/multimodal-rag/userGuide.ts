@@ -167,6 +167,14 @@ that answer came from — click one to expand it and see more.
   Google Sheets. Example: upload an invoice, ask "what line items are on
   this invoice," get a Table citation, click "Download CSV" — you now have
   the invoice's line items in spreadsheet form without retyping anything.
+  When the table has at least one column of real numbers (prices,
+  quantities, scores), a "Table / Chart" toggle also appears next to
+  Download CSV — switching to "Chart" turns that column into a quick bar
+  chart, using whichever non-numeric column (e.g. item name) as labels. If
+  a table has more than one numeric column (say Price and Quantity), small
+  buttons above the chart let you pick which one to plot. This is view-only
+  — it doesn't change the answer or the underlying data, just a faster way
+  to eyeball a trend than reading raw numbers.
 - **Figure and Image citations combine an AI description with exact OCR
   text.** These mean the answer came from an AI-written description of a
   chart, diagram, or photo, PLUS a separate OCR pass that reads out any
