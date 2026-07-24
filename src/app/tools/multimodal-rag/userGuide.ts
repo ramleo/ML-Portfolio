@@ -55,6 +55,18 @@ that can be reliably determined — included in the .srt export too. A
 video with just one speaker won't show labels, since there's nothing to
 distinguish.
 
+As you watch, a thin bar chart appears above the transcript labeled "Your
+most re-watched moments (this session)" — every time you scrub the video
+back or click a transcript line/chapter to jump to it, that moment gets
+one taller/brighter bar. Example: if you watch straight through once,
+then go back twice to re-listen to the 1:20 mark, the bar around 1:20
+becomes the tallest one — a quick visual of what YOU personally rewound
+to, similar in spirit to YouTube's "most replayed" graph but scoped to
+just your own session (there's no cross-viewer data here to draw on,
+since each upload is private to whoever uploaded it). It only appears
+once you've actually jumped around at least once; a linear first watch
+shows nothing yet.
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
@@ -117,38 +129,59 @@ sent directly to that provider to generate your answer — never stored on
 this server or logged anywhere.
 
 ## Reading citations
-- Each citation shows its source document, page number, and content type
-  (Text / Table / Figure / Image) when known.
-- Table citations mean the answer came from a detected table's actual rows
-  and columns, not from prose that happened to mention similar numbers —
-  shown as a real table, not raw markdown text. A "Download CSV" link above
-  the table lets you save those exact rows/columns as a real .csv file.
-- Figure and Image citations (including standalone image uploads) mean the
-  answer came from an AI-written description of a chart, diagram, or photo,
-  PLUS an OCR pass that reads exact text/numbers out of the image (e.g.
-  every date in a dense timeline graphic, or every line-item on an invoice)
-  — so both the gist and the precise values are searchable, not just a
-  summary.
-- Click a citation to expand it and see a thumbnail of that page or image.
-- A page that mixes real text with an embedded graphic (e.g. a resume with
-  a text sidebar plus a chart) gets both extracted: the text as usual, and
-  a separate AI caption for the graphic — so image content on an otherwise
-  text-heavy page is no longer skipped.
-- Expanding a citation also shows a "Show everything else on this page"
-  link — click it to see every other text, table, or figure chunk that
-  came from that same page, not just the one piece the answer cited.
-- If a figure's AI-written caption and its separate OCR pass read a
-  different number off the SAME chart or table (e.g. one says "$42M", the
-  other reads "$24M"), that citation shows a red "Verify number" warning —
-  a sign one of the two misread the value, so check the original page
-  before trusting either number. The AI is also told about this directly,
-  so its answer will hedge any number drawn from that citation instead of
-  stating it as fact.
-- If a chunk's own text contains an email address, phone number, SSN, or
-  credit card number (common in an uploaded resume or invoice), that
-  citation shows an amber "Contains [type]" badge — a heads-up before you
-  screenshot or share it, not an automatic redaction. The underlying text
-  and the AI's answers are unaffected; only the citation display flags it.
+A citation is the small card under each AI answer that says exactly where
+that answer came from — click one to expand it and see more.
+
+- **Source, page, and type.** Each citation shows its source document, a
+  page number, and a content type badge — Text, Table, Figure, or Image —
+  whenever that's known. Example: ask "what was Q3 revenue?" and the
+  citation might read "quarterly-report.pdf · p.4 · Table," meaning the
+  number came from an actual detected table on page 4, not a guess.
+- **Table citations are real, structured data — and downloadable.** If a
+  citation is typed "Table," the answer came from that table's actual rows
+  and columns (shown below as a real rendered table, not raw text). A
+  "Download CSV" link sits right above it — click it and that exact table
+  saves to your computer as a real .csv file you can open in Excel or
+  Google Sheets. Example: upload an invoice, ask "what line items are on
+  this invoice," get a Table citation, click "Download CSV" — you now have
+  the invoice's line items in spreadsheet form without retyping anything.
+- **Figure and Image citations combine an AI description with exact OCR
+  text.** These mean the answer came from an AI-written description of a
+  chart, diagram, or photo, PLUS a separate OCR pass that reads out any
+  exact text or numbers visible in the image. Example: a citation for a
+  timeline graphic might say "shows quarterly milestones from Jan to Dec"
+  (the AI's description) AND list every date printed on the graphic (the
+  OCR reading) — so you can ask both "what does this chart show" and
+  "what's the exact date next to milestone 3" and get real answers either way.
+- **Click to expand and see a thumbnail.** Every citation can be clicked
+  open to show a thumbnail of the actual page or image it came from, so
+  you can visually confirm it yourself.
+- **Mixed pages get both extracted.** A page that has both real text and
+  an embedded graphic (e.g. a resume with a text sidebar next to a skills
+  chart) is split into two chunks: the text as usual, plus a separate AI
+  caption for the graphic — so the chart isn't silently skipped just
+  because the page is mostly text.
+- **"Show everything else on this page."** Every expanded citation with a
+  page number has this link. Example: the AI answers from one paragraph on
+  page 3 of your report; click this link on that citation and you'll also
+  see the table and the chart caption that came from that same page 3,
+  even though the answer only cited the paragraph.
+- **"Verify number" warning (red).** Every figure/chart gets both an AI
+  description and a separate OCR reading. If the two disagree on a number
+  from the SAME image — e.g. the description says "revenue grew to $42M"
+  but OCR read "$24M" off the same chart — the citation shows a red
+  "Verify number" badge, since one of the two likely misread the value.
+  The AI itself is told about the disagreement too, so if it answers using
+  that citation it will say the number is uncertain rather than stating
+  either figure as fact. Check the original page yourself before trusting
+  either number in that case.
+- **"Contains [type]" warning (amber).** If a chunk's own extracted text
+  contains something like an email address, phone number, Social Security
+  Number, or credit card number — common on an uploaded resume or invoice
+  — that citation shows an amber "Contains email" (or phone/SSN/card
+  number) badge. This is only a heads-up before you screenshot or share
+  that citation with someone else; nothing is hidden, masked, or withheld
+  — the AI can still see and use that text normally when answering you.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos

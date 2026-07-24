@@ -59,6 +59,8 @@ function highlightMatches(text: string, query: string, accent: string) {
   );
 }
 
+const REPLAY_BUCKETS = 32;
+
 export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex,
                                                onSegmentRef, onSelectChunk, onSelectChapter }: Props) {
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
@@ -69,6 +71,8 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
   const searchRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = (d.summary.video ?? 0) > 0;
+  const duration = hasSegments ? d.transcriptSegments[d.transcriptSegments.length - 1].end : 0;
+  const [replayCounts, setReplayCounts] = useState<number[]>(() => new Array(REPLAY_BUCKETS).fill(0));
 
   // Seeks the actual video playback to whichever segment gets highlighted —
   // covers both a chapter click (below) and a transcript citation clicked
@@ -78,6 +82,22 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
     const seg = d.transcriptSegments[highlightedIndex];
     if (seg) videoRef.current.currentTime = seg.start;
   }, [highlightedIndex, d.transcriptSegments]);
+
+  // Tracks which part of the video gets rewound-to-and-replayed within THIS
+  // session/viewer only — the browser "seeked" event fires on an explicit
+  // jump (scrubbing, clicking a transcript line/chapter), not on ordinary
+  // linear playback, so a bucket's count reflects genuine re-watches of
+  // that moment rather than just "played through once."
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || duration <= 0) return;
+    const onSeeked = () => {
+      const bucket = Math.min(REPLAY_BUCKETS - 1, Math.floor((v.currentTime / duration) * REPLAY_BUCKETS));
+      setReplayCounts(counts => { const next = [...counts]; next[bucket] += 1; return next; });
+    };
+    v.addEventListener("seeked", onSeeked);
+    return () => v.removeEventListener("seeked", onSeeked);
+  }, [duration]);
 
   const q = searchQuery.trim().toLowerCase();
   const matchIndices = q ? d.transcriptSegments
@@ -102,6 +122,28 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           style={{ maxHeight: 220, background: "#000" }}
           src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
       )}
+      {isVideo && duration > 0 && replayCounts.some(c => c > 0) && (() => {
+        const max = Math.max(...replayCounts);
+        return (
+          <div title="Parts of the video you've jumped back to and replayed in this session — resets when you leave.">
+            <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+              Your most re-watched moments (this session)
+            </span>
+            <div className="flex items-end gap-[1px]" style={{ height: 18 }}>
+              {replayCounts.map((c, i) => (
+                <div key={i}
+                  onClick={() => { if (videoRef.current) videoRef.current.currentTime = (i / REPLAY_BUCKETS) * duration; }}
+                  title={`${mmss((i / REPLAY_BUCKETS) * duration)} — replayed ${c}×`}
+                  style={{
+                    flex: 1, cursor: "pointer", borderRadius: 1,
+                    height: `${Math.max(12, (c / max) * 100)}%`,
+                    background: c > 0 ? `${accent}${c === max ? "ff" : "77"}` : "rgba(255,255,255,0.08)",
+                  }} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
       {d.transcript && (
         <div className="flex flex-col gap-1 mb-1">
           <div className="flex items-center justify-between">
