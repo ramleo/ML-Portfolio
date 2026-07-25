@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -67,6 +68,11 @@ export default function MultimodalRagPage() {
               </svg>
               User Guide
             </button>
+            <Link href="/tools/rag-analytics"
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
+              style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
+              Usage stats
+            </Link>
           </div>
 
           <MmRagUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
