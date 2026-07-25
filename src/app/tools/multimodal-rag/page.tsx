@@ -68,7 +68,7 @@ export default function MultimodalRagPage() {
               </svg>
               User Guide
             </button>
-            <Link href="/tools/rag-analytics"
+            <Link href="/tools/rag-analytics" target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
               style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
               Usage stats
