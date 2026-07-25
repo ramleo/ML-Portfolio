@@ -26,7 +26,7 @@ const panelStyle: React.CSSProperties = {
 export default function RagAnalyticsPage() {
   useToolTracking("rag-analytics");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push("/tools/multimodal-rag"), [router]);
   const [data, setData] = useState<Analytics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
