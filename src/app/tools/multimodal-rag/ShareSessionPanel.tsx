@@ -82,8 +82,9 @@ export default function ShareSessionPanel({ sessionId, accent }: { sessionId: st
         <div className="absolute z-10 top-full mt-1.5 left-0 w-72 p-3 rounded-lg text-[10px] leading-relaxed"
           style={{ background: "#1a1a24", border: "1px solid rgba(245,158,11,0.3)", color: "rgba(255,255,255,0.7)" }}>
           <p className="mb-2">
-            Anyone with this link can read and ask questions about this document — including any
-            personal data it contains. The link works for 24 hours or until you revoke it.
+            Whoever opens this link first locks it to their network — forwarding it to someone
+            else after that won&apos;t work. Detected personal data (email/phone/SSN/card number)
+            is hidden from them either way. The link works for 24 hours or until you revoke it.
           </p>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setWarnOpen(false)} className="px-2 py-1 rounded"

@@ -215,20 +215,29 @@ that answer came from — click one to expand it and see more.
 
 ## Sharing a session
 Once you've uploaded a document, a "Share this session" chip appears next
-to it. Clicking it warns you first — anyone with the link can read and ask
-questions about that document, PII included — then, if you confirm, gives
-you a link good for 24 hours. Anyone who opens it lands in a read/chat-only
-view: they can ask questions and see citations, but can't upload, delete,
-or re-share. You can cut off access at any time with the "Revoke" button,
-independently of deleting the document yourself; the link also stops
-working on its own after 24 hours either way. A shared viewer's citation
-cards work the same as yours, but the page-image preview and per-document
-summary panel are only available in the tab that did the uploading — the
-share link carries chat access, not the full workspace. A shared viewer's
-screen also carries a faint, repeating watermark (their share link's ID and
-the date) across the chat and citations — it can't stop someone from taking
-a screenshot, but it means a leaked screenshot can be traced back to which
-link produced it.
+to it. Clicking it warns you first, then gives you a link good for 24
+hours. Anyone who opens it lands in a read/chat-only view: they can ask
+questions and see citations, but can't upload, delete, or re-share. Three
+protections apply automatically to that view, none of which touch your own:
+1. **Locked to first opener.** Whoever's network opens the link first is
+   the only one it works for afterward — forwarding it to someone else
+   won't extend access to them.
+2. **PII hidden from the AI and the citations.** Anything the detector
+   flags (email, phone, SSN, credit card number) is replaced with a
+   placeholder like "[REDACTED EMAIL]" before it reaches the shared
+   viewer's AI answers or citation text — the AI genuinely can't repeat
+   it back to them, no matter how the question is phrased.
+3. **Traceable watermark.** A faint, repeating tag (the link's ID and the
+   date) is stamped across the shared view's chat and citations. It can't
+   stop someone from screenshotting the page, but it means a leaked
+   screenshot can be traced back to which link produced it.
+
+You can cut off access at any time with the "Revoke" button, independently
+of deleting the document yourself; the link also stops working on its own
+after 24 hours either way. A shared viewer's citation cards work the same
+as yours otherwise, but the page-image preview and per-document summary
+panel are only available in the tab that did the uploading — the share
+link carries chat access, not the full workspace.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
