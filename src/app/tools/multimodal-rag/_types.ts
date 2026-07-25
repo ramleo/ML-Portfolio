@@ -2,6 +2,7 @@ export type ChunkSummary = { text: number; table: number; figure: number; image?
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; numberMismatch?: boolean; piiTypes?: string | null };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
+export type RevisionCandidate = { source: string; filename: string; reason: "same_filename" | "similar_content"; similarity: number };
 
 export type IngestState =
   | { kind: "idle" }
@@ -11,7 +12,7 @@ export type IngestState =
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
       embeddingMode: EmbeddingMode; notableChunks: NotableChunk[]; transcript: string | null;
-      transcriptSegments: TranscriptSegment[]; chapters: Chapter[] }
+      transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";

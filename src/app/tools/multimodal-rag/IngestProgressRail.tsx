@@ -104,6 +104,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 chapters: (evt.chapters ?? []).map((c: { time: number; label: string }) => ({
                   time: c.time, label: c.label,
                 })),
+                possibleRevisionOf: evt.possible_revision_of ?? null,
               };
               setState(result);
               onIngested(result);

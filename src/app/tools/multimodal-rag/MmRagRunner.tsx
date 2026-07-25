@@ -11,9 +11,10 @@ import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
 import DocumentSummaryPanel from "./DocumentSummaryPanel";
-import ShareSessionPanel from "./ShareSessionPanel";
 import ShareWatermark from "./ShareWatermark";
-import type { IngestState, TranscriptSegment } from "./_types";
+import RevisionPromptBanner from "./RevisionPromptBanner";
+import DocumentChipsRow from "./DocumentChipsRow";
+import type { IngestState, RevisionCandidate, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
   if (segments.length === 0) return null;
@@ -27,7 +28,6 @@ function nearestSegmentIndex(segments: TranscriptSegment[], time: number): numbe
 }
 
 const ACCENT = "#a78bfa";
-const CHUNK_TYPE_FILTER_LABEL: Record<string, string> = { text: "Text", table: "Table", figure: "Figure", image: "Image", video: "Video Frame" };
 
 const CONTEXT = {
   tool: "Multimodal RAG",
@@ -66,6 +66,7 @@ export default function MmRagRunner() {
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
   const segmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const [isSharedView, setIsSharedView] = useState(false);
+  const [revisionPrompt, setRevisionPrompt] = useState<{ newSource: string; old: RevisionCandidate } | null>(null);
 
   // A shared-session link (?share=<token>) puts this tab into a read/chat-only
   // mode against someone else's uploaded documents — never generate our own
@@ -89,6 +90,12 @@ export default function MmRagRunner() {
     // Show page 1 of the just-uploaded doc immediately — don't make the user
     // click a citation just to discover a preview exists at all.
     setActiveCitation({ page: 1, chunkType: null, source: result.source });
+    // Ingestion diffing is informational only — never auto-replaces anything.
+    // Only prompt if the flagged older doc is still actually in this session
+    // (it always should be, but don't trust it blindly).
+    if (result.possibleRevisionOf) {
+      setRevisionPrompt(prev => prev ?? { newSource: result.source, old: result.possibleRevisionOf! });
+    }
   }, []);
 
   const removeDocument = useCallback(async (source: string) => {
@@ -138,10 +145,6 @@ export default function MmRagRunner() {
   const availableChunkTypes = Array.from(new Set(
     documents.flatMap(d => Object.entries(d.summary).filter(([, v]) => (v ?? 0) > 0).map(([k]) => k))
   ));
-  const toggleChunkType = (t: string) => {
-    chat.setChunkTypeFilter(cur => cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t]);
-  };
-
   return (
     <div className="relative flex flex-col gap-4">
       {isSharedView && chat.shareToken && <ShareWatermark token={chat.shareToken} />}
@@ -155,51 +158,16 @@ export default function MmRagRunner() {
         <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
       )}
 
-      {documents.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Documents in this chat:
-          </span>
-          {documents.map(d => (
-            <span key={d.source} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
-              style={{ background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, color: "rgba(255,255,255,0.7)" }}>
-              {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
-              <button onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
-                title="Show extracted structure (tables, figures)"
-                style={{ color: summaryOpenFor === d.source ? ACCENT : `${ACCENT}99`, lineHeight: 1 }}>
-                {summaryOpenFor === d.source ? "▾" : "▸"} summary
-              </button>
-              <button onClick={() => removeDocument(d.source)} title="Remove this document"
-                style={{ color: `${ACCENT}99`, lineHeight: 1 }}>×</button>
-            </span>
-          ))}
-          <ShareSessionPanel sessionId={chat.sessionId} accent={ACCENT} />
-        </div>
+      {revisionPrompt && (
+        <RevisionPromptBanner newSource={revisionPrompt.newSource} old={revisionPrompt.old} accent={ACCENT}
+          onReplace={() => { removeDocument(revisionPrompt.old.source); setRevisionPrompt(null); }}
+          onKeepBoth={() => setRevisionPrompt(null)} />
       )}
 
-      {documents.length > 0 && availableChunkTypes.length > 1 && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Only search:
-          </span>
-          <button onClick={() => chat.setChunkTypeFilter([])}
-            className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
-            style={chat.chunkTypeFilter.length === 0
-              ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-              : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
-            All
-          </button>
-          {availableChunkTypes.map(t => (
-            <button key={t} onClick={() => toggleChunkType(t)}
-              className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
-              style={chat.chunkTypeFilter.includes(t)
-                ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-                : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
-              {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
-            </button>
-          ))}
-        </div>
-      )}
+      <DocumentChipsRow documents={documents} accent={ACCENT} sessionId={chat.sessionId}
+        summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
+        availableChunkTypes={availableChunkTypes} chunkTypeFilter={chat.chunkTypeFilter}
+        setChunkTypeFilter={chat.setChunkTypeFilter} />
 
       {documents.map(d => summaryOpenFor === d.source && (
         <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
