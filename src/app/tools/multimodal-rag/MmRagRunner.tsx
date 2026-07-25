@@ -12,6 +12,7 @@ import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
 import DocumentSummaryPanel from "./DocumentSummaryPanel";
 import ShareSessionPanel from "./ShareSessionPanel";
+import ShareWatermark from "./ShareWatermark";
 import type { IngestState, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
@@ -142,7 +143,8 @@ export default function MmRagRunner() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="relative flex flex-col gap-4">
+      {isSharedView && chat.shareToken && <ShareWatermark token={chat.shareToken} />}
       {isSharedView ? (
         <div className="flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg"
           style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#fbbf24" }}>

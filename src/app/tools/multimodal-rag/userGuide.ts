@@ -224,7 +224,11 @@ independently of deleting the document yourself; the link also stops
 working on its own after 24 hours either way. A shared viewer's citation
 cards work the same as yours, but the page-image preview and per-document
 summary panel are only available in the tab that did the uploading — the
-share link carries chat access, not the full workspace.
+share link carries chat access, not the full workspace. A shared viewer's
+screen also carries a faint, repeating watermark (their share link's ID and
+the date) across the chat and citations — it can't stop someone from taking
+a screenshot, but it means a leaked screenshot can be traced back to which
+link produced it.
 
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
