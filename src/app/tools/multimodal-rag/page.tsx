@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import MmRagRunner from "./MmRagRunner";
 import MmRagUserGuideModal from "./MmRagUserGuideModal";
+import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
 import { MM_RAG_GUIDE, MM_RAG_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#a78bfa";
@@ -17,6 +17,7 @@ export default function MultimodalRagPage() {
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen text-white overflow-x-hidden">
@@ -68,14 +69,15 @@ export default function MultimodalRagPage() {
               </svg>
               User Guide
             </button>
-            <Link href="/tools/rag-analytics" target="_blank" rel="noopener noreferrer"
+            <button onClick={() => setStatsOpen(true)}
               className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
               style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
               Usage stats
-            </Link>
+            </button>
           </div>
 
           <MmRagUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+          <MmRagUsageStatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
 
           <MmRagRunner />
         </div>
