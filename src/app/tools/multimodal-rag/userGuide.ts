@@ -213,6 +213,19 @@ that answer came from — click one to expand it and see more.
   that citation with someone else; nothing is hidden, masked, or withheld
   — the AI can still see and use that text normally when answering you.
 
+## Sharing a session
+Once you've uploaded a document, a "Share this session" chip appears next
+to it. Clicking it warns you first — anyone with the link can read and ask
+questions about that document, PII included — then, if you confirm, gives
+you a link good for 24 hours. Anyone who opens it lands in a read/chat-only
+view: they can ask questions and see citations, but can't upload, delete,
+or re-share. You can cut off access at any time with the "Revoke" button,
+independently of deleting the document yourself; the link also stops
+working on its own after 24 hours either way. A shared viewer's citation
+cards work the same as yours, but the page-image preview and per-document
+summary panel are only available in the tab that did the uploading — the
+share link carries chat access, not the full workspace.
+
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
   (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: up to 6
