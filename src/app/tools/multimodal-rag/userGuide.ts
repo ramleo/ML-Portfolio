@@ -249,6 +249,15 @@ as yours otherwise, but the page-image preview and per-document summary
 panel are only available in the tab that did the uploading — the share
 link carries chat access, not the full workspace.
 
+## Usage stats
+A "Usage stats" link in the header opens a public dashboard — total
+uploads by file type, total questions asked, average answer time, cache
+hit rate, and which AI provider actually served each answer. It only ever
+shows aggregate counts, never anything about what any specific person
+uploaded or asked. Like every upload on this tool, the numbers reset to
+zero the next time this demo server restarts — nothing here is a
+permanent record.
+
 ## What it can't do
 - PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
   (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: up to 6
