@@ -23,6 +23,9 @@ type Props = {
   /** Comma-separated PII categories found in this chunk's own text (e.g.
    * "email,phone") — shows an amber badge naming what was detected. */
   piiTypes?: string | null;
+  /** True when this figure/image's Fourier high-frequency-energy score read
+   * low — a heuristic ("worth a second look"), not a certainty. */
+  blurry?: boolean;
 };
 
 const PII_LABEL: Record<string, string> = { email: "Email", phone: "Phone", ssn: "SSN", credit_card: "Card number" };
@@ -178,7 +181,7 @@ function TableView({ text, accent, filename }: { text: string; accent: string; f
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry }: Props) {
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
@@ -244,6 +247,22 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
             Verify number
+          </span>
+        )}
+        {blurry && (
+          <span
+            title="Low-sharpness signal from a quick Fourier-based scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
+            style={{
+              display: "flex", alignItems: "center", gap: "2px",
+              fontSize: "0.55rem", fontWeight: 700, color: "#94a3b8",
+              background: "#94a3b818", borderRadius: 9999,
+              padding: "1px 6px", flexShrink: 0,
+            }}>
+            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12h.01M12 12h.01M16 12h.01" strokeLinecap="round" />
+            </svg>
+            Maybe blurry
           </span>
         )}
         {piiList.length > 0 && (

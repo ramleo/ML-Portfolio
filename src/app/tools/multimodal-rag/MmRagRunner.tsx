@@ -271,12 +271,12 @@ export default function MmRagRunner() {
                 // falls back to one flat list rather than mislabeling everything.
                 const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
                 const renderCard = (s: typeof chat.sources[number], i: number) => {
-                  const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null; number_mismatch?: boolean | null; pii_types?: string | null };
+                  const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null };
                   return (
                     <RagSourceCard key={i} source={s.source} text={s.text}
                       score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                       chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
-                      piiTypes={withMeta.pii_types}
+                      piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry}
                       onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text)}
                     />
                   );

@@ -282,6 +282,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
         d.notableChunks.map((c, i) => (
           <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={accent}
             chunkType={c.chunkType} page={c.page} hideConfidence numberMismatch={c.numberMismatch} piiTypes={c.piiTypes}
+            blurry={c.blurry}
             onSelect={() => onSelectChunk(c.chunkType, c.page, c.text)}
           />
         ))
