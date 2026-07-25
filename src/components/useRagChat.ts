@@ -94,6 +94,7 @@ export function useRagChat(context: ToolChatContext) {
   const [sessionId, setSessionId]     = useState("");
   const [answerLength, setAnswerLength] = useState<"concise" | "normal" | "detailed">("normal");
   const [chunkTypeFilter, setChunkTypeFilter] = useState<string[]>([]);
+  const [shareToken, setShareToken] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -203,7 +204,8 @@ export function useRagChat(context: ToolChatContext) {
           force_web: forceWeb || undefined,
           restrict_to_uploads: context.restrictToUploads || undefined,
           answer_length: answerLength,
-          chunk_type_filter: chunkTypeFilter.length > 0 ? chunkTypeFilter : undefined };
+          chunk_type_filter: chunkTypeFilter.length > 0 ? chunkTypeFilter : undefined,
+          share_token: shareToken || undefined };
 
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
@@ -276,7 +278,7 @@ export function useRagChat(context: ToolChatContext) {
       setLoading(false); setAgentStep(null);
     }
   }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb,
-      answerLength, chunkTypeFilter]);
+      answerLength, chunkTypeFilter, shareToken]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -298,6 +300,7 @@ export function useRagChat(context: ToolChatContext) {
     sessionId, setSessionId,
     answerLength, setAnswerLength,
     chunkTypeFilter, setChunkTypeFilter,
+    shareToken, setShareToken,
     providerConfig, accentColor, loadingLabel,
     handleProviderChange, enableJina, send, clearChat, onKeyDown,
     bottomRef, inputRef,

@@ -11,6 +11,7 @@ import IngestProgressRail from "./IngestProgressRail";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
 import DocumentSummaryPanel from "./DocumentSummaryPanel";
+import ShareSessionPanel from "./ShareSessionPanel";
 import type { IngestState, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
@@ -63,6 +64,17 @@ export default function MmRagRunner() {
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
   const segmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const [isSharedView, setIsSharedView] = useState(false);
+
+  // A shared-session link (?share=<token>) puts this tab into a read/chat-only
+  // mode against someone else's uploaded documents — never generate our own
+  // session_id or show upload/delete controls in that case.
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("share");
+    if (!token) return;
+    setIsSharedView(true);
+    chat.setShareToken(token);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ensureSessionId = useCallback(() => {
     if (chat.sessionId) return chat.sessionId;
@@ -131,7 +143,15 @@ export default function MmRagRunner() {
 
   return (
     <div className="flex flex-col gap-4">
-      <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
+      {isSharedView ? (
+        <div className="flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg"
+          style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#fbbf24" }}>
+          Viewing a session someone shared with you — read and chat only. The owner can revoke this
+          link at any time, and it expires automatically after 24 hours.
+        </div>
+      ) : (
+        <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
+      )}
 
       {documents.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -151,6 +171,7 @@ export default function MmRagRunner() {
                 style={{ color: `${ACCENT}99`, lineHeight: 1 }}>×</button>
             </span>
           ))}
+          <ShareSessionPanel sessionId={chat.sessionId} accent={ACCENT} />
         </div>
       )}
 
@@ -187,7 +208,7 @@ export default function MmRagRunner() {
         />
       ))}
 
-      {documents.length > 0 && (
+      {(documents.length > 0 || isSharedView) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Chat */}
           <div style={cardStyle} className="flex flex-col min-h-0" >
