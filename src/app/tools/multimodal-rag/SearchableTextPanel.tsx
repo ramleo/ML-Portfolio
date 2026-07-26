@@ -1,28 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { splitForHighlight, textMatches, wordsMatch } from "./wordMatch";
 
 export type SearchableItem = { key: string | number; prefix?: string; text: string };
 
-/** Escapes regex metacharacters in a raw search string. */
-function escapeRegex(q: string): string {
-  return q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Word-boundary PREFIX match — "child" matches "child", "children",
- * "childish", but not "grandchild" (boundary) or unrelated words. Plain
- * substring search would also match "child" inside "wildchild"; prefix
- * matching is closer to what a typed search word actually means here. */
-function buildPrefixPattern(query: string): string | null {
-  const q = query.trim();
-  return q ? `\\b${escapeRegex(q)}\\w*` : null;
-}
-
-function highlightMatches(text: string, pattern: string | null, accent: string) {
-  if (!pattern) return text;
-  const parts = text.split(new RegExp(`(${pattern})`, "gi"));
+/** Renders `text` with every word that matches `query` (see wordMatch.ts —
+ * prefix + stemmer + irregular-plural hybrid) wrapped in <mark>. */
+function highlightMatches(text: string, query: string, accent: string) {
+  if (!query.trim()) return text;
+  const parts = splitForHighlight(text);
   return parts.map((part, i) =>
-    i % 2 === 1
+    i % 2 === 1 && wordsMatch(part, query)
       ? <mark key={i} style={{ background: `${accent}55`, color: "inherit", borderRadius: 2 }}>{part}</mark>
       : part
   );
@@ -47,9 +36,7 @@ export default function SearchableTextPanel({ items, accent, placeholder, highli
   const [matchCursor, setMatchCursor] = useState(0);
   const refs = useRef<Map<string | number, HTMLParagraphElement | null>>(new Map());
 
-  const pattern = buildPrefixPattern(query);
-  const testRe = pattern ? new RegExp(pattern, "i") : null;
-  const matchKeys = testRe ? items.filter(it => testRe.test(it.text)).map(it => it.key) : [];
+  const matchKeys = query.trim() ? items.filter(it => textMatches(it.text, query)).map(it => it.key) : [];
 
   useEffect(() => { setMatchCursor(0); }, [query]);
   useEffect(() => {
@@ -103,7 +90,7 @@ export default function SearchableTextPanel({ items, accent, placeholder, highli
                 cursor: onSelect ? "pointer" : "default",
               }}>
               {it.prefix && <span style={{ color: `${accent}99` }}>{it.prefix}</span>}
-              {highlightMatches(it.text, pattern, accent)}
+              {highlightMatches(it.text, query, accent)}
             </p>
           );
         })}
