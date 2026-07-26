@@ -26,9 +26,13 @@ type Props = {
   /** True when this figure/image's edge-sharpness score read low — a
    * heuristic ("worth a second look"), not a certainty. */
   blurry?: boolean;
+  /** Structured facts (money/date/percent) found in this chunk's own text
+   * via regex at ingest time (MMRAG-03) — e.g. [{type: "money", value: "$1,245.50"}]. */
+  entities?: { type: string; value: string }[] | null;
 };
 
 const PII_LABEL: Record<string, string> = { email: "Email", phone: "Phone", ssn: "SSN", credit_card: "Card number" };
+const ENTITY_COLOR: Record<string, string> = { money: "#34d399", date: "#60a5fa", percent: "#fbbf24" };
 
 type PageChunk = { text: string; chunk_type: string | null; page: number };
 
@@ -181,7 +185,7 @@ function TableView({ text, accent, filename }: { text: string; accent: string; f
   );
 }
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities }: Props) {
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
@@ -306,6 +310,21 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           {!hideConfidence && rawPct !== null && (
             <div style={{ marginBottom: "0.3rem", color: "var(--text2)" }}>
               Raw model confidence: <strong>{rawPct}%</strong>
+            </div>
+          )}
+          {entities && entities.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
+              {entities.map((e, i) => {
+                const color = ENTITY_COLOR[e.type] ?? "#94a3b8";
+                return (
+                  <span key={i} style={{
+                    fontSize: "0.58rem", fontWeight: 600, color,
+                    background: `${color}18`, borderRadius: 9999, padding: "1px 6px",
+                  }}>
+                    {e.value}
+                  </span>
+                );
+              })}
             </div>
           )}
           {chunkType === "table" ? <TableView text={text} accent={accent} filename={`${displayName(source, cat).replace(/\.[^.]+$/, "") || "table"}-p${page ?? 1}.csv`} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
