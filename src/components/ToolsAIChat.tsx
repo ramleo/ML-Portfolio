@@ -32,7 +32,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
     deepSearch, setDeepSearch, forceWeb, setForceWeb,
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
-    answerSource, confidence,
+    answerSource, confidence, groundedness,
     model, setModel, userKey, setUserKey, sessionId, setSessionId,
     providerConfig, accentColor, loadingLabel,
     handleProviderChange, enableJina, send, clearChat, onKeyDown,
@@ -165,7 +165,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
             sources={sources} sourcesOpen={sourcesOpen} accentColor={accentColor}
             bottomRef={bottomRef} cacheHit={cacheHit} latencyMs={latencyMs}
             expandedQueries={expandedQueries} candidatesRetrieved={candidatesRetrieved}
-            answerSource={answerSource} confidence={confidence}
+            answerSource={answerSource} confidence={confidence} groundedness={groundedness}
             onSuggestion={q => { setInput(q); inputRef.current?.focus(); }}
             onSourcesToggle={() => setSourcesOpen(o => !o)}
             suggestions={context.suggestions}

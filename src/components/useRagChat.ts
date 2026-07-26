@@ -37,6 +37,7 @@ function buildToolContext(context: ToolChatContext): string {
 }
 export type Message  = { role: "user" | "assistant"; content: string };
 export type RagSource = { source: string; text: string; score: number; display_score: number };
+export type Groundedness = { score: number; level: "high" | "medium" | "low"; ungrounded_sentences: string[] };
 
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
@@ -88,6 +89,7 @@ export function useRagChat(context: ToolChatContext) {
   const [primaryProvider, setPrimaryProvider] = useState<string | null>(null);
   const [primaryFailure, setPrimaryFailure] = useState<string | null>(null);
   const [likelyUsedSources, setLikelyUsedSources] = useState<number[] | null>(null);
+  const [groundedness, setGroundedness] = useState<Groundedness | null>(null);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -170,7 +172,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
-    setLikelyUsedSources(null);
+    setLikelyUsedSources(null); setGroundedness(null);
   }, []);
 
   const send = useCallback(async () => {
@@ -185,7 +187,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
-    setLikelyUsedSources(null);
+    setLikelyUsedSources(null); setGroundedness(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(messages.slice(-10)).slice(-6);
@@ -254,6 +256,7 @@ export function useRagChat(context: ToolChatContext) {
               setPrimaryProvider(evt.primary_provider ?? null);
               setPrimaryFailure(evt.primary_failure ?? null);
               if (Array.isArray(evt.likely_used_sources)) setLikelyUsedSources(evt.likely_used_sources);
+              setGroundedness(evt.groundedness ?? null);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -295,7 +298,7 @@ export function useRagChat(context: ToolChatContext) {
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence, servedProvider, servedModel, primaryProvider, primaryFailure,
-    likelyUsedSources,
+    likelyUsedSources, groundedness,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     answerLength, setAnswerLength,

@@ -229,6 +229,14 @@ that answer came from — click one to expand it and see more.
   that specific image might be less reliable than usual, so it's worth a
   quick look at the original. It's a heuristic, not a certainty: a very
   plain, low-detail image can occasionally trip it even when perfectly sharp.
+- **Groundedness score.** Open "How I searched" under any answer and you'll
+  see a Groundedness badge (High/Medium/Low, plus a %) — how well the
+  answer's own sentences actually match the retrieved sources, checked
+  automatically right after the answer is generated. If a sentence doesn't
+  match anything retrieved well, it's listed underneath as "possibly
+  unsupported" so you know exactly which part to double-check. It's a
+  heuristic based on text similarity, not a fact-checker — a true but
+  unusually-worded sentence can occasionally get flagged too.
 
 ## Sharing a session
 Once you've uploaded a document, a "Share this session" chip appears next
