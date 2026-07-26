@@ -77,23 +77,27 @@ export default function SearchableTextPanel({ items, accent, placeholder, highli
       </div>
       <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
         style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
-        {items.map(it => {
-          const isCurrentMatch = matchKeys.length > 0 && matchKeys[matchCursor % matchKeys.length] === it.key;
-          return (
-            <p key={it.key}
-              ref={el => { refs.current.set(it.key, el); itemRef?.(it.key, el); }}
-              onClick={onSelect ? () => onSelect(it.key) : undefined}
-              className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
-              style={{
-                color: "rgba(255,255,255,0.6)",
-                background: isCurrentMatch ? `${accent}33` : highlightedKey === it.key ? `${accent}22` : "transparent",
-                cursor: onSelect ? "pointer" : "default",
-              }}>
-              {it.prefix && <span style={{ color: `${accent}99` }}>{it.prefix}</span>}
-              {highlightMatches(it.text, query, accent)}
-            </p>
-          );
-        })}
+        {items.map(it => (
+          <p key={it.key}
+            ref={el => { refs.current.set(it.key, el); itemRef?.(it.key, el); }}
+            onClick={onSelect ? () => onSelect(it.key) : undefined}
+            className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
+            style={{
+              color: "rgba(255,255,255,0.6)",
+              // Only ever tints the whole item for a citation/chapter "jump
+              // here" (highlightedKey) — NOT for the current search match.
+              // A search match already gets its own per-word <mark>; tinting
+              // the entire item too was fine for a one-line video subtitle
+              // but made a whole PDF page look "matched" when only one word
+              // in it was. ↑/↓ navigation still scrolls to the right item
+              // (see the effect above) even without this background.
+              background: highlightedKey === it.key ? `${accent}22` : "transparent",
+              cursor: onSelect ? "pointer" : "default",
+            }}>
+            {it.prefix && <span style={{ color: `${accent}99` }}>{it.prefix}</span>}
+            {highlightMatches(it.text, query, accent)}
+          </p>
+        ))}
       </div>
     </div>
   );
