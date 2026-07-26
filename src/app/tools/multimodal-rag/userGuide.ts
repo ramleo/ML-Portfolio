@@ -137,6 +137,28 @@ is structured." "Normal" (default) is unchanged from before this toggle
 existed. It only changes how the SAME retrieved information is written up
 — it doesn't change what's retrieved or which citations show.
 
+Clicking a different length regenerates the answer you're currently
+looking at, in place — you don't need to ask the question again. It
+replaces just the last answer bubble; earlier answers in the conversation
+keep whatever length they were originally given at.
+
+## Checking your documents for contradictions
+Once you've uploaded 2 or more documents into the same chat, a "Check
+documents for contradictions" button appears. Click it and the tool scans
+your uploaded documents for passages that make a factual claim about the
+same specific thing — a date, an amount, a name, a status — but disagree
+with each other. Example: one document says a deadline is March 15, a
+revision memo says it moved to April 30 — that's flagged, with both
+excerpts, their source document, and page number shown side by side, plus
+a one-line explanation of what disagrees.
+
+It only flags genuine disagreements, not every passage that happens to
+mention a similar topic — two documents stating the same figure in
+different words are correctly left alone. It only compares documents
+within your current chat session, and only checks a bounded number of the
+most topically-similar passage pairs, so it stays fast even with several
+documents loaded.
+
 ## Only search specific content types
 When your document(s) contain more than one kind of content (say a PDF
 with both prose and tables), an "Only search: All / Text / Table / Figure
@@ -229,6 +251,12 @@ that answer came from — click one to expand it and see more.
   that specific image might be less reliable than usual, so it's worth a
   quick look at the original. It's a heuristic, not a certainty: a very
   plain, low-detail image can occasionally trip it even when perfectly sharp.
+- **Key facts chips.** Expand a citation and you may see small colored chips
+  above the source text — amounts, dates, or percentages found in that
+  exact chunk (e.g. "$1,245.50", "April 30, 2026", "12.4%"). These are
+  pulled out automatically at upload time so you can scan a citation for
+  its hard numbers without reading the whole paragraph. Only chunks that
+  actually contain one of these show any chips.
 - **Groundedness score.** Open "How I searched" under any answer and you'll
   see a Groundedness badge (High/Medium/Low, plus a %) — how well the
   answer's own sentences actually match the retrieved sources, checked
@@ -311,4 +339,5 @@ export const MM_RAG_SUGGESTIONS = [
   "What's the difference between a Table and a Figure citation?",
   "What happens if I turn on 'find visually similar figures'?",
   "Does anything I upload here stay saved?",
+  "How does the contradiction check between documents work?",
 ];
