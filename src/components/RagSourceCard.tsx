@@ -23,8 +23,8 @@ type Props = {
   /** Comma-separated PII categories found in this chunk's own text (e.g.
    * "email,phone") — shows an amber badge naming what was detected. */
   piiTypes?: string | null;
-  /** True when this figure/image's Fourier high-frequency-energy score read
-   * low — a heuristic ("worth a second look"), not a certainty. */
+  /** True when this figure/image's edge-sharpness score read low — a
+   * heuristic ("worth a second look"), not a certainty. */
   blurry?: boolean;
 };
 
@@ -251,7 +251,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         )}
         {blurry && (
           <span
-            title="Low-sharpness signal from a quick Fourier-based scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
+            title="Low-sharpness signal from a quick edge-detail scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
             style={{
               display: "flex", alignItems: "center", gap: "2px",
               fontSize: "0.55rem", fontWeight: 700, color: "#94a3b8",

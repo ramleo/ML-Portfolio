@@ -223,8 +223,8 @@ that answer came from — click one to expand it and see more.
   that citation with someone else; nothing is hidden, masked, or withheld
   — the AI can still see and use that text normally when answering you.
 - **"Maybe blurry" note (gray).** Every figure/chart/photo is run through a
-  quick sharpness check at upload time (a Fourier frequency-domain scan, no
-  extra model or delay). If it reads low, the citation shows a gray "Maybe
+  quick sharpness check at upload time (an edge-detail scan, no extra
+  model or delay). If it reads low, the citation shows a gray "Maybe
   blurry" badge — a heads-up that the AI's description or OCR reading of
   that specific image might be less reliable than usual, so it's worth a
   quick look at the original. It's a heuristic, not a certainty: a very
