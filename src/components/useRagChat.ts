@@ -175,11 +175,15 @@ export function useRagChat(context: ToolChatContext) {
     setLikelyUsedSources(null); setGroundedness(null);
   }, []);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
-    if (!text || loading) return;
-    const next = [...messages, { role: "user" as const, content: text }];
-    setMessages(next); setInput(""); setLoading(true);
+  // Shared core: runs one query against the backend and streams the answer
+  // into `messages`, given the exact history to send and the answer length
+  // to request. send() and regenerateLastAnswer() differ only in WHAT they
+  // pass in — the fetch/SSE-parsing/state-update logic must not be
+  // duplicated between them.
+  const runQuery = useCallback(async (
+    queryText: string, historyBase: Message[], lengthOverride: "concise" | "normal" | "detailed",
+  ) => {
+    setLoading(true);
     setSources([]); setSourcesOpen(false); setLowConfidence(false);
     setCacheHit(false); setLatencyMs(null); setAgentStep(null);
     setAgentDoneSteps([]); setAgentLoops(0); setAgentRewritten(false);
@@ -190,22 +194,22 @@ export function useRagChat(context: ToolChatContext) {
     setLikelyUsedSources(null); setGroundedness(null);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
-    const history = sanitizeHistory(messages.slice(-10)).slice(-6);
+    const history = sanitizeHistory(historyBase.slice(-10)).slice(-6);
     const toolContext = buildToolContext(context);
     const body = deepSearch
-      ? { query: text, tool_context: toolContext,
+      ? { query: queryText, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined, session_id: sessionId || undefined,
           force_web: forceWeb || undefined,
           restrict_to_uploads: context.restrictToUploads || undefined }
-      : { query: text, tool_context: toolContext,
+      : { query: queryText, tool_context: toolContext,
           history, provider, model,
           user_key: userKey || undefined,
           embedding_model: useJina ? "jina" : "minilm",
           session_id: sessionId || undefined,
           force_web: forceWeb || undefined,
           restrict_to_uploads: context.restrictToUploads || undefined,
-          answer_length: answerLength,
+          answer_length: lengthOverride,
           chunk_type_filter: chunkTypeFilter.length > 0 ? chunkTypeFilter : undefined,
           share_token: shareToken || undefined };
 
@@ -280,8 +284,34 @@ export function useRagChat(context: ToolChatContext) {
     } finally {
       setLoading(false); setAgentStep(null);
     }
-  }, [input, loading, messages, provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb,
-      answerLength, chunkTypeFilter, shareToken]);
+  }, [provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb, chunkTypeFilter, shareToken]);
+
+  const send = useCallback(async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    const historyBase = messages;
+    const next = [...messages, { role: "user" as const, content: text }];
+    setMessages(next); setInput("");
+    await runQuery(text, historyBase, answerLength);
+  }, [input, loading, messages, answerLength, runQuery]);
+
+  // Re-runs the LAST question at a new answer length, replacing the last
+  // assistant answer in place rather than requiring the user to re-ask —
+  // toggling Concise/Normal/Detailed on an already-answered question is
+  // expected to regenerate that answer, not just apply to the next one.
+  const regenerateLastAnswer = useCallback(async (newLength: "concise" | "normal" | "detailed") => {
+    setAnswerLength(newLength);
+    if (loading) return;
+    let lastUserIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") { lastUserIdx = i; break; }
+    }
+    if (lastUserIdx === -1) return; // nothing asked yet — just remember the setting for next time
+    const queryText = messages[lastUserIdx].content;
+    const historyBase = messages.slice(0, lastUserIdx);
+    setMessages(messages.slice(0, lastUserIdx + 1));
+    await runQuery(queryText, historyBase, newLength);
+  }, [messages, loading, runQuery]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -305,7 +335,7 @@ export function useRagChat(context: ToolChatContext) {
     chunkTypeFilter, setChunkTypeFilter,
     shareToken, setShareToken,
     providerConfig, accentColor, loadingLabel,
-    handleProviderChange, enableJina, send, clearChat, onKeyDown,
+    handleProviderChange, enableJina, send, regenerateLastAnswer, clearChat, onKeyDown,
     bottomRef, inputRef,
   };
 }

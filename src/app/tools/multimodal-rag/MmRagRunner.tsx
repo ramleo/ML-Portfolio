@@ -205,7 +205,7 @@ export default function MmRagRunner() {
                 )}
                 <div className="flex items-center rounded border overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.12)" }}>
                   {(["concise", "normal", "detailed"] as const).map(len => (
-                    <button key={len} onClick={() => chat.setAnswerLength(len)}
+                    <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
                       title={len === "concise" ? "1-3 sentences, no extra context"
                            : len === "detailed" ? "Thorough — includes reasoning and related details"
                            : "Default answer length"}
