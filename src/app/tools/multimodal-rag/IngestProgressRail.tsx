@@ -106,6 +106,9 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 })),
                 possibleRevisionOf: evt.possible_revision_of ?? null,
                 entityTypes: evt.entity_types ?? [],
+                textSegments: (evt.text_segments ?? []).map((s: { page: number | null; text: string }) => ({
+                  page: s.page, text: s.text,
+                })),
               };
               setState(result);
               onIngested(result);

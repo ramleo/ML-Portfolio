@@ -1,5 +1,6 @@
 export type ChunkSummary = { text: number; table: number; figure: number; image?: number; video?: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
+export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
 export type RevisionCandidate = { source: string; filename: string; reason: "same_filename" | "similar_content"; similarity: number };
@@ -15,7 +16,11 @@ export type IngestState =
       transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null;
       /** Which entity types (money/date/percent) appear anywhere in this
        * document (MMRAG-03) — powers the "Only search" entity filter chips. */
-      entityTypes: string[] }
+      entityTypes: string[];
+      /** This document's plain-text chunks, in reading order — powers the
+       * live search/highlight box in the summary panel for non-video docs
+       * (a video already has the richer, timestamped transcriptSegments). */
+      textSegments: TextSegment[] }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";

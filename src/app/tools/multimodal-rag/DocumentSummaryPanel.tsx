@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import RagSourceCard from "@/components/RagSourceCard";
+import SearchableTextPanel from "./SearchableTextPanel";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { IngestState, TranscriptSegment } from "./_types";
 
@@ -47,18 +48,6 @@ function buildSrt(segments: TranscriptSegment[]): string {
   ).join("\n");
 }
 
-function highlightMatches(text: string, query: string, accent: string) {
-  const q = query.trim();
-  if (!q) return text;
-  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
-  return parts.map((part, i) =>
-    i % 2 === 1
-      ? <mark key={i} style={{ background: `${accent}55`, color: "inherit", borderRadius: 2 }}>{part}</mark>
-      : part
-  );
-}
-
 const REPLAY_BUCKETS = 32;
 const KDE_GRID_POINTS = 100;
 
@@ -91,9 +80,6 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
   const hasSegments = d.transcriptSegments.length > 0;
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [matchCursor, setMatchCursor] = useState(0);
-  const searchRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = (d.summary.video ?? 0) > 0;
   const duration = hasSegments ? d.transcriptSegments[d.transcriptSegments.length - 1].end : 0;
@@ -123,19 +109,6 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
     v.addEventListener("seeked", onSeeked);
     return () => v.removeEventListener("seeked", onSeeked);
   }, [duration]);
-
-  const q = searchQuery.trim().toLowerCase();
-  const matchIndices = q ? d.transcriptSegments
-    .map((seg, i) => (seg.text.toLowerCase().includes(q) ? i : -1))
-    .filter(i => i >= 0) : [];
-
-  useEffect(() => { setMatchCursor(0); }, [searchQuery]);
-  useEffect(() => {
-    if (matchIndices.length === 0) return;
-    const idx = matchIndices[matchCursor % matchIndices.length];
-    searchRefs.current[idx]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchCursor, searchQuery]);
 
   return (
     <div style={cardStyle} className="p-3 flex flex-col gap-1.5">
@@ -216,62 +189,47 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               ))}
             </div>
           )}
-          {hasSegments && (
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search transcript…"
-                className="flex-1 text-[9px] px-2 py-1 rounded border bg-transparent outline-none"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
-              />
-              {q && (
-                <>
-                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-                    {matchIndices.length ? `${(matchCursor % matchIndices.length) + 1}/${matchIndices.length}` : "0"}
-                  </span>
-                  <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchIndices.length}
-                    className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
-                    style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-                    ↑
-                  </button>
-                  <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchIndices.length}
-                    className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
-                    style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-                    ↓
-                  </button>
-                </>
-              )}
-            </div>
+          {hasSegments ? (
+            <SearchableTextPanel
+              placeholder="Search transcript…"
+              accent={accent}
+              highlightedKey={highlightedIndex}
+              onSelect={isVideo ? (key) => {
+                const seg = d.transcriptSegments[key as number];
+                if (videoRef.current && seg) videoRef.current.currentTime = seg.start;
+              } : undefined}
+              itemRef={(key, el) => onSegmentRef(key as number, el)}
+              items={d.transcriptSegments.map((seg, i) => ({
+                key: i,
+                prefix: `[${mmss(seg.start)}] ${seg.speaker ? `${seg.speaker}: ` : ""}`,
+                text: seg.text,
+              }))}
+            />
+          ) : (
+            <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+              {d.transcript}
+            </p>
           )}
-          <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
-            style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
-            {hasSegments ? (
-              d.transcriptSegments.map((seg, i) => {
-                const isCurrentMatch = matchIndices.length > 0 && matchIndices[matchCursor % matchIndices.length] === i;
-                return (
-                  <p key={i}
-                    ref={el => { onSegmentRef(i, el); searchRefs.current[i] = el; }}
-                    onClick={isVideo ? () => { if (videoRef.current) videoRef.current.currentTime = seg.start; } : undefined}
-                    className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
-                    style={{
-                      color: "rgba(255,255,255,0.6)",
-                      background: isCurrentMatch ? `${accent}33` : highlightedIndex === i ? `${accent}22` : "transparent",
-                      cursor: isVideo ? "pointer" : "default",
-                    }}>
-                    <span style={{ color: `${accent}99` }}>[{mmss(seg.start)}]</span>{" "}
-                    {seg.speaker && <span style={{ color: `${accent}dd`, fontWeight: 600 }}>{seg.speaker}: </span>}
-                    {highlightMatches(seg.text, searchQuery, accent)}
-                  </p>
-                );
-              })
-            ) : (
-              <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                {d.transcript}
-              </p>
-            )}
-          </div>
+        </div>
+      )}
+      {d.textSegments.length > 0 && (
+        <div className="flex flex-col gap-1 mb-1">
+          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: `${accent}99` }}>
+            Extracted text
+          </span>
+          <SearchableTextPanel
+            placeholder="Search document text…"
+            accent={accent}
+            onSelect={(key) => {
+              const seg = d.textSegments[key as number];
+              if (seg) onSelectChunk("text", seg.page, seg.text);
+            }}
+            items={d.textSegments.map((seg, i) => ({
+              key: i,
+              prefix: seg.page ? `Page ${seg.page} — ` : undefined,
+              text: seg.text,
+            }))}
+          />
         </div>
       )}
       {d.notableChunks.length === 0 ? (
