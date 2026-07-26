@@ -15,6 +15,7 @@ import DocumentSummaryPanel from "./DocumentSummaryPanel";
 import ShareWatermark from "./ShareWatermark";
 import RevisionPromptBanner from "./RevisionPromptBanner";
 import DocumentChipsRow from "./DocumentChipsRow";
+import ContradictionsPanel from "./ContradictionsPanel";
 import type { IngestState, RevisionCandidate, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
@@ -169,6 +170,10 @@ export default function MmRagRunner() {
         summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
         availableChunkTypes={availableChunkTypes} chunkTypeFilter={chat.chunkTypeFilter}
         setChunkTypeFilter={chat.setChunkTypeFilter} />
+
+      {documents.length >= 2 && !isSharedView && (
+        <ContradictionsPanel sessionId={chat.sessionId} accent={ACCENT} />
+      )}
 
       {documents.map(d => summaryOpenFor === d.source && (
         <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
