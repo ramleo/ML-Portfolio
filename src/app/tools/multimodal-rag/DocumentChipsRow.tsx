@@ -8,6 +8,7 @@ const displayName = (source: string) => source.replace(/^user:/, "").replace(/:[
 const CHUNK_TYPE_FILTER_LABEL: Record<string, string> = {
   text: "Text", table: "Table", figure: "Figure", image: "Image", video: "Video Frame",
 };
+const ENTITY_TYPE_FILTER_LABEL: Record<string, string> = { money: "Money", date: "Date", percent: "Percent" };
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 
@@ -21,16 +22,23 @@ type Props = {
   availableChunkTypes: string[];
   chunkTypeFilter: string[];
   setChunkTypeFilter: (fn: (cur: string[]) => string[]) => void;
+  availableEntityTypes: string[];
+  entityTypeFilter: string[];
+  setEntityTypeFilter: (fn: (cur: string[]) => string[]) => void;
 };
 
 export default function DocumentChipsRow({
   documents, accent, sessionId, summaryOpenFor, setSummaryOpenFor, removeDocument,
   availableChunkTypes, chunkTypeFilter, setChunkTypeFilter,
+  availableEntityTypes, entityTypeFilter, setEntityTypeFilter,
 }: Props) {
   if (documents.length === 0) return null;
 
   const toggleChunkType = (t: string) => {
     setChunkTypeFilter(cur => cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t]);
+  };
+  const toggleEntityType = (t: string) => {
+    setEntityTypeFilter(cur => cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t]);
   };
 
   return (
@@ -55,25 +63,35 @@ export default function DocumentChipsRow({
         <ShareSessionPanel sessionId={sessionId} accent={accent} />
       </div>
 
-      {availableChunkTypes.length > 1 && (
+      {(availableChunkTypes.length > 1 || availableEntityTypes.length > 0) && (
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
             Only search:
           </span>
-          <button onClick={() => setChunkTypeFilter(() => [])}
+          <button onClick={() => { setChunkTypeFilter(() => []); setEntityTypeFilter(() => []); }}
             className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
-            style={chunkTypeFilter.length === 0
+            style={chunkTypeFilter.length === 0 && entityTypeFilter.length === 0
               ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
               : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
             All
           </button>
-          {availableChunkTypes.map(t => (
+          {availableChunkTypes.length > 1 && availableChunkTypes.map(t => (
             <button key={t} onClick={() => toggleChunkType(t)}
               className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
               style={chunkTypeFilter.includes(t)
                 ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
                 : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
               {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
+            </button>
+          ))}
+          {availableEntityTypes.map(t => (
+            <button key={t} onClick={() => toggleEntityType(t)}
+              title={`Only search chunks containing a ${ENTITY_TYPE_FILTER_LABEL[t]?.toLowerCase() ?? t}`}
+              className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
+              style={entityTypeFilter.includes(t)
+                ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
+                : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+              {ENTITY_TYPE_FILTER_LABEL[t] ?? t}
             </button>
           ))}
         </div>

@@ -105,6 +105,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                   time: c.time, label: c.label,
                 })),
                 possibleRevisionOf: evt.possible_revision_of ?? null,
+                entityTypes: evt.entity_types ?? [],
               };
               setState(result);
               onIngested(result);

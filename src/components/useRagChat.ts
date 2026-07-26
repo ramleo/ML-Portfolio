@@ -96,6 +96,7 @@ export function useRagChat(context: ToolChatContext) {
   const [sessionId, setSessionId]     = useState("");
   const [answerLength, setAnswerLength] = useState<"concise" | "normal" | "detailed">("normal");
   const [chunkTypeFilter, setChunkTypeFilter] = useState<string[]>([]);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string[]>([]);
   const [shareToken, setShareToken] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -211,6 +212,7 @@ export function useRagChat(context: ToolChatContext) {
           restrict_to_uploads: context.restrictToUploads || undefined,
           answer_length: lengthOverride,
           chunk_type_filter: chunkTypeFilter.length > 0 ? chunkTypeFilter : undefined,
+          entity_type_filter: entityTypeFilter.length > 0 ? entityTypeFilter : undefined,
           share_token: shareToken || undefined };
 
     try {
@@ -284,7 +286,7 @@ export function useRagChat(context: ToolChatContext) {
     } finally {
       setLoading(false); setAgentStep(null);
     }
-  }, [provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb, chunkTypeFilter, shareToken]);
+  }, [provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb, chunkTypeFilter, entityTypeFilter, shareToken]);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -333,6 +335,7 @@ export function useRagChat(context: ToolChatContext) {
     sessionId, setSessionId,
     answerLength, setAnswerLength,
     chunkTypeFilter, setChunkTypeFilter,
+    entityTypeFilter, setEntityTypeFilter,
     shareToken, setShareToken,
     providerConfig, accentColor, loadingLabel,
     handleProviderChange, enableJina, send, regenerateLastAnswer, clearChat, onKeyDown,

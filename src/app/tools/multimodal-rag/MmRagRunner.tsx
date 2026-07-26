@@ -147,6 +147,7 @@ export default function MmRagRunner() {
   const availableChunkTypes = Array.from(new Set(
     documents.flatMap(d => Object.entries(d.summary).filter(([, v]) => (v ?? 0) > 0).map(([k]) => k))
   ));
+  const availableEntityTypes = Array.from(new Set(documents.flatMap(d => d.entityTypes)));
   return (
     <div className="relative flex flex-col gap-4">
       {isSharedView && chat.shareToken && <ShareWatermark token={chat.shareToken} />}
@@ -169,7 +170,9 @@ export default function MmRagRunner() {
       <DocumentChipsRow documents={documents} accent={ACCENT} sessionId={chat.sessionId}
         summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
         availableChunkTypes={availableChunkTypes} chunkTypeFilter={chat.chunkTypeFilter}
-        setChunkTypeFilter={chat.setChunkTypeFilter} />
+        setChunkTypeFilter={chat.setChunkTypeFilter}
+        availableEntityTypes={availableEntityTypes} entityTypeFilter={chat.entityTypeFilter}
+        setEntityTypeFilter={chat.setEntityTypeFilter} />
 
       {documents.length >= 2 && !isSharedView && (
         <ContradictionsPanel sessionId={chat.sessionId} accent={ACCENT} />

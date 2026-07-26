@@ -12,7 +12,10 @@ export type IngestState =
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
       embeddingMode: EmbeddingMode; notableChunks: NotableChunk[]; transcript: string | null;
-      transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null }
+      transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null;
+      /** Which entity types (money/date/percent) appear anywhere in this
+       * document (MMRAG-03) — powers the "Only search" entity filter chips. */
+      entityTypes: string[] }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";
