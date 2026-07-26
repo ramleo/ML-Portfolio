@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
+import GroundednessBadge from "@/components/GroundednessBadge";
 import ToolsAIChatSettings from "@/components/ToolsAIChatSettings";
 import { PROVIDERS } from "@/components/toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
@@ -303,6 +304,7 @@ export default function MmRagRunner() {
                   </div>
                 );
               })()}
+              {!chat.loading && <GroundednessBadge groundedness={chat.groundedness} />}
               <div ref={chat.bottomRef} />
             </div>
             <div className="p-3 border-t flex gap-2 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>

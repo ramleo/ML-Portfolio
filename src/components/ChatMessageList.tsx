@@ -3,10 +3,10 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import RagSourceCard from "./RagSourceCard";
+import GroundednessBadge, { type Groundedness } from "./GroundednessBadge";
 
 type Message  = { role: "user" | "assistant"; content: string };
 type RagSource = { source: string; text: string; score: number; display_score: number };
-type Groundedness = { score: number; level: "high" | "medium" | "low"; ungrounded_sentences: string[] };
 
 interface Props {
   messages:          Message[];
@@ -54,9 +54,6 @@ const SOURCE_LABELS: Record<string, string> = {
   knowledge_base: "Knowledge Base", web: "Web", none: "Dataset",
 };
 const CONFIDENCE_COLORS: Record<string, string> = {
-  high: "#34d399", medium: "#f59e0b", low: "#f87171",
-};
-const GROUNDEDNESS_COLORS: Record<string, string> = {
   high: "#34d399", medium: "#f59e0b", low: "#f87171",
 };
 
@@ -165,27 +162,7 @@ export default function ChatMessageList({
                   background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: 8, display: "flex", flexDirection: "column", gap: "0.4rem",
                 }}>
-                  {groundedness && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "0.57rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Groundedness</span>
-                        <span title="How well the answer's sentences match the retrieved sources — a heuristic, not a certainty."
-                          style={{ fontSize: "0.6rem", color: GROUNDEDNESS_COLORS[groundedness.level], background: `${GROUNDEDNESS_COLORS[groundedness.level]}18`, borderRadius: 4, padding: "1px 5px", fontWeight: 600, textTransform: "capitalize" }}>
-                          {groundedness.level} ({Math.round(groundedness.score * 100)}%)
-                        </span>
-                      </div>
-                      {groundedness.ungrounded_sentences.length > 0 && (
-                        <div style={{ fontSize: "0.6rem", color: "var(--text3)", lineHeight: 1.5 }}>
-                          Possibly unsupported by the retrieved sources:
-                          {groundedness.ungrounded_sentences.map((s, i) => (
-                            <div key={i} style={{ marginTop: "0.2rem", padding: "0.2rem 0.5rem", background: "rgba(255,255,255,0.04)", borderRadius: 5, borderLeft: "2px solid #f8717155", color: "var(--text2)" }}>
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <GroundednessBadge groundedness={groundedness} />
                   {candidatesRetrieved != null && (
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                       <span style={{ fontSize: "0.57rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Retrieval</span>
