@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import type { Bbox } from "./_types";
 
 const ACCENT = "#a78bfa";
 
@@ -11,6 +12,10 @@ type Props = {
   pageImages: string[];
   page: number | null | undefined;
   chunkType: string | null | undefined;
+  /** Page-relative [x,y,w,h] (MMRAG-07) — draws a highlighted rectangle over
+   * the exact region a table/figure citation came from. Absent for text
+   * citations (the whole page is already the relevant context there). */
+  bbox?: Bbox | null;
   source: string;
   /** Whether "find visually similar figures" was enabled at upload time —
    * hides the button entirely instead of showing one that always says
@@ -20,7 +25,7 @@ type Props = {
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, source, canFindSimilar }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, source, canFindSimilar }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -65,8 +70,22 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, so
           </button>
         )}
       </div>
-      <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`}
-        className="w-full block" style={{ maxHeight: 320, objectFit: "contain", background: "#0a0f1a" }} />
+      {/* No objectFit/maxHeight on the <img> itself — a capped, shrunk image
+          can letterbox (blank bars) inside its box, which would throw off a
+          percentage-positioned bbox overlay. Full width + auto height keeps
+          the rendered image always at its true aspect ratio; a scrollable
+          wrapper caps how much vertical space a tall page takes instead. */}
+      <div className="relative w-full overflow-y-auto" style={{ maxHeight: 320, background: "#0a0f1a" }}>
+        <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
+        {bbox && (
+          <div className="absolute pointer-events-none" style={{
+            left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
+            width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,
+            border: `2px solid ${ACCENT}`, borderRadius: 3,
+            background: `${ACCENT}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+          }} />
+        )}
+      </div>
       {similarNote && (
         <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
       )}

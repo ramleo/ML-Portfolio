@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import RagSourceCard from "@/components/RagSourceCard";
 import SearchableTextPanel from "./SearchableTextPanel";
 import { ML_UNIFIED_API } from "@/config/urls";
-import type { IngestState, TranscriptSegment } from "./_types";
+import type { Bbox, IngestState, TranscriptSegment } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 
@@ -14,7 +14,7 @@ type Props = {
   cardStyle: React.CSSProperties;
   highlightedIndex: number | null;
   onSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
-  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string) => void;
+  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null) => void;
   onSelectChapter: (time: number) => void;
 };
 
@@ -265,7 +265,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={accent}
             chunkType={c.chunkType} page={c.page} hideConfidence numberMismatch={c.numberMismatch} piiTypes={c.piiTypes}
             blurry={c.blurry}
-            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text)}
+            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text, c.bbox)}
           />
         ))
       )}

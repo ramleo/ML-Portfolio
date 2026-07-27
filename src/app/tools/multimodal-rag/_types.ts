@@ -1,5 +1,8 @@
 export type ChunkSummary = { text: number; table: number; figure: number; image?: number; video?: number };
-export type NotableChunk = { chunkType: string | null; page: number | null; text: string; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
+/** [x, y, w, h], each 0-1, page-relative (MMRAG-07) — normalized so it draws
+ * correctly over a page thumbnail of any rendered size. */
+export type Bbox = [number, number, number, number];
+export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };

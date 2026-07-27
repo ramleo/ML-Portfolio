@@ -16,7 +16,7 @@ import ShareWatermark from "./ShareWatermark";
 import RevisionPromptBanner from "./RevisionPromptBanner";
 import DocumentChipsRow from "./DocumentChipsRow";
 import ContradictionsPanel from "./ContradictionsPanel";
-import type { IngestState, RevisionCandidate, TranscriptSegment } from "./_types";
+import type { Bbox, IngestState, RevisionCandidate, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
   if (segments.length === 0) return null;
@@ -62,7 +62,7 @@ function bestMatchingSegmentIndex(segments: TranscriptSegment[], citationText: s
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [documents, setDocuments] = useState<Doc[]>([]);
-  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null } | null>(null);
+  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
@@ -91,7 +91,7 @@ export default function MmRagRunner() {
     setDocuments(docs => [...docs, result]);
     // Show page 1 of the just-uploaded doc immediately — don't make the user
     // click a citation just to discover a preview exists at all.
-    setActiveCitation({ page: 1, chunkType: null, source: result.source });
+    setActiveCitation({ page: 1, chunkType: null, source: result.source, bbox: null });
     // Ingestion diffing is informational only — never auto-replaces anything.
     // Only prompt if the flagged older doc is still actually in this session
     // (it always should be, but don't trust it blindly).
@@ -115,8 +115,8 @@ export default function MmRagRunner() {
   // transcriptSegments) additionally opens that document's summary panel
   // and highlights/scrolls to the closest-matching transcript segment.
   const jumpToCitation = useCallback((source: string, chunkType: string | null | undefined,
-                                      page: number | null | undefined, text: string) => {
-    setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source });
+                                      page: number | null | undefined, text: string, bbox?: Bbox | null) => {
+    setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source, bbox: bbox ?? null });
     if (chunkType !== "text") return;
     const doc = documents.find(d => d.source === source);
     if (!doc || doc.transcriptSegments.length === 0) return;
@@ -182,7 +182,7 @@ export default function MmRagRunner() {
         <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
           highlightedIndex={highlightedSegment?.source === d.source ? highlightedSegment.index : null}
           onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
-          onSelectChunk={(chunkType, page, text) => jumpToCitation(d.source, chunkType, page, text)}
+          onSelectChunk={(chunkType, page, text, bbox) => jumpToCitation(d.source, chunkType, page, text, bbox)}
           onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
         />
       ))}
@@ -280,13 +280,13 @@ export default function MmRagRunner() {
                 // falls back to one flat list rather than mislabeling everything.
                 const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
                 const renderCard = (s: typeof chat.sources[number], i: number) => {
-                  const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null; entities?: { type: string; value: string }[] | null };
+                  const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null; bbox?: Bbox | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null; entities?: { type: string; value: string }[] | null };
                   return (
                     <RagSourceCard key={i} source={s.source} text={s.text}
                       score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                       chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
                       piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
-                      onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text)}
+                      onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox)}
                     />
                   );
                 };
@@ -346,7 +346,7 @@ export default function MmRagRunner() {
                 </div>
               ) : activeCitation && activeDoc ? (
                 <CitationThumbnailPanel pageImages={activeDoc.pageImages} page={activeCitation.page}
-                  chunkType={activeCitation.chunkType} source={activeDoc.source}
+                  chunkType={activeCitation.chunkType} bbox={activeCitation.bbox} source={activeDoc.source}
                   canFindSimilar={activeDoc.embeddingMode === "caption+clip"} />
               ) : (
                 <div style={cardStyle} className="flex items-center justify-center py-16">
@@ -359,7 +359,7 @@ export default function MmRagRunner() {
             {activeDoc && (
               <PageThumbnailRail pageImages={activeDoc.pageImages}
                 activePage={activeCitation?.source === activeDoc.source ? activeCitation.page : null}
-                onSelect={(page) => setActiveCitation({ page, chunkType: null, source: activeDoc.source })} />
+                onSelect={(page) => setActiveCitation({ page, chunkType: null, source: activeDoc.source, bbox: null })} />
             )}
           </div>
         </div>
