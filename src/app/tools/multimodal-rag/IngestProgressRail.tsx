@@ -14,6 +14,18 @@ type Props = {
 
 const STEPS = ["extract", "embed"] as const;
 
+const AUDIO_EXT_RE = /\.(mp3|wav|m4a|ogg|flac|aac|wma)$/i;
+
+/** The indeterminate progress bar is shared across every "one atomic call,
+ * no sub-steps" upload type (image, CSV, audio) — label it by the actual
+ * file being processed instead of a hardcoded "image" string. */
+function indeterminateLabel(fileName: string | null): string {
+  const lower = (fileName ?? "").toLowerCase();
+  if (AUDIO_EXT_RE.test(lower)) return "Transcribing audio…";
+  if (lower.endsWith(".csv")) return "Analyzing spreadsheet…";
+  return "Analyzing image…";
+}
+
 function Toggle({ checked, onChange, label, caveat }: {
   checked: boolean; onChange: (v: boolean) => void; label: string; caveat: string;
 }) {
@@ -204,7 +216,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                     }} />
                   </div>
                   <style>{`@keyframes mmragIndeterminate { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }`}</style>
-                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>Analyzing image…</span>
+                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>{indeterminateLabel(fileName)}</span>
                 </>
               ) : state.pages ? (
                 <>

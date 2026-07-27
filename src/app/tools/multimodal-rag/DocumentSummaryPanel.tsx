@@ -127,10 +127,22 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
       )}
       {isAudio && (
-        // Same /rag/video/{source} endpoint — it serves raw bytes + the
-        // stored content_type generically, no audio-specific route needed.
-        <audio ref={videoRef as React.RefObject<HTMLAudioElement>} controls preload="metadata" className="w-full"
-          src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
+        <>
+          {/* Same /rag/video/{source} endpoint — it serves raw bytes + the
+              stored content_type generically, no audio-specific route needed. */}
+          <audio ref={videoRef as React.RefObject<HTMLAudioElement>} controls preload="metadata" className="w-full"
+            src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
+          <div className="flex items-center gap-1"
+            title="This transcribes speech only. Music or instrumental audio has no speech to transcribe — Whisper may still return a hallucinated (made-up) transcript for it instead of describing the sound.">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>
+              <path d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.66h18a1 1 0 00.89-1.62L13.71 3.86a1 1 0 00-1.72 0z"
+                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+              Speech only — music/instrumental audio may transcribe inaccurately
+            </span>
+          </div>
+        </>
       )}
       {(isVideo || isAudio) && duration > 0 && replayCounts.some(c => c > 0) && (() => {
         const curve = computeKdeCurve(replayCounts);
