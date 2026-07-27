@@ -74,17 +74,28 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           can letterbox (blank bars) inside its box, which would throw off a
           percentage-positioned bbox overlay. Full width + auto height keeps
           the rendered image always at its true aspect ratio; a scrollable
-          wrapper caps how much vertical space a tall page takes instead. */}
-      <div className="relative w-full overflow-y-auto" style={{ maxHeight: 320, background: "#0a0f1a" }}>
-        <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
-        {bbox && (
-          <div className="absolute pointer-events-none" style={{
-            left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
-            width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,
-            border: `2px solid ${ACCENT}`, borderRadius: 3,
-            background: `${ACCENT}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
-          }} />
-        )}
+          OUTER wrapper caps how much vertical space a tall page takes.
+          position:relative lives on the INNER wrapper (sized exactly to the
+          image, no overflow/max-height on it) — not the scrolling outer div.
+          A relative ancestor with overflow:auto + max-height (but no
+          explicit height) resolves an absolutely-positioned child's
+          percentage top/height against the CLIPPED viewport, not the full
+          scrollable content height — verified live: with position:relative
+          on the outer div, a bbox at top:50.5% rendered at 50.5% of the
+          320px clip (161px) instead of 50.5% of the image's true 787px
+          height, visibly misaligned once scrolled. */}
+      <div className="w-full overflow-y-auto" style={{ maxHeight: 320, background: "#0a0f1a" }}>
+        <div className="relative w-full">
+          <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
+          {bbox && (
+            <div className="absolute pointer-events-none" style={{
+              left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
+              width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,
+              border: `2px solid ${ACCENT}`, borderRadius: 3,
+              background: `${ACCENT}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+            }} />
+          )}
+        </div>
       </div>
       {similarNote && (
         <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
