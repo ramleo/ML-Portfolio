@@ -80,8 +80,14 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
   const hasSegments = d.transcriptSegments.length > 0;
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // HTMLVideoElement and HTMLAudioElement both extend HTMLMediaElement —
+  // one ref/one set of effects drives seek-to-segment and replay-tracking
+  // for either a <video> or an <audio> element.
+  const videoRef = useRef<HTMLMediaElement>(null);
   const isVideo = (d.summary.video ?? 0) > 0;
+  // Only video/audio uploads ever produce transcriptSegments — no separate
+  // fileType field needed to tell them apart from a PDF/image/CSV.
+  const isAudio = hasSegments && !isVideo;
   const duration = hasSegments ? d.transcriptSegments[d.transcriptSegments.length - 1].end : 0;
   const [replayCounts, setReplayCounts] = useState<number[]>(() => new Array(REPLAY_BUCKETS).fill(0));
 
@@ -116,11 +122,17 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
         Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
       </span>
       {isVideo && (
-        <video ref={videoRef} controls preload="metadata" className="w-full rounded-lg"
+        <video ref={videoRef as React.RefObject<HTMLVideoElement>} controls preload="metadata" className="w-full rounded-lg"
           style={{ maxHeight: 220, background: "#000" }}
           src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
       )}
-      {isVideo && duration > 0 && replayCounts.some(c => c > 0) && (() => {
+      {isAudio && (
+        // Same /rag/video/{source} endpoint — it serves raw bytes + the
+        // stored content_type generically, no audio-specific route needed.
+        <audio ref={videoRef as React.RefObject<HTMLAudioElement>} controls preload="metadata" className="w-full"
+          src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
+      )}
+      {(isVideo || isAudio) && duration > 0 && replayCounts.some(c => c > 0) && (() => {
         const curve = computeKdeCurve(replayCounts);
         const max = Math.max(...curve) || 1;
         const H = 20;
@@ -194,7 +206,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               placeholder="Search transcript…"
               accent={accent}
               highlightedKey={highlightedIndex}
-              onSelect={isVideo ? (key) => {
+              onSelect={(isVideo || isAudio) ? (key) => {
                 const seg = d.transcriptSegments[key as number];
                 if (videoRef.current && seg) videoRef.current.currentTime = seg.start;
               } : undefined}
