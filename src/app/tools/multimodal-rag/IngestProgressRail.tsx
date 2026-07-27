@@ -106,8 +106,8 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 cached: !!evt.cached,
                 saveScope: evt.save_scope,
                 embeddingMode,
-                notableChunks: (evt.notable_chunks ?? []).map((c: { chunk_type: string | null; page: number | null; text: string; bbox?: [number, number, number, number] | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null }) => ({
-                  chunkType: c.chunk_type, page: c.page, text: c.text, bbox: c.bbox ?? null, numberMismatch: !!c.number_mismatch, piiTypes: c.pii_types ?? null, blurry: !!c.blurry,
+                notableChunks: (evt.notable_chunks ?? []).map((c: { chunk_type: string | null; page: number | null; text: string; bbox?: [number, number, number, number] | null; objects?: { label: string; confidence: number; bbox: [number, number, number, number] }[] | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null }) => ({
+                  chunkType: c.chunk_type, page: c.page, text: c.text, bbox: c.bbox ?? null, objects: c.objects ?? null, numberMismatch: !!c.number_mismatch, piiTypes: c.pii_types ?? null, blurry: !!c.blurry,
                 })),
                 transcript: evt.transcript ?? null,
                 transcriptSegments: (evt.transcript_segments ?? []).map((s: { start: number; end: number; text: string; speaker?: string | null }) => ({

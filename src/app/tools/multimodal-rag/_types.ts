@@ -2,7 +2,11 @@ export type ChunkSummary = { text: number; table: number; figure: number; image?
 /** [x, y, w, h], each 0-1, page-relative (MMRAG-07) — normalized so it draws
  * correctly over a page thumbnail of any rendered size. */
 export type Bbox = [number, number, number, number];
-export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
+/** One closed-vocabulary (COCO 80-class) detection on an image/video-frame
+ * citation (MMRAG-07 follow-up) — precomputed at ingest, matched against
+ * the asked question's wording at display time, no query-time vision call. */
+export type DetectedObject = { label: string; confidence: number; bbox: Bbox };
+export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
