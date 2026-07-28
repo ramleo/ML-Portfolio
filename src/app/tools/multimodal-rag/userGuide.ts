@@ -47,7 +47,10 @@ every matching word and lets you step through matches one at a time.
 The actual video is also playable right there in the summary panel —
 clicking any transcript line, a chapter, or a transcript-based citation
 seeks playback to that exact moment, the same way YouTube's transcript
-panel works.
+panel works. A citation for a captioned video FRAME (something visual, not
+spoken — e.g. "what's written on the whiteboard") jumps and seeks the same
+way, straight to the exact second that frame was sampled from, even though
+there's no transcript segment behind it.
 
 For videos with more than one person talking, each transcript segment is
 also labeled with who's speaking ("Speaker 1," "Speaker 2," etc.) when

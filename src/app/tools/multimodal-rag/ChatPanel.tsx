@@ -19,7 +19,7 @@ type Props = {
   setSettingsOpen: (fn: (o: boolean) => boolean) => void;
   jumpToCitation: (source: string, chunkType: string | null | undefined,
                    page: number | null | undefined, text: string, bbox?: Bbox | null,
-                   objects?: DetectedObject[] | null) => void;
+                   objects?: DetectedObject[] | null, timestampS?: number | null) => void;
 };
 
 /** The chat message list + input box + citation cards — split out of
@@ -117,7 +117,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
           const renderCard = (s: typeof chat.sources[number], i: number) => {
             const withMeta = s as typeof s & {
-              chunk_type?: string | null; page?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null;
+              chunk_type?: string | null; page?: number | null; timestamp_s?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null;
               number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null;
               entities?: { type: string; value: string }[] | null;
               retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number } } | null;
@@ -130,7 +130,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
                 piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
                 retrievalTrace={withMeta.retrieval_trace} hybridScore={withMeta.hybrid_score}
                 rerankScore={withMeta.rerank_score} typeBoost={withMeta.type_boost}
-                onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects)}
+                onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects, withMeta.timestamp_s)}
               />
             );
           };

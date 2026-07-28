@@ -13,8 +13,12 @@ type Props = {
   accent: string;
   cardStyle: React.CSSProperties;
   highlightedIndex: number | null;
+  /** Real seconds to seek the video/audio player to directly (MMRAG-09) —
+   * for a visual-only frame citation, which has no transcript segment to
+   * highlight via highlightedIndex above. Null otherwise. */
+  seekTime: number | null;
   onSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
-  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null, objects?: DetectedObject[] | null) => void;
+  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null, objects?: DetectedObject[] | null, timestampS?: number | null) => void;
   onSelectChapter: (time: number) => void;
 };
 
@@ -75,7 +79,7 @@ function computeKdeCurve(replayCounts: number[]): number[] {
   return grid;
 }
 
-export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex,
+export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex, seekTime,
                                                onSegmentRef, onSelectChunk, onSelectChapter }: Props) {
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
   const hasSegments = d.transcriptSegments.length > 0;
@@ -99,6 +103,14 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
     const seg = d.transcriptSegments[highlightedIndex];
     if (seg) videoRef.current.currentTime = seg.start;
   }, [highlightedIndex, d.transcriptSegments]);
+
+  // A visual-only frame citation (MMRAG-09) has no transcript segment to
+  // key off of — it carries its own real timestamp instead, seeked here
+  // directly rather than through the segment-index path above.
+  useEffect(() => {
+    if (seekTime === null || !videoRef.current) return;
+    videoRef.current.currentTime = seekTime;
+  }, [seekTime]);
 
   // Tracks which part of the video gets rewound-to-and-replayed within THIS
   // session/viewer only — the browser "seeked" event fires on an explicit
@@ -265,7 +277,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={accent}
             chunkType={c.chunkType} page={c.page} hideConfidence numberMismatch={c.numberMismatch} piiTypes={c.piiTypes}
             blurry={c.blurry}
-            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text, c.bbox, c.objects)}
+            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text, c.bbox, c.objects, c.timestampS)}
           />
         ))
       )}

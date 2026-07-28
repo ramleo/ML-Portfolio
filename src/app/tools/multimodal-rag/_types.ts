@@ -6,7 +6,9 @@ export type Bbox = [number, number, number, number];
  * citation (MMRAG-07 follow-up) — precomputed at ingest, matched against
  * the asked question's wording at display time, no query-time vision call. */
 export type DetectedObject = { label: string; confidence: number; bbox: Bbox };
-export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean };
+export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
+  /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
+  timestampS?: number | null };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };

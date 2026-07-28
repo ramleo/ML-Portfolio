@@ -99,6 +99,9 @@ export default function MmRagRunner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
+  // A visual-only video-frame citation (MMRAG-09) — no transcript segment
+  // to key off of, so it carries its own real timestamp instead.
+  const [videoSeek, setVideoSeek] = useState<{ source: string; time: number } | null>(null);
   const segmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const [isSharedView, setIsSharedView] = useState(false);
   const [revisionPrompt, setRevisionPrompt] = useState<{ newSource: string; old: RevisionCandidate } | null>(null);
@@ -149,14 +152,26 @@ export default function MmRagRunner() {
   // and highlights/scrolls to the closest-matching transcript segment.
   const jumpToCitation = useCallback((source: string, chunkType: string | null | undefined,
                                       page: number | null | undefined, text: string, bbox?: Bbox | null,
-                                      objects?: DetectedObject[] | null) => {
+                                      objects?: DetectedObject[] | null, timestampS?: number | null) => {
     setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source, bbox: bbox ?? null, objects: objects ?? null });
+    // A captioned video frame (MMRAG-09) — nothing was necessarily SAID at
+    // this moment, so there's no transcript segment to match against; jump
+    // straight to the frame's own real timestamp instead.
+    if (chunkType === "video" && typeof timestampS === "number") {
+      const doc = documents.find(d => d.source === source);
+      if (!doc || (doc.summary.video ?? 0) === 0) return;
+      setSummaryOpenFor(source);
+      setHighlightedSegment(null);
+      setVideoSeek({ source, time: timestampS });
+      return;
+    }
     if (chunkType !== "text") return;
     const doc = documents.find(d => d.source === source);
     if (!doc || doc.transcriptSegments.length === 0) return;
     const idx = bestMatchingSegmentIndex(doc.transcriptSegments, text);
     if (idx === null) return;
     setSummaryOpenFor(source);
+    setVideoSeek(null);
     setHighlightedSegment({ source, index: idx });
   }, [documents]);
 
@@ -164,6 +179,7 @@ export default function MmRagRunner() {
     const idx = nearestSegmentIndex(segments, time);
     if (idx === null) return;
     setSummaryOpenFor(source);
+    setVideoSeek(null);
     setHighlightedSegment({ source, index: idx });
   }, []);
 
@@ -215,8 +231,9 @@ export default function MmRagRunner() {
       {documents.map(d => summaryOpenFor === d.source && (
         <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
           highlightedIndex={highlightedSegment?.source === d.source ? highlightedSegment.index : null}
+          seekTime={videoSeek?.source === d.source ? videoSeek.time : null}
           onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
-          onSelectChunk={(chunkType, page, text, bbox, objects) => jumpToCitation(d.source, chunkType, page, text, bbox, objects)}
+          onSelectChunk={(chunkType, page, text, bbox, objects, timestampS) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS)}
           onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
         />
       ))}
