@@ -275,15 +275,22 @@ that answer came from — click one to expand it and see more.
   heuristic based on text similarity, not a fact-checker — a true but
   unusually-worded sentence can occasionally get flagged too. The badge is
   simply absent (not shown at all) for an answer in a non-English script
-  (Hindi, Chinese, Arabic, etc.) — the similarity check can't reliably
-  compare across scripts, so it stays silent instead of showing a
-  misleadingly low score for what may be a perfectly correct answer.
+  (Hindi, Telugu, Chinese, Arabic, etc.) — the similarity check compares
+  text using an English-centric model, which can't reliably tell a correct
+  translation from an unrelated sentence once the script changes. Rather
+  than risk showing a misleadingly low score on an accurate answer, it
+  skips the check entirely and shows nothing — a deliberate "we chose not
+  to guess," not a bug or a missing feature. (If you're looking at the raw
+  API response instead of the UI, this is the groundedness field coming
+  back as null for that answer.)
 - **Ask in your own language.** You don't need to ask in English — type
   your question in whatever language you're comfortable with (Hindi,
-  Spanish, French, etc.) and the answer comes back in that same language,
-  translated from the underlying English captions/transcripts on the fly.
-  Citations and the retrieved source text itself stay in their original
-  (usually English) language either way — only the written answer adapts.
+  Telugu, Spanish, French, etc.) and the answer comes back in that same
+  language, translated from the underlying English captions/transcripts on
+  the fly. Citations and the retrieved source text itself stay in their
+  original (usually English) language either way — only the written answer
+  adapts. Expect no Groundedness badge on these answers, for the reason
+  above.
 - **"Why was this cited?" trace.** Expand a citation and, below the source
   text, a "Why was this cited?" link opens the actual retrieval signals
   behind that specific citation's rank — not just that it was picked, but
