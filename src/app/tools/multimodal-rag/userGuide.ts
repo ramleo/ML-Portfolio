@@ -284,6 +284,16 @@ that answer came from — click one to expand it and see more.
   these signals was actually tracked for that citation — a cached answer
   (repeating an earlier question) doesn't carry the original trace, so it's
   omitted rather than shown empty.
+  Clicking it never re-runs anything — it just reveals numbers already sent
+  with that specific answer, a frozen snapshot of that one retrieval run.
+  Those numbers can look different for the SAME document across different
+  questions, and that's expected, not a bug: every question re-scores and
+  re-ranks against whatever's in the candidate pool at that moment. Example:
+  a bicycle photo's citation might rank #1 with a high semantic score when
+  it's the only document uploaded, then show a lower score and #2 rank on a
+  later question after a car photo (or any other document) joins the chat —
+  it's now being scored and ranked alongside genuinely more candidates, not
+  because anything about the bicycle photo itself changed.
 
 ## Locating objects in an image or video frame
 Every standalone image and every sampled video frame is also run through a
