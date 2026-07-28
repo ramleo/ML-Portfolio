@@ -31,6 +31,21 @@ function nearestSegmentIndex(segments: TranscriptSegment[], time: number): numbe
  * label first so a multi-word class ("traffic light") wins over a
  * shorter overlapping word. Word-boundary match avoids "car" firing
  * inside "scar"/"cart". */
+
+// Open Images V7 is hierarchical (e.g. "Man"/"Woman"/"Boy"/"Girl" are all
+// subclasses of "Person") — the detector reports whichever specific
+// subclass it actually recognized, not the generic parent, so a literal
+// label match alone misses a real, common phrasing. Observed live: "locate
+// the person" found nothing on a frame where "Man" was detected at 73%
+// confidence, since "person" never appears as a label named "Man". Only
+// covers the generic terms someone would plausibly type, not the full
+// 601-class taxonomy.
+const HIERARCHY_SYNONYMS: Record<string, string[]> = {
+  person: ["man", "woman", "boy", "girl"],
+  people: ["man", "woman", "boy", "girl"],
+  vehicle: ["car", "truck", "van", "bus", "bicycle", "motorcycle", "train", "airplane", "boat", "limousine", "taxi"],
+};
+
 function matchObjectToQuestion(objects: DetectedObject[] | null | undefined, question: string): DetectedObject | null {
   if (!objects?.length || !question.trim()) return null;
   const q = question.toLowerCase();
@@ -38,6 +53,11 @@ function matchObjectToQuestion(objects: DetectedObject[] | null | undefined, que
   for (const obj of sorted) {
     const escaped = obj.label.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     if (new RegExp(`\\b${escaped}\\b`).test(q)) return obj;
+  }
+  for (const [generic, subclasses] of Object.entries(HIERARCHY_SYNONYMS)) {
+    if (!new RegExp(`\\b${generic}\\b`).test(q)) continue;
+    const match = sorted.find(obj => subclasses.includes(obj.label.toLowerCase()));
+    if (match) return match;
   }
   return null;
 }
