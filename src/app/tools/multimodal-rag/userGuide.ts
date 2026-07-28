@@ -318,6 +318,21 @@ meant to place things in general terms, not measure them precisely.
   product shot or a close-up), the drawn box runs almost all the way around
   the image's edges rather than tightly hugging just the object — easy to
   miss at a glance since it looks similar to the image's own border.
+- **A few generic terms are matched to their specific detected subclass.**
+  The 601-type vocabulary is hierarchical — a photo's person is detected as
+  the more specific "Man," "Woman," "Boy," or "Girl," never the generic
+  "Person," and similarly a vehicle is detected as "Car," "Truck," "Bus,"
+  etc, never generic "Vehicle." Asking "locate the person" or "where's the
+  vehicle" still works — those two generic terms are mapped to whichever
+  specific subclass was actually detected. This mapping only covers
+  person/people and vehicle right now; other generic-vs-specific mismatches
+  in the 601 types aren't covered, so if a box doesn't appear, try naming
+  the more specific type instead (e.g. "dog" instead of "animal").
+- **The confidence label always stays fully inside the image.** The small
+  colored tag showing the label and confidence percentage sits inside the
+  box's top-left corner rather than floating above it — so it's never cut
+  off, even when the detected object is right at the top edge of the frame
+  (common for a person/subject filling most of a close-up shot).
 - **The detected list can look repetitive or overlapping.** Because the
   601-type vocabulary includes both general and specific categories (e.g.
   "Wheel," "Bicycle wheel," and "Tire" are all separate types), a single
