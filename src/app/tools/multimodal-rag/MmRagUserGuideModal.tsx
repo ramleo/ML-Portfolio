@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import { MM_RAG_GUIDE } from "./userGuide";
 
 const ACCENT = "#a78bfa";
@@ -77,6 +78,26 @@ function plainText(block: string): string {
 // a single-word lookup.
 function guideMatches(block: string, query: string): boolean {
   return plainText(block).toLowerCase().includes(query.trim().toLowerCase());
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Wraps every occurrence of `query` in the RAW markdown source (not the
+// stripped plainText version — offsets would no longer line up) with a
+// literal <mark> tag, rendered via rehype-raw below. Matching directly on
+// the raw string means a query that happens to straddle markdown syntax
+// (e.g. inside "**bold**") won't be found here even though it IS found by
+// guideMatches() above (which strips syntax first) — an accepted gap: that
+// block still gets located and scrolled to, it just won't show the inline
+// <mark>, since wrapping a match that spans an actual markdown delimiter
+// would corrupt the syntax rather than just highlight text.
+function highlightBlock(block: string, query: string): string {
+  const q = query.trim();
+  if (!q) return block;
+  const re = new RegExp(escapeRegExp(q), "gi");
+  return block.replace(re, (m) => `<mark style="background:${ACCENT};color:#0b0b12;border-radius:3px;padding:0 1px;">${m}</mark>`);
 }
 
 export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -158,7 +179,9 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
                 background: activeIdx === i ? `${ACCENT}18` : "transparent",
                 borderRadius: 6, transition: "background 0.2s",
               }}>
-              <ReactMarkdown components={MD}>{block}</ReactMarkdown>
+              <ReactMarkdown components={MD} rehypePlugins={[rehypeRaw]}>
+                {query.trim() ? highlightBlock(block, query) : block}
+              </ReactMarkdown>
             </div>
           ))}
         </div>
