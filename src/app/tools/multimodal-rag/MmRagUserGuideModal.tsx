@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { MM_RAG_GUIDE } from "./userGuide";
-import { textMatches } from "./wordMatch";
 
 const ACCENT = "#a78bfa";
 
@@ -69,13 +68,24 @@ function plainText(block: string): string {
   return block.replace(/[#*`_]/g, "");
 }
 
+// Plain case-insensitive substring match — NOT wordMatch.ts's `textMatches`,
+// which is built for single-word transcript search (prefix + stemmer,
+// comparing one typed word against one document word) and never matches a
+// multi-word phrase like "bounding box" (no single word starts with a
+// two-word string). A full-guide search needs ordinary phrase matching —
+// someone typing "why was this cited" expects that whole phrase found, not
+// a single-word lookup.
+function guideMatches(block: string, query: string): boolean {
+  return plainText(block).toLowerCase().includes(query.trim().toLowerCase());
+}
+
 export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [matchCursor, setMatchCursor] = useState(0);
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
   const blocks = useMemo(() => splitBlocks(MM_RAG_GUIDE), []);
   const matchIndices = useMemo(
-    () => query.trim() ? blocks.reduce<number[]>((acc, b, i) => (textMatches(plainText(b), query) ? [...acc, i] : acc), []) : [],
+    () => query.trim() ? blocks.reduce<number[]>((acc, b, i) => (guideMatches(b, query) ? [...acc, i] : acc), []) : [],
     [blocks, query]
   );
   const activeIdx = matchIndices.length ? matchIndices[matchCursor % matchIndices.length] : null;
