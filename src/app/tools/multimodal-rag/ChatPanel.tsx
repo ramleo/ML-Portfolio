@@ -116,12 +116,20 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           // falls back to one flat list rather than mislabeling everything.
           const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
           const renderCard = (s: typeof chat.sources[number], i: number) => {
-            const withMeta = s as typeof s & { chunk_type?: string | null; page?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null; number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null; entities?: { type: string; value: string }[] | null };
+            const withMeta = s as typeof s & {
+              chunk_type?: string | null; page?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null;
+              number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null;
+              entities?: { type: string; value: string }[] | null;
+              retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number } } | null;
+              hybrid_score?: number | null; rerank_score?: number | null; type_boost?: number | null;
+            };
             return (
               <RagSourceCard key={i} source={s.source} text={s.text}
                 score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                 chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
                 piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
+                retrievalTrace={withMeta.retrieval_trace} hybridScore={withMeta.hybrid_score}
+                rerankScore={withMeta.rerank_score} typeBoost={withMeta.type_boost}
                 onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects)}
               />
             );

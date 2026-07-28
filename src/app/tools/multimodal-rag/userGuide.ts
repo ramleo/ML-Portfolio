@@ -265,6 +265,25 @@ that answer came from — click one to expand it and see more.
   unsupported" so you know exactly which part to double-check. It's a
   heuristic based on text similarity, not a fact-checker — a true but
   unusually-worded sentence can occasionally get flagged too.
+- **"Why was this cited?" trace.** Expand a citation and, below the source
+  text, a "Why was this cited?" link opens the actual retrieval signals
+  behind that specific citation's rank — not just that it was picked, but
+  which of two independent search methods found it and how confidently.
+  Two engines run on every question: a semantic search (matches meaning,
+  even with different wording) and a keyword search (matches exact terms,
+  even rare ones the semantic model might gloss over). A citation shows
+  whichever of the two actually surfaced it, its raw score, and its rank
+  within that method's own results — some citations were found by both,
+  some by only one. When your question's wording suggested a specific
+  content type (e.g. asking about a "table" or "chart"), a boost multiplier
+  shown here explains why a short table/figure citation outranked a longer
+  passage that would otherwise dominate. A final relevance percentage shows
+  the last check applied — an actual re-read of the citation against your
+  exact question, which is what really decided its final rank and whether
+  it made the cut at all. This section only appears when at least one of
+  these signals was actually tracked for that citation — a cached answer
+  (repeating an earlier question) doesn't carry the original trace, so it's
+  omitted rather than shown empty.
 
 ## Locating objects in an image or video frame
 Every standalone image and every sampled video frame is also run through a
