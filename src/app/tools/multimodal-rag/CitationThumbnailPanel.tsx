@@ -103,8 +103,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               border: `2px solid ${OBJECT_COLOR}`, borderRadius: 3,
               background: `${OBJECT_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
             }}>
+              {/* Sits INSIDE the box's top edge, not floating above it — a
+                  box near the top of the frame (bbox y close to 0, common
+                  for a speaker/subject filling most of the shot) would push
+                  an above-box label above the image itself, clipped by the
+                  container with no way to scroll up to see it. Inside-top
+                  placement can never go off-frame, whatever the box's
+                  position. */}
               <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
-                style={{ top: -22, left: 0, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
+                style={{ top: 2, left: 2, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
                 {matchedObject.label} ({Math.round(matchedObject.confidence * 100)}%)
               </span>
             </div>
