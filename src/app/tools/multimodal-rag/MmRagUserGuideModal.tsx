@@ -109,7 +109,12 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
     () => query.trim() ? blocks.reduce<number[]>((acc, b, i) => (guideMatches(b, query) ? [...acc, i] : acc), []) : [],
     [blocks, query]
   );
-  const activeIdx = matchIndices.length ? matchIndices[matchCursor % matchIndices.length] : null;
+  // JS's % doesn't wrap negatives back into range ((-1) % 3 === -1, not 2)
+  // — matchCursor can go negative from repeated ↑/Shift+Enter at the first
+  // match, so a plain modulo would index matchIndices with -1 and silently
+  // stop scrolling. +n before the second % normalizes it back to [0, n).
+  const cursorPos = matchIndices.length ? ((matchCursor % matchIndices.length) + matchIndices.length) % matchIndices.length : 0;
+  const activeIdx = matchIndices.length ? matchIndices[cursorPos] : null;
 
   useEffect(() => { setMatchCursor(0); }, [query]);
   useEffect(() => {
@@ -150,6 +155,19 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => {
+              // Enter/↓ = next match, Shift+Enter/↑ = previous — same
+              // increment/decrement the ↑/↓ buttons already call, just
+              // reachable without leaving the keyboard.
+              if (!matchIndices.length) return;
+              if (e.key === "Enter" || e.key === "ArrowDown") {
+                e.preventDefault();
+                setMatchCursor(c => c + (e.key === "Enter" && e.shiftKey ? -1 : 1));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMatchCursor(c => c - 1);
+              }
+            }}
             placeholder="Search this guide…"
             className="flex-1 text-[11px] px-2 py-1 rounded border bg-transparent outline-none"
             style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
@@ -157,7 +175,7 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
           {query.trim() && (
             <>
               <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-                {matchIndices.length ? `${(matchCursor % matchIndices.length) + 1}/${matchIndices.length}` : "0"}
+                {matchIndices.length ? `${cursorPos + 1}/${matchIndices.length}` : "0"}
               </span>
               <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchIndices.length}
                 className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-white/5 disabled:opacity-40"
