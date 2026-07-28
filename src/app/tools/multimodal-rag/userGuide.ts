@@ -30,7 +30,13 @@ exists, only 2 visual frames are sampled (rather than 6): for a
 talking-head video the audio already carries the content, so extra frames
 mostly just confirm the scene hasn't changed. A silent video, or one whose
 audio can't be transcribed, samples the full 6 frames instead, since frames
-are then the only available signal. Each sampled frame is described and
+are then the only available signal. Those frames aren't just evenly spaced
+in time — the video is scanned for real scene changes first (comparing
+frames in the frequency domain, the same technique behind the blur-quality
+check), so a video with a couple of distinct shots samples near where they
+actually change instead of risking 6 near-duplicate frames of the same
+shot. A video with no clear scene changes (a static talking-head shot)
+falls back to plain even spacing. Each sampled frame is described and
 OCRed just like a PDF's figures (the caption itself notes what timestamp it
 was taken at), and citations are labeled "Video Frame."
 
