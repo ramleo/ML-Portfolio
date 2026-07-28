@@ -273,7 +273,17 @@ that answer came from — click one to expand it and see more.
   match anything retrieved well, it's listed underneath as "possibly
   unsupported" so you know exactly which part to double-check. It's a
   heuristic based on text similarity, not a fact-checker — a true but
-  unusually-worded sentence can occasionally get flagged too.
+  unusually-worded sentence can occasionally get flagged too. The badge is
+  simply absent (not shown at all) for an answer in a non-English script
+  (Hindi, Chinese, Arabic, etc.) — the similarity check can't reliably
+  compare across scripts, so it stays silent instead of showing a
+  misleadingly low score for what may be a perfectly correct answer.
+- **Ask in your own language.** You don't need to ask in English — type
+  your question in whatever language you're comfortable with (Hindi,
+  Spanish, French, etc.) and the answer comes back in that same language,
+  translated from the underlying English captions/transcripts on the fly.
+  Citations and the retrieved source text itself stay in their original
+  (usually English) language either way — only the written answer adapts.
 - **"Why was this cited?" trace.** Expand a citation and, below the source
   text, a "Why was this cited?" link opens the actual retrieval signals
   behind that specific citation's rank — not just that it was picked, but
