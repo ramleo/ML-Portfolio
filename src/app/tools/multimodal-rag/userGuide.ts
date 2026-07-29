@@ -26,7 +26,13 @@ so a precise question ("what was Q3 revenue, exactly") gets answered from
 the real extracted number, not the AI's rough paraphrase of the chart.
 That table shows up as its own citation, downloadable as CSV and plottable
 as a mini bar chart, exactly like a table pulled straight from the
-document.
+document. This depends on the AI reading the chart correctly — a chart
+with clear printed data labels is reliable; one with no data labels at
+all (values only readable by judging bar height against the axis), a
+rotated/cramped axis, a log scale, or overlapping bars is inherently
+harder to read accurately and hasn't been extensively tested. Treat an
+extracted chart value the same as any other AI-read number: quick to
+check against the original if the answer matters.
 
 You can also upload a single photo or image (PNG, JPG, GIF, WEBP) on its own
 — no PDF needed. The AI writes a thorough description of everything in it
