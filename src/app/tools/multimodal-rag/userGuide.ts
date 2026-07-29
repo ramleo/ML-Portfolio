@@ -403,6 +403,17 @@ meant to place things in general terms, not measure them precisely.
   person/people and vehicle right now; other generic-vs-specific mismatches
   in the 601 types aren't covered, so if a box doesn't appear, try naming
   the more specific type instead (e.g. "dog" instead of "animal").
+- **A "Detect faces" button highlights every face at once, independent of
+  any question.** When a citation's image/frame has at least one confidently
+  detected "Human face," a "Detect faces" button appears above it — click it
+  to box EVERY detected face at once, regardless of what you asked (or
+  whether you asked anything). This is separate from the question-matching
+  behavior above: that draws one box for whatever the question named; this
+  draws all faces, on demand, with no question needed. The button doesn't
+  appear at all when no face was confidently detected in that specific
+  image/frame — not every photo with a person in it will show one, since
+  detecting a whole person ("Man"/"Woman") and confidently isolating just
+  their face are different, independent detections.
 - **The confidence label always stays fully inside the image.** The small
   colored tag showing the label and confidence percentage sits inside the
   box's top-left corner rather than floating above it — so it's never cut
