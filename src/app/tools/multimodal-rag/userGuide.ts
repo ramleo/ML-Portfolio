@@ -15,7 +15,11 @@ paragraphs. Every answer cites the page and content type (text, table, or
 figure) it came from. A page with two unrelated visuals — say, a chart and
 a company logo — gets each one described and cited separately instead of
 blended into one caption, so an answer about the chart doesn't accidentally
-pull in details from the logo sitting next to it.
+pull in details from the logo sitting next to it. A row of several small
+images that only make sense together — a career timeline of company
+logos, for instance — is recognized as one group and captioned as such,
+even though no single logo in it is large enough to trigger captioning on
+its own.
 
 You can also upload a single photo or image (PNG, JPG, GIF, WEBP) on its own
 — no PDF needed. The AI writes a thorough description of everything in it
