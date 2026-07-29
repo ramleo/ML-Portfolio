@@ -12,7 +12,10 @@ plain text search, this tool reads tables as structured data and writes an AI
 description of every chart or photo, so it can answer questions whose answer
 lives in a number buried in a table or a trend shown in a chart, not just in
 paragraphs. Every answer cites the page and content type (text, table, or
-figure) it came from.
+figure) it came from. A page with two unrelated visuals — say, a chart and
+a company logo — gets each one described and cited separately instead of
+blended into one caption, so an answer about the chart doesn't accidentally
+pull in details from the logo sitting next to it.
 
 You can also upload a single photo or image (PNG, JPG, GIF, WEBP) on its own
 — no PDF needed. The AI writes a thorough description of everything in it
