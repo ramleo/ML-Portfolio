@@ -259,6 +259,7 @@ export default function MmRagRunner() {
                     activeCitation.objects,
                     [...chat.messages].reverse().find(m => m.role === "user")?.content ?? ""
                   )}
+                  objects={activeCitation.objects}
                   source={activeDoc.source}
                   canFindSimilar={activeDoc.embeddingMode === "caption+clip"} />
               ) : (

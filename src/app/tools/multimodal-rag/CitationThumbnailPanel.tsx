@@ -22,6 +22,12 @@ type Props = {
    * — computed by the caller since only it knows what was actually asked.
    * Takes priority over `bbox` when both are present (more specific). */
   matchedObject?: DetectedObject | null;
+  /** Every precomputed detection on this citation's image/frame (not just
+   * the one matching the current question) — powers the "Detect faces"
+   * toggle below, which highlights ALL faces found regardless of what was
+   * asked. Same detections MMRAG-07's "where is the X" already uses; this
+   * is a second, independent way to surface them, no extra vision call. */
+  objects?: DetectedObject[] | null;
   source: string;
   /** Whether "find visually similar figures" was enabled at upload time —
    * hides the button entirely instead of showing one that always says
@@ -30,11 +36,14 @@ type Props = {
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
+const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObject, source, canFindSimilar }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObject, objects, source, canFindSimilar }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
+  const [showFaces, setShowFaces] = useState(false);
+  const faces = (objects ?? []).filter(o => o.label === "Human face");
 
   if (!page || page < 1 || page > pageImages.length) return null;
   const img = pageImages[page - 1];
@@ -68,13 +77,24 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
           Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
         </span>
-        {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
-          <button onClick={findSimilar} disabled={loadingSimilar}
-            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-            style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
-            {loadingSimilar ? "Checking…" : "Find similar figures"}
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {faces.length > 0 && (
+            <button onClick={() => setShowFaces(v => !v)}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={showFaces
+                ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
+                : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
+              {showFaces ? "Hide faces" : `Detect faces (${faces.length})`}
+            </button>
+          )}
+          {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
+            <button onClick={findSimilar} disabled={loadingSimilar}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
+              {loadingSimilar ? "Checking…" : "Find similar figures"}
+            </button>
+          )}
+        </div>
       </div>
       {/* No objectFit/maxHeight on the <img> itself — a capped, shrunk image
           can letterbox (blank bars) inside its box, which would throw off a
@@ -93,10 +113,24 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       <div className="w-full overflow-y-auto" style={{ maxHeight: 320, background: "#0a0f1a" }}>
         <div className="relative w-full">
           <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
-          {/* matchedObject (a specific "where is the X" answer) takes
-              priority over the static table/figure bbox — more specific
-              to what was actually asked. */}
-          {matchedObject ? (
+          {/* "Detect faces" takes priority when toggled on — an explicit,
+              deliberate request to see every face, regardless of what
+              question (if any) was asked. Shows ALL matching detections at
+              once, not just one, so it maps over `faces` instead of the
+              single-box pattern below. */}
+          {showFaces ? faces.map((f, i) => (
+            <div key={i} className="absolute pointer-events-none" style={{
+              left: `${f.bbox[0] * 100}%`, top: `${f.bbox[1] * 100}%`,
+              width: `${f.bbox[2] * 100}%`, height: `${f.bbox[3] * 100}%`,
+              border: `2px solid ${FACE_COLOR}`, borderRadius: 3,
+              background: `${FACE_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+            }}>
+              <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
+                style={{ top: 2, left: 2, background: FACE_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
+                Face ({Math.round(f.confidence * 100)}%)
+              </span>
+            </div>
+          )) : matchedObject ? (
             <div className="absolute pointer-events-none" style={{
               left: `${matchedObject.bbox[0] * 100}%`, top: `${matchedObject.bbox[1] * 100}%`,
               width: `${matchedObject.bbox[2] * 100}%`, height: `${matchedObject.bbox[3] * 100}%`,
