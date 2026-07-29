@@ -19,7 +19,14 @@ pull in details from the logo sitting next to it. A row of several small
 images that only make sense together — a career timeline of company
 logos, for instance — is recognized as one group and captioned as such,
 even though no single logo in it is large enough to trigger captioning on
-its own.
+its own. When a chart has genuinely readable numeric values — printed data
+labels, or bar heights read against the axis scale — those values are
+pulled out as their own little data table alongside the prose description,
+so a precise question ("what was Q3 revenue, exactly") gets answered from
+the real extracted number, not the AI's rough paraphrase of the chart.
+That table shows up as its own citation, downloadable as CSV and plottable
+as a mini bar chart, exactly like a table pulled straight from the
+document.
 
 You can also upload a single photo or image (PNG, JPG, GIF, WEBP) on its own
 — no PDF needed. The AI writes a thorough description of everything in it
