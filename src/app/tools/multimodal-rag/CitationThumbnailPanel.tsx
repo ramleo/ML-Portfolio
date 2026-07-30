@@ -17,11 +17,13 @@ type Props = {
    * the exact region a table/figure citation came from. Absent for text
    * citations (the whole page is already the relevant context there). */
   bbox?: Bbox | null;
-  /** The precomputed (COCO 80-class) detection matching the current
-   * question's wording (MMRAG-07 follow-up, e.g. "where is the cyclist")
-   * — computed by the caller since only it knows what was actually asked.
-   * Takes priority over `bbox` when both are present (more specific). */
-  matchedObject?: DetectedObject | null;
+  /** Every precomputed detection matching the current question's wording
+   * (MMRAG-07 follow-up, e.g. "where is the goldfish") — computed by the
+   * caller since only it knows what was actually asked. Plural: an image
+   * can have more than one detection sharing the matched label (two
+   * separate goldfish), and all of them should be highlighted, not just
+   * one. Takes priority over `bbox` when both are present (more specific). */
+  matchedObjects?: DetectedObject[] | null;
   /** Every precomputed detection on this citation's image/frame (not just
    * the one matching the current question) — powers the "Detect faces"
    * toggle below, which highlights ALL faces found regardless of what was
@@ -38,7 +40,7 @@ type Props = {
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObject, objects, source, canFindSimilar }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -130,10 +132,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
                 Face ({Math.round(f.confidence * 100)}%)
               </span>
             </div>
-          )) : matchedObject ? (
-            <div className="absolute pointer-events-none" style={{
-              left: `${matchedObject.bbox[0] * 100}%`, top: `${matchedObject.bbox[1] * 100}%`,
-              width: `${matchedObject.bbox[2] * 100}%`, height: `${matchedObject.bbox[3] * 100}%`,
+          )) : matchedObjects && matchedObjects.length > 0 ? matchedObjects.map((obj, i) => (
+            <div key={i} className="absolute pointer-events-none" style={{
+              left: `${obj.bbox[0] * 100}%`, top: `${obj.bbox[1] * 100}%`,
+              width: `${obj.bbox[2] * 100}%`, height: `${obj.bbox[3] * 100}%`,
               border: `2px solid ${OBJECT_COLOR}`, borderRadius: 3,
               background: `${OBJECT_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
             }}>
@@ -146,10 +148,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
                   position. */}
               <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
                 style={{ top: 2, left: 2, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
-                {matchedObject.label} ({Math.round(matchedObject.confidence * 100)}%)
+                {obj.label} ({Math.round(obj.confidence * 100)}%)
               </span>
             </div>
-          ) : bbox && (
+          )) : bbox && (
             <div className="absolute pointer-events-none" style={{
               left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
               width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,

@@ -46,20 +46,26 @@ const HIERARCHY_SYNONYMS: Record<string, string[]> = {
   vehicle: ["car", "truck", "van", "bus", "bicycle", "motorcycle", "train", "airplane", "boat", "limousine", "taxi"],
 };
 
-function matchObjectToQuestion(objects: DetectedObject[] | null | undefined, question: string): DetectedObject | null {
-  if (!objects?.length || !question.trim()) return null;
+function matchObjectsToQuestion(objects: DetectedObject[] | null | undefined, question: string): DetectedObject[] {
+  if (!objects?.length || !question.trim()) return [];
   const q = question.toLowerCase();
   const sorted = [...objects].sort((a, b) => b.label.length - a.label.length);
   for (const obj of sorted) {
     const escaped = obj.label.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (new RegExp(`\\b${escaped}\\b`).test(q)) return obj;
+    if (new RegExp(`\\b${escaped}\\b`).test(q)) {
+      // "where is the goldfish" on an image with TWO separate goldfish
+      // detections should highlight both, not just whichever happened to
+      // be first — every detection sharing this same matched label, not
+      // just the single best-scoring one.
+      return objects.filter(o => o.label.toLowerCase() === obj.label.toLowerCase());
+    }
   }
   for (const [generic, subclasses] of Object.entries(HIERARCHY_SYNONYMS)) {
     if (!new RegExp(`\\b${generic}\\b`).test(q)) continue;
-    const match = sorted.find(obj => subclasses.includes(obj.label.toLowerCase()));
-    if (match) return match;
+    const matches = sorted.filter(obj => subclasses.includes(obj.label.toLowerCase()));
+    if (matches.length) return matches;
   }
-  return null;
+  return [];
 }
 
 const ACCENT = "#a78bfa";
@@ -255,7 +261,7 @@ export default function MmRagRunner() {
               ) : activeCitation && activeDoc ? (
                 <CitationThumbnailPanel pageImages={activeDoc.pageImages} page={activeCitation.page}
                   chunkType={activeCitation.chunkType} bbox={activeCitation.bbox}
-                  matchedObject={matchObjectToQuestion(
+                  matchedObjects={matchObjectsToQuestion(
                     activeCitation.objects,
                     [...chat.messages].reverse().find(m => m.role === "user")?.content ?? ""
                   )}
