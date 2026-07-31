@@ -13,11 +13,15 @@ type Props = {
   accent: string;
   cardStyle: React.CSSProperties;
   highlightedIndex: number | null;
+  /** Same jump-to-and-highlight behavior as highlightedIndex, but for the
+   * "Extracted text" list (non-video/audio documents have no transcript). */
+  highlightedTextIndex: number | null;
   /** Real seconds to seek the video/audio player to directly (MMRAG-09) —
    * for a visual-only frame citation, which has no transcript segment to
    * highlight via highlightedIndex above. Null otherwise. */
   seekTime: number | null;
   onSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
+  onTextSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
   onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null, objects?: DetectedObject[] | null, timestampS?: number | null) => void;
   onSelectChapter: (time: number) => void;
 };
@@ -79,8 +83,8 @@ function computeKdeCurve(replayCounts: number[]): number[] {
   return grid;
 }
 
-export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex, seekTime,
-                                               onSegmentRef, onSelectChunk, onSelectChapter }: Props) {
+export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highlightedIndex, highlightedTextIndex, seekTime,
+                                               onSegmentRef, onTextSegmentRef, onSelectChunk, onSelectChapter }: Props) {
   const baseName = d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "").replace(/\.[^.]+$/, "");
   const hasSegments = d.transcriptSegments.length > 0;
 
@@ -256,6 +260,8 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           <SearchableTextPanel
             placeholder="Search document text…"
             accent={accent}
+            highlightedKey={highlightedTextIndex}
+            itemRef={(key, el) => onTextSegmentRef(key as number, el)}
             onSelect={(key) => {
               const seg = d.textSegments[key as number];
               if (seg) onSelectChunk("text", seg.page, seg.text);

@@ -107,6 +107,7 @@ const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figu
 export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities, retrievalTrace, hybridScore, rerankScore, typeBoost }: Props) {
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const [traceOpen, setTraceOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
   const hasTrace = !!(retrievalTrace?.dense || retrievalTrace?.bm25 || hybridScore != null || rerankScore != null);
@@ -133,6 +134,8 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   return (
     <div
       onClick={() => { setOpen(o => !o); onSelect?.(); }}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       style={{
         background: "rgba(255,255,255,0.03)",
         border: `1px solid ${accent}28`,
@@ -140,8 +143,19 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         padding: "0.35rem 0.55rem",
         cursor: "pointer",
         userSelect: "none",
+        position: "relative",
       }}
     >
+      {hovering && !open && (
+        <div style={{
+          position: "absolute", bottom: "100%", left: 0, marginBottom: "0.3rem",
+          maxWidth: 320, zIndex: 20, background: "#141420", border: `1px solid ${accent}40`,
+          borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.62rem", lineHeight: 1.5,
+          color: "var(--text2)", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", pointerEvents: "none",
+        }}>
+          {text.slice(0, 180)}{text.length > 180 ? "…" : ""}
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
         <span style={{ color: accent, flexShrink: 0 }}><DocIcon /></span>
         <CategoryBadge cat={cat} />

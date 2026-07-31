@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
@@ -25,6 +26,8 @@ type Props = {
 /** The chat message list + input box + citation cards — split out of
  * MmRagRunner.tsx to stay under the project's file-length limit. */
 export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, settingsOpen, setSettingsOpen, jumpToCitation }: Props) {
+  // UI-only capture for now — no backend endpoint to persist this yet.
+  const [feedback, setFeedback] = useState<Record<number, "up" | "down">>({});
   return (
     <div style={cardStyle} className="flex flex-col min-h-0" >
       <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
@@ -78,25 +81,47 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           onProviderChange={chat.handleProviderChange} onModelChange={chat.setModel} onKeyChange={chat.setUserKey}
         />
       )}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}>
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}
+        aria-live="polite" aria-relevant="additions text" aria-atomic="false">
         {chat.messages.length === 0 ? (
           <p className="text-[10px] text-center py-8" style={{ color: "rgba(255,255,255,0.25)" }}>
             Ask a question — e.g. &quot;What does the table on page 2 show?&quot;
             {documents.length > 1 ? " or “compare these documents”" : ""}
           </p>
         ) : (
-          chat.messages.map((m, i) => (
-            <div key={i} className={m.role === "user" ? "self-end max-w-[85%]" : "self-start max-w-[90%]"}>
-              <div className="px-3 py-2 rounded-xl text-[11px] leading-relaxed"
-                style={m.role === "user"
-                  ? { background: `${ACCENT}18`, color: "rgba(255,255,255,0.9)" }
-                  : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.8)" }}>
-                {m.role === "assistant"
-                  ? <ReactMarkdown>{m.content}</ReactMarkdown>
-                  : m.content}
+          chat.messages.map((m, i) => {
+            const isLastAssistant = m.role === "assistant" && i === chat.messages.length - 1;
+            const showFeedback = m.role === "assistant" && !(chat.loading && isLastAssistant) && m.content;
+            return (
+              <div key={i} className={m.role === "user" ? "self-end max-w-[85%]" : "self-start max-w-[90%]"}>
+                <div className="px-3 py-2 rounded-xl text-[11px] leading-relaxed"
+                  style={m.role === "user"
+                    ? { background: `${ACCENT}18`, color: "rgba(255,255,255,0.9)" }
+                    : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.8)" }}>
+                  {m.role === "assistant"
+                    ? <ReactMarkdown>{m.content}</ReactMarkdown>
+                    : m.content}
+                </div>
+                {showFeedback && (
+                  <div className="flex items-center gap-1 mt-1 pl-1">
+                    {(["up", "down"] as const).map(dir => (
+                      <button key={dir} onClick={() => setFeedback(f => ({ ...f, [i]: dir }))}
+                        title={dir === "up" ? "Good answer" : "Bad answer"}
+                        aria-label={dir === "up" ? "Good answer" : "Bad answer"}
+                        className="p-1 rounded transition-colors hover:bg-white/5"
+                        style={{ color: feedback[i] === dir ? ACCENT : "rgba(255,255,255,0.25)" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          {dir === "up"
+                            ? <path d="M7 22V11l5-9 1.5 1L12 11h8a2 2 0 0 1 2 2.24l-1.2 7A2 2 0 0 1 18.83 22H7Z" transform="translate(0,-1)" />
+                            : <path d="M17 2v11l-5 9-1.5-1L12 13H4a2 2 0 0 1-2-2.24l1.2-7A2 2 0 0 1 5.17 2H17Z" transform="translate(0,1)" />}
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         {chat.loading && (
           <div className="self-start flex items-center gap-1 px-1 py-1" style={{ color: `${ACCENT}99` }}>
@@ -156,7 +181,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             </div>
           );
         })()}
-        {!chat.loading && <GroundednessBadge groundedness={chat.groundedness} />}
+        {!chat.loading && <GroundednessBadge groundedness={chat.groundedness} selfCorrected={chat.selfCorrected} />}
         <div ref={chat.bottomRef} />
       </div>
       <div className="p-3 border-t flex gap-2 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
@@ -170,12 +195,20 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           className="flex-1 bg-transparent text-[11px] px-3 py-2 rounded-lg border outline-none resize-none"
           style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
         />
-        <button onClick={chat.send} disabled={chat.loading || !chat.input.trim()}
-          className="text-[10px] px-3 py-2 rounded-lg font-medium shrink-0"
-          style={{ background: `${ACCENT}20`, color: ACCENT, border: `1px solid ${ACCENT}40`,
-                  opacity: chat.loading || !chat.input.trim() ? 0.5 : 1 }}>
-          Ask
-        </button>
+        {chat.loading ? (
+          <button onClick={chat.stop}
+            className="text-[10px] px-3 py-2 rounded-lg font-medium shrink-0"
+            style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.4)" }}>
+            Stop
+          </button>
+        ) : (
+          <button onClick={chat.send} disabled={!chat.input.trim()}
+            className="text-[10px] px-3 py-2 rounded-lg font-medium shrink-0"
+            style={{ background: `${ACCENT}20`, color: ACCENT, border: `1px solid ${ACCENT}40`,
+                    opacity: !chat.input.trim() ? 0.5 : 1 }}>
+            Ask
+          </button>
+        )}
       </div>
     </div>
   );

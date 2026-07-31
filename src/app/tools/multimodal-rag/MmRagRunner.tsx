@@ -82,7 +82,9 @@ type Doc = Extract<IngestState, { kind: "done" }>;
 // flat transcript, so it won't align exactly with Whisper's own segment
 // boundaries — find whichever segment shares the most words with it, to
 // jump/highlight the closest real match rather than requiring an exact one.
-function bestMatchingSegmentIndex(segments: TranscriptSegment[], citationText: string): number | null {
+// Generic over any `{text}[]` array — reused for both transcript segments
+// and a PDF/CSV/image document's extracted text segments.
+function bestMatchingSegmentIndex(segments: { text: string }[], citationText: string): number | null {
   const citWords = new Set(citationText.toLowerCase().match(/\w+/g) ?? []);
   if (citWords.size === 0) return null;
   let bestIdx: number | null = null;
@@ -105,10 +107,15 @@ export default function MmRagRunner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
+  // Same idea as highlightedSegment, but for a PDF/CSV/image document's
+  // extracted-text list (no transcript exists there) — a separate key since
+  // the two lists are independent even if a doc somehow had both.
+  const [highlightedTextSegment, setHighlightedTextSegment] = useState<{ source: string; index: number } | null>(null);
   // A visual-only video-frame citation (MMRAG-09) — no transcript segment
   // to key off of, so it carries its own real timestamp instead.
   const [videoSeek, setVideoSeek] = useState<{ source: string; time: number } | null>(null);
   const segmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const textSegmentRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const [isSharedView, setIsSharedView] = useState(false);
   const [revisionPrompt, setRevisionPrompt] = useState<{ newSource: string; old: RevisionCandidate } | null>(null);
 
@@ -173,12 +180,27 @@ export default function MmRagRunner() {
     }
     if (chunkType !== "text") return;
     const doc = documents.find(d => d.source === source);
-    if (!doc || doc.transcriptSegments.length === 0) return;
-    const idx = bestMatchingSegmentIndex(doc.transcriptSegments, text);
+    if (!doc) return;
+    if (doc.transcriptSegments.length > 0) {
+      const idx = bestMatchingSegmentIndex(doc.transcriptSegments, text);
+      if (idx === null) return;
+      setSummaryOpenFor(source);
+      setVideoSeek(null);
+      setHighlightedTextSegment(null);
+      setHighlightedSegment({ source, index: idx });
+      return;
+    }
+    // No transcript (a PDF/CSV/image doc) — scroll/highlight the matching
+    // entry in its own "Extracted text" list instead, the same jump-to
+    // pattern transcript citations already get, previously missing here
+    // (a text citation on a non-video doc used to do nothing but show the
+    // cropped page thumbnail).
+    if (doc.textSegments.length === 0) return;
+    const idx = bestMatchingSegmentIndex(doc.textSegments, text);
     if (idx === null) return;
     setSummaryOpenFor(source);
-    setVideoSeek(null);
-    setHighlightedSegment({ source, index: idx });
+    setHighlightedSegment(null);
+    setHighlightedTextSegment({ source, index: idx });
   }, [documents]);
 
   const jumpToChapter = useCallback((source: string, segments: TranscriptSegment[], time: number) => {
@@ -193,6 +215,11 @@ export default function MmRagRunner() {
     if (!highlightedSegment) return;
     segmentRefs.current[highlightedSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [highlightedSegment]);
+
+  useEffect(() => {
+    if (!highlightedTextSegment) return;
+    textSegmentRefs.current[highlightedTextSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [highlightedTextSegment]);
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
@@ -237,8 +264,10 @@ export default function MmRagRunner() {
       {documents.map(d => summaryOpenFor === d.source && (
         <DocumentSummaryPanel key={`summary-${d.source}`} doc={d} accent={ACCENT} cardStyle={cardStyle}
           highlightedIndex={highlightedSegment?.source === d.source ? highlightedSegment.index : null}
+          highlightedTextIndex={highlightedTextSegment?.source === d.source ? highlightedTextSegment.index : null}
           seekTime={videoSeek?.source === d.source ? videoSeek.time : null}
           onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
+          onTextSegmentRef={(i, el) => { textSegmentRefs.current[i] = el; }}
           onSelectChunk={(chunkType, page, text, bbox, objects, timestampS) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS)}
           onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
         />

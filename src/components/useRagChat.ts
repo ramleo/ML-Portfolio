@@ -90,6 +90,7 @@ export function useRagChat(context: ToolChatContext) {
   const [primaryFailure, setPrimaryFailure] = useState<string | null>(null);
   const [likelyUsedSources, setLikelyUsedSources] = useState<number[] | null>(null);
   const [groundedness, setGroundedness] = useState<Groundedness | null>(null);
+  const [selfCorrected, setSelfCorrected] = useState(false);
   const [provider, setProvider]       = useState("gemini");
   const [model, setModel]             = useState("gemini-2.5-flash");
   const [userKey, setUserKey]         = useState("");
@@ -102,6 +103,7 @@ export function useRagChat(context: ToolChatContext) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
   const mountedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const p = localStorage.getItem(LS_PROVIDER);
@@ -173,7 +175,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
-    setLikelyUsedSources(null); setGroundedness(null);
+    setLikelyUsedSources(null); setGroundedness(null); setSelfCorrected(false);
   }, []);
 
   // Shared core: runs one query against the backend and streams the answer
@@ -192,7 +194,7 @@ export function useRagChat(context: ToolChatContext) {
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
-    setLikelyUsedSources(null); setGroundedness(null);
+    setLikelyUsedSources(null); setGroundedness(null); setSelfCorrected(false);
 
     const endpoint = deepSearch ? "/rag/agent" : "/rag/query";
     const history = sanitizeHistory(historyBase.slice(-10)).slice(-6);
@@ -215,10 +217,13 @@ export function useRagChat(context: ToolChatContext) {
           entity_type_filter: entityTypeFilter.length > 0 ? entityTypeFilter : undefined,
           share_token: shareToken || undefined };
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body), signal: controller.signal,
       });
       if (!res.ok || !res.body) throw new Error(`Request failed: ${res.statusText}`);
 
@@ -242,6 +247,15 @@ export function useRagChat(context: ToolChatContext) {
             if (evt.type === "agent_step") {
               const snap = prevStep; if (snap) setAgentDoneSteps(s => [...s, snap]);
               setAgentStep(evt.step); prevStep = evt.step;
+            } else if (evt.type === "retry") {
+              // Backend is regenerating after the first answer scored low on
+              // groundedness — drop the first (weakly-grounded) attempt's
+              // bubble and sources so the retry's tokens start a clean
+              // answer instead of appending onto the discarded one.
+              assistantText = "";
+              collectedSources.length = 0;
+              setSources([]);
+              setMessages(m => (m[m.length - 1]?.role === "assistant" ? m.slice(0, -1) : m));
             } else if (evt.type === "source") {
               collectedSources.push(evt.doc); setSources([...collectedSources]);
             } else if (evt.type === "done") {
@@ -263,6 +277,7 @@ export function useRagChat(context: ToolChatContext) {
               setPrimaryFailure(evt.primary_failure ?? null);
               if (Array.isArray(evt.likely_used_sources)) setLikelyUsedSources(evt.likely_used_sources);
               setGroundedness(evt.groundedness ?? null);
+              setSelfCorrected(!!evt.self_corrected);
             } else if (evt.type === "token") {
               assistantText += evt.text;
               setMessages(m => {
@@ -281,12 +296,21 @@ export function useRagChat(context: ToolChatContext) {
       if (!assistantText && !hadError)
         setMessages(m => [...m, { role: "assistant", content: "No response." }]);
     } catch (e) {
-      setMessages(m => [...m, { role: "assistant",
-        content: `Error: ${e instanceof Error ? e.message : "Network error"}` }]);
+      if (e instanceof DOMException && e.name === "AbortError") {
+        // User-initiated stop — keep whatever partial answer already streamed in, no error message.
+      } else {
+        setMessages(m => [...m, { role: "assistant",
+          content: `Error: ${e instanceof Error ? e.message : "Network error"}` }]);
+      }
     } finally {
       setLoading(false); setAgentStep(null);
+      abortControllerRef.current = null;
     }
   }, [provider, model, userKey, sessionId, context, useJina, deepSearch, forceWeb, chunkTypeFilter, entityTypeFilter, shareToken]);
+
+  const stop = useCallback(() => {
+    abortControllerRef.current?.abort();
+  }, []);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -330,7 +354,7 @@ export function useRagChat(context: ToolChatContext) {
     agentStep, agentDoneSteps, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence, servedProvider, servedModel, primaryProvider, primaryFailure,
-    likelyUsedSources, groundedness,
+    likelyUsedSources, groundedness, selfCorrected,
     provider, model, setModel, userKey, setUserKey,
     sessionId, setSessionId,
     answerLength, setAnswerLength,
@@ -338,7 +362,7 @@ export function useRagChat(context: ToolChatContext) {
     entityTypeFilter, setEntityTypeFilter,
     shareToken, setShareToken,
     providerConfig, accentColor, loadingLabel,
-    handleProviderChange, enableJina, send, regenerateLastAnswer, clearChat, onKeyDown,
+    handleProviderChange, enableJina, send, stop, regenerateLastAnswer, clearChat, onKeyDown,
     bottomRef, inputRef,
   };
 }

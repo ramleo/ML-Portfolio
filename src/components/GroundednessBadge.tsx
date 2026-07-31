@@ -9,7 +9,7 @@ const GROUNDEDNESS_COLORS: Record<string, string> = {
 /** Single source of truth for rendering a groundedness score (MMRAG-04) —
  * used by both the shared ChatMessageList and Multimodal RAG's bespoke
  * MmRagRunner chat panel, so the two surfaces can't drift out of sync. */
-export default function GroundednessBadge({ groundedness }: { groundedness: Groundedness | null | undefined }) {
+export default function GroundednessBadge({ groundedness, selfCorrected }: { groundedness: Groundedness | null | undefined; selfCorrected?: boolean }) {
   if (!groundedness) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
@@ -19,6 +19,12 @@ export default function GroundednessBadge({ groundedness }: { groundedness: Grou
           style={{ fontSize: "0.6rem", color: GROUNDEDNESS_COLORS[groundedness.level], background: `${GROUNDEDNESS_COLORS[groundedness.level]}18`, borderRadius: 4, padding: "1px 5px", fontWeight: 600, textTransform: "capitalize" }}>
           {groundedness.level} ({Math.round(groundedness.score * 100)}%)
         </span>
+        {selfCorrected && (
+          <span title="The first answer looked weakly grounded, so it was automatically regenerated once with broader retrieval — this is the corrected result."
+            style={{ fontSize: "0.6rem", color: "#60a5fa", background: "#60a5fa18", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>
+            Auto-corrected
+          </span>
+        )}
       </div>
       {groundedness.ungrounded_sentences.length > 0 && (
         <div style={{ fontSize: "0.6rem", color: "var(--text3)", lineHeight: 1.5 }}>
