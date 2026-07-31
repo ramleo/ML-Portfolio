@@ -19,6 +19,10 @@ contract does — a discrepancy report, not a general chat.
   side-by-side, a short explanation of what disagrees, and a match-confidence
   percentage (how topically related the two passages are — not how confident the
   discrepancy itself is).
+- Every flagged discrepancy is double-checked by a second, independently-worded
+  pass. If that second check disagrees, the discrepancy still shows (nothing is
+  ever silently hidden) but is marked **"Unconfirmed"** — worth reading the two
+  passages yourself before trusting it.
 
 ## What it's good at
 
@@ -38,6 +42,12 @@ those are the most likely genuine discrepancies.
   clause.
 - "No discrepancies found" means none were detected within what was checked — not
   a guarantee the documents fully agree everywhere.
+- The confirmation pass reduces, but can't eliminate, false positives — two
+  passages that state the same value in different wording ("30 days" vs. "30
+  days from issue") have been observed to get flagged. It can also occasionally
+  mark a genuine discrepancy "Unconfirmed" rather than dismiss it outright; this
+  tool is built to surface a report for you to review, not to decide anything on
+  its own.
 `;
 
 export const RECONCILIATION_SUGGESTIONS = [

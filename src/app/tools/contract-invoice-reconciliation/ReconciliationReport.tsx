@@ -61,10 +61,19 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
                 style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)" }}>
                 <div className="flex items-center justify-between gap-2">
                   <p style={{ color: "rgba(255,255,255,0.8)" }}>{d.explanation}</p>
-                  <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                    style={{ background: "rgba(248,113,113,0.15)", color: "#f87171" }}>
-                    {Math.round(d.similarity * 100)}% match
-                  </span>
+                  <div className="shrink-0 flex items-center gap-1">
+                    {!d.confirmed && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                        title="A second, independently-worded check disagreed with this one — worth reading the passages yourself before trusting it."
+                        style={{ background: "rgba(250,204,21,0.15)", color: "#facc15" }}>
+                        Unconfirmed
+                      </span>
+                    )}
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                      style={{ background: "rgba(248,113,113,0.15)", color: "#f87171" }}>
+                      {Math.round(d.similarity * 100)}% match
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="rounded px-2 py-1.5" style={{ background: "rgba(255,255,255,0.04)" }}>
