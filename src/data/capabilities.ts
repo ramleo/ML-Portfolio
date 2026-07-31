@@ -242,6 +242,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/multimodal-rag",
   },
+  {
+    id: "contract-invoice-reconciliation",
+    title: "Contract/Invoice Reconciliation Assistant",
+    subtitle: "Discrepancy Report Across Documents",
+    description:
+      "Upload a contract, then one or more invoices. Flags amounts, dates, and terms that disagree across documents, each with the two source passages and an explanation — never comparing invoices against each other, since they're expected to differ.",
+    accent: "#f59e0b",
+    stat: "2",
+    statLabel: "Doc Roles",
+    model: "Groq (llama-3.1-8b-instant)",
+    input: "PDF, PNG, JPG (contract + invoices)",
+    tags: ["RAG", "Reconciliation", "Contracts", "Invoices", "LLM"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/contract-invoice-reconciliation",
+  },
 ];
 
 export default capabilities;

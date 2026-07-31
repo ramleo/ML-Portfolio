@@ -10,6 +10,12 @@ type Props = {
   sessionId: string;
   ensureSessionId: () => string;
   onIngested: (result: Extract<IngestState, { kind: "done" }>) => void;
+  /** Hides the "find similar figures"/"share with all visitors" toggles —
+   * for a tool whose uploads are privacy-sensitive by nature (e.g. a
+   * contract/invoice), a "share this publicly" checkbox doesn't make
+   * sense to offer at all. Ingest behavior is unchanged either way
+   * (both toggles simply stay at their default `false`). */
+  hideToggles?: boolean;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -45,7 +51,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -168,14 +174,16 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               {state.message}
             </div>
           )}
-          <div className="flex flex-col gap-3 pt-1">
-            <Toggle checked={findSimilar} onChange={setFindSimilar}
-              label="Also find visually similar figures"
-              caveat="Adds a 'similar figures' button; downloads an extra ~350MB model on first use and adds a few seconds per figure. Doesn't change how chat answers are generated." />
-            <Toggle checked={shared} onChange={setShared}
-              label="Share with all visitors right now"
-              caveat="Visible to everyone using the tool right now. Resets — like the built-in topics won't — the next time this demo server restarts." />
-          </div>
+          {!hideToggles && (
+            <div className="flex flex-col gap-3 pt-1">
+              <Toggle checked={findSimilar} onChange={setFindSimilar}
+                label="Also find visually similar figures"
+                caveat="Adds a 'similar figures' button; downloads an extra ~350MB model on first use and adds a few seconds per figure. Doesn't change how chat answers are generated." />
+              <Toggle checked={shared} onChange={setShared}
+                label="Share with all visitors right now"
+                caveat="Visible to everyone using the tool right now. Resets — like the built-in topics won't — the next time this demo server restarts." />
+            </div>
+          )}
         </>
       ) : (
         <div className="flex flex-col gap-3">
