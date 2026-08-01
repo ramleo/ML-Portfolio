@@ -265,9 +265,9 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           {hasTrace && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginBottom: "0.4rem" }}>
               {retrievalLabel && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span>Retrieval</span>
-                  <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>{retrievalLabel}</span>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.6rem" }}>
+                  <span style={{ flexShrink: 0 }}>Retrieval</span>
+                  <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", textAlign: "right" }}>{retrievalLabel}</span>
                 </div>
               )}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
