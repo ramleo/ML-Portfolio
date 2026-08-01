@@ -16,6 +16,10 @@ type Props = {
    * sense to offer at all. Ingest behavior is unchanged either way
    * (both toggles simply stay at their default `false`). */
   hideToggles?: boolean;
+  /** Skips this component's own bordered card wrapper — for embedding
+   * inside another component (e.g. DocumentTray) that already provides
+   * the surrounding card, so the two don't nest into a double border. */
+  bare?: boolean;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -51,7 +55,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -139,16 +143,19 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     }
   }, [sessionId, ensureSessionId, findSimilar, shared, onIngested]);
 
-  const cardStyle: React.CSSProperties = {
+  const cardStyle: React.CSSProperties = bare ? {} : {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
   };
 
   return (
-    <div style={cardStyle} className="flex flex-col gap-4 p-5">
+    <div style={cardStyle} className={bare ? "flex flex-col gap-4" : "flex flex-col gap-4 p-5"}>
       {state.kind === "idle" || state.kind === "error" ? (
         <>
           <div
-            className="flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-white/5"
+            title="PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV, MP3/WAV/M4A/OGG/FLAC/AAC · Max 20 MB · PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames · Audio: full transcript"
+            className={bare
+              ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-white/5"
+              : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-white/5"}
             style={{ borderColor: "rgba(255,255,255,0.15)" }}
             onClick={() => inputRef.current?.click()}
             onDragOver={e => e.preventDefault()}
@@ -156,17 +163,25 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
           >
             <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.csv,.mp4,.mov,.webm,.avi,.mkv,.mp3,.wav,.m4a,.ogg,.flac,.aac" className="hidden"
               onChange={e => { if (e.target.files?.[0]) upload(e.target.files[0]); }} />
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <svg width={bare ? 18 : 32} height={bare ? 18 : 32} viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Drag & drop or click to upload a PDF, image, CSV, video, or audio file
-            </p>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
-              PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV, MP3/WAV/M4A/OGG/FLAC/AAC · Max 20 MB ·
-              PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames · Audio: full transcript
-            </p>
+            {bare ? (
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Add a document, image, or video
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  Drag & drop or click to upload a PDF, image, CSV, video, or audio file
+                </p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+                  PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV, MP3/WAV/M4A/OGG/FLAC/AAC · Max 20 MB ·
+                  PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames · Audio: full transcript
+                </p>
+              </>
+            )}
           </div>
           {state.kind === "error" && (
             <div className="px-3 py-2 rounded-lg text-[11px]"

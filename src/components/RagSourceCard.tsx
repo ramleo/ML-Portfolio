@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import RagTableView from "./RagTableView";
+import RagSourceFlags from "./RagSourceFlags";
 
 type Props = {
   source: string;
@@ -40,10 +41,15 @@ type Props = {
   /** 1-based rank shown as a small numbered chip — undefined omits it
    * (contexts like DocumentSummaryPanel list chunks, not ranked evidence). */
   index?: number;
+  /** Whether the generated answer's own wording actually overlaps this
+   * chunk (see citations.py::likely_used_indices) — null/undefined when
+   * that signal wasn't computed (e.g. a document-summary chunk list with
+   * no answer to compare against), which hides the row entirely rather
+   * than guessing. */
+  usedInAnswer?: boolean | null;
 };
 
 const PII_LABEL: Record<string, string> = { email: "Email", phone: "Phone", ssn: "SSN", credit_card: "Card number" };
-const ENTITY_COLOR: Record<string, string> = { money: "#34d399", date: "#60a5fa", percent: "#fbbf24" };
 
 type PageChunk = { text: string; chunk_type: string | null; page: number };
 
@@ -96,7 +102,7 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
   const color = CATEGORY_COLORS[cat];
   return (
     <span style={{
-      fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.05em",
+      fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.05em",
       color, background: `${color}1a`, borderRadius: 9999,
       padding: "1px 5px", flexShrink: 0, textTransform: "uppercase",
     }}>
@@ -107,7 +113,7 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
 
 const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image", video: "Video Frame" };
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities, retrievalTrace, hybridScore, rerankScore, typeBoost, index }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities, retrievalTrace, hybridScore, rerankScore, typeBoost, index, usedInAnswer }: Props) {
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
@@ -123,6 +129,12 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const cat = categorize(source);
   const name = displayName(source, cat);
   const typeLabel = chunkType && CHUNK_TYPE_LABEL[chunkType];
+  const retrievalLabel = retrievalTrace?.dense
+    ? `dense · rank ${retrievalTrace.dense.rank}`
+    : retrievalTrace?.bm25
+    ? `keyword · rank ${retrievalTrace.bm25.rank}`
+    : hybridScore != null ? "fused retrieval" : null;
+  const rerankValue = rerankScore ?? rawScore ?? score;
 
   const loadPageChunks = async () => {
     if (!page) return;
@@ -166,7 +178,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             ? { top: "100%", marginTop: "0.3rem" }
             : { bottom: "100%", marginBottom: "0.3rem" }),
           maxWidth: 320, background: "#141420", border: `1px solid ${accent}40`,
-          borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.62rem", lineHeight: 1.5,
+          borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.78rem", lineHeight: 1.5,
           color: "var(--text2)", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", pointerEvents: "none",
         }}>
           {text.slice(0, 180)}{text.length > 180 ? "…" : ""}
@@ -175,7 +187,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
         {index != null && (
           <span style={{
-            fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", fontSize: "0.58rem", fontWeight: 700,
+            fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", fontSize: "0.74rem", fontWeight: 700,
             color: accent, background: `${accent}1c`, width: 15, height: 15, borderRadius: 4,
             display: "grid", placeItems: "center", flexShrink: 0,
           }}>
@@ -184,12 +196,12 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         )}
         <span style={{ color: accent, flexShrink: 0 }}><DocIcon /></span>
         <CategoryBadge cat={cat} />
-        <span style={{ flex: 1, fontSize: "0.65rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span style={{ flex: 1, fontSize: "0.81rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {name}{page ? ` · p.${page}` : ""}
         </span>
         {typeLabel && (
           <span style={{
-            fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.03em",
+            fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.03em",
             color: accent, background: `${accent}1a`, borderRadius: 9999,
             padding: "1px 5px", flexShrink: 0, textTransform: "uppercase",
           }}>
@@ -217,7 +229,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           <span
             title={`${confFull} — raw model confidence: ${rawPct}%`}
             style={{
-              fontSize: "0.58rem", fontWeight: 700, color: confColor,
+              fontSize: "0.74rem", fontWeight: 700, color: confColor,
               background: `${confColor}18`, borderRadius: 9999,
               padding: "1px 6px", flexShrink: 0,
             }}>
@@ -230,90 +242,53 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
       {open && (
         <div style={{
           marginTop: "0.4rem",
-          fontSize: "0.63rem",
+          fontSize: "0.79rem",
           color: "var(--text3)",
           lineHeight: 1.6,
           borderTop: `1px solid rgba(255,255,255,0.06)`,
           paddingTop: "0.35rem",
         }}>
-          {!hideConfidence && rawPct !== null && (
-            <div style={{ marginBottom: "0.3rem", color: "var(--text2)" }}>
-              Raw model confidence: <strong>{rawPct}%</strong>
+          {chunkType === "table" ? (
+            <RagTableView text={text} accent={accent} filename={`${displayName(source, cat).replace(/\.[^.]+$/, "") || "table"}-p${page ?? 1}.csv`} />
+          ) : (
+            <div style={{
+              background: "rgba(255,255,255,0.03)", borderLeft: `2px solid ${accent}`, borderRadius: 4,
+              padding: "0.4rem 0.55rem", marginBottom: "0.45rem", color: "var(--text2)",
+            }}>
+              {text.slice(0, 220)}{text.length > 220 ? "…" : ""}
             </div>
           )}
-          {(numberMismatch || blurry || piiList.length > 0) && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
-              {numberMismatch && (
-                <span
-                  title="This figure's AI description and a separate OCR reading disagree on at least one number — verify the exact value against the original."
-                  style={{
-                    display: "flex", alignItems: "center", gap: "2px",
-                    fontSize: "0.55rem", fontWeight: 700, color: "#f87171",
-                    background: "#f8717118", borderRadius: 9999,
-                    padding: "1px 6px", flexShrink: 0,
-                  }}>
-                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                  Verify number
-                </span>
-              )}
-              {blurry && (
-                <span
-                  title="Low-sharpness signal from a quick edge-detail scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
-                  style={{
-                    display: "flex", alignItems: "center", gap: "2px",
-                    fontSize: "0.55rem", fontWeight: 700, color: "#94a3b8",
-                    background: "#94a3b818", borderRadius: 9999,
-                    padding: "1px 6px", flexShrink: 0,
-                  }}>
-                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 12h.01M12 12h.01M16 12h.01" strokeLinecap="round" />
-                  </svg>
-                  Maybe blurry
-                </span>
-              )}
-              {piiList.length > 0 && (
-                <span
-                  title={`Detected: ${piiList.join(", ")} — this document's own text contains this, be mindful before sharing a screenshot.`}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "2px",
-                    fontSize: "0.55rem", fontWeight: 700, color: "#fbbf24",
-                    background: "#fbbf2418", borderRadius: 9999,
-                    padding: "1px 6px", flexShrink: 0,
-                  }}>
-                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v4H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3z" />
-                  </svg>
-                  Contains {piiList.join(", ")}
-                </span>
-              )}
-            </div>
-          )}
-          {entities && entities.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
-              {entities.map((e, i) => {
-                const color = ENTITY_COLOR[e.type] ?? "#94a3b8";
-                return (
-                  <span key={i} style={{
-                    fontSize: "0.58rem", fontWeight: 600, color,
-                    background: `${color}18`, borderRadius: 9999, padding: "1px 6px",
-                  }}>
-                    {e.value}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-          {chunkType === "table" ? <RagTableView text={text} accent={accent} filename={`${displayName(source, cat).replace(/\.[^.]+$/, "") || "table"}-p${page ?? 1}.csv`} /> : <>{text.slice(0, 200)}{text.length > 200 ? "…" : ""}</>}
           {hasTrace && (
-            <div style={{ marginTop: "0.4rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginBottom: "0.4rem" }}>
+              {retrievalLabel && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Retrieval</span>
+                  <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>{retrievalLabel}</span>
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span>Rerank score</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <div style={{ width: 48, height: 4, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.round(rerankValue * 100)}%`, height: "100%", background: accent }} />
+                  </div>
+                  <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>{rerankValue.toFixed(2)}</span>
+                </div>
+              </div>
+              {usedInAnswer != null && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Used in answer</span>
+                  <span style={{ color: usedInAnswer ? "#34d399" : "var(--text3)", fontWeight: 600 }}>{usedInAnswer ? "yes" : "no"}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <RagSourceFlags numberMismatch={numberMismatch} blurry={blurry} piiList={piiList} entities={entities} />
+          {hasTrace && (retrievalTrace?.dense || retrievalTrace?.bm25 || (typeBoost && typeBoost !== 1) || hybridScore != null) && (
+            <div style={{ marginTop: "0.1rem" }}>
               <button onClick={(e) => { e.stopPropagation(); setTraceOpen(o => !o); }}
-                style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
-                {traceOpen ? "Hide" : "Why was this cited?"}
+                style={{ fontSize: "0.76rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
+                {traceOpen ? "Hide detail" : "Why was this cited?"}
               </button>
               {traceOpen && (
                 <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
@@ -323,17 +298,11 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
                   {retrievalTrace?.bm25 && (
                     <div>Keyword (BM25) match: <strong style={{ color: "var(--text2)" }}>{retrievalTrace.bm25.score.toFixed(2)}</strong> score, ranked #{retrievalTrace.bm25.rank} of the candidates this signal alone found.</div>
                   )}
-                  {!retrievalTrace?.dense && !retrievalTrace?.bm25 && hybridScore != null && (
-                    <div>Retrieved via a fallback/tiered path — the individual semantic vs. keyword breakdown wasn't tracked for this specific hop.</div>
-                  )}
                   {typeBoost && typeBoost !== 1 && (
                     <div>Your question's wording ({chunkType ? CHUNK_TYPE_LABEL[chunkType] ?? chunkType : "this type"}-related) gave this chunk type a <strong style={{ color: "var(--text2)" }}>{typeBoost}×</strong> boost.</div>
                   )}
                   {hybridScore != null && (
                     <div>Combined retrieval score (semantic + keyword, fused): <strong style={{ color: "var(--text2)" }}>{hybridScore.toFixed(4)}</strong>.</div>
-                  )}
-                  {rerankScore != null && (
-                    <div>Final relevance re-check against your exact question: <strong style={{ color: "var(--text2)" }}>{Math.round(rerankScore * 100)}%</strong> — this is what decided its final rank and whether it made the cut at all.</div>
                   )}
                 </div>
               )}
@@ -343,22 +312,22 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             <div style={{ marginTop: "0.4rem" }}>
               {pageChunks === null && (
                 <button onClick={(e) => { e.stopPropagation(); loadPageChunks(); }}
-                  style={{ fontSize: "0.6rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
+                  style={{ fontSize: "0.76rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
                   Show everything else on this page
                 </button>
               )}
               {pageChunks === "loading" && (
-                <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>Loading…</span>
+                <span style={{ fontSize: "0.76rem", color: "var(--text3)" }}>Loading…</span>
               )}
               {Array.isArray(pageChunks) && (
                 pageChunks.length === 0 ? (
-                  <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>Nothing else was extracted from page {page}.</span>
+                  <span style={{ fontSize: "0.76rem", color: "var(--text3)" }}>Nothing else was extracted from page {page}.</span>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                     {pageChunks.map((c, i) => (
                       <div key={i} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 6, padding: "0.3rem 0.45rem" }}>
                         {c.chunk_type && c.chunk_type !== "text" && (
-                          <span style={{ fontSize: "0.55rem", fontWeight: 700, color: accent, textTransform: "uppercase", marginRight: "0.3rem" }}>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 700, color: accent, textTransform: "uppercase", marginRight: "0.3rem" }}>
                             {CHUNK_TYPE_LABEL[c.chunk_type] ?? c.chunk_type}
                           </span>
                         )}

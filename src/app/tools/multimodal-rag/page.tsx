@@ -11,6 +11,7 @@ import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
 import { MM_RAG_GUIDE, MM_RAG_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#a78bfa";
+const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source Serif Pro', Georgia, serif";
 
 export default function MultimodalRagPage() {
   useToolTracking("multimodal-rag");
@@ -50,7 +51,7 @@ export default function MultimodalRagPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold">Multimodal RAG</h1>
+                <h1 className="text-xl font-bold" style={{ fontFamily: DISPLAY_FONT, fontWeight: 600 }}>Multimodal RAG</h1>
                 <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
                   style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
                   Tables + Figures

@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRagChat } from "@/components/useRagChat";
 import { ML_UNIFIED_API } from "@/config/urls";
-import IngestProgressRail from "./IngestProgressRail";
 import ChatPanel from "./ChatPanel";
-import CitationThumbnailPanel from "./CitationThumbnailPanel";
-import PageThumbnailRail from "./PageThumbnailRail";
+import EvidenceColumn from "./EvidenceColumn";
+import DocumentTray from "./DocumentTray";
 import DocumentSummaryPanel from "./DocumentSummaryPanel";
 import ShareWatermark from "./ShareWatermark";
 import RevisionPromptBanner from "./RevisionPromptBanner";
@@ -23,49 +22,6 @@ function nearestSegmentIndex(segments: TranscriptSegment[], time: number): numbe
     if (dist < bestDist) { bestDist = dist; bestIdx = i; }
   });
   return bestIdx;
-}
-
-/** "Where is the cyclist" -> the "bicycle"/"person" detection, if this
- * citation has one — precomputed labels (MMRAG-07 follow-up) matched
- * against the question's wording, no query-time vision call. Longest
- * label first so a multi-word class ("traffic light") wins over a
- * shorter overlapping word. Word-boundary match avoids "car" firing
- * inside "scar"/"cart". */
-
-// Open Images V7 is hierarchical (e.g. "Man"/"Woman"/"Boy"/"Girl" are all
-// subclasses of "Person") — the detector reports whichever specific
-// subclass it actually recognized, not the generic parent, so a literal
-// label match alone misses a real, common phrasing. Observed live: "locate
-// the person" found nothing on a frame where "Man" was detected at 73%
-// confidence, since "person" never appears as a label named "Man". Only
-// covers the generic terms someone would plausibly type, not the full
-// 601-class taxonomy.
-const HIERARCHY_SYNONYMS: Record<string, string[]> = {
-  person: ["man", "woman", "boy", "girl"],
-  people: ["man", "woman", "boy", "girl"],
-  vehicle: ["car", "truck", "van", "bus", "bicycle", "motorcycle", "train", "airplane", "boat", "limousine", "taxi"],
-};
-
-function matchObjectsToQuestion(objects: DetectedObject[] | null | undefined, question: string): DetectedObject[] {
-  if (!objects?.length || !question.trim()) return [];
-  const q = question.toLowerCase();
-  const sorted = [...objects].sort((a, b) => b.label.length - a.label.length);
-  for (const obj of sorted) {
-    const escaped = obj.label.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (new RegExp(`\\b${escaped}\\b`).test(q)) {
-      // "where is the goldfish" on an image with TWO separate goldfish
-      // detections should highlight both, not just whichever happened to
-      // be first — every detection sharing this same matched label, not
-      // just the single best-scoring one.
-      return objects.filter(o => o.label.toLowerCase() === obj.label.toLowerCase());
-    }
-  }
-  for (const [generic, subclasses] of Object.entries(HIERARCHY_SYNONYMS)) {
-    if (!new RegExp(`\\b${generic}\\b`).test(q)) continue;
-    const matches = sorted.filter(obj => subclasses.includes(obj.label.toLowerCase()));
-    if (matches.length) return matches;
-  }
-  return [];
 }
 
 const ACCENT = "#a78bfa";
@@ -221,8 +177,11 @@ export default function MmRagRunner() {
     textSegmentRefs.current[highlightedTextSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [highlightedTextSegment]);
 
+  // Cool-tinted-black instead of neutral white-on-black — reads as "ink"
+  // rather than a generic glass card — while staying translucent enough
+  // that the page's constellation background still shows through.
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
+    background: "rgba(14,11,24,0.38)", border: `1px solid ${ACCENT}22`, borderRadius: 10,
   };
 
   // Only worth offering a filter once 2+ distinct chunk types actually exist
@@ -234,14 +193,12 @@ export default function MmRagRunner() {
   return (
     <div className="relative flex flex-col gap-4">
       {isSharedView && chat.shareToken && <ShareWatermark token={chat.shareToken} />}
-      {isSharedView ? (
+      {isSharedView && (
         <div className="flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg"
           style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", color: "#fbbf24" }}>
           Viewing a session someone shared with you — read and chat only. The owner can revoke this
           link at any time, and it expires automatically after 24 hours.
         </div>
-      ) : (
-        <IngestProgressRail sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
       )}
 
       {revisionPrompt && (
@@ -255,7 +212,7 @@ export default function MmRagRunner() {
         availableChunkTypes={availableChunkTypes} chunkTypeFilter={chat.chunkTypeFilter}
         setChunkTypeFilter={chat.setChunkTypeFilter}
         availableEntityTypes={availableEntityTypes} entityTypeFilter={chat.entityTypeFilter}
-        setEntityTypeFilter={chat.setEntityTypeFilter} />
+        setEntityTypeFilter={chat.setEntityTypeFilter} showDocuments={false} />
 
       {documents.length >= 2 && !isSharedView && (
         <ContradictionsPanel sessionId={chat.sessionId} accent={ACCENT} />
@@ -273,44 +230,51 @@ export default function MmRagRunner() {
         />
       ))}
 
-      {(documents.length > 0 || isSharedView) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
-            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} jumpToCitation={jumpToCitation} />
+      {!isSharedView && (
+        <div className={documents.length > 0
+          ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] gap-4 lg:h-[75vh]"
+          : "max-w-xs"}>
+          <DocumentTray documents={documents} accent={ACCENT} cardStyle={cardStyle}
+            activeSource={activeCitation?.source ?? null}
+            summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
+            sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
 
-          {/* Citation thumbnail + full-document browser */}
-          <div className="flex gap-3">
-            <div className="flex-1 flex flex-col gap-3 min-w-0">
-              {activeCitation && activeCitation.source && !activeDoc ? (
-                <div style={cardStyle} className="flex items-center justify-center py-16">
-                  <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
-                    No preview — this citation is from a document that&apos;s no longer loaded.
-                  </p>
-                </div>
-              ) : activeCitation && activeDoc ? (
-                <CitationThumbnailPanel pageImages={activeDoc.pageImages} page={activeCitation.page}
-                  chunkType={activeCitation.chunkType} bbox={activeCitation.bbox}
-                  matchedObjects={matchObjectsToQuestion(
-                    activeCitation.objects,
-                    [...chat.messages].reverse().find(m => m.role === "user")?.content ?? ""
-                  )}
-                  objects={activeCitation.objects}
-                  source={activeDoc.source}
-                  canFindSimilar={activeDoc.embeddingMode === "caption+clip"} />
-              ) : (
-                <div style={cardStyle} className="flex items-center justify-center py-16">
-                  <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
-                    Click a citation to see its page
-                  </p>
-                </div>
-              )}
+          {documents.length > 0 && (<>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center rounded border overflow-hidden self-start"
+              style={{ borderColor: "rgba(255,255,255,0.12)" }}>
+              {(["concise", "normal", "detailed"] as const).map(len => (
+                <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
+                  disabled={chat.messages.length === 0}
+                  title={len === "concise" ? "1-3 sentences, no extra context"
+                       : len === "detailed" ? "Thorough — includes reasoning and related details"
+                       : "Default answer length"}
+                  className="text-[11px] px-2 py-1 capitalize transition-colors"
+                  style={chat.answerLength === len
+                    ? { background: `${ACCENT}22`, color: ACCENT }
+                    : { color: "rgba(255,255,255,0.4)" }}>
+                  {len}
+                </button>
+              ))}
             </div>
-            {activeDoc && (
-              <PageThumbnailRail pageImages={activeDoc.pageImages}
-                activePage={activeCitation?.source === activeDoc.source ? activeCitation.page : null}
-                onSelect={(page) => setActiveCitation({ page, chunkType: null, source: activeDoc.source, bbox: null, objects: null })} />
-            )}
+            <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
+              settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
           </div>
+
+          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
+            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation} />
+          </>)}
+        </div>
+      )}
+
+      {isSharedView && (
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-4 lg:h-[75vh]">
+          <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
+            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+
+          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
+            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation} />
         </div>
       )}
     </div>

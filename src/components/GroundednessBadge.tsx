@@ -11,18 +11,30 @@ const GROUNDEDNESS_COLORS: Record<string, string> = {
  * MmRagRunner chat panel, so the two surfaces can't drift out of sync. */
 export default function GroundednessBadge({ groundedness, selfCorrected }: { groundedness: Groundedness | null | undefined; selfCorrected?: boolean }) {
   if (!groundedness) return null;
+  const color = GROUNDEDNESS_COLORS[groundedness.level];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-        <span style={{ fontSize: "0.57rem", color: "var(--text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Groundedness</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
         <span title="How well the answer's sentences match the retrieved sources — a heuristic, not a certainty."
-          style={{ fontSize: "0.6rem", color: GROUNDEDNESS_COLORS[groundedness.level], background: `${GROUNDEDNESS_COLORS[groundedness.level]}18`, borderRadius: 4, padding: "1px 5px", fontWeight: 600, textTransform: "capitalize" }}>
-          {groundedness.level} ({Math.round(groundedness.score * 100)}%)
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "0.4rem",
+            fontSize: "0.72rem", fontWeight: 500, color, background: `${color}18`,
+            border: `1px solid ${color}40`, borderRadius: 9999, padding: "0.22rem 0.65rem 0.22rem 0.55rem",
+          }}>
+          <span style={{ width: 6, height: 6, borderRadius: 9999, background: color, flexShrink: 0 }} />
+          Grounded · {Math.round(groundedness.score * 100)}%
         </span>
         {selfCorrected && (
           <span title="The first answer looked weakly grounded, so it was automatically regenerated once with broader retrieval — this is the corrected result."
-            style={{ fontSize: "0.6rem", color: "#60a5fa", background: "#60a5fa18", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>
-            Auto-corrected
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "0.35rem",
+              fontSize: "0.68rem", color: "var(--text3)", background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9999, padding: "0.22rem 0.6rem",
+            }}>
+            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 1 3 6.7" /><path d="M3 16v-4h4" />
+            </svg>
+            Self-corrected once
           </span>
         )}
       </div>

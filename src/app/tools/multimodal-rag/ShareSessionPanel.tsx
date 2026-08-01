@@ -54,7 +54,7 @@ export default function ShareSessionPanel({ sessionId, accent }: { sessionId: st
     const url = `${typeof window !== "undefined" ? window.location.origin + window.location.pathname : ""}?share=${share.token}`;
     const expiresIn = Math.max(0, Math.round((share.expiresAt * 1000 - Date.now()) / 3_600_000));
     return (
-      <div className="flex items-center gap-1.5 flex-wrap text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <div className="flex items-center gap-1.5 flex-wrap text-[12px]" style={{ color: "rgba(255,255,255,0.5)" }}>
         <input readOnly value={url} onFocus={e => e.target.select()}
           className="flex-1 min-w-[160px] bg-transparent px-2 py-1 rounded border outline-none"
           style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }} />
@@ -74,12 +74,12 @@ export default function ShareSessionPanel({ sessionId, accent }: { sessionId: st
   return (
     <div className="relative">
       <button onClick={() => setWarnOpen(true)}
-        className="text-[9px] px-2 py-0.5 rounded-full border transition-colors"
+        className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
         style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
         Share this session
       </button>
       {warnOpen && (
-        <div className="absolute z-10 top-full mt-1.5 left-0 w-72 p-3 rounded-lg text-[10px] leading-relaxed"
+        <div className="absolute z-10 top-full mt-1.5 left-0 w-72 p-3 rounded-lg text-[12px] leading-relaxed"
           style={{ background: "#1a1a24", border: "1px solid rgba(245,158,11,0.3)", color: "rgba(255,255,255,0.7)" }}>
           <p className="mb-2">
             Whoever opens this link first locks it to their network — forwarding it to someone
