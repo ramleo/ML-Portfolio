@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
@@ -28,6 +28,23 @@ type Props = {
 export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, settingsOpen, setSettingsOpen, jumpToCitation }: Props) {
   // UI-only capture for now — no backend endpoint to persist this yet.
   const [feedback, setFeedback] = useState<Record<number, "up" | "down">>({});
+  // Screen-reader announcement, deliberately decoupled from the visible
+  // token-by-token stream: an aria-live region that updates on every token
+  // gets announced at typing speed and comes out chaotic/too fast. Instead
+  // announce once when a response starts, then once more with the full
+  // text when it finishes — same information, at a pace a screen reader
+  // can actually speak.
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
+  const wasLoadingRef = useRef(false);
+  useEffect(() => {
+    if (chat.loading && !wasLoadingRef.current) {
+      setLiveAnnouncement("Generating answer…");
+    } else if (!chat.loading && wasLoadingRef.current) {
+      const last = chat.messages[chat.messages.length - 1];
+      if (last?.role === "assistant") setLiveAnnouncement(last.content);
+    }
+    wasLoadingRef.current = chat.loading;
+  }, [chat.loading, chat.messages]);
   return (
     <div style={cardStyle} className="flex flex-col min-h-0" >
       <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
@@ -81,8 +98,13 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           onProviderChange={chat.handleProviderChange} onModelChange={chat.setModel} onKeyChange={chat.setUserKey}
         />
       )}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}
-        aria-live="polite" aria-relevant="additions text" aria-atomic="false">
+      <div aria-live="polite" aria-atomic="true" style={{
+        position: "absolute", width: 1, height: 1, padding: 0, margin: -1,
+        overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0,
+      }}>
+        {liveAnnouncement}
+      </div>
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}>
         {chat.messages.length === 0 ? (
           <p className="text-[10px] text-center py-8" style={{ color: "rgba(255,255,255,0.25)" }}>
             Ask a question — e.g. &quot;What does the table on page 2 show?&quot;

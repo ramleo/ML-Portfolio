@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import RagTableView from "./RagTableView";
 
@@ -108,6 +108,8 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [tooltipBelow, setTooltipBelow] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [traceOpen, setTraceOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
   const hasTrace = !!(retrievalTrace?.dense || retrievalTrace?.bm25 || hybridScore != null || rerankScore != null);
@@ -133,8 +135,16 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
 
   return (
     <div
+      ref={cardRef}
       onClick={() => { setOpen(o => !o); onSelect?.(); }}
-      onMouseEnter={() => setHovering(true)}
+      onMouseEnter={() => {
+        // Flip below when there isn't ~100px of room above — the card is
+        // often the first in a scrolling list, where an above-positioned
+        // tooltip gets clipped by the container's overflow instead of
+        // simply reading off the top of the viewport.
+        setTooltipBelow((cardRef.current?.getBoundingClientRect().top ?? 999) < 100);
+        setHovering(true);
+      }}
       onMouseLeave={() => setHovering(false)}
       style={{
         background: "rgba(255,255,255,0.03)",
@@ -148,8 +158,11 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
     >
       {hovering && !open && (
         <div style={{
-          position: "absolute", bottom: "100%", left: 0, marginBottom: "0.3rem",
-          maxWidth: 320, zIndex: 20, background: "#141420", border: `1px solid ${accent}40`,
+          position: "absolute", left: 0, zIndex: 20,
+          ...(tooltipBelow
+            ? { top: "100%", marginTop: "0.3rem" }
+            : { bottom: "100%", marginBottom: "0.3rem" }),
+          maxWidth: 320, background: "#141420", border: `1px solid ${accent}40`,
           borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.62rem", lineHeight: 1.5,
           color: "var(--text2)", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", pointerEvents: "none",
         }}>
