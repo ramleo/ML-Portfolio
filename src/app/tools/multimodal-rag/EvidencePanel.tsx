@@ -35,7 +35,7 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
       chunk_type?: string | null; page?: number | null; timestamp_s?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null;
       number_mismatch?: boolean | null; pii_types?: string | null; blurry?: boolean | null;
       entities?: { type: string; value: string }[] | null;
-      retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number } } | null;
+      retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number }; vision?: { score: number; rank: number } } | null;
       hybrid_score?: number | null; rerank_score?: number | null; type_boost?: number | null;
     };
     return (

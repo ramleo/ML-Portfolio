@@ -34,7 +34,7 @@ type Props = {
    * behind this citation's final rank. Undefined for cached answers (the
    * trace isn't persisted in the semantic cache) — the section is simply
    * omitted rather than shown empty. */
-  retrievalTrace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number } } | null;
+  retrievalTrace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number }; vision?: { score: number; rank: number } } | null;
   hybridScore?: number | null;
   rerankScore?: number | null;
   typeBoost?: number | null;
@@ -121,7 +121,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const cardRef = useRef<HTMLDivElement>(null);
   const [traceOpen, setTraceOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
-  const hasTrace = !!(retrievalTrace?.dense || retrievalTrace?.bm25 || hybridScore != null || rerankScore != null);
+  const hasTrace = !!(retrievalTrace?.dense || retrievalTrace?.bm25 || retrievalTrace?.vision || hybridScore != null || rerankScore != null);
   const rawPct = rawScore !== undefined ? Math.round(rawScore * 100) : Math.round(score * 100);
   const confColor = rawPct <= 50 ? "#f87171" : rawPct <= 80 ? "#fbbf24" : accent;
   const confLabel = rawPct <= 50 ? "Low" : rawPct <= 80 ? "Medium" : "High";
@@ -129,11 +129,15 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const cat = categorize(source);
   const name = displayName(source, cat);
   const typeLabel = chunkType && CHUNK_TYPE_LABEL[chunkType];
-  const retrievalLabel = retrievalTrace?.dense
-    ? `dense · rank ${retrievalTrace.dense.rank}`
-    : retrievalTrace?.bm25
-    ? `keyword · rank ${retrievalTrace.bm25.rank}`
-    : hybridScore != null ? "fused retrieval" : null;
+  const signalLabels = [
+    retrievalTrace?.dense && `dense · rank ${retrievalTrace.dense.rank}`,
+    retrievalTrace?.bm25 && `keyword · rank ${retrievalTrace.bm25.rank}`,
+    // Vision (MMRAG-24) — Cohere Embed v4 image-similarity signal, alongside
+    // the existing dense/keyword ones; a chunk can be surfaced by more than
+    // one, so join rather than only ever showing the first that matched.
+    retrievalTrace?.vision && `vision · rank ${retrievalTrace.vision.rank}`,
+  ].filter(Boolean) as string[];
+  const retrievalLabel = signalLabels.length > 0 ? signalLabels.join(" + ") : hybridScore != null ? "fused retrieval" : null;
   const rerankValue = rerankScore ?? rawScore ?? score;
 
   const loadPageChunks = async () => {
@@ -284,7 +288,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             </div>
           )}
           <RagSourceFlags numberMismatch={numberMismatch} blurry={blurry} piiList={piiList} entities={entities} />
-          {hasTrace && (retrievalTrace?.dense || retrievalTrace?.bm25 || (typeBoost && typeBoost !== 1) || hybridScore != null) && (
+          {hasTrace && (retrievalTrace?.dense || retrievalTrace?.bm25 || retrievalTrace?.vision || (typeBoost && typeBoost !== 1) || hybridScore != null) && (
             <div style={{ marginTop: "0.1rem" }}>
               <button onClick={(e) => { e.stopPropagation(); setTraceOpen(o => !o); }}
                 style={{ fontSize: "0.76rem", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
@@ -297,6 +301,9 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
                   )}
                   {retrievalTrace?.bm25 && (
                     <div>Keyword (BM25) match: <strong style={{ color: "var(--text2)" }}>{retrievalTrace.bm25.score.toFixed(2)}</strong> score, ranked #{retrievalTrace.bm25.rank} of the candidates this signal alone found.</div>
+                  )}
+                  {retrievalTrace?.vision && (
+                    <div>Visual (image) match: <strong style={{ color: "var(--text2)" }}>{retrievalTrace.vision.score.toFixed(3)}</strong> similarity, ranked #{retrievalTrace.vision.rank} of the candidates this signal alone found.</div>
                   )}
                   {typeBoost && typeBoost !== 1 && (
                     <div>Your question's wording ({chunkType ? CHUNK_TYPE_LABEL[chunkType] ?? chunkType : "this type"}-related) gave this chunk type a <strong style={{ color: "var(--text2)" }}>{typeBoost}×</strong> boost.</div>
