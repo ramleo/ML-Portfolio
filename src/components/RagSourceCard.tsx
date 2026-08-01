@@ -184,53 +184,22 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
             {typeLabel}
           </span>
         )}
-        {numberMismatch && (
+        {(numberMismatch || piiList.length > 0 || blurry) && !open && (
+          // Consolidated flag dot, collapsed-state only — the three full
+          // badges below used to always show, and a card with a type label
+          // + confidence + all three flags read as 5-6 stacked pills at
+          // once. Severity order: a number disagreement is worth verifying
+          // (red) > PII present (amber) > maybe-blurry heuristic (gray).
+          // Full badges with their explanations still show once expanded.
           <span
-            title="This figure's AI description and a separate OCR reading disagree on at least one number — verify the exact value against the original."
+            title={numberMismatch ? "Verify number — click to expand for details"
+                 : piiList.length > 0 ? `Contains ${piiList.join(", ")} — click to expand`
+                 : "Maybe blurry — click to expand"}
             style={{
-              display: "flex", alignItems: "center", gap: "2px",
-              fontSize: "0.55rem", fontWeight: 700, color: "#f87171",
-              background: "#f8717118", borderRadius: 9999,
-              padding: "1px 6px", flexShrink: 0,
-            }}>
-            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            Verify number
-          </span>
-        )}
-        {blurry && (
-          <span
-            title="Low-sharpness signal from a quick edge-detail scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
-            style={{
-              display: "flex", alignItems: "center", gap: "2px",
-              fontSize: "0.55rem", fontWeight: 700, color: "#94a3b8",
-              background: "#94a3b818", borderRadius: 9999,
-              padding: "1px 6px", flexShrink: 0,
-            }}>
-            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 12h.01M12 12h.01M16 12h.01" strokeLinecap="round" />
-            </svg>
-            Maybe blurry
-          </span>
-        )}
-        {piiList.length > 0 && (
-          <span
-            title={`Detected: ${piiList.join(", ")} — this document's own text contains this, be mindful before sharing a screenshot.`}
-            style={{
-              display: "flex", alignItems: "center", gap: "2px",
-              fontSize: "0.55rem", fontWeight: 700, color: "#fbbf24",
-              background: "#fbbf2418", borderRadius: 9999,
-              padding: "1px 6px", flexShrink: 0,
-            }}>
-            <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v4H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3z" />
-            </svg>
-            Contains {piiList.join(", ")}
-          </span>
+              width: 6, height: 6, borderRadius: 9999, flexShrink: 0,
+              background: numberMismatch ? "#f87171" : piiList.length > 0 ? "#fbbf24" : "#94a3b8",
+            }}
+          />
         )}
         {!hideConfidence && (
           <span
@@ -258,6 +227,58 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           {!hideConfidence && rawPct !== null && (
             <div style={{ marginBottom: "0.3rem", color: "var(--text2)" }}>
               Raw model confidence: <strong>{rawPct}%</strong>
+            </div>
+          )}
+          {(numberMismatch || blurry || piiList.length > 0) && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
+              {numberMismatch && (
+                <span
+                  title="This figure's AI description and a separate OCR reading disagree on at least one number — verify the exact value against the original."
+                  style={{
+                    display: "flex", alignItems: "center", gap: "2px",
+                    fontSize: "0.55rem", fontWeight: 700, color: "#f87171",
+                    background: "#f8717118", borderRadius: 9999,
+                    padding: "1px 6px", flexShrink: 0,
+                  }}>
+                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  Verify number
+                </span>
+              )}
+              {blurry && (
+                <span
+                  title="Low-sharpness signal from a quick edge-detail scan — the caption/OCR for this image may be less reliable than usual. A heuristic, not a certainty."
+                  style={{
+                    display: "flex", alignItems: "center", gap: "2px",
+                    fontSize: "0.55rem", fontWeight: 700, color: "#94a3b8",
+                    background: "#94a3b818", borderRadius: 9999,
+                    padding: "1px 6px", flexShrink: 0,
+                  }}>
+                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 12h.01M12 12h.01M16 12h.01" strokeLinecap="round" />
+                  </svg>
+                  Maybe blurry
+                </span>
+              )}
+              {piiList.length > 0 && (
+                <span
+                  title={`Detected: ${piiList.join(", ")} — this document's own text contains this, be mindful before sharing a screenshot.`}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "2px",
+                    fontSize: "0.55rem", fontWeight: 700, color: "#fbbf24",
+                    background: "#fbbf2418", borderRadius: 9999,
+                    padding: "1px 6px", flexShrink: 0,
+                  }}>
+                  <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v4H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3z" />
+                  </svg>
+                  Contains {piiList.join(", ")}
+                </span>
+              )}
             </div>
           )}
           {entities && entities.length > 0 && (

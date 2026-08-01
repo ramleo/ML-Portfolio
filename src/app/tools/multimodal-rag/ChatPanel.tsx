@@ -106,10 +106,19 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
       </div>
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3" style={{ maxHeight: 480 }}>
         {chat.messages.length === 0 ? (
-          <p className="text-[10px] text-center py-8" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Ask a question — e.g. &quot;What does the table on page 2 show?&quot;
-            {documents.length > 1 ? " or “compare these documents”" : ""}
-          </p>
+          <div className="text-center py-8 px-2">
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+              Ask a question — e.g. &quot;What does the table on page 2 show?&quot;
+              {documents.length > 1 ? " or “compare these documents”" : ""}
+            </p>
+            {/* First-run capability hint — without this, a new user has no
+             * reason to expect the tool understands tables/charts/video
+             * frames/multi-doc comparisons beyond plain text Q&A. */}
+            <p className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.15)" }}>
+              Works with tables, charts, images, and video frames — and can
+              compare details across multiple uploaded documents.
+            </p>
+          </div>
         ) : (
           chat.messages.map((m, i) => {
             const isLastAssistant = m.role === "assistant" && i === chat.messages.length - 1;
