@@ -37,6 +37,9 @@ type Props = {
   hybridScore?: number | null;
   rerankScore?: number | null;
   typeBoost?: number | null;
+  /** 1-based rank shown as a small numbered chip — undefined omits it
+   * (contexts like DocumentSummaryPanel list chunks, not ranked evidence). */
+  index?: number;
 };
 
 const PII_LABEL: Record<string, string> = { email: "Email", phone: "Phone", ssn: "SSN", credit_card: "Card number" };
@@ -104,7 +107,7 @@ function CategoryBadge({ cat }: { cat: SourceCategory }) {
 
 const CHUNK_TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", image: "Image", video: "Video Frame" };
 
-export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities, retrievalTrace, hybridScore, rerankScore, typeBoost }: Props) {
+export default function RagSourceCard({ source, text, score, rawScore, accent, chunkType, page, onSelect, hideConfidence, numberMismatch, piiTypes, blurry, entities, retrievalTrace, hybridScore, rerankScore, typeBoost, index }: Props) {
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
@@ -170,6 +173,15 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         </div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+        {index != null && (
+          <span style={{
+            fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", fontSize: "0.58rem", fontWeight: 700,
+            color: accent, background: `${accent}1c`, width: 15, height: 15, borderRadius: 4,
+            display: "grid", placeItems: "center", flexShrink: 0,
+          }}>
+            {index}
+          </span>
+        )}
         <span style={{ color: accent, flexShrink: 0 }}><DocIcon /></span>
         <CategoryBadge cat={cat} />
         <span style={{ flex: 1, fontSize: "0.65rem", color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

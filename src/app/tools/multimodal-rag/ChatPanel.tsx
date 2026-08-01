@@ -11,6 +11,11 @@ import type { Bbox, DetectedObject, IngestState } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 
+// A serif face for the user's own question only — sets it apart from the
+// generated answer below (sans) the way a dossier separates the question
+// asked from the finding, without touching the rest of the site's type.
+const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', Georgia, serif";
+
 type Props = {
   chat: ReturnType<typeof useRagChat>;
   documents: Doc[];
@@ -125,9 +130,9 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             const showFeedback = m.role === "assistant" && !(chat.loading && isLastAssistant) && m.content;
             return (
               <div key={i} className={m.role === "user" ? "self-end max-w-[85%]" : "self-start max-w-[90%]"}>
-                <div className="px-3 py-2 rounded-xl text-[11px] leading-relaxed"
+                <div className={m.role === "user" ? "px-3 py-2 rounded-xl text-[13px] leading-snug" : "px-3 py-2 rounded-xl text-[11px] leading-relaxed"}
                   style={m.role === "user"
-                    ? { background: `${ACCENT}18`, color: "rgba(255,255,255,0.9)" }
+                    ? { background: `${ACCENT}18`, color: "rgba(255,255,255,0.92)", fontFamily: DISPLAY_FONT }
                     : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.8)" }}>
                   {m.role === "assistant"
                     ? <ReactMarkdown>{m.content}</ReactMarkdown>
@@ -171,6 +176,11 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           // result (e.g. heavy paraphrasing with low literal overlap)
           // falls back to one flat list rather than mislabeling everything.
           const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
+          // Rank number is the card's position in the always-fixed
+          // chat.sources order, not the position within whichever of the
+          // two (cited / additional context) groups it lands in — keeps a
+          // given source's number stable across both groups instead of
+          // restarting the count at 1 for "additional context".
           const renderCard = (s: typeof chat.sources[number], i: number) => {
             const withMeta = s as typeof s & {
               chunk_type?: string | null; page?: number | null; timestamp_s?: number | null; bbox?: Bbox | null; objects?: DetectedObject[] | null;
@@ -180,7 +190,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
               hybrid_score?: number | null; rerank_score?: number | null; type_boost?: number | null;
             };
             return (
-              <RagSourceCard key={i} source={s.source} text={s.text}
+              <RagSourceCard key={i} index={i + 1} source={s.source} text={s.text}
                 score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
                 chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
                 piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
@@ -198,7 +208,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             <div className="flex flex-col gap-2.5 mt-1">
               <div className="flex flex-col gap-1.5">
                 <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: `${ACCENT}99` }}>
-                  Directly cited
+                  Directly cited · {used!.length}
                 </span>
                 {chat.sources.map((s, i) => usedSet.has(i) ? renderCard(s, i) : null)}
               </div>
