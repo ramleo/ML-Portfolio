@@ -74,7 +74,16 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
           </span>
         )}
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-3">
+      {/* mask-image fade at the top — the shadow above only makes the
+       * header itself look solid; it does nothing about scrolled content,
+       * since this div's own top padding scrolls away with everything
+       * else, leaving text flush against the visible edge right under the
+       * header. A persistent fade means content never appears to touch
+       * that edge, regardless of scroll position. */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-3" style={{
+        maskImage: "linear-gradient(to bottom, transparent 0, black 16px)",
+        WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 16px)",
+      }}>
         {!hasContent && (
           <p className="text-[13px] text-center py-8 px-2" style={{ color: "rgba(255,255,255,0.3)" }}>
             Ask a question — the sources it draws from will rank here.
