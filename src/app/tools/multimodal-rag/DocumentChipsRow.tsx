@@ -8,7 +8,10 @@ const displayName = (source: string) => source.replace(/^user:/, "").replace(/:[
 const CHUNK_TYPE_FILTER_LABEL: Record<string, string> = {
   text: "Text", table: "Table", figure: "Figure", image: "Image", video: "Video Frame",
 };
-const ENTITY_TYPE_FILTER_LABEL: Record<string, string> = { money: "Money", date: "Date", percent: "Percent" };
+const ENTITY_TYPE_FILTER_LABEL: Record<string, string> = {
+  money: "Money", date: "Date", percent: "Percent",
+  person: "Person", org: "Organization", location: "Location",
+};
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 

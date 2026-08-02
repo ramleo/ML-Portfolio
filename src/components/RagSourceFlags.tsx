@@ -1,6 +1,9 @@
 "use client";
 
-const ENTITY_COLOR: Record<string, string> = { money: "#34d399", date: "#60a5fa", percent: "#fbbf24" };
+const ENTITY_COLOR: Record<string, string> = {
+  money: "#34d399", date: "#60a5fa", percent: "#fbbf24",
+  person: "#f472b6", org: "#c084fc", location: "#38bdf8",
+};
 
 type Props = {
   numberMismatch?: boolean;

@@ -309,7 +309,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
                     <div>Visual (image) match: <strong style={{ color: "var(--text2)" }}>{retrievalTrace.vision.score.toFixed(3)}</strong> similarity, ranked #{retrievalTrace.vision.rank} of the candidates this signal alone found.</div>
                   )}
                   {retrievalTrace?.graph && (
-                    <div>Shared value match: this chunk states the same dollar amount, date, or percentage as your question — found across your uploaded documents (confidence <strong style={{ color: "var(--text2)" }}>{retrievalTrace.graph.score.toFixed(2)}</strong>, not a similarity score).</div>
+                    <div>Shared value match: this chunk states the same value or name as your question (an amount, date, percentage, person, organization, or location) — found across your uploaded documents (confidence <strong style={{ color: "var(--text2)" }}>{retrievalTrace.graph.score.toFixed(2)}</strong>, not a similarity score).</div>
                   )}
                   {typeBoost && typeBoost !== 1 && (
                     <div>Your question's wording ({chunkType ? CHUNK_TYPE_LABEL[chunkType] ?? chunkType : "this type"}-related) gave this chunk type a <strong style={{ color: "var(--text2)" }}>{typeBoost}×</strong> boost.</div>
