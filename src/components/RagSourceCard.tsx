@@ -177,14 +177,20 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
       onMouseEnter={() => {
         const rect = cardRef.current?.getBoundingClientRect();
         if (!rect) { setHovering(true); return; }
-        // 220, not the card's own top alone -- the tooltip itself is up to
-        // ~150px tall (4-5 wrapped lines), so "is there room above" has to
-        // account for the tooltip's height too, not just treat the card's
-        // position as a point. 150 wasn't enough buffer: a card sitting
-        // right below this panel's own "Evidence" header rendered its
-        // above-tooltip directly on top of that header text instead of
-        // flipping below it.
-        const below = rect.top < 220;
+        // Two threshold-guessing attempts against "distance from the card
+        // to the viewport top" both failed: this card usually sits inside a
+        // small internal-scroll panel with its own header mid-page, so a
+        // fixed pixel distance from the card to the viewport's top edge has
+        // no reliable relationship to whether an ABOVE tooltip would clear
+        // that panel's own header -- worked out via the actual numbers live
+        // (card at ~288px from viewport top, panel header ends ~230px, a
+        // ~110px-tall tooltip anchored above the card still lands on top of
+        // it). Flipping the default instead of tuning a magic number: most
+        // cards have plenty of room below them in a normal-height viewport,
+        // so default to below, and only go above when there truly isn't
+        // room left in the viewport underneath the card (i.e. near the very
+        // bottom of the page/list, not near some arbitrary top offset).
+        const below = window.innerHeight - rect.bottom > 150;
         setTooltipPos({ top: below ? rect.bottom + 5 : rect.top - 5, left: rect.left, below });
         setHovering(true);
       }}
