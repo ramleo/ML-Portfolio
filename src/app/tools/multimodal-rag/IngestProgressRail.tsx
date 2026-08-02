@@ -152,7 +152,6 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
       {state.kind === "idle" || state.kind === "error" ? (
         <>
           <div
-            title="PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV, MP3/WAV/M4A/OGG/FLAC/AAC · Max 20 MB · PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames · Audio: full transcript"
             className={bare
               ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-white/5"
               : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-white/5"}
@@ -168,9 +167,14 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             {bare ? (
-              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Add a document, image, or video
-              </p>
+              <>
+                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Add a document, image, or video
+                </p>
+                <p className="text-[9px] text-center px-2" style={{ color: "rgba(255,255,255,0.22)" }}>
+                  PDF, image, video, or audio · Max 20 MB
+                </p>
+              </>
             ) : (
               <>
                 <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
