@@ -129,18 +129,16 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const cat = categorize(source);
   const name = displayName(source, cat);
   const typeLabel = chunkType && CHUNK_TYPE_LABEL[chunkType];
-  const signalLabels = [
-    retrievalTrace?.dense && `dense · rank ${retrievalTrace.dense.rank}`,
-    retrievalTrace?.bm25 && `keyword · rank ${retrievalTrace.bm25.rank}`,
-    // Vision (MMRAG-24) — Cohere Embed v4 image-similarity signal, alongside
-    // the existing dense/keyword ones; a chunk can be surfaced by more than
-    // one, so join rather than only ever showing the first that matched.
-    retrievalTrace?.vision && `vision · rank ${retrievalTrace.vision.rank}`,
-    // Graph (MMRAG-25) — shared money/date/percent value with the question,
-    // found across this session's own documents regardless of embedding rank.
-    retrievalTrace?.graph && `graph · rank ${retrievalTrace.graph.rank}`,
-  ].filter(Boolean) as string[];
-  const retrievalLabel = signalLabels.length > 0 ? signalLabels.join(" + ") : hybridScore != null ? "fused retrieval" : null;
+  // One chip per retrieval signal that independently surfaced this chunk —
+  // a chunk found by 3 methods used to render as one long joined string
+  // ("dense · rank 1 + keyword · rank 1 + graph · rank 2") that got harder
+  // to scan as more signals (MMRAG-24 vision, MMRAG-25 graph) were added.
+  const retrievalSignals = [
+    retrievalTrace?.dense && { label: "dense", rank: retrievalTrace.dense.rank, color: "#60a5fa" },
+    retrievalTrace?.bm25 && { label: "keyword", rank: retrievalTrace.bm25.rank, color: "#34d399" },
+    retrievalTrace?.vision && { label: "vision", rank: retrievalTrace.vision.rank, color: "#fbbf24" },
+    retrievalTrace?.graph && { label: "graph", rank: retrievalTrace.graph.rank, color: "#c084fc" },
+  ].filter(Boolean) as { label: string; rank: number; color: string }[];
   const rerankValue = rerankScore ?? rawScore ?? score;
 
   const loadPageChunks = async () => {
@@ -267,10 +265,24 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           )}
           {hasTrace && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginBottom: "0.4rem" }}>
-              {retrievalLabel && (
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.6rem" }}>
-                  <span style={{ flexShrink: 0 }}>Retrieval</span>
-                  <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", textAlign: "right" }}>{retrievalLabel}</span>
+              {(retrievalSignals.length > 0 || hybridScore != null) && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <span>Retrieval</span>
+                  {retrievalSignals.length > 0 ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                      {retrievalSignals.map(sig => (
+                        <span key={sig.label} title={`Ranked #${sig.rank} by this signal alone`} style={{
+                          fontSize: "0.72rem", fontWeight: 700, color: sig.color,
+                          background: `${sig.color}1a`, borderRadius: 9999, padding: "1px 7px",
+                          fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
+                        }}>
+                          {sig.label} · #{sig.rank}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>fused retrieval</span>
+                  )}
                 </div>
               )}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
