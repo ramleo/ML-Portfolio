@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ML_UNIFIED_API } from "@/config/urls";
 import RagTableView from "./RagTableView";
 import RagSourceFlags from "./RagSourceFlags";
@@ -117,7 +118,19 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   const piiList = piiTypes ? piiTypes.split(",").map(t => PII_LABEL[t] ?? t) : [];
   const [open, setOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
-  const [tooltipBelow, setTooltipBelow] = useState(false);
+  // Fixed-position coords computed at hover time, not CSS top/bottom-100% --
+  // this card usually sits inside a small overflow-y-auto scroll panel (the
+  // Evidence column), not the full page. An absolutely-positioned tooltip
+  // nested inside that panel gets clipped by ITS overflow the moment the
+  // card is near the panel's own top edge, even when there's plenty of room
+  // in the actual viewport above it -- a real bug found live: the panel's
+  // scroll container starts well below the page's top, so "is this card
+  // near the viewport top" (the old check) said no room needed flipping
+  // when the card was actually flush against the panel's own top edge.
+  // Portal-rendering into document.body as position:fixed escapes that
+  // ancestor's overflow entirely, and viewport-relative math becomes valid
+  // again since fixed positioning IS relative to the viewport.
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number; below: boolean } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [traceOpen, setTraceOpen] = useState(false);
   const [pageChunks, setPageChunks] = useState<PageChunk[] | "loading" | null>(null);
@@ -162,11 +175,10 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
       ref={cardRef}
       onClick={() => { setOpen(o => !o); onSelect?.(); }}
       onMouseEnter={() => {
-        // Flip below when there isn't ~100px of room above — the card is
-        // often the first in a scrolling list, where an above-positioned
-        // tooltip gets clipped by the container's overflow instead of
-        // simply reading off the top of the viewport.
-        setTooltipBelow((cardRef.current?.getBoundingClientRect().top ?? 999) < 100);
+        const rect = cardRef.current?.getBoundingClientRect();
+        if (!rect) { setHovering(true); return; }
+        const below = rect.top < 150;
+        setTooltipPos({ top: below ? rect.bottom + 5 : rect.top - 5, left: rect.left, below });
         setHovering(true);
       }}
       onMouseLeave={() => setHovering(false)}
@@ -180,18 +192,17 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         position: "relative",
       }}
     >
-      {hovering && !open && (
+      {hovering && !open && tooltipPos && typeof document !== "undefined" && createPortal(
         <div style={{
-          position: "absolute", left: 0, zIndex: 20,
-          ...(tooltipBelow
-            ? { top: "100%", marginTop: "0.3rem" }
-            : { bottom: "100%", marginBottom: "0.3rem" }),
+          position: "fixed", left: tooltipPos.left, zIndex: 9999,
+          ...(tooltipPos.below ? { top: tooltipPos.top } : { bottom: window.innerHeight - tooltipPos.top }),
           maxWidth: 320, background: "#141420", border: `1px solid ${accent}40`,
           borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.78rem", lineHeight: 1.5,
           color: "var(--text2)", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", pointerEvents: "none",
         }}>
           {text.slice(0, 180)}{text.length > 180 ? "…" : ""}
-        </div>
+        </div>,
+        document.body
       )}
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
         {index != null && (
