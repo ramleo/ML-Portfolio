@@ -81,8 +81,8 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
        * header. A persistent fade means content never appears to touch
        * that edge, regardless of scroll position. */}
       <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-3" style={{
-        maskImage: "linear-gradient(to bottom, transparent 0, black 16px)",
-        WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 16px)",
+        maskImage: "linear-gradient(to bottom, transparent 0, black 32px)",
+        WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 32px)",
       }}>
         {!hasContent && (
           <p className="text-[13px] text-center py-8 px-2" style={{ color: "rgba(255,255,255,0.3)" }}>
