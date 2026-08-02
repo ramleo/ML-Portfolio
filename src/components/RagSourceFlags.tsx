@@ -12,6 +12,15 @@ type Props = {
   entities?: { type: string; value: string }[] | null;
 };
 
+// entities.py caps 4 per type, but with 6 types (money/date/percent/person/
+// org/location) that's up to 24 chips on one chunk — a technical-heavy chunk
+// (résumés, ML writeups) can trip spaCy into tagging jargon like "ROC" or
+// "XGBoost Classifier" as an org, burying the entities actually worth
+// showing. Cap the total shown, and truncate any one value so a long
+// misfire doesn't wrap into a giant pill next to one-word chips.
+const _MAX_ENTITIES_SHOWN = 8;
+const _MAX_ENTITY_VALUE_LEN = 28;
+
 /** The expanded-card warning badges (number mismatch / maybe-blurry / PII)
  * and entity chips — split out of RagSourceCard.tsx to stay under the
  * project's file-length limit. Purely presentational, no state of its own. */
@@ -72,17 +81,25 @@ export default function RagSourceFlags({ numberMismatch, blurry, piiList, entiti
       )}
       {entities && entities.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
-          {entities.map((e, i) => {
+          {entities.slice(0, _MAX_ENTITIES_SHOWN).map((e, i) => {
             const color = ENTITY_COLOR[e.type] ?? "#94a3b8";
+            const truncated = e.value.length > _MAX_ENTITY_VALUE_LEN;
+            const label = truncated ? `${e.value.slice(0, _MAX_ENTITY_VALUE_LEN)}…` : e.value;
             return (
-              <span key={i} style={{
+              <span key={i} title={truncated ? e.value : undefined} style={{
                 fontSize: "0.74rem", fontWeight: 600, color,
                 background: `${color}18`, borderRadius: 9999, padding: "1px 6px",
+                whiteSpace: "nowrap",
               }}>
-                {e.value}
+                {label}
               </span>
             );
           })}
+          {entities.length > _MAX_ENTITIES_SHOWN && (
+            <span style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--text3)", padding: "1px 6px" }}>
+              +{entities.length - _MAX_ENTITIES_SHOWN} more
+            </span>
+          )}
         </div>
       )}
     </>

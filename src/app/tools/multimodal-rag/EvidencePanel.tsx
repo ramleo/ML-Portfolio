@@ -58,7 +58,13 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
 
   return (
     <div style={cardStyle} className="flex flex-col min-h-0 h-full">
-      <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: `${ACCENT}18` }}>
+      {/* Solid-ish background + shadow, not just the card's translucent
+       * background/faint border — otherwise this reads as blending into
+       * the scrolled list beneath it instead of sitting above it. */}
+      <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between relative z-10" style={{
+        borderColor: `${ACCENT}30`, background: "rgba(10,8,18,0.92)",
+        boxShadow: "0 6px 12px -6px rgba(0,0,0,0.5)",
+      }}>
         <span className="text-[17px]" style={{ color: ACCENT, fontFamily: "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source Serif Pro', Georgia, serif" }}>
           Evidence
         </span>
