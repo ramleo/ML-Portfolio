@@ -95,8 +95,18 @@ export default function MmRagRunner() {
   const handleIngested = useCallback((result: Doc) => {
     setDocuments(docs => [...docs, result]);
     // Show page 1 of the just-uploaded doc immediately — don't make the user
-    // click a citation just to discover a preview exists at all.
-    setActiveCitation({ page: 1, chunkType: null, source: result.source, bbox: null, objects: null });
+    // click a citation just to discover a preview exists at all. Detections
+    // (faces/objects) are already computed at ingest time and sit in
+    // notableChunks — pull them in here instead of hardcoding null, so
+    // "Detect faces" works on this auto-shown preview without an extra click.
+    const page1Chunk = result.notableChunks.find(c => (c.page ?? 1) === 1);
+    setActiveCitation({
+      page: 1,
+      chunkType: page1Chunk?.chunkType ?? null,
+      source: result.source,
+      bbox: page1Chunk?.bbox ?? null,
+      objects: page1Chunk?.objects ?? null,
+    });
     // Ingestion diffing is informational only — never auto-replaces anything.
     // Only prompt if the flagged older doc is still actually in this session
     // (it always should be, but don't trust it blindly).
