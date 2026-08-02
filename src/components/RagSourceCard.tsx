@@ -134,11 +134,15 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   // ("dense · rank 1 + keyword · rank 1 + graph · rank 2") that got harder
   // to scan as more signals (MMRAG-24 vision, MMRAG-25 graph) were added.
   const retrievalSignals = [
-    retrievalTrace?.dense && { label: "dense", rank: retrievalTrace.dense.rank, color: "#60a5fa" },
-    retrievalTrace?.bm25 && { label: "keyword", rank: retrievalTrace.bm25.rank, color: "#34d399" },
-    retrievalTrace?.vision && { label: "vision", rank: retrievalTrace.vision.rank, color: "#fbbf24" },
-    retrievalTrace?.graph && { label: "graph", rank: retrievalTrace.graph.rank, color: "#c084fc" },
-  ].filter(Boolean) as { label: string; rank: number; color: string }[];
+    retrievalTrace?.dense && { label: "dense", rank: retrievalTrace.dense.rank, color: "#60a5fa",
+      desc: "Matched by meaning — this chunk's embedding is semantically close to your question" },
+    retrievalTrace?.bm25 && { label: "keyword", rank: retrievalTrace.bm25.rank, color: "#34d399",
+      desc: "Matched by keyword overlap (BM25) with your question's exact wording" },
+    retrievalTrace?.vision && { label: "vision", rank: retrievalTrace.vision.rank, color: "#fbbf24",
+      desc: "Matched by visual similarity — the image itself, not its caption, is close to your question" },
+    retrievalTrace?.graph && { label: "graph", rank: retrievalTrace.graph.rank, color: "#c084fc",
+      desc: "Matched by sharing an exact value or name (amount, date, person, etc.) with your question" },
+  ].filter(Boolean) as { label: string; rank: number; color: string; desc: string }[];
   const rerankValue = rerankScore ?? rawScore ?? score;
 
   const loadPageChunks = async () => {
@@ -271,7 +275,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
                   {retrievalSignals.length > 0 ? (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                       {retrievalSignals.map(sig => (
-                        <span key={sig.label} title={`Ranked #${sig.rank} by this signal alone`} style={{
+                        <span key={sig.label} title={`${sig.desc} — ranked #${sig.rank} among the candidates this signal alone found`} style={{
                           fontSize: "0.72rem", fontWeight: 700, color: sig.color,
                           background: `${sig.color}1a`, borderRadius: 9999, padding: "1px 7px",
                           fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
