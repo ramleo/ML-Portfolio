@@ -112,6 +112,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 source: evt.source,
                 chunksAdded: evt.chunks_added,
                 summary: evt.chunk_summary,
+                fileType: evt.file_type ?? "pdf",
                 pageImages: evt.page_images ?? [],
                 cached: !!evt.cached,
                 saveScope: evt.save_scope,

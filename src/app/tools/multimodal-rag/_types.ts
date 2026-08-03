@@ -20,6 +20,11 @@ export type IngestState =
   | { kind: "extracting"; page?: number; pages?: number; indeterminate?: boolean }
   | { kind: "embedding" }
   | { kind: "done"; source: string; chunksAdded: number; summary: ChunkSummary;
+      /** "pdf" | "csv" | "video" | "audio" | "image" — the actual uploaded
+       * file type, from the backend (never derived from chunk counts, which
+       * can mislead: a standalone image containing a readable chart/grid
+       * still produces a "table" chunk_type alongside its "image" chunk). */
+      fileType: string;
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
       embeddingMode: EmbeddingMode; notableChunks: NotableChunk[]; transcript: string | null;
       transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null;

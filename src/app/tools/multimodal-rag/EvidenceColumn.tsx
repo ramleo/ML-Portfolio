@@ -86,7 +86,9 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               )}
               objects={activeCitation.objects}
               source={activeDoc.source}
-              canFindSimilar={activeDoc.embeddingMode === "caption+clip"} />
+              canFindSimilar={activeDoc.embeddingMode === "caption+clip"}
+              captionText={activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
+              isImageOrVideoOnly={activeDoc.fileType === "image" || activeDoc.fileType === "video"} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

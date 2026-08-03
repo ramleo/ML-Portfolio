@@ -35,17 +35,39 @@ type Props = {
    * hides the button entirely instead of showing one that always says
    * "not available" for the common (unchecked) default. */
   canFindSimilar: boolean;
+  /** Already-computed AI caption + OCR text for this exact page/frame
+   * (NotableChunk.text, from ingest) — no extra call, just surfaced. */
+  captionText?: string | null;
+  /** True only when the uploaded FILE ITSELF is a standalone image/video
+   * (not a PDF's embedded photo/chart) — computed by the caller from the
+   * document's chunk-type summary. Swaps the scattered per-action buttons
+   * below for a single dropdown; a PDF/mixed-content citation keeps the
+   * original buttons untouched. */
+  isImageOrVideoOnly: boolean;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar }: Props) {
+type VisualAction = "" | "description" | "objects" | "faces" | "similar";
+
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
   const [showFaces, setShowFaces] = useState(false);
+  const [visualAction, setVisualAction] = useState<VisualAction>("");
   const faces = (objects ?? []).filter(o => o.label === "Human face");
+
+  // Which detections actually draw on the image right now. In image/video-
+  // only mode the dropdown (visualAction) decides; otherwise this is exactly
+  // the original showFaces/matchedObjects logic, unchanged.
+  const facesToShow = isImageOrVideoOnly
+    ? (visualAction === "faces" ? faces : [])
+    : (showFaces ? faces : []);
+  const objectsToShow = isImageOrVideoOnly
+    ? (visualAction === "objects" ? (objects ?? []) : visualAction === "faces" ? [] : (matchedObjects ?? []))
+    : (showFaces ? [] : (matchedObjects ?? []));
 
   if (!page || page < 1 || page > pageImages.length) return null;
   const img = pageImages[page - 1];
@@ -80,21 +102,41 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
         </span>
         <div className="flex items-center gap-1.5">
-          {faces.length > 0 && (
-            <button onClick={() => setShowFaces(v => !v)}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={showFaces
-                ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
-                : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
-              {showFaces ? "Hide faces" : `Detect faces (${faces.length})`}
-            </button>
-          )}
-          {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
-            <button onClick={findSimilar} disabled={loadingSimilar}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
-              {loadingSimilar ? "Checking…" : "Find similar figures"}
-            </button>
+          {isImageOrVideoOnly ? (
+            <select value={visualAction} onChange={e => {
+                const v = e.target.value as VisualAction;
+                setVisualAction(v);
+                if (v === "similar") findSimilar();
+              }}
+              className="text-[9px] rounded border"
+              style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
+              <option value="">Choose an action…</option>
+              {captionText && <option value="description">Describe (caption + OCR)</option>}
+              {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
+              {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
+              {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
+                <option value="similar">Find visually similar</option>
+              )}
+            </select>
+          ) : (
+            <>
+              {faces.length > 0 && (
+                <button onClick={() => setShowFaces(v => !v)}
+                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                  style={showFaces
+                    ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
+                    : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
+                  {showFaces ? "Hide faces" : `Detect faces (${faces.length})`}
+                </button>
+              )}
+              {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
+                <button onClick={findSimilar} disabled={loadingSimilar}
+                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                  style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
+                  {loadingSimilar ? "Checking…" : "Find similar figures"}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -119,8 +161,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               deliberate request to see every face, regardless of what
               question (if any) was asked. Shows ALL matching detections at
               once, not just one, so it maps over `faces` instead of the
-              single-box pattern below. */}
-          {showFaces ? faces.map((f, i) => (
+              single-box pattern below.
+              In image/video-only mode the dropdown drives which list is
+              active instead of the showFaces boolean: "faces" -> facesToShow,
+              "objects" -> ALL detections (not just question-matched, a new
+              capability), anything else falls back to the existing
+              question-driven matchedObjects behavior — unchanged in
+              PDF/mixed-content mode. */}
+          {facesToShow.length > 0 ? facesToShow.map((f, i) => (
             <div key={i} className="absolute pointer-events-none" style={{
               left: `${f.bbox[0] * 100}%`, top: `${f.bbox[1] * 100}%`,
               width: `${f.bbox[2] * 100}%`, height: `${f.bbox[3] * 100}%`,
@@ -132,7 +180,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
                 Face ({Math.round(f.confidence * 100)}%)
               </span>
             </div>
-          )) : matchedObjects && matchedObjects.length > 0 ? matchedObjects.map((obj, i) => (
+          )) : objectsToShow.length > 0 ? objectsToShow.map((obj, i) => (
             <div key={i} className="absolute pointer-events-none" style={{
               left: `${obj.bbox[0] * 100}%`, top: `${obj.bbox[1] * 100}%`,
               width: `${obj.bbox[2] * 100}%`, height: `${obj.bbox[3] * 100}%`,
@@ -161,6 +209,18 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           )}
         </div>
       </div>
+      {isImageOrVideoOnly && visualAction === "description" && captionText && (
+        <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
+      )}
+      {isImageOrVideoOnly && visualAction === "objects" && objects && objects.length > 0 && (
+        <div className="px-3 py-2 flex flex-col gap-1">
+          {objects.map((o, i) => (
+            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+              {o.label} — {Math.round(o.confidence * 100)}%
+            </div>
+          ))}
+        </div>
+      )}
       {similarNote && (
         <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
       )}
