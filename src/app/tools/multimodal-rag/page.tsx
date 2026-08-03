@@ -31,7 +31,7 @@ export default function MultimodalRagPage() {
       }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
-        <div className="max-w-7xl mx-auto px-4 w-full">
+        <div className="max-w-[1600px] mx-auto px-4 w-full">
           <button onClick={handleBack}
             className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">

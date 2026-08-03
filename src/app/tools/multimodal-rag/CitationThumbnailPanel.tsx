@@ -160,7 +160,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           on the outer div, a bbox at top:50.5% rendered at 50.5% of the
           320px clip (161px) instead of 50.5% of the image's true 787px
           height, visibly misaligned once scrolled. */}
-      <div className="w-full overflow-y-auto" style={{ maxHeight: 320, background: "#0a0f1a" }}>
+      <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "#0a0f1a" }}>
         <div className="relative w-full">
           <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
           {/* "Detect faces" takes priority when toggled on — an explicit,
@@ -186,26 +186,40 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
                 Face ({Math.round(f.confidence * 100)}%)
               </span>
             </div>
-          )) : objectsToShow.length > 0 ? objectsToShow.map((obj, i) => (
-            <div key={i} className="absolute pointer-events-none" style={{
-              left: `${obj.bbox[0] * 100}%`, top: `${obj.bbox[1] * 100}%`,
-              width: `${obj.bbox[2] * 100}%`, height: `${obj.bbox[3] * 100}%`,
-              border: `2px solid ${OBJECT_COLOR}`, borderRadius: 3,
-              background: `${OBJECT_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
-            }}>
-              {/* Sits INSIDE the box's top edge, not floating above it — a
-                  box near the top of the frame (bbox y close to 0, common
-                  for a speaker/subject filling most of the shot) would push
-                  an above-box label above the image itself, clipped by the
-                  container with no way to scroll up to see it. Inside-top
-                  placement can never go off-frame, whatever the box's
-                  position. */}
-              <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
-                style={{ top: 2, left: 2, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
-                {obj.label} ({Math.round(obj.confidence * 100)}%)
-              </span>
-            </div>
-          )) : bbox && (
+          )) : objectsToShow.length > 0 ? objectsToShow.map((obj, i) => {
+            // OIV7's hierarchical taxonomy (Tire/Wheel/Bicycle wheel etc.)
+            // commonly fires several labels on the same physical region —
+            // their boxes nearly coincide, so labels pinned at a fixed
+            // top:2/left:2 land on the exact same pixels and render as
+            // garbled overlapping text. Stack each later-arriving label
+            // below the earlier one(s) sharing a near-identical top-left
+            // corner instead, so every label stays independently readable.
+            let stack = 0;
+            for (let j = 0; j < i; j++) {
+              if (Math.abs(obj.bbox[0] - objectsToShow[j].bbox[0]) < 0.04
+                  && Math.abs(obj.bbox[1] - objectsToShow[j].bbox[1]) < 0.04) stack++;
+            }
+            return (
+              <div key={i} className="absolute pointer-events-none" style={{
+                left: `${obj.bbox[0] * 100}%`, top: `${obj.bbox[1] * 100}%`,
+                width: `${obj.bbox[2] * 100}%`, height: `${obj.bbox[3] * 100}%`,
+                border: `2px solid ${OBJECT_COLOR}`, borderRadius: 3,
+                background: `${OBJECT_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+              }}>
+                {/* Sits INSIDE the box's top edge, not floating above it — a
+                    box near the top of the frame (bbox y close to 0, common
+                    for a speaker/subject filling most of the shot) would push
+                    an above-box label above the image itself, clipped by the
+                    container with no way to scroll up to see it. Inside-top
+                    placement can never go off-frame, whatever the box's
+                    position. */}
+                <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ top: 2 + stack * 16, left: 2, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
+                  {obj.label} ({Math.round(obj.confidence * 100)}%)
+                </span>
+              </div>
+            );
+          }) : bbox && (
             <div className="absolute pointer-events-none" style={{
               left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
               width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,

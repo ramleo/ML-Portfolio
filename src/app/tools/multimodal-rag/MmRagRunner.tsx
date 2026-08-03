@@ -242,7 +242,7 @@ export default function MmRagRunner() {
 
       {!isSharedView && (
         <div className={documents.length > 0
-          ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_320px] gap-4 lg:h-[82vh]"
+          ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_440px] gap-4 lg:h-[88vh]"
           : "max-w-xs"}>
           <DocumentTray documents={documents} accent={ACCENT} cardStyle={cardStyle}
             activeSource={activeCitation?.source ?? null}
@@ -279,7 +279,7 @@ export default function MmRagRunner() {
       )}
 
       {isSharedView && (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-4 lg:h-[82vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_440px] gap-4 lg:h-[88vh]">
           <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
             settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
 
