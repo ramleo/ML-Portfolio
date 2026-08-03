@@ -82,7 +82,18 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
         <EvidencePanel chat={chat} accent={accent} cardStyle={cardStyle} jumpToCitation={jumpToCitation} />
       </div>
 
-      <div className="flex gap-3 shrink-0">
+      {/* FIXED height (not max-height) + its own scroll on the WHOLE row,
+          not just the image inside CitationThumbnailPanel — this row is
+          `shrink-0` inside a fixed-height column shared with Evidence's
+          flex-1 above. A max-height cap alone still let the row grow
+          within that ceiling as content changed, which still visibly
+          shrank Evidence's flex-1 share every time (just bounded, not
+          eliminated). A fixed height makes this row occupy exactly the
+          same space always — content that's shorter leaves blank/
+          scrollable room inside IT, content that's taller scrolls inside
+          IT — so Evidence's share next to it never moves, regardless of
+          what's selected below it. */}
+      <div className="flex gap-3 shrink-0 overflow-y-auto" style={{ height: 560 }}>
         <div className="flex-1 flex flex-col gap-3 min-w-0">
           {activeCitation && activeCitation.source && !activeDoc ? (
             <div style={cardStyle} className="flex items-center justify-center py-16">

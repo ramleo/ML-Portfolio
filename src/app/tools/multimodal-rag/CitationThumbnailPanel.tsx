@@ -229,30 +229,39 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           )}
         </div>
       </div>
-      {isImageOrVideoOnly && visualAction === "description" && captionText && (
-        <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
-      )}
-      {isImageOrVideoOnly && visualAction === "objects" && objects && objects.length > 0 && (
-        <div className="px-3 py-2 flex flex-col gap-1">
-          {objects.map((o, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              {o.label} — {Math.round(o.confidence * 100)}%
-            </div>
-          ))}
-        </div>
-      )}
-      {similarNote && (
-        <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
-      )}
-      {similar && (
-        <div className="px-3 py-2 flex flex-col gap-1">
-          {similar.map((s, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              Page {s.page} — {Math.round(s.similarity * 100)}% similar
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Capped + independently scrollable — this sits below a shrink-0
+          sibling of the flex-1 Evidence panel in a fixed-height column
+          (EvidenceColumn.tsx). An unbounded description/objects/similar
+          block here would grow this panel's natural height with whatever
+          action was picked, silently stealing space from Evidence every
+          time. A fixed cap keeps this panel's footprint (and therefore
+          Evidence's share of the column) stable regardless of selection. */}
+      <div className="overflow-y-auto" style={{ maxHeight: 160 }}>
+        {isImageOrVideoOnly && visualAction === "description" && captionText && (
+          <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
+        )}
+        {isImageOrVideoOnly && visualAction === "objects" && objects && objects.length > 0 && (
+          <div className="px-3 py-2 flex flex-col gap-1">
+            {objects.map((o, i) => (
+              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {o.label} — {Math.round(o.confidence * 100)}%
+              </div>
+            ))}
+          </div>
+        )}
+        {similarNote && (
+          <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
+        )}
+        {similar && (
+          <div className="px-3 py-2 flex flex-col gap-1">
+            {similar.map((s, i) => (
+              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Page {s.page} — {Math.round(s.similarity * 100)}% similar
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
