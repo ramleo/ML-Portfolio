@@ -236,7 +236,16 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           action was picked, silently stealing space from Evidence every
           time. A fixed cap keeps this panel's footprint (and therefore
           Evidence's share of the column) stable regardless of selection. */}
-      <div className="overflow-y-auto" style={{ maxHeight: 160 }}>
+      {/* FIXED height, not max-height — this block sits in a row that
+          shares one fixed total budget with Evidence's flex-1 (see
+          EvidenceColumn.tsx). A max-height cap still lets this block go
+          from 0 (nothing selected) to 160 (an action selected), and that
+          growth comes straight out of Evidence's share every time. A fixed
+          height means this reserves the same 160px always — blank when
+          there's nothing to show, scrolls internally when there's more
+          than fits — so the row's total height, and therefore Evidence's
+          share, never moves regardless of what's selected. */}
+      <div className="overflow-y-auto" style={{ height: 160 }}>
         {isImageOrVideoOnly && visualAction === "description" && captionText && (
           <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
         )}
