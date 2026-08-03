@@ -98,6 +98,19 @@ that answer came from — click one to expand it and see more.
   to guess," not a bug or a missing feature. (If you're looking at the raw
   API response instead of the UI, this is the groundedness field coming
   back as null for that answer.)
+- **Self-correction on a weak score.** A "Low" groundedness score — or a
+  "Medium" one with specific sentences flagged — triggers one automatic
+  fix attempt before you're done reading. You may briefly see an answer
+  start streaming in, then watch it clear and restart: that's the retry
+  replacing the first attempt, not a glitch. The retry isn't a blind
+  do-over — the model is told exactly which of its own sentences didn't
+  match the evidence and asked to fix or drop only those, using a
+  broadened set of already-retrieved candidates (no extra retrieval
+  delay). A small "Self-corrected once" tag appears next to the
+  Groundedness badge when this happened; hover it for the same
+  explanation. It only ever fires once per answer, and only keeps the
+  retry if it scores no worse than the original — a weak-but-complete
+  first answer is never swapped for something worse.
 - **Ask in your own language.** You don't need to ask in English — type
   your question in whatever language you're comfortable with (Hindi,
   Telugu, Spanish, French, etc.) and the answer comes back in that same
