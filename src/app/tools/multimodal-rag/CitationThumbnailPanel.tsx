@@ -114,7 +114,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {captionText && <option value="description">Describe (caption + OCR)</option>}
               {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
               {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
-              {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
+              {/* In image/video-only mode the clicked citation might be a
+                  sibling "table"/OCR chunk of the same underlying photo
+                  (e.g. Mistral OCR misreading the background as a table) —
+                  the figure/image chunkType check below only makes sense
+                  for a PDF's multiple distinct citation types, so it's
+                  skipped here; there's only ever one real photo either way. */}
+              {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
                 <option value="similar">Find visually similar</option>
               )}
             </select>

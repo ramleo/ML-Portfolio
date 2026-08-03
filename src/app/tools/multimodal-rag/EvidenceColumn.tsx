@@ -63,6 +63,19 @@ type Props = {
  * whole block — split out to stay under the project's file-length limit
  * and de-duplicate the two copies. */
 export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation, activeCitation, activeDoc, setActiveCitation }: Props) {
+  const isImageOrVideoOnly = activeDoc ? (activeDoc.fileType === "image" || activeDoc.fileType === "video") : false;
+  // A standalone image/video upload can produce a SIBLING "table" chunk on
+  // the same page (e.g. Mistral OCR reading the photo's background as a
+  // table, or a real extracted chart) — that sibling citation carries no
+  // `objects`/real caption of its own, only the "image"/"video"-typed chunk
+  // does. Clicking the table citation must still show the SAME photo's
+  // detections/caption, not an empty dropdown — so look them up from the
+  // media chunk itself rather than trusting whichever citation was clicked.
+  const mediaChunk = (isImageOrVideoOnly && activeDoc && activeCitation)
+    ? activeDoc.notableChunks.find(c => c.page === activeCitation.page && (c.chunkType === "image" || c.chunkType === "video")) ?? null
+    : null;
+  const effectiveObjects = mediaChunk ? (mediaChunk.objects ?? null) : (activeCitation?.objects ?? null);
+
   return (
     <div className="flex flex-col gap-3 h-full min-h-0">
       <div className="flex-1 min-h-0">
@@ -81,14 +94,14 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
             <CitationThumbnailPanel pageImages={activeDoc.pageImages} page={activeCitation.page}
               chunkType={activeCitation.chunkType} bbox={activeCitation.bbox}
               matchedObjects={matchObjectsToQuestion(
-                activeCitation.objects,
+                effectiveObjects,
                 [...chat.messages].reverse().find(m => m.role === "user")?.content ?? ""
               )}
-              objects={activeCitation.objects}
+              objects={effectiveObjects}
               source={activeDoc.source}
               canFindSimilar={activeDoc.embeddingMode === "caption+clip"}
-              captionText={activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
-              isImageOrVideoOnly={activeDoc.fileType === "image" || activeDoc.fileType === "video"} />
+              captionText={mediaChunk?.text ?? activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
+              isImageOrVideoOnly={isImageOrVideoOnly} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
