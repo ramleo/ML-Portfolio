@@ -39,7 +39,9 @@ and model, and optionally paste in your own API key for it. This is entirely
 optional — the tool works out of the box using shared demo keys, which is
 enough for normal use. Bringing your own key is useful if you want a
 specific model, or want your usage on a quota you control rather than the
-shared demo's. Your key is stored only in your browser (localStorage) and is
-sent directly to that provider to generate your answer — never stored on
-this server or logged anywhere.
+shared demo's. Your key is stored only in your browser (localStorage). Each
+question sends it along with your query to this tool's own backend, which
+uses it to call the provider on your behalf for that one answer — it's
+never written to disk, stored in a database, or logged on this server, and
+isn't kept anywhere after that request completes.
 `.trim();

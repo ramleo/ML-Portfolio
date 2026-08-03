@@ -59,8 +59,11 @@ that answer came from — click one to expand it and see more.
   Number, or credit card number — common on an uploaded resume or invoice
   — that citation shows an amber "Contains email" (or phone/SSN/card
   number) badge. This is only a heads-up before you screenshot or share
-  that citation with someone else; nothing is hidden, masked, or withheld
-  — the AI can still see and use that text normally when answering you.
+  that citation with someone else — in your own session nothing is hidden,
+  masked, or withheld, and the AI can still see and use that text normally
+  when answering you. A shared-link viewer (see "Sharing a session" below)
+  sees this differently: those flagged types are actually redacted from
+  what reaches them, not just flagged.
 - **"Maybe blurry" note (gray).** Every figure/chart/photo is run through a
   quick sharpness check at upload time (an edge-detail scan, no extra
   model or delay). If it reads low, the citation shows a gray "Maybe
