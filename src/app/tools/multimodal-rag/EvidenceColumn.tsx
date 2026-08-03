@@ -77,7 +77,16 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
   const effectiveObjects = mediaChunk ? (mediaChunk.objects ?? null) : (activeCitation?.objects ?? null);
 
   return (
-    <div className="flex flex-col gap-3 h-full min-h-0">
+    // A self-contained height (not `h-full`) — `h-full` only resolves to
+    // something real inside MmRagRunner.tsx's `lg:h-[88vh]` grid, which is
+    // gated to >=1024px viewports. Below that width (a narrower browser
+    // window, not just mobile) that ancestor height vanishes, so `h-full`/
+    // `flex-1` became no-ops and Evidence + the thumbnail row each sprawled
+    // to their own natural size instead of sharing a budget — the empty
+    // placeholder ballooned while the detections list ran long below it.
+    // A fixed viewport-relative height here works identically at every
+    // width, matching the desktop-only budget this was designed for.
+    <div className="flex flex-col gap-3 min-h-0" style={{ height: "min(88vh, 820px)" }}>
       <div className="flex-1 min-h-0">
         <EvidencePanel chat={chat} accent={accent} cardStyle={cardStyle} jumpToCitation={jumpToCitation} />
       </div>
