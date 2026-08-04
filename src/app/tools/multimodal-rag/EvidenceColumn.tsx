@@ -4,10 +4,10 @@ import { useRagChat } from "@/components/useRagChat";
 import EvidencePanel from "./EvidencePanel";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
-import type { Bbox, DetectedObject, IngestState } from "./_types";
+import type { Bbox, DetectedObject, Entity, IngestState } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
-type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null };
+type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null };
 
 // Open Images V7 is hierarchical (e.g. "Man"/"Woman"/"Boy"/"Girl" are all
 // subclasses of "Person") — the detector reports whichever specific
@@ -51,7 +51,8 @@ type Props = {
   cardStyle: React.CSSProperties;
   jumpToCitation: (source: string, chunkType: string | null | undefined,
                    page: number | null | undefined, text: string, bbox?: Bbox | null,
-                   objects?: DetectedObject[] | null, timestampS?: number | null) => void;
+                   objects?: DetectedObject[] | null, timestampS?: number | null,
+                   entities?: Entity[] | null, piiTypes?: string | null) => void;
   activeCitation: ActiveCitation | null;
   activeDoc: Doc | null;
   setActiveCitation: (c: ActiveCitation) => void;
@@ -75,6 +76,11 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
     ? activeDoc.notableChunks.find(c => c.page === activeCitation.page && (c.chunkType === "image" || c.chunkType === "video")) ?? null
     : null;
   const effectiveObjects = mediaChunk ? (mediaChunk.objects ?? null) : (activeCitation?.objects ?? null);
+  // piiTypes exists on NotableChunk too, so the same sibling-lookup applies;
+  // entities don't exist at the NotableChunk level (only computed per
+  // retrieval-time citation), so that one only ever comes directly off
+  // activeCitation, whichever click path populated it.
+  const effectivePiiTypes = mediaChunk ? (mediaChunk.piiTypes ?? null) : (activeCitation?.piiTypes ?? null);
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -121,7 +127,9 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               source={activeDoc.source}
               canFindSimilar={activeDoc.embeddingMode === "caption+clip"}
               captionText={mediaChunk?.text ?? activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
-              isImageOrVideoOnly={isImageOrVideoOnly} />
+              isImageOrVideoOnly={isImageOrVideoOnly}
+              entities={activeCitation.entities ?? null}
+              piiTypes={effectivePiiTypes} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

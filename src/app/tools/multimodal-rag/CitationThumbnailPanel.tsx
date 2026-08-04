@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import type { Bbox, DetectedObject } from "./_types";
+import type { Bbox, DetectedObject, Entity } from "./_types";
 
 const ACCENT = "#a78bfa";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
@@ -44,14 +44,25 @@ type Props = {
    * below for a single dropdown; a PDF/mixed-content citation keeps the
    * original buttons untouched. */
   isImageOrVideoOnly: boolean;
+  /** Named entities (person/org/location) already extracted from this exact
+   * citation's text (MMRAG-26) — only ever populated when the citation was
+   * clicked from an Evidence card (the richer retrieval-time metadata);
+   * null from the auto-shown preview or a document-summary click, same as
+   * any other data this dropdown gates on being present. */
+  entities?: Entity[] | null;
+  /** Comma-ish string naming PII types found in this citation's text (e.g.
+   * "email, phone") — already computed at ingest (NotableChunk.piiTypes),
+   * same field RagSourceCard already flags elsewhere; just not previously
+   * surfaced in this per-image dropdown. */
+  piiTypes?: string | null;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -114,6 +125,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {captionText && <option value="description">Describe (caption + OCR)</option>}
               {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
               {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
+              {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
+              {piiTypes && <option value="pii">PII detected</option>}
               {/* In image/video-only mode the clicked citation might be a
                   sibling "table"/OCR chunk of the same underlying photo
                   (e.g. Mistral OCR misreading the background as a table) —
@@ -229,13 +242,6 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           )}
         </div>
       </div>
-      {/* Capped + independently scrollable — this sits below a shrink-0
-          sibling of the flex-1 Evidence panel in a fixed-height column
-          (EvidenceColumn.tsx). An unbounded description/objects/similar
-          block here would grow this panel's natural height with whatever
-          action was picked, silently stealing space from Evidence every
-          time. A fixed cap keeps this panel's footprint (and therefore
-          Evidence's share of the column) stable regardless of selection. */}
       {/* FIXED height, not max-height — this block sits in a row that
           shares one fixed total budget with Evidence's flex-1 (see
           EvidenceColumn.tsx). A max-height cap still lets this block go
@@ -257,6 +263,18 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               </div>
             ))}
           </div>
+        )}
+        {isImageOrVideoOnly && visualAction === "entities" && entities && entities.length > 0 && (
+          <div className="px-3 py-2 flex flex-col gap-1">
+            {entities.map((e, i) => (
+              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>{e.type}:</span> {e.value}
+              </div>
+            ))}
+          </div>
+        )}
+        {isImageOrVideoOnly && visualAction === "pii" && piiTypes && (
+          <p className="text-[9px] px-3 py-2" style={{ color: "#fbbf24" }}>Contains: {piiTypes}</p>
         )}
         {similarNote && (
           <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>

@@ -2,7 +2,7 @@
 
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
-import type { Bbox, DetectedObject } from "./_types";
+import type { Bbox, DetectedObject, Entity } from "./_types";
 
 type Props = {
   chat: ReturnType<typeof useRagChat>;
@@ -10,7 +10,8 @@ type Props = {
   cardStyle: React.CSSProperties;
   jumpToCitation: (source: string, chunkType: string | null | undefined,
                    page: number | null | undefined, text: string, bbox?: Bbox | null,
-                   objects?: DetectedObject[] | null, timestampS?: number | null) => void;
+                   objects?: DetectedObject[] | null, timestampS?: number | null,
+                   entities?: Entity[] | null, piiTypes?: string | null) => void;
 };
 
 /** The ranked citation list + groundedness readout for the latest answer —
@@ -46,7 +47,7 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
         piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
         retrievalTrace={withMeta.retrieval_trace} hybridScore={withMeta.hybrid_score}
         rerankScore={withMeta.rerank_score} typeBoost={withMeta.type_boost}
-        onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects, withMeta.timestamp_s)}
+        onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects, withMeta.timestamp_s, withMeta.entities, withMeta.pii_types)}
       />
     );
   };
