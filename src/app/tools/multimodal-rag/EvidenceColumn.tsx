@@ -87,7 +87,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
     // column is the only way "selecting a dropdown action never changes
     // Evidence's size" can hold unconditionally, at every viewport width.
     <div className="flex flex-col gap-3 min-h-0">
-      <div style={{ height: 702 }} className="min-h-0 shrink-0">
+      <div style={{ height: 502 }} className="min-h-0 shrink-0">
         <EvidencePanel chat={chat} accent={accent} cardStyle={cardStyle} jumpToCitation={jumpToCitation} />
       </div>
 
