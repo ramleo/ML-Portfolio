@@ -107,6 +107,7 @@ export default function MmRagRunner() {
       bbox: page1Chunk?.bbox ?? null,
       objects: page1Chunk?.objects ?? null,
       piiTypes: page1Chunk?.piiTypes ?? null,
+      entities: page1Chunk?.entities ?? null,
     });
     // Ingestion diffing is informational only — never auto-replaces anything.
     // Only prompt if the flagged older doc is still actually in this session
@@ -237,7 +238,7 @@ export default function MmRagRunner() {
           seekTime={videoSeek?.source === d.source ? videoSeek.time : null}
           onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
           onTextSegmentRef={(i, el) => { textSegmentRefs.current[i] = el; }}
-          onSelectChunk={(chunkType, page, text, bbox, objects, timestampS, piiTypes) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS, null, piiTypes)}
+          onSelectChunk={(chunkType, page, text, bbox, objects, timestampS, piiTypes, entities) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS, entities, piiTypes)}
           onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
         />
       ))}

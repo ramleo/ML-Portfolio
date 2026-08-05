@@ -11,7 +11,11 @@ export type DetectedObject = { label: string; confidence: number; bbox: Bbox };
 export type Entity = { type: string; value: string };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
   /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
-  timestampS?: number | null };
+  timestampS?: number | null;
+  /** Person/org/location/money/date/percent entities (MMRAG-26), same shape
+   * as a query-time citation's `entities` — now also computed at ingest so
+   * "Key facts" works on the auto-shown preview, not just post-answer. */
+  entities?: Entity[] | null };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };

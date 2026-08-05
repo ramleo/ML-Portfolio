@@ -76,11 +76,16 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
     ? activeDoc.notableChunks.find(c => c.page === activeCitation.page && (c.chunkType === "image" || c.chunkType === "video")) ?? null
     : null;
   const effectiveObjects = mediaChunk ? (mediaChunk.objects ?? null) : (activeCitation?.objects ?? null);
-  // piiTypes exists on NotableChunk too, so the same sibling-lookup applies;
-  // entities don't exist at the NotableChunk level (only computed per
-  // retrieval-time citation), so that one only ever comes directly off
-  // activeCitation, whichever click path populated it.
+  // piiTypes AND entities both exist on NotableChunk (computed at ingest,
+  // same as objects), so the same sibling-lookup applies to both — this
+  // used to only work for piiTypes, leaving "Key facts" unavailable
+  // whenever a citation came from anywhere but a post-answer Evidence-card
+  // click (the auto-shown preview, a page-rail click, a document-summary
+  // click). Reading from the media chunk first, falling back to whatever
+  // the click path itself populated, makes both consistently available
+  // regardless of how the citation was reached.
   const effectivePiiTypes = mediaChunk ? (mediaChunk.piiTypes ?? null) : (activeCitation?.piiTypes ?? null);
+  const effectiveEntities = mediaChunk ? (mediaChunk.entities ?? null) : (activeCitation?.entities ?? null);
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -128,7 +133,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               canFindSimilar={activeDoc.embeddingMode === "caption+clip"}
               captionText={mediaChunk?.text ?? activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
               isImageOrVideoOnly={isImageOrVideoOnly}
-              entities={activeCitation.entities ?? null}
+              entities={effectiveEntities}
               piiTypes={effectivePiiTypes} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
