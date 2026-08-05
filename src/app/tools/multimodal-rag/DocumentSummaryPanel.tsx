@@ -22,7 +22,7 @@ type Props = {
   seekTime: number | null;
   onSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
   onTextSegmentRef: (i: number, el: HTMLParagraphElement | null) => void;
-  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null, objects?: DetectedObject[] | null, timestampS?: number | null, piiTypes?: string | null, entities?: Entity[] | null) => void;
+  onSelectChunk: (chunkType: string | null | undefined, page: number | null | undefined, text: string, bbox?: Bbox | null, objects?: DetectedObject[] | null, timestampS?: number | null, piiTypes?: string | null, entities?: Entity[] | null, signatures?: DetectedObject[] | null) => void;
   onSelectChapter: (time: number) => void;
 };
 
@@ -283,7 +283,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           <RagSourceCard key={i} source={d.source} text={c.text} score={1} accent={accent}
             chunkType={c.chunkType} page={c.page} hideConfidence numberMismatch={c.numberMismatch} piiTypes={c.piiTypes}
             blurry={c.blurry}
-            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text, c.bbox, c.objects, c.timestampS, c.piiTypes, c.entities)}
+            onSelect={() => onSelectChunk(c.chunkType, c.page, c.text, c.bbox, c.objects, c.timestampS, c.piiTypes, c.entities, c.signatures)}
           />
         ))
       )}

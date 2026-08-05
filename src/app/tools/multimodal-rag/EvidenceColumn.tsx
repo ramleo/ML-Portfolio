@@ -7,7 +7,7 @@ import PageThumbnailRail from "./PageThumbnailRail";
 import type { Bbox, DetectedObject, Entity, IngestState } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
-type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null };
+type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null };
 
 // Open Images V7 is hierarchical (e.g. "Man"/"Woman"/"Boy"/"Girl" are all
 // subclasses of "Person") — the detector reports whichever specific
@@ -52,7 +52,8 @@ type Props = {
   jumpToCitation: (source: string, chunkType: string | null | undefined,
                    page: number | null | undefined, text: string, bbox?: Bbox | null,
                    objects?: DetectedObject[] | null, timestampS?: number | null,
-                   entities?: Entity[] | null, piiTypes?: string | null) => void;
+                   entities?: Entity[] | null, piiTypes?: string | null,
+                   signatures?: DetectedObject[] | null) => void;
   activeCitation: ActiveCitation | null;
   activeDoc: Doc | null;
   setActiveCitation: (c: ActiveCitation) => void;
@@ -86,6 +87,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
   // regardless of how the citation was reached.
   const effectivePiiTypes = mediaChunk ? (mediaChunk.piiTypes ?? null) : (activeCitation?.piiTypes ?? null);
   const effectiveEntities = mediaChunk ? (mediaChunk.entities ?? null) : (activeCitation?.entities ?? null);
+  const effectiveSignatures = mediaChunk ? (mediaChunk.signatures ?? null) : (activeCitation?.signatures ?? null);
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -134,7 +136,8 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               captionText={mediaChunk?.text ?? activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.text ?? null}
               isImageOrVideoOnly={isImageOrVideoOnly}
               entities={effectiveEntities}
-              piiTypes={effectivePiiTypes} />
+              piiTypes={effectivePiiTypes}
+              signatures={effectiveSignatures} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

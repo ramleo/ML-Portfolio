@@ -15,7 +15,11 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   /** Person/org/location/money/date/percent entities (MMRAG-26), same shape
    * as a query-time citation's `entities` — now also computed at ingest so
    * "Key facts" works on the auto-shown preview, not just post-answer. */
-  entities?: Entity[] | null };
+  entities?: Entity[] | null;
+  /** Detected handwritten-signature regions (backlog item 1) — same shape
+   * as `objects` but a different model/vocabulary, kept as its own field
+   * so it can't corrupt the OIV7 "Detect faces"/"Detect objects" counts. */
+  signatures?: DetectedObject[] | null };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };

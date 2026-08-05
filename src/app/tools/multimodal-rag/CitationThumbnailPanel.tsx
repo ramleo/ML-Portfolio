@@ -55,14 +55,19 @@ type Props = {
    * same field RagSourceCard already flags elsewhere; just not previously
    * surfaced in this per-image dropdown. */
   piiTypes?: string | null;
+  /** Detected handwritten-signature regions (backlog item 1) — own model/
+   * vocabulary from `objects`, same {label,confidence,bbox} shape, same
+   * sibling-media-chunk fallback as objects/entities/piiTypes upstream. */
+  signatures?: DetectedObject[] | null;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
+const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -76,9 +81,37 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const facesToShow = isImageOrVideoOnly
     ? (visualAction === "faces" ? faces : [])
     : (showFaces ? faces : []);
+  const signaturesToShow = isImageOrVideoOnly && visualAction === "signatures" ? (signatures ?? []) : [];
   const objectsToShow = isImageOrVideoOnly
-    ? (visualAction === "objects" ? (objects ?? []) : visualAction === "faces" ? [] : (matchedObjects ?? []))
+    ? (visualAction === "objects" ? (objects ?? [])
+      : (visualAction === "faces" || visualAction === "signatures") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
+
+  // Shared box+label overlay renderer — faces/objects/signatures all draw
+  // the identical shape (absolute box + inside-top label pill), differing
+  // only in color and label text. Three near-identical JSX blocks crossed
+  // from "a little repetition" into worth factoring once signatures made
+  // it a third copy.
+  const renderBoxes = (list: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string) =>
+    list.map((o, i) => {
+      let stack = 0;
+      for (let j = 0; j < i; j++) {
+        if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.04 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.04) stack++;
+      }
+      return (
+        <div key={i} className="absolute pointer-events-none" style={{
+          left: `${o.bbox[0] * 100}%`, top: `${o.bbox[1] * 100}%`,
+          width: `${o.bbox[2] * 100}%`, height: `${o.bbox[3] * 100}%`,
+          border: `2px solid ${color}`, borderRadius: 3,
+          background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+        }}>
+          <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
+            style={{ top: 2 + stack * 16, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}>
+            {labelFor(o)}
+          </span>
+        </div>
+      );
+    });
 
   if (!page || page < 1 || page > pageImages.length) return null;
   const img = pageImages[page - 1];
@@ -127,6 +160,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
               {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
               {piiTypes && <option value="pii">PII detected</option>}
+              {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
               {/* In image/video-only mode the clicked citation might be a
                   sibling "table"/OCR chunk of the same underlying photo
                   (e.g. Mistral OCR misreading the background as a table) —
@@ -187,52 +221,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               capability), anything else falls back to the existing
               question-driven matchedObjects behavior — unchanged in
               PDF/mixed-content mode. */}
-          {facesToShow.length > 0 ? facesToShow.map((f, i) => (
-            <div key={i} className="absolute pointer-events-none" style={{
-              left: `${f.bbox[0] * 100}%`, top: `${f.bbox[1] * 100}%`,
-              width: `${f.bbox[2] * 100}%`, height: `${f.bbox[3] * 100}%`,
-              border: `2px solid ${FACE_COLOR}`, borderRadius: 3,
-              background: `${FACE_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
-            }}>
-              <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
-                style={{ top: 2, left: 2, background: FACE_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
-                Face ({Math.round(f.confidence * 100)}%)
-              </span>
-            </div>
-          )) : objectsToShow.length > 0 ? objectsToShow.map((obj, i) => {
-            // OIV7's hierarchical taxonomy (Tire/Wheel/Bicycle wheel etc.)
-            // commonly fires several labels on the same physical region —
-            // their boxes nearly coincide, so labels pinned at a fixed
-            // top:2/left:2 land on the exact same pixels and render as
-            // garbled overlapping text. Stack each later-arriving label
-            // below the earlier one(s) sharing a near-identical top-left
-            // corner instead, so every label stays independently readable.
-            let stack = 0;
-            for (let j = 0; j < i; j++) {
-              if (Math.abs(obj.bbox[0] - objectsToShow[j].bbox[0]) < 0.04
-                  && Math.abs(obj.bbox[1] - objectsToShow[j].bbox[1]) < 0.04) stack++;
-            }
-            return (
-              <div key={i} className="absolute pointer-events-none" style={{
-                left: `${obj.bbox[0] * 100}%`, top: `${obj.bbox[1] * 100}%`,
-                width: `${obj.bbox[2] * 100}%`, height: `${obj.bbox[3] * 100}%`,
-                border: `2px solid ${OBJECT_COLOR}`, borderRadius: 3,
-                background: `${OBJECT_COLOR}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
-              }}>
-                {/* Sits INSIDE the box's top edge, not floating above it — a
-                    box near the top of the frame (bbox y close to 0, common
-                    for a speaker/subject filling most of the shot) would push
-                    an above-box label above the image itself, clipped by the
-                    container with no way to scroll up to see it. Inside-top
-                    placement can never go off-frame, whatever the box's
-                    position. */}
-                <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
-                  style={{ top: 2 + stack * 16, left: 2, background: OBJECT_COLOR, color: "#0b0b12", whiteSpace: "nowrap" }}>
-                  {obj.label} ({Math.round(obj.confidence * 100)}%)
-                </span>
-              </div>
-            );
-          }) : bbox && (
+          {facesToShow.length > 0
+            ? renderBoxes(facesToShow, FACE_COLOR, f => `Face (${Math.round(f.confidence * 100)}%)`)
+            : signaturesToShow.length > 0
+            ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
+            : objectsToShow.length > 0
+            ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
+            : bbox && (
             <div className="absolute pointer-events-none" style={{
               left: `${bbox[0] * 100}%`, top: `${bbox[1] * 100}%`,
               width: `${bbox[2] * 100}%`, height: `${bbox[3] * 100}%`,
