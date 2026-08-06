@@ -59,15 +59,21 @@ type Props = {
    * vocabulary from `objects`, same {label,confidence,bbox} shape, same
    * sibling-media-chunk fallback as objects/entities/piiTypes upstream. */
   signatures?: DetectedObject[] | null;
+  /** Suspicious ELA (Error Level Analysis) regions (backlog item 2) — same
+   * {label,confidence,bbox} shape as objects/signatures, but a compression-
+   * error heuristic rather than a labeled detector; own field, own color,
+   * own dropdown option. */
+  tampering?: DetectedObject[] | null;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
+const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent from the other detection colors
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -82,9 +88,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
     ? (visualAction === "faces" ? faces : [])
     : (showFaces ? faces : []);
   const signaturesToShow = isImageOrVideoOnly && visualAction === "signatures" ? (signatures ?? []) : [];
+  const tamperingToShow = isImageOrVideoOnly && visualAction === "tampering" ? (tampering ?? []) : [];
   const objectsToShow = isImageOrVideoOnly
     ? (visualAction === "objects" ? (objects ?? [])
-      : (visualAction === "faces" || visualAction === "signatures") ? [] : (matchedObjects ?? []))
+      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
 
   // Shared box+label overlay renderer — faces/objects/signatures all draw
@@ -161,6 +168,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
               {piiTypes && <option value="pii">PII detected</option>}
               {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
+              {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
               {/* In image/video-only mode the clicked citation might be a
                   sibling "table"/OCR chunk of the same underlying photo
                   (e.g. Mistral OCR misreading the background as a table) —
@@ -225,6 +233,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             ? renderBoxes(facesToShow, FACE_COLOR, f => `Face (${Math.round(f.confidence * 100)}%)`)
             : signaturesToShow.length > 0
             ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
+            : tamperingToShow.length > 0
+            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => `Tampering (${Math.round(t.confidence * 100)}%)`)
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (
@@ -270,6 +280,18 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         )}
         {isImageOrVideoOnly && visualAction === "pii" && piiTypes && (
           <p className="text-[9px] px-3 py-2" style={{ color: "#fbbf24" }}>Contains: {piiTypes}</p>
+        )}
+        {isImageOrVideoOnly && visualAction === "tampering" && tampering && tampering.length > 0 && (
+          <div className="px-3 py-2 flex flex-col gap-1">
+            <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>
+              Possible tampering — elevated JPEG compression error, not a certainty. Verify visually.
+            </p>
+            {tampering.map((t, i) => (
+              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Region {i + 1} — {Math.round(t.confidence * 100)}% confidence
+              </div>
+            ))}
+          </div>
         )}
         {similarNote && (
           <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>

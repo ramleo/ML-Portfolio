@@ -59,7 +59,7 @@ function bestMatchingSegmentIndex(segments: { text: string }[], citationText: st
 export default function MmRagRunner() {
   const chat = useRagChat(CONTEXT);
   const [documents, setDocuments] = useState<Doc[]>([]);
-  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null } | null>(null);
+  const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null; tampering?: DetectedObject[] | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
@@ -109,6 +109,7 @@ export default function MmRagRunner() {
       piiTypes: page1Chunk?.piiTypes ?? null,
       entities: page1Chunk?.entities ?? null,
       signatures: page1Chunk?.signatures ?? null,
+      tampering: page1Chunk?.tampering ?? null,
     });
     // Ingestion diffing is informational only — never auto-replaces anything.
     // Only prompt if the flagged older doc is still actually in this session
@@ -136,8 +137,8 @@ export default function MmRagRunner() {
                                       page: number | null | undefined, text: string, bbox?: Bbox | null,
                                       objects?: DetectedObject[] | null, timestampS?: number | null,
                                       entities?: Entity[] | null, piiTypes?: string | null,
-                                      signatures?: DetectedObject[] | null) => {
-    setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source, bbox: bbox ?? null, objects: objects ?? null, entities: entities ?? null, piiTypes: piiTypes ?? null, signatures: signatures ?? null });
+                                      signatures?: DetectedObject[] | null, tampering?: DetectedObject[] | null) => {
+    setActiveCitation({ page: page ?? null, chunkType: chunkType ?? null, source, bbox: bbox ?? null, objects: objects ?? null, entities: entities ?? null, piiTypes: piiTypes ?? null, signatures: signatures ?? null, tampering: tampering ?? null });
     // A captioned video frame (MMRAG-09) — nothing was necessarily SAID at
     // this moment, so there's no transcript segment to match against; jump
     // straight to the frame's own real timestamp instead.
@@ -240,7 +241,7 @@ export default function MmRagRunner() {
           seekTime={videoSeek?.source === d.source ? videoSeek.time : null}
           onSegmentRef={(i, el) => { segmentRefs.current[i] = el; }}
           onTextSegmentRef={(i, el) => { textSegmentRefs.current[i] = el; }}
-          onSelectChunk={(chunkType, page, text, bbox, objects, timestampS, piiTypes, entities, signatures) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS, entities, piiTypes, signatures)}
+          onSelectChunk={(chunkType, page, text, bbox, objects, timestampS, piiTypes, entities, signatures, tampering) => jumpToCitation(d.source, chunkType, page, text, bbox, objects, timestampS, entities, piiTypes, signatures, tampering)}
           onSelectChapter={(time) => jumpToChapter(d.source, d.transcriptSegments, time)}
         />
       ))}

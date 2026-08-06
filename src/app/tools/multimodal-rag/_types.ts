@@ -19,7 +19,12 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   /** Detected handwritten-signature regions (backlog item 1) — same shape
    * as `objects` but a different model/vocabulary, kept as its own field
    * so it can't corrupt the OIV7 "Detect faces"/"Detect objects" counts. */
-  signatures?: DetectedObject[] | null };
+  signatures?: DetectedObject[] | null;
+  /** Suspicious ELA (Error Level Analysis) regions — possible edited/spliced
+   * areas (backlog item 2), same {label,confidence,bbox} shape as `objects`/
+   * `signatures` but its own field since it's a compression-error heuristic,
+   * not a labeled detector. */
+  tampering?: DetectedObject[] | null };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
