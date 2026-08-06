@@ -284,7 +284,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         {isImageOrVideoOnly && visualAction === "tampering" && tampering && tampering.length > 0 && (
           <div className="px-3 py-2 flex flex-col gap-1">
             <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>
-              Possible tampering — elevated JPEG compression error, not a certainty. Verify visually.
+              Possible tampering — signs of possible editing, not a certainty. Verify visually.
             </p>
             {tampering.map((t, i) => (
               <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
