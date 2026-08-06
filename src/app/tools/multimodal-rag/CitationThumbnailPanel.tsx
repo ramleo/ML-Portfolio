@@ -101,9 +101,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // it a third copy.
   const renderBoxes = (list: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string) =>
     list.map((o, i) => {
+      // Stack any label whose box is close enough that the two label pills
+      // would likely overlap — not just near-identical top-left corners.
+      // Several same-type detections (e.g. tampering regions) often sit
+      // side-by-side at similar height, not stacked diagonally, so both
+      // axes need a wider catch than "basically the same box."
       let stack = 0;
       for (let j = 0; j < i; j++) {
-        if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.04 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.04) stack++;
+        if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.18 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.05) stack++;
       }
       return (
         <div key={i} className="absolute pointer-events-none" style={{
@@ -234,7 +239,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             : signaturesToShow.length > 0
             ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
             : tamperingToShow.length > 0
-            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => `Tampering (${Math.round(t.confidence * 100)}%)`)
+            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => `${Math.round(t.confidence * 100)}%`)
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (
