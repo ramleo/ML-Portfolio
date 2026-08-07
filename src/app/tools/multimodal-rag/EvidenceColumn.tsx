@@ -4,7 +4,7 @@ import { useRagChat } from "@/components/useRagChat";
 import EvidencePanel from "./EvidencePanel";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
-import type { Bbox, DetectedObject, Entity, IngestState } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, IngestState } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null; tampering?: DetectedObject[] | null };
@@ -89,6 +89,11 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
   const effectiveEntities = mediaChunk ? (mediaChunk.entities ?? null) : (activeCitation?.entities ?? null);
   const effectiveSignatures = mediaChunk ? (mediaChunk.signatures ?? null) : (activeCitation?.signatures ?? null);
   const effectiveTampering = mediaChunk ? (mediaChunk.tampering ?? null) : (activeCitation?.tampering ?? null);
+  // Near-duplicate matches (backlog item 3) only ever come from ingest-time
+  // metadata (NotableChunk) — unlike objects/entities/etc, there's no
+  // query-time citation path that carries this, so no ActiveCitation
+  // fallback like the others above.
+  const duplicates: DuplicateMatch[] | null = mediaChunk?.duplicates ?? null;
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -139,7 +144,8 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               entities={effectiveEntities}
               piiTypes={effectivePiiTypes}
               signatures={effectiveSignatures}
-              tampering={effectiveTampering} />
+              tampering={effectiveTampering}
+              duplicates={duplicates} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

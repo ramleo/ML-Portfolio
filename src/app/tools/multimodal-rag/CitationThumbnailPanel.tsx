@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import type { Bbox, DetectedObject, Entity } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
 
 const ACCENT = "#a78bfa";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
@@ -64,6 +64,12 @@ type Props = {
    * error heuristic rather than a labeled detector; own field, own color,
    * own dropdown option. */
   tampering?: DetectedObject[] | null;
+  /** Near-duplicate matches (backlog item 3) — perceptual-hash comparison
+   * against every image already uploaded this session, computed at ingest
+   * like signatures/tampering above. No bbox: a match is "this whole image
+   * closely matches that whole other page," not a sub-region, so it renders
+   * as a plain list (same shape as `similar` below), not a box overlay. */
+  duplicates?: DuplicateMatch[] | null;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
@@ -71,9 +77,9 @@ const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and
 const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
 const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent from the other detection colors
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -174,6 +180,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {piiTypes && <option value="pii">PII detected</option>}
               {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
               {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
+              {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
               {/* In image/video-only mode the clicked citation might be a
                   sibling "table"/OCR chunk of the same underlying photo
                   (e.g. Mistral OCR misreading the background as a table) —
@@ -294,6 +301,18 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             {tampering.map((t, i) => (
               <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Region {i + 1} — {Math.round(t.confidence * 100)}% confidence
+              </div>
+            ))}
+          </div>
+        )}
+        {isImageOrVideoOnly && visualAction === "duplicates" && duplicates && duplicates.length > 0 && (
+          <div className="px-3 py-2 flex flex-col gap-1">
+            <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+              Closely matches other page(s) already uploaded this session:
+            </p>
+            {duplicates.map((d, i) => (
+              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {d.source} · Page {d.page} — {Math.round(d.similarity * 100)}% match
               </div>
             ))}
           </div>

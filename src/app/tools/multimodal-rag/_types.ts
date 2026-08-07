@@ -9,6 +9,10 @@ export type DetectedObject = { label: string; confidence: number; bbox: Bbox };
 /** A named entity (person/org/location) spaCy extracted from a citation's
  * text (MMRAG-26) — same shape RagSourceCard already renders as chips. */
 export type Entity = { type: string; value: string };
+/** A near-duplicate match found via perceptual hash (backlog item 3) —
+ * another page/frame already uploaded this session whose image is the same
+ * or a lightly modified (resized/recompressed/cropped) copy of this one. */
+export type DuplicateMatch = { source: string; page: number; similarity: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
   /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
   timestampS?: number | null;
@@ -24,7 +28,9 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
    * areas (backlog item 2), same {label,confidence,bbox} shape as `objects`/
    * `signatures` but its own field since it's a compression-error heuristic,
    * not a labeled detector. */
-  tampering?: DetectedObject[] | null };
+  tampering?: DetectedObject[] | null;
+  /** Near-duplicate matches (backlog item 3) — see DuplicateMatch above. */
+  duplicates?: DuplicateMatch[] | null };
 export type TextSegment = { page: number | null; text: string };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
