@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
+import CitationResultsPanel from "./CitationResultsPanel";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -319,80 +320,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           </>
         </div>
       </div>
-      {/* FIXED height, not max-height — this block sits in a row that
-          shares one fixed total budget with Evidence's flex-1 (see
-          EvidenceColumn.tsx). A max-height cap still lets this block go
-          from 0 (nothing selected) to 160 (an action selected), and that
-          growth comes straight out of Evidence's share every time. A fixed
-          height means this reserves the same 160px always — blank when
-          there's nothing to show, scrolls internally when there's more
-          than fits — so the row's total height, and therefore Evidence's
-          share, never moves regardless of what's selected. */}
-      <div className="overflow-y-auto" style={{ height: 160 }}>
-        {inpaintError && (
-          <p className="text-[9px] px-3 py-2" style={{ color: TAMPERING_COLOR }}>{inpaintError}</p>
-        )}
-        {isImageOrVideoOnly && visualAction === "description" && captionText && (
-          <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
-        )}
-        {isImageOrVideoOnly && visualAction === "objects" && objects && objects.length > 0 && (
-          <div className="px-3 py-2 flex flex-col gap-1">
-            {objects.map((o, i) => (
-              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {o.label} — {Math.round(o.confidence * 100)}%
-              </div>
-            ))}
-          </div>
-        )}
-        {isImageOrVideoOnly && visualAction === "entities" && entities && entities.length > 0 && (
-          <div className="px-3 py-2 flex flex-col gap-1">
-            {entities.map((e, i) => (
-              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                <span style={{ color: "rgba(255,255,255,0.3)" }}>{e.type}:</span> {e.value}
-              </div>
-            ))}
-          </div>
-        )}
-        {isImageOrVideoOnly && visualAction === "pii" && piiTypes && (
-          <p className="text-[9px] px-3 py-2" style={{ color: "#fbbf24" }}>Contains: {piiTypes}</p>
-        )}
-        {isImageOrVideoOnly && visualAction === "tampering" && tampering && tampering.length > 0 && (
-          <div className="px-3 py-2 flex flex-col gap-1">
-            <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>
-              Possible tampering — signs of possible editing, not a certainty. Verify visually.
-            </p>
-            {tampering.map((t, i) => (
-              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Region {i + 1} — {Math.round(t.confidence * 100)}% confidence
-              </div>
-            ))}
-          </div>
-        )}
-        {isImageOrVideoOnly && visualAction === "duplicates" && duplicates && duplicates.length > 0 && (
-          <div className="px-3 py-2 flex flex-col gap-1">
-            <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-              Closely matches other page(s) already uploaded this session:
-            </p>
-            {duplicates.map((d, i) => (
-              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {d.source} · Page {d.page} — {Math.round(d.similarity * 100)}% match
-              </div>
-            ))}
-          </div>
-        )}
-        {similarNote && (
-          <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
-        )}
-        {similar && (
-          <div className="px-3 py-2 flex flex-col gap-1">
-            {similar.map((s, i) => (
-              <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Page {s.page} — {Math.round(s.similarity * 100)}% similar
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <CitationResultsPanel inpaintError={inpaintError} isImageOrVideoOnly={isImageOrVideoOnly}
+        visualAction={visualAction} captionText={captionText} objects={objects} entities={entities}
+        piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} isCovered={isCovered}
+        similarNote={similarNote} similar={similar} />
     </div>
   );
 }
