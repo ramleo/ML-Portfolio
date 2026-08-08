@@ -28,26 +28,44 @@ function fractionCoveredByUnion(inner: Bbox, removed: Bbox[]): number {
 
 const COVERED_THRESHOLD = 0.6;
 
+type PersistedEdit = { image: string; removedBboxes: Bbox[] };
+
 /** Fetch/state logic for "remove this detected region" (Image Inpainting &
  * Object Remover), split out of CitationThumbnailPanel.tsx so that file
  * (already near its 400-line cap) only needs a few lines of glue: call the
  * hook, wire `run`/`reset` to a button, swap the displayed image for
- * `resultImg` once ready. A disposable preview edit — never persisted, gone
- * on citation change (the caller re-mounts/re-calls this per image). */
-export function useInpaint(imageB64: string | null) {
+ * `resultImg` once ready.
+ *
+ * State is seeded from `initialEdit` and bubbled back up via `onChange` so
+ * the caller (ultimately MmRagRunner's `documents` state) can persist it
+ * across citation switches — this component instance stays mounted while
+ * the user clicks between citations, so `editKey` (source:page) tells the
+ * effect below when to re-sync local state to a *different* citation's
+ * persisted edit (or lack of one), rather than keep showing the previous
+ * citation's result. In-memory only — resets on page reload, by design. */
+export function useInpaint(
+  imageB64: string | null,
+  editKey: string,
+  initialEdit: PersistedEdit | undefined,
+  onChange: (edit: PersistedEdit | null) => void,
+) {
   const [inpainting, setInpainting] = useState(false);
-  const [resultImg, setResultImg] = useState<string | null>(null);
+  const [resultImg, setResultImg] = useState<string | null>(initialEdit?.image ?? null);
   const [error, setError] = useState<string | null>(null);
-  // Every region removed so far this session, oldest first — lets the
-  // caller hide/disable OTHER detections whose box now mostly overlaps
-  // already-white space (e.g. removing the whole "Bicycle" box should also
-  // stop showing its "Bicycle wheel" sub-detections, not just itself).
-  const [removedBboxes, setRemovedBboxes] = useState<Bbox[]>([]);
+  const [removedBboxes, setRemovedBboxes] = useState<Bbox[]>(initialEdit?.removedBboxes ?? []);
+  // Tracks which citation the state above belongs to. Adjusted DURING render
+  // (React's documented pattern for "reset state when a prop changes")
+  // rather than in a useEffect — an effect would let the previous
+  // citation's image flash on screen for one frame before the re-sync fires.
+  const [syncedKey, setSyncedKey] = useState(editKey);
+  if (syncedKey !== editKey) {
+    setSyncedKey(editKey);
+    setResultImg(initialEdit?.image ?? null);
+    setRemovedBboxes(initialEdit?.removedBboxes ?? []);
+    setError(null);
+  }
 
   const run = async (bbox: Bbox, mask?: [number, number][] | null) => {
-    // Chain onto the already-edited image (if any) rather than always the
-    // original — otherwise removing a second region would overwrite the
-    // first instead of stacking both removals onto the same image.
     const base = resultImg ?? imageB64;
     if (!base) return;
     setInpainting(true);
@@ -60,8 +78,11 @@ export function useInpaint(imageB64: string | null) {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setResultImg(data.image as string);
-      setRemovedBboxes(prev => [...prev, bbox]);
+      const nextImg = data.image as string;
+      const nextBboxes = [...removedBboxes, bbox];
+      setResultImg(nextImg);
+      setRemovedBboxes(nextBboxes);
+      onChange({ image: nextImg, removedBboxes: nextBboxes });
     } catch {
       setError("Could not remove that region right now.");
     } finally {
@@ -73,6 +94,7 @@ export function useInpaint(imageB64: string | null) {
     setResultImg(null);
     setError(null);
     setRemovedBboxes([]);
+    onChange(null);
   };
 
   const isCovered = (bbox: Bbox) => fractionCoveredByUnion(bbox, removedBboxes) >= COVERED_THRESHOLD;

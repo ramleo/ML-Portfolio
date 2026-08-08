@@ -62,7 +62,11 @@ export type IngestState =
       /** This document's plain-text chunks, in reading order — powers the
        * live search/highlight box in the summary panel for non-video docs
        * (a video already has the richer, timestamped transcriptSegments). */
-      textSegments: TextSegment[] }
+      textSegments: TextSegment[];
+      /** Region-removal edits (Image Inpainting & Object Remover), keyed by
+       * page number as a string. In-memory only — survives switching between
+       * citations within the session, not a page reload. */
+      edits?: Record<string, { image: string; removedBboxes: Bbox[] }> }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";

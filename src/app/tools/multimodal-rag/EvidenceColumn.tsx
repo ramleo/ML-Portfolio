@@ -57,6 +57,10 @@ type Props = {
   activeCitation: ActiveCitation | null;
   activeDoc: Doc | null;
   setActiveCitation: (c: ActiveCitation) => void;
+  /** Persists (or clears) a region-removal edit into the owning doc's
+   * `edits` map, keyed by that doc's `source` — lets an inpainting edit
+   * survive switching to a different citation and back. */
+  onEditChange: (source: string, page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => void;
 };
 
 /** The right-hand column: ranked evidence cards, then the citation's page/
@@ -64,7 +68,7 @@ type Props = {
  * shared-view layouts in MmRagRunner.tsx, which previously duplicated this
  * whole block — split out to stay under the project's file-length limit
  * and de-duplicate the two copies. */
-export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation, activeCitation, activeDoc, setActiveCitation }: Props) {
+export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation, activeCitation, activeDoc, setActiveCitation, onEditChange }: Props) {
   const isImageOrVideoOnly = activeDoc ? (activeDoc.fileType === "image" || activeDoc.fileType === "video") : false;
   // A standalone image/video upload can produce a SIBLING "table" chunk on
   // the same page (e.g. Mistral OCR reading the photo's background as a
@@ -145,7 +149,9 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               piiTypes={effectivePiiTypes}
               signatures={effectiveSignatures}
               tampering={effectiveTampering}
-              duplicates={duplicates} />
+              duplicates={duplicates}
+              edits={activeDoc.edits}
+              onEditChange={(page, edit) => onEditChange(activeDoc.source, page, edit)} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
               <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>

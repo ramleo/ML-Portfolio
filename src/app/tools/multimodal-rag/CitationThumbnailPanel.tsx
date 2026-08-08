@@ -72,6 +72,13 @@ type Props = {
    * closely matches that whole other page," not a sub-region, so it renders
    * as a plain list (same shape as `similar` below), not a box overlay. */
   duplicates?: DuplicateMatch[] | null;
+  /** This document's persisted region-removal edits (Image Inpainting &
+   * Object Remover), keyed by page number as a string — lifted up to
+   * MmRagRunner's `documents` state so an edit survives switching to a
+   * different citation and back, not just local component state. */
+  edits?: Record<string, { image: string; removedBboxes: Bbox[] }>;
+  /** Persists (or clears, on reset) this page's edit into the parent doc. */
+  onEditChange?: (page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => void;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
@@ -81,7 +88,7 @@ const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent fr
 
 type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -93,7 +100,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Props (not `img`, only computed after the early return below) since the
   // hook must run unconditionally on every render.
   const currentImg = page && page >= 1 && page <= pageImages.length ? pageImages[page - 1] : null;
-  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered } = useInpaint(currentImg);
+  // editKey (source:page) tells useInpaint when the viewed citation itself
+  // changed vs. just a re-render, so it re-syncs local state to THAT
+  // citation's persisted edit (or lack of one) instead of keeping the
+  // previous citation's result on screen.
+  const editKey = `${source}:${page ?? ""}`;
+  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered } = useInpaint(
+    currentImg, editKey, page ? edits?.[String(page)] : undefined,
+    edit => page && onEditChange?.(page, edit),
+  );
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly

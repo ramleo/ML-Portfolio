@@ -129,6 +129,18 @@ export default function MmRagRunner() {
 
   const activeDoc = documents.find(d => d.source === activeCitation?.source) ?? null;
 
+  // Persists (or clears, edit === null) a region-removal edit into the
+  // owning doc's `edits` map — lifted here (not left in useInpaint's local
+  // state) so it survives switching to a different citation and back.
+  const updateDocEdit = useCallback((source: string, page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => {
+    setDocuments(docs => docs.map(d => {
+      if (d.source !== source) return d;
+      const edits = { ...d.edits };
+      if (edit) edits[String(page)] = edit; else delete edits[String(page)];
+      return { ...d, edits };
+    }));
+  }, []);
+
   // A transcript-chunk citation (chunkType "text", same tag plain PDF text
   // chunks use — harmless here since non-video docs always have empty
   // transcriptSegments) additionally opens that document's summary panel
@@ -279,7 +291,8 @@ export default function MmRagRunner() {
           </div>
 
           <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
-            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation} />
+            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
+            onEditChange={updateDocEdit} />
           </>)}
         </div>
       )}
@@ -290,7 +303,8 @@ export default function MmRagRunner() {
             settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
 
           <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
-            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation} />
+            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
+            onEditChange={updateDocEdit} />
         </div>
       )}
     </div>
