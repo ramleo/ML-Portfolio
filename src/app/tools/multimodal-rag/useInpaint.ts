@@ -2,19 +2,28 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox } from "./_types";
 
-/** Fraction of `inner`'s own area that overlaps `outer` — used to tell
- * whether a detection's box now points at an already-removed (white-filled)
- * area, e.g. "Bicycle wheel" sitting entirely inside a removed "Bicycle"
- * box. Fraction, not exact containment, since sibling detections (a tire
- * vs. its wheel) rarely share pixel-exact bounds. */
-function overlapFraction(inner: Bbox, outer: Bbox): number {
+const COVERAGE_GRID = 8; // 8x8 sample points — coarse but cheap, plenty for a UI-only check
+
+/** Fraction of `inner`'s own area covered by the UNION of `removed` boxes —
+ * used to tell whether a detection's box now points at already-removed
+ * (white-filled) space. Checking against the union, not each removed box
+ * individually, matters when a region got split across two separate
+ * removals (e.g. a "Fish" box overlapping two different goldfish boxes,
+ * each removed separately) — no single removal covers 60% alone, but
+ * together they cover the whole thing. Point-sampled rather than an exact
+ * rectangle-union area calc since this is only a UI hide/show decision. */
+function fractionCoveredByUnion(inner: Bbox, removed: Bbox[]): number {
   const [ix, iy, iw, ih] = inner;
-  const [ox, oy, ow, oh] = outer;
-  const x0 = Math.max(ix, ox), y0 = Math.max(iy, oy);
-  const x1 = Math.min(ix + iw, ox + ow), y1 = Math.min(iy + ih, oy + oh);
-  const w = Math.max(0, x1 - x0), h = Math.max(0, y1 - y0);
-  const innerArea = iw * ih;
-  return innerArea > 0 ? (w * h) / innerArea : 0;
+  if (iw <= 0 || ih <= 0 || removed.length === 0) return 0;
+  let covered = 0;
+  for (let gx = 0; gx < COVERAGE_GRID; gx++) {
+    for (let gy = 0; gy < COVERAGE_GRID; gy++) {
+      const px = ix + (iw * (gx + 0.5)) / COVERAGE_GRID;
+      const py = iy + (ih * (gy + 0.5)) / COVERAGE_GRID;
+      if (removed.some(([rx, ry, rw, rh]) => px >= rx && px <= rx + rw && py >= ry && py <= ry + rh)) covered++;
+    }
+  }
+  return covered / (COVERAGE_GRID * COVERAGE_GRID);
 }
 
 const COVERED_THRESHOLD = 0.6;
@@ -66,7 +75,7 @@ export function useInpaint(imageB64: string | null) {
     setRemovedBboxes([]);
   };
 
-  const isCovered = (bbox: Bbox) => removedBboxes.some(r => overlapFraction(bbox, r) >= COVERED_THRESHOLD);
+  const isCovered = (bbox: Bbox) => fractionCoveredByUnion(bbox, removedBboxes) >= COVERED_THRESHOLD;
 
   return { inpainting, resultImg, error, run, reset, isCovered };
 }
