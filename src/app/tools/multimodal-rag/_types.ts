@@ -5,7 +5,13 @@ export type Bbox = [number, number, number, number];
 /** One closed-vocabulary (COCO 80-class) detection on an image/video-frame
  * citation (MMRAG-07 follow-up) — precomputed at ingest, matched against
  * the asked question's wording at display time, no query-time vision call. */
-export type DetectedObject = { label: string; confidence: number; bbox: Bbox };
+export type DetectedObject = { label: string; confidence: number; bbox: Bbox;
+  /** Pixel-accurate outline (backlog item 5, Segment Anything) — a list of
+   * normalized [x,y] points tracing the detection's real shape, refined
+   * from `bbox` via a SAM box prompt. Only ever present on signature/
+   * tampering detections (see mm_segment.py) — absent everywhere else,
+   * which still render as a plain rectangle from `bbox` alone. */
+  mask?: [number, number][] | null };
 /** A named entity (person/org/location) spaCy extracted from a citation's
  * text (MMRAG-26) — same shape RagSourceCard already renders as chips. */
 export type Entity = { type: string; value: string };

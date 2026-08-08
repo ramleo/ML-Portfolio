@@ -116,13 +116,30 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       for (let j = 0; j < i; j++) {
         if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.18 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.05) stack++;
       }
+      const [bx, by, bw, bh] = o.bbox;
+      // A pixel-accurate mask (backlog item 5, SAM box-prompt refinement —
+      // see mm_segment.py) draws as an inner SVG polygon instead of the
+      // plain rectangle — only ever present on signature/tampering
+      // detections, whose bbox understates the real (ink-stroke / irregular
+      // edited-region) shape far more than a face's or generic object's
+      // does. Points come back full-image-normalized; converted here to
+      // percentages LOCAL to this div (already positioned at the bbox) so
+      // the polygon lines up regardless of the div's own rendered size.
+      const hasMask = !!o.mask && o.mask.length >= 3;
       return (
         <div key={i} className="absolute pointer-events-none" style={{
-          left: `${o.bbox[0] * 100}%`, top: `${o.bbox[1] * 100}%`,
-          width: `${o.bbox[2] * 100}%`, height: `${o.bbox[3] * 100}%`,
-          border: `2px solid ${color}`, borderRadius: 3,
-          background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+          left: `${bx * 100}%`, top: `${by * 100}%`,
+          width: `${bw * 100}%`, height: `${bh * 100}%`,
+          borderRadius: 3,
+          ...(hasMask ? {} : { border: `2px solid ${color}`, background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)` }),
         }}>
+          {hasMask && (
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polygon
+                points={o.mask!.map(([mx, my]) => `${((mx - bx) / bw) * 100},${((my - by) / bh) * 100}`).join(" ")}
+                fill={`${color}30`} stroke={color} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+            </svg>
+          )}
           <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
             style={{ top: 2 + stack * 16, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}>
             {labelFor(o)}
