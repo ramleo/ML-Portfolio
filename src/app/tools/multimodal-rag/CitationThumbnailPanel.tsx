@@ -276,10 +276,12 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         <div className="relative w-full">
           <img src={resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
             alt={`Page ${page}`} className="w-full block" style={{ opacity: inpainting ? 0.5 : 1 }} />
-          {/* Once a region's been removed, its old bbox/mask no longer
-              matches reality — skip the overlay entirely rather than boxing
-              a region that's now been filled in. */}
-          {resultImg ? null : (
+          {/* Boxes stay visible even after a removal — bbox/mask positions
+              for the OTHER detections are still accurate, and keeping them
+              clickable is what lets multiple regions be removed one after
+              another (each click chains onto the already-edited image, see
+              useInpaint.ts). Re-clicking an already-removed region's box is
+              harmless (re-fills the same now-white area, a no-op). */}
           <>
           {/* "Detect faces" takes priority when toggled on — an explicit,
               deliberate request to see every face, regardless of what
@@ -309,7 +311,6 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             }} />
           )}
           </>
-          )}
         </div>
       </div>
       {/* FIXED height, not max-height — this block sits in a row that

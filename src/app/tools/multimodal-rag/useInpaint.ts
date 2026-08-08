@@ -14,14 +14,18 @@ export function useInpaint(imageB64: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   const run = async (bbox: Bbox, mask?: [number, number][] | null) => {
-    if (!imageB64) return;
+    // Chain onto the already-edited image (if any) rather than always the
+    // original — otherwise removing a second region would overwrite the
+    // first instead of stacking both removals onto the same image.
+    const base = resultImg ?? imageB64;
+    if (!base) return;
     setInpainting(true);
     setError(null);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-inpaint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageB64, bbox, mask: mask ?? null }),
+        body: JSON.stringify({ image: base, bbox, mask: mask ?? null }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
