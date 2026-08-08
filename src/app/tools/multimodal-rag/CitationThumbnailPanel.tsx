@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import CitationResultsPanel from "./CitationResultsPanel";
+import FreehandDrawLayer from "./FreehandDrawLayer";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -94,6 +95,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const [similarNote, setSimilarNote] = useState<string | null>(null);
   const [showFaces, setShowFaces] = useState(false);
   const [visualAction, setVisualAction] = useState<VisualAction>("");
+  // "Draw region" (freehand mask drawing) — stays on across multiple draws,
+  // same as detected-box removal already chains; user explicitly toggles
+  // off via "Stop drawing" when done.
+  const [drawMode, setDrawMode] = useState(false);
   const faces = (objects ?? []).filter(o => o.label === "Human face");
   // "Remove object" (Image Inpainting & Object Remover) — a disposable edit
   // over whichever page image is currently shown; called with a `page` on
@@ -251,6 +256,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               )}
             </select>
           ) : null}
+          {isImageOrVideoOnly && (
+            <button onClick={() => setDrawMode(v => !v)}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={drawMode
+                ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+                : { borderColor: `${ACCENT}40`, color: ACCENT }}>
+              {drawMode ? "Stop drawing" : "Draw region"}
+            </button>
+          )}
           {isImageOrVideoOnly && resultImg && (
             <button onClick={resetInpaint}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
@@ -333,6 +347,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             }} />
           )}
           </>
+          {/* Freehand region drawing — the alternative to clicking a
+              detected box's own ✕. Rendered LAST so it paints on top and
+              captures every pointer event over the image while active,
+              including over the boxes above (no separate disable needed).
+              Skipped while a removal request is already in flight. */}
+          {isImageOrVideoOnly && drawMode && !inpainting && (
+            <FreehandDrawLayer onComplete={(regionBbox, mask) => runInpaint(regionBbox, mask)} />
+          )}
         </div>
       </div>
       <CitationResultsPanel inpaintError={inpaintError} isImageOrVideoOnly={isImageOrVideoOnly}
