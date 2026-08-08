@@ -4,7 +4,7 @@ import { useRagChat } from "@/components/useRagChat";
 import EvidencePanel from "./EvidencePanel";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
-import type { Bbox, DetectedObject, DuplicateMatch, Entity, IngestState } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, IngestState, PersistedEdit } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null; tampering?: DetectedObject[] | null };
@@ -60,7 +60,7 @@ type Props = {
   /** Persists (or clears) a region-removal edit into the owning doc's
    * `edits` map, keyed by that doc's `source` — lets an inpainting edit
    * survive switching to a different citation and back. */
-  onEditChange: (source: string, page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => void;
+  onEditChange: (source: string, page: number, edit: PersistedEdit | null) => void;
 };
 
 /** The right-hand column: ranked evidence cards, then the citation's page/

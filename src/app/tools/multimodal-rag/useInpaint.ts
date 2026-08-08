@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import type { Bbox } from "./_types";
+import type { Bbox, PersistedEdit } from "./_types";
+import { compositeOntoImage, loadImageFile } from "./imageComposite";
 
 const COVERAGE_GRID = 8; // 8x8 sample points — coarse but cheap, plenty for a UI-only check
 
@@ -27,20 +28,21 @@ function fractionCoveredByUnion(inner: Bbox, removed: Bbox[]): number {
 }
 
 const COVERED_THRESHOLD = 0.6;
-
-type PersistedEdit = { image: string; removedBboxes: Bbox[] };
+const AI_FILL_TIMEOUT_MS = 90_000; // a real call takes 30-50s (public community Space, no SLA)
 
 /** Fetch/state logic for "remove this detected region" (Image Inpainting &
- * Object Remover), split out of CitationThumbnailPanel.tsx so that file
- * (already near its 400-line cap) only needs a few lines of glue: call the
- * hook, wire `run`/`reset` to a button, swap the displayed image for
- * `resultImg` once ready.
+ * Object Remover) AND for adding content back into an already-removed
+ * region (text / pasted image / AI-fill) — split out of
+ * CitationThumbnailPanel.tsx so that file (already near its 400-line cap)
+ * only needs a few lines of glue. All three add-content paths mutate the
+ * SAME resultImg/removedBboxes state removal already owns, rather than
+ * living in a separate competing hook.
  *
  * State is seeded from `initialEdit` and bubbled back up via `onChange` so
  * the caller (ultimately MmRagRunner's `documents` state) can persist it
  * across citation switches — this component instance stays mounted while
  * the user clicks between citations, so `editKey` (source:page) tells the
- * effect below when to re-sync local state to a *different* citation's
+ * logic below when to re-sync local state to a *different* citation's
  * persisted edit (or lack of one), rather than keep showing the previous
  * citation's result. In-memory only — resets on page reload, by design. */
 export function useInpaint(
@@ -50,9 +52,11 @@ export function useInpaint(
   onChange: (edit: PersistedEdit | null) => void,
 ) {
   const [inpainting, setInpainting] = useState(false);
+  const [aiFilling, setAiFilling] = useState(false);
   const [resultImg, setResultImg] = useState<string | null>(initialEdit?.image ?? null);
   const [error, setError] = useState<string | null>(null);
   const [removedBboxes, setRemovedBboxes] = useState<Bbox[]>(initialEdit?.removedBboxes ?? []);
+  const [filledIndices, setFilledIndices] = useState<number[]>(initialEdit?.filledIndices ?? []);
   // Tracks which citation the state above belongs to. Adjusted DURING render
   // (React's documented pattern for "reset state when a prop changes")
   // rather than in a useEffect — an effect would let the previous
@@ -62,8 +66,16 @@ export function useInpaint(
     setSyncedKey(editKey);
     setResultImg(initialEdit?.image ?? null);
     setRemovedBboxes(initialEdit?.removedBboxes ?? []);
+    setFilledIndices(initialEdit?.filledIndices ?? []);
     setError(null);
   }
+
+  const persist = (image: string, bboxes: Bbox[], filled: number[]) => {
+    setResultImg(image);
+    setRemovedBboxes(bboxes);
+    setFilledIndices(filled);
+    onChange({ image, removedBboxes: bboxes, filledIndices: filled });
+  };
 
   const run = async (bbox: Bbox, mask?: [number, number][] | null) => {
     const base = resultImg ?? imageB64;
@@ -78,11 +90,7 @@ export function useInpaint(
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      const nextImg = data.image as string;
-      const nextBboxes = [...removedBboxes, bbox];
-      setResultImg(nextImg);
-      setRemovedBboxes(nextBboxes);
-      onChange({ image: nextImg, removedBboxes: nextBboxes });
+      persist(data.image as string, [...removedBboxes, bbox], filledIndices);
     } catch {
       setError("Could not remove that region right now.");
     } finally {
@@ -94,10 +102,74 @@ export function useInpaint(
     setResultImg(null);
     setError(null);
     setRemovedBboxes([]);
+    setFilledIndices([]);
     onChange(null);
+  };
+
+  const addText = async (index: number, text: string) => {
+    if (!resultImg || !text.trim()) return;
+    const bbox = removedBboxes[index];
+    try {
+      const next = await compositeOntoImage(resultImg, bbox, (ctx, rect) => {
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `${Math.max(10, rect.h * 0.28)}px sans-serif`;
+        ctx.fillText(text, rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w * 0.92);
+      });
+      persist(next, removedBboxes, [...filledIndices, index]);
+    } catch {
+      setError("Could not add that text right now.");
+    }
+  };
+
+  const addImage = async (index: number, file: File) => {
+    if (!resultImg) return;
+    const bbox = removedBboxes[index];
+    try {
+      const pasted = await loadImageFile(file);
+      const next = await compositeOntoImage(resultImg, bbox, (ctx, rect) => {
+        // Contain-fit: scale the pasted image to fit inside the region
+        // without distorting its aspect ratio, centered.
+        const scale = Math.min(rect.w / pasted.naturalWidth, rect.h / pasted.naturalHeight);
+        const w = pasted.naturalWidth * scale, h = pasted.naturalHeight * scale;
+        ctx.drawImage(pasted, rect.x + (rect.w - w) / 2, rect.y + (rect.h - h) / 2, w, h);
+      });
+      persist(next, removedBboxes, [...filledIndices, index]);
+    } catch {
+      setError("Could not add that image right now.");
+    }
+  };
+
+  const addAiFill = async (index: number, prompt: string) => {
+    if (!resultImg) return;
+    const bbox = removedBboxes[index];
+    setAiFilling(true);
+    setError(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AI_FILL_TIMEOUT_MS);
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: resultImg, bbox, prompt: prompt || null }),
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      persist(data.image as string, removedBboxes, [...filledIndices, index]);
+    } catch {
+      setError("AI fill is temporarily unavailable — try again in a moment.");
+    } finally {
+      clearTimeout(timeout);
+      setAiFilling(false);
+    }
   };
 
   const isCovered = (bbox: Bbox) => fractionCoveredByUnion(bbox, removedBboxes) >= COVERED_THRESHOLD;
 
-  return { inpainting, resultImg, error, run, reset, isCovered };
+  return {
+    inpainting, aiFilling, resultImg, error, run, reset, isCovered,
+    removedBboxes, filledIndices, addText, addImage, addAiFill,
+  };
 }

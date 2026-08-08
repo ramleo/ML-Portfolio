@@ -5,7 +5,8 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
-import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
+import AddContentControls from "./AddContentControls";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, PersistedEdit } from "./_types";
 
 const ACCENT = "#a78bfa";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
@@ -77,9 +78,9 @@ type Props = {
    * Object Remover), keyed by page number as a string — lifted up to
    * MmRagRunner's `documents` state so an edit survives switching to a
    * different citation and back, not just local component state. */
-  edits?: Record<string, { image: string; removedBboxes: Bbox[] }>;
+  edits?: Record<string, PersistedEdit>;
   /** Persists (or clears, on reset) this page's edit into the parent doc. */
-  onEditChange?: (page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => void;
+  onEditChange?: (page: number, edit: PersistedEdit | null) => void;
 };
 
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
@@ -110,7 +111,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // citation's persisted edit (or lack of one) instead of keeping the
   // previous citation's result on screen.
   const editKey = `${source}:${page ?? ""}`;
-  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered } = useInpaint(
+  const {
+    inpainting, aiFilling, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered,
+    removedBboxes, filledIndices, addText, addImage, addAiFill,
+  } = useInpaint(
     currentImg, editKey, page ? edits?.[String(page)] : undefined,
     edit => page && onEditChange?.(page, edit),
   );
@@ -354,6 +358,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               Skipped while a removal request is already in flight. */}
           {isImageOrVideoOnly && drawMode && !inpainting && (
             <FreehandDrawLayer onComplete={(regionBbox, mask) => runInpaint(regionBbox, mask)} />
+          )}
+          {/* "+" affordance to add text/an image/an AI fill back into an
+              already-removed region — mutually exclusive with draw mode,
+              same reasoning as FreehandDrawLayer above (both want the
+              image's pointer events for their own purpose). */}
+          {isImageOrVideoOnly && !drawMode && (
+            <AddContentControls removedBboxes={removedBboxes} filledIndices={filledIndices} aiFilling={aiFilling}
+              onAddText={addText} onAddImage={addImage} onAddAiFill={addAiFill} />
           )}
         </div>
       </div>

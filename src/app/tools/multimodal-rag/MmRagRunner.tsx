@@ -11,7 +11,7 @@ import ShareWatermark from "./ShareWatermark";
 import RevisionPromptBanner from "./RevisionPromptBanner";
 import DocumentChipsRow from "./DocumentChipsRow";
 import ContradictionsPanel from "./ContradictionsPanel";
-import type { Bbox, DetectedObject, Entity, IngestState, RevisionCandidate, TranscriptSegment } from "./_types";
+import type { Bbox, DetectedObject, Entity, IngestState, PersistedEdit, RevisionCandidate, TranscriptSegment } from "./_types";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
   if (segments.length === 0) return null;
@@ -132,7 +132,7 @@ export default function MmRagRunner() {
   // Persists (or clears, edit === null) a region-removal edit into the
   // owning doc's `edits` map — lifted here (not left in useInpaint's local
   // state) so it survives switching to a different citation and back.
-  const updateDocEdit = useCallback((source: string, page: number, edit: { image: string; removedBboxes: Bbox[] } | null) => {
+  const updateDocEdit = useCallback((source: string, page: number, edit: PersistedEdit | null) => {
     setDocuments(docs => docs.map(d => {
       if (d.source !== source) return d;
       const edits = { ...d.edits };

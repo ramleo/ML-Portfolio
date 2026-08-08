@@ -38,6 +38,17 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   /** Near-duplicate matches (backlog item 3) — see DuplicateMatch above. */
   duplicates?: DuplicateMatch[] | null };
 export type TextSegment = { page: number | null; text: string };
+/** A citation's persisted region-removal state (Image Inpainting & Object
+ * Remover) — one per edited page, lifted into MmRagRunner's `documents`
+ * state (see `IngestState`'s `edits` field) so it survives switching
+ * citations, not just local component state in useInpaint.ts. */
+export type PersistedEdit = {
+  image: string;
+  removedBboxes: Bbox[];
+  /** Indices into removedBboxes that have since had content added back
+   * (text/image/AI-fill) — hides that region's "+" affordance once filled. */
+  filledIndices: number[];
+};
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
 export type RevisionCandidate = { source: string; filename: string; reason: "same_filename" | "similar_content"; similarity: number };
@@ -66,7 +77,7 @@ export type IngestState =
       /** Region-removal edits (Image Inpainting & Object Remover), keyed by
        * page number as a string. In-memory only — survives switching between
        * citations within the session, not a page reload. */
-      edits?: Record<string, { image: string; removedBboxes: Bbox[] }> }
+      edits?: Record<string, PersistedEdit> }
   | { kind: "error"; message: string };
 
 export type EmbeddingMode = "caption" | "caption+clip";
