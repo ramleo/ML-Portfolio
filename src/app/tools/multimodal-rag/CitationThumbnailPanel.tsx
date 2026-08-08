@@ -92,7 +92,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Props (not `img`, only computed after the early return below) since the
   // hook must run unconditionally on every render.
   const currentImg = page && page >= 1 && page <= pageImages.length ? pageImages[page - 1] : null;
-  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint } = useInpaint(currentImg);
+  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered } = useInpaint(currentImg);
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -112,8 +112,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // only in color and label text. Three near-identical JSX blocks crossed
   // from "a little repetition" into worth factoring once signatures made
   // it a third copy.
-  const renderBoxes = (list: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string) =>
-    list.map((o, i) => {
+  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string) => {
+    // Drop any detection whose box now mostly overlaps an already-removed
+    // (white-filled) region — otherwise a sub-detection like "Bicycle
+    // wheel" keeps showing a clickable box over blank space after the
+    // whole "Bicycle" box that contained it was removed.
+    const list = fullList.filter(o => !isCovered(o.bbox));
+    return list.map((o, i) => {
       // Stack any label whose box is close enough that the two label pills
       // would likely overlap — not just near-identical top-left corners.
       // Several same-type detections (e.g. tampering regions) often sit
@@ -167,6 +172,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         </div>
       );
     });
+  };
 
   if (!page || page < 1 || page > pageImages.length) return null;
   const img = pageImages[page - 1];
