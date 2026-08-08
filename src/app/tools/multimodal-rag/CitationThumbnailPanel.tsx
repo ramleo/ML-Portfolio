@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { useInpaint } from "./useInpaint";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -86,6 +87,12 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const [showFaces, setShowFaces] = useState(false);
   const [visualAction, setVisualAction] = useState<VisualAction>("");
   const faces = (objects ?? []).filter(o => o.label === "Human face");
+  // "Remove object" (Image Inpainting & Object Remover) — a disposable edit
+  // over whichever page image is currently shown; called with a `page` on
+  // Props (not `img`, only computed after the early return below) since the
+  // hook must run unconditionally on every render.
+  const currentImg = page && page >= 1 && page <= pageImages.length ? pageImages[page - 1] : null;
+  const { inpainting, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint } = useInpaint(currentImg);
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -144,6 +151,19 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             style={{ top: 2 + stack * 16, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}>
             {labelFor(o)}
           </span>
+          {/* "Remove object" (Image Inpainting & Object Remover) — only in
+              image/video-only mode; reuses this exact detection's bbox/mask,
+              no separate region-picking UI. pointer-events-auto punches
+              through the box's own pointer-events-none so this one corner
+              stays clickable. */}
+          {isImageOrVideoOnly && (
+            <button onClick={() => runInpaint(o.bbox, o.mask)} disabled={inpainting}
+              className="absolute pointer-events-auto text-[9px] font-bold rounded-full flex items-center justify-center hover:brightness-110"
+              style={{ top: 2, right: 2, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1 }}
+              title="Remove this region">
+              ✕
+            </button>
+          )}
         </div>
       );
     });
@@ -208,7 +228,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
                 <option value="similar">Find visually similar</option>
               )}
             </select>
-          ) : (
+          ) : null}
+          {isImageOrVideoOnly && resultImg && (
+            <button onClick={resetInpaint}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
+              Reset
+            </button>
+          )}
+          {!isImageOrVideoOnly && (
             <>
               {faces.length > 0 && (
                 <button onClick={() => setShowFaces(v => !v)}
@@ -246,7 +274,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           height, visibly misaligned once scrolled. */}
       <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "#0a0f1a" }}>
         <div className="relative w-full">
-          <img src={`data:image/png;base64,${img}`} alt={`Page ${page}`} className="w-full block" />
+          <img src={resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
+            alt={`Page ${page}`} className="w-full block" style={{ opacity: inpainting ? 0.5 : 1 }} />
+          {/* Once a region's been removed, its old bbox/mask no longer
+              matches reality — skip the overlay entirely rather than boxing
+              a region that's now been filled in. */}
+          {resultImg ? null : (
+          <>
           {/* "Detect faces" takes priority when toggled on — an explicit,
               deliberate request to see every face, regardless of what
               question (if any) was asked. Shows ALL matching detections at
@@ -274,6 +308,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               background: `${ACCENT}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
             }} />
           )}
+          </>
+          )}
         </div>
       </div>
       {/* FIXED height, not max-height — this block sits in a row that
@@ -286,6 +322,9 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           than fits — so the row's total height, and therefore Evidence's
           share, never moves regardless of what's selected. */}
       <div className="overflow-y-auto" style={{ height: 160 }}>
+        {inpaintError && (
+          <p className="text-[9px] px-3 py-2" style={{ color: TAMPERING_COLOR }}>{inpaintError}</p>
+        )}
         {isImageOrVideoOnly && visualAction === "description" && captionText && (
           <p className="text-[10px] px-3 py-2 whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
         )}
