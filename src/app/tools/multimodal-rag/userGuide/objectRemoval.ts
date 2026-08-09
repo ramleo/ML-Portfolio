@@ -1,21 +1,28 @@
 export const MM_RAG_OBJECT_REMOVAL = `
 ## Removing and replacing things in an image (Object Remover)
-Any standalone image or video-frame citation can have a region removed —
-painted over so it blends with the surroundings — and then optionally have
-something new put back in its place. This only works on a standalone
-image/video upload, not a PDF's embedded photo.
+Any citation with a page image — a standalone image/video upload OR a PDF's
+own page — can have a region removed (painted over so it blends with the
+surroundings) and then optionally have something new put back in its
+place. "Draw region," "Download," and "Reset" appear above the image for
+any citation; the per-detection ✕ shortcut described below is available
+wherever that detection type itself appears (standalone image/video only —
+see the object-detection section for which dropdown options need that).
 
 - **You have to open "Choose an action…" and pick a detection first before
-  you can remove anything by clicking a box.** The dropdown above the image
-  (same one used for "Detect objects," "Detect faces," etc) is what actually
-  draws the boxes on the image — until you pick one of those options, there
-  are no boxes on screen, and therefore no ✕ button to click. Pick any
-  detection option from that dropdown first — "Detect objects," "Detect
-  faces," "Detect signatures," or "Check for tampering" all work — THEN
-  click the small ✕ in a box's corner to remove that specific region. If
-  you don't want to
-  hunt for the right detection, skip the dropdown entirely and use "Draw
-  region" instead (below) — it doesn't need a prior detection at all.
+  you can remove anything by clicking a box** (standalone image/video
+  uploads only — a PDF page doesn't have this dropdown, use "Draw region"
+  instead, see below). The dropdown above the image (same one used for
+  "Detect objects," "Detect faces," etc) is what actually draws the boxes
+  on the image — until you pick one of those options, there are no boxes on
+  screen, and therefore no ✕ button to click. Pick any detection option
+  from that dropdown first — "Detect objects," "Detect faces," or "Detect
+  signatures" all work — THEN click the small ✕ in a box's corner to remove
+  that specific region. **"Check for tampering" boxes don't have this ✕** —
+  checking for tampering is a verification step, not an edit workflow, so
+  those boxes are click-to-inspect only. If you don't want to hunt for the
+  right detection, skip the dropdown entirely and use "Draw region" instead
+  (below) — it doesn't need a prior detection at all, and works on any
+  citation including a PDF page.
 - **"Draw region" removes any shape you draw, detected or not.** Click "Draw
   region" (next to the dropdown), then click-and-drag directly on the image
   to trace a freehand shape — release to remove exactly that area. Useful
@@ -53,6 +60,10 @@ image/video upload, not a PDF's embedded photo.
 - **"Reset" clears every edit on that image/frame back to the original.**
   Removals and anything added back, all undone at once — appears next to
   "Draw region" only once at least one region has been removed.
+- **"Download" saves your edited image/page to your device.** Appears next
+  to "Reset" once at least one edit exists — click it to get a PNG of the
+  image exactly as currently shown, removals and any added content
+  included.
 - **Edits are kept in memory for the session, not saved permanently.** Switch
   to a different citation and back and your removals/fills are still there;
   reload the page and they're gone, same as the rest of this tool's

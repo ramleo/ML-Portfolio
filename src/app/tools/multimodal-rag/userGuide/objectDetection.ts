@@ -99,15 +99,22 @@ meant to place things in general terms, not measure them precisely.
   draw a pink box (with confidence %) around each one. Useful for scanning a
   contract or form photo for where it was actually signed.
 - **"Check for tampering" flags possible photo editing.** Where available,
-  "Check for tampering (N)" runs an Error-Level-Analysis-style check for
-  regions that look like they were digitally altered, drawing a red box
-  labeled High/Medium/Low confidence around each suspicious area. It's a
-  statistical-outlier heuristic looking for compression/noise
-  inconsistencies, not a trained classifier and not a certainty — a real
-  edit can be missed, and reflective/metallic surfaces, fine detail like
-  spokes, or a glossy sticker commonly trip it too. Even "High" here means
-  "an unusual statistical pattern," not "confirmed edited" — always verify
-  visually before trusting a flag.
+  "Check for tampering (N)" runs three independent statistical checks —
+  compression-error analysis (ELA), sensor-noise-texture analysis, and
+  (JPEG uploads only) a compression-history check that looks for a region
+  whose JPEG quality doesn't match the rest of the photo — and merges them
+  into one set of boxes, labeled High/Medium/Low confidence. None of these
+  are a trained classifier and none are a certainty — a real edit can still
+  be missed, and reflective/metallic surfaces, fine detail like spokes, or
+  a glossy sticker can still trip the compression/noise checks. Combining
+  three differently-flawed signals catches more real edits (especially on
+  a photo that's already been re-saved/re-shared once) without simply
+  flagging everything busy as suspicious. Even "High" here means "an
+  unusual statistical pattern," not "confirmed edited" — always verify
+  visually before trusting a flag. Tampering boxes are click-to-inspect
+  only — there's no ✕ shortcut on them the way there is for objects/faces/
+  signatures, since checking for tampering is a verification step, not an
+  edit workflow.
 - **"Possible duplicate" flags a repeat of something already uploaded.**
   If an uploaded image or page closely matches another page already
   uploaded earlier in the same session (a perceptual-hash comparison, not
