@@ -6,6 +6,7 @@ import { useInpaint } from "./useInpaint";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
+import DetectionBoxOverlay from "./DetectionBoxOverlay";
 import { downloadBase64Image } from "./imageComposite";
 import { tamperingLevel } from "./tamperingLevel";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity, PersistedEdit } from "./_types";
@@ -114,7 +115,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // previous citation's result on screen.
   const editKey = `${source}:${page ?? ""}`;
   const {
-    inpainting, aiFilling, aiFillProgress, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered,
+    inpainting, aiFilling, aiFillProgress, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered, version,
     removedBboxes, filledIndices, addText, addImage, addAiFill,
   } = useInpaint(
     currentImg, editKey, page ? edits?.[String(page)] : undefined,
@@ -134,78 +135,28 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
 
-  // Shared box+label overlay renderer — faces/objects/signatures all draw
-  // the identical shape (absolute box + inside-top label pill), differing
-  // only in color and label text. Three near-identical JSX blocks crossed
-  // from "a little repetition" into worth factoring once signatures made
-  // it a third copy.
-  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true) => {
-    // Drop any detection whose box now mostly overlaps an already-removed
-    // (white-filled) region — otherwise a sub-detection like "Bicycle
-    // wheel" keeps showing a clickable box over blank space after the
-    // whole "Bicycle" box that contained it was removed.
-    const list = fullList.filter(o => !isCovered(o.bbox));
-    return list.map((o, i) => {
-      // Stack any label whose box is close enough that the two label pills
-      // would likely overlap — not just near-identical top-left corners.
-      // Several same-type detections (e.g. tampering regions) often sit
-      // side-by-side at similar height, not stacked diagonally, so both
-      // axes need a wider catch than "basically the same box."
-      let stack = 0;
-      for (let j = 0; j < i; j++) {
-        if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.18 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.05) stack++;
-      }
-      const [bx, by, bw, bh] = o.bbox;
-      // Pixel-accurate mask (SAM box-prompt refinement, mm_segment.py) draws
-      // as an inner SVG polygon LAYERED ON TOP of the rectangle, never
-      // instead of it — SAM can return a thin, poorly-shaped sliver for a
-      // small region, and dropping the rectangle in that case left nothing
-      // visible at all. Mask points are full-image-normalized; converted to
-      // percentages local to this div so they line up regardless of size.
-      const hasMask = !!o.mask && o.mask.length >= 3;
-      return (
-        <div key={i} className="absolute pointer-events-none" style={{
-          left: `${bx * 100}%`, top: `${by * 100}%`,
-          width: `${bw * 100}%`, height: `${bh * 100}%`,
-          // A thin region (common for tampering) can render a few px tall,
-          // where a 2px top+bottom border fills the box and reads as a
-          // solid line, not a box (live-tested) — pixel minimum prevents it.
-          minWidth: 28, minHeight: 20,
-          borderRadius: 3,
-          border: `2px solid ${color}`, background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
-        }}>
-          {hasMask && (
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <polygon
-                points={o.mask!.map(([mx, my]) => `${((mx - bx) / bw) * 100},${((my - by) / bh) * 100}`).join(" ")}
-                fill={`${color}30`} stroke={color} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-            </svg>
-          )}
-          <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded"
-            style={{ top: 2 + stack * 16, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}>
-            {labelFor(o)}
-          </span>
-          {/* Object Remover shortcut — reuses this detection's bbox/mask, no
-              separate region-picking UI needed. Skipped on tampering boxes
-              (allowRemove false) — checking for tampering is a verification
-              step, not an edit workflow. Floats HALF-outside the box's
-              corner (not inset) so it can't collide with the label on a
-              narrow box, which used to cut "100%" into "1[x]%". */}
-          {isImageOrVideoOnly && allowRemove && (
-            <button onClick={() => runInpaint(o.bbox, o.mask)} disabled={inpainting}
-              className="absolute pointer-events-auto text-[9px] font-bold rounded-full flex items-center justify-center hover:brightness-110"
-              style={{ top: -7, right: -7, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1, boxShadow: "0 0 0 2px rgba(0,0,0,0.4)" }}
-              title="Remove this region">
-              ✕
-            </button>
-          )}
-        </div>
-      );
-    });
-  };
+  // Shared box+label overlay renderer (faces/objects/signatures/tampering
+  // all draw the identical shape) — factored out into DetectionBoxOverlay.tsx
+  // once this file neared its 400-line cap.
+  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true) => (
+    <DetectionBoxOverlay list={fullList} color={color} labelFor={labelFor} allowRemove={allowRemove}
+      canEdit={canEdit} inpainting={inpainting} isCovered={isCovered} runInpaint={runInpaint} />
+  );
 
   if (!page || page < 1 || page > pageImages.length) return null;
   const img = pageImages[page - 1];
+  // Draw/remove/add-content/download/reset only ever need A page image and
+  // a bbox — useInpaint and the backend (/rag/mm-inpaint, /rag/mm-ai-fill)
+  // are already generic over file type, they just take an image+bbox in
+  // and an image out. `isImageOrVideoOnly` gated this whole toolbar too,
+  // which meant a PDF page's own figure/table/text citations could never
+  // be edited even though `pageImages[page-1]` is exactly as valid an image
+  // for them as it is for a standalone photo. `canEdit` is always true past
+  // this point (the guard above already confirmed a real page image
+  // exists) — kept as its own const, not inlined as `true`, so the
+  // conditions below still document WHY editing is allowed rather than
+  // reading as a stray boolean literal.
+  const canEdit = true;
 
   const findSimilar = async () => {
     setLoadingSimilar(true);
@@ -265,7 +216,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               )}
             </select>
           ) : null}
-          {isImageOrVideoOnly && (
+          {canEdit && (
             <button onClick={() => setDrawMode(v => !v)}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={drawMode
@@ -274,14 +225,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {drawMode ? "Stop drawing" : "Draw region"}
             </button>
           )}
-          {isImageOrVideoOnly && resultImg && (
+          {canEdit && resultImg && (
             <button onClick={() => downloadBase64Image(resultImg, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
               Download
             </button>
           )}
-          {isImageOrVideoOnly && resultImg && (
+          {canEdit && resultImg && (
             <button onClick={resetInpaint}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
@@ -326,7 +277,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           height, visibly misaligned once scrolled. */}
       <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "#0a0f1a" }}>
         <div className="relative w-full">
-          <img src={resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
+          <img key={`${editKey}-${version}`}
+            src={resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
             alt={`Page ${page}`} className="w-full block" style={{ opacity: inpainting ? 0.5 : 1 }} />
           {/* Boxes stay visible even after a removal — bbox/mask positions
               for the OTHER detections are still accurate, and keeping them
@@ -368,14 +320,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               captures every pointer event over the image while active,
               including over the boxes above (no separate disable needed).
               Skipped while a removal request is already in flight. */}
-          {isImageOrVideoOnly && drawMode && !inpainting && (
+          {canEdit && drawMode && !inpainting && (
             <FreehandDrawLayer onComplete={(regionBbox, mask) => runInpaint(regionBbox, mask)} />
           )}
           {/* "+" affordance to add text/an image/an AI fill back into an
               already-removed region — mutually exclusive with draw mode,
               same reasoning as FreehandDrawLayer above (both want the
               image's pointer events for their own purpose). */}
-          {isImageOrVideoOnly && !drawMode && (
+          {canEdit && !drawMode && (
             <AddContentControls removedBboxes={removedBboxes} filledIndices={filledIndices} aiFilling={aiFilling}
               aiFillProgress={aiFillProgress}
               onAddText={addText} onAddImage={addImage} onAddAiFill={addAiFill} />

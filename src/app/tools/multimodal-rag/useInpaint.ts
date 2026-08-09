@@ -63,6 +63,14 @@ export function useInpaint(
   const [error, setError] = useState<string | null>(null);
   const [removedBboxes, setRemovedBboxes] = useState<Bbox[]>(initialEdit?.removedBboxes ?? []);
   const [filledIndices, setFilledIndices] = useState<number[]>(initialEdit?.filledIndices ?? []);
+  // Bumped on every edit (and on reset) — the caller uses this in the <img>'s
+  // React `key` to force a full element remount instead of an in-place `src`
+  // mutation. A same-node src swap left the image showing blank (verified:
+  // the new base64 decoded to the correct picture, but the live DOM node
+  // rendered nothing) after add-text/add-image/AI-fill on a large page image
+  // inside this scrollable/composited container — a stale-repaint bug a
+  // remount sidesteps entirely rather than chasing the browser's paint path.
+  const [version, setVersion] = useState(0);
   // Tracks which citation the state above belongs to. Adjusted DURING render
   // (React's documented pattern for "reset state when a prop changes")
   // rather than in a useEffect — an effect would let the previous
@@ -80,6 +88,7 @@ export function useInpaint(
     setResultImg(image);
     setRemovedBboxes(bboxes);
     setFilledIndices(filled);
+    setVersion(v => v + 1);
     onChange({ image, removedBboxes: bboxes, filledIndices: filled });
   };
 
@@ -109,6 +118,7 @@ export function useInpaint(
     setError(null);
     setRemovedBboxes([]);
     setFilledIndices([]);
+    setVersion(v => v + 1);
     onChange(null);
   };
 
@@ -184,7 +194,7 @@ export function useInpaint(
   const isCovered = (bbox: Bbox) => fractionCoveredByUnion(bbox, removedBboxes) >= COVERED_THRESHOLD;
 
   return {
-    inpainting, aiFilling, aiFillProgress, resultImg, error, run, reset, isCovered,
+    inpainting, aiFilling, aiFillProgress, resultImg, error, run, reset, isCovered, version,
     removedBboxes, filledIndices, addText, addImage, addAiFill,
   };
 }

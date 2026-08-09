@@ -37,6 +37,18 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
 
   const close = () => { setActiveIndex(null); setText(""); setPrompt(""); setTab("text"); };
 
+  // Anchored to the clicked region's own bbox (same coordinate the "+"
+  // button uses), NOT the bottom of the full image — a tall PDF page can be
+  // 2-3x taller than the scrollable viewport (maxHeight:460 in
+  // CitationThumbnailPanel.tsx), and a panel pinned to the image's true
+  // bottom edge sits far below what's currently visible. Focusing its text
+  // input then makes the browser auto-scroll the container down to reveal
+  // it, landing on blank page whitespace past the real content — verified
+  // live: the composited image data was always correct, only the visible
+  // scroll position was wrong. The clicked region itself is guaranteed to
+  // already be on screen, so anchoring there needs no scroll at all.
+  const activeBbox = activeIndex !== null ? removedBboxes[activeIndex] : null;
+
   return (
     <>
       {openRegions.map(({ bbox, i }) => {
@@ -55,9 +67,15 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
           </button>
         );
       })}
-      {activeIndex !== null && (
-        <div className="absolute left-0 right-0 bottom-0 pointer-events-auto flex flex-col gap-1.5 p-2"
-          style={{ background: "rgba(10,10,16,0.92)", borderTop: `1px solid ${ACCENT}40` }}>
+      {activeIndex !== null && activeBbox && (
+        <div className="absolute pointer-events-auto flex flex-col gap-1.5 p-2 rounded"
+          style={{
+            left: `${(activeBbox[0] + activeBbox[2] / 2) * 100}%`, top: `${activeBbox[1] * 100}%`,
+            transform: "translate(-50%, calc(-100% - 8px))",
+            width: 220, maxWidth: "calc(100% - 16px)",
+            background: "rgba(10,10,16,0.95)", border: `1px solid ${ACCENT}40`,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          }}>
           <div className="flex items-center gap-1.5">
             {(["text", "image", "ai"] as Tab[]).map(t => (
               <button key={t} onClick={() => setTab(t)}
