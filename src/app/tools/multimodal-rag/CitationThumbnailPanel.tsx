@@ -139,7 +139,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // only in color and label text. Three near-identical JSX blocks crossed
   // from "a little repetition" into worth factoring once signatures made
   // it a third copy.
-  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string) => {
+  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true) => {
     // Drop any detection whose box now mostly overlaps an already-removed
     // (white-filled) region — otherwise a sub-detection like "Bicycle
     // wheel" keeps showing a clickable box over blank space after the
@@ -156,21 +156,21 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         if (Math.abs(o.bbox[0] - list[j].bbox[0]) < 0.18 && Math.abs(o.bbox[1] - list[j].bbox[1]) < 0.05) stack++;
       }
       const [bx, by, bw, bh] = o.bbox;
-      // A pixel-accurate mask (backlog item 5, SAM box-prompt refinement —
-      // see mm_segment.py) draws as an inner SVG polygon LAYERED ON TOP of
-      // the rectangle, not instead of it — previously the rectangle's own
-      // border/background were dropped whenever a mask existed, but SAM can
-      // return a thin, poorly-shaped sliver for a small/ambiguous region
-      // (live-tested), leaving nothing but that odd shape on screen. Always
-      // drawing the rectangle keeps every detection visually consistent.
-      // Mask points come back full-image-normalized; converted here to
-      // percentages LOCAL to this div so the polygon lines up regardless
-      // of the div's own rendered size.
+      // Pixel-accurate mask (SAM box-prompt refinement, mm_segment.py) draws
+      // as an inner SVG polygon LAYERED ON TOP of the rectangle, never
+      // instead of it — SAM can return a thin, poorly-shaped sliver for a
+      // small region, and dropping the rectangle in that case left nothing
+      // visible at all. Mask points are full-image-normalized; converted to
+      // percentages local to this div so they line up regardless of size.
       const hasMask = !!o.mask && o.mask.length >= 3;
       return (
         <div key={i} className="absolute pointer-events-none" style={{
           left: `${bx * 100}%`, top: `${by * 100}%`,
           width: `${bw * 100}%`, height: `${bh * 100}%`,
+          // A thin region (common for tampering) can render a few px tall,
+          // where a 2px top+bottom border fills the box and reads as a
+          // solid line, not a box (live-tested) — pixel minimum prevents it.
+          minWidth: 28, minHeight: 20,
           borderRadius: 3,
           border: `2px solid ${color}`, background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
         }}>
@@ -185,19 +185,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             style={{ top: 2 + stack * 16, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}>
             {labelFor(o)}
           </span>
-          {/* "Remove object" (Image Inpainting & Object Remover) — only in
-              image/video-only mode; reuses this exact detection's bbox/mask,
-              no separate region-picking UI. pointer-events-auto punches
-              through the box's own pointer-events-none so this one corner
-              stays clickable. */}
-          {isImageOrVideoOnly && (
-            // Floats HALF-OUTSIDE the box's top-right corner (negative
-            // top/right) rather than inset alongside the label — inset at
-            // top:2,right:2 collided with the confidence label for any
-            // narrow box (e.g. a small tampering region), visually cutting
-            // "100%" into "1[x]%" since both sat in the same tight 2px-inset
-            // row. A corner badge can't collide with left-anchored text
-            // regardless of how narrow the box is.
+          {/* Object Remover shortcut — reuses this detection's bbox/mask, no
+              separate region-picking UI needed. Skipped on tampering boxes
+              (allowRemove false) — checking for tampering is a verification
+              step, not an edit workflow. Floats HALF-outside the box's
+              corner (not inset) so it can't collide with the label on a
+              narrow box, which used to cut "100%" into "1[x]%". */}
+          {isImageOrVideoOnly && allowRemove && (
             <button onClick={() => runInpaint(o.bbox, o.mask)} disabled={inpainting}
               className="absolute pointer-events-auto text-[9px] font-bold rounded-full flex items-center justify-center hover:brightness-110"
               style={{ top: -7, right: -7, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1, boxShadow: "0 0 0 2px rgba(0,0,0,0.4)" }}
@@ -357,7 +351,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             : signaturesToShow.length > 0
             ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
             : tamperingToShow.length > 0
-            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => tamperingLevel(t.confidence))
+            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => tamperingLevel(t.confidence), false)
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (
