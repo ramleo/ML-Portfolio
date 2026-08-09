@@ -157,20 +157,22 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       }
       const [bx, by, bw, bh] = o.bbox;
       // A pixel-accurate mask (backlog item 5, SAM box-prompt refinement —
-      // see mm_segment.py) draws as an inner SVG polygon instead of the
-      // plain rectangle — only ever present on signature/tampering
-      // detections, whose bbox understates the real (ink-stroke / irregular
-      // edited-region) shape far more than a face's or generic object's
-      // does. Points come back full-image-normalized; converted here to
-      // percentages LOCAL to this div (already positioned at the bbox) so
-      // the polygon lines up regardless of the div's own rendered size.
+      // see mm_segment.py) draws as an inner SVG polygon LAYERED ON TOP of
+      // the rectangle, not instead of it — previously the rectangle's own
+      // border/background were dropped whenever a mask existed, but SAM can
+      // return a thin, poorly-shaped sliver for a small/ambiguous region
+      // (live-tested), leaving nothing but that odd shape on screen. Always
+      // drawing the rectangle keeps every detection visually consistent.
+      // Mask points come back full-image-normalized; converted here to
+      // percentages LOCAL to this div so the polygon lines up regardless
+      // of the div's own rendered size.
       const hasMask = !!o.mask && o.mask.length >= 3;
       return (
         <div key={i} className="absolute pointer-events-none" style={{
           left: `${bx * 100}%`, top: `${by * 100}%`,
           width: `${bw * 100}%`, height: `${bh * 100}%`,
           borderRadius: 3,
-          ...(hasMask ? {} : { border: `2px solid ${color}`, background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)` }),
+          border: `2px solid ${color}`, background: `${color}18`, boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
         }}>
           {hasMask && (
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
