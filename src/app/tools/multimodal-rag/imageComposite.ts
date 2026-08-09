@@ -52,3 +52,14 @@ export function loadImageFile(file: File): Promise<HTMLImageElement> {
     reader.readAsDataURL(file);
   });
 }
+
+/** Triggers a browser download of a base64 PNG (no data-URI prefix) — used
+ * to save the Object Remover's edited image back to the user's device. A
+ * plain <a download> click needs no library and works entirely client-side,
+ * same as every other edit in this feature. */
+export function downloadBase64Image(b64: string, filename: string): void {
+  const a = document.createElement("a");
+  a.href = `data:image/png;base64,${b64}`;
+  a.download = filename;
+  a.click();
+}

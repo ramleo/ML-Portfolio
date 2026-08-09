@@ -93,6 +93,25 @@ meant to place things in general terms, not measure them precisely.
   describes it in words. If a "where is X" question gets a generic
   caption-only answer with no position, X likely wasn't one of the 601
   recognized types.
+- **"Detect signatures" flags handwritten signatures.** When a citation's
+  image/frame has at least one confidently detected signature, "Detect
+  signatures (N)" appears in the "Choose an action…" dropdown — pick it to
+  draw a pink box (with confidence %) around each one. Useful for scanning a
+  contract or form photo for where it was actually signed.
+- **"Check for tampering" flags possible photo editing.** Where available,
+  "Check for tampering (N)" runs an Error-Level-Analysis-style check for
+  regions that look like they were digitally altered, drawing a red box
+  around each suspicious area with a "Possible tampering — signs of possible
+  editing" warning. It's a heuristic that looks for compression/noise
+  inconsistencies, not a certainty — a real edit can be missed, and a region
+  with unusually fine real detail can occasionally trip it too.
+- **"Possible duplicate" flags a repeat of something already uploaded.**
+  If an uploaded image or page closely matches another page already
+  uploaded earlier in the same session (a perceptual-hash comparison, not
+  just a filename match), "Possible duplicate (N)" appears in the dropdown
+  — pick it to see which other source/page it matches and how similar (a
+  percentage). Useful for catching an accidental re-upload of the same
+  photo, or two documents that share the same embedded image.
 - **Detected objects and caption details aren't linked to each other.**
   The detector and the AI caption are two separate passes over the same
   image with no shared memory — so a question like "which side is the

@@ -110,5 +110,9 @@ jumped around at least once; a linear first watch shows nothing yet.
    uploads, since there's nothing else to browse).
 5. Click "summary" next to any uploaded document's name to see everything
    extracted from it — every table (shown as an actual table) and every
-   figure/image caption — without asking a question first.
+   figure/image caption — without asking a question first. Whenever there's
+   substantial extracted text to show (a PDF, CSV, or standalone image, not
+   just a video's transcript), the same search-as-you-type box described
+   above for videos appears here too — highlighting every match and letting
+   you step through them one at a time.
 `.trim();

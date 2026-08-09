@@ -11,6 +11,7 @@ type Props = {
   removedBboxes: Bbox[];
   filledIndices: number[];
   aiFilling: boolean;
+  aiFillProgress: number;
   onAddText: (index: number, text: string) => void;
   onAddImage: (index: number, file: File) => void;
   onAddAiFill: (index: number, prompt: string) => Promise<void>;
@@ -24,7 +25,7 @@ type Props = {
  * compositing/persistence. Rendered by CitationThumbnailPanel only when
  * draw mode is off (freehand drawing and this both want the image's
  * pointer events for their own purpose). */
-export default function AddContentControls({ removedBboxes, filledIndices, aiFilling, onAddText, onAddImage, onAddAiFill }: Props) {
+export default function AddContentControls({ removedBboxes, filledIndices, aiFilling, aiFillProgress, onAddText, onAddImage, onAddAiFill }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("text");
   const [text, setText] = useState("");
@@ -94,8 +95,13 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
               </button>
             </div>
           )}
+          {tab === "ai" && aiFilling && (
+            <div className="rounded-full overflow-hidden" style={{ height: 4, background: "rgba(255,255,255,0.1)" }}>
+              <div style={{ width: `${aiFillProgress}%`, height: "100%", background: ACCENT, transition: "width 0.3s linear" }} />
+            </div>
+          )}
           {tab === "ai" && (
-            <p className="text-[8px]" style={{ color: "rgba(255,255,255,0.35)" }}>Can take up to a minute — free community model, no guaranteed uptime.</p>
+            <p className="text-[8px]" style={{ color: "rgba(255,255,255,0.35)" }}>Usually takes a few seconds.</p>
           )}
         </div>
       )}

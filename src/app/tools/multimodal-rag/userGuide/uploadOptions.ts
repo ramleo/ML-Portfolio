@@ -51,4 +51,14 @@ Clicking a different length regenerates the answer you're currently
 looking at, in place — you don't need to ask the question again. It
 replaces just the last answer bubble; earlier answers in the conversation
 keep whatever length they were originally given at.
+
+## While an answer is generating
+A "Stop generating" button replaces the send button while an answer is
+streaming in — click it to cancel mid-answer if it's heading somewhere
+unhelpful or taking too long, rather than waiting it out.
+
+## Rating an answer
+Every assistant answer has small thumbs-up/thumbs-down buttons underneath
+it. These are for your own feedback only — clicking one doesn't change the
+answer, regenerate it, or affect later questions in any way.
 `.trim();

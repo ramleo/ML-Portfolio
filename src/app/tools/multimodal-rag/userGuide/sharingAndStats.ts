@@ -38,11 +38,17 @@ this tool, the numbers reset to zero the next time this demo server
 restarts — nothing here is a permanent record.
 
 ## What it can't do
-- PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, and short videos
-  (MP4/MOV/WEBM/AVI/MKV) are supported (CSV rows up to 500, video: up to 6
-  sampled frames — fewer once a real transcript exists — plus an audio
-  transcript when present); DOCX and XLSX are not — see the separate
-  Document Intelligence tool for DOCX.
+- PDF, standalone images (PNG/JPG/GIF/WEBP/BMP/TIFF), CSV, short videos
+  (MP4/MOV/WEBM/AVI/MKV), and standalone audio files (MP3/WAV/M4A/OGG/
+  FLAC/AAC) are all supported (CSV rows up to 500, video: up to 6 sampled
+  frames — fewer once a real transcript exists — plus an audio transcript
+  when present); DOCX and XLSX are not — see the separate Document
+  Intelligence tool for DOCX.
+- A standalone audio upload doesn't need to be part of a video — it gets
+  transcribed on its own, with a player and the same searchable transcript
+  as a video's audio track. A "Speech only" warning icon appears since
+  music or instrumental audio may transcribe inaccurately (there's no
+  speech for it to actually pick up).
 - A video's visual understanding only comes from a handful of sampled
   frames, not every frame — something that flashes on screen briefly
   between samples could be missed, even though the audio transcript (if

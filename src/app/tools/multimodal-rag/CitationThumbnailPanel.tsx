@@ -6,6 +6,7 @@ import { useInpaint } from "./useInpaint";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
+import { downloadBase64Image } from "./imageComposite";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity, PersistedEdit } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -112,7 +113,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // previous citation's result on screen.
   const editKey = `${source}:${page ?? ""}`;
   const {
-    inpainting, aiFilling, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered,
+    inpainting, aiFilling, aiFillProgress, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered,
     removedBboxes, filledIndices, addText, addImage, addAiFill,
   } = useInpaint(
     currentImg, editKey, page ? edits?.[String(page)] : undefined,
@@ -270,6 +271,13 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             </button>
           )}
           {isImageOrVideoOnly && resultImg && (
+            <button onClick={() => downloadBase64Image(resultImg, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
+              Download
+            </button>
+          )}
+          {isImageOrVideoOnly && resultImg && (
             <button onClick={resetInpaint}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
@@ -365,6 +373,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               image's pointer events for their own purpose). */}
           {isImageOrVideoOnly && !drawMode && (
             <AddContentControls removedBboxes={removedBboxes} filledIndices={filledIndices} aiFilling={aiFilling}
+              aiFillProgress={aiFillProgress}
               onAddText={addText} onAddImage={addImage} onAddAiFill={addAiFill} />
           )}
         </div>

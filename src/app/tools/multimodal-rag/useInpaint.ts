@@ -28,7 +28,12 @@ function fractionCoveredByUnion(inner: Bbox, removed: Bbox[]): number {
 }
 
 const COVERED_THRESHOLD = 0.6;
-const AI_FILL_TIMEOUT_MS = 90_000; // a real call takes 30-50s (public community Space, no SLA)
+const AI_FILL_TIMEOUT_MS = 30_000; // real Gemini calls measured at ~4-5s; generous margin for a slow one
+// There's no real server-reported progress (one request, one response) — this
+// paces a fake bar toward 90% over the typical ~5s call so it FEELS alive
+// instead of frozen, then the actual response jumps it the rest of the way.
+// Never claims 100% until the real result is back.
+const AI_FILL_EXPECTED_MS = 5_000;
 
 /** Fetch/state logic for "remove this detected region" (Image Inpainting &
  * Object Remover) AND for adding content back into an already-removed
@@ -53,6 +58,7 @@ export function useInpaint(
 ) {
   const [inpainting, setInpainting] = useState(false);
   const [aiFilling, setAiFilling] = useState(false);
+  const [aiFillProgress, setAiFillProgress] = useState(0);
   const [resultImg, setResultImg] = useState<string | null>(initialEdit?.image ?? null);
   const [error, setError] = useState<string | null>(null);
   const [removedBboxes, setRemovedBboxes] = useState<Bbox[]>(initialEdit?.removedBboxes ?? []);
@@ -145,9 +151,16 @@ export function useInpaint(
     if (!resultImg) return;
     const bbox = removedBboxes[index];
     setAiFilling(true);
+    setAiFillProgress(0);
     setError(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AI_FILL_TIMEOUT_MS);
+    const startedAt = Date.now();
+    const progressTimer = setInterval(() => {
+      // Caps at 90 — the last 10% is reserved for the real response landing,
+      // so the bar never lies about being done before it actually is.
+      setAiFillProgress(Math.min(90, ((Date.now() - startedAt) / AI_FILL_EXPECTED_MS) * 90));
+    }, 300);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
         method: "POST",
@@ -162,14 +175,16 @@ export function useInpaint(
       setError("AI fill is temporarily unavailable — try again in a moment.");
     } finally {
       clearTimeout(timeout);
+      clearInterval(progressTimer);
       setAiFilling(false);
+      setAiFillProgress(0);
     }
   };
 
   const isCovered = (bbox: Bbox) => fractionCoveredByUnion(bbox, removedBboxes) >= COVERED_THRESHOLD;
 
   return {
-    inpainting, aiFilling, resultImg, error, run, reset, isCovered,
+    inpainting, aiFilling, aiFillProgress, resultImg, error, run, reset, isCovered,
     removedBboxes, filledIndices, addText, addImage, addAiFill,
   };
 }

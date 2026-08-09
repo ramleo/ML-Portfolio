@@ -3,6 +3,14 @@ export const MM_RAG_CITATIONS = `
 A citation is the small card under each AI answer that says exactly where
 that answer came from — click one to expand it and see more.
 
+- **"Directly cited" vs "Additional context."** When an answer only actually
+  used some of what was retrieved, the Evidence column splits into two
+  labeled groups instead of one flat list: "Directly cited" (what the
+  answer's citations point to) and "Additional context (not used in this
+  answer)" (other relevant passages that were retrieved but didn't end up
+  backing anything the answer said). If everything retrieved was used, you
+  just see one plain list — the split only appears when there's a real
+  difference to show.
 - **Source, page, and type.** Each citation shows its source document, a
   page number, and a content type badge — Text, Table, Figure, or Image —
   whenever that's known. Example: ask "what was Q3 revenue?" and the
