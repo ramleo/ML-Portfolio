@@ -269,6 +269,17 @@ export default function MmRagRunner() {
 
           {documents.length > 0 && (<>
 
+          {/* EvidenceColumn (which holds the citation image/detection-box
+              panel) gets the flexible middle slot instead of ChatPanel —
+              a citation image with several overlapping detection boxes
+              needs real width for its labels to stay readable; a fixed
+              440px column was cramping small/narrow boxes badly. ChatPanel
+              is just a message list + input, which stays comfortable at a
+              fixed width, so it takes the slot Evidence used to have. */}
+          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
+            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
+            onEditChange={updateDocEdit} />
+
           <div className="flex flex-col gap-2">
             <div className="flex items-center rounded border overflow-hidden self-start"
               style={{ borderColor: "rgba(255,255,255,0.12)" }}>
@@ -289,22 +300,18 @@ export default function MmRagRunner() {
             <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
               settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
           </div>
-
-          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
-            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
-            onEditChange={updateDocEdit} />
           </>)}
         </div>
       )}
 
       {isSharedView && (
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_440px] gap-4 lg:h-[88vh]">
-          <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
-            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
-
           <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
             activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
             onEditChange={updateDocEdit} />
+
+          <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
+            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
         </div>
       )}
     </div>
