@@ -101,10 +101,13 @@ meant to place things in general terms, not measure them precisely.
 - **"Check for tampering" flags possible photo editing.** Where available,
   "Check for tampering (N)" runs an Error-Level-Analysis-style check for
   regions that look like they were digitally altered, drawing a red box
-  around each suspicious area with a "Possible tampering — signs of possible
-  editing" warning. It's a heuristic that looks for compression/noise
-  inconsistencies, not a certainty — a real edit can be missed, and a region
-  with unusually fine real detail can occasionally trip it too.
+  labeled High/Medium/Low confidence around each suspicious area. It's a
+  statistical-outlier heuristic looking for compression/noise
+  inconsistencies, not a trained classifier and not a certainty — a real
+  edit can be missed, and reflective/metallic surfaces, fine detail like
+  spokes, or a glossy sticker commonly trip it too. Even "High" here means
+  "an unusual statistical pattern," not "confirmed edited" — always verify
+  visually before trusting a flag.
 - **"Possible duplicate" flags a repeat of something already uploaded.**
   If an uploaded image or page closely matches another page already
   uploaded earlier in the same session (a perceptual-hash comparison, not

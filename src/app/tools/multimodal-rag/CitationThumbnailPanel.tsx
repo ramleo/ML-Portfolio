@@ -7,6 +7,7 @@ import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
 import { downloadBase64Image } from "./imageComposite";
+import { tamperingLevel } from "./tamperingLevel";
 import type { Bbox, DetectedObject, DuplicateMatch, Entity, PersistedEdit } from "./_types";
 
 const ACCENT = "#a78bfa";
@@ -188,9 +189,16 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               through the box's own pointer-events-none so this one corner
               stays clickable. */}
           {isImageOrVideoOnly && (
+            // Floats HALF-OUTSIDE the box's top-right corner (negative
+            // top/right) rather than inset alongside the label — inset at
+            // top:2,right:2 collided with the confidence label for any
+            // narrow box (e.g. a small tampering region), visually cutting
+            // "100%" into "1[x]%" since both sat in the same tight 2px-inset
+            // row. A corner badge can't collide with left-anchored text
+            // regardless of how narrow the box is.
             <button onClick={() => runInpaint(o.bbox, o.mask)} disabled={inpainting}
               className="absolute pointer-events-auto text-[9px] font-bold rounded-full flex items-center justify-center hover:brightness-110"
-              style={{ top: 2, right: 2, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1 }}
+              style={{ top: -7, right: -7, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1, boxShadow: "0 0 0 2px rgba(0,0,0,0.4)" }}
               title="Remove this region">
               ✕
             </button>
@@ -347,7 +355,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             : signaturesToShow.length > 0
             ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
             : tamperingToShow.length > 0
-            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => `${Math.round(t.confidence * 100)}%`)
+            ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => tamperingLevel(t.confidence))
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (

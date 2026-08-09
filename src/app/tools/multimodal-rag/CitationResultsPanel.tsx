@@ -1,6 +1,7 @@
 "use client";
 
 import type { Bbox, DetectedObject, DuplicateMatch, Entity } from "./_types";
+import { tamperingLevel } from "./tamperingLevel";
 
 const TAMPERING_COLOR = "#f87171"; // same accent as the box overlay in CitationThumbnailPanel
 
@@ -64,11 +65,12 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
       {isImageOrVideoOnly && visualAction === "tampering" && tampering && tampering.length > 0 && (
         <div className="px-3 py-2 flex flex-col gap-1">
           <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>
-            Possible tampering — signs of possible editing, not a certainty. Verify visually.
+            Possible tampering — a statistical outlier, not a verdict. Reflective/metallic
+            surfaces, spokes, and glossy stickers commonly trigger this too. Verify visually.
           </p>
           {tampering.filter(t => !isCovered(t.bbox)).map((t, i) => (
             <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              Region {i + 1} — {Math.round(t.confidence * 100)}% confidence
+              Region {i + 1} — {tamperingLevel(t.confidence)} confidence ({Math.round(t.confidence * 100)}%)
             </div>
           ))}
         </div>
