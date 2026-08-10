@@ -98,6 +98,15 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
   // query-time citation path that carries this, so no ActiveCitation
   // fallback like the others above.
   const duplicates: DuplicateMatch[] | null = mediaChunk?.duplicates ?? null;
+  // "Sharpen image" gates on the same blur heuristic DocumentSummaryPanel's
+  // "Maybe blurry" badge already uses — unlike objects/entities/etc, there's
+  // no query-time citation path carrying this either, so look it up by page
+  // across ANY chunk type (a PDF figure/table can be blurry too, not just a
+  // standalone image/video upload — unlike the isImageOrVideoOnly-gated
+  // fields above).
+  const blurry = (activeDoc && activeCitation)
+    ? activeDoc.notableChunks.find(c => c.page === activeCitation.page)?.blurry ?? null
+    : null;
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -150,6 +159,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               signatures={effectiveSignatures}
               tampering={effectiveTampering}
               duplicates={duplicates}
+              blurry={blurry}
               edits={activeDoc.edits}
               onEditChange={(page, edit) => onEditChange(activeDoc.source, page, edit)} />
           ) : (

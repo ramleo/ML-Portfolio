@@ -79,6 +79,16 @@ that answer came from — click one to expand it and see more.
   that specific image might be less reliable than usual, so it's worth a
   quick look at the original. It's a heuristic, not a certainty: a very
   plain, low-detail image can occasionally trip it even when perfectly sharp.
+- **"Sharpen image (AI)" button.** When a citation's own image looks blurry,
+  a "Sharpen image (AI)" button appears above it — click it to get an
+  AI-enhanced version and a "View original / View sharpened" toggle to
+  compare. This is a generative edit (an AI model re-renders a crisper
+  version), not a mathematical fix, so it can occasionally invent
+  plausible-looking detail instead of admitting a spot is unreadable — the
+  sharpened view always stays labeled "AI-enhanced — verify against
+  original" and is never used as the base for other edits (removing objects,
+  downloading). Takes a few seconds; a "temporarily unavailable" message
+  means that one call failed — safe to just try again.
 - **Key facts chips.** Expand a citation and you may see small colored chips
   above the source text — amounts, dates, percentages, people, organizations,
   or locations found in that exact chunk (e.g. "$1,245.50", "April 30, 2026",

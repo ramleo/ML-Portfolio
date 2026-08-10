@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
+import { useSharpen } from "./useSharpen";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
@@ -71,6 +72,11 @@ type Props = {
    * error heuristic rather than a labeled detector; own field, own color,
    * own dropdown option. */
   tampering?: DetectedObject[] | null;
+  /** Heuristic "this figure/photo looks blurry" flag, already computed at
+   * ingest (blur.py's variance-of-Laplacian check) — gates the "Sharpen
+   * image" button the same way faces/signatures/tampering gate their own
+   * buttons: only shown when there's a real reason to reach for it. */
+  blurry?: boolean | null;
   /** Near-duplicate matches (backlog item 3) — perceptual-hash comparison
    * against every image already uploaded this session, computed at ingest
    * like signatures/tampering above. No bbox: a match is "this whole image
@@ -93,7 +99,7 @@ const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent fr
 
 type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, blurry, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -121,6 +127,11 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
     currentImg, editKey, page ? edits?.[String(page)] : undefined,
     edit => page && onEditChange?.(page, edit),
   );
+  // Keyed on editKey+version, not editKey alone — any removal/fill (which
+  // bumps version) invalidates a previously sharpened result, since it was
+  // sharpened against a now-stale base image. See useSharpen.ts.
+  const { sharpening, sharpenedImg, sharpenError, viewSharpened, setViewSharpened, sharpen } =
+    useSharpen(`${editKey}-${version}`);
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -225,6 +236,20 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {drawMode ? "Stop drawing" : "Draw region"}
             </button>
           )}
+          {canEdit && blurry && !sharpenedImg && (
+            <button onClick={() => sharpen(resultImg ?? img)} disabled={sharpening}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: sharpening ? 0.5 : 1 }}>
+              {sharpening ? "Sharpening…" : "Sharpen image (AI)"}
+            </button>
+          )}
+          {sharpenedImg && (
+            <button onClick={() => setViewSharpened(v => !v)}
+              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
+              {viewSharpened ? "View original" : "View sharpened"}
+            </button>
+          )}
           {canEdit && resultImg && (
             <button onClick={() => downloadBase64Image(resultImg, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
@@ -278,8 +303,20 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "#0a0f1a" }}>
         <div className="relative w-full">
           <img key={`${editKey}-${version}`}
-            src={resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
+            src={sharpenedImg && viewSharpened
+              ? `data:image/png;base64,${sharpenedImg}`
+              : resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
             alt={`Page ${page}`} className="w-full block" style={{ opacity: inpainting ? 0.5 : 1 }} />
+          {/* AI-sharpened is generative, not a real deconvolution — can
+              invent plausible-but-wrong detail on genuinely lost content
+              (see mm_deblur.py). Never silently swapped in: always labeled,
+              always one click from the original via "View original" above. */}
+          {sharpenedImg && viewSharpened && (
+            <div className="absolute left-0 right-0 bottom-0 pointer-events-none text-center text-[9px] py-1"
+              style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.7)" }}>
+              AI-enhanced — verify against original, may invent detail
+            </div>
+          )}
           {/* Boxes stay visible even after a removal — bbox/mask positions
               for the OTHER detections are still accurate, and keeping them
               clickable is what lets multiple regions be removed one after
@@ -334,7 +371,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           )}
         </div>
       </div>
-      <CitationResultsPanel inpaintError={inpaintError} isImageOrVideoOnly={isImageOrVideoOnly}
+      <CitationResultsPanel inpaintError={inpaintError || sharpenError} isImageOrVideoOnly={isImageOrVideoOnly}
         visualAction={visualAction} captionText={captionText} objects={objects} entities={entities}
         piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} isCovered={isCovered}
         similarNote={similarNote} similar={similar} />
