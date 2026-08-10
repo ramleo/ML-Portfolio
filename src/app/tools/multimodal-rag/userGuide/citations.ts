@@ -105,13 +105,22 @@ that answer came from — click one to expand it and see more.
   directly (still labeled to verify against the original); if they
   disagree, that disagreement IS the finding — the caption switches to an
   explicit "likely unreliable, do not trust this detail" warning rather than
-  showing either guess as if it were real. A whole-image sharpen doesn't run
-  this check (it's for general clarity, not reading one specific detail) and
-  keeps the plain "AI-enhanced — verify against original" caption. Either
-  way, the sharpened view is never used as the base for other edits
-  (removing objects, downloading). A region sharpen takes longer than a
-  whole-image one (it's four calls, not one) — a "temporarily unavailable"
-  message means one of those calls failed; safe to just try again.
+  showing either guess as if it were real. This check only applies to actual
+  text — selecting a logo, icon, or other non-text graphic correctly falls
+  back to the plain generic caption instead of a false "disagreed" warning,
+  since OCR was never going to read text off a picture either way. A
+  whole-image sharpen doesn't run this check at all (it's for general
+  clarity, not reading one specific detail) and always keeps the plain
+  caption. Either way, the sharpened view is never used as the base for
+  other edits (removing objects) but CAN be downloaded — "Download" (next to
+  the sharpen buttons) saves whichever version is currently on screen,
+  original or sharpened.
+  A region sharpen takes longer than a whole-image one (it's up to four
+  calls, not one) — while it's running, the buttons are replaced by a single
+  "Cancel sharpening" if you don't want to wait; a "temporarily unavailable"
+  message means one of the calls failed on its own. Your drawn box gets a
+  small automatic margin (not literally pixel-exact) so text you selected
+  slightly too tight doesn't get clipped at the edge.
 - **Key facts chips.** Expand a citation and you may see small colored chips
   above the source text — amounts, dates, percentages, people, organizations,
   or locations found in that exact chunk (e.g. "$1,245.50", "April 30, 2026",

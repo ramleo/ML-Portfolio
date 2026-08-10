@@ -4,6 +4,7 @@ import FreehandDrawLayer from "./FreehandDrawLayer";
 import type { Bbox } from "./_types";
 
 const ACCENT = "#a78bfa";
+const WARNING_COLOR = "#f87171"; // same red-toned accent used for tampering warnings and the low-confidence caption below
 
 type ButtonsProps = {
   sharpening: boolean;
@@ -14,6 +15,7 @@ type ButtonsProps = {
   setRegionMode: (fn: (v: boolean) => boolean) => void;
   setDrawMode: (v: boolean) => void;
   onSharpenWhole: () => void;
+  onCancel: () => void;
 };
 
 /** Header-row trigger buttons for AI-sharpen: whole-image, region-only
@@ -27,21 +29,35 @@ type ButtonsProps = {
  * result exists, rather than hiding behind a Reset — the first attempt
  * hallucinating in one spot (see mm_deblur.py's module docstring for the
  * real incident this guards against) shouldn't block trying a narrower
- * region-only pass instead. */
-export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode, onSharpenWhole }: ButtonsProps) {
+ * region-only pass instead.
+ *
+ * While a call is in flight, the trigger buttons are replaced by a single
+ * Cancel — simpler than three separately-disabled buttons, and gives the
+ * user an actual way out of a slow region call (four sequential backend
+ * calls, see useSharpen.ts) instead of just waiting out the 60s timeout. */
+export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode, onSharpenWhole, onCancel }: ButtonsProps) {
+  if (sharpening) {
+    return (
+      <button onClick={onCancel}
+        className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+        style={{ borderColor: `${WARNING_COLOR}55`, color: WARNING_COLOR }}>
+        Cancel sharpening
+      </button>
+    );
+  }
   return (
     <>
-      <button onClick={onSharpenWhole} disabled={sharpening || regionMode}
+      <button onClick={onSharpenWhole} disabled={regionMode}
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-        style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: sharpening || regionMode ? 0.5 : 1 }}>
-        {sharpening && !regionMode ? "Sharpening…" : sharpenedImg ? "Re-sharpen (whole)" : "Sharpen image (AI)"}
+        style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: regionMode ? 0.5 : 1 }}>
+        {sharpenedImg ? "Re-sharpen (whole)" : "Sharpen image (AI)"}
       </button>
-      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); }} disabled={sharpening}
+      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); }}
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
         style={regionMode
           ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-          : { borderColor: `${ACCENT}40`, color: ACCENT, opacity: sharpening ? 0.5 : 1 }}>
-        {regionMode ? "Cancel region" : sharpening ? "Sharpening…" : "Sharpen region…"}
+          : { borderColor: `${ACCENT}40`, color: ACCENT }}>
+        {regionMode ? "Cancel region" : "Sharpen region…"}
       </button>
       {sharpenedImg && (
         <button onClick={() => setViewSharpened(v => !v)}
@@ -53,8 +69,6 @@ export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setVie
     </>
   );
 }
-
-const WARNING_COLOR = "#f87171"; // same red-toned accent CitationThumbnailPanel uses for tampering warnings
 
 type OverlayProps = {
   regionMode: boolean;

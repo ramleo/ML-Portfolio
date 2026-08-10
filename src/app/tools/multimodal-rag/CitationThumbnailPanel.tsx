@@ -132,7 +132,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // bumps version) invalidates a previously sharpened result, since it was
   // sharpened against a now-stale base image. See useSharpen.ts.
   const { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenError,
-    viewSharpened, setViewSharpened, sharpen } = useSharpen(`${editKey}-${version}`);
+    viewSharpened, setViewSharpened, sharpen, cancelSharpen } = useSharpen(`${editKey}-${version}`);
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -245,10 +245,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           {canEdit && (
             <SharpenButtons sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
               setViewSharpened={setViewSharpened} regionMode={regionMode} setRegionMode={setRegionMode}
-              setDrawMode={setDrawMode} onSharpenWhole={() => sharpen(resultImg ?? img)} />
+              setDrawMode={setDrawMode} onSharpenWhole={() => sharpen(resultImg ?? img)} onCancel={cancelSharpen} />
           )}
-          {canEdit && resultImg && (
-            <button onClick={() => downloadBase64Image(resultImg, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
+          {/* Downloads whatever's actually ON SCREEN right now — previously
+              only ever resultImg (an inpaint edit), so a citation sharpened
+              but never removed/filled had no Download at all. Same
+              viewSharpened-first precedence as the <img> src below. */}
+          {canEdit && (sharpenedImg && viewSharpened ? sharpenedImg : resultImg) && (
+            <button onClick={() => downloadBase64Image(sharpenedImg && viewSharpened ? sharpenedImg : resultImg!, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
               Download

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox } from "./_types";
 
@@ -43,6 +43,12 @@ export function useSharpen(syncKey: string) {
   const [sharpenText, setSharpenText] = useState<string | null>(null);
   const [sharpenError, setSharpenError] = useState<string | null>(null);
   const [viewSharpened, setViewSharpened] = useState(true);
+  // Lets `cancelSharpen` (called from a user-clicked Cancel button, outside
+  // the async `sharpen` function's own scope) reach the in-flight request's
+  // controller. A ref, not state — aborting doesn't need a re-render itself,
+  // the abort's own effects (catch block firing) already trigger one.
+  const abortRef = useRef<AbortController | null>(null);
+  const cancelledRef = useRef(false);
   const [syncedKey, setSyncedKey] = useState(syncKey);
   if (syncKey !== syncedKey) {
     setSyncedKey(syncKey);
@@ -54,10 +60,12 @@ export function useSharpen(syncKey: string) {
   }
 
   const sharpen = async (baseImage: string, bbox?: Bbox) => {
+    cancelledRef.current = false;
     setSharpening(true);
     setSharpenProgress(0);
     setSharpenError(null);
     const controller = new AbortController();
+    abortRef.current = controller;
     const timeout = setTimeout(() => controller.abort(), SHARPEN_TIMEOUT_MS);
     const startedAt = Date.now();
     const expectedMs = bbox ? SHARPEN_EXPECTED_MS_REGION : SHARPEN_EXPECTED_MS_WHOLE;
@@ -78,15 +86,25 @@ export function useSharpen(syncKey: string) {
       setSharpenText((data.text as string | undefined) ?? null);
       setViewSharpened(true);
     } catch {
-      setSharpenError("Sharpen is temporarily unavailable — try again in a moment.");
+      // Note: the backend keeps running its (already-dispatched) Gemini/OCR
+      // calls to completion even after this abort — cancelling only stops
+      // the CLIENT from waiting on/showing a result, there's no server-side
+      // cancellation. Fine for a best-effort feature; just wasted compute.
+      setSharpenError(cancelledRef.current ? "Sharpen cancelled." : "Sharpen is temporarily unavailable — try again in a moment.");
     } finally {
       clearTimeout(timeout);
       clearInterval(progressTimer);
       setSharpening(false);
       setSharpenProgress(0);
+      abortRef.current = null;
     }
   };
 
+  const cancelSharpen = () => {
+    cancelledRef.current = true;
+    abortRef.current?.abort();
+  };
+
   return { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenError,
-    viewSharpened, setViewSharpened, sharpen };
+    viewSharpened, setViewSharpened, sharpen, cancelSharpen };
 }
