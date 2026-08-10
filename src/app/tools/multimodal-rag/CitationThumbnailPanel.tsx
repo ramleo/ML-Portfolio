@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import { useSharpen } from "./useSharpen";
+import { SharpenButtons, SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
@@ -104,6 +105,11 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // same as detected-box removal already chains; user explicitly toggles
   // off via "Stop drawing" when done.
   const [drawMode, setDrawMode] = useState(false);
+  // "Sharpen region" (AI deblur scoped to a drawn box) — mutually exclusive
+  // with drawMode (object-removal drawing): each toggle handler turns the
+  // other off, same reasoning FreehandDrawLayer's single active-instance
+  // convention already relies on elsewhere in this file.
+  const [regionMode, setRegionMode] = useState(false);
   const faces = (objects ?? []).filter(o => o.label === "Human face");
   // "Remove object" (Image Inpainting & Object Remover) — a disposable edit
   // over whichever page image is currently shown; called with a `page` on
@@ -125,7 +131,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Keyed on editKey+version, not editKey alone — any removal/fill (which
   // bumps version) invalidates a previously sharpened result, since it was
   // sharpened against a now-stale base image. See useSharpen.ts.
-  const { sharpening, sharpenedImg, sharpenError, viewSharpened, setViewSharpened, sharpen } =
+  const { sharpening, sharpenProgress, sharpenedImg, sharpenError, viewSharpened, setViewSharpened, sharpen } =
     useSharpen(`${editKey}-${version}`);
 
   // Which detections actually draw on the image right now. In image/video-
@@ -223,7 +229,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             </select>
           ) : null}
           {canEdit && (
-            <button onClick={() => setDrawMode(v => !v)}
+            <button onClick={() => { setDrawMode(v => !v); setRegionMode(false); }}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={drawMode
                 ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
@@ -231,26 +237,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {drawMode ? "Stop drawing" : "Draw region"}
             </button>
           )}
-          {/* No longer gated on the "blurry" heuristic (blur.py) — that's a
-              WHOLE-IMAGE score, so a photo that's mostly sharp with only a
-              small locally-blurred area (e.g. a deliberately blurred logo/
-              plate on an otherwise crisp product photo) never trips it.
-              Always available instead, same as Draw region/Download —
-              already safe to expose unconditionally since it's labeled,
-              non-destructive, and toggleable. */}
-          {canEdit && !sharpenedImg && (
-            <button onClick={() => sharpen(resultImg ?? img)} disabled={sharpening}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: sharpening ? 0.5 : 1 }}>
-              {sharpening ? "Sharpening…" : "Sharpen image (AI)"}
-            </button>
-          )}
-          {sharpenedImg && (
-            <button onClick={() => setViewSharpened(v => !v)}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
-              {viewSharpened ? "View original" : "View sharpened"}
-            </button>
+          {/* Sharpen no longer gates on the "blurry" heuristic (blur.py) —
+              that's a WHOLE-IMAGE score, so a photo that's mostly sharp with
+              only a small locally-blurred area (e.g. a deliberately blurred
+              logo/plate on an otherwise crisp product photo) never trips
+              it. Always available instead, same as Draw region/Download. */}
+          {canEdit && (
+            <SharpenButtons sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
+              setViewSharpened={setViewSharpened} regionMode={regionMode} setRegionMode={setRegionMode}
+              setDrawMode={setDrawMode} onSharpenWhole={() => sharpen(resultImg ?? img)} />
           )}
           {canEdit && resultImg && (
             <button onClick={() => downloadBase64Image(resultImg, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
@@ -309,15 +304,16 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               ? `data:image/png;base64,${sharpenedImg}`
               : resultImg ? `data:image/png;base64,${resultImg}` : `data:image/png;base64,${img}`}
             alt={`Page ${page}`} className="w-full block" style={{ opacity: inpainting ? 0.5 : 1 }} />
-          {/* AI-sharpened is generative, not a real deconvolution — can
-              invent plausible-but-wrong detail on genuinely lost content
-              (see mm_deblur.py). Never silently swapped in: always labeled,
+          {/* Region-draw layer (while picking what to sharpen), progress
+              bar, and "AI-enhanced" disclaimer — see SharpenControls.tsx.
+              Sharpen is generative, not a real deconvolution — can invent
+              plausible-but-wrong detail on genuinely lost content (see
+              mm_deblur.py). Never silently swapped in: always labeled,
               always one click from the original via "View original" above. */}
-          {sharpenedImg && viewSharpened && (
-            <div className="absolute left-0 right-0 bottom-0 pointer-events-none text-center text-[9px] py-1"
-              style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.7)" }}>
-              AI-enhanced — verify against original, may invent detail
-            </div>
+          {canEdit && (
+            <SharpenOverlay regionMode={regionMode} sharpening={sharpening} sharpenProgress={sharpenProgress}
+              sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
+              onRegionComplete={regionBbox => { setRegionMode(false); sharpen(resultImg ?? img, regionBbox); }} />
           )}
           {/* Boxes stay visible even after a removal — bbox/mask positions
               for the OTHER detections are still accurate, and keeping them
@@ -359,14 +355,15 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               captures every pointer event over the image while active,
               including over the boxes above (no separate disable needed).
               Skipped while a removal request is already in flight. */}
-          {canEdit && drawMode && !inpainting && (
+          {canEdit && drawMode && !regionMode && !inpainting && (
             <FreehandDrawLayer onComplete={(regionBbox, mask) => runInpaint(regionBbox, mask)} />
           )}
           {/* "+" affordance to add text/an image/an AI fill back into an
-              already-removed region — mutually exclusive with draw mode,
-              same reasoning as FreehandDrawLayer above (both want the
-              image's pointer events for their own purpose). */}
-          {canEdit && !drawMode && (
+              already-removed region — mutually exclusive with draw mode AND
+              region-sharpen mode, same reasoning as FreehandDrawLayer above
+              (all three want the image's pointer events for their own
+              purpose). */}
+          {canEdit && !drawMode && !regionMode && (
             <AddContentControls removedBboxes={removedBboxes} filledIndices={filledIndices} aiFilling={aiFilling}
               aiFillProgress={aiFillProgress}
               onAddText={addText} onAddImage={addImage} onAddAiFill={addAiFill} />

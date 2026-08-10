@@ -79,20 +79,28 @@ that answer came from — click one to expand it and see more.
   that specific image might be less reliable than usual, so it's worth a
   quick look at the original. It's a heuristic, not a certainty: a very
   plain, low-detail image can occasionally trip it even when perfectly sharp.
-- **"Sharpen image (AI)" button.** Always available above any citation's own
-  image (a page image has to exist — same requirement as "Draw region"),
-  not just when the "Maybe blurry" badge shows: that badge is a whole-image
-  average, so a photo that's mostly sharp with only a small blurry patch
-  (a deliberately blurred logo/plate on an otherwise crisp product shot,
-  say) never trips it even though there's real blur to fix. Click the
-  button to get an AI-enhanced version and a "View original / View
-  sharpened" toggle to compare. This is a generative edit (an AI model
-  re-renders a crisper version), not a mathematical fix, so it can
-  occasionally invent plausible-looking detail instead of admitting a spot
-  is unreadable — the sharpened view always stays labeled "AI-enhanced —
-  verify against original" and is never used as the base for other edits
-  (removing objects, downloading). Takes a few seconds; a "temporarily
-  unavailable" message means that one call failed — safe to just try again.
+- **"Sharpen image (AI)" / "Sharpen region…" buttons.** Always available
+  above any citation's own image (a page image has to exist — same
+  requirement as "Draw region"), not just when the "Maybe blurry" badge
+  shows: that badge is a whole-image average, so a photo that's mostly sharp
+  with only a small blurry patch (a deliberately blurred logo/plate on an
+  otherwise crisp product shot, say) never trips it even though there's real
+  blur to fix. "Sharpen image (AI)" enhances the whole photo; "Sharpen
+  region…" instead lets you drag a box around just the blurry part (same
+  click-and-drag as "Draw region") — only that box is sent to the model and
+  pasted back, so every pixel outside it is left byte-for-byte untouched, no
+  matter what the model does inside the box. A progress bar shows under the
+  image while a call is running. Once you have a result, a "View original /
+  View sharpened" toggle lets you compare, and you can re-sharpen (whole or
+  a different region) any time without starting over.
+  This is a generative edit (an AI model re-renders a crisper version), not
+  a mathematical fix, so it can occasionally invent plausible-looking detail
+  instead of admitting a spot is unreadable — seen live on a real photo
+  where a blurred license plate came back with invented text. The sharpened
+  view always stays labeled "AI-enhanced — verify against original" and is
+  never used as the base for other edits (removing objects, downloading).
+  Takes a few seconds; a "temporarily unavailable" message means that one
+  call failed — safe to just try again.
 - **Key facts chips.** Expand a citation and you may see small colored chips
   above the source text — amounts, dates, percentages, people, organizations,
   or locations found in that exact chunk (e.g. "$1,245.50", "April 30, 2026",
