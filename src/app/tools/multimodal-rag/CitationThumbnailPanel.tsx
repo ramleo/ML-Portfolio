@@ -72,11 +72,6 @@ type Props = {
    * error heuristic rather than a labeled detector; own field, own color,
    * own dropdown option. */
   tampering?: DetectedObject[] | null;
-  /** Heuristic "this figure/photo looks blurry" flag, already computed at
-   * ingest (blur.py's variance-of-Laplacian check) — gates the "Sharpen
-   * image" button the same way faces/signatures/tampering gate their own
-   * buttons: only shown when there's a real reason to reach for it. */
-  blurry?: boolean | null;
   /** Near-duplicate matches (backlog item 3) — perceptual-hash comparison
    * against every image already uploaded this session, computed at ingest
    * like signatures/tampering above. No bbox: a match is "this whole image
@@ -99,7 +94,7 @@ const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent fr
 
 type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, blurry, edits, onEditChange }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -236,7 +231,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               {drawMode ? "Stop drawing" : "Draw region"}
             </button>
           )}
-          {canEdit && blurry && !sharpenedImg && (
+          {/* No longer gated on the "blurry" heuristic (blur.py) — that's a
+              WHOLE-IMAGE score, so a photo that's mostly sharp with only a
+              small locally-blurred area (e.g. a deliberately blurred logo/
+              plate on an otherwise crisp product photo) never trips it.
+              Always available instead, same as Draw region/Download —
+              already safe to expose unconditionally since it's labeled,
+              non-destructive, and toggleable. */}
+          {canEdit && !sharpenedImg && (
             <button onClick={() => sharpen(resultImg ?? img)} disabled={sharpening}
               className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
               style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: sharpening ? 0.5 : 1 }}>
