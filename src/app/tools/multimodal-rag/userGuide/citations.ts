@@ -96,11 +96,22 @@ that answer came from — click one to expand it and see more.
   This is a generative edit (an AI model re-renders a crisper version), not
   a mathematical fix, so it can occasionally invent plausible-looking detail
   instead of admitting a spot is unreadable — seen live on a real photo
-  where a blurred license plate came back with invented text. The sharpened
-  view always stays labeled "AI-enhanced — verify against original" and is
-  never used as the base for other edits (removing objects, downloading).
-  Takes a few seconds; a "temporarily unavailable" message means that one
-  call failed — safe to just try again.
+  where a blurred license plate came back with invented text (a DIFFERENT
+  invented reading on each independent attempt, which is exactly how this
+  was caught).
+  A region sharpen specifically corroborates itself before trusting a
+  reading: it runs the AI TWICE independently on your selected box and OCRs
+  each result. If both readings agree, the caption shows the confirmed text
+  directly (still labeled to verify against the original); if they
+  disagree, that disagreement IS the finding — the caption switches to an
+  explicit "likely unreliable, do not trust this detail" warning rather than
+  showing either guess as if it were real. A whole-image sharpen doesn't run
+  this check (it's for general clarity, not reading one specific detail) and
+  keeps the plain "AI-enhanced — verify against original" caption. Either
+  way, the sharpened view is never used as the base for other edits
+  (removing objects, downloading). A region sharpen takes longer than a
+  whole-image one (it's four calls, not one) — a "temporarily unavailable"
+  message means one of those calls failed; safe to just try again.
 - **Key facts chips.** Expand a citation and you may see small colored chips
   above the source text — amounts, dates, percentages, people, organizations,
   or locations found in that exact chunk (e.g. "$1,245.50", "April 30, 2026",

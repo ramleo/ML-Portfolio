@@ -2,12 +2,14 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox } from "./_types";
 
-const SHARPEN_TIMEOUT_MS = 30_000;
-// Real Gemini calls measured at ~4-5s (same model as AI-fill, see
-// useInpaint.ts's identical constant) — paces a fake bar toward 90% so it
-// FEELS alive instead of frozen, then the real response jumps the rest of
-// the way. Never claims 100% before the response actually lands.
-const SHARPEN_EXPECTED_MS = 5_000;
+// A region-scoped call makes FOUR sequential network calls on the backend
+// (two independent Gemini generations for corroboration + one OCR read
+// each, see mm_deblur.py's `_sharpen_region`) instead of whole-image's one
+// — both the abort timeout and the fake-progress pacing below account for
+// that, keyed on whether `bbox` was passed to `sharpen`.
+const SHARPEN_TIMEOUT_MS = 60_000;
+const SHARPEN_EXPECTED_MS_WHOLE = 5_000; // single Gemini call, ~4-5s measured (same model as AI-fill)
+const SHARPEN_EXPECTED_MS_REGION = 14_000; // two Gemini + two OCR calls, roughly in sequence
 
 /** Fetch/state logic for "Sharpen image" (AI deblur, /rag/mm-deblur) — kept
  * SEPARATE from useInpaint's resultImg/persisted edits on purpose. This is
@@ -34,12 +36,19 @@ export function useSharpen(syncKey: string) {
   const [sharpening, setSharpening] = useState(false);
   const [sharpenProgress, setSharpenProgress] = useState(0);
   const [sharpenedImg, setSharpenedImg] = useState<string | null>(null);
+  // Only ever populated for a region-scoped call — the corroboration check
+  // (two independent Gemini attempts + OCR agreement) only runs there; a
+  // whole-image sharpen has no confidence/text opinion, see mm_deblur.py.
+  const [sharpenConfidence, setSharpenConfidence] = useState<"high" | "low" | null>(null);
+  const [sharpenText, setSharpenText] = useState<string | null>(null);
   const [sharpenError, setSharpenError] = useState<string | null>(null);
   const [viewSharpened, setViewSharpened] = useState(true);
   const [syncedKey, setSyncedKey] = useState(syncKey);
   if (syncKey !== syncedKey) {
     setSyncedKey(syncKey);
     setSharpenedImg(null);
+    setSharpenConfidence(null);
+    setSharpenText(null);
     setSharpenError(null);
     setViewSharpened(true);
   }
@@ -51,8 +60,9 @@ export function useSharpen(syncKey: string) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SHARPEN_TIMEOUT_MS);
     const startedAt = Date.now();
+    const expectedMs = bbox ? SHARPEN_EXPECTED_MS_REGION : SHARPEN_EXPECTED_MS_WHOLE;
     const progressTimer = setInterval(() => {
-      setSharpenProgress(Math.min(90, ((Date.now() - startedAt) / SHARPEN_EXPECTED_MS) * 90));
+      setSharpenProgress(Math.min(90, ((Date.now() - startedAt) / expectedMs) * 90));
     }, 300);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-deblur`, {
@@ -64,6 +74,8 @@ export function useSharpen(syncKey: string) {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setSharpenedImg(data.image as string);
+      setSharpenConfidence((data.confidence as "high" | "low" | undefined) ?? null);
+      setSharpenText((data.text as string | undefined) ?? null);
       setViewSharpened(true);
     } catch {
       setSharpenError("Sharpen is temporarily unavailable — try again in a moment.");
@@ -75,5 +87,6 @@ export function useSharpen(syncKey: string) {
     }
   };
 
-  return { sharpening, sharpenProgress, sharpenedImg, sharpenError, viewSharpened, setViewSharpened, sharpen };
+  return { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenError,
+    viewSharpened, setViewSharpened, sharpen };
 }

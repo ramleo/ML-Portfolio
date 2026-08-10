@@ -54,22 +54,35 @@ export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setVie
   );
 }
 
+const WARNING_COLOR = "#f87171"; // same red-toned accent CitationThumbnailPanel uses for tampering warnings
+
 type OverlayProps = {
   regionMode: boolean;
   sharpening: boolean;
   sharpenProgress: number;
   sharpenedImg: string | null;
+  sharpenConfidence: "high" | "low" | null;
+  sharpenText: string | null;
   viewSharpened: boolean;
   onRegionComplete: (bbox: Bbox) => void;
 };
 
 /** Image-overlay half: the region-draw layer (while picking a region to
  * sharpen), a progress bar while a call is in flight (paced fake progress,
- * same convention as AI-fill's — see useSharpen.ts), and the "AI-enhanced"
- * disclaimer while viewing a sharpened result. Rendered inside the image's
- * relative wrapper, same convention as FreehandDrawLayer/AddContentControls
- * in CitationThumbnailPanel.tsx. */
-export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpenedImg, viewSharpened, onRegionComplete }: OverlayProps) {
+ * same convention as AI-fill's — see useSharpen.ts), and a disclaimer while
+ * viewing a sharpened result. Rendered inside the image's relative wrapper,
+ * same convention as FreehandDrawLayer/AddContentControls in
+ * CitationThumbnailPanel.tsx.
+ *
+ * The disclaimer itself depends on `sharpenConfidence` (only ever set for a
+ * region-scoped result, see mm_deblur.py's corroboration check): "high"
+ * means two independent AI attempts read the same text, worth surfacing as
+ * an actual finding; "low" means they disagreed, which is the stronger,
+ * more specific warning than the generic whole-image one — that disagreement
+ * is direct evidence the content is unrecoverable, not just a blanket
+ * caveat. `null` (whole-image, or region OCR unavailable) falls back to the
+ * original generic wording. */
+export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, viewSharpened, onRegionComplete }: OverlayProps) {
   return (
     <>
       {regionMode && !sharpening && (
@@ -83,8 +96,14 @@ export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpe
       )}
       {sharpenedImg && viewSharpened && !sharpening && (
         <div className="absolute left-0 right-0 bottom-0 pointer-events-none text-center text-[9px] py-1"
-          style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.7)" }}>
-          AI-enhanced — verify against original, may invent detail
+          style={sharpenConfidence === "low"
+            ? { background: "rgba(0,0,0,0.7)", color: WARNING_COLOR }
+            : { background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.7)" }}>
+          {sharpenConfidence === "high" && sharpenText
+            ? `Confirmed by two independent AI reads: "${sharpenText}" — still verify against original`
+            : sharpenConfidence === "low"
+            ? "Two independent AI attempts disagreed — likely unreliable, do not trust this detail"
+            : "AI-enhanced — verify against original, may invent detail"}
         </div>
       )}
     </>
