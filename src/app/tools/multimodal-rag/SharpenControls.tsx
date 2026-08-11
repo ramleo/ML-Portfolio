@@ -77,6 +77,7 @@ type OverlayProps = {
   sharpenedImg: string | null;
   sharpenConfidence: "high" | "low" | null;
   sharpenText: string | null;
+  sharpenDescription: string | null;
   viewSharpened: boolean;
   onRegionComplete: (bbox: Bbox) => void;
 };
@@ -94,9 +95,14 @@ type OverlayProps = {
  * an actual finding; "low" means they disagreed, which is the stronger,
  * more specific warning than the generic whole-image one — that disagreement
  * is direct evidence the content is unrecoverable, not just a blanket
- * caveat. `null` (whole-image, or region OCR unavailable) falls back to the
- * original generic wording. */
-export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, viewSharpened, onRegionComplete }: OverlayProps) {
+ * caveat. When the region was classified as a non-text graphic instead (no
+ * OCR agreement possible), `sharpenDescription` — a single, uncorroborated
+ * vision-model opinion of what the region shows (see mm_deblur.py's
+ * `_describe_region`) — is shown instead of the plain generic line, still
+ * labeled as an identification to verify rather than a confirmed fact. `null`
+ * for both (whole-image, or the description call itself failed) falls back
+ * to the original generic wording. */
+export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenDescription, viewSharpened, onRegionComplete }: OverlayProps) {
   return (
     <>
       {regionMode && !sharpening && (
@@ -117,6 +123,8 @@ export function SharpenOverlay({ regionMode, sharpening, sharpenProgress, sharpe
             ? `Confirmed by two independent AI reads: "${sharpenText}" — still verify against original`
             : sharpenConfidence === "low"
             ? "Two independent AI attempts disagreed — likely unreliable, do not trust this detail"
+            : sharpenDescription
+            ? `Identified as: "${sharpenDescription}" — unverified, single AI opinion`
             : "AI-enhanced — verify against original, may invent detail"}
         </div>
       )}

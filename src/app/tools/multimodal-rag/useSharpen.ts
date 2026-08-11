@@ -41,6 +41,12 @@ export function useSharpen(syncKey: string) {
   // whole-image sharpen has no confidence/text opinion, see mm_deblur.py.
   const [sharpenConfidence, setSharpenConfidence] = useState<"high" | "low" | null>(null);
   const [sharpenText, setSharpenText] = useState<string | null>(null);
+  // Only populated for a region-scoped call whose corroboration check found
+  // a non-text graphic (see mm_deblur.py's `_describe_region`) — a single,
+  // uncorroborated vision-model opinion of what the region shows, distinct
+  // from `sharpenText` (which is only ever set after two independent OCR
+  // readings agreed).
+  const [sharpenDescription, setSharpenDescription] = useState<string | null>(null);
   const [sharpenError, setSharpenError] = useState<string | null>(null);
   const [viewSharpened, setViewSharpened] = useState(true);
   // Lets `cancelSharpen` (called from a user-clicked Cancel button, outside
@@ -55,6 +61,7 @@ export function useSharpen(syncKey: string) {
     setSharpenedImg(null);
     setSharpenConfidence(null);
     setSharpenText(null);
+    setSharpenDescription(null);
     setSharpenError(null);
     setViewSharpened(true);
   }
@@ -84,6 +91,7 @@ export function useSharpen(syncKey: string) {
       setSharpenedImg(data.image as string);
       setSharpenConfidence((data.confidence as "high" | "low" | undefined) ?? null);
       setSharpenText((data.text as string | undefined) ?? null);
+      setSharpenDescription((data.description as string | undefined) ?? null);
       setViewSharpened(true);
     } catch {
       // Note: the backend keeps running its (already-dispatched) Gemini/OCR
@@ -105,6 +113,6 @@ export function useSharpen(syncKey: string) {
     abortRef.current?.abort();
   };
 
-  return { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenError,
-    viewSharpened, setViewSharpened, sharpen, cancelSharpen };
+  return { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenDescription,
+    sharpenError, viewSharpened, setViewSharpened, sharpen, cancelSharpen };
 }

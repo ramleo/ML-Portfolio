@@ -107,11 +107,18 @@ that answer came from — click one to expand it and see more.
   explicit "likely unreliable, do not trust this detail" warning rather than
   showing either guess as if it were real. This check only applies to actual
   text — selecting a logo, icon, or other non-text graphic correctly falls
-  back to the plain generic caption instead of a false "disagreed" warning,
-  since OCR was never going to read text off a picture either way. A
-  whole-image sharpen doesn't run this check at all (it's for general
-  clarity, not reading one specific detail) and always keeps the plain
-  caption. Either way, the sharpened view is never used as the base for
+  back to a different caption instead of a false "disagreed" warning, since
+  OCR was never going to read text off a picture either way: a separate
+  vision-model call looks at the sharpened region and names what it actually
+  is (e.g. a specific brand or logo it recognizes), shown as "Identified as:
+  ..." — this is a single AI opinion, not a corroborated reading like the
+  text case above (there's no independent-agreement check for a free-text
+  description), so it's always labeled unverified rather than confirmed. If
+  even that call comes back empty, it falls back to the plain generic
+  caption. A whole-image sharpen doesn't run either check at all (it's for
+  general clarity, not reading or identifying one specific detail) and
+  always keeps the plain caption. Either way, the sharpened view is never
+  used as the base for
   other edits (removing objects) but CAN be downloaded — "Download" (next to
   the sharpen buttons) saves whichever version is currently on screen,
   original or sharpened.

@@ -131,7 +131,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Keyed on editKey+version, not editKey alone — any removal/fill (which
   // bumps version) invalidates a previously sharpened result, since it was
   // sharpened against a now-stale base image. See useSharpen.ts.
-  const { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenError,
+  const { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenDescription, sharpenError,
     viewSharpened, setViewSharpened, sharpen, cancelSharpen } = useSharpen(`${editKey}-${version}`);
 
   // Which detections actually draw on the image right now. In image/video-
@@ -317,7 +317,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           {canEdit && (
             <SharpenOverlay regionMode={regionMode} sharpening={sharpening} sharpenProgress={sharpenProgress}
               sharpenedImg={sharpenedImg} sharpenConfidence={sharpenConfidence} sharpenText={sharpenText}
-              viewSharpened={viewSharpened}
+              sharpenDescription={sharpenDescription} viewSharpened={viewSharpened}
               onRegionComplete={regionBbox => { setRegionMode(false); sharpen(resultImg ?? img, regionBbox); }} />
           )}
           {/* Boxes stay visible even after a removal — bbox/mask positions
