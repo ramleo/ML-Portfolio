@@ -3,6 +3,27 @@ import { ML_UNIFIED_API } from "@/config/urls";
 
 const GENERATE_TIMEOUT_MS = 60_000;
 export const MAX_PROMPT_LEN = 2000;
+export const MAX_NEGATIVE_PROMPT_LEN = 500;
+
+// Keys must match _STYLES/_ASPECT_RATIOS in mm_text_to_image.py exactly —
+// the backend validates against its own fixed set and rejects anything
+// else with a 400, so these are just labels for the same keys, not a
+// second source of truth for the actual prompt text.
+export const STYLE_OPTIONS: { key: string; label: string }[] = [
+  { key: "photorealistic", label: "Photorealistic" },
+  { key: "watercolor", label: "Watercolor" },
+  { key: "anime", label: "Anime" },
+  { key: "cyberpunk", label: "Cyberpunk" },
+  { key: "oil-painting", label: "Oil Painting" },
+  { key: "3d-render", label: "3D Render" },
+  { key: "sketch", label: "Sketch" },
+];
+
+export const ASPECT_RATIO_OPTIONS: { key: string; label: string }[] = [
+  { key: "square", label: "Square" },
+  { key: "landscape", label: "Landscape" },
+  { key: "portrait", label: "Portrait" },
+];
 
 // Mirrors text-to-sql's _utils.tsx cleanErr() pattern — friendlier text for
 // the budget-cap 429 than the raw backend detail string.
@@ -19,9 +40,16 @@ function cleanErr(status: number, detail: string): string {
  * real billed Gemini generation (own daily budget pool, see
  * mm_text_to_image.py / _image_gen_budget.py), so this intentionally has
  * no auto-retry — a failed or cancelled generation just leaves the user to
- * press Generate again deliberately. */
+ * press Generate again deliberately.
+ *
+ * style/aspectRatio/negativePrompt are pure prompt-text additions on the
+ * backend (same single Gemini call, longer prompt string) — selecting them
+ * doesn't change the cost or request shape, so they're free to toggle. */
 export function useTextToImageRunner() {
   const [prompt, setPrompt] = useState("");
+  const [style, setStyle] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
+  const [negativePrompt, setNegativePrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
   // Gemini's pure-generation response was observed live to return
@@ -49,7 +77,12 @@ export function useTextToImageRunner() {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: trimmed }),
+        body: JSON.stringify({
+          prompt: trimmed,
+          style,
+          aspect_ratio: aspectRatio,
+          negative_prompt: negativePrompt.trim() || null,
+        }),
         signal: controller.signal,
       });
       const data = await res.json().catch(() => ({}));
@@ -67,5 +100,11 @@ export function useTextToImageRunner() {
     }
   };
 
-  return { prompt, setPrompt, generating, resultImage, resultMimeType, error, generate };
+  return {
+    prompt, setPrompt,
+    style, setStyle,
+    aspectRatio, setAspectRatio,
+    negativePrompt, setNegativePrompt,
+    generating, resultImage, resultMimeType, error, generate,
+  };
 }
