@@ -258,6 +258,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/contract-invoice-reconciliation",
   },
+  {
+    id: "text-to-image",
+    title: "Text-to-Image Generator",
+    subtitle: "Describe It, Generate It",
+    description:
+      "Type a description and get a generated image back — no input photo required, just a prompt. Uses Gemini's paid image model, so a small daily generation budget applies to keep API cost predictable.",
+    accent: "#ec4899",
+    stat: "1",
+    statLabel: "Prompt In",
+    model: "Gemini (gemini-3.1-flash-lite-image)",
+    input: "Text prompt",
+    tags: ["Image Generation", "Gemini", "Generative AI"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/text-to-image",
+  },
 ];
 
 export default capabilities;
