@@ -20,6 +20,11 @@ export default function TextToImagePage() {
       <ToolsAIChat context={{
         tool: "Text-to-Image Generator",
         summary: "Type a description and get a generated image back — no input photo required, just a prompt. Uses Gemini's paid image model, so a small daily generation budget applies.",
+        suggestions: [
+          "How do style presets change the generated image?",
+          "What's the difference between aspect ratio options?",
+          "How does the daily generation budget work?",
+        ],
       }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
