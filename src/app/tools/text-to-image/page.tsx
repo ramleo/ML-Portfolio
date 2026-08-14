@@ -6,8 +6,29 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import TextToImageRunner from "./TextToImageRunner";
+import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from "./useTextToImageRunner";
 
 const ACCENT = "#ec4899";
+
+// Built from the same STYLE_OPTIONS/ASPECT_RATIO_OPTIONS the UI renders —
+// one source of truth, so the chat's grounding can never drift out of sync
+// with what's actually on the page (a hardcoded prose description would).
+// Without a `guide` prop, ToolsAIChat/useRagChat sends exactly
+// `Tool: <tool>\n<summary>` as the LLM's only context for this tool (see
+// buildToolContext in useRagChat.ts) — a one-line summary with no mention
+// of these controls left the assistant unable to answer questions about
+// them accurately.
+const TOOL_SUMMARY =
+  "Type a description and get a generated image back — no input photo required, just a prompt. " +
+  `Optional Style presets (pick one, or none): ${STYLE_OPTIONS.map(s => s.label).join(", ")} — each ` +
+  "appends a style phrase to the prompt before generation, e.g. \"Anime\" makes the result look like " +
+  "vibrant anime/manga art. " +
+  `Optional Aspect ratio (pick one, or none): ${ASPECT_RATIO_OPTIONS.map(a => a.label).join(", ")} — ` +
+  "composes the image for that shape (Square = 1:1, Landscape = 16:9 widescreen, Portrait = 9:16 tall). " +
+  "Optional \"Avoid\" field (free text, e.g. \"blurry, text, watermark\") tells the model what NOT to " +
+  "include in the image — a negative prompt. All three are folded into the same single generation " +
+  "call, so picking them costs nothing extra beyond one normal generation. " +
+  "Uses Gemini's paid image model, so a small daily generation budget applies (resets at UTC midnight).";
 
 export default function TextToImagePage() {
   useToolTracking("text-to-image");
@@ -19,7 +40,7 @@ export default function TextToImagePage() {
       <ConstellationBackground />
       <ToolsAIChat context={{
         tool: "Text-to-Image Generator",
-        summary: "Type a description and get a generated image back — no input photo required, just a prompt. Uses Gemini's paid image model, so a small daily generation budget applies.",
+        summary: TOOL_SUMMARY,
         suggestions: [
           "How do style presets change the generated image?",
           "What's the difference between aspect ratio options?",
