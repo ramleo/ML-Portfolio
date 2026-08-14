@@ -24,6 +24,7 @@ export default function MultimodalRagPage() {
     <div className="relative min-h-screen text-white overflow-x-hidden">
       <ConstellationBackground />
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Multimodal RAG",
         summary: "Upload PDFs mixing text, tables, and figures, or a standalone image. Tables are read as structured data and charts/images get AI captions, so questions about numbers in a table, trends in a chart, or what's in a photo get grounded, cited answers.",
         guide: MM_RAG_GUIDE,

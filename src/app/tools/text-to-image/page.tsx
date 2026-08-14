@@ -39,6 +39,7 @@ export default function TextToImagePage() {
     <div className="relative min-h-screen text-white overflow-x-hidden">
       <ConstellationBackground />
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Text-to-Image Generator",
         summary: TOOL_SUMMARY,
         suggestions: [

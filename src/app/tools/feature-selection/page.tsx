@@ -339,6 +339,7 @@ function FeatureSelectionPageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Feature Selection",
         summary: cols.length > 0
           ? [

@@ -99,6 +99,7 @@ function EnsemblePageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Ensemble & Stacking",
         summary: trainResult
           ? [

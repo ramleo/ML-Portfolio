@@ -80,6 +80,7 @@ export default function DriftPage() {
       </div>
 
       <ToolsAIChat context={{
+        accent: "#fb923c",
         tool: "Data Drift Detection",
         summary: buildDriftContext(driftResult),
       }} />

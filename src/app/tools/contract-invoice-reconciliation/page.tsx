@@ -21,6 +21,7 @@ export default function ContractInvoiceReconciliationPage() {
     <div className="relative min-h-screen text-white overflow-x-hidden">
       <ConstellationBackground />
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Contract/Invoice Reconciliation",
         summary: "Upload a contract, then one or more invoices. The tool flags places where an invoice's stated amount, date, or term disagrees with the contract, each with the two source passages and an explanation.",
         guide: RECONCILIATION_GUIDE,

@@ -110,6 +110,7 @@ function ShapPageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "SHAP Explainability",
         summary: trainResult
           ? [

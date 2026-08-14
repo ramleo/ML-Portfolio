@@ -341,6 +341,7 @@ function PreprocessingPageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Data Preprocessing",
         summary: buildPreprocessingContext(analyzed, result),
       }} />

@@ -16,6 +16,12 @@ export type ToolChatContext = {
   /** Answer ONLY from this session's uploaded document(s) — no KB, no web fallback.
    * For tools whose whole point is Q&A over one specific upload. */
   restrictToUploads?: boolean;
+  /** Hosting page's own theme accent (its ACCENT constant) — when set, the
+   * chat widget uses this instead of the selected AI provider's color, so
+   * the widget matches the page it's embedded in rather than signaling
+   * which provider is answering. Falls back to providerConfig.color for
+   * any page that doesn't pass one, so this is backward-compatible. */
+  accent?: string;
 };
 
 const SITE_SUMMARY =
@@ -146,7 +152,7 @@ export function useRagChat(context: ToolChatContext) {
   }, [jinaStatus]);
 
   const providerConfig = PROVIDERS.find(p => p.id === provider) ?? PROVIDERS[0];
-  const accentColor    = providerConfig.color;
+  const accentColor    = context.accent ?? providerConfig.color;
 
   const handleProviderChange = useCallback((p: string) => {
     const cfg = PROVIDERS.find(x => x.id === p);

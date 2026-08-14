@@ -322,7 +322,7 @@ function FeatureEngineeringPageInner() {
 
       {step === "results" && result && <ResultsPanel result={result} filename={filename} onBackToConfigure={() => setStep("configure")} onDownload={downloadResult} />}
 
-      <ToolsAIChat context={{ tool: "Feature Engineering", summary: rawRows.length > 1
+      <ToolsAIChat context={{ accent: ACCENT, tool: "Feature Engineering", summary: rawRows.length > 1
         ? [`Dataset: ${rawRows.length - 1} rows, ${numCols.length} numeric cols (${numCols.map(c => c.name).join(", ")}), ${catCols.length} categorical cols (${catCols.map(c => c.name).join(", ")}).`,
            numCols.length > 0 ? `Numeric stats: ${numCols.map(c => `${c.name} skew=${c.skew.toFixed(2)} missing=${c.missing}`).join("; ")}.` : "",
            Object.keys(colTransforms).length > 0 ? `Selected transforms: ${Object.entries(colTransforms).filter(([,v]) => v.length > 0).map(([k,v]) => `${k}=[${v.join(",")}]`).join("; ")}.` : "No transforms selected yet.",

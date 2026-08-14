@@ -115,6 +115,7 @@ function AutoMLPageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "AutoML Pipeline",
         summary: trainResult?.automl
           ? [

@@ -110,6 +110,7 @@ function OptunaPageInner() {
       </div>
 
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Optuna Hyperparameter Tuning",
         summary: trainResult
           ? [

@@ -32,6 +32,7 @@ export default function DocumentIntelligencePage() {
     <div className="relative min-h-screen text-white overflow-x-hidden">
       <ConstellationBackground />
       <ToolsAIChat context={{
+        accent: ACCENT,
         tool: "Document Intelligence",
         summary: "AI-powered document data extraction. Upload PDF invoices, contracts, resumes, medical reports, and more to extract structured fields with confidence scores using OCR and LLM analysis.",
         guide: DOC_INTEL_GUIDE,

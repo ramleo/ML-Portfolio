@@ -21,6 +21,7 @@ export default function RealtimeAnalyticsPage() {
       <div className="relative min-h-screen text-white overflow-x-hidden">
         <ConstellationBackground />
         <ToolsAIChat context={{
+          accent: ACCENT,
           tool: "Real-Time Analytics Dashboard",
           summary: "Live event tracking for the ml-portfolio site. Events (page views, tool opens) are ingested via FastAPI, stored in Supabase PostgreSQL, and streamed to this dashboard via Supabase Realtime WebSocket subscriptions.",
           guide: ANALYTICS_GUIDE,
