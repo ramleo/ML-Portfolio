@@ -35,7 +35,7 @@ export default function RealtimeAnalyticsPage() {
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Back
+              Home
             </button>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
