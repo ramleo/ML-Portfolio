@@ -8,6 +8,7 @@ import {
 import { convertImageDataUri } from "./imageUtils";
 import TextToImageEditPanel from "./TextToImageEditPanel";
 import TextToImageComparisonGrid from "./TextToImageComparisonGrid";
+import TextToImageHistoryPanel from "./TextToImageHistoryPanel";
 
 // Card chrome matches ProjectCard.tsx (the homepage's "Live ML Apps" cards) —
 // var(--bg-glass) + backdrop blur + var(--border) + a colored 3px top bar in
@@ -100,7 +101,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
     describing, describeImage,
-    history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
+    history, restoreFromHistory, clearHistory, removeHistoryEntry, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
   } = useTextToImageRunner();
@@ -135,6 +136,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-6 items-start">
       <Card accent={accent}>
+        <div style={{ position: "relative" }}>
         <textarea
           className="form-input"
           value={prompt}
@@ -144,6 +146,24 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
           disabled={generating}
           style={{ resize: "none" }}
         />
+        {prompt && !generating && (
+          <button
+            type="button"
+            onClick={() => setPrompt("")}
+            title="Clear prompt"
+            style={{
+              position: "absolute", top: 8, right: 8, padding: 2,
+              background: "none", border: "none", cursor: "pointer", color: "var(--text3)",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -326,49 +346,14 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
         </Card>
       )}
 
-      {history.length > 0 && (
-        <Card accent={accent}>
-          <div className="flex items-center justify-between">
-            <Label>Recent prompts</Label>
-            <button
-              onClick={clearHistory}
-              style={{ fontSize: "0.68rem", color: "var(--text3)", background: "none", border: "none", cursor: "pointer" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-            >
-              Clear
-            </button>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {history.map(entry => {
-              const isActive = entry.timestamp === activeHistoryTimestamp;
-              return (
-                <button
-                  key={entry.timestamp}
-                  onClick={() => restoreFromHistory(entry)}
-                  title={entry.prompt}
-                  style={{
-                    flexShrink: 0, width: 68, height: 68, borderRadius: 10, overflow: "hidden",
-                    border: isActive ? `2px solid ${accent}` : "1px solid var(--border2)",
-                    boxShadow: isActive ? `0 0 0 2px ${accent}33` : "none",
-                    cursor: "pointer", padding: 0,
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`data:${entry.mimeType};base64,${entry.image}`}
-                    alt={entry.prompt}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </button>
-              );
-            })}
-          </div>
-          <p style={{ fontSize: "0.68rem", color: "var(--text3)" }}>
-            Click a thumbnail to load that image and prompt — stored on this device only, doesn&apos;t re-generate.
-          </p>
-        </Card>
-      )}
+      <TextToImageHistoryPanel
+        accent={accent}
+        history={history}
+        activeHistoryTimestamp={activeHistoryTimestamp}
+        onRestore={restoreFromHistory}
+        onRemove={removeHistoryEntry}
+        onClearAll={clearHistory}
+      />
       </div>
     </div>
   );

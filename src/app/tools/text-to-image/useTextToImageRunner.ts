@@ -216,6 +216,18 @@ export function useTextToImageRunner() {
     setActiveHistoryTimestamp(null);
   };
 
+  // Removes just one history entry — the currently displayed image/prompt
+  // are left alone even if this was the active entry (only its highlight
+  // clears, since it's no longer in the list to highlight).
+  const removeHistoryEntry = (timestamp: number) => {
+    setHistory(prev => {
+      const next = prev.filter(e => e.timestamp !== timestamp);
+      saveHistory(next);
+      return next;
+    });
+    setActiveHistoryTimestamp(prev => (prev === timestamp ? null : prev));
+  };
+
   // Fires N independent generation requests in parallel, each its own real
   // billed Gemini call against the SAME text2img daily budget pool — so a
   // click at variationCount=4 costs up to 4x a single click. The
@@ -380,7 +392,7 @@ export function useTextToImageRunner() {
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
     describing, describeImage,
-    history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
+    history, restoreFromHistory, clearHistory, removeHistoryEntry, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
   };
