@@ -90,8 +90,9 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
 
       {/* ── Config panel ── */}
       <div style={{
-        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 12, padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "1rem",
+        background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
+        borderTop: `3px solid ${ACCENT}`,
+        borderRadius: 16, padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "1rem",
       }}>
         <h2 style={{ margin: 0, fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>Configure</h2>
 

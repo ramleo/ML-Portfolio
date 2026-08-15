@@ -104,13 +104,14 @@ export default function FSControls({
           <button
             onClick={onRun}
             disabled={running}
+            onMouseEnter={e => { if (!running) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = running ? "0.6" : "1"; e.currentTarget.style.transform = "translateY(0)"; }}
             style={{
               padding: "0.75rem 2rem",
-              background: ACCENT, border: "none", borderRadius: 8,
-              color: "#000", fontWeight: 700, fontSize: "0.9rem",
+              background: ACCENT, border: "none", borderRadius: 9999,
+              color: "#fff", fontWeight: 700, fontSize: "0.9rem",
               cursor: running ? "wait" : "pointer",
-              boxShadow: `0 0 20px ${ACCENT}44`,
-              opacity: running ? 0.6 : 1, transition: "opacity 0.15s",
+              opacity: running ? 0.6 : 1, transition: "opacity 0.15s, transform 0.15s",
             }}
           >
             {running ? "Running..." : "Run Feature Selection"}

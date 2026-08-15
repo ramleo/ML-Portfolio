@@ -20,6 +20,11 @@ type Props = {
    * inside another component (e.g. DocumentTray) that already provides
    * the surrounding card, so the two don't nest into a double border. */
   bare?: boolean;
+  /** Hosting page's own accent — colors the card's top accent bar (see
+   * ProjectCard.tsx's pattern). Each caller has its own theme (violet for
+   * Multimodal RAG, amber for Reconciliation), so this can't be hardcoded
+   * here. No default — omitting it just skips the top bar. */
+  accent?: string;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -55,7 +60,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare, accent }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -145,7 +150,8 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
   }, [sessionId, ensureSessionId, findSimilar, shared, onIngested]);
 
   const cardStyle: React.CSSProperties = bare ? {} : {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
+    background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16,
+    ...(accent ? { borderTop: `3px solid ${accent}` } : {}),
   };
 
   return (

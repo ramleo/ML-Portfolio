@@ -11,7 +11,8 @@ import type { ReconciledDoc } from "./_types";
 const ACCENT = "#f59e0b";
 
 const cardStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
+  background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
+  borderTop: `3px solid ${ACCENT}`, borderRadius: 16,
 };
 
 /** Own session_id, NOT shared with useRagChat's — that hook persists a

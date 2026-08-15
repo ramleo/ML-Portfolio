@@ -158,7 +158,10 @@ export default function OptunaConfigForm({
         </select>
       </div>
 
-      <button onClick={onTrain} style={{ padding: "0.65rem 1.2rem", borderRadius: 8, border: "none", background: ACCENT, color: "#000", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start" }}>
+      <button onClick={onTrain}
+        onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
+        style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: ACCENT, color: "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>
         Run Optuna Tuning
       </button>
       {error && <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>}

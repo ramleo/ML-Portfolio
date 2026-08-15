@@ -6,9 +6,10 @@ import { usePipeline } from "@/context/PipelineContext";
 import EnsembleResults from "./EnsembleResults";
 
 const CARD: React.CSSProperties = {
-  background: "rgba(14,22,40,0.72)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: 12,
+  background: "var(--bg-glass)",
+  backdropFilter: "blur(14px)",
+  border: "1px solid var(--border)",
+  borderRadius: 16,
   padding: "1.25rem 1.4rem",
 };
 
@@ -221,7 +222,7 @@ export default function EnsembleRunner({ onReady, onResult, accent }: EnsembleRu
   }, []);
 
   return (
-    <div style={{ ...CARD, borderColor: `${ACCENT}30`, marginBottom: "1.5rem" }}>
+    <div style={{ ...CARD, borderTop: `3px solid ${ACCENT}`, marginBottom: "1.5rem" }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
         <div>
@@ -318,7 +319,7 @@ export default function EnsembleRunner({ onReady, onResult, accent }: EnsembleRu
               {ALL_MODELS.map(m => {
                 const sel = selectedModels.includes(m);
                 return (
-                  <button key={m} onClick={() => toggleModel(m)} style={{ padding: "0.4rem 0.85rem", borderRadius: 20, border: `1px solid ${sel ? ACCENT : "rgba(255,255,255,0.12)"}`, background: sel ? `${ACCENT}18` : "rgba(0,0,0,0.25)", color: sel ? ACCENT : "var(--text3)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
+                  <button key={m} onClick={() => toggleModel(m)} style={{ padding: "0.4rem 0.85rem", borderRadius: 9999, border: `1px solid ${sel ? ACCENT + "44" : "var(--border2)"}`, background: sel ? `${ACCENT}22` : "var(--border)", color: sel ? ACCENT : "var(--text2)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
                     {m}
                   </button>
                 );
@@ -329,7 +330,10 @@ export default function EnsembleRunner({ onReady, onResult, accent }: EnsembleRu
             )}
           </div>
 
-          <button onClick={handleTrain} disabled={selectedModels.length < 3} style={{ padding: "0.65rem 1.2rem", borderRadius: 8, border: "none", background: selectedModels.length < 3 ? "rgba(255,255,255,0.07)" : ACCENT, color: selectedModels.length < 3 ? "var(--text3)" : "#000", fontSize: "0.84rem", fontWeight: 700, cursor: selectedModels.length < 3 ? "not-allowed" : "pointer", alignSelf: "flex-start", transition: "all 0.15s" }}>
+          <button onClick={handleTrain} disabled={selectedModels.length < 3}
+            onMouseEnter={e => { if (selectedModels.length >= 3) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
+            style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: selectedModels.length < 3 ? "rgba(255,255,255,0.07)" : ACCENT, color: selectedModels.length < 3 ? "var(--text3)" : "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: selectedModels.length < 3 ? "not-allowed" : "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>
             Run Ensemble Competition
           </button>
           {error && <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>}

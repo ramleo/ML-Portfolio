@@ -1,7 +1,7 @@
 // ── AutoML shared types, constants, and pure helpers ─────────────────────────
 
 export const ACCENT   = "#22c55e";
-export const CARD_BG  = "rgba(17,24,39,0.65)";
+export const CARD_BG  = "var(--bg-glass)";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

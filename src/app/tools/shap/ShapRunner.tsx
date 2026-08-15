@@ -7,9 +7,11 @@ import ShapResults from "./ShapResults";
 const ACCENT = "#f59e0b";
 
 const CARD: React.CSSProperties = {
-  background: "rgba(14,22,40,0.72)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: 12,
+  background: "var(--bg-glass)",
+  backdropFilter: "blur(14px)",
+  border: "1px solid var(--border)",
+  borderTop: `3px solid ${ACCENT}`,
+  borderRadius: 16,
   padding: "1.25rem 1.4rem",
 };
 
@@ -30,7 +32,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
   } = useShapRunner({ onReady, onResult });
 
   return (
-    <div style={{ ...CARD, borderColor: `${ACCENT}30`, marginBottom: "1.5rem" }}>
+    <div style={{ ...CARD, marginBottom: "1.5rem" }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
         <div>
@@ -159,7 +161,10 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
             )}
           </div>
 
-          <button onClick={handleTrain} style={{ padding: "0.65rem 1.2rem", borderRadius: 8, border: "none", background: ACCENT, color: "#000", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start" }}>
+          <button onClick={handleTrain}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
+            style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: ACCENT, color: "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>
             Explain Features
           </button>
           {error && <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>}

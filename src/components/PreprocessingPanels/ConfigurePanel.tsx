@@ -11,7 +11,7 @@ import { Toggle }               from "./Toggle";
 import DatasetEstimator         from "@/components/DatasetEstimator";
 
 const ACCENT  = "#22d3ee";
-const CARD_BG = "rgba(17,24,39,0.80)";
+const CARD_BG = "var(--bg-glass)";
 
 const selectStyle = {
   background: "#111827", border: "1px solid var(--border2)", borderRadius: 8,
@@ -172,7 +172,7 @@ export function ConfigurePanel({
           )}
 
           {/* Toggles */}
-          <div style={{ padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
+          <div style={{ padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}` }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
               <Toggle on={removeDups}     onChange={v => { setRemoveDups(v);     setActivePreset("custom"); }} label="Remove Duplicates" />
               <Toggle on={removeOutliers} onChange={v => { setRemoveOutliers(v); setActivePreset("custom"); }} label="Remove Outliers (IQR)" />
@@ -190,7 +190,7 @@ export function ConfigurePanel({
               onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.boxShadow = "none"; }}
             >Back</button>
             <button onClick={onPreprocess} disabled={targetEncodingWarn}
-              style={{ flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none", cursor: targetEncodingWarn ? "not-allowed" : "pointer", opacity: targetEncodingWarn ? 0.5 : 1, transition: "box-shadow 0.15s, transform 0.15s" }}
+              style={{ flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#fff", border: "none", cursor: targetEncodingWarn ? "not-allowed" : "pointer", opacity: targetEncodingWarn ? 0.5 : 1, transition: "box-shadow 0.15s, transform 0.15s" }}
               onMouseEnter={e => { if (!targetEncodingWarn) { e.currentTarget.style.boxShadow = `0 0 24px ${ACCENT}66`; e.currentTarget.style.transform = "translateY(-1px)"; } }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
             >

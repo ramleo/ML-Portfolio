@@ -24,17 +24,17 @@ import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 
 const ACCENT = "#38bdf8";
-const CARD: React.CSSProperties = { background: "rgba(14,22,40,0.72)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "1.25rem 1.4rem" };
+const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}`, borderRadius: 16, padding: "1.25rem 1.4rem" };
 
 function Pill({ label, color = ACCENT }: { label: string; color?: string }) {
-  return <span style={{ fontSize: "0.65rem", fontWeight: 600, color, background: `${color}14`, border: `1px solid ${color}30`, borderRadius: 9999, padding: "1px 8px" }}>{label}</span>;
+  return <span style={{ fontSize: "0.65rem", fontWeight: 600, color, background: `${color}22`, border: `1px solid ${color}44`, borderRadius: 9999, padding: "1px 8px" }}>{label}</span>;
 }
 
 function ActionBtn({ onClick, disabled = false, children, secondary = false }: { onClick: () => void; disabled?: boolean; children: React.ReactNode; secondary?: boolean }) {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick} disabled={disabled} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ padding: "0.6rem 1.4rem", borderRadius: 9999, border: secondary ? "1px solid rgba(255,255,255,0.15)" : "none", background: disabled ? "rgba(255,255,255,0.06)" : secondary ? "transparent" : ACCENT, color: disabled ? "var(--text3)" : secondary ? "var(--text2)" : "#000", fontWeight: 600, fontSize: "0.82rem", cursor: disabled ? "not-allowed" : "pointer", transition: "all 0.15s", boxShadow: hov && !disabled && !secondary ? `0 0 18px ${ACCENT}66` : "none", opacity: hov && !disabled ? 0.9 : 1 }}>
+      style={{ padding: "0.6rem 1.4rem", borderRadius: 9999, border: secondary ? "1px solid rgba(255,255,255,0.15)" : "none", background: disabled ? "rgba(255,255,255,0.06)" : secondary ? "transparent" : ACCENT, color: disabled ? "var(--text3)" : secondary ? "var(--text2)" : "#fff", fontWeight: 600, fontSize: "0.82rem", cursor: disabled ? "not-allowed" : "pointer", transition: "opacity 0.15s, transform 0.15s", opacity: hov && !disabled && !secondary ? 0.88 : 1, transform: hov && !disabled && !secondary ? "translateY(-1px)" : "translateY(0)" }}>
       {children}
     </button>
   );

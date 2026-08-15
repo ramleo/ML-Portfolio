@@ -225,7 +225,10 @@ export default function Step2Configure({
         <button onClick={onBack} style={{ padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", fontSize: "0.82rem", fontWeight: 600 }}>
           Back
         </button>
-        <button onClick={onTrain} disabled={!target} style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#000", fontSize: "0.85rem", fontWeight: 700, opacity: !target ? 0.5 : 1 }}>
+        <button onClick={onTrain} disabled={!target}
+          onMouseEnter={e => { if (target) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = target ? "1" : "0.5"; e.currentTarget.style.transform = "translateY(0)"; }}
+          style={{ flex: 1, padding: "0.6rem 1.2rem", borderRadius: 9999, cursor: "pointer", background: ACCENT, border: "none", color: "#fff", fontSize: "0.85rem", fontWeight: 700, opacity: !target ? 0.5 : 1, transition: "opacity 0.15s, transform 0.15s" }}>
           Run AutoML Competition
         </button>
       </div>
