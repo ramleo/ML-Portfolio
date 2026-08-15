@@ -82,7 +82,7 @@ export default function FSControls({
 
       {/* Pipeline indicator */}
       {activePipeline.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap", padding: "0.6rem 0.9rem", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", marginBottom: "0.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap", padding: "0.6rem 0.9rem", background: "var(--bg-glass)", backdropFilter: "blur(14px)", borderRadius: 8, border: "1px solid var(--border)", marginBottom: "0.75rem" }}>
           <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginRight: "0.25rem" }}>Pipeline</span>
           {activePipeline.map((t, i) => {
             const cat = tabCategories.find(c => c.label === t.cat);

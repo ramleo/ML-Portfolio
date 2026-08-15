@@ -6,9 +6,11 @@ import { FeResult } from "@/lib/feAlgorithms";
 const ACCENT = "#38bdf8";
 
 const CARD: React.CSSProperties = {
-  background: "rgba(14,22,40,0.72)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: 12,
+  background: "var(--bg-glass)",
+  backdropFilter: "blur(14px)",
+  border: "1px solid var(--border)",
+  borderTop: `3px solid ${ACCENT}`,
+  borderRadius: 16,
   padding: "1.25rem 1.4rem",
 };
 

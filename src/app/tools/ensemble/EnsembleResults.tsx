@@ -60,7 +60,7 @@ export default function EnsembleResults({ result, accent }: { result: TrainResul
 
       {/* Ensemble spread metric */}
       {scores.length >= 2 && (
-        <div style={{ padding: "0.7rem 0.9rem", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, fontSize: "0.78rem", color: "var(--text2)" }}>
+        <div style={{ padding: "0.7rem 0.9rem", background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 8, fontSize: "0.78rem", color: "var(--text2)" }}>
           Top models within <strong style={{ color: ACCENT }}>{spread.toFixed(1)}%</strong> of each other
         </div>
       )}

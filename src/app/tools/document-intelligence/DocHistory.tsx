@@ -52,7 +52,7 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+      background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
       borderRadius: 14,
     }} className="px-4 py-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">

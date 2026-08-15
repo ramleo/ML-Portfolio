@@ -7,9 +7,10 @@ import DatasetEstimator from "@/components/DatasetEstimator";
 const ACCENT = "#fb923c";
 
 const CARD: React.CSSProperties = {
-  background: "rgba(14,22,40,0.72)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: 12,
+  background: "var(--bg-glass)",
+  backdropFilter: "blur(14px)",
+  border: "1px solid var(--border)",
+  borderRadius: 16,
   padding: "1.25rem 1.4rem",
 };
 
@@ -51,7 +52,7 @@ export default function FSUploadHero({
   return (
     <>
       {/* Hero */}
-      <RepulsionCard style={{ ...CARD, borderColor: `${ACCENT}22` }}>
+      <RepulsionCard style={{ ...CARD, borderTop: `3px solid ${ACCENT}` }}>
         <div style={{
           display: "flex", alignItems: "flex-start",
           justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",

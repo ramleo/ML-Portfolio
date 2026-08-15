@@ -74,7 +74,7 @@ export default function NumericTransformsPanel({
   const binCandidates = numCols.filter(c => c.nunique > 10);
 
   return (
-    <div style={{ background: "rgba(14,22,40,0.72)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "1.25rem 1.4rem" }}>
+    <div style={{ background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" }}>
       <div style={{ marginBottom: "0.85rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>

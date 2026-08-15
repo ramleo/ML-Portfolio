@@ -43,7 +43,7 @@ export default function DriftRadarChart({ features }: { features: FeatureDrift[]
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+      background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
       borderRadius: 12, padding: "1.25rem 1.5rem",
     }}>
       <div style={{ marginBottom: "1rem" }}>
