@@ -139,7 +139,7 @@ export default function TextToSqlRunner() {
 
           <div className="lg:hidden flex gap-2">
             <button onClick={() => setMobileSidebar(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white transition-colors shrink-0">
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] text-xs text-gray-400 hover:text-white transition-colors shrink-0">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                 <rect x="1" y="4" width="14" height="1.5" rx="0.75" fill="currentColor"/>
                 <rect x="1" y="8" width="10" height="1.5" rx="0.75" fill="currentColor"/>
@@ -149,7 +149,7 @@ export default function TextToSqlRunner() {
             </button>
             {schema && (
               <button onClick={() => setDiagramOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] text-xs text-gray-400 hover:text-white hover:border-indigo-500/50 transition-colors">
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                   <rect x="1" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                   <rect x="10" y="1" width="5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>

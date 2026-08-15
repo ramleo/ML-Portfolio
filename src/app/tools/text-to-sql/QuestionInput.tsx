@@ -3,6 +3,8 @@
 import { type RefObject, useState, useEffect, useRef } from "react";
 import PipelineStatus from "./PipelineStatus";
 
+const ACCENT = "#6366f1";
+
 type Provider = "groq" | "gemini" | "cohere";
 
 interface SchemaCol { name: string; type: string; pk: boolean; }
@@ -94,9 +96,9 @@ export default function QuestionInput({
   };
 
   return (
-    <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 ${
-      running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-white/10 bg-white/5"
-    }`}>
+    <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 backdrop-blur-[14px] ${
+      running ? "border-indigo-500/40 bg-indigo-950/20 shadow-[0_0_24px_rgba(99,102,241,0.08)]" : "border-[var(--border)] bg-[var(--bg-glass)]"
+    }`} style={running ? undefined : { borderTop: `3px solid ${ACCENT}` }}>
       <div className="flex gap-2">
         <div className="relative flex-1" data-wt="question">
           <textarea ref={questionRef} value={question} onChange={e => onQuestionChange(e.target.value)}
@@ -149,8 +151,10 @@ export default function QuestionInput({
             <option value="cohere">Cohere</option>
           </select>
           <button onClick={() => onSubmit()} disabled={running || !question.trim() || !schema}
-            className={`text-xs px-4 py-1.5 rounded-lg text-white font-medium disabled:opacity-40 transition-all ${running ? "opacity-80" : "hover:brightness-110"}`}
-            style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+            onMouseEnter={e => { if (!running) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = running ? "0.8" : "1"; e.currentTarget.style.transform = "translateY(0)"; }}
+            className="text-xs px-4 py-1.5 rounded-full text-white font-semibold disabled:opacity-40 transition-all"
+            style={{ background: ACCENT, opacity: running ? 0.8 : 1 }}>
             {running ? "Running…" : !schema ? "Load DB" : "Ask"}
           </button>
           <button onClick={onSurprise} disabled={running || !schema}

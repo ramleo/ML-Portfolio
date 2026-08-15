@@ -8,9 +8,10 @@ export function formatDuration(ms: number): string {
 }
 
 const CARD_STYLE = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 14,
+  background: "var(--bg-glass)",
+  backdropFilter: "blur(14px)",
+  border: "1px solid var(--border)",
+  borderRadius: 16,
   padding: "1.1rem 1.25rem",
 } as const;
 
@@ -23,7 +24,7 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }
   const color = accent ?? "#ffffff";
 
   return (
-    <div style={CARD_STYLE}>
+    <div style={{ ...CARD_STYLE, borderTop: `3px solid ${color}` }}>
       {/* Label row */}
       <div className="flex items-center gap-2 mb-2">
         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">{label}</p>

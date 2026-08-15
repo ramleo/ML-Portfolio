@@ -57,7 +57,7 @@ export default function DbConnectPanel({
   loadDemoSchema, status,
 }: Props) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/30 p-3" data-wt="db-connect">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-3" style={{ borderTop: `3px solid ${ACCENT}` }} data-wt="db-connect">
       <div className="flex flex-wrap gap-1.5 mb-3">
         {TABS.map(({ id, label, icon }) => {
           const active = dbSource === id;
