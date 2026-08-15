@@ -1,9 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 
 const GENERATE_TIMEOUT_MS = 60_000;
+const ENHANCE_TIMEOUT_MS = 20_000;
 export const MAX_PROMPT_LEN = 2000;
 export const MAX_NEGATIVE_PROMPT_LEN = 500;
+const HISTORY_KEY = "ml_text2img_history";
+const HISTORY_LIMIT = 6; // images are base64 in localStorage — keep this small to stay well under the ~5MB quota
+
+export interface HistoryEntry {
+  prompt: string;
+  image: string;
+  mimeType: string;
+  timestamp: number;
+}
+
+export interface GeneratedImage {
+  image: string;
+  mimeType: string;
+}
+
+export const VARIATION_COUNTS = [1, 2, 4] as const;
+export type VariationCount = (typeof VARIATION_COUNTS)[number];
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: HistoryEntry[]) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries));
+  } catch {
+    // best-effort — e.g. quota exceeded on a large image; history just won't persist this entry
+  }
+}
 
 // Keys must match _STYLES/_ASPECT_RATIOS in mm_text_to_image.py exactly —
 // the backend validates against its own fixed set and rejects anything
@@ -58,7 +93,69 @@ export function useTextToImageRunner() {
   // below is always built with the mime type the backend actually saw.
   const [resultMimeType, setResultMimeType] = useState("image/png");
   const [error, setError] = useState<string | null>(null);
+  const [enhancing, setEnhancing] = useState(false);
+  const [variationCount, setVariationCount] = useState<VariationCount>(1);
+  // Extra results beyond the one promoted to resultImage/resultMimeType —
+  // only populated when variationCount > 1. Picking one via selectVariation
+  // swaps it into the primary slot; NOT added to history individually (only
+  // the primary result is, same as a single generation) to avoid bloating
+  // the small localStorage-backed history budget with near-duplicates.
+  const [variations, setVariations] = useState<GeneratedImage[]>([]);
+  // Starts empty (matches SSR output) and is populated from localStorage
+  // after mount — reading localStorage during the initial render itself
+  // caused a real hydration mismatch (server has no localStorage to read).
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  useEffect(() => { setHistory(loadHistory()); }, []);
 
+  // Best-effort — expands the prompt in place via the free LLM cascade
+  // (routers/rag/llm.py's fallback order), not the billed image model, so
+  // there's no daily-budget interaction here at all.
+  const enhancePrompt = async () => {
+    const trimmed = prompt.trim();
+    if (!trimmed || enhancing) return;
+    setEnhancing(true);
+    setError(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ENHANCE_TIMEOUT_MS);
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/enhance-prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: trimmed }),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(cleanErr(res.status, data.detail ?? ""));
+        return;
+      }
+      if (data.ok && typeof data.enhanced_prompt === "string") {
+        setPrompt(data.enhanced_prompt);
+      } else {
+        setError("Prompt enhancement is temporarily unavailable — try again in a moment.");
+      }
+    } catch {
+      setError("Prompt enhancement is temporarily unavailable — try again in a moment.");
+    } finally {
+      clearTimeout(timeout);
+      setEnhancing(false);
+    }
+  };
+
+  const restoreFromHistory = (entry: HistoryEntry) => setPrompt(entry.prompt);
+
+  const clearHistory = () => {
+    setHistory([]);
+    saveHistory([]);
+  };
+
+  // Fires `variationCount` independent generation requests in parallel, each
+  // its own real billed Gemini call against the SAME text2img daily budget
+  // pool — so a click at variationCount=4 costs up to 4x a single click.
+  // The variation-count control in the UI must show that cost up front
+  // before the click, not just here. Partial success (some variations hit
+  // the daily cap mid-batch) is surfaced as a soft note via `error` rather
+  // than discarding the ones that DID succeed.
   const generate = async () => {
     const trimmed = prompt.trim();
     if (!trimmed) {
@@ -71,33 +168,88 @@ export function useTextToImageRunner() {
     }
     setGenerating(true);
     setError(null);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), GENERATE_TIMEOUT_MS);
+    setVariations([]);
+    const requestBody = JSON.stringify({
+      prompt: trimmed,
+      style,
+      aspect_ratio: aspectRatio,
+      negative_prompt: negativePrompt.trim() || null,
+    });
+
+    const runOne = async (): Promise<{ ok: true; value: GeneratedImage } | { ok: false; status: number; detail: string }> => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), GENERATE_TIMEOUT_MS);
+      try {
+        const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: requestBody,
+          signal: controller.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return { ok: false, status: res.status, detail: data.detail ?? "" };
+        return {
+          ok: true,
+          value: { image: data.image as string, mimeType: (data.mime_type as string | undefined) ?? "image/png" },
+        };
+      } catch {
+        return { ok: false, status: 0, detail: "" };
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: trimmed,
-          style,
-          aspect_ratio: aspectRatio,
-          negative_prompt: negativePrompt.trim() || null,
-        }),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(cleanErr(res.status, data.detail ?? ""));
+      const outcomes = await Promise.all(Array.from({ length: variationCount }, runOne));
+      const successes = outcomes.filter((o): o is { ok: true; value: GeneratedImage } => o.ok);
+      if (successes.length === 0) {
+        const firstFailure = outcomes[0];
+        setError(firstFailure.ok ? "" : cleanErr(firstFailure.status, firstFailure.detail));
         return;
       }
-      setResultImage(data.image as string);
-      setResultMimeType((data.mime_type as string | undefined) ?? "image/png");
-    } catch {
-      setError("Text-to-image is temporarily unavailable — try again in a moment.");
+      const [primary, ...rest] = successes.map(s => s.value);
+      setResultImage(primary.image);
+      setResultMimeType(primary.mimeType);
+      setVariations(rest);
+      if (successes.length < variationCount) {
+        setError(`${successes.length} of ${variationCount} variations generated — the rest hit today's budget limit.`);
+      }
+      setHistory(prev => {
+        const next = [{ prompt: trimmed, image: primary.image, mimeType: primary.mimeType, timestamp: Date.now() }, ...prev].slice(0, HISTORY_LIMIT);
+        saveHistory(next);
+        return next;
+      });
     } finally {
-      clearTimeout(timeout);
       setGenerating(false);
     }
+  };
+
+  // Promotes one of the extra variations into the primary result slot,
+  // swapping it with whatever is currently primary (so nothing is lost —
+  // the previous primary becomes a variation in its place).
+  const selectVariation = (index: number) => {
+    const chosen = variations[index];
+    if (!chosen || !resultImage) return;
+    const nextVariations = [...variations];
+    nextVariations[index] = { image: resultImage, mimeType: resultMimeType };
+    setVariations(nextVariations);
+    setResultImage(chosen.image);
+    setResultMimeType(chosen.mimeType);
+  };
+
+  // Called after a successful "Edit this" (mm-ai-fill mode=edit) — a
+  // deliberate content change, so unlike sharpen it REPLACES the displayed
+  // result and is recorded as its own history entry (it's visually a new
+  // image, even though it didn't cost a text-to-image generation call).
+  const applyEditedResult = (image: string, mimeType: string) => {
+    setResultImage(image);
+    setResultMimeType(mimeType);
+    const editedPrompt = `${prompt.trim()} (edited)`;
+    setHistory(prev => {
+      const next = [{ prompt: editedPrompt, image, mimeType, timestamp: Date.now() }, ...prev].slice(0, HISTORY_LIMIT);
+      saveHistory(next);
+      return next;
+    });
   };
 
   return {
@@ -106,5 +258,9 @@ export function useTextToImageRunner() {
     aspectRatio, setAspectRatio,
     negativePrompt, setNegativePrompt,
     generating, resultImage, resultMimeType, error, generate,
+    enhancing, enhancePrompt,
+    history, restoreFromHistory, clearHistory,
+    applyEditedResult,
+    variationCount, setVariationCount, variations, selectVariation,
   };
 }
