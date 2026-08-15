@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { readFileAsBase64 } from "./imageUtils";
 
 const GENERATE_TIMEOUT_MS = 60_000;
 const ENHANCE_TIMEOUT_MS = 20_000;
+const DESCRIBE_TIMEOUT_MS = 30_000;
 export const MAX_PROMPT_LEN = 2000;
 export const MAX_NEGATIVE_PROMPT_LEN = 500;
 const HISTORY_KEY = "ml_text2img_history";
@@ -102,6 +104,7 @@ export function useTextToImageRunner() {
   const [resultLabel, setResultLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [enhancing, setEnhancing] = useState(false);
+  const [describing, setDescribing] = useState(false);
   const [variationCount, setVariationCount] = useState<VariationCount>(1);
   // Extra results beyond the one promoted to resultImage/resultMimeType —
   // only populated when variationCount > 1. Picking one via selectVariation
@@ -152,6 +155,42 @@ export function useTextToImageRunner() {
     } finally {
       clearTimeout(timeout);
       setEnhancing(false);
+    }
+  };
+
+  // Reverse of the tool's main flow — upload a reference photo, get a
+  // written description back, drop it into the prompt as a starting point.
+  // Same free vision cascade as enhancePrompt (Groq -> Mistral -> Gemini
+  // vision captioning), not the paid image-gen model, so no budget cost.
+  const describeImage = async (file: File) => {
+    if (describing) return;
+    setDescribing(true);
+    setError(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), DESCRIBE_TIMEOUT_MS);
+    try {
+      const base64 = await readFileAsBase64(file);
+      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/describe-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64 }),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(cleanErr(res.status, data.detail ?? ""));
+        return;
+      }
+      if (data.ok && typeof data.description === "string") {
+        setPrompt(data.description);
+      } else {
+        setError("Couldn't describe that image — try again in a moment.");
+      }
+    } catch {
+      setError("Couldn't describe that image — try again in a moment.");
+    } finally {
+      clearTimeout(timeout);
+      setDescribing(false);
     }
   };
 
@@ -340,6 +379,7 @@ export function useTextToImageRunner() {
     negativePrompt, setNegativePrompt,
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
+    describing, describeImage,
     history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,

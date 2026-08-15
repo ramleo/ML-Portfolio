@@ -38,7 +38,10 @@ const TOOL_SUMMARY =
   `cat\" or \"compare 2 different styles of a mountain\" (picks from: ${STYLE_OPTIONS.map(s => s.label).join(", ")} ` +
   "when none are named) — this fires one real generation call per style compared, so a 3-way comparison " +
   "costs 3x the daily budget; the panel above shows the first result with the others as swappable " +
-  "thumbnails, same as the Variations picker.";
+  "thumbnails, same as the Variations picker. " +
+  "\"Describe an image\" (next to Enhance prompt) does the REVERSE — upload your own photo and it " +
+  "writes a prompt describing it, which you can then edit and generate from. Free, no budget cost, " +
+  "uses a text-vision model to read the photo, not the paid image generator.";
 
 export default function TextToImagePage() {
   useToolTracking("text-to-image");

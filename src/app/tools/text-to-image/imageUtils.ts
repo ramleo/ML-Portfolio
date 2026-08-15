@@ -33,3 +33,21 @@ export async function toPngBase64(image: string, mimeType: string): Promise<stri
   const pngUri = await convertImageDataUri(`data:${mimeType};base64,${image}`, "image/png");
   return pngUri.split(",")[1] ?? pngUri;
 }
+
+/** Reads a user-uploaded File as bare base64 — no re-encoding, the vision
+ * captioning endpoint (unlike mm-deblur/mm-ai-fill) is tolerant of whatever
+ * format the browser handed back, same as every other vision-cascade caller
+ * in this codebase. */
+export function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      if (!base64) { reject(new Error("could not read file")); return; }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("could not read file"));
+    reader.readAsDataURL(file);
+  });
+}

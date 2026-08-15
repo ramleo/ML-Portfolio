@@ -99,6 +99,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
     negativePrompt, setNegativePrompt,
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
+    describing, describeImage,
     history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
@@ -143,23 +144,48 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
           disabled={generating}
           style={{ resize: "none" }}
         />
-        <button
-          type="button"
-          onClick={enhancePrompt}
-          disabled={enhancing || generating || !prompt.trim()}
-          style={{
-            alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "0.35rem",
-            fontSize: "0.72rem", fontWeight: 600, padding: "0.35rem 0.8rem", borderRadius: 9999,
-            border: `1px solid ${accent}35`, background: `${accent}12`, color: accent,
-            cursor: enhancing || generating || !prompt.trim() ? "default" : "pointer",
-            opacity: enhancing || generating || !prompt.trim() ? 0.5 : 1,
-          }}
-        >
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-            <path d="M8 1l1.2 3.6L13 6l-3.8 1.4L8 11l-1.2-3.6L3 6l3.8-1.4L8 1z" fill={accent} />
-          </svg>
-          {enhancing ? "Enhancing…" : "Enhance prompt"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={enhancePrompt}
+            disabled={enhancing || generating || !prompt.trim()}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.35rem",
+              fontSize: "0.72rem", fontWeight: 600, padding: "0.35rem 0.8rem", borderRadius: 9999,
+              border: `1px solid ${accent}35`, background: `${accent}12`, color: accent,
+              cursor: enhancing || generating || !prompt.trim() ? "default" : "pointer",
+              opacity: enhancing || generating || !prompt.trim() ? 0.5 : 1,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1l1.2 3.6L13 6l-3.8 1.4L8 11l-1.2-3.6L3 6l3.8-1.4L8 1z" fill={accent} />
+            </svg>
+            {enhancing ? "Enhancing…" : "Enhance prompt"}
+          </button>
+
+          <label
+            style={{
+              display: "flex", alignItems: "center", gap: "0.35rem",
+              fontSize: "0.72rem", fontWeight: 600, padding: "0.35rem 0.8rem", borderRadius: 9999,
+              border: "1px solid var(--border2)", background: "var(--border)", color: "var(--text2)",
+              cursor: describing || generating ? "default" : "pointer",
+              opacity: describing || generating ? 0.5 : 1,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+              <path d="M2 12l3.5-4 2.5 3 2-2.5L14 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="5" cy="5" r="1.3" stroke="currentColor" strokeWidth="1.4" />
+            </svg>
+            {describing ? "Describing…" : "Describe an image"}
+            <input
+              type="file"
+              accept="image/*"
+              disabled={describing || generating}
+              onChange={e => { const file = e.target.files?.[0]; if (file) describeImage(file); e.target.value = ""; }}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <Label>Style</Label>
