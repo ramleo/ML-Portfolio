@@ -195,9 +195,10 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 14,
+    background: "var(--bg-glass)",
+    backdropFilter: "blur(14px)",
+    border: "1px solid var(--border)",
+    borderRadius: 16,
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
