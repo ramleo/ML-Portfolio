@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import {
   useTextToImageRunner, MAX_PROMPT_LEN, MAX_NEGATIVE_PROMPT_LEN,
   STYLE_OPTIONS, ASPECT_RATIO_OPTIONS, VARIATION_COUNTS, type VariationCount,
 } from "./useTextToImageRunner";
 import { convertImageDataUri } from "./imageUtils";
 import TextToImageEditPanel from "./TextToImageEditPanel";
+import TextToImageComparisonGrid from "./TextToImageComparisonGrid";
 
 // Card chrome matches ProjectCard.tsx (the homepage's "Live ML Apps" cards) —
 // var(--bg-glass) + backdrop blur + var(--border) + a colored 3px top bar in
@@ -78,18 +79,35 @@ const DOWNLOAD_FORMATS = [
   { key: "image/webp", label: "WebP", ext: "webp" },
 ] as const;
 
-export default function TextToImageRunner({ accent }: { accent: string }) {
+// Imperative handle so the page-level embedded AI chat (see page.tsx /
+// useRagChat.ts's onGenerateImage) can trigger a REAL generation from a
+// natural-language chat message ("generate an image of a red fox", or
+// "compare anime vs photorealistic style of a red fox") without duplicating
+// useTextToImageRunner's validation/budget/history logic — the chat calls
+// the exact same generate() the Generate/Variations UI calls, just with an
+// explicit prompt (see generate()'s own comment for the override rules).
+export interface TextToImageRunnerHandle {
+  requestGenerate: (prompt: string) => Promise<{ ok: boolean; error?: string; count?: number }>;
+  requestStyleComparison: (prompt: string, styleKeys: string[]) => Promise<{ ok: boolean; error?: string; count?: number }>;
+}
+
+const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }>(function TextToImageRunner({ accent }, ref) {
   const {
     prompt, setPrompt,
     style, setStyle,
     aspectRatio, setAspectRatio,
     negativePrompt, setNegativePrompt,
-    generating, resultImage, resultMimeType, error, generate,
+    generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
     history, restoreFromHistory, clearHistory,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
   } = useTextToImageRunner();
+
+  useImperativeHandle(ref, () => ({
+    requestGenerate: (chatPrompt: string) => generate(chatPrompt, 1),
+    requestStyleComparison: (chatPrompt: string, styleKeys: string[]) => generate(chatPrompt, undefined, styleKeys),
+  }), [generate]);
   const overLimit = prompt.length > MAX_PROMPT_LEN;
   const negativeOverLimit = negativePrompt.length > MAX_NEGATIVE_PROMPT_LEN;
   const dataUri = resultImage ? `data:${resultMimeType};base64,${resultImage}` : null;
@@ -205,7 +223,7 @@ export default function TextToImageRunner({ accent }: { accent: string }) {
           {/* Same pill-button treatment as ProjectCard's "Launch App": solid
              accent fill, white text, rounded-full, hover lift + opacity. */}
           <button
-            onClick={generate}
+            onClick={() => generate()}
             disabled={generating || !prompt.trim() || overLimit || negativeOverLimit}
             onMouseEnter={() => setBtnHover(true)}
             onMouseLeave={() => setBtnHover(false)}
@@ -235,38 +253,13 @@ export default function TextToImageRunner({ accent }: { accent: string }) {
 
       {resultImage && (
         <Card accent={accent}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={dataUri ?? undefined}
-            alt={prompt}
-            style={{ width: "100%", borderRadius: 10, border: "1px solid var(--border)" }}
+          <TextToImageComparisonGrid
+            accent={accent}
+            primary={{ image: resultImage, mimeType: resultMimeType, label: resultLabel ?? undefined }}
+            others={variations}
+            primaryAlt={prompt}
+            onSelect={selectVariation}
           />
-
-          {variations.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <Label>Other variations — click to swap in</Label>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {variations.map((v, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => selectVariation(i)}
-                    style={{
-                      flexShrink: 0, width: 68, height: 68, borderRadius: 10, overflow: "hidden",
-                      border: "1px solid var(--border2)", cursor: "pointer", padding: 0,
-                    }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`data:${v.mimeType};base64,${v.image}`}
-                      alt={`Variation ${i + 1}`}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <select
@@ -346,4 +339,6 @@ export default function TextToImageRunner({ accent }: { accent: string }) {
       )}
     </div>
   );
-}
+});
+
+export default TextToImageRunner;

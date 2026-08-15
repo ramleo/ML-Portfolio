@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
-import TextToImageRunner from "./TextToImageRunner";
+import TextToImageRunner, { type TextToImageRunnerHandle } from "./TextToImageRunner";
 import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from "./useTextToImageRunner";
+import { extractImagePrompt } from "@/components/chatImageIntent";
+import { extractStyleComparison } from "./chatCompareIntent";
 
 const ACCENT = "#ec4899";
 
@@ -28,12 +30,21 @@ const TOOL_SUMMARY =
   "Optional \"Avoid\" field (free text, e.g. \"blurry, text, watermark\") tells the model what NOT to " +
   "include in the image — a negative prompt. All three are folded into the same single generation " +
   "call, so picking them costs nothing extra beyond one normal generation. " +
-  "Uses Gemini's paid image model, so a small daily generation budget applies (resets at UTC midnight).";
+  "Uses Gemini's paid image model, so a small daily generation budget applies (resets at UTC midnight). " +
+  "You can also just ASK for an image directly in this chat (e.g. \"generate an image of a lighthouse " +
+  "at sunset\") — it triggers a real generation (one image, regardless of what the Variations picker on " +
+  "the page is set to) and the result appears in the image panel above, exactly like clicking Generate. " +
+  "You can also ask to COMPARE styles in one request, e.g. \"compare anime vs photorealistic style of a " +
+  `cat\" or \"compare 2 different styles of a mountain\" (picks from: ${STYLE_OPTIONS.map(s => s.label).join(", ")} ` +
+  "when none are named) — this fires one real generation call per style compared, so a 3-way comparison " +
+  "costs 3x the daily budget; the panel above shows the first result with the others as swappable " +
+  "thumbnails, same as the Variations picker.";
 
 export default function TextToImagePage() {
   useToolTracking("text-to-image");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const runnerRef = useRef<TextToImageRunnerHandle>(null);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -43,10 +54,26 @@ export default function TextToImagePage() {
         tool: "Text-to-Image Generator",
         summary: TOOL_SUMMARY,
         suggestions: [
+          "Generate an image of a cyberpunk city at night",
           "How do style presets change the generated image?",
-          "What's the difference between aspect ratio options?",
           "How does the daily generation budget work?",
         ],
+        // Receives the RAW chat message (see chatContext.ts's onGenerateImage
+        // doc) — tries the styles-comparison parse first since a comparison
+        // message ("compare anime vs photorealistic...") doesn't start with
+        // a plain generate verb and would otherwise fall through; a normal
+        // single-image request falls back to extractImagePrompt, with the
+        // raw text itself as a last-resort prompt so nothing silently no-ops.
+        onGenerateImage: async (rawMessage: string) => {
+          const comparison = extractStyleComparison(rawMessage);
+          if (comparison) {
+            const result = await runnerRef.current?.requestStyleComparison(comparison.prompt, comparison.styleKeys);
+            return result ?? { ok: false, error: "The image generator isn't ready yet — try again in a moment." };
+          }
+          const imgPrompt = extractImagePrompt(rawMessage) ?? rawMessage;
+          const result = await runnerRef.current?.requestGenerate(imgPrompt);
+          return result ?? { ok: false, error: "The image generator isn't ready yet — try again in a moment." };
+        },
       }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
@@ -85,7 +112,7 @@ export default function TextToImagePage() {
             </div>
           </div>
 
-          <TextToImageRunner accent={ACCENT} />
+          <TextToImageRunner ref={runnerRef} accent={ACCENT} />
         </div>
       </div>
     </div>

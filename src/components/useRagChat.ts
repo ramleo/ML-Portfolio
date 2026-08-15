@@ -5,64 +5,14 @@ import { type IngestStatus } from "./RagIngestButton";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { STEP_LABELS } from "./ToolsAIChatIcons";
+import { isImageGenerationIntent } from "./chatImageIntent";
+import { buildToolContext, sanitizeHistory, type ToolChatContext, type Message, type RagSource, type Groundedness } from "./chatContext";
 
-export type ToolChatContext = {
-  tool: string;
-  summary: string;
-  /** Markdown user guide — when set, the assistant answers ONLY from it + website topics */
-  guide?: string;
-  /** Page-specific suggestion chips shown in the empty chat */
-  suggestions?: string[];
-  /** Answer ONLY from this session's uploaded document(s) — no KB, no web fallback.
-   * For tools whose whole point is Q&A over one specific upload. */
-  restrictToUploads?: boolean;
-  /** Hosting page's own theme accent (its ACCENT constant) — when set, the
-   * chat widget uses this instead of the selected AI provider's color, so
-   * the widget matches the page it's embedded in rather than signaling
-   * which provider is answering. Falls back to providerConfig.color for
-   * any page that doesn't pass one, so this is backward-compatible. */
-  accent?: string;
-};
-
-const SITE_SUMMARY =
-  "This website is AIRaML, the ML engineering portfolio of Ramakrishnasai Wuppalapati. " +
-  "It hosts interactive AI/ML tools: AutoML model training, EDA, Pipeline Builder, " +
-  "Text-to-SQL Agent, Document Intelligence, drift detection, RAG chat, and analytics.";
-
-function buildToolContext(context: ToolChatContext): string {
-  if (!context.guide) {
-    return `Tool: ${context.tool}\n${context.summary}`;
-  }
-  return [
-    `You are the help assistant for the "${context.tool}" tool on the AIRaML portfolio website.`,
-    `SCOPE RULES (strict): Answer ONLY questions about (a) the ${context.tool} tool — using the user guide below as your source of truth — or (b) this website and its tools in general. ` +
-      `If the question is about anything else (general ML theory, coding help, unrelated topics), politely reply that you only help with the ${context.tool} tool and this website, and suggest asking about those instead. Do not answer off-topic questions even partially.`,
-    `ABOUT THIS WEBSITE: ${SITE_SUMMARY}`,
-    `USER GUIDE for ${context.tool}:\n${context.guide}`,
-  ].join("\n\n");
-}
-export type Message  = { role: "user" | "assistant"; content: string };
-export type RagSource = { source: string; text: string; score: number; display_score: number };
-export type Groundedness = { score: number; level: "high" | "medium" | "low"; ungrounded_sentences: string[] };
+export type { ToolChatContext, Message, RagSource, Groundedness };
 
 const LS_PROVIDER = "tools_ai_provider";
 const LS_MODEL    = "tools_ai_model";
 const LS_KEY      = "tools_ai_key";
-
-// Sanitize history before sending: remove error/no-response turns, then ensure strictly alternating roles.
-// Prevents Gemini 400 caused by consecutive model turns when previous responses were errors.
-function sanitizeHistory(msgs: Message[]): Message[] {
-  const filtered = msgs.filter(m =>
-    !(m.role === "assistant" && (m.content.startsWith("Error:") || m.content === "No response."))
-  );
-  const result: Message[] = [];
-  for (const m of filtered) {
-    if (result.length === 0 || result[result.length - 1].role !== m.role) {
-      result.push(m);
-    }
-  }
-  return result;
-}
 const LS_SESSION  = "rag_session_id";
 
 export function useRagChat(context: ToolChatContext) {
@@ -321,11 +271,30 @@ export function useRagChat(context: ToolChatContext) {
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
-    const historyBase = messages;
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next); setInput("");
+
+    if (context.onGenerateImage && isImageGenerationIntent(text)) {
+      const onGenerateImage = context.onGenerateImage;
+      setLoading(true);
+      setMessages(m => [...m, { role: "assistant", content: "Generating…" }]);
+      try {
+        const result = await onGenerateImage(text);
+        const shown = result.count && result.count > 1 ? `${result.count} versions are` : "the image is";
+        setMessages(m => [...m.slice(0, -1), { role: "assistant", content: result.ok
+          ? `Done — ${shown} now showing in the panel above.${result.error ? ` (${result.error})` : ""}`
+          : `Couldn't generate that: ${result.error ?? "unknown error"}.` }]);
+      } catch {
+        setMessages(m => [...m.slice(0, -1), { role: "assistant", content: "Couldn't generate that — try again in a moment." }]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    const historyBase = messages;
     await runQuery(text, historyBase, answerLength);
-  }, [input, loading, messages, answerLength, runQuery]);
+  }, [input, loading, messages, answerLength, runQuery, context]);
 
   // Re-runs the LAST question at a new answer length, replacing the last
   // assistant answer in place rather than requiring the user to re-ask —
