@@ -132,7 +132,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] gap-6 items-start">
       <Card accent={accent}>
         <textarea
           className="form-input"
@@ -251,6 +251,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
         {error && <p style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</p>}
       </Card>
 
+      <div className="flex flex-col gap-4">
       {resultImage && (
         <Card accent={accent}>
           <TextToImageComparisonGrid
@@ -342,6 +343,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
           </p>
         </Card>
       )}
+      </div>
     </div>
   );
 });

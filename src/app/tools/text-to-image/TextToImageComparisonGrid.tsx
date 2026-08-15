@@ -35,7 +35,7 @@ export default function TextToImageComparisonGrid({
 
   const cells = [primary, ...others];
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.75rem" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.75rem" }}>
       {cells.map((cell, i) => {
         const isPrimary = i === 0;
         return (
