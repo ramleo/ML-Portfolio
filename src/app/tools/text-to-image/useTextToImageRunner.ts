@@ -114,6 +114,11 @@ export function useTextToImageRunner() {
   // caused a real hydration mismatch (server has no localStorage to read).
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   useEffect(() => { setHistory(loadHistory()); }, []);
+  // Which history entry (by timestamp) is currently shown in the image
+  // panel — drives the persistent highlight on its thumbnail. null means
+  // "nothing in history matches what's showing" (e.g. a grid variation
+  // that was never itself saved as its own history entry).
+  const [activeHistoryTimestamp, setActiveHistoryTimestamp] = useState<number | null>(null);
 
   // Best-effort — expands the prompt in place via the free LLM cascade
   // (routers/rag/llm.py's fallback order), not the billed image model, so
@@ -150,11 +155,26 @@ export function useTextToImageRunner() {
     }
   };
 
-  const restoreFromHistory = (entry: HistoryEntry) => setPrompt(entry.prompt);
+  // Loads a past generation back into the main image panel (prompt AND the
+  // actual image) rather than just restoring the prompt text — the previous
+  // behavior left the user staring at a blank/unrelated panel and needing
+  // to click Generate again (spending fresh budget) just to see an image
+  // that already exists. Clears variations/error since a single historical
+  // image isn't a comparison batch.
+  const restoreFromHistory = (entry: HistoryEntry) => {
+    setPrompt(entry.prompt);
+    setResultImage(entry.image);
+    setResultMimeType(entry.mimeType);
+    setResultLabel(null);
+    setVariations([]);
+    setError(null);
+    setActiveHistoryTimestamp(entry.timestamp);
+  };
 
   const clearHistory = () => {
     setHistory([]);
     saveHistory([]);
+    setActiveHistoryTimestamp(null);
   };
 
   // Fires N independent generation requests in parallel, each its own real
@@ -263,11 +283,13 @@ export function useTextToImageRunner() {
         partialMsg = `${successes.length} of ${runCount} versions generated — the rest hit today's budget limit.`;
         setError(partialMsg);
       }
+      const now = Date.now();
       setHistory(prev => {
-        const next = [{ prompt: trimmed, image: primary.image, mimeType: primary.mimeType, timestamp: Date.now() }, ...prev].slice(0, HISTORY_LIMIT);
+        const next = [{ prompt: trimmed, image: primary.image, mimeType: primary.mimeType, timestamp: now }, ...prev].slice(0, HISTORY_LIMIT);
         saveHistory(next);
         return next;
       });
+      setActiveHistoryTimestamp(now);
       return { ok: true, error: partialMsg, count: successes.length };
     } finally {
       setGenerating(false);
@@ -286,6 +308,11 @@ export function useTextToImageRunner() {
     setResultImage(chosen.image);
     setResultMimeType(chosen.mimeType);
     setResultLabel(chosen.label ?? null);
+    // This exact image was never itself saved as its own history entry
+    // (only the batch's primary was) — nothing in the history strip should
+    // read as "currently showing" until a real history entry is picked or
+    // a new generation/edit happens.
+    setActiveHistoryTimestamp(null);
   };
 
   // Called after a successful "Edit this" (mm-ai-fill mode=edit) — a
@@ -297,11 +324,13 @@ export function useTextToImageRunner() {
     setResultMimeType(mimeType);
     setResultLabel(null); // no longer represents whatever style/version it started as
     const editedPrompt = `${prompt.trim()} (edited)`;
+    const now = Date.now();
     setHistory(prev => {
-      const next = [{ prompt: editedPrompt, image, mimeType, timestamp: Date.now() }, ...prev].slice(0, HISTORY_LIMIT);
+      const next = [{ prompt: editedPrompt, image, mimeType, timestamp: now }, ...prev].slice(0, HISTORY_LIMIT);
       saveHistory(next);
       return next;
     });
+    setActiveHistoryTimestamp(now);
   };
 
   return {
@@ -311,7 +340,7 @@ export function useTextToImageRunner() {
     negativePrompt, setNegativePrompt,
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
-    history, restoreFromHistory, clearHistory,
+    history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
   };

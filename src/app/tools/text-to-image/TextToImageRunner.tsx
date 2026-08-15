@@ -99,7 +99,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
     negativePrompt, setNegativePrompt,
     generating, resultImage, resultMimeType, resultLabel, error, generate,
     enhancing, enhancePrompt,
-    history, restoreFromHistory, clearHistory,
+    history, restoreFromHistory, clearHistory, activeHistoryTimestamp,
     applyEditedResult,
     variationCount, setVariationCount, variations, selectVariation,
   } = useTextToImageRunner();
@@ -313,27 +313,32 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
             </button>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {history.map(entry => (
-              <button
-                key={entry.timestamp}
-                onClick={() => restoreFromHistory(entry)}
-                title={entry.prompt}
-                style={{
-                  flexShrink: 0, width: 68, height: 68, borderRadius: 10, overflow: "hidden",
-                  border: "1px solid var(--border2)", cursor: "pointer", padding: 0,
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`data:${entry.mimeType};base64,${entry.image}`}
-                  alt={entry.prompt}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </button>
-            ))}
+            {history.map(entry => {
+              const isActive = entry.timestamp === activeHistoryTimestamp;
+              return (
+                <button
+                  key={entry.timestamp}
+                  onClick={() => restoreFromHistory(entry)}
+                  title={entry.prompt}
+                  style={{
+                    flexShrink: 0, width: 68, height: 68, borderRadius: 10, overflow: "hidden",
+                    border: isActive ? `2px solid ${accent}` : "1px solid var(--border2)",
+                    boxShadow: isActive ? `0 0 0 2px ${accent}33` : "none",
+                    cursor: "pointer", padding: 0,
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:${entry.mimeType};base64,${entry.image}`}
+                    alt={entry.prompt}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </button>
+              );
+            })}
           </div>
           <p style={{ fontSize: "0.68rem", color: "var(--text3)" }}>
-            Click a thumbnail to reuse its prompt — stored on this device only, doesn&apos;t re-generate.
+            Click a thumbnail to load that image and prompt — stored on this device only, doesn&apos;t re-generate.
           </p>
         </Card>
       )}
