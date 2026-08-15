@@ -270,7 +270,7 @@ export default function EnsembleRunner({ onReady, onResult, accent }: EnsembleRu
             style={{
               border: `2px dashed ${ACCENT}${dragging ? "99" : "4d"}`,
               borderRadius: 10, padding: "2rem 1rem", textAlign: "center", cursor: "pointer",
-              background: dragging ? `${ACCENT}08` : "rgba(0,0,0,0.15)",
+              background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
               transition: "all 0.2s",
             }}
           >

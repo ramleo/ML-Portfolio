@@ -260,11 +260,12 @@ function PreprocessingPageInner() {
               onDrop={handleDrop}
               onClick={() => fileRef.current?.click()}
               style={{
-                border: `2px dashed ${dragging ? ACCENT : "rgba(255,255,255,0.15)"}`,
+                border: `2px dashed ${dragging ? ACCENT : "var(--border2)"}`,
                 borderRadius: 16, padding: "3.5rem 2rem",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: "0.85rem",
                 cursor: "pointer", transition: "border-color 0.2s",
-                background: dragging ? `${ACCENT}08` : "rgba(255,255,255,0.02)",
+                background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
+                backdropFilter: "blur(14px)",
               }}
             >
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

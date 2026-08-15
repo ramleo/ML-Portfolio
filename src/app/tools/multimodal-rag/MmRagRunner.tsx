@@ -205,11 +205,14 @@ export default function MmRagRunner() {
     textSegmentRefs.current[highlightedTextSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [highlightedTextSegment]);
 
-  // Cool-tinted-black instead of neutral white-on-black — reads as "ink"
-  // rather than a generic glass card — while staying translucent enough
-  // that the page's constellation background still shows through.
+  // Matches the homepage ProjectCard.tsx pattern (var(--bg-glass) + colored
+  // top bar) used site-wide, same as every other tool page's redesign
+  // (2026-08-15) — previously a bespoke "ink" tint kept for this page only,
+  // overridden per explicit instruction to make every tool page consistent.
   const cardStyle: React.CSSProperties = {
-    background: "rgba(14,11,24,0.38)", border: `1px solid ${ACCENT}22`, borderRadius: 10,
+    background: "var(--bg-glass)", backdropFilter: "blur(14px)",
+    border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}`,
+    borderRadius: 16,
   };
 
   // Only worth offering a filter once 2+ distinct chunk types actually exist

@@ -31,7 +31,8 @@ export default function Step1Upload({
         style={{
           border: `2px dashed ${dragging ? ACCENT : "var(--border2)"}`,
           borderRadius: 14, padding: "2.5rem 1.5rem", textAlign: "center" as const,
-          cursor: "pointer", background: dragging ? `${ACCENT}08` : "transparent",
+          cursor: "pointer", background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
+          backdropFilter: "blur(14px)",
           transition: "border-color 0.2s, background 0.2s",
         }}
       >
