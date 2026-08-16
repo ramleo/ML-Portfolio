@@ -22,7 +22,14 @@ const COLS = 70;
 // case) has real margin, not just the far/base plane.
 const DEPTH_SCALE = 0.6;
 const CAMERA_DISTANCE = 2.6;
-const FOV_RAD = (75 * Math.PI) / 180;
+// A wide FOV (75deg, tried first) leaves a large safety margin around the
+// photo at rest so no camera shift ever clips it — but that margin reads
+// as "the photo shrunk," since it's dead canvas space visible even before
+// dragging. Narrowing the FOV keeps the exact same zero-clip guarantee
+// (the margin formula below still holds), just makes the margin itself
+// smaller: the photo now fills ~87% of the frame at rest instead of ~65%,
+// at the cost of a smaller (but still real) camera-shift range.
+const FOV_RAD = (60 * Math.PI) / 180;
 // Fraction of the near plane's remaining frustum margin (after the object
 // itself) allowed as camera shift range — computed from the photo's own
 // aspect ratio at setup, not a fixed constant, since a fixed value doesn't

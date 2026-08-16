@@ -46,15 +46,18 @@ void main() {
   vec2 diff = vUv - uMarkerUv;
   diff.y *= uAspect;
   float dist = length(diff);
-  float edge = smoothstep(0.06, 0.05, dist);
+  float edge = smoothstep(0.062, 0.044, dist); // soft alpha falloff at the marker's own boundary
   if (edge <= 0.0) { gl_FragColor = sceneColor; return; }
 
   float realDepth = nearestRealDepth(vUv, uDepth);
   // Real content nearer than the virtual object's assigned depth wins —
   // this is the whole point: the marker only draws where nothing real is
-  // in front of it. Faded over a narrow depth band (not a single-step
-  // cutoff) purely to anti-alias the boundary, not to soften it broadly.
-  float visibility = 1.0 - smoothstep(uVirtualDepth - 0.005, uVirtualDepth + 0.015, realDepth);
+  // in front of it. Faded over a depth band (not a single-step cutoff) so
+  // the transition itself reads as a gradient, not a hard line — the
+  // max-filter above (not this band) is what stops it from bleeding
+  // through gaps in near content, so this can be widened freely for a
+  // smoother look without reintroducing that bleed-through bug.
+  float visibility = 1.0 - smoothstep(uVirtualDepth - 0.015, uVirtualDepth + 0.035, realDepth);
   if (visibility <= 0.0) { gl_FragColor = sceneColor; return; }
   edge *= visibility;
 
