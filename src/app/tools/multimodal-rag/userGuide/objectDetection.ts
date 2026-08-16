@@ -111,11 +111,14 @@ meant to place things in general terms, not measure them precisely.
   agreement check exists to catch rather than silently trust.
 - **"Detect weapons" flags knives, guns, and other weapon classes.** When a
   citation's image/frame has at least one confidently detected weapon
-  (Weapon, Knife, Handgun, Rifle, Sword, Bomb, or Missile — ordinary kitchen knives are
-  deliberately excluded so photos of a kitchen counter don't false-alarm),
-  "Detect weapons (N)" appears in the dropdown — pick it to draw a red box
-  around each one. This reuses the same 601-class object detector "Detect
-  objects" already runs; no separate model or backend endpoint was needed.
+  (Weapon, Knife, Handgun, Rifle, Sword, Bomb, or Missile — ordinary
+  kitchen knives are deliberately excluded so photos of a kitchen counter
+  don't false-alarm), "Detect weapons (N)" appears in the dropdown — pick
+  it to draw a red box around each one. This reuses the same 601-class
+  object detector "Detect objects" already runs; no separate model or
+  backend endpoint was needed. It's the same general-purpose detector as
+  everything else on this page, not a model trained specifically for
+  weapons/explosives — treat a hit as worth a closer look, not a certainty.
 - **"Check for tampering" flags possible photo editing.** Where available,
   "Check for tampering (N)" runs three independent statistical checks —
   compression-error analysis (ELA), sensor-noise-texture analysis, and
