@@ -69,7 +69,12 @@ export function buildReliefMesh(
       const y = (0.5 - v) * 2;
       const z = gridAt(r, c) * depthScale;
       positions[p++] = x; positions[p++] = y; positions[p++] = z;
-      uvs[t++] = u; uvs[t++] = v;
+      // The color texture is uploaded with UNPACK_FLIP_Y_WEBGL (see
+      // makeTexture) so v=0 lands on the photo's bottom row, not top — but
+      // `v` here still means "top of photo" (matches the depth sampler's
+      // natural row order, which the mesh's own y-position depends on
+      // correctly). Flip only the texture-sampling coordinate to match.
+      uvs[t++] = u; uvs[t++] = 1 - v;
     }
   }
 

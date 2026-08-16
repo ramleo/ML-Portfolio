@@ -173,7 +173,14 @@ export default function ArOcclusionCanvas({
 
   const onClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setMarkerUv({ u: (e.clientX - rect.left) / rect.width, v: (e.clientY - rect.top) / rect.height });
+    // The shader's vUv space has v=0 at screen BOTTOM (from the fullscreen
+    // quad's aPos*0.5+0.5 mapping), but a DOM click's Y is naturally 0 at
+    // screen TOP — without flipping, a click near the top placed the
+    // marker near the bottom and vice versa.
+    setMarkerUv({
+      u: (e.clientX - rect.left) / rect.width,
+      v: 1 - (e.clientY - rect.top) / rect.height,
+    });
   };
 
   const onMarkerImageSelected = async (file: File) => {

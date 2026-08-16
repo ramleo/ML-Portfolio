@@ -12,6 +12,11 @@ const DEPTH_SCALE = 0.22;
 const YAW_LIMIT_RAD = (18 * Math.PI) / 180;
 const PITCH_LIMIT_RAD = (12 * Math.PI) / 180;
 const CAMERA_DISTANCE = 2.4;
+// Viewed dead-on (yaw=pitch=0) a relief looks completely flat — there's no
+// way to see the depth displacement without some rotation. A brief
+// automatic tilt on load proves the 3D is real without requiring the user
+// to already know to drag.
+const PEEK_DURATION_MS = 1400;
 
 const VERT_SRC = `
 attribute vec3 aPos;
@@ -171,11 +176,28 @@ export default function Relief3DCanvas({
     canvas.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+
+    // One-time "peek" animation: yaw out and back so the relief visibly
+    // proves it's real 3D before the user has to know to drag it. Bails
+    // immediately if the user starts dragging mid-animation.
+    let peekRaf: number | null = null;
+    const peekStart = performance.now();
+    const peek = (now: number) => {
+      if (dragRef.current) return;
+      const t = Math.min(1, (now - peekStart) / PEEK_DURATION_MS);
+      const eased = Math.sin(t * Math.PI); // 0 -> 1 -> 0
+      angleRef.current = { yaw: eased * YAW_LIMIT_RAD * 0.7, pitch: angleRef.current.pitch };
+      draw();
+      if (t < 1) peekRaf = requestAnimationFrame(peek);
+    };
+    peekRaf = requestAnimationFrame(peek);
+
     return () => {
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (peekRaf != null) cancelAnimationFrame(peekRaf);
     };
   }, [ready, dispW, dispH]);
 
