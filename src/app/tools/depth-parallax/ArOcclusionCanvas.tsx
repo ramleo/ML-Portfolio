@@ -6,16 +6,14 @@ import { loadImage, createProgram, makeTexture, setupFullscreenQuad, blurredCanv
 const MARKER_RADIUS_UV = 0.06;
 const MARKER_COLOR: [number, number, number] = [0.98, 0.35, 0.55]; // pink — reads clearly against most photos
 // Occlusion is decided per-pixel by comparing real depth against the
-// marker's assigned depth. Blurring the depth copy used for that comparison
-// helps, but a hard boolean cutoff (occluded / not) still traces every bump
-// in the real depth map as a jagged line — real object silhouettes (e.g.
-// individual tree crowns) are themselves bumpy, so even a smoothed depth
-// field still produces a torn-looking edge if the hide/show decision itself
-// is all-or-nothing. Fixed at the shader level below by fading the marker's
-// opacity across a depth band around uVirtualDepth (OCCLUSION_SOFTNESS)
-// instead of switching it off in one step — combined with this blur, the
-// boundary reads as a soft edge instead of static.
-const DEPTH_BLUR_PX = 7;
+// marker's assigned depth. A wide blur here (a prior attempt used 7px)
+// backfires: right at a real edge (e.g. treetop against sky), the box
+// average is dominated by the much larger sky region on one side, biasing
+// a whole band of tree-boundary pixels toward "far" — which reads as the
+// marker bleeding through content it should be hidden behind, not just an
+// edge-antialiasing issue. Keep the blur small enough to only kill single-
+// pixel noise; the actual softening happens via the depth-band fade below.
+const DEPTH_BLUR_PX = 2;
 
 const FRAG_SRC = `
 precision mediump float;
@@ -44,7 +42,7 @@ void main() {
   // this is the whole point: the marker only draws where nothing real is
   // in front of it. Faded over a depth band (not a single-step cutoff) so
   // the boundary reads as a soft edge rather than a jagged bite.
-  float visibility = 1.0 - smoothstep(uVirtualDepth - 0.02, uVirtualDepth + 0.05, realDepth);
+  float visibility = 1.0 - smoothstep(uVirtualDepth - 0.005, uVirtualDepth + 0.015, realDepth);
   if (visibility <= 0.0) { gl_FragColor = sceneColor; return; }
   edge *= visibility;
 
