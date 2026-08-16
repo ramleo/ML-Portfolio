@@ -8,6 +8,7 @@ import { SharpenButtons, SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
+import WatermarkControls from "./WatermarkControls";
 import DetectionBoxOverlay from "./DetectionBoxOverlay";
 import { downloadBase64Image } from "./imageComposite";
 import { tamperingLevel } from "./tamperingLevel";
@@ -264,6 +265,9 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
               style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
               Reset
             </button>
+          )}
+          {canEdit && (
+            <WatermarkControls img={sharpenedImg && viewSharpened ? sharpenedImg : (resultImg ?? img)} source={source} page={page} />
           )}
           {!isImageOrVideoOnly && (
             <>
