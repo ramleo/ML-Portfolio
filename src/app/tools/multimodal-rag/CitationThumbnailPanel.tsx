@@ -93,8 +93,13 @@ const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and
 const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
 const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent from the other detection colors
 const PLATE_COLOR = "#60a5fa"; // distinct from every other detection accent
+const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weapon detection is a similar high-attention alert
+// "Kitchen knife" deliberately excluded — it's OIV7's label for an ordinary
+// culinary tool, not a threat; including it would false-alarm on every
+// photo of a kitchen counter.
+const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword"]);
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons";
 
 export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
@@ -117,6 +122,9 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // registration plate" like any other class, so this is just a client-side
   // filter of the same `objects` list "Detect objects" already uses.
   const plates = (objects ?? []).filter(o => o.label === "Vehicle registration plate");
+  // "Detect weapons" — same client-side filter pattern as plates above, no
+  // separate backend field or endpoint needed.
+  const weapons = (objects ?? []).filter(o => WEAPON_LABELS.has(o.label));
   // "Remove object" (Image Inpainting & Object Remover) — a disposable edit
   // over whichever page image is currently shown; called with a `page` on
   // Props (not `img`, only computed after the early return below) since the
@@ -149,9 +157,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const signaturesToShow = isImageOrVideoOnly && visualAction === "signatures" ? (signatures ?? []) : [];
   const tamperingToShow = isImageOrVideoOnly && visualAction === "tampering" ? (tampering ?? []) : [];
   const platesToShow = isImageOrVideoOnly && visualAction === "plates" ? plates : [];
+  const weaponsToShow = isImageOrVideoOnly && visualAction === "weapons" ? weapons : [];
   const objectsToShow = isImageOrVideoOnly
     ? (visualAction === "objects" ? (objects ?? [])
-      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering" || visualAction === "plates") ? [] : (matchedObjects ?? []))
+      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering" || visualAction === "plates" || visualAction === "weapons") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
 
   // Shared box+label overlay renderer (faces/objects/signatures/tampering
@@ -206,7 +215,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       <CitationToolbar
         page={page} chunkType={chunkType} visualAction={visualAction} onVisualAction={setVisualAction}
         isImageOrVideoOnly={isImageOrVideoOnly} captionText={captionText} objects={objects} faces={faces}
-        entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} tampering={tampering}
+        entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} weapons={weapons} tampering={tampering}
         duplicates={duplicates} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
         canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); }}
         sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened} setViewSharpened={setViewSharpened}
@@ -278,6 +287,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             : platesToShow.length > 0
             ? renderBoxes(platesToShow, PLATE_COLOR, p => `Plate (${Math.round(p.confidence * 100)}%)`, true,
                 plateBbox => sharpen(resultImg ?? img, plateBbox))
+            : weaponsToShow.length > 0
+            ? renderBoxes(weaponsToShow, WEAPON_COLOR, w => `${w.label} (${Math.round(w.confidence * 100)}%)`, false)
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (

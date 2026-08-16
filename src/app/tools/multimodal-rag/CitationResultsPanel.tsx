@@ -7,7 +7,7 @@ import { useNarration } from "./useNarration";
 const TAMPERING_COLOR = "#f87171"; // same accent as the box overlay in CitationThumbnailPanel
 
 type SimilarResult = { source: string; page: number; similarity: number };
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons";
 
 type Props = {
   inpaintError: string | null;
