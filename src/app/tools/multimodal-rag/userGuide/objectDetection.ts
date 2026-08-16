@@ -56,11 +56,16 @@ meant to place things in general terms, not measure them precisely.
   the more specific "Man," "Woman," "Boy," or "Girl," never the generic
   "Person," and similarly a vehicle is detected as "Car," "Truck," "Bus,"
   etc, never generic "Vehicle." Asking "locate the person" or "where's the
-  vehicle" still works — those two generic terms are mapped to whichever
-  specific subclass was actually detected. This mapping only covers
-  person/people and vehicle right now; other generic-vs-specific mismatches
-  in the 601 types aren't covered, so if a box doesn't appear, try naming
-  the more specific type instead (e.g. "dog" instead of "animal").
+  vehicle" still works — those generic terms are mapped to whichever
+  specific subclass was actually detected. "Package," "parcel," and
+  "delivery" are also mapped this way, all pointing at the detector's "Box"
+  class — there's no dedicated "Package" type in the 601-class vocabulary,
+  so asking "is there a package at the door" on an uploaded doorbell photo
+  works off the same Box detection "where's the box" would. This mapping
+  only covers person/people, vehicle, and package/parcel/delivery right
+  now; other generic-vs-specific mismatches in the 601 types aren't
+  covered, so if a box doesn't appear, try naming the more specific type
+  instead (e.g. "dog" instead of "animal").
 - **A "Detect faces" button highlights every face at once, independent of
   any question.** When a citation's image/frame has at least one confidently
   detected "Human face," a "Detect faces" button appears above it — click it

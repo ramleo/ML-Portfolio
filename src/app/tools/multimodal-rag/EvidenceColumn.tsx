@@ -21,6 +21,11 @@ const HIERARCHY_SYNONYMS: Record<string, string[]> = {
   person: ["man", "woman", "boy", "girl"],
   people: ["man", "woman", "boy", "girl"],
   vehicle: ["car", "truck", "van", "bus", "bicycle", "motorcycle", "train", "airplane", "boat", "limousine", "taxi"],
+  // "Box" is the closest OIV7 label to what a doorbell-camera question
+  // would actually ask about — no separate "Package"/"Parcel" class exists.
+  package: ["box"],
+  parcel: ["box"],
+  delivery: ["box"],
 };
 
 function matchObjectsToQuestion(objects: DetectedObject[] | null | undefined, question: string): DetectedObject[] {
