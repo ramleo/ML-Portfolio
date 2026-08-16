@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadImage, createProgram, makeTexture, setupFullscreenQuad, FULLSCREEN_VERT_SRC } from "./webglUtils";
+import { loadImage, createProgram, makeTexture, setupFullscreenQuad, blurredCanvas, FULLSCREEN_VERT_SRC } from "./webglUtils";
 
 const MARKER_RADIUS_UV = 0.06;
 const MARKER_COLOR: [number, number, number] = [0.98, 0.35, 0.55]; // pink — reads clearly against most photos
+// Occlusion is decided per-pixel by comparing real depth against the
+// marker's assigned depth — at a noisy real-depth boundary (e.g. treetops
+// against sky), that comparison flips pixel-by-pixel, showing up as a
+// jagged, torn-looking bite out of the marker instead of a clean edge.
+// Blurring only the depth copy used for this decision (never the on-screen
+// image) smooths that boundary, same fix already used for parallax tearing.
+const DEPTH_BLUR_PX = 4;
 
 const FRAG_SRC = `
 precision mediump float;
@@ -98,7 +105,7 @@ export default function ArOcclusionCanvas({
         setupFullscreenQuad(gl, program);
 
         const imageTex = makeTexture(gl, img);
-        const depthTex = makeTexture(gl, depthImg);
+        const depthTex = makeTexture(gl, blurredCanvas(depthImg, DEPTH_BLUR_PX));
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, imageTex);
         gl.uniform1i(gl.getUniformLocation(program, "uImage"), 0);
