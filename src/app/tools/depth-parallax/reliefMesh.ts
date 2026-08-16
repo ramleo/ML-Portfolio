@@ -18,7 +18,14 @@ const SMOOTH_RADIUS = 5;
 // camera shifts off-center. Feathering keeps every boundary vertex flat
 // (zero displacement) so the silhouette always stays a clean rectangle —
 // only the interior, where it doesn't affect the outline, bulges with depth.
-const EDGE_FEATHER_CELLS = 6;
+// Exported so Relief3DCanvas's frustum-framing math can use the same
+// number: since full depth is guaranteed to never occur within this many
+// cells of the mesh boundary, the camera framing only has to budget for the
+// worst case *inside* that guaranteed-flat border, not the mesh's true
+// full spatial extent — a materially smaller, safe worst case that lets the
+// frame be sized much tighter (the photo fills more of the canvas) without
+// reintroducing any risk of near content clipping out at rest or on drag.
+export const EDGE_FEATHER_CELLS = 14;
 
 function edgeFeather(r: number, c: number, rows: number, cols: number): number {
   const dist = Math.min(c, cols - c, r, rows - r);

@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadImage, compileShader, makeTexture, createDepthSampler } from "./webglUtils";
-import { buildReliefMesh } from "./reliefMesh";
+import { buildReliefMesh, EDGE_FEATHER_CELLS } from "./reliefMesh";
 import * as m4 from "./mat4";
 
 const COLS = 70;
 // Near/far shift ratio under camera-shift is CAMERA_DISTANCE /
-// (CAMERA_DISTANCE - DEPTH_SCALE) — 2.6/2.0 = 1.3x here, a real, modest,
+// (CAMERA_DISTANCE - DEPTH_SCALE) — 2.4/1.8 = 1.33x here, a real, modest,
 // verified-in-frame differential. A first version rotated the OBJECT
 // instead of shifting the camera — under rotation, a point's screen motion
 // is dominated by its own x/y position, not its depth (photo width ~1.85
@@ -17,19 +17,16 @@ const COLS = 70;
 // math for the *near* plane specifically (the near content, e.g. a car,
 // sits closer to the camera than the frustum was sized for) — its edges
 // were clipping even at rest, and any camera shift pushed them fully out
-// of frame. Fixed by deriving CAMERA_DISTANCE/DEPTH_SCALE/FOV_RAD together
-// so the near plane (CAMERA_DISTANCE - DEPTH_SCALE, the most restrictive
-// case) has real margin, not just the far/base plane.
+// of frame. A third version narrowed the FOV using the near plane's full,
+// un-feathered extent as the worst case — safe, but that worst case only
+// governs a handful of near-extreme pixels; the bulk of any photo (sky,
+// road, background) sits near the BASE plane, whose fill barely changed,
+// so the photo still looked shrunk despite the "fix." Fixed for real below
+// by using the mesh's own edge-feathering (see EDGE_FEATHER_CELLS) to
+// shrink the worst-case extent the margin math has to budget for.
 const DEPTH_SCALE = 0.6;
-const CAMERA_DISTANCE = 2.6;
-// A wide FOV (75deg, tried first) leaves a large safety margin around the
-// photo at rest so no camera shift ever clips it — but that margin reads
-// as "the photo shrunk," since it's dead canvas space visible even before
-// dragging. Narrowing the FOV keeps the exact same zero-clip guarantee
-// (the margin formula below still holds), just makes the margin itself
-// smaller: the photo now fills ~87% of the frame at rest instead of ~65%,
-// at the cost of a smaller (but still real) camera-shift range.
-const FOV_RAD = (60 * Math.PI) / 180;
+const CAMERA_DISTANCE = 2.4;
+const FOV_RAD = (52 * Math.PI) / 180;
 // Fraction of the near plane's remaining frustum margin (after the object
 // itself) allowed as camera shift range — computed from the photo's own
 // aspect ratio at setup, not a fixed constant, since a fixed value doesn't
@@ -91,10 +88,20 @@ export default function Relief3DCanvas({
   // Derived from the actual frustum geometry, not a fixed constant — a
   // fixed shift limit was exactly what caused the near content to clip out
   // of frame in a previous version. Computed from the NEAR plane (the most
-  // restrictive depth, since near content occupies more of the frustum),
-  // for both the width budget (scales with aspect) and height budget
-  // (doesn't), taking the smaller of the two so neither axis can clip.
-  const nearPlaneMarginFactor = (CAMERA_DISTANCE - DEPTH_SCALE) * Math.tan(FOV_RAD / 2) - 1;
+  // restrictive depth, since near content occupies more of the frustum).
+  // The worst case isn't the mesh's true full extent (extent fraction 1.0)
+  // — buildReliefMesh guarantees zero depth within EDGE_FEATHER_CELLS of
+  // the grid boundary, so full-depth content can only occur up to
+  // (1 - featherFraction) of the way to the edge. Using that smaller,
+  // still-safe worst case (rather than 1.0) is what actually lets the
+  // frame be sized tightly around the photo instead of leaving dead
+  // margin. featherFraction uses the LARGER grid dimension (cols vs. rows)
+  // since the same absolute cell count is a smaller, less protective
+  // fraction of whichever axis has more cells.
+  const rows = Math.max(1, Math.round(COLS / aspect));
+  const featherFraction = EDGE_FEATHER_CELLS / Math.max(COLS, rows);
+  const worstCaseExtent = 1 - featherFraction;
+  const nearPlaneMarginFactor = (CAMERA_DISTANCE - DEPTH_SCALE) * Math.tan(FOV_RAD / 2) - worstCaseExtent;
   const camShiftLimit = CAM_SHIFT_MARGIN_FRACTION * Math.max(0, Math.min(nearPlaneMarginFactor * aspect, nearPlaneMarginFactor));
 
   useEffect(() => {
