@@ -125,7 +125,8 @@ export default function MmRagRunner() {
     } catch { /* best-effort — a stale chunk left behind is not fatal */ }
     setDocuments(docs => docs.filter(d => d.source !== source));
     setActiveCitation(c => (c?.source === source ? null : c));
-  }, []);
+    chat.removeSourceFromEvidence(source);
+  }, [chat.removeSourceFromEvidence]);
 
   const activeDoc = documents.find(d => d.source === activeCitation?.source) ?? null;
 

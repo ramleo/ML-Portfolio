@@ -66,6 +66,17 @@ meant to place things in general terms, not measure them precisely.
   now; other generic-vs-specific mismatches in the 601 types aren't
   covered, so if a box doesn't appear, try naming the more specific type
   instead (e.g. "dog" instead of "animal").
+- **"Box" has its own, lower detection threshold — verified on real
+  delivery photos, still not perfect.** Every other class needs 35%
+  confidence to appear; "Box" needs only 22%, since real testing found
+  stacked cardboard shipping boxes genuinely score lower than the detector's
+  usual confidence range even when clearly, correctly located — a model
+  weakness on this specific box style (likely trained mostly on gift/product
+  boxes), not a code bug. This closes most of the gap but not all of it: a
+  stack of boxes carried IN SOMEONE'S ARMS, partially occluded by their own
+  body, can still score near zero and go undetected even with the lower
+  bar — a different, harder problem than a plainly-visible box sitting on a
+  doorstep.
 - **A "Detect faces" button highlights every face at once, independent of
   any question.** When a citation's image/frame has at least one confidently
   detected "Human face," a "Detect faces" button appears above it — click it

@@ -123,6 +123,15 @@ export function useRagChat(context: ToolChatContext) {
 
   const loadingLabel = deepSearch && agentStep ? (STEP_LABELS[agentStep] ?? "Thinking…") : "Thinking…";
 
+  // Deleting a document (DocumentTray's "x") only removed it from the left
+  // "Session sources" list — the Evidence panel's `sources` state is a flat
+  // snapshot of whichever question was last answered, so a citation from
+  // the just-removed doc stayed visible and clickable even though its
+  // backend chunk was already deleted. Strips it out immediately instead.
+  const removeSourceFromEvidence = useCallback((source: string) => {
+    setSources(s => s.filter(x => x.source !== source));
+  }, []);
+
   const clearChat = useCallback(() => {
     setMessages([]); setSources([]); setSourcesOpen(false);
     setLowConfidence(false); setCacheHit(false); setLatencyMs(null);
@@ -337,7 +346,7 @@ export function useRagChat(context: ToolChatContext) {
     entityTypeFilter, setEntityTypeFilter,
     shareToken, setShareToken,
     providerConfig, accentColor, loadingLabel,
-    handleProviderChange, enableJina, send, stop, regenerateLastAnswer, clearChat, onKeyDown,
+    handleProviderChange, enableJina, send, stop, regenerateLastAnswer, clearChat, removeSourceFromEvidence, onKeyDown,
     bottomRef, inputRef,
   };
 }
