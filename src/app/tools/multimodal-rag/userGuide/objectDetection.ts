@@ -135,6 +135,16 @@ meant to place things in general terms, not measure them precisely.
   backend endpoint was needed. It's the same general-purpose detector as
   everything else on this page, not a model trained specifically for
   weapons/explosives — treat a hit as worth a closer look, not a certainty.
+- **"Crowd density" shows a real headcount, not just a box count.** When a
+  citation's image/frame has more than one confidently detected person,
+  "Crowd density (N)" appears in the dropdown — pick it to see the actual
+  number, not a box overlay (drawing 40+ overlapping boxes on a crowd photo
+  would just be visual noise). This number is deliberately NOT the same as
+  "Detect objects"'s count: that list caps at 8 detections total across
+  every class for box-drawing, so a genuinely busy photo would silently
+  undercount there. Crowd density reads the real, uncapped detection count
+  instead — still an estimate, and heavy overlap/occlusion in a dense crowd
+  (people hidden behind others) can undercount the true number in frame.
 - **"Check for tampering" flags possible photo editing.** Where available,
   "Check for tampering (N)" runs three independent statistical checks —
   compression-error analysis (ELA), sensor-noise-texture analysis, and

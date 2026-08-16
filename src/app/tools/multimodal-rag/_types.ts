@@ -36,7 +36,12 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
    * not a labeled detector. */
   tampering?: DetectedObject[] | null;
   /** Near-duplicate matches (backlog item 3) — see DuplicateMatch above. */
-  duplicates?: DuplicateMatch[] | null };
+  duplicates?: DuplicateMatch[] | null;
+  /** Real, uncapped count of Person-class detections (crowd density) —
+   * deliberately separate from `objects`, which caps at _MAX_DETECTIONS
+   * (8) server-side for box-drawing UI and would undercount a real crowd
+   * photo. See mm_objects.py's detect_objects() docstring. */
+  personCount?: number | null };
 export type TextSegment = { page: number | null; text: string };
 /** A citation's persisted region-removal state (Image Inpainting & Object
  * Remover) — one per edited page, lifted into MmRagRunner's `documents`

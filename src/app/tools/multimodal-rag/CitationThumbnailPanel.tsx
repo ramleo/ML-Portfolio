@@ -80,6 +80,10 @@ type Props = {
    * closely matches that whole other page," not a sub-region, so it renders
    * as a plain list (same shape as `similar` below), not a box overlay. */
   duplicates?: DuplicateMatch[] | null;
+  /** Real, uncapped count of Person-class detections (crowd density) — see
+   * mm_objects.py's detect_objects() docstring for why this is a separate
+   * field from `objects` rather than just `objects.filter(...).length`. */
+  personCount?: number | null;
   /** This document's persisted region-removal edits (Image Inpainting &
    * Object Remover), keyed by page number as a string — lifted up to
    * MmRagRunner's `documents` state so an edit survives switching to a
@@ -99,9 +103,9 @@ const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weap
 // photo of a kitchen counter.
 const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword", "Bomb", "Missile"]);
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, personCount, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -160,7 +164,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const weaponsToShow = isImageOrVideoOnly && visualAction === "weapons" ? weapons : [];
   const objectsToShow = isImageOrVideoOnly
     ? (visualAction === "objects" ? (objects ?? [])
-      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering" || visualAction === "plates" || visualAction === "weapons") ? [] : (matchedObjects ?? []))
+      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering" || visualAction === "plates" || visualAction === "weapons" || visualAction === "crowd") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
 
   // Shared box+label overlay renderer (faces/objects/signatures/tampering
@@ -216,6 +220,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         page={page} chunkType={chunkType} visualAction={visualAction} onVisualAction={setVisualAction}
         isImageOrVideoOnly={isImageOrVideoOnly} captionText={captionText} objects={objects} faces={faces}
         entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} weapons={weapons} tampering={tampering}
+        personCount={personCount}
         duplicates={duplicates} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
         canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); }}
         sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened} setViewSharpened={setViewSharpened}
@@ -322,7 +327,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       </div>
       <CitationResultsPanel inpaintError={inpaintError || sharpenError} isImageOrVideoOnly={isImageOrVideoOnly}
         visualAction={visualAction} captionText={captionText} objects={objects} entities={entities}
-        piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} isCovered={isCovered}
+        piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} personCount={personCount} isCovered={isCovered}
         similarNote={similarNote} similar={similar} />
     </div>
   );
