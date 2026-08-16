@@ -40,6 +40,13 @@ that answer came from — click one to expand it and see more.
   (the AI's description) AND list every date printed on the graphic (the
   OCR reading) — so you can ask both "what does this chart show" and
   "what's the exact date next to milestone 3" and get real answers either way.
+- **"Read aloud" plays a citation's caption as speech.** Open "Choose an
+  action…" on an image/video citation and pick "Describe (caption + OCR)" —
+  once the caption text appears, a "Read aloud" button sits right above it.
+  Click it to hear that description spoken using your browser's own
+  text-to-speech voices (entirely on your device, no server call); click
+  "Stop reading" to cancel partway through. Only one citation reads at a
+  time — starting another automatically stops whichever was already playing.
 - **Click to expand and see a thumbnail.** Every citation can be clicked
   open to show a thumbnail of the actual page or image it came from, so
   you can visually confirm it yourself.

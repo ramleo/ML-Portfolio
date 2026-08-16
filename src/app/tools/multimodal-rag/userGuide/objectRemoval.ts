@@ -64,6 +64,22 @@ see the object-detection section for which dropdown options need that).
   to "Reset" once at least one edit exists — click it to get a PNG of the
   image exactly as currently shown, removals and any added content
   included.
+- **"Embed watermark" / "Verify watermark" buttons.** Also always available
+  above any citation's own image (same requirement as "Draw region" — a page
+  image has to exist). "Embed watermark" downloads a copy of whatever's
+  currently on screen (original, sharpened, or edited — respects any prior
+  removal/fill/sharpen already applied) with an invisible tag hidden directly
+  in the pixel data. "Verify watermark" checks any image — the one on screen,
+  or a re-upload of that downloaded file later — and shows a green checkmark
+  with the recovered label and a confidence percentage if the tag is there,
+  or "No watermark detected" if it isn't. This is unrelated to the
+  "Traceable watermark" stamped on shared-session links (see "Sharing a
+  session" below) — that's a visible screen-tracing tag added automatically
+  to a shared view; this is an invisible, opt-in tag you embed yourself into
+  one specific image's pixel data, verifiable later even outside this tool.
+  It survives a normal re-save (e.g. re-exporting as JPEG at reasonable
+  quality) but breaks if the image is resized, since the tag is tied to the
+  image's exact pixel dimensions.
 - **Edits are kept in memory for the session, not saved permanently.** Switch
   to a different citation and back and your removals/fills are still there;
   reload the page and they're gone, same as the rest of this tool's
