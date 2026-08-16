@@ -11,6 +11,11 @@ type Props = {
   inpainting: boolean;
   isCovered: (bbox: Bbox) => boolean;
   runInpaint: (bbox: Bbox, mask?: [number, number][] | null) => void;
+  /** Plate detections only (for now) — one click runs the existing
+   * corroborated region-sharpen+OCR flow (mm_deblur.py's _sharpen_region)
+   * scoped to this exact box, instead of making the user manually drag a
+   * "Sharpen region…" box around the plate themselves. */
+  onReadAction?: (bbox: Bbox) => void;
 };
 
 /** Shared box+label overlay renderer — faces/objects/signatures/tampering
@@ -18,7 +23,7 @@ type Props = {
  * differing only in color and label text. Split out of
  * CitationThumbnailPanel.tsx (already at its 400-line cap) once this was
  * a third+ near-identical copy worth factoring. */
-export default function DetectionBoxOverlay({ list: fullList, color, labelFor, allowRemove, canEdit, inpainting, isCovered, runInpaint }: Props) {
+export default function DetectionBoxOverlay({ list: fullList, color, labelFor, allowRemove, canEdit, inpainting, isCovered, runInpaint, onReadAction }: Props) {
   // Drop any detection whose box now mostly overlaps an already-removed
   // (white-filled) region — otherwise a sub-detection like "Bicycle wheel"
   // keeps showing a clickable box over blank space after the whole
@@ -76,6 +81,14 @@ export default function DetectionBoxOverlay({ list: fullList, color, labelFor, a
                 style={{ top: -7, right: -7, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1, boxShadow: "0 0 0 2px rgba(0,0,0,0.4)" }}
                 title="Remove this region">
                 ✕
+              </button>
+            )}
+            {onReadAction && (
+              <button onClick={() => onReadAction(o.bbox)}
+                className="absolute pointer-events-auto text-[9px] font-bold px-1.5 py-0.5 rounded hover:brightness-110"
+                style={{ bottom: -18, left: 2, background: color, color: "#0b0b12", whiteSpace: "nowrap" }}
+                title="Sharpen this region and read it back">
+                Read plate
               </button>
             )}
           </div>

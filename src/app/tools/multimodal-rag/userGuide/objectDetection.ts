@@ -98,6 +98,17 @@ meant to place things in general terms, not measure them precisely.
   signatures (N)" appears in the "Choose an action…" dropdown — pick it to
   draw a pink box (with confidence %) around each one. Useful for scanning a
   contract or form photo for where it was actually signed.
+- **"Detect plates" finds vehicle license/registration plates, with a
+  one-click reader.** When a citation's image/frame has at least one
+  confidently detected plate, "Detect plates (N)" appears in the dropdown —
+  pick it to draw a blue box around each one. Each box has its own "Read
+  plate" button: click it and the SAME corroborated sharpen+OCR flow behind
+  "Sharpen region…" (see the citations section below) runs automatically,
+  scoped to exactly that box, no manual dragging needed. That corroboration
+  matters here specifically — a real incident on a blurred plate photo saw
+  the AI invent a different, entirely fake reading on two separate attempts,
+  which is exactly the failure mode "Sharpen region…"'s double-read
+  agreement check exists to catch rather than silently trust.
 - **"Check for tampering" flags possible photo editing.** Where available,
   "Check for tampering (N)" runs three independent statistical checks —
   compression-error analysis (ELA), sensor-noise-texture analysis, and

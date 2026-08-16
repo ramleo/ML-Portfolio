@@ -1,0 +1,147 @@
+"use client";
+
+import { SharpenButtons } from "./SharpenControls";
+import WatermarkControls from "./WatermarkControls";
+import type { DetectedObject } from "./_types";
+
+const ACCENT = "#a78bfa";
+const FACE_COLOR = "#fbbf24";
+const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
+
+export type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates";
+
+type Props = {
+  page: number;
+  chunkType: string | null | undefined;
+  visualAction: VisualAction;
+  onVisualAction: (v: VisualAction) => void;
+  isImageOrVideoOnly: boolean;
+  captionText?: string | null;
+  objects?: DetectedObject[] | null;
+  faces: DetectedObject[];
+  entities?: unknown[] | null;
+  piiTypes?: string | null;
+  signatures?: DetectedObject[] | null;
+  plates: DetectedObject[];
+  tampering?: DetectedObject[] | null;
+  duplicates?: unknown[] | null;
+  canFindSimilar: boolean;
+  loadingSimilar: boolean;
+  onFindSimilar: () => void;
+  canEdit: boolean;
+  drawMode: boolean;
+  onToggleDraw: () => void;
+  sharpening: boolean;
+  sharpenedImg: string | null;
+  viewSharpened: boolean;
+  setViewSharpened: (fn: (v: boolean) => boolean) => void;
+  regionMode: boolean;
+  setRegionMode: (fn: (v: boolean) => boolean) => void;
+  setDrawMode: (v: boolean) => void;
+  onSharpenWhole: () => void;
+  onCancelSharpen: () => void;
+  downloadTarget: string | null;
+  onDownload: () => void;
+  resultImg: string | null;
+  onReset: () => void;
+  watermarkImg: string;
+  source: string;
+  showFaces: boolean;
+  setShowFaces: (fn: (v: boolean) => boolean) => void;
+};
+
+/** Header button row above a citation's image — the "Choose an action…"
+ * dropdown plus every always-available edit/detect button (Draw region,
+ * Sharpen, Download, Reset, watermark, legacy Detect faces/Find similar for
+ * non-image/video citations). Split out of CitationThumbnailPanel.tsx once
+ * it neared the project's 400-line cap again after the plates/watermark
+ * additions — purely a presentational extraction, parent still owns all
+ * the underlying state and hooks. */
+export default function CitationToolbar({
+  page, chunkType, visualAction, onVisualAction, isImageOrVideoOnly, captionText, objects, faces, entities, piiTypes,
+  signatures, plates, tampering, duplicates, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
+  onToggleDraw, sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode,
+  onSharpenWhole, onCancelSharpen, downloadTarget, onDownload, resultImg, onReset, watermarkImg, source, showFaces, setShowFaces,
+}: Props) {
+  return (
+    <div className="flex items-center justify-between px-3 py-1.5" style={{ background: "rgba(255,255,255,0.03)" }}>
+      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
+        Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {isImageOrVideoOnly ? (
+          <select value={visualAction} onChange={e => {
+              const v = e.target.value as VisualAction;
+              onVisualAction(v);
+              if (v === "similar") onFindSimilar();
+            }}
+            className="text-[9px] rounded border"
+            style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
+            <option value="">Choose an action…</option>
+            {captionText && <option value="description">Describe (caption + OCR)</option>}
+            {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
+            {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
+            {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
+            {piiTypes && <option value="pii">PII detected</option>}
+            {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
+            {plates.length > 0 && <option value="plates">Detect plates ({plates.length})</option>}
+            {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
+            {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
+            {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
+              <option value="similar">Find visually similar</option>
+            )}
+          </select>
+        ) : null}
+        {canEdit && (
+          <button onClick={onToggleDraw}
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            style={drawMode
+              ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
+              : { borderColor: `${ACCENT}40`, color: ACCENT }}>
+            {drawMode ? "Stop drawing" : "Draw region"}
+          </button>
+        )}
+        {canEdit && (
+          <SharpenButtons sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
+            setViewSharpened={setViewSharpened} regionMode={regionMode} setRegionMode={setRegionMode}
+            setDrawMode={setDrawMode} onSharpenWhole={onSharpenWhole} onCancel={onCancelSharpen} />
+        )}
+        {canEdit && downloadTarget && (
+          <button onClick={onDownload}
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
+            Download
+          </button>
+        )}
+        {canEdit && resultImg && (
+          <button onClick={onReset}
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
+            Reset
+          </button>
+        )}
+        {canEdit && <WatermarkControls img={watermarkImg} source={source} page={page} />}
+        {!isImageOrVideoOnly && (
+          <>
+            {faces.length > 0 && (
+              <button onClick={() => setShowFaces(v => !v)}
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                style={showFaces
+                  ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
+                  : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
+                {showFaces ? "Hide faces" : `Detect faces (${faces.length})`}
+              </button>
+            )}
+            {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
+              <button onClick={onFindSimilar} disabled={loadingSimilar}
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
+                {loadingSimilar ? "Checking…" : "Find similar figures"}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

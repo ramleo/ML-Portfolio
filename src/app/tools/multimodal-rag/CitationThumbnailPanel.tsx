@@ -4,11 +4,11 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import { useSharpen } from "./useSharpen";
-import { SharpenButtons, SharpenOverlay } from "./SharpenControls";
+import { SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import AddContentControls from "./AddContentControls";
-import WatermarkControls from "./WatermarkControls";
+import CitationToolbar from "./CitationToolbar";
 import DetectionBoxOverlay from "./DetectionBoxOverlay";
 import { downloadBase64Image } from "./imageComposite";
 import { tamperingLevel } from "./tamperingLevel";
@@ -89,12 +89,12 @@ type Props = {
   onEditChange?: (page: number, edit: PersistedEdit | null) => void;
 };
 
-const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and the static table/figure accent
 const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
 const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent from the other detection colors
+const PLATE_COLOR = "#60a5fa"; // distinct from every other detection accent
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates";
 
 export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
@@ -112,6 +112,11 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // convention already relies on elsewhere in this file.
   const [regionMode, setRegionMode] = useState(false);
   const faces = (objects ?? []).filter(o => o.label === "Human face");
+  // "Detect plates" — no separate backend field, unlike signatures/tampering
+  // above: the 601-class object detector already outputs "Vehicle
+  // registration plate" like any other class, so this is just a client-side
+  // filter of the same `objects` list "Detect objects" already uses.
+  const plates = (objects ?? []).filter(o => o.label === "Vehicle registration plate");
   // "Remove object" (Image Inpainting & Object Remover) — a disposable edit
   // over whichever page image is currently shown; called with a `page` on
   // Props (not `img`, only computed after the early return below) since the
@@ -143,17 +148,18 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
     : (showFaces ? faces : []);
   const signaturesToShow = isImageOrVideoOnly && visualAction === "signatures" ? (signatures ?? []) : [];
   const tamperingToShow = isImageOrVideoOnly && visualAction === "tampering" ? (tampering ?? []) : [];
+  const platesToShow = isImageOrVideoOnly && visualAction === "plates" ? plates : [];
   const objectsToShow = isImageOrVideoOnly
     ? (visualAction === "objects" ? (objects ?? [])
-      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering") ? [] : (matchedObjects ?? []))
+      : (visualAction === "faces" || visualAction === "signatures" || visualAction === "tampering" || visualAction === "plates") ? [] : (matchedObjects ?? []))
     : (showFaces ? [] : (matchedObjects ?? []));
 
   // Shared box+label overlay renderer (faces/objects/signatures/tampering
   // all draw the identical shape) — factored out into DetectionBoxOverlay.tsx
   // once this file neared its 400-line cap.
-  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true) => (
+  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true, onReadAction?: (readBbox: Bbox) => void) => (
     <DetectionBoxOverlay list={fullList} color={color} labelFor={labelFor} allowRemove={allowRemove}
-      canEdit={canEdit} inpainting={inpainting} isCovered={isCovered} runInpaint={runInpaint} />
+      canEdit={canEdit} inpainting={inpainting} isCovered={isCovered} runInpaint={runInpaint} onReadAction={onReadAction} />
   );
 
   if (!page || page < 1 || page > pageImages.length) return null;
@@ -193,104 +199,25 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
     }
   };
 
+  const downloadTarget = sharpenedImg && viewSharpened ? sharpenedImg : resultImg;
+
   return (
     <div className="rounded-xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-      <div className="flex items-center justify-between px-3 py-1.5"
-        style={{ background: "rgba(255,255,255,0.03)" }}>
-        <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
-          Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
-        </span>
-        <div className="flex items-center gap-1.5">
-          {isImageOrVideoOnly ? (
-            <select value={visualAction} onChange={e => {
-                const v = e.target.value as VisualAction;
-                setVisualAction(v);
-                if (v === "similar") findSimilar();
-              }}
-              className="text-[9px] rounded border"
-              style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
-              <option value="">Choose an action…</option>
-              {captionText && <option value="description">Describe (caption + OCR)</option>}
-              {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
-              {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
-              {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
-              {piiTypes && <option value="pii">PII detected</option>}
-              {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
-              {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
-              {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
-              {/* In image/video-only mode the clicked citation might be a
-                  sibling "table"/OCR chunk of the same underlying photo
-                  (e.g. Mistral OCR misreading the background as a table) —
-                  the figure/image chunkType check below only makes sense
-                  for a PDF's multiple distinct citation types, so it's
-                  skipped here; there's only ever one real photo either way. */}
-              {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
-                <option value="similar">Find visually similar</option>
-              )}
-            </select>
-          ) : null}
-          {canEdit && (
-            <button onClick={() => { setDrawMode(v => !v); setRegionMode(false); }}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={drawMode
-                ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-                : { borderColor: `${ACCENT}40`, color: ACCENT }}>
-              {drawMode ? "Stop drawing" : "Draw region"}
-            </button>
-          )}
-          {/* Sharpen no longer gates on the "blurry" heuristic (blur.py) —
-              that's a WHOLE-IMAGE score, so a photo that's mostly sharp with
-              only a small locally-blurred area (e.g. a deliberately blurred
-              logo/plate on an otherwise crisp product photo) never trips
-              it. Always available instead, same as Draw region/Download. */}
-          {canEdit && (
-            <SharpenButtons sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
-              setViewSharpened={setViewSharpened} regionMode={regionMode} setRegionMode={setRegionMode}
-              setDrawMode={setDrawMode} onSharpenWhole={() => sharpen(resultImg ?? img)} onCancel={cancelSharpen} />
-          )}
-          {/* Downloads whatever's actually ON SCREEN right now — previously
-              only ever resultImg (an inpaint edit), so a citation sharpened
-              but never removed/filled had no Download at all. Same
-              viewSharpened-first precedence as the <img> src below. */}
-          {canEdit && (sharpenedImg && viewSharpened ? sharpenedImg : resultImg) && (
-            <button onClick={() => downloadBase64Image(sharpenedImg && viewSharpened ? sharpenedImg : resultImg!, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
-              Download
-            </button>
-          )}
-          {canEdit && resultImg && (
-            <button onClick={resetInpaint}
-              className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-              style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
-              Reset
-            </button>
-          )}
-          {canEdit && (
-            <WatermarkControls img={sharpenedImg && viewSharpened ? sharpenedImg : (resultImg ?? img)} source={source} page={page} />
-          )}
-          {!isImageOrVideoOnly && (
-            <>
-              {faces.length > 0 && (
-                <button onClick={() => setShowFaces(v => !v)}
-                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                  style={showFaces
-                    ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
-                    : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
-                  {showFaces ? "Hide faces" : `Detect faces (${faces.length})`}
-                </button>
-              )}
-              {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
-                <button onClick={findSimilar} disabled={loadingSimilar}
-                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                  style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
-                  {loadingSimilar ? "Checking…" : "Find similar figures"}
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <CitationToolbar
+        page={page} chunkType={chunkType} visualAction={visualAction} onVisualAction={setVisualAction}
+        isImageOrVideoOnly={isImageOrVideoOnly} captionText={captionText} objects={objects} faces={faces}
+        entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} tampering={tampering}
+        duplicates={duplicates} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
+        canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); }}
+        sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened} setViewSharpened={setViewSharpened}
+        regionMode={regionMode} setRegionMode={setRegionMode} setDrawMode={setDrawMode}
+        onSharpenWhole={() => sharpen(resultImg ?? img)} onCancelSharpen={cancelSharpen}
+        downloadTarget={downloadTarget}
+        onDownload={() => downloadBase64Image(downloadTarget!, `${source.replace(/\.[^/.]+$/, "")}-page${page}-edited.png`)}
+        resultImg={resultImg} onReset={resetInpaint}
+        watermarkImg={sharpenedImg && viewSharpened ? sharpenedImg : (resultImg ?? img)} source={source}
+        showFaces={showFaces} setShowFaces={setShowFaces}
+      />
       {/* No objectFit/maxHeight on the <img> itself — a capped, shrunk image
           can letterbox (blank bars) inside its box, which would throw off a
           percentage-positioned bbox overlay. Full width + auto height keeps
@@ -348,6 +275,9 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             ? renderBoxes(signaturesToShow, SIGNATURE_COLOR, s => `Signature (${Math.round(s.confidence * 100)}%)`)
             : tamperingToShow.length > 0
             ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => tamperingLevel(t.confidence), false)
+            : platesToShow.length > 0
+            ? renderBoxes(platesToShow, PLATE_COLOR, p => `Plate (${Math.round(p.confidence * 100)}%)`, true,
+                plateBbox => sharpen(resultImg ?? img, plateBbox))
             : objectsToShow.length > 0
             ? renderBoxes(objectsToShow, OBJECT_COLOR, obj => `${obj.label} (${Math.round(obj.confidence * 100)}%)`)
             : bbox && (
