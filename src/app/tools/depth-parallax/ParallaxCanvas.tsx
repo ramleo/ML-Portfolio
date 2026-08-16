@@ -1,116 +1,104 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { loadImage, createProgram, makeTexture, setupFullscreenQuad, FULLSCREEN_VERT_SRC } from "./webglUtils";
 
-const GRID_COLS = 40;
-const MAX_SHIFT_PX = 18;
-// Each tile is drawn slightly oversized so small shift differences between
-// neighboring tiles don't leave a hairline gap between them.
-const COVER_SCALE = 1.2;
-const DISPLAY_MAX_WIDTH = 480;
+// UV-space displacement amount, scaled by depth (0..1) and pointer offset (-1..1).
+const MAX_SHIFT_UV = 0.045;
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("image load failed"));
-    img.src = src;
-  });
+const FRAG_SRC = `
+precision mediump float;
+varying vec2 vUv;
+uniform sampler2D uImage;
+uniform sampler2D uDepth;
+uniform vec2 uPointer;
+uniform float uMaxShift;
+void main() {
+  float depth = texture2D(uDepth, vUv).r; // 0..1, higher = nearer
+  vec2 shift = depth * uMaxShift * vec2(uPointer.x * 2.0, uPointer.y * 2.0 * 0.6);
+  vec2 sampleUv = clamp(vUv - shift, 0.0, 1.0);
+  gl_FragColor = texture2D(uImage, sampleUv);
 }
+`;
 
-/** Grid-tile parallax approximation, not true per-pixel displacement (that
- * would need a WebGL shader) — slices the photo into a GRID_COLS x rows
- * mosaic and offsets each tile by its sampled depth value times the pointer
- * position, so nearer tiles (brighter in the depth map) shift further than
- * farther ones as the pointer moves. Draws an unshifted full-image base
- * layer first, then the shifted tiles on top sorted far-to-near — real
- * testing on a bike photo (thin spokes against a very different-depth
- * background) showed neighboring tiles with a big depth gap tearing apart
- * and exposing bare canvas as jagged black gaps; the base layer plus
- * depth-sorted draw order means a shifted tile's vacated spot always shows
- * the base image underneath, never emptiness. */
+/** True per-pixel depth-driven displacement, via a WebGL fragment shader —
+ * not a discrete grid-tile approximation (that approach, tried first, tore
+ * visibly apart on high-frequency detail like bicycle spokes sitting right
+ * next to a very different-depth background: neighboring tiles shifted by
+ * very different amounts and exposed gaps between them). Sampling every
+ * pixel's own depth value and displacing continuously has no tile
+ * boundaries to tear at — the whole point of moving this to the GPU. */
 export default function ParallaxCanvas({
-  imageSrc, depthSrc, width, height,
-}: { imageSrc: string; depthSrc: string; width: number; height: number }) {
+  imageSrc, depthSrc, width, height, displayWidth,
+}: { imageSrc: string; depthSrc: string; width: number; height: number; displayWidth: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const depthGridRef = useRef<Float32Array | null>(null);
-  const drawOrderRef = useRef<Int32Array | null>(null); // tile indices, far-to-near
-  const rafRef = useRef<number | null>(null);
+  const glRef = useRef<WebGLRenderingContext | null>(null);
+  const pointerLocRef = useRef<WebGLUniformLocation | null>(null);
   const pointerRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
+  const [glError, setGlError] = useState(false);
 
-  const rows = Math.max(1, Math.round((GRID_COLS * height) / width));
-  const dispW = Math.min(DISPLAY_MAX_WIDTH, width);
+  const dispW = Math.min(displayWidth, width);
   const dispH = Math.round((dispW * height) / width);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctxOpts = { preserveDrawingBuffer: true };
+      const gl = (canvas.getContext("webgl2", ctxOpts) || canvas.getContext("webgl", ctxOpts)) as WebGLRenderingContext | null;
+      if (!gl) { setGlError(true); return; }
+      glRef.current = gl;
+
       try {
         const [img, depthImg] = await Promise.all([loadImage(imageSrc), loadImage(depthSrc)]);
         if (cancelled) return;
-        imgRef.current = img;
 
-        const small = document.createElement("canvas");
-        small.width = GRID_COLS;
-        small.height = rows;
-        const sctx = small.getContext("2d");
-        if (!sctx) return;
-        sctx.drawImage(depthImg, 0, 0, GRID_COLS, rows);
-        const data = sctx.getImageData(0, 0, GRID_COLS, rows).data;
-        const grid = new Float32Array(GRID_COLS * rows);
-        for (let i = 0; i < GRID_COLS * rows; i++) grid[i] = data[i * 4] / 255;
-        depthGridRef.current = grid;
+        const program = createProgram(gl, FULLSCREEN_VERT_SRC, FRAG_SRC);
+        gl.useProgram(program);
+        setupFullscreenQuad(gl, program);
 
-        // Draw farthest tiles first, nearest last — nearer tiles shift the
-        // most, so painting them on top of the (barely-shifted) far layer
-        // means any seam they leave behind is covered by the far layer,
-        // never by empty canvas.
-        const order = Array.from({ length: grid.length }, (_, i) => i);
-        order.sort((a, b) => grid[a] - grid[b]);
-        drawOrderRef.current = Int32Array.from(order);
+        const imageTex = makeTexture(gl, img);
+        const depthTex = makeTexture(gl, depthImg);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, imageTex);
+        gl.uniform1i(gl.getUniformLocation(program, "uImage"), 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, depthTex);
+        gl.uniform1i(gl.getUniformLocation(program, "uDepth"), 1);
+
+        gl.uniform1f(gl.getUniformLocation(program, "uMaxShift"), MAX_SHIFT_UV);
+        pointerLocRef.current = gl.getUniformLocation(program, "uPointer");
 
         setReady(true);
       } catch {
-        // leave ready=false — the parent shows nothing further, the upload
-        // itself already succeeded so this is a rare secondary failure
+        setGlError(true);
       }
     })();
     return () => { cancelled = true; };
-  }, [imageSrc, depthSrc, rows]);
+  }, [imageSrc, depthSrc]);
 
   useEffect(() => {
     if (!ready) return;
+    const gl = glRef.current;
     const canvas = canvasRef.current;
-    const img = imgRef.current;
-    const grid = depthGridRef.current;
-    const order = drawOrderRef.current;
     const container = containerRef.current;
-    if (!canvas || !img || !grid || !order || !container) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const pointerLoc = pointerLocRef.current;
+    if (!gl || !canvas || !container) return;
 
-    const cw = canvas.width, ch = canvas.height;
-    const tileW = cw / GRID_COLS, tileH = ch / rows;
-    const srcTileW = img.naturalWidth / GRID_COLS, srcTileH = img.naturalHeight / rows;
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    canvas.width = Math.round(dispW * dpr);
+    canvas.height = Math.round(dispH * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
 
     const draw = () => {
-      const { x: px, y: py } = pointerRef.current;
-      // Base layer: the whole photo, unshifted — guarantees there's never
-      // empty canvas showing through, whatever the shifted tiles above it do.
-      ctx.drawImage(img, 0, 0, cw, ch);
-      for (const idx of order) {
-        const r = Math.floor(idx / GRID_COLS), c = idx % GRID_COLS;
-        const depth = grid[idx]; // 0..1, higher = nearer
-        const dx = depth * MAX_SHIFT_PX * px * 2;
-        const dy = depth * MAX_SHIFT_PX * py * 2 * 0.6;
-        const dw = tileW * COVER_SCALE, dh = tileH * COVER_SCALE;
-        const dxPos = c * tileW - (dw - tileW) / 2 + dx;
-        const dyPos = r * tileH - (dh - tileH) / 2 + dy;
-        ctx.drawImage(img, c * srcTileW, r * srcTileH, srcTileW, srcTileH, dxPos, dyPos, dw, dh);
-      }
+      gl.uniform2f(pointerLoc, pointerRef.current.x, pointerRef.current.y);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
 
     const onMove = (e: PointerEvent) => {
@@ -133,13 +121,14 @@ export default function ParallaxCanvas({
       container.removeEventListener("pointerleave", onLeave);
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ready, rows]);
+  }, [ready, dispW, dispH]);
 
   return (
     <div ref={containerRef} className="relative rounded-xl overflow-hidden mx-auto"
       style={{ width: dispW, height: dispH, background: "#0a0f1a", touchAction: "none" }}>
-      <canvas ref={canvasRef} width={dispW} height={dispH} style={{ width: "100%", height: "100%" }} />
-      {!ready && (
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: glError ? "none" : "block" }} />
+      {glError && <img src={imageSrc} alt="" className="w-full h-full object-cover" />}
+      {!ready && !glError && (
         <div className="absolute inset-0 flex items-center justify-center text-xs" style={{ color: "var(--text3)" }}>
           Loading…
         </div>
