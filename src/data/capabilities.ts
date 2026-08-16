@@ -274,6 +274,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/text-to-image",
   },
+  {
+    id: "face-liveness",
+    title: "Face Liveness Detector",
+    subtitle: "Real vs. Spoofed",
+    description:
+      "Show your face to your camera (or upload a photo) and it checks whether it's a genuinely live face or a spoofed presentation — a printed photo, a phone/screen replay. Same category of check that gates face-unlock and identity-verification systems. Pure local ONNX inference, no API key or budget cost.",
+    accent: "#14b8a6",
+    stat: "600KB",
+    statLabel: "Model Size",
+    model: "MiniFASNetV2-SE (ONNX)",
+    input: "Webcam or photo",
+    tags: ["Biometric Security", "Anti-Spoofing", "ONNX", "Computer Vision"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/face-liveness",
+  },
 ];
 
 export default capabilities;
