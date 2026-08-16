@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 
 const GRID_COLS = 40;
 const MAX_SHIFT_PX = 18;
-// Each tile is drawn slightly oversized so a shifted tile's edge doesn't
-// reveal a gap of empty canvas behind it.
-const COVER_SCALE = 1.12;
+// Each tile is drawn slightly oversized so small shift differences between
+// neighboring tiles don't leave a hairline gap between them.
+const COVER_SCALE = 1.2;
 const DISPLAY_MAX_WIDTH = 480;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -22,8 +22,13 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * would need a WebGL shader) — slices the photo into a GRID_COLS x rows
  * mosaic and offsets each tile by its sampled depth value times the pointer
  * position, so nearer tiles (brighter in the depth map) shift further than
- * farther ones as the pointer moves. Cheap, canvas-2D-only, and visually
- * reads as a real parallax "diorama" effect at this grid density. */
+ * farther ones as the pointer moves. Draws an unshifted full-image base
+ * layer first, then the shifted tiles on top sorted far-to-near — real
+ * testing on a bike photo (thin spokes against a very different-depth
+ * background) showed neighboring tiles with a big depth gap tearing apart
+ * and exposing bare canvas as jagged black gaps; the base layer plus
+ * depth-sorted draw order means a shifted tile's vacated spot always shows
+ * the base image underneath, never emptiness. */
 export default function ParallaxCanvas({
   imageSrc, depthSrc, width, height,
 }: { imageSrc: string; depthSrc: string; width: number; height: number }) {
@@ -31,6 +36,7 @@ export default function ParallaxCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const depthGridRef = useRef<Float32Array | null>(null);
+  const drawOrderRef = useRef<Int32Array | null>(null); // tile indices, far-to-near
   const rafRef = useRef<number | null>(null);
   const pointerRef = useRef({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
@@ -57,6 +63,15 @@ export default function ParallaxCanvas({
         const grid = new Float32Array(GRID_COLS * rows);
         for (let i = 0; i < GRID_COLS * rows; i++) grid[i] = data[i * 4] / 255;
         depthGridRef.current = grid;
+
+        // Draw farthest tiles first, nearest last — nearer tiles shift the
+        // most, so painting them on top of the (barely-shifted) far layer
+        // means any seam they leave behind is covered by the far layer,
+        // never by empty canvas.
+        const order = Array.from({ length: grid.length }, (_, i) => i);
+        order.sort((a, b) => grid[a] - grid[b]);
+        drawOrderRef.current = Int32Array.from(order);
+
         setReady(true);
       } catch {
         // leave ready=false — the parent shows nothing further, the upload
@@ -71,8 +86,9 @@ export default function ParallaxCanvas({
     const canvas = canvasRef.current;
     const img = imgRef.current;
     const grid = depthGridRef.current;
+    const order = drawOrderRef.current;
     const container = containerRef.current;
-    if (!canvas || !img || !grid || !container) return;
+    if (!canvas || !img || !grid || !order || !container) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -82,17 +98,18 @@ export default function ParallaxCanvas({
 
     const draw = () => {
       const { x: px, y: py } = pointerRef.current;
-      ctx.clearRect(0, 0, cw, ch);
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
-          const depth = grid[r * GRID_COLS + c]; // 0..1, higher = nearer
-          const dx = depth * MAX_SHIFT_PX * px * 2;
-          const dy = depth * MAX_SHIFT_PX * py * 2 * 0.6;
-          const dw = tileW * COVER_SCALE, dh = tileH * COVER_SCALE;
-          const dxPos = c * tileW - (dw - tileW) / 2 + dx;
-          const dyPos = r * tileH - (dh - tileH) / 2 + dy;
-          ctx.drawImage(img, c * srcTileW, r * srcTileH, srcTileW, srcTileH, dxPos, dyPos, dw, dh);
-        }
+      // Base layer: the whole photo, unshifted — guarantees there's never
+      // empty canvas showing through, whatever the shifted tiles above it do.
+      ctx.drawImage(img, 0, 0, cw, ch);
+      for (const idx of order) {
+        const r = Math.floor(idx / GRID_COLS), c = idx % GRID_COLS;
+        const depth = grid[idx]; // 0..1, higher = nearer
+        const dx = depth * MAX_SHIFT_PX * px * 2;
+        const dy = depth * MAX_SHIFT_PX * py * 2 * 0.6;
+        const dw = tileW * COVER_SCALE, dh = tileH * COVER_SCALE;
+        const dxPos = c * tileW - (dw - tileW) / 2 + dx;
+        const dyPos = r * tileH - (dh - tileH) / 2 + dy;
+        ctx.drawImage(img, c * srcTileW, r * srcTileH, srcTileW, srcTileH, dxPos, dyPos, dw, dh);
       }
     };
 
