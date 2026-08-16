@@ -4,9 +4,21 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import DepthParallaxRunner from "./DepthParallaxRunner";
 
 const ACCENT = "#3b82f6";
+
+const TOOL_SUMMARY =
+  "Upload a single photo — a local ONNX model (Depth-Anything-V2-Small) estimates a per-pixel " +
+  "depth map, then five ways to use it: Parallax (move your pointer, near objects shift more than " +
+  "far ones), Depth map (the raw relative depth, brighter = nearer), Bokeh (click a point to keep it " +
+  "sharp, everything else blurs by distance from that point, like phone portrait mode), AR occlusion " +
+  "(click to place a marker, drag a depth slider — it hides behind anything in the photo that's " +
+  "actually nearer, demonstrating what real AR placement has to solve), and 3D relief (drag to shift " +
+  "the camera sideways over real displaced 3D geometry — near things move more than far things, a " +
+  "deliberately limited range since a single photo only ever saw one side of everything). " +
+  "Everything after the one upload runs locally in WebGL, no per-interaction API cost.";
 
 export default function DepthParallaxPage() {
   useToolTracking("depth-parallax");
@@ -16,6 +28,16 @@ export default function DepthParallaxPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Depth Parallax",
+        summary: TOOL_SUMMARY,
+        suggestions: [
+          "What does the depth map's brightness mean?",
+          "Why does the AR marker disappear sometimes?",
+          "What's the difference between Bokeh and 3D relief?",
+        ],
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">

@@ -8,6 +8,24 @@
 // needs to capture broad shape, not every strand — and no discarding at all.
 const SMOOTH_RADIUS = 5;
 
+// Depth is pushed toward zero over this many grid cells approaching every
+// edge. Without this, the mesh's own outer boundary carries whatever real
+// depth the photo has there (e.g. sky vs. road at a corner) — and since a
+// vertex pushed toward the camera projects larger while one pushed away
+// projects smaller, a straight photo edge with varying depth along it stops
+// projecting as a straight line under perspective. That reads as the whole
+// photo being warped/trapezoidal rather than "3D," especially once the
+// camera shifts off-center. Feathering keeps every boundary vertex flat
+// (zero displacement) so the silhouette always stays a clean rectangle —
+// only the interior, where it doesn't affect the outline, bulges with depth.
+const EDGE_FEATHER_CELLS = 6;
+
+function edgeFeather(r: number, c: number, rows: number, cols: number): number {
+  const dist = Math.min(c, cols - c, r, rows - r);
+  const t = Math.min(1, dist / EDGE_FEATHER_CELLS);
+  return t * t * (3 - 2 * t); // smoothstep: 0 at the border, 1 past EDGE_FEATHER_CELLS in
+}
+
 function smoothedDepthGrid(
   depthAt: (u: number, v: number) => number,
   cols: number,
@@ -67,7 +85,7 @@ export function buildReliefMesh(
       const u = c / cols;
       const x = (u - 0.5) * 2 * aspect;
       const y = (0.5 - v) * 2;
-      const z = gridAt(r, c) * depthScale;
+      const z = gridAt(r, c) * depthScale * edgeFeather(r, c, rows, cols);
       positions[p++] = x; positions[p++] = y; positions[p++] = z;
       // The color texture is uploaded with UNPACK_FLIP_Y_WEBGL (see
       // makeTexture) so v=0 lands on the photo's bottom row, not top — but
