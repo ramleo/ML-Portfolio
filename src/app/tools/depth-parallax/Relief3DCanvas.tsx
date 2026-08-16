@@ -6,7 +6,7 @@ import { buildReliefMesh } from "./reliefMesh";
 import * as m4 from "./mat4";
 
 const COLS = 70;
-const DEPTH_SCALE = 0.35;
+const DEPTH_SCALE = 0.22;
 // A single photo only ever saw its camera-facing surface — rotate further
 // than this and the unphotographed edges visibly stretch. Small on purpose.
 const YAW_LIMIT_RAD = (18 * Math.PI) / 180;

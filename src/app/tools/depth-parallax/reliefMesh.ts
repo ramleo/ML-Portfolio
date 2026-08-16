@@ -1,11 +1,12 @@
-// A quad spanning a real depth edge (e.g. bike silhouette against the
-// background) gets one corner near and the diagonal corner far — naive
-// displacement stretches that into a tall, spiky triangle. Averaging a
-// small neighborhood softens the worst of it; discarding quads whose
-// corners still disagree by more than this after smoothing turns the
-// remaining hard edges into a clean gap instead of a stretched spike.
-const SMOOTH_RADIUS = 1;
-const DISCONTINUITY_THRESHOLD = 0.22;
+// A first version discarded any mesh quad whose corners disagreed too much
+// after only a light smooth — that assumed depth is mostly flat with a few
+// clean object-boundary edges. Real photos aren't: bike spokes alternate
+// near/far every few pixels, gravel and leaves are naturally noisy at this
+// scale, so that approach punched holes all over the mesh, not just at the
+// bike's silhouette. The fix is heavier smoothing of the GEOMETRY only —
+// the color texture on top stays sharp regardless, the mesh underneath just
+// needs to capture broad shape, not every strand — and no discarding at all.
+const SMOOTH_RADIUS = 5;
 
 function smoothedDepthGrid(
   depthAt: (u: number, v: number) => number,
@@ -42,11 +43,10 @@ function smoothedDepthGrid(
  * only a small rotation range (see ROTATE_LIMIT_RAD in Relief3DCanvas) —
  * rotate further and you'd see the unphotographed sides stretch.
  *
- * Depth is smoothed before use and quads spanning a hard depth edge (a real
- * object boundary, not sensor noise) are skipped rather than drawn — a
- * first version drew every quad regardless, and object silhouettes turned
- * into ugly stretched spikes where the foreground met a very different
- * background depth. */
+ * Depth is heavily smoothed before use (see SMOOTH_RADIUS above) so fine
+ * real texture (spokes, gravel, leaves) doesn't turn into mesh spikes —
+ * the geometry only needs to capture broad shape, the photo texture on top
+ * still shows the real detail. */
 export function buildReliefMesh(
   depthAt: (u: number, v: number) => number,
   cols: number,
@@ -75,8 +75,7 @@ export function buildReliefMesh(
 
   // Uint16 (not Uint32) so this never needs the OES_element_index_uint
   // extension — safe as long as vertex count stays under 65536, true for
-  // any reasonable cols/rows here. Over-allocated (not every quad survives
-  // the discontinuity check) and sliced down to the real count at the end.
+  // any reasonable cols/rows here.
   const indices = new Uint16Array(cols * rows * 6);
   let i = 0;
   for (let r = 0; r < rows; r++) {
@@ -85,15 +84,10 @@ export function buildReliefMesh(
       const b = a + 1;
       const cIdx = a + (cols + 1);
       const d = cIdx + 1;
-
-      const corners = [gridAt(r, c), gridAt(r, c + 1), gridAt(r + 1, c), gridAt(r + 1, c + 1)];
-      const spread = Math.max(...corners) - Math.min(...corners);
-      if (spread > DISCONTINUITY_THRESHOLD) continue;
-
       indices[i++] = a; indices[i++] = cIdx; indices[i++] = b;
       indices[i++] = b; indices[i++] = cIdx; indices[i++] = d;
     }
   }
 
-  return { positions, uvs, indices: indices.slice(0, i) };
+  return { positions, uvs, indices };
 }

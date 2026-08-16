@@ -32,7 +32,7 @@ export function createProgram(gl: WebGLRenderingContext, vertSrc: string, fragSr
   return program;
 }
 
-export function makeTexture(gl: WebGLRenderingContext, img: HTMLImageElement): WebGLTexture {
+export function makeTexture(gl: WebGLRenderingContext, src: TexImageSource): WebGLTexture {
   const tex = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, tex);
   // Without this, WebGL uploads the image's rows in their on-disk order
@@ -40,12 +40,30 @@ export function makeTexture(gl: WebGLRenderingContext, img: HTMLImageElement): W
   // BOTTOM — every WebGL view (parallax/bokeh/AR occlusion/3D relief) ends
   // up upside down. This is the single shared fix point for all of them.
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   return tex;
+}
+
+/** Draws an image through a canvas blur filter — used to soften the depth
+ * map before it drives per-pixel UV displacement (Parallax). A raw depth
+ * map has real, correct hard edges (an object boundary), but sampling a
+ * *displacement* field at a hard edge means neighboring screen pixels can
+ * end up pulling from very different, unrelated source UVs — visible as
+ * streaky tearing right along edges once the shift is non-zero. Blurring
+ * only the map used to compute the shift (never the color image itself)
+ * trades a little precision right at edges for not tearing there. */
+export function blurredCanvas(img: HTMLImageElement, blurPx: number): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d")!;
+  ctx.filter = `blur(${blurPx}px)`;
+  ctx.drawImage(img, 0, 0);
+  return canvas;
 }
 
 /** Binds a full-screen [-1,1] quad to `aPos` in the given program — every

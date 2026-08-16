@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadImage, createProgram, makeTexture, setupFullscreenQuad, FULLSCREEN_VERT_SRC } from "./webglUtils";
+import { loadImage, createProgram, makeTexture, setupFullscreenQuad, blurredCanvas, FULLSCREEN_VERT_SRC } from "./webglUtils";
 
 // UV-space displacement amount, scaled by depth (0..1) and pointer offset (-1..1).
 const MAX_SHIFT_UV = 0.045;
+// Blur radius (px, at the depth map's own resolution) applied only to the
+// copy of the depth map used to compute displacement — real object edges
+// (e.g. a bike frame against the background) are genuine hard depth jumps,
+// but sampling a *displacement field* at a hard edge means neighboring
+// screen pixels can pull from very different source UVs, which reads as
+// streaky tearing right along the edge once the shift is non-zero.
+const DEPTH_BLUR_PX = 3;
 
 const FRAG_SRC = `
 precision mediump float;
@@ -62,7 +69,7 @@ export default function ParallaxCanvas({
         setupFullscreenQuad(gl, program);
 
         const imageTex = makeTexture(gl, img);
-        const depthTex = makeTexture(gl, depthImg);
+        const depthTex = makeTexture(gl, blurredCanvas(depthImg, DEPTH_BLUR_PX));
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, imageTex);
