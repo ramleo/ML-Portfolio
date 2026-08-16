@@ -5,16 +5,18 @@ import { useDepthEstimate } from "./useDepthEstimate";
 import ParallaxCanvas from "./ParallaxCanvas";
 import BokehCanvas from "./BokehCanvas";
 import ArOcclusionCanvas from "./ArOcclusionCanvas";
+import Relief3DCanvas from "./Relief3DCanvas";
 
 const ERROR_COLOR = "#f87171";
 const DISPLAY_MAX_WIDTH = 760;
 
-type View = "parallax" | "depth" | "bokeh" | "ar";
+type View = "parallax" | "depth" | "bokeh" | "ar" | "relief";
 const VIEWS: { id: View; label: string }[] = [
   { id: "parallax", label: "Parallax" },
   { id: "depth", label: "Depth map" },
   { id: "bokeh", label: "Bokeh" },
   { id: "ar", label: "AR occlusion" },
+  { id: "relief", label: "3D relief" },
 ];
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -31,12 +33,14 @@ const VIEW_CAPTIONS: Record<View, string> = {
   depth: "Relative depth only — brighter means nearer to the camera, not an exact distance.",
   bokeh: "Simulated shallow depth-of-field, driven by the same depth map — click to refocus.",
   ar: "A minimal demo of depth-aware occlusion for AR overlays — click to place a marker, then adjust its depth.",
+  relief: "Drag to tilt — real 3D geometry, not a screen-space trick. Deliberately limited rotation: a single photo only ever saw its camera-facing surface.",
 };
 
-/** Upload a photo → server estimates a depth map → four ways to use it:
+/** Upload a photo → server estimates a depth map → five ways to use it:
  * a live parallax diorama, the raw depth map, a simulated bokeh/portrait
- * effect, and a depth-aware AR occlusion demo. All four reuse the same one
- * server call — everything downstream is local WebGL. */
+ * effect, a depth-aware AR occlusion demo, and a draggable 3D relief. All
+ * five reuse the same one server call — everything downstream is local
+ * WebGL. */
 export default function DepthParallaxRunner({ accent }: { accent: string }) {
   const { loading, result, error, run, reset } = useDepthEstimate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,9 +71,9 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-4">
       <div style={cardStyle} className="p-6">
         <p className="text-sm mb-4" style={{ color: "var(--text3)" }}>
-          Upload a single photo and get a per-pixel depth map, then explore it four ways: a live
-          parallax diorama, the raw depth map, a simulated portrait-mode blur, and a depth-aware AR
-          occlusion demo. Pure local ONNX + WebGL, no API key or budget cost.
+          Upload a single photo and get a per-pixel depth map, then explore it five ways: a live
+          parallax diorama, the raw depth map, a simulated portrait-mode blur, a depth-aware AR
+          occlusion demo, and a draggable 3D relief. Pure local ONNX + WebGL, no API key or budget cost.
         </p>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -106,6 +110,9 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
             )}
             {view === "ar" && (
               <ArOcclusionCanvas imageSrc={imageSrc} depthSrc={result.depthMapUrl} width={result.width} height={result.height} displayWidth={DISPLAY_MAX_WIDTH} />
+            )}
+            {view === "relief" && (
+              <Relief3DCanvas imageSrc={imageSrc} depthSrc={result.depthMapUrl} width={result.width} height={result.height} displayWidth={DISPLAY_MAX_WIDTH} />
             )}
             <p className="text-xs text-center max-w-2xl" style={{ color: "var(--text3)" }}>
               {VIEW_CAPTIONS[view]}
