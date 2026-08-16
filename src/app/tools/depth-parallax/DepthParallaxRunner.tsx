@@ -10,6 +10,25 @@ import Relief3DCanvas from "./Relief3DCanvas";
 const ERROR_COLOR = "#f87171";
 const DISPLAY_MAX_WIDTH = 900;
 
+// Card chrome matches ProjectCard.tsx (the homepage's "Live ML Apps" cards)
+// and text-to-image/TextToImageRunner.tsx's Card: var(--bg-glass) + backdrop
+// blur + var(--border) + a colored 3px top bar in the page's own accent,
+// replacing this page's old plain flat rgba() card.
+function Card({ accent, children, className }: { accent: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div style={{
+      borderRadius: 16, overflow: "hidden",
+      background: "var(--bg-glass)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+      border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+    }}>
+      <div style={{ height: 3, background: accent }} />
+      <div className={className} style={{ padding: "1.5rem" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 type View = "parallax" | "depth" | "bokeh" | "ar" | "relief";
 const VIEWS: { id: View; label: string }[] = [
   { id: "parallax", label: "Parallax" },
@@ -56,10 +75,6 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
     run(b64);
   };
 
-  const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
-  };
-
   const tabStyle = (active: boolean): React.CSSProperties => ({
     fontSize: 12, padding: "6px 14px", borderRadius: 8, fontWeight: 600,
     background: active ? accent : "transparent",
@@ -69,7 +84,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div style={cardStyle} className="p-6">
+      <Card accent={accent} className="flex flex-col">
         <p className="text-sm mb-4" style={{ color: "var(--text3)" }}>
           Upload a single photo and get a per-pixel depth map, then explore it five ways: a live
           parallax diorama, the raw depth map, a simulated portrait-mode blur, a depth-aware AR
@@ -87,10 +102,10 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
         </div>
 
         {error && <p className="text-xs mt-2" style={{ color: ERROR_COLOR }}>{error}</p>}
-      </div>
+      </Card>
 
       {imageSrc && result && (
-        <div style={cardStyle} className="p-6 flex flex-col gap-4">
+        <Card accent={accent} className="flex flex-col gap-4">
           <div className="flex items-center gap-2 flex-wrap">
             {VIEWS.map(v => (
               <button key={v.id} onClick={() => setView(v.id)} style={tabStyle(view === v.id)}>{v.label}</button>
@@ -119,7 +134,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
               {view === "parallax" && " This is a per-pixel WebGL shader, not a discrete tile grid."}
             </p>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
