@@ -7,6 +7,7 @@ import { useLivenessCheck } from "./useLivenessCheck";
 const ACCENT = "#14b8a6";
 const REAL_COLOR = "#34d399";
 const SPOOF_COLOR = "#f87171";
+const UNCERTAIN_COLOR = "#fbbf24";
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -17,28 +18,35 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+const VERDICT_LABEL: Record<string, string> = { real: "Looks live", spoof: "Looks spoofed", uncertain: "Uncertain" };
+const VERDICT_COLOR: Record<string, string> = { real: REAL_COLOR, spoof: SPOOF_COLOR, uncertain: UNCERTAIN_COLOR };
+
 /** Webcam capture OR file upload → face crop (server-side, reusing the
- * existing OIV7 face detector) → real/spoof classification. No history, no
- * budget gating, no chat integration — deliberately the simplest of the
- * standalone tools, since the interesting part is the model+caveat, not UI
- * surface area. */
+ * existing OIV7 face detector) → real/spoof classification, averaged over
+ * several frames rather than trusting one. No history, no budget gating,
+ * no chat integration — deliberately the simplest of the standalone tools,
+ * since the interesting part is the model+caveat, not UI surface area. */
 export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: string }) {
   const webcam = useWebcam();
-  const { checking, result, error, check, reset } = useLivenessCheck();
+  const { checking, progress, frameCount, result, error, check, reset } = useLivenessCheck();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const captureAndCheck = () => {
-    const dataUrl = webcam.capture();
-    if (!dataUrl) return;
-    const b64 = dataUrl.split(",")[1];
-    if (b64) check(b64);
+    check(() => {
+      const dataUrl = webcam.capture();
+      return dataUrl ? dataUrl.split(",")[1] ?? null : null;
+    });
   };
 
   const onFileSelected = async (file: File) => {
     reset();
     const dataUrl = await readFileAsDataUrl(file);
-    const b64 = dataUrl.split(",")[1];
-    if (b64) check(b64);
+    const b64 = dataUrl.split(",")[1] ?? null;
+    // Same static photo captured each "frame" — still exercises the
+    // averaging path safely (deterministic input), just redundant compute
+    // rather than genuine multi-sample noise reduction like the live
+    // webcam path gets.
+    check(() => b64);
   };
 
   const cardStyle: React.CSSProperties = {
@@ -51,7 +59,8 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
         <p className="text-xs mb-4" style={{ color: "var(--text3)" }}>
           Show your face to your camera (or upload a photo) — this checks whether it looks like a genuinely
           live face or a spoofed presentation of one (a printed photo, a phone/screen replay). The same
-          category of check that gates face-unlock and identity-verification systems.
+          category of check that gates face-unlock and identity-verification systems. Captures {frameCount}
+          frames and averages them, rather than deciding off a single shot.
         </p>
 
         <div className="relative rounded-xl overflow-hidden mb-4" style={{ background: "#0a0f1a", aspectRatio: "4/3", maxWidth: 480 }}>
@@ -76,7 +85,7 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
               <button onClick={captureAndCheck} disabled={checking}
                 className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
                 style={{ background: accent, color: "#0b0b12", opacity: checking ? 0.5 : 1 }}>
-                {checking ? "Checking…" : "Capture & check"}
+                {checking ? `Checking… (${progress}/${frameCount})` : "Capture & check"}
               </button>
               <button onClick={webcam.stop}
                 className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
@@ -105,18 +114,24 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
               No face confidently detected — try a clearer, front-facing shot with good lighting.
             </p>
           )}
-          {result && result.foundFace && result.isReal !== null && (
+          {result && result.foundFace && result.verdict && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold" style={{ color: result.isReal ? REAL_COLOR : SPOOF_COLOR }}>
-                  {result.isReal ? "Looks live" : "Looks spoofed"}
+                <span className="text-lg font-bold" style={{ color: VERDICT_COLOR[result.verdict] }}>
+                  {VERDICT_LABEL[result.verdict]}
                 </span>
-                {result.confidence !== null && (
+                {result.score !== null && (
                   <span className="text-[11px]" style={{ color: "var(--text3)" }}>
-                    {Math.round(result.confidence * 100)}% confidence
+                    {Math.round(result.score * 100)}% real-leaning (averaged over {frameCount} frames)
                   </span>
                 )}
               </div>
+              {result.verdict === "uncertain" && (
+                <p className="text-[10px]" style={{ color: UNCERTAIN_COLOR }}>
+                  The model doesn&apos;t have a confident signal either way — try better, more even lighting
+                  and a front-facing angle, then check again.
+                </p>
+              )}
               <p className="text-[10px]" style={{ color: "var(--text3)" }}>
                 This model scores 98.2% on its own training benchmark, but published research on this task is
                 consistent that liveness detectors generalize poorly to camera/lighting/spoof setups they
