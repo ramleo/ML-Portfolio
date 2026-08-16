@@ -46,7 +46,7 @@ export default function BokehCanvas({
   const [focus, setFocus] = useState(0.5);
   const [blurStrength, setBlurStrength] = useState(0.06);
 
-  const dispW = Math.min(displayWidth, width);
+  const dispW = displayWidth; // always fill the requested display width, even upscaling small source photos
   const dispH = Math.round((dispW * height) / width);
 
   useEffect(() => {

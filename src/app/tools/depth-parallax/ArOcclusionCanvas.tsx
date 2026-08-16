@@ -51,7 +51,7 @@ export default function ArOcclusionCanvas({
   const [markerUv, setMarkerUv] = useState<{ u: number; v: number } | null>(null);
   const [virtualDepth, setVirtualDepth] = useState(0.5);
 
-  const dispW = Math.min(displayWidth, width);
+  const dispW = displayWidth; // always fill the requested display width, even upscaling small source photos
   const dispH = Math.round((dispW * height) / width);
 
   useEffect(() => {

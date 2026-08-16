@@ -53,7 +53,7 @@ export default function Relief3DCanvas({
   const [ready, setReady] = useState(false);
   const [glError, setGlError] = useState(false);
 
-  const dispW = Math.min(displayWidth, width);
+  const dispW = displayWidth; // always fill the requested display width, even upscaling small source photos
   const dispH = Math.round((dispW * height) / width);
   const aspect = width / height;
 

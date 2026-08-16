@@ -35,6 +35,11 @@ export function createProgram(gl: WebGLRenderingContext, vertSrc: string, fragSr
 export function makeTexture(gl: WebGLRenderingContext, img: HTMLImageElement): WebGLTexture {
   const tex = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, tex);
+  // Without this, WebGL uploads the image's rows in their on-disk order
+  // (top row first) into a texture space where v=0 is conventionally the
+  // BOTTOM — every WebGL view (parallax/bokeh/AR occlusion/3D relief) ends
+  // up upside down. This is the single shared fix point for all of them.
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);

@@ -8,7 +8,7 @@ import ArOcclusionCanvas from "./ArOcclusionCanvas";
 import Relief3DCanvas from "./Relief3DCanvas";
 
 const ERROR_COLOR = "#f87171";
-const DISPLAY_MAX_WIDTH = 760;
+const DISPLAY_MAX_WIDTH = 900;
 
 type View = "parallax" | "depth" | "bokeh" | "ar" | "relief";
 const VIEWS: { id: View; label: string }[] = [
@@ -31,8 +31,8 @@ function readFileAsDataUrl(file: File): Promise<string> {
 const VIEW_CAPTIONS: Record<View, string> = {
   parallax: "Move your pointer over the image — near objects shift more than far ones, sampled per pixel from the estimated depth map.",
   depth: "Relative depth only — brighter means nearer to the camera, not an exact distance.",
-  bokeh: "Simulated shallow depth-of-field, driven by the same depth map — click to refocus.",
-  ar: "A minimal demo of depth-aware occlusion for AR overlays — click to place a marker, then adjust its depth.",
+  bokeh: "This is the blurred-background \"portrait mode\" look phone cameras produce. Click a point to keep it sharp — everything else blurs based on how far it is from that point, using the depth map instead of a real camera lens.",
+  ar: "This is the problem real AR apps have to solve when placing a virtual object into a photo: it should disappear behind anything real that's actually closer to the camera, not always float on top like a sticker. Click to drop a marker, then drag the slider to change how \"deep\" it sits — watch it vanish once something real in the photo is nearer than that.",
   relief: "Drag to tilt — real 3D geometry, not a screen-space trick. Deliberately limited rotation: a single photo only ever saw its camera-facing surface.",
 };
 
