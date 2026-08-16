@@ -290,6 +290,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/face-liveness",
   },
+  {
+    id: "depth-parallax",
+    title: "Depth Parallax",
+    subtitle: "One Photo, Instant 3D",
+    description:
+      "Upload a single photo and get a per-pixel depth map, then watch it come alive as a live parallax diorama — near objects shift more than far ones as you move your pointer. Pure local ONNX inference, no API key or budget cost.",
+    accent: "#3b82f6",
+    stat: "37MB",
+    statLabel: "Model Size",
+    model: "Depth-Anything-V2-Small (ONNX)",
+    input: "Single photo",
+    tags: ["Depth Estimation", "3D", "ONNX", "Computer Vision"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/depth-parallax",
+  },
 ];
 
 export default capabilities;
