@@ -97,7 +97,7 @@ const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weap
 // "Kitchen knife" deliberately excluded — it's OIV7's label for an ordinary
 // culinary tool, not a threat; including it would false-alarm on every
 // photo of a kitchen counter.
-const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword"]);
+const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword", "Bomb", "Missile"]);
 
 type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons";
 

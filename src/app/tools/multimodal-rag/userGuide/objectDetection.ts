@@ -111,7 +111,7 @@ meant to place things in general terms, not measure them precisely.
   agreement check exists to catch rather than silently trust.
 - **"Detect weapons" flags knives, guns, and other weapon classes.** When a
   citation's image/frame has at least one confidently detected weapon
-  (Weapon, Knife, Handgun, Rifle, or Sword — ordinary kitchen knives are
+  (Weapon, Knife, Handgun, Rifle, Sword, Bomb, or Missile — ordinary kitchen knives are
   deliberately excluded so photos of a kitchen counter don't false-alarm),
   "Detect weapons (N)" appears in the dropdown — pick it to draw a red box
   around each one. This reuses the same 601-class object detector "Detect
