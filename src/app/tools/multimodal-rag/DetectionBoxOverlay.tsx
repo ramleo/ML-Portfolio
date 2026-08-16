@@ -2,7 +2,11 @@ import type { Bbox, DetectedObject } from "./_types";
 
 type Props = {
   list: DetectedObject[];
-  color: string;
+  /** Either one flat color for every box (the common case), or a function
+   * resolving a PER-detection color — used by restricted-zone plate
+   * enforcement to color a plate red/blue depending on whether it falls
+   * inside a user-drawn zone, without needing a second overlay component. */
+  color: string | ((o: DetectedObject) => string);
   labelFor: (o: DetectedObject) => string;
   /** Skipped on tampering boxes — checking for tampering is a verification
    * step, not an edit workflow. */
@@ -23,7 +27,7 @@ type Props = {
  * differing only in color and label text. Split out of
  * CitationThumbnailPanel.tsx (already at its 400-line cap) once this was
  * a third+ near-identical copy worth factoring. */
-export default function DetectionBoxOverlay({ list: fullList, color, labelFor, allowRemove, canEdit, inpainting, isCovered, runInpaint, onReadAction }: Props) {
+export default function DetectionBoxOverlay({ list: fullList, color: colorProp, labelFor, allowRemove, canEdit, inpainting, isCovered, runInpaint, onReadAction }: Props) {
   // Drop any detection whose box now mostly overlaps an already-removed
   // (white-filled) region — otherwise a sub-detection like "Bicycle wheel"
   // keeps showing a clickable box over blank space after the whole
@@ -49,6 +53,7 @@ export default function DetectionBoxOverlay({ list: fullList, color, labelFor, a
         // visible at all. Mask points are full-image-normalized; converted to
         // percentages local to this div so they line up regardless of size.
         const hasMask = !!o.mask && o.mask.length >= 3;
+        const color = typeof colorProp === "function" ? colorProp(o) : colorProp;
         return (
           <div key={i} className="absolute pointer-events-none" style={{
             left: `${bx * 100}%`, top: `${by * 100}%`,

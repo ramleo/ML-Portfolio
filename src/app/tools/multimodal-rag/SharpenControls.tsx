@@ -14,6 +14,10 @@ type ButtonsProps = {
   regionMode: boolean;
   setRegionMode: (fn: (v: boolean) => boolean) => void;
   setDrawMode: (v: boolean) => void;
+  /** Cancels restricted-zone marking (plate enforcement) — a third draw
+   * mode this component has no other awareness of, same mutual-exclusion
+   * need as setDrawMode above. Optional since not every caller wires it. */
+  onExitZoneMode?: () => void;
   onSharpenWhole: () => void;
   onCancel: () => void;
 };
@@ -35,7 +39,7 @@ type ButtonsProps = {
  * Cancel — simpler than three separately-disabled buttons, and gives the
  * user an actual way out of a slow region call (four sequential backend
  * calls, see useSharpen.ts) instead of just waiting out the 60s timeout. */
-export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode, onSharpenWhole, onCancel }: ButtonsProps) {
+export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode, onExitZoneMode, onSharpenWhole, onCancel }: ButtonsProps) {
   if (sharpening) {
     return (
       <button onClick={onCancel}
@@ -52,7 +56,7 @@ export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setVie
         style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: regionMode ? 0.5 : 1 }}>
         {sharpenedImg ? "Re-sharpen (whole)" : "Sharpen image (AI)"}
       </button>
-      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); }}
+      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); onExitZoneMode?.(); }}
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
         style={regionMode
           ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }

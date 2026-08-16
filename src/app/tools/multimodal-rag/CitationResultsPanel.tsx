@@ -20,6 +20,11 @@ type Props = {
   tampering?: DetectedObject[] | null;
   duplicates?: DuplicateMatch[] | null;
   personCount?: number | null;
+  /** Restricted-zone plate enforcement — set only when both a zone is
+   * marked AND at least one plate exists; drives a violation summary line
+   * shown alongside the plate boxes CitationThumbnailPanel already draws. */
+  zoneViolationCount?: number | null;
+  platesCount?: number | null;
   /** Same coverage check CitationThumbnailPanel's box overlay uses — a text
    * row must disappear the same moment its box does, once a removal (Image
    * Inpainting & Object Remover) covers it. */
@@ -32,7 +37,7 @@ type Props = {
  * object/entity/PII/tampering/duplicate lists, "find similar" results) —
  * split out of CitationThumbnailPanel.tsx purely to keep that file under
  * the project's 400-line cap; no behavior changed by the split. */
-export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, personCount, isCovered, similarNote, similar }: Props) {
+export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
   const { speaking, toggle: toggleNarration, supported: narrationSupported } = useNarration();
   return (
     // FIXED height, not max-height — see CitationThumbnailPanel.tsx's
@@ -85,6 +90,15 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
               Region {i + 1} — {tamperingLevel(t.confidence)} confidence ({Math.round(t.confidence * 100)}%)
             </div>
           ))}
+        </div>
+      )}
+      {isImageOrVideoOnly && visualAction === "plates" && typeof zoneViolationCount === "number" && (
+        <div className="px-3 py-2">
+          <p className="text-[9px] font-bold" style={{ color: zoneViolationCount > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>
+            {zoneViolationCount > 0
+              ? `${zoneViolationCount} of ${platesCount} plate${platesCount === 1 ? "" : "s"} inside the restricted zone`
+              : `No plates inside the restricted zone (${platesCount} total)`}
+          </p>
         </div>
       )}
       {isImageOrVideoOnly && visualAction === "crowd" && typeof personCount === "number" && (

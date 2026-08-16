@@ -97,6 +97,17 @@ const FACE_COLOR = "#fbbf24"; // distinct from both the question-match green and
 const SIGNATURE_COLOR = "#f472b6"; // distinct from face/object/bbox accents
 const TAMPERING_COLOR = "#f87171"; // red-toned — distinct "warning" accent from the other detection colors
 const PLATE_COLOR = "#60a5fa"; // distinct from every other detection accent
+const ZONE_OUTLINE_COLOR = "#c084fc"; // the drawn zone rectangle itself, distinct from any detection color
+const ZONE_VIOLATION_COLOR = "#f87171"; // reuses the tampering/weapon "warning" red — a plate found INSIDE a restricted zone
+
+/** True if `bbox`'s CENTER point falls inside `zone` — both [x,y,w,h],
+ * normalized 0-1. Center point, not full-overlap, since a plate box
+ * straddling a zone's edge is more naturally "in" or "out" by where its
+ * middle sits than by requiring the whole box to be contained. */
+function centerInZone(bbox: Bbox, zone: Bbox): boolean {
+  const cx = bbox[0] + bbox[2] / 2, cy = bbox[1] + bbox[3] / 2;
+  return cx >= zone[0] && cx <= zone[0] + zone[2] && cy >= zone[1] && cy <= zone[1] + zone[3];
+}
 const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weapon detection is a similar high-attention alert
 // "Kitchen knife" deliberately excluded — it's OIV7's label for an ordinary
 // culinary tool, not a threat; including it would false-alarm on every
@@ -120,6 +131,14 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // other off, same reasoning FreehandDrawLayer's single active-instance
   // convention already relies on elsewhere in this file.
   const [regionMode, setRegionMode] = useState(false);
+  // "Mark restricted zone" (plate enforcement) — same mutual-exclusion
+  // pattern as drawMode/regionMode above, reusing FreehandDrawLayer purely
+  // for its rectangle bbox output (its mask/polygon output is ignored here,
+  // a zone is a plain rectangle, not a pixel-accurate shape). Persists
+  // across a re-render/citation-panel interaction the same way a drawn
+  // sharpen region would, but is cleared explicitly via "Clear zone".
+  const [zoneMode, setZoneMode] = useState(false);
+  const [restrictedZone, setRestrictedZone] = useState<Bbox | null>(null);
   const faces = (objects ?? []).filter(o => o.label === "Human face");
   // "Detect plates" — no separate backend field, unlike signatures/tampering
   // above: the 601-class object detector already outputs "Vehicle
@@ -170,7 +189,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Shared box+label overlay renderer (faces/objects/signatures/tampering
   // all draw the identical shape) — factored out into DetectionBoxOverlay.tsx
   // once this file neared its 400-line cap.
-  const renderBoxes = (fullList: DetectedObject[], color: string, labelFor: (o: DetectedObject) => string, allowRemove = true, onReadAction?: (readBbox: Bbox) => void) => (
+  const renderBoxes = (fullList: DetectedObject[], color: string | ((o: DetectedObject) => string), labelFor: (o: DetectedObject) => string, allowRemove = true, onReadAction?: (readBbox: Bbox) => void) => (
     <DetectionBoxOverlay list={fullList} color={color} labelFor={labelFor} allowRemove={allowRemove}
       canEdit={canEdit} inpainting={inpainting} isCovered={isCovered} runInpaint={runInpaint} onReadAction={onReadAction} />
   );
@@ -222,7 +241,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} weapons={weapons} tampering={tampering}
         personCount={personCount}
         duplicates={duplicates} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
-        canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); }}
+        canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); setZoneMode(false); }}
         sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened} setViewSharpened={setViewSharpened}
         regionMode={regionMode} setRegionMode={setRegionMode} setDrawMode={setDrawMode}
         onSharpenWhole={() => sharpen(resultImg ?? img)} onCancelSharpen={cancelSharpen}
@@ -231,6 +250,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         resultImg={resultImg} onReset={resetInpaint}
         watermarkImg={sharpenedImg && viewSharpened ? sharpenedImg : (resultImg ?? img)} source={source}
         showFaces={showFaces} setShowFaces={setShowFaces}
+        zoneMode={zoneMode} onToggleZone={() => { setZoneMode(v => !v); setDrawMode(false); setRegionMode(false); }}
+        hasZone={!!restrictedZone} onClearZone={() => setRestrictedZone(null)}
       />
       {/* No objectFit/maxHeight on the <img> itself — a capped, shrunk image
           can letterbox (blank bars) inside its box, which would throw off a
@@ -290,7 +311,9 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             : tamperingToShow.length > 0
             ? renderBoxes(tamperingToShow, TAMPERING_COLOR, t => tamperingLevel(t.confidence), false)
             : platesToShow.length > 0
-            ? renderBoxes(platesToShow, PLATE_COLOR, p => `Plate (${Math.round(p.confidence * 100)}%)`, true,
+            ? renderBoxes(platesToShow,
+                restrictedZone ? (p => centerInZone(p.bbox, restrictedZone) ? ZONE_VIOLATION_COLOR : PLATE_COLOR) : PLATE_COLOR,
+                p => `Plate (${Math.round(p.confidence * 100)}%)`, true,
                 plateBbox => sharpen(resultImg ?? img, plateBbox))
             : weaponsToShow.length > 0
             ? renderBoxes(weaponsToShow, WEAPON_COLOR, w => `${w.label} (${Math.round(w.confidence * 100)}%)`, false)
@@ -305,13 +328,38 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
             }} />
           )}
           </>
+          {/* Restricted-zone outline — visible whenever a zone is marked,
+              independent of which dropdown action is selected, so the zone
+              itself stays visible even while browsing other detections. */}
+          {restrictedZone && (
+            <div className="absolute pointer-events-none" style={{
+              left: `${restrictedZone[0] * 100}%`, top: `${restrictedZone[1] * 100}%`,
+              width: `${restrictedZone[2] * 100}%`, height: `${restrictedZone[3] * 100}%`,
+              border: `2px dashed ${ZONE_OUTLINE_COLOR}`, borderRadius: 3,
+              boxShadow: `0 0 0 2px rgba(0,0,0,0.4)`,
+            }}>
+              <span className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded" style={{
+                top: -20, left: 0, background: ZONE_OUTLINE_COLOR, color: "#0b0b12", whiteSpace: "nowrap",
+              }}>
+                Restricted zone
+              </span>
+            </div>
+          )}
           {/* Freehand region drawing — the alternative to clicking a
               detected box's own ✕. Rendered LAST so it paints on top and
               captures every pointer event over the image while active,
               including over the boxes above (no separate disable needed).
               Skipped while a removal request is already in flight. */}
-          {canEdit && drawMode && !regionMode && !inpainting && (
+          {canEdit && drawMode && !regionMode && !zoneMode && !inpainting && (
             <FreehandDrawLayer onComplete={(regionBbox, mask) => runInpaint(regionBbox, mask)} />
+          )}
+          {/* Zone-marking draw layer — reuses the same FreehandDrawLayer as
+              object removal/sharpen-region above, but only keeps the bbox
+              it returns (a zone is a plain rectangle, not a pixel-accurate
+              mask). Mutually exclusive with drawMode/regionMode, same
+              pattern as those two are with each other. */}
+          {canEdit && zoneMode && !drawMode && !regionMode && !inpainting && (
+            <FreehandDrawLayer onComplete={regionBbox => { setRestrictedZone(regionBbox); setZoneMode(false); }} />
           )}
           {/* "+" affordance to add text/an image/an AI fill back into an
               already-removed region — mutually exclusive with draw mode AND
@@ -328,6 +376,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       <CitationResultsPanel inpaintError={inpaintError || sharpenError} isImageOrVideoOnly={isImageOrVideoOnly}
         visualAction={visualAction} captionText={captionText} objects={objects} entities={entities}
         piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} personCount={personCount} isCovered={isCovered}
+        zoneViolationCount={restrictedZone && plates.length > 0 ? plates.filter(p => centerInZone(p.bbox, restrictedZone)).length : null}
+        platesCount={restrictedZone && plates.length > 0 ? plates.length : null}
         similarNote={similarNote} similar={similar} />
     </div>
   );

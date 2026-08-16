@@ -50,6 +50,13 @@ type Props = {
   source: string;
   showFaces: boolean;
   setShowFaces: (fn: (v: boolean) => boolean) => void;
+  /** Restricted-zone plate enforcement — a user-drawn rectangle checked
+   * against detected plates' positions. Button only shown when at least
+   * one plate exists, since a zone has nothing to enforce otherwise. */
+  zoneMode: boolean;
+  onToggleZone: () => void;
+  hasZone: boolean;
+  onClearZone: () => void;
 };
 
 /** Header button row above a citation's image — the "Choose an action…"
@@ -64,6 +71,7 @@ export default function CitationToolbar({
   signatures, plates, weapons, personCount, tampering, duplicates, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
   onToggleDraw, sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode,
   onSharpenWhole, onCancelSharpen, downloadTarget, onDownload, resultImg, onReset, watermarkImg, source, showFaces, setShowFaces,
+  zoneMode, onToggleZone, hasZone, onClearZone,
 }: Props) {
   return (
     <div className="flex items-center justify-between px-3 py-1.5" style={{ background: "rgba(255,255,255,0.03)" }}>
@@ -108,7 +116,17 @@ export default function CitationToolbar({
         {canEdit && (
           <SharpenButtons sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened}
             setViewSharpened={setViewSharpened} regionMode={regionMode} setRegionMode={setRegionMode}
-            setDrawMode={setDrawMode} onSharpenWhole={onSharpenWhole} onCancel={onCancelSharpen} />
+            setDrawMode={setDrawMode} onExitZoneMode={zoneMode ? onToggleZone : undefined}
+            onSharpenWhole={onSharpenWhole} onCancel={onCancelSharpen} />
+        )}
+        {plates.length > 0 && (
+          <button onClick={zoneMode ? onToggleZone : hasZone ? onClearZone : onToggleZone}
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            style={zoneMode || hasZone
+              ? { borderColor: "#c084fc55", background: "#c084fc22", color: "#c084fc" }
+              : { borderColor: "#c084fc40", color: "#c084fc" }}>
+            {zoneMode ? "Cancel zone" : hasZone ? "Clear zone" : "Mark restricted zone"}
+          </button>
         )}
         {canEdit && downloadTarget && (
           <button onClick={onDownload}
