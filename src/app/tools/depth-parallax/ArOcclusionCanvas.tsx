@@ -1,19 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadImage, createProgram, makeTexture, setupFullscreenQuad, blurredCanvas, FULLSCREEN_VERT_SRC } from "./webglUtils";
+import { loadImage, createProgram, makeTexture, setupFullscreenQuad, FULLSCREEN_VERT_SRC } from "./webglUtils";
 
 const MARKER_RADIUS_UV = 0.06;
 const MARKER_COLOR: [number, number, number] = [0.98, 0.35, 0.55]; // pink — reads clearly against most photos
-// Occlusion is decided per-pixel by comparing real depth against the
-// marker's assigned depth. A wide blur here (a prior attempt used 7px)
-// backfires: right at a real edge (e.g. treetop against sky), the box
-// average is dominated by the much larger sky region on one side, biasing
-// a whole band of tree-boundary pixels toward "far" — which reads as the
-// marker bleeding through content it should be hidden behind, not just an
-// edge-antialiasing issue. Keep the blur small enough to only kill single-
-// pixel noise; the actual softening happens via the depth-band fade below.
-const DEPTH_BLUR_PX = 2;
 
 const FRAG_SRC = `
 precision mediump float;
@@ -27,6 +18,27 @@ uniform float uHasMarker;
 uniform float uHasMarkerImage;
 uniform float uAspect;
 uniform vec3 uMarkerColor;
+
+// Occlusion needs "is anything real near HERE", not "what's the average
+// real depth near here" — averaging (a blur) always drags a thin near
+// object (a branch, a wire) toward its much larger far neighbor (the sky
+// around it), letting the marker bleed through exactly the gaps a real
+// object has. Taking the MAX depth in a small neighborhood instead means
+// any nearby near-content wins outright, which is what "hide behind it"
+// actually requires — a small dilation of the true silhouette, not a
+// smeared, biased average of it.
+const float KERNEL_STEP = 0.0035;
+float nearestRealDepth(vec2 uv, sampler2D depthTex) {
+  float m = 0.0;
+  for (int dy = -2; dy <= 2; dy++) {
+    for (int dx = -2; dx <= 2; dx++) {
+      vec2 offset = vec2(float(dx), float(dy)) * KERNEL_STEP;
+      m = max(m, texture2D(depthTex, uv + offset).r);
+    }
+  }
+  return m;
+}
+
 void main() {
   vec4 sceneColor = texture2D(uImage, vUv);
   if (uHasMarker < 0.5) { gl_FragColor = sceneColor; return; }
@@ -37,11 +49,11 @@ void main() {
   float edge = smoothstep(0.06, 0.05, dist);
   if (edge <= 0.0) { gl_FragColor = sceneColor; return; }
 
-  float realDepth = texture2D(uDepth, vUv).r;
+  float realDepth = nearestRealDepth(vUv, uDepth);
   // Real content nearer than the virtual object's assigned depth wins —
   // this is the whole point: the marker only draws where nothing real is
-  // in front of it. Faded over a depth band (not a single-step cutoff) so
-  // the boundary reads as a soft edge rather than a jagged bite.
+  // in front of it. Faded over a narrow depth band (not a single-step
+  // cutoff) purely to anti-alias the boundary, not to soften it broadly.
   float visibility = 1.0 - smoothstep(uVirtualDepth - 0.005, uVirtualDepth + 0.015, realDepth);
   if (visibility <= 0.0) { gl_FragColor = sceneColor; return; }
   edge *= visibility;
@@ -109,7 +121,7 @@ export default function ArOcclusionCanvas({
         setupFullscreenQuad(gl, program);
 
         const imageTex = makeTexture(gl, img);
-        const depthTex = makeTexture(gl, blurredCanvas(depthImg, DEPTH_BLUR_PX));
+        const depthTex = makeTexture(gl, depthImg);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, imageTex);
         gl.uniform1i(gl.getUniformLocation(program, "uImage"), 0);
