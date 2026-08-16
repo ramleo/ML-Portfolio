@@ -33,7 +33,7 @@ const VIEW_CAPTIONS: Record<View, string> = {
   depth: "Relative depth only — brighter means nearer to the camera, not an exact distance.",
   bokeh: "This is the blurred-background \"portrait mode\" look phone cameras produce. Click a point to keep it sharp — everything else blurs based on how far it is from that point, using the depth map instead of a real camera lens.",
   ar: "This is the problem real AR apps have to solve when placing a virtual object into a photo: it should disappear behind anything real that's actually closer to the camera, not always float on top like a sticker. Click to drop a marker, then drag the slider to change how \"deep\" it sits — watch it vanish once something real in the photo is nearer than that.",
-  relief: "Drag to tilt — real 3D geometry, not a screen-space trick. Deliberately limited rotation: a single photo only ever saw its camera-facing surface.",
+  relief: "Drag to look around — real 3D geometry viewed with a real camera, not a screen-space trick. Dragging shifts the camera sideways rather than spinning the photo, so near things move more than far things, same as real depth. Deliberately limited range: a single photo only ever saw its camera-facing surface.",
 };
 
 /** Upload a photo → server estimates a depth map → five ways to use it:

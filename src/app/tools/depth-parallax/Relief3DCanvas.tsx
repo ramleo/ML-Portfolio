@@ -6,16 +6,33 @@ import { buildReliefMesh } from "./reliefMesh";
 import * as m4 from "./mat4";
 
 const COLS = 70;
-const DEPTH_SCALE = 0.22;
-// A single photo only ever saw its camera-facing surface — rotate further
-// than this and the unphotographed edges visibly stretch. Small on purpose.
-const YAW_LIMIT_RAD = (18 * Math.PI) / 180;
-const PITCH_LIMIT_RAD = (12 * Math.PI) / 180;
-const CAMERA_DISTANCE = 2.4;
-// Viewed dead-on (yaw=pitch=0) a relief looks completely flat — there's no
-// way to see the depth displacement without some rotation. A brief
-// automatic tilt on load proves the 3D is real without requiring the user
-// to already know to drag.
+// Near/far shift ratio under camera-shift is CAMERA_DISTANCE /
+// (CAMERA_DISTANCE - DEPTH_SCALE) — 2.6/2.0 = 1.3x here, a real, modest,
+// verified-in-frame differential. A first version rotated the OBJECT
+// instead of shifting the camera — under rotation, a point's screen motion
+// is dominated by its own x/y position, not its depth (photo width ~1.85
+// dwarfs depth range 0.6), which measured as backwards (background moved
+// MORE than the foreground). A second version pushed depth scale/camera
+// distance to chase a bigger ratio without re-deriving the frustum-fit
+// math for the *near* plane specifically (the near content, e.g. a car,
+// sits closer to the camera than the frustum was sized for) — its edges
+// were clipping even at rest, and any camera shift pushed them fully out
+// of frame. Fixed by deriving CAMERA_DISTANCE/DEPTH_SCALE/FOV_RAD together
+// so the near plane (CAMERA_DISTANCE - DEPTH_SCALE, the most restrictive
+// case) has real margin, not just the far/base plane.
+const DEPTH_SCALE = 0.6;
+const CAMERA_DISTANCE = 2.6;
+const FOV_RAD = (75 * Math.PI) / 180;
+// Fraction of the near plane's remaining frustum margin (after the object
+// itself) allowed as camera shift range — computed from the photo's own
+// aspect ratio at setup, not a fixed constant, since a fixed value doesn't
+// stay safe across different photo shapes (portrait vs. landscape). See
+// the ready-effect below for the actual computation.
+const CAM_SHIFT_MARGIN_FRACTION = 0.6;
+// Viewed with the camera dead-center, a relief looks completely flat —
+// there's no way to see depth without some camera movement. A brief
+// automatic shift on load proves the 3D is real without requiring the
+// user to already know to drag.
 const PEEK_DURATION_MS = 1400;
 
 const VERT_SRC = `
@@ -39,11 +56,13 @@ void main() {
 `;
 
 /** Renders the photo as a displaced-mesh "bas-relief" — real 3D geometry
- * (not a screen-space trick like the Parallax tab), draggable within a
- * deliberately small rotation range. This is the honest ceiling of what a
- * single photo's depth map supports: a relief you can tilt a little, not a
- * walk-around 3D model — turn it further and you'd see the unphotographed
- * sides of things stretch, since a single camera only ever sees one side. */
+ * (not a screen-space trick like the Parallax tab), viewed by dragging to
+ * shift the CAMERA sideways (not rotating the object — see CAM_SHIFT_LIMIT
+ * above for why that distinction is load-bearing here, not stylistic).
+ * This is the honest ceiling of what a single photo's depth map supports:
+ * a relief you can look around a little, not a walk-around 3D model — shift
+ * too far and you'd see the unphotographed sides of things stretch, since a
+ * single camera only ever sees one side. */
 export default function Relief3DCanvas({
   imageSrc, depthSrc, width, height, displayWidth,
 }: { imageSrc: string; depthSrc: string; width: number; height: number; displayWidth: number }) {
@@ -52,8 +71,8 @@ export default function Relief3DCanvas({
   const mvpLocRef = useRef<WebGLUniformLocation | null>(null);
   const indexCountRef = useRef(0);
   const projRef = useRef<m4.Mat4 | null>(null);
-  const angleRef = useRef({ yaw: 0, pitch: 0 });
-  const dragRef = useRef<{ startX: number; startY: number; startYaw: number; startPitch: number } | null>(null);
+  const camRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef<{ startX: number; startY: number; startCamX: number; startCamY: number } | null>(null);
   const rafRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
   const [glError, setGlError] = useState(false);
@@ -61,6 +80,15 @@ export default function Relief3DCanvas({
   const dispW = displayWidth; // always fill the requested display width, even upscaling small source photos
   const dispH = Math.round((dispW * height) / width);
   const aspect = width / height;
+
+  // Derived from the actual frustum geometry, not a fixed constant — a
+  // fixed shift limit was exactly what caused the near content to clip out
+  // of frame in a previous version. Computed from the NEAR plane (the most
+  // restrictive depth, since near content occupies more of the frustum),
+  // for both the width budget (scales with aspect) and height budget
+  // (doesn't), taking the smaller of the two so neither axis can clip.
+  const nearPlaneMarginFactor = (CAMERA_DISTANCE - DEPTH_SCALE) * Math.tan(FOV_RAD / 2) - 1;
+  const camShiftLimit = CAM_SHIFT_MARGIN_FRACTION * Math.max(0, Math.min(nearPlaneMarginFactor * aspect, nearPlaneMarginFactor));
 
   useEffect(() => {
     let cancelled = false;
@@ -114,7 +142,7 @@ export default function Relief3DCanvas({
         gl.uniform1i(gl.getUniformLocation(program, "uImage"), 0);
 
         mvpLocRef.current = gl.getUniformLocation(program, "uMVP");
-        projRef.current = m4.perspective((35 * Math.PI) / 180, dispW / dispH, 0.1, 10);
+        projRef.current = m4.perspective(FOV_RAD, dispW / dispH, 0.1, 10);
 
         gl.enable(gl.DEPTH_TEST);
         // No back-face culling — the rotation range is small enough that
@@ -143,10 +171,12 @@ export default function Relief3DCanvas({
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     const draw = () => {
-      const { yaw, pitch } = angleRef.current;
-      const model = m4.multiply(m4.rotateY(yaw), m4.rotateX(pitch));
-      const view = m4.translate(0, 0, -CAMERA_DISTANCE);
-      const mvp = m4.multiply(proj, m4.multiply(view, model));
+      const { x: camX, y: camY } = camRef.current;
+      // No model rotation at all — the object never moves. Only the camera
+      // shifts, which is what makes near points move more than far points
+      // (see CAM_SHIFT_LIMIT above for why that's the whole point).
+      const view = m4.translate(-camX, -camY, -CAMERA_DISTANCE);
+      const mvp = m4.multiply(proj, view);
       gl.clearColor(0.04, 0.06, 0.1, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(mvpLoc, false, mvp);
@@ -158,16 +188,18 @@ export default function Relief3DCanvas({
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      dragRef.current = { startX: e.clientX, startY: e.clientY, startYaw: angleRef.current.yaw, startPitch: angleRef.current.pitch };
+      dragRef.current = { startX: e.clientX, startY: e.clientY, startCamX: camRef.current.x, startCamY: camRef.current.y };
       canvas.setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: PointerEvent) => {
       const drag = dragRef.current;
       if (!drag) return;
       const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
-      const yaw = Math.max(-YAW_LIMIT_RAD, Math.min(YAW_LIMIT_RAD, drag.startYaw + (dx / canvas.clientWidth) * YAW_LIMIT_RAD * 2));
-      const pitch = Math.max(-PITCH_LIMIT_RAD, Math.min(PITCH_LIMIT_RAD, drag.startPitch - (dy / canvas.clientHeight) * PITCH_LIMIT_RAD * 2));
-      angleRef.current = { yaw, pitch };
+      // Dragging right moves the viewpoint right, same sense as physically
+      // leaning to look around an object from that side.
+      const camX = Math.max(-camShiftLimit, Math.min(camShiftLimit, drag.startCamX + (dx / canvas.clientWidth) * camShiftLimit * 2));
+      const camY = Math.max(-camShiftLimit, Math.min(camShiftLimit, drag.startCamY - (dy / canvas.clientHeight) * camShiftLimit * 2));
+      camRef.current = { x: camX, y: camY };
       requestDraw();
     };
     const onPointerUp = () => { dragRef.current = null; };
@@ -177,16 +209,16 @@ export default function Relief3DCanvas({
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
 
-    // One-time "peek" animation: yaw out and back so the relief visibly
-    // proves it's real 3D before the user has to know to drag it. Bails
-    // immediately if the user starts dragging mid-animation.
+    // One-time "peek" animation: shift the camera out and back so the
+    // relief visibly proves it's real 3D before the user has to know to
+    // drag it. Bails immediately if the user starts dragging mid-animation.
     let peekRaf: number | null = null;
     const peekStart = performance.now();
     const peek = (now: number) => {
       if (dragRef.current) return;
       const t = Math.min(1, (now - peekStart) / PEEK_DURATION_MS);
       const eased = Math.sin(t * Math.PI); // 0 -> 1 -> 0
-      angleRef.current = { yaw: eased * YAW_LIMIT_RAD * 0.7, pitch: angleRef.current.pitch };
+      camRef.current = { x: eased * camShiftLimit * 0.7, y: camRef.current.y };
       draw();
       if (t < 1) peekRaf = requestAnimationFrame(peek);
     };
@@ -199,7 +231,7 @@ export default function Relief3DCanvas({
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       if (peekRaf != null) cancelAnimationFrame(peekRaf);
     };
-  }, [ready, dispW, dispH]);
+  }, [ready, dispW, dispH, camShiftLimit]);
 
   return (
     <div className="relative rounded-xl overflow-hidden mx-auto"
