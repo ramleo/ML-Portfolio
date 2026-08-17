@@ -1,0 +1,78 @@
+"use client";
+
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useToolTracking } from "@/hooks/useAnalytics";
+import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
+import PlantGrowthRunner from "./PlantGrowthRunner";
+
+const ACCENT = "#4ade80";
+
+const TOOL_SUMMARY =
+  "Upload 2-30 photos of the same plant taken on different days — a local HSV green-hue threshold " +
+  "measures the leaf/foliage area in each photo (no ML model, no API cost), then plots a growth curve " +
+  "as percentage change from the first photo. Each photo gets a mask-preview overlay showing exactly " +
+  "what pixels were counted as plant, so you can verify the measurement instead of trusting a number " +
+  "blindly. Works best with consistent framing/distance across the series — this measures relative " +
+  "pixel area, not real-world size.";
+
+export default function PlantGrowthPage() {
+  useToolTracking("plant-growth");
+  const router = useRouter();
+  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
+      <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Plant Growth Quantification",
+        summary: TOOL_SUMMARY,
+        suggestions: [
+          "Why does a frame show as low confidence?",
+          "Does this measure real-world leaf size?",
+          "What counts as 'green' in the mask?",
+        ],
+      }} />
+
+      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
+        <div className="max-w-6xl mx-auto px-4 w-full">
+          <button onClick={handleBack}
+            className="flex items-center gap-2 text-sm mb-4 transition-colors"
+            style={{ color: "var(--text3)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Home
+          </button>
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: `${ACCENT}18`, border: `1px solid ${ACCENT}30` }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22V12M12 12c0-4 3-7 7-7 0 4-3 7-7 7ZM12 12C12 8 9 5 5 5c0 4 3 7 7 7Z" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>Plant Growth Quantification</h1>
+                <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
+                  style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
+                  Local · No API Cost
+                </span>
+              </div>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
+                Measures leaf area across a timelapse photo series to chart growth (or stress) over time
+              </p>
+            </div>
+          </div>
+
+          <PlantGrowthRunner accent={ACCENT} />
+        </div>
+      </div>
+    </div>
+  );
+}

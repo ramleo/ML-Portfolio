@@ -306,6 +306,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/depth-parallax",
   },
+  {
+    id: "plant-growth",
+    title: "Plant Growth Quantification",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload 2-30 timelapse photos of the same plant and get a leaf-area growth curve — an HSV green-hue threshold measures foliage pixel area per photo, no ML model or API call needed. Catches a stress or decline trend in the numbers before it's visible to the eye.",
+    accent: "#4ade80",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "HSV segmentation (local)",
+    input: "2-30 timelapse photos",
+    tags: ["Segmentation", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/plant-growth",
+  },
 ];
 
 export default capabilities;
