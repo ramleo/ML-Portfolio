@@ -311,7 +311,7 @@ const capabilities: Capability[] = [
     title: "Plant Growth Quantification",
     subtitle: "Local · No API Cost",
     description:
-      "Upload 2-30 timelapse photos of the same plant and get a leaf-area growth curve — an HSV green-hue threshold measures foliage pixel area per photo, no ML model or API call needed. Catches a stress or decline trend in the numbers before it's visible to the eye.",
+      "Upload 2-30 timelapse photos and get a leaf-area growth curve — an HSV green-hue threshold measures foliage pixel area per photo, no ML model or API call needed. Auto-detects and separates multiple plants in the same shot into independent growth tracks. Catches a stress or decline trend in the numbers before it's visible to the eye.",
     accent: "#4ade80",
     stat: "0",
     statLabel: "API Calls",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { usePlantGrowthRunner, MIN_FRAMES, MAX_FRAMES, type GrowthFrame } from "./usePlantGrowthRunner";
+import { usePlantGrowthRunner, MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack } from "./usePlantGrowthRunner";
 
 const ERROR_COLOR = "#f87171";
 const WARN_COLOR = "#facc15";
@@ -92,9 +92,11 @@ function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent: string
 }
 
 export default function PlantGrowthRunner({ accent }: { accent: string }) {
-  const { measuring, frames, error, run, reset } = usePlantGrowthRunner();
+  const { measuring, plants, error, run, reset } = usePlantGrowthRunner();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingPhoto[]>([]);
+  const [autoDetect, setAutoDetect] = useState(true);
+  const [selectedPlant, setSelectedPlant] = useState(0);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -112,10 +114,13 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   };
 
   const onMeasure = () => {
+    setSelectedPlant(0);
     const payload = pending.map(p => ({ image: p.dataUrl.split(",")[1] ?? "", label: p.label }));
-    run(payload);
+    run(payload, autoDetect);
   };
 
+  const activeTrack: PlantTrack | undefined = plants?.[selectedPlant];
+  const frames: GrowthFrame[] | undefined = activeTrack?.frames;
   const hasLowConfidence = frames?.some(f => f.lowConfidence) ?? false;
 
   return (
@@ -142,6 +147,10 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
               {measuring ? "Measuring…" : `Measure growth (${pending.length})`}
             </button>
           )}
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: "var(--text3)" }}>
+            <input type="checkbox" checked={autoDetect} onChange={e => setAutoDetect(e.target.checked)} />
+            Auto-detect multiple plants
+          </label>
         </div>
 
         {pending.length > 0 && pending.length < MIN_FRAMES && (
@@ -170,8 +179,24 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
         )}
       </Card>
 
-      {frames && frames.length > 0 && (
+      {plants && plants.length > 0 && frames && frames.length > 0 && (
         <Card accent={accent} className="flex flex-col gap-4">
+          {plants.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {plants.map(p => (
+                <button key={p.index} onClick={() => setSelectedPlant(p.index)}
+                  className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors"
+                  style={{
+                    background: p.index === selectedPlant ? accent : "transparent",
+                    color: p.index === selectedPlant ? "#0b0b12" : "var(--text3)",
+                    border: p.index === selectedPlant ? "none" : "1px solid var(--border)",
+                  }}>
+                  Plant {p.index + 1}
+                </button>
+              ))}
+            </div>
+          )}
+
           {hasLowConfidence && (
             <p className="text-xs px-3 py-2 rounded-lg" style={{ background: `${WARN_COLOR}18`, color: WARN_COLOR, border: `1px solid ${WARN_COLOR}35` }}>
               One or more frames (marked below) found very little green content — check framing or lighting on those photos before trusting their measurement.
