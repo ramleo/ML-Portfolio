@@ -2,7 +2,8 @@ import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-export const MIN_FRAMES = 2;
+export const MIN_FRAMES = 1;
+export const GROWTH_MIN_FRAMES = 2; // hint-text only, not a hard block — see PlantGrowthRunner
 export const MAX_FRAMES = 30;
 
 export type GrowthFrame = {
@@ -18,8 +19,25 @@ export type PlantTrack = {
   frames: GrowthFrame[];
 };
 
+export type PlantComparison = {
+  index: number;
+  areaFraction: number;
+  relativePct: number;
+  lowConfidence: boolean;
+  maskPreviewUrl: string | null;
+};
+
+export type PlantResult =
+  | { mode: "growth"; plants: PlantTrack[] }
+  | { mode: "compare"; plants: PlantComparison[] };
+
 type RawFrame = {
   label: string; area_fraction: number; growth_pct: number;
+  low_confidence: boolean; mask_preview: string | null;
+};
+
+type RawComparison = {
+  index: number; area_fraction: number; relative_pct: number;
   low_confidence: boolean; mask_preview: string | null;
 };
 
@@ -33,15 +51,26 @@ function toGrowthFrame(f: RawFrame): GrowthFrame {
   };
 }
 
+function toComparison(p: RawComparison): PlantComparison {
+  return {
+    index: p.index,
+    areaFraction: p.area_fraction,
+    relativePct: p.relative_pct,
+    lowConfidence: p.low_confidence,
+    maskPreviewUrl: p.mask_preview ? `data:image/png;base64,${p.mask_preview}` : null,
+  };
+}
+
 /** Pure local HSV-threshold leaf-area measurement (no ML model, no API key,
- * no budget cost). Multiple photos in, one growth curve per detected plant
- * back (percentage change in leaf pixel-area vs. that plant's first photo)
- * — relative, not a real-world area measurement. When auto-detect finds no
- * separate plants (or is turned off), the backend still returns a single
- * track — same shape either way, no special-casing needed here. */
+ * no budget cost). Two modes, discriminated by the backend's own `mode`
+ * field: "growth" (2+ photos — one growth-over-time curve per detected
+ * plant, relative to that plant's first photo) or "compare" (exactly 1
+ * photo — plants found in it compared to EACH OTHER right now, largest =
+ * 100%, no time axis). There's no baseline to grow from with one photo, so
+ * these are genuinely different aggregations, not the same shape twice. */
 export function usePlantGrowthRunner() {
   const [measuring, setMeasuring] = useState(false);
-  const [plants, setPlants] = useState<PlantTrack[] | null>(null);
+  const [result, setResult] = useState<PlantResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = useCallback(async (payload: { image: string; label: string }[], autoDetect: boolean) => {
@@ -51,7 +80,7 @@ export function usePlantGrowthRunner() {
     }
     setMeasuring(true);
     setError(null);
-    setPlants(null);
+    setResult(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -62,15 +91,25 @@ export function usePlantGrowthRunner() {
         body: JSON.stringify({ frames: payload, auto_detect: autoDetect }),
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error("request failed");
-      const data = await res.json();
-      if (!Array.isArray(data.plants)) throw new Error("no plants returned");
-      setPlants(data.plants.map((p: { index: number; frames: RawFrame[] }) => ({
-        index: p.index,
-        frames: p.frames.map(toGrowthFrame),
-      })));
-    } catch {
-      setError("Growth measurement failed — try again in a moment.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.detail || "request failed");
+      if (data.mode === "compare") {
+        setResult({ mode: "compare", plants: (data.plants as RawComparison[]).map(toComparison) });
+      } else if (data.mode === "growth" && Array.isArray(data.plants)) {
+        setResult({
+          mode: "growth",
+          plants: data.plants.map((p: { index: number; frames: RawFrame[] }) => ({
+            index: p.index,
+            frames: p.frames.map(toGrowthFrame),
+          })),
+        });
+      } else {
+        throw new Error("unrecognized response");
+      }
+    } catch (e) {
+      setError(e instanceof Error && e.message !== "request failed" && e.message !== "unrecognized response"
+        ? e.message
+        : "Growth measurement failed — try again in a moment.");
     } finally {
       clearTimeout(timeout);
       setMeasuring(false);
@@ -78,9 +117,9 @@ export function usePlantGrowthRunner() {
   }, []);
 
   const reset = useCallback(() => {
-    setPlants(null);
+    setResult(null);
     setError(null);
   }, []);
 
-  return { measuring, plants, error, run, reset };
+  return { measuring, result, error, run, reset };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { usePlantGrowthRunner, MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack } from "./usePlantGrowthRunner";
+import { usePlantGrowthRunner, MIN_FRAMES, GROWTH_MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack, type PlantComparison } from "./usePlantGrowthRunner";
 
 const ERROR_COLOR = "#f87171";
 const WARN_COLOR = "#facc15";
@@ -91,8 +91,38 @@ function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent: string
   );
 }
 
+/** Single photo, multiple plants — ranks them by current leaf area
+ * relative to the largest (100%), no time axis. Horizontal bars instead of
+ * GrowthChart's line/points since there's no x-axis of days to plot. */
+function CompareView({ plants, accent }: { plants: PlantComparison[]; accent: string }) {
+  const sorted = [...plants].sort((a, b) => b.relativePct - a.relativePct);
+  return (
+    <div className="flex flex-col gap-3">
+      {sorted.map(p => (
+        <div key={p.index} className="flex items-center gap-3">
+          {p.maskPreviewUrl && (
+            <img src={p.maskPreviewUrl} alt={`Plant ${p.index + 1} leaf mask`} className="rounded-lg object-cover shrink-0"
+              style={{ width: 56, height: 56, outline: p.lowConfidence ? `2px solid ${WARN_COLOR}` : "none" }} />
+          )}
+          <div className="flex-1 flex flex-col gap-1">
+            <div className="flex items-center justify-between text-xs">
+              <span style={{ color: "var(--text3)" }}>Plant {p.index + 1}</span>
+              <span className="font-semibold" style={{ color: p.lowConfidence ? WARN_COLOR : accent }}>
+                {p.relativePct}%
+              </span>
+            </div>
+            <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "rgba(255,255,255,0.08)" }}>
+              <div className="h-full rounded-full" style={{ width: `${p.relativePct}%`, background: p.lowConfidence ? WARN_COLOR : accent }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function PlantGrowthRunner({ accent }: { accent: string }) {
-  const { measuring, plants, error, run, reset } = usePlantGrowthRunner();
+  const { measuring, result, error, run, reset } = usePlantGrowthRunner();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingPhoto[]>([]);
   const [autoDetect, setAutoDetect] = useState(true);
@@ -119,7 +149,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
     run(payload, autoDetect);
   };
 
-  const activeTrack: PlantTrack | undefined = plants?.[selectedPlant];
+  const growthPlants: PlantTrack[] | undefined = result?.mode === "growth" ? result.plants : undefined;
+  const activeTrack: PlantTrack | undefined = growthPlants?.[selectedPlant];
   const frames: GrowthFrame[] | undefined = activeTrack?.frames;
   const hasLowConfidence = frames?.some(f => f.lowConfidence) ?? false;
 
@@ -127,9 +158,9 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-4">
       <Card accent={accent} className="flex flex-col">
         <p className="text-sm mb-4" style={{ color: "var(--text3)" }}>
-          Upload {MIN_FRAMES}-{MAX_FRAMES} photos of the same plant, taken on different days with roughly
-          the same framing and distance. A local HSV green-hue threshold measures leaf area in each photo
-          (no ML model, no API cost) and charts the change over time.
+          Upload a single photo with multiple plants to compare their current size to each other, or
+          {" "}{GROWTH_MIN_FRAMES}-{MAX_FRAMES} photos of the same plant(s) taken on different days to chart
+          growth over time. A local HSV green-hue threshold measures leaf area (no ML model, no API cost).
         </p>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -144,7 +175,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             <button onClick={onMeasure} disabled={measuring || pending.length < MIN_FRAMES}
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors border"
               style={{ borderColor: accent, color: accent, opacity: measuring || pending.length < MIN_FRAMES ? 0.5 : 1 }}>
-              {measuring ? "Measuring…" : `Measure growth (${pending.length})`}
+              {measuring ? "Measuring…" : pending.length === 1 ? "Compare plants (1)" : `Measure growth (${pending.length})`}
             </button>
           )}
           <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: "var(--text3)" }}>
@@ -153,8 +184,10 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
           </label>
         </div>
 
-        {pending.length > 0 && pending.length < MIN_FRAMES && (
-          <p className="text-xs mt-2" style={{ color: "var(--text3)" }}>Need at least {MIN_FRAMES} photos.</p>
+        {pending.length === 1 && (
+          <p className="text-xs mt-2" style={{ color: "var(--text3)" }}>
+            With 1 photo, plants found in it will be compared to each other. Add a second photo instead to chart growth over time.
+          </p>
         )}
         {error && <p className="text-xs mt-2" style={{ color: ERROR_COLOR }}>{error}</p>}
 
@@ -179,11 +212,11 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
         )}
       </Card>
 
-      {plants && plants.length > 0 && frames && frames.length > 0 && (
+      {growthPlants && growthPlants.length > 0 && frames && frames.length > 0 && (
         <Card accent={accent} className="flex flex-col gap-4">
-          {plants.length > 1 && (
+          {growthPlants.length > 1 && (
             <div className="flex items-center gap-2 flex-wrap">
-              {plants.map(p => (
+              {growthPlants.map(p => (
                 <button key={p.index} onClick={() => setSelectedPlant(p.index)}
                   className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors"
                   style={{
@@ -224,6 +257,24 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             Growth is leaf-pixel area relative to the first photo, not a real-world measurement — it only
             holds up if every photo is framed the same way. The green overlay above each thumbnail shows
             exactly what was counted as plant.
+          </p>
+        </Card>
+      )}
+
+      {result?.mode === "compare" && result.plants.length > 0 && (
+        <Card accent={accent} className="flex flex-col gap-4">
+          {result.plants.some(p => p.lowConfidence) && (
+            <p className="text-xs px-3 py-2 rounded-lg" style={{ background: `${WARN_COLOR}18`, color: WARN_COLOR, border: `1px solid ${WARN_COLOR}35` }}>
+              One or more plants (marked below) found very little green content — check that box before trusting its measurement.
+            </p>
+          )}
+
+          <CompareView plants={result.plants} accent={accent} />
+
+          <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
+            Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
+            largest plant found is 100%. This is not a growth measurement over time; upload a second photo
+            of the same plants instead to chart that.
           </p>
         </Card>
       )}
