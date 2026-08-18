@@ -150,6 +150,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   };
 
   const growthPlants: PlantTrack[] | undefined = result?.mode === "growth" ? result.plants : undefined;
+  const autoSplitCollage = result?.mode === "growth" && result.autoSplitCollage;
   const activeTrack: PlantTrack | undefined = growthPlants?.[selectedPlant];
   const frames: GrowthFrame[] | undefined = activeTrack?.frames;
   const hasLowConfidence = frames?.some(f => f.lowConfidence) ?? false;
@@ -158,7 +159,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-4">
       <Card accent={accent} className="flex flex-col">
         <p className="text-sm mb-4" style={{ color: "var(--text3)" }}>
-          Upload a single photo with multiple plants to compare their current size to each other, or
+          Upload a single photo with multiple plants to compare their current size to each other (a
+          before/after collage photo is auto-detected and split into a growth chart instead), or
           {" "}{GROWTH_MIN_FRAMES}-{MAX_FRAMES} photos of the same plant(s) taken on different days to chart
           growth over time. A local HSV green-hue threshold measures leaf area (no ML model, no API cost).
         </p>
@@ -228,6 +230,14 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
                 </button>
               ))}
             </div>
+          )}
+
+          {autoSplitCollage && (
+            <p className="text-xs px-3 py-2 rounded-lg" style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}35` }}>
+              Detected this as a two-panel before/after photo — split into Panel 1 / Panel 2 and measured as
+              growth over time automatically. Panel order is assumed left-to-right (or top-to-bottom); if that&apos;s
+              reversed for your photo, the growth % below will be inverted.
+            </p>
           )}
 
           {hasLowConfidence && (

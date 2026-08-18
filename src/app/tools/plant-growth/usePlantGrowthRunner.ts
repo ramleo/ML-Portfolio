@@ -28,7 +28,7 @@ export type PlantComparison = {
 };
 
 export type PlantResult =
-  | { mode: "growth"; plants: PlantTrack[] }
+  | { mode: "growth"; plants: PlantTrack[]; autoSplitCollage: boolean }
   | { mode: "compare"; plants: PlantComparison[] };
 
 type RawFrame = {
@@ -67,7 +67,13 @@ function toComparison(p: RawComparison): PlantComparison {
  * plant, relative to that plant's first photo) or "compare" (exactly 1
  * photo — plants found in it compared to EACH OTHER right now, largest =
  * 100%, no time axis). There's no baseline to grow from with one photo, so
- * these are genuinely different aggregations, not the same shape twice. */
+ * these are genuinely different aggregations, not the same shape twice.
+ *
+ * A single photo can also come back as "growth" with `autoSplitCollage:
+ * true` — the backend detected a before/after collage seam and split it
+ * into two panels automatically instead of comparing them as coexisting
+ * plants; the UI should say so rather than silently showing a growth curve
+ * for a photo the user thought they uploaded as one image. */
 export function usePlantGrowthRunner() {
   const [measuring, setMeasuring] = useState(false);
   const [result, setResult] = useState<PlantResult | null>(null);
@@ -102,6 +108,7 @@ export function usePlantGrowthRunner() {
             index: p.index,
             frames: p.frames.map(toGrowthFrame),
           })),
+          autoSplitCollage: Boolean(data.auto_split_collage),
         });
       } else {
         throw new Error("unrecognized response");
