@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePlantGrowthRunner, MIN_FRAMES, GROWTH_MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack, type PlantComparison } from "./usePlantGrowthRunner";
 import { WARN_COLOR, GrowthChart, FrameThumbnails, CompareView } from "./PlantGrowthCharts";
 import { FramingCheck } from "./PlantGrowthFramingCheck";
+import { CameraCapture } from "./PlantGrowthCamera";
 
 const ERROR_COLOR = "#f87171";
 
@@ -92,6 +93,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [compareAsStages, setCompareAsStages] = useState(false);
   const [framingCheckIndex, setFramingCheckIndex] = useState<number | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -109,6 +111,13 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
     reset();
     setFramingCheckIndex(null);
     setPending(p => p.filter((_, idx) => idx !== i));
+  };
+
+  const onPhotoCaptured = (dataUrl: string) => {
+    reset();
+    setFramingCheckIndex(null);
+    setPending(p => [...p, { dataUrl, label: `Day ${p.length}` }]);
+    setCameraOpen(false);
   };
 
   const onMeasure = () => {
@@ -142,6 +151,11 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
             onChange={e => { if (e.target.files?.length) onFilesSelected(e.target.files); e.target.value = ""; }} />
+          <button onClick={() => setCameraOpen(true)} disabled={measuring}
+            className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors border"
+            style={{ borderColor: "var(--border)", color: "var(--text3)", opacity: measuring ? 0.5 : 1 }}>
+            Take photo
+          </button>
           {pending.length > 0 && (
             <button onClick={onMeasure} disabled={measuring || pending.length < MIN_FRAMES}
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors border"
@@ -289,6 +303,14 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
           compare={pending[framingCheckIndex].dataUrl}
           compareLabel={pending[framingCheckIndex].label}
           onClose={() => setFramingCheckIndex(null)}
+        />
+      )}
+
+      {cameraOpen && (
+        <CameraCapture
+          overlaySrc={pending[0]?.dataUrl ?? null}
+          onCapture={onPhotoCaptured}
+          onClose={() => setCameraOpen(false)}
         />
       )}
     </div>
