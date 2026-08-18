@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
-
+import { CapabilityDescriptionPreview } from "./CapabilityDescriptionPreview";
 
 // ── Single card — design mirrors ProjectCard exactly ─────────────────────────
 function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
@@ -14,6 +14,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
   const router = useRouter();
   const [tilt, setTilt]       = useState({ x: 0, y: 0 });
   const [hovering, setHovering] = useState(false);
+  const [previewRect, setPreviewRect] = useState<DOMRect | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -149,7 +150,8 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
 
         {/* Description — clamped to a fixed number of lines so card height
             doesn't grow with description length; "See more" opens the tool
-            (same target as the action button) instead of expanding inline. */}
+            (same target as the action button). Hovering it shows the full
+            text in a portaled preview instead of expanding the card. */}
         <div>
           <p
             style={{
@@ -167,6 +169,8 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
           </p>
           <button
             onClick={handleNavigate}
+            onMouseEnter={(e) => setPreviewRect(e.currentTarget.getBoundingClientRect())}
+            onMouseLeave={() => setPreviewRect(null)}
             style={{
               display: "block",
               marginTop: "0.35rem",
@@ -181,6 +185,7 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
           >
             See more
           </button>
+          {previewRect && <CapabilityDescriptionPreview text={cap.description} accent={cap.accent} anchorRect={previewRect} />}
         </div>
 
         {/* Meta row */}
