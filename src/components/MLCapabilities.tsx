@@ -22,6 +22,25 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
     setTilt({ x: cy * -10, y: cx * 10 });
   };
 
+  // Single navigation target shared by the action button and the
+  // description's "See more" link — mirrors the 3-way priority the button
+  // already used (internalLink > in-page modal > new-tab launch) so both
+  // affordances always agree on where "opening this tool" goes.
+  const handleNavigate = () => {
+    if (cap.internalLink) {
+      router.push(cap.internalLink);
+    } else if (cap.modalEnabled && onRunHere) {
+      onRunHere();
+    } else {
+      const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
+      let palette = "cosmic";
+      try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
+      const base = ML_UNIFIED_API + cap.link;
+      const sep = base.includes("?") ? "&" : "?";
+      window.open(`${base}${sep}theme=${theme}&palette=${palette}`, "_blank");
+    }
+  };
+
   return (
     <motion.div
       ref={ref}
@@ -128,10 +147,41 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
           </div>
         </div>
 
-        {/* Description */}
-        <p style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.65, margin: 0, flex: 1 }}>
-          {cap.description}
-        </p>
+        {/* Description — clamped to a fixed number of lines so card height
+            doesn't grow with description length; "See more" opens the tool
+            (same target as the action button) instead of expanding inline. */}
+        <div>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text2)",
+              lineHeight: 1.65,
+              margin: 0,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {cap.description}
+          </p>
+          <button
+            onClick={handleNavigate}
+            style={{
+              display: "block",
+              marginTop: "0.35rem",
+              padding: 0,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              color: cap.accent,
+            }}
+          >
+            See more
+          </button>
+        </div>
 
         {/* Meta row */}
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -168,113 +218,38 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-          {cap.internalLink ? (
-            <button
-              onClick={() => router.push(cap.internalLink!)}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.4rem",
-                padding: "0.6rem 1rem",
-                borderRadius: 9999,
-                background: cap.accent,
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.82rem",
-                border: "none",
-                cursor: "pointer",
-                transition: "opacity 0.15s, transform 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.88";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              Try it
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          ) : cap.modalEnabled && onRunHere ? (
-            <button
-              onClick={onRunHere}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.4rem",
-                padding: "0.6rem 1rem",
-                borderRadius: 9999,
-                background: cap.accent,
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.82rem",
-                border: "none",
-                cursor: "pointer",
-                transition: "opacity 0.15s, transform 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.88";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              Try it
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
-                let palette = "cosmic";
-                try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
-                const base = ML_UNIFIED_API + cap.link;
-                const sep = base.includes("?") ? "&" : "?";
-                window.open(`${base}${sep}theme=${theme}&palette=${palette}`, "_blank");
-              }}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.4rem",
-                padding: "0.6rem 1rem",
-                borderRadius: 9999,
-                background: cap.accent,
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.82rem",
-                border: "none",
-                cursor: "pointer",
-                transition: "opacity 0.15s, transform 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.88";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              Launch App
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
+          <button
+            onClick={handleNavigate}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.4rem",
+              padding: "0.6rem 1rem",
+              borderRadius: 9999,
+              background: cap.accent,
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "0.82rem",
+              border: "none",
+              cursor: "pointer",
+              transition: "opacity 0.15s, transform 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.88";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            {cap.internalLink || cap.modalEnabled ? "Try it" : "Launch App"}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
           <a
             href={cap.github}
             target="_blank"
