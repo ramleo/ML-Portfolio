@@ -12,6 +12,8 @@ export type GrowthFrame = {
   growthPct: number;
   lowConfidence: boolean;
   maskPreviewUrl: string | null;
+  greennessIndex: number;
+  leafCount: number;
 };
 
 export type PlantTrack = {
@@ -25,6 +27,8 @@ export type PlantComparison = {
   relativePct: number;
   lowConfidence: boolean;
   maskPreviewUrl: string | null;
+  greennessIndex: number;
+  leafCount: number;
 };
 
 export type PlantResult =
@@ -34,11 +38,13 @@ export type PlantResult =
 type RawFrame = {
   label: string; area_fraction: number; growth_pct: number;
   low_confidence: boolean; mask_preview: string | null;
+  greenness_index: number; leaf_count: number;
 };
 
 type RawComparison = {
   index: number; area_fraction: number; relative_pct: number;
   low_confidence: boolean; mask_preview: string | null;
+  greenness_index: number; leaf_count: number;
 };
 
 function toGrowthFrame(f: RawFrame): GrowthFrame {
@@ -48,6 +54,8 @@ function toGrowthFrame(f: RawFrame): GrowthFrame {
     growthPct: f.growth_pct,
     lowConfidence: f.low_confidence,
     maskPreviewUrl: f.mask_preview ? `data:image/png;base64,${f.mask_preview}` : null,
+    greennessIndex: f.greenness_index,
+    leafCount: f.leaf_count,
   };
 }
 
@@ -58,6 +66,8 @@ function toComparison(p: RawComparison): PlantComparison {
     relativePct: p.relative_pct,
     lowConfidence: p.low_confidence,
     maskPreviewUrl: p.mask_preview ? `data:image/png;base64,${p.mask_preview}` : null,
+    greennessIndex: p.greenness_index,
+    leafCount: p.leaf_count,
   };
 }
 
