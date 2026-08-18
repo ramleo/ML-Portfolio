@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import PlantGrowthRunner from "./PlantGrowthRunner";
+import PlantGrowthGroupMode from "./PlantGrowthGroupMode";
 
 const ACCENT = "#4ade80";
 
@@ -21,6 +22,7 @@ export default function PlantGrowthPage() {
   useToolTracking("plant-growth");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const [mode, setMode] = useState<"labeled" | "group">("labeled");
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -70,7 +72,21 @@ export default function PlantGrowthPage() {
             </div>
           </div>
 
-          <PlantGrowthRunner accent={ACCENT} />
+          <div className="flex items-center gap-2 mb-4">
+            {([["labeled", "I know the plants/order"], ["group", "Unordered batch — figure it out"]] as const).map(([key, label]) => (
+              <button key={key} onClick={() => setMode(key)}
+                className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors"
+                style={{
+                  background: mode === key ? ACCENT : "transparent",
+                  color: mode === key ? "#0b0b12" : "var(--text3)",
+                  border: mode === key ? "none" : "1px solid var(--border)",
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {mode === "labeled" ? <PlantGrowthRunner accent={ACCENT} /> : <PlantGrowthGroupMode accent={ACCENT} />}
         </div>
       </div>
     </div>

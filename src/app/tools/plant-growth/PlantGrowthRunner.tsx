@@ -5,12 +5,15 @@ import { usePlantGrowthRunner, MIN_FRAMES, GROWTH_MIN_FRAMES, MAX_FRAMES, type G
 import { WARN_COLOR, GrowthChart, FrameThumbnails, CompareView } from "./PlantGrowthCharts";
 import { FramingCheck } from "./PlantGrowthFramingCheck";
 import { CameraCapture } from "./PlantGrowthCamera";
+import { SpeciesId } from "./PlantGrowthSpeciesId";
 
 const ERROR_COLOR = "#f87171";
 
 // Card chrome matches ProjectCard.tsx / text-to-image's Card: var(--bg-glass)
 // + backdrop blur + var(--border) + a colored 3px accent top bar.
-function Card({ accent, children, className }: { accent: string; children: React.ReactNode; className?: string }) {
+// Exported so PlantGrowthGroupMode.tsx (the "unordered batch" mode) can
+// reuse the same chrome instead of duplicating it.
+export function Card({ accent, children, className }: { accent: string; children: React.ReactNode; className?: string }) {
   return (
     <div style={{
       borderRadius: 16, overflow: "hidden",
@@ -26,7 +29,7 @@ function Card({ accent, children, className }: { accent: string; children: React
 }
 
 /** Full-size view of a result thumbnail — click backdrop or Esc to close. */
-function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+export function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -45,7 +48,7 @@ function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: ()
 
 type PendingPhoto = { dataUrl: string; label: string };
 
-function readFileAsDataUrl(file: File): Promise<string> {
+export function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
@@ -202,6 +205,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             ))}
           </div>
         )}
+
+        <SpeciesId imageDataUrl={pending[0]?.dataUrl ?? null} accent={accent} />
       </Card>
 
       {growthPlants && growthPlants.length > 0 && frames && frames.length > 0 && (
@@ -242,7 +247,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
           <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
             Growth is leaf-pixel area relative to the first photo, not a real-world measurement — it only
-            holds up if every photo is framed the same way. The green overlay above each thumbnail shows
+            holds up if every photo is framed the same way. The magenta overlay above each thumbnail shows
             exactly what was counted as plant. Hover a thumbnail for its greenness index and leaf count.
           </p>
         </Card>
