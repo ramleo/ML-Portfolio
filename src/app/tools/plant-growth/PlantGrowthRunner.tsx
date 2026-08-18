@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePlantGrowthRunner, MIN_FRAMES, GROWTH_MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack, type PlantComparison } from "./usePlantGrowthRunner";
 import { WARN_COLOR, GrowthChart, FrameThumbnails, CompareView } from "./PlantGrowthCharts";
+import { FramingCheck } from "./PlantGrowthFramingCheck";
 
 const ERROR_COLOR = "#f87171";
 
@@ -90,9 +91,11 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [selectedPlant, setSelectedPlant] = useState(0);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [compareAsStages, setCompareAsStages] = useState(false);
+  const [framingCheckIndex, setFramingCheckIndex] = useState<number | null>(null);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
+    setFramingCheckIndex(null);
     const arr = Array.from(files).slice(0, MAX_FRAMES);
     const dataUrls = await Promise.all(arr.map(readFileAsDataUrl));
     setPending(dataUrls.map((dataUrl, i) => ({ dataUrl, label: `Day ${i}` })));
@@ -104,6 +107,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
   const removePhoto = (i: number) => {
     reset();
+    setFramingCheckIndex(null);
     setPending(p => p.filter((_, idx) => idx !== i));
   };
 
@@ -173,6 +177,13 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
                 <input value={photo.label} onChange={e => updateLabel(i, e.target.value)}
                   className="text-[10px] text-center rounded px-1 py-0.5 w-20"
                   style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text)" }} />
+                {i > 0 && (
+                  <button onClick={() => setFramingCheckIndex(i)}
+                    className="text-[9px] underline"
+                    style={{ color: "var(--text3)" }}>
+                    Check framing
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -271,6 +282,15 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
       )}
 
       {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
+
+      {framingCheckIndex !== null && pending[0] && pending[framingCheckIndex] && (
+        <FramingCheck
+          baseline={pending[0].dataUrl}
+          compare={pending[framingCheckIndex].dataUrl}
+          compareLabel={pending[framingCheckIndex].label}
+          onClose={() => setFramingCheckIndex(null)}
+        />
+      )}
     </div>
   );
 }
