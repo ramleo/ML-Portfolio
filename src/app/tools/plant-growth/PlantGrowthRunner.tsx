@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePlantGrowthRunner, MIN_FRAMES, GROWTH_MIN_FRAMES, MAX_FRAMES, type GrowthFrame, type PlantTrack, type PlantComparison } from "./usePlantGrowthRunner";
 
 const ERROR_COLOR = "#f87171";
@@ -22,6 +22,28 @@ function Card({ accent, children, className }: { accent: string; children: React
     </div>
   );
 }
+
+/** Full-size view of a result thumbnail — click backdrop or Esc to close. */
+function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}>
+      <img src={src} alt={alt} onClick={e => e.stopPropagation()}
+        className="rounded-xl object-contain"
+        style={{ maxWidth: "90vw", maxHeight: "90vh", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }} />
+    </div>
+  );
+}
+
+// Shared classes for result thumbnails that open a Lightbox on click — a
+// subtle hover scale signals they're interactive without a full expand.
+const ZOOMABLE_THUMB_CLASS = "rounded-lg object-cover shrink-0 cursor-zoom-in transition-transform duration-150 hover:scale-110";
 
 type PendingPhoto = { dataUrl: string; label: string };
 
@@ -94,14 +116,15 @@ function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent: string
 /** Single photo, multiple plants — ranks them by current leaf area
  * relative to the largest (100%), no time axis. Horizontal bars instead of
  * GrowthChart's line/points since there's no x-axis of days to plot. */
-function CompareView({ plants, accent }: { plants: PlantComparison[]; accent: string }) {
+function CompareView({ plants, accent, onImageClick }: { plants: PlantComparison[]; accent: string; onImageClick: (src: string, alt: string) => void }) {
   const sorted = [...plants].sort((a, b) => b.relativePct - a.relativePct);
   return (
     <div className="flex flex-col gap-3">
       {sorted.map(p => (
         <div key={p.index} className="flex items-center gap-3">
           {p.maskPreviewUrl && (
-            <img src={p.maskPreviewUrl} alt={`Plant ${p.index + 1} leaf mask`} className="rounded-lg object-cover shrink-0"
+            <img src={p.maskPreviewUrl} alt={`Plant ${p.index + 1} leaf mask`} className={ZOOMABLE_THUMB_CLASS}
+              onClick={() => onImageClick(p.maskPreviewUrl!, `Plant ${p.index + 1} leaf mask`)}
               style={{ width: 56, height: 56, outline: p.lowConfidence ? `2px solid ${WARN_COLOR}` : "none" }} />
           )}
           <div className="flex-1 flex flex-col gap-1">
@@ -127,6 +150,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [pending, setPending] = useState<PendingPhoto[]>([]);
   const [autoDetect, setAutoDetect] = useState(true);
   const [selectedPlant, setSelectedPlant] = useState(0);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -252,7 +276,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             {frames.map((f, i) => (
               <div key={i} className="flex flex-col gap-1 items-center">
                 {f.maskPreviewUrl && (
-                  <img src={f.maskPreviewUrl} alt={`${f.label} leaf mask`} className="rounded-lg object-cover"
+                  <img src={f.maskPreviewUrl} alt={`${f.label} leaf mask`} className={ZOOMABLE_THUMB_CLASS}
+                    onClick={() => setLightbox({ src: f.maskPreviewUrl!, alt: `${f.label} leaf mask` })}
                     style={{ width: 100, height: 100, outline: f.lowConfidence ? `2px solid ${WARN_COLOR}` : "none" }} />
                 )}
                 <span className="text-[10px]" style={{ color: "var(--text3)" }}>{f.label}</span>
@@ -279,7 +304,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             </p>
           )}
 
-          <CompareView plants={result.plants} accent={accent} />
+          <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
 
           <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
             Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
@@ -288,6 +313,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
           </p>
         </Card>
       )}
+
+      {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
     </div>
   );
 }
