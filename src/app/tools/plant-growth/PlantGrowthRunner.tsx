@@ -144,6 +144,34 @@ function CompareView({ plants, accent, onImageClick }: { plants: PlantComparison
   );
 }
 
+/** Converts a single photo's compare-mode plants (ranked by size, no time
+ * axis) into GrowthChart-shaped frames — ordered left-to-right by detected
+ * position, growth% relative to the leftmost plant instead of the largest.
+ * This is a manual reinterpretation the user opts into (a "growth stages"
+ * toggle), not something the tool verifies: nothing in the pixels can
+ * confirm several regions in one continuous photo are the same subject at
+ * different times versus genuinely different plants — see the collage-seam
+ * detector's docstring for why that signal doesn't exist here (no stitched-
+ * photo boundary to find in a single continuous image/illustration).
+ *
+ * Uses relativePct (backend: leaf_pixel_count / largest plant's count), NOT
+ * areaFraction (leaf pixels / that plant's OWN crop size) — the same
+ * fraction-of-own-crop pitfall _compare_single_photo's backend docstring
+ * already covers: a big plant's tight crop and a small plant's tight crop
+ * can land on similar fractions, which would hide the real size difference
+ * relativePct already correctly captures. */
+function toStageFrames(plants: PlantComparison[]): GrowthFrame[] {
+  const ordered = [...plants].sort((a, b) => a.index - b.index);
+  const baseline = ordered[0]?.relativePct ?? 0;
+  return ordered.map(p => ({
+    label: `Plant ${p.index + 1}`,
+    areaFraction: p.areaFraction,
+    growthPct: baseline > 0 ? Math.round(((p.relativePct - baseline) / baseline) * 1000) / 10 : 0,
+    lowConfidence: p.lowConfidence,
+    maskPreviewUrl: p.maskPreviewUrl,
+  }));
+}
+
 export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const { measuring, result, error, run, reset } = usePlantGrowthRunner();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,6 +179,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [autoDetect, setAutoDetect] = useState(true);
   const [selectedPlant, setSelectedPlant] = useState(0);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [compareAsStages, setCompareAsStages] = useState(false);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -170,6 +199,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
   const onMeasure = () => {
     setSelectedPlant(0);
+    setCompareAsStages(false);
     const payload = pending.map(p => ({ image: p.dataUrl.split(",")[1] ?? "", label: p.label }));
     run(payload, autoDetect);
   };
@@ -299,19 +329,62 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
       {result?.mode === "compare" && result.plants.length > 0 && (
         <Card accent={accent} className="flex flex-col gap-4">
+          {result.plants.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {([["rank", "Rank by size"], ["stages", "View as growth stages"]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setCompareAsStages(key === "stages")}
+                  className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors"
+                  style={{
+                    background: (key === "stages") === compareAsStages ? accent : "transparent",
+                    color: (key === "stages") === compareAsStages ? "#0b0b12" : "var(--text3)",
+                    border: (key === "stages") === compareAsStages ? "none" : "1px solid var(--border)",
+                  }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {result.plants.some(p => p.lowConfidence) && (
             <p className="text-xs px-3 py-2 rounded-lg" style={{ background: `${WARN_COLOR}18`, color: WARN_COLOR, border: `1px solid ${WARN_COLOR}35` }}>
               One or more plants (marked below) found very little green content — check that box before trusting its measurement.
             </p>
           )}
 
-          <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
-
-          <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
-            Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
-            largest plant found is 100%. This is not a growth measurement over time; upload a second photo
-            of the same plants instead to chart that.
-          </p>
+          {compareAsStages ? (
+            <>
+              <p className="text-xs px-3 py-2 rounded-lg" style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}35` }}>
+                Treating these as one plant at different growth stages, left-to-right — this is your
+                interpretation, not something detected automatically. There&apos;s no way to verify from the
+                photo alone that these are really the same plant over time rather than different plants.
+              </p>
+              <GrowthChart frames={toStageFrames(result.plants)} accent={accent} />
+              <div className="flex gap-3 flex-wrap justify-center">
+                {toStageFrames(result.plants).map((f, i) => (
+                  <div key={i} className="flex flex-col gap-1 items-center">
+                    {f.maskPreviewUrl && (
+                      <img src={f.maskPreviewUrl} alt={`${f.label} leaf mask`} className={ZOOMABLE_THUMB_CLASS}
+                        onClick={() => setLightbox({ src: f.maskPreviewUrl!, alt: `${f.label} leaf mask` })}
+                        style={{ width: 100, height: 100, outline: f.lowConfidence ? `2px solid ${WARN_COLOR}` : "none" }} />
+                    )}
+                    <span className="text-[10px]" style={{ color: "var(--text3)" }}>{f.label}</span>
+                    <span className="text-[10px] font-semibold" style={{ color: f.lowConfidence ? WARN_COLOR : accent }}>
+                      {f.growthPct > 0 ? "+" : ""}{f.growthPct}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
+              <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
+                Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
+                largest plant found is 100%. This is not a growth measurement over time; upload a second photo
+                of the same plants instead to chart that.
+              </p>
+            </>
+          )}
         </Card>
       )}
 
