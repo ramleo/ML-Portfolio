@@ -6,6 +6,7 @@ import { WARN_COLOR, GrowthChart, FrameThumbnails, CompareView } from "./PlantGr
 import { FramingCheck } from "./PlantGrowthFramingCheck";
 import { CameraCapture } from "./PlantGrowthCamera";
 import { SpeciesId } from "./PlantGrowthSpeciesId";
+import { CalibrationModal, type Calibration } from "./PlantGrowthCalibration";
 
 const ERROR_COLOR = "#f87171";
 
@@ -84,6 +85,7 @@ function toStageFrames(plants: PlantComparison[]): GrowthFrame[] {
     maskPreviewUrl: p.maskPreviewUrl,
     greennessIndex: p.greennessIndex,
     leafCount: p.leafCount,
+    leafPixelCount: p.leafPixelCount,
   }));
 }
 
@@ -97,6 +99,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [compareAsStages, setCompareAsStages] = useState(false);
   const [framingCheckIndex, setFramingCheckIndex] = useState<number | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [calibration, setCalibration] = useState<Calibration | null>(null);
+  const [calibrating, setCalibrating] = useState(false);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -207,6 +211,21 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
         )}
 
         <SpeciesId imageDataUrl={pending[0]?.dataUrl ?? null} accent={accent} />
+
+        {pending[0] && (
+          <div className="flex items-center gap-2 mt-2">
+            <button onClick={() => setCalibrating(true)}
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors border"
+              style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
+              {calibration ? "Recalibrate real-world size" : "Calibrate real-world size"}
+            </button>
+            {calibration && (
+              <span className="text-[11px]" style={{ color: "var(--text3)" }}>
+                Calibrated — results below show estimated cm²
+              </span>
+            )}
+          </div>
+        )}
       </Card>
 
       {growthPlants && growthPlants.length > 0 && frames && frames.length > 0 && (
@@ -243,7 +262,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
           <GrowthChart frames={frames} accent={accent} />
 
-          <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
+          <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
 
           <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
             Growth is leaf-pixel area relative to the first photo, not a real-world measurement — it only
@@ -285,11 +304,11 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
                 photo alone that these are really the same plant over time rather than different plants.
               </p>
               <GrowthChart frames={toStageFrames(result.plants)} accent={accent} />
-              <FrameThumbnails frames={toStageFrames(result.plants)} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
+              <FrameThumbnails frames={toStageFrames(result.plants)} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
             </>
           ) : (
             <>
-              <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
+              <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
               <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
                 Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
                 largest plant found is 100%. This is not a growth measurement over time; upload a second photo
@@ -316,6 +335,14 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
           overlaySrc={pending[0]?.dataUrl ?? null}
           onCapture={onPhotoCaptured}
           onClose={() => setCameraOpen(false)}
+        />
+      )}
+
+      {calibrating && pending[0] && (
+        <CalibrationModal
+          photoSrc={pending[0].dataUrl}
+          onSave={c => { setCalibration(c); setCalibrating(false); }}
+          onClose={() => setCalibrating(false)}
         />
       )}
     </div>

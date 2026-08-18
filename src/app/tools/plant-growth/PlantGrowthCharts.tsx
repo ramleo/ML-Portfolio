@@ -78,7 +78,9 @@ export function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent:
 /** Growth-mode thumbnail strip: mask preview + label + growth% + leaf
  * count, shared by the main growth view and the compare-mode "growth
  * stages" reinterpretation. */
-export function FrameThumbnails({ frames, accent, onImageClick }: { frames: GrowthFrame[]; accent: string; onImageClick: (src: string, alt: string) => void }) {
+export function FrameThumbnails({ frames, accent, onImageClick, cmPerPixel }: {
+  frames: GrowthFrame[]; accent: string; onImageClick: (src: string, alt: string) => void; cmPerPixel?: number;
+}) {
   return (
     <div className="flex gap-3 flex-wrap justify-center">
       {frames.map((f, i) => (
@@ -93,6 +95,11 @@ export function FrameThumbnails({ frames, accent, onImageClick }: { frames: Grow
             {f.growthPct > 0 ? "+" : ""}{f.growthPct}%
           </span>
           <span className="text-[9px]" style={{ color: "var(--text3)" }}>{f.leafCount} {f.leafCount === 1 ? "leaf" : "leaves"}</span>
+          {cmPerPixel && (
+            <span className="text-[9px]" style={{ color: "var(--text3)" }}>
+              ~{(f.leafPixelCount * cmPerPixel * cmPerPixel).toFixed(1)} cm²
+            </span>
+          )}
         </div>
       ))}
     </div>
@@ -102,7 +109,9 @@ export function FrameThumbnails({ frames, accent, onImageClick }: { frames: Grow
 /** Single photo, multiple plants — ranks them by current leaf area
  * relative to the largest (100%), no time axis. Horizontal bars instead of
  * GrowthChart's line/points since there's no x-axis of days to plot. */
-export function CompareView({ plants, accent, onImageClick }: { plants: PlantComparison[]; accent: string; onImageClick: (src: string, alt: string) => void }) {
+export function CompareView({ plants, accent, onImageClick, cmPerPixel }: {
+  plants: PlantComparison[]; accent: string; onImageClick: (src: string, alt: string) => void; cmPerPixel?: number;
+}) {
   const sorted = [...plants].sort((a, b) => b.relativePct - a.relativePct);
   return (
     <div className="flex flex-col gap-3">
@@ -117,6 +126,9 @@ export function CompareView({ plants, accent, onImageClick }: { plants: PlantCom
             <div className="flex items-center justify-between text-xs">
               <span style={{ color: "var(--text3)" }}>
                 Plant {p.index + 1} <span style={{ color: "var(--text3)", opacity: 0.7 }}>· {p.leafCount} {p.leafCount === 1 ? "leaf" : "leaves"}</span>
+                {cmPerPixel && (
+                  <span style={{ color: "var(--text3)", opacity: 0.7 }}> · ~{(p.leafPixelCount * cmPerPixel * cmPerPixel).toFixed(1)} cm²</span>
+                )}
               </span>
               <span className="font-semibold" style={{ color: p.lowConfidence ? WARN_COLOR : accent }}>
                 {p.relativePct}%
