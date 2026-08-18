@@ -164,6 +164,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   };
 
   const removePhoto = (i: number) => {
+    reset();
     setPending(p => p.filter((_, idx) => idx !== i));
   };
 
