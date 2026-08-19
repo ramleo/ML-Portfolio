@@ -7,6 +7,8 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import PlantGrowthRunner from "./PlantGrowthRunner";
 import PlantGrowthGroupMode from "./PlantGrowthGroupMode";
+import PlantGrowthUserGuideModal from "./PlantGrowthUserGuideModal";
+import { PLANT_GROWTH_GUIDE, PLANT_GROWTH_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#4ade80";
 
@@ -23,6 +25,7 @@ export default function PlantGrowthPage() {
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
   const [mode, setMode] = useState<"labeled" | "group">("labeled");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -31,11 +34,8 @@ export default function PlantGrowthPage() {
         accent: ACCENT,
         tool: "Plant Growth Quantification",
         summary: TOOL_SUMMARY,
-        suggestions: [
-          "Why does a frame show as low confidence?",
-          "Does this measure real-world leaf size?",
-          "What counts as 'green' in the mask?",
-        ],
+        guide: PLANT_GROWTH_GUIDE,
+        suggestions: PLANT_GROWTH_SUGGESTIONS,
       }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
@@ -70,7 +70,18 @@ export default function PlantGrowthPage() {
                 Measures leaf area across a timelapse photo series to chart growth (or stress) over time
               </p>
             </div>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
           </div>
+
+          <PlantGrowthUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
           <div className="flex items-center gap-2 mb-4">
             {([["labeled", "I know the plants/order"], ["group", "Unordered batch — figure it out"]] as const).map(([key, label]) => (
