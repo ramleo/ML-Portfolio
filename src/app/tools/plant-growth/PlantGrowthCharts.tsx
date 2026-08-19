@@ -21,18 +21,28 @@ export function metricsTooltip(f: { greennessIndex: number; leafCount: number })
 /** Hand-rolled SVG growth curve — no charting library in this repo, this
  * mirrors realtime-analytics/AnalyticsCharts.tsx's Sparkline pattern
  * (area+line path from computed points, gradient fill, axis labels). */
-export function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent: string }) {
+export function GrowthChart({ frames, accent, projectedPct }: { frames: GrowthFrame[]; accent: string; projectedPct?: number | null }) {
   const W = 640, H = 200, PL = 40, PR = 12, PT = 26, PB = 24;
   const iW = W - PL - PR, iH = H - PT - PB;
+  const hasProjection = projectedPct !== undefined && projectedPct !== null;
   const values = frames.map(f => f.growthPct);
+  if (hasProjection) values.push(projectedPct);
   const max = Math.max(...values, 0);
   const min = Math.min(...values, 0);
   const range = max - min || 1;
+  // Leave room for the projected point one step past the last real frame —
+  // denom only grows when a projection is shown, so the chart is pixel-
+  // identical to before when it's not.
+  const denom = Math.max(frames.length - 1 + (hasProjection ? 1 : 0), 1);
   const pts = frames.map((f, i) => ({
-    x: PL + (i / Math.max(frames.length - 1, 1)) * iW,
+    x: PL + (i / denom) * iW,
     y: PT + (1 - (f.growthPct - min) / range) * iH,
     ...f,
   }));
+  const projPt = hasProjection ? {
+    x: PL + (frames.length / denom) * iW,
+    y: PT + (1 - (projectedPct - min) / range) * iH,
+  } : null;
   const zeroY = PT + (1 - (0 - min) / range) * iH;
   const area = `M${pts[0].x},${zeroY} L${pts.map(p => `${p.x},${p.y}`).join(" L")} L${pts[pts.length - 1].x},${zeroY} Z`;
   const line = `M${pts.map(p => `${p.x},${p.y}`).join(" L")}`;
@@ -50,6 +60,17 @@ export function GrowthChart({ frames, accent }: { frames: GrowthFrame[]; accent:
       <text x={PL - 6} y={zeroY + 3} textAnchor="end" fontSize="9" fill="var(--text3)">0%</text>
       <path d={area} fill={`url(#${gid})`} />
       <path d={line} fill="none" stroke={accent} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {projPt && (
+        <>
+          <line x1={pts[pts.length - 1].x} y1={pts[pts.length - 1].y} x2={projPt.x} y2={projPt.y}
+            stroke={accent} strokeWidth="2" strokeDasharray="4,3" strokeLinecap="round" opacity={0.6} />
+          <circle cx={projPt.x} cy={projPt.y} r={3.5} fill="none" stroke={accent} strokeWidth="1.5" strokeDasharray="2,2" />
+          <text x={projPt.x} y={H - 4} textAnchor="end" fontSize="8" fill="var(--text3)">projected</text>
+          <text x={projPt.x} y={projPt.y - 8} textAnchor="end" fontSize="9" fontWeight={600} fill={accent} opacity={0.8}>
+            {projectedPct! > 0 ? "+" : ""}{projectedPct}%
+          </text>
+        </>
+      )}
       {pts.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r={p.lowConfidence ? 3 : 3.5}
           fill={p.lowConfidence ? WARN_COLOR : accent}

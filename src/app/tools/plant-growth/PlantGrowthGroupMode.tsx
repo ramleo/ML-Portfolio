@@ -9,6 +9,7 @@ import { GrowthChart, FrameThumbnails, WARN_COLOR } from "./PlantGrowthCharts";
 import { Card, Lightbox, readFileAsDataUrl } from "./PlantGrowthRunner";
 import { CameraCapture } from "./PlantGrowthCamera";
 import { ExportCsvButton, downloadCsv, growthFramesToRows } from "./PlantGrowthCsv";
+import { ProjectionControl, projectGrowth } from "./PlantGrowthProjection";
 
 const ERROR_COLOR = "#f87171";
 
@@ -34,6 +35,7 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
   const [editedGroups, setEditedGroups] = useState<ProposedGroup[] | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [projectionSteps, setProjectionSteps] = useState(1);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -242,7 +244,8 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
                 One or more frames (marked below) found very little green content — check framing or lighting on those photos.
               </p>
             )}
-            <GrowthChart frames={frames} accent={accent} />
+            <GrowthChart frames={frames} accent={accent} projectedPct={projectGrowth(frames, projectionSteps)} />
+            <ProjectionControl frames={frames} stepsAhead={projectionSteps} onStepsAheadChange={setProjectionSteps} projectedPct={projectGrowth(frames, projectionSteps)} accent={accent} />
             <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
             <div className="self-center">
               <ExportCsvButton onClick={() => downloadCsv(`plant-group-${g.groupId + 1}-growth.csv`, growthFramesToRows(frames))} />

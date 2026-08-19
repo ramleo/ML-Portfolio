@@ -8,6 +8,7 @@ import { CameraCapture } from "./PlantGrowthCamera";
 import { SpeciesId } from "./PlantGrowthSpeciesId";
 import { CalibrationModal, type Calibration } from "./PlantGrowthCalibration";
 import { ExportCsvButton, downloadCsv, growthFramesToRows, compareToRows } from "./PlantGrowthCsv";
+import { ProjectionControl, projectGrowth } from "./PlantGrowthProjection";
 
 const ERROR_COLOR = "#f87171";
 
@@ -102,6 +103,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [calibrating, setCalibrating] = useState(false);
+  const [projectionSteps, setProjectionSteps] = useState(1);
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -131,6 +133,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const onMeasure = () => {
     setSelectedPlant(0);
     setCompareAsStages(false);
+    setProjectionSteps(1);
     const payload = pending.map(p => ({ image: p.dataUrl.split(",")[1] ?? "", label: p.label }));
     run(payload, autoDetect);
   };
@@ -140,6 +143,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
   const activeTrack: PlantTrack | undefined = growthPlants?.[selectedPlant];
   const frames: GrowthFrame[] | undefined = activeTrack?.frames;
   const hasLowConfidence = frames?.some(f => f.lowConfidence) ?? false;
+  const projectedPct = frames ? projectGrowth(frames, projectionSteps) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -261,7 +265,9 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             </p>
           )}
 
-          <GrowthChart frames={frames} accent={accent} />
+          <GrowthChart frames={frames} accent={accent} projectedPct={projectedPct} />
+
+          <ProjectionControl frames={frames} stepsAhead={projectionSteps} onStepsAheadChange={setProjectionSteps} projectedPct={projectedPct} accent={accent} />
 
           <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
 
