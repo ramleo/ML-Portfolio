@@ -8,6 +8,7 @@ import { MAX_FRAMES } from "./usePlantGrowthRunner";
 import { GrowthChart, FrameThumbnails, WARN_COLOR } from "./PlantGrowthCharts";
 import { Card, Lightbox, readFileAsDataUrl } from "./PlantGrowthRunner";
 import { CameraCapture } from "./PlantGrowthCamera";
+import { ExportCsvButton, downloadCsv, growthFramesToRows } from "./PlantGrowthCsv";
 
 const ERROR_COLOR = "#f87171";
 
@@ -243,6 +244,9 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
             )}
             <GrowthChart frames={frames} accent={accent} />
             <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} />
+            <div className="self-center">
+              <ExportCsvButton onClick={() => downloadCsv(`plant-group-${g.groupId + 1}-growth.csv`, growthFramesToRows(frames))} />
+            </div>
           </Card>
         );
       })}

@@ -7,6 +7,7 @@ import { FramingCheck } from "./PlantGrowthFramingCheck";
 import { CameraCapture } from "./PlantGrowthCamera";
 import { SpeciesId } from "./PlantGrowthSpeciesId";
 import { CalibrationModal, type Calibration } from "./PlantGrowthCalibration";
+import { ExportCsvButton, downloadCsv, growthFramesToRows, compareToRows } from "./PlantGrowthCsv";
 
 const ERROR_COLOR = "#f87171";
 
@@ -264,6 +265,10 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
           <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
 
+          <div className="self-center">
+            <ExportCsvButton onClick={() => downloadCsv(`plant-${selectedPlant + 1}-growth.csv`, growthFramesToRows(frames, calibration?.cmPerPixel))} />
+          </div>
+
           <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
             Growth is leaf-pixel area relative to the first photo, not a real-world measurement — it only
             holds up if every photo is framed the same way. The magenta overlay above each thumbnail shows
@@ -305,10 +310,16 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
               </p>
               <GrowthChart frames={toStageFrames(result.plants)} accent={accent} />
               <FrameThumbnails frames={toStageFrames(result.plants)} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
+              <div className="self-center">
+                <ExportCsvButton onClick={() => downloadCsv("plant-growth-stages.csv", growthFramesToRows(toStageFrames(result.plants), calibration?.cmPerPixel))} />
+              </div>
             </>
           ) : (
             <>
               <CompareView plants={result.plants} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
+              <div className="self-center">
+                <ExportCsvButton onClick={() => downloadCsv("plant-comparison.csv", compareToRows(result.plants, calibration?.cmPerPixel))} />
+              </div>
               <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
                 Percentages compare these plants&apos; CURRENT leaf area to each other in this one photo — the
                 largest plant found is 100%. This is not a growth measurement over time; upload a second photo
