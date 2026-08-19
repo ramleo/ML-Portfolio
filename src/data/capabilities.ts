@@ -322,6 +322,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/plant-growth",
   },
+  {
+    id: "qr-phishing-detector",
+    title: "QR Phishing Detector",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload a photo or screenshot containing a QR code and its decoded destination URL is checked for structural phishing/malicious-link signals — IP-literal hosts, punycode domains, '@' auth-trick URLs, URL shorteners, suspicious TLDs, and typosquats of well-known brand domains via edit-distance. Pure local heuristics, no ML model or API call, and the decoded link is never actually visited — only its text is analyzed. Reports red flags for a human to weigh, not a binary safe/malicious verdict.",
+    accent: "#f97316",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "cv2 QRCodeDetector + heuristics (local)",
+    input: "Photo or screenshot",
+    tags: ["Security", "Phishing Detection", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/qr-phishing-detector",
+  },
 ];
 
 export default capabilities;
