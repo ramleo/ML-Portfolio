@@ -79,6 +79,14 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
             </p>
           )}
 
+          {entry.result && entry.result.found && (
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+              {entry.result.reputationChecked
+                ? "Also checked against Google Safe Browsing's known-threat database."
+                : "Structural heuristics only — Google Safe Browsing reputation check unavailable."}
+            </p>
+          )}
+
           {entry.result?.qrCodes.map((qr, i) => (
             <div key={i} className="rounded-lg p-4" style={{ border: `1px solid ${RISK_COLOR[qr.riskLevel]}35` }}>
               <div className="flex items-center justify-between flex-wrap gap-2 mb-2">

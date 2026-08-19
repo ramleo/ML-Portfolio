@@ -8,11 +8,12 @@ export const QR_PHISHING_GUIDE = `
 
 ## What this tool does
 Upload a photo or screenshot containing a QR code, and the tool decodes it
-and analyzes the destination link for structural signs of phishing or a
-malicious redirect — entirely with local heuristics, no ML model, no API
-cost. The decoded link is **never actually visited** — only its text is
-analyzed, so scanning a link here can't itself trigger anything on the
-destination.
+and checks the destination link two ways: structural analysis of the link's
+own text (local heuristics, always runs, no cost), and a reputation lookup
+against Google Safe Browsing's database of already-known malicious sites
+(a hash-prefix lookup, not a page visit). The decoded link is **never
+actually visited** by this tool either way — so scanning a link here can't
+itself trigger anything on the destination.
 
 ## How to use it
 1. Click **Choose photo(s)** and pick one or more images, each containing a
@@ -31,9 +32,15 @@ Each decoded QR gets one of three risk levels:
 - **High risk** (red) — a strong signal: the link points straight at an IP
   address instead of a domain name, contains an "@" trick that hides the
   real destination after it, uses punycode encoding (often used to disguise
-  a lookalike domain), or closely resembles a well-known brand's domain by
-  only a character or two (a likely typosquat, e.g. "paypa1.com" instead of
-  "paypal.com").
+  a lookalike domain), closely resembles a well-known brand's domain by only
+  a character or two (a likely typosquat, e.g. "paypa1.com" instead of
+  "paypal.com"), or — strongest signal of all — is already listed in
+  Google Safe Browsing's own database of known malware/phishing sites.
+
+A small note under each photo's results says whether the Google Safe
+Browsing check actually ran for that scan ("Also checked against Google
+Safe Browsing's known-threat database") or fell back to structural
+heuristics only.
 
 ## What this is (and isn't)
 These are **structural red flags in the link's text, not a verdict**. A

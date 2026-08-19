@@ -16,6 +16,7 @@ export type QrResult = {
 export type ScanResult = {
   found: boolean;
   qrCodes: QrResult[];
+  reputationChecked: boolean;
 };
 
 export type ScanEntry = {
@@ -51,6 +52,7 @@ async function scanOne(imageB64: string): Promise<ScanResult> {
         riskLevel: q.risk_level,
         reasons: q.reasons,
       })),
+      reputationChecked: !!data.reputation_checked,
     };
   } finally {
     clearTimeout(timeout);
