@@ -18,56 +18,78 @@ export type ScanResult = {
   qrCodes: QrResult[];
 };
 
+export type ScanEntry = {
+  id: string;
+  fileName: string;
+  preview: string;
+  scanning: boolean;
+  result: ScanResult | null;
+  error: string | null;
+};
+
 type RawQr = { data: string; is_url: boolean; host?: string; risk_level: RiskLevel; reasons: string[] };
+
+async function scanOne(imageB64: string): Promise<ScanResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageB64 }),
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.detail || "request failed");
+    if (data.error) throw new Error(data.error);
+    return {
+      found: !!data.found,
+      qrCodes: (data.qr_codes as RawQr[]).map(q => ({
+        data: q.data,
+        isUrl: q.is_url,
+        host: q.host ?? null,
+        riskLevel: q.risk_level,
+        reasons: q.reasons,
+      })),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 /** Pure local heuristic scan (OpenCV QR decode + URL structure checks) — no
  * ML model, no API key, no budget cost, and the decoded URL is never
  * fetched server-side. See mm_qr_phishing.py's module docstring for the
- * exact signals checked. */
+ * exact signals checked. Scans a batch of photos in parallel, one entry per
+ * photo, so uploading several QR images at once shows each result as soon
+ * as its own scan finishes rather than waiting for the slowest one. */
 export function useQrPhishingScan() {
-  const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState<ScanResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [entries, setEntries] = useState<ScanEntry[]>([]);
 
-  const scan = useCallback(async (imageB64: string) => {
-    setScanning(true);
-    setError(null);
-    setResult(null);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
+  const scanFiles = useCallback((files: { fileName: string; preview: string; b64: string }[]) => {
+    const newEntries: ScanEntry[] = files.map(f => ({
+      id: `${f.fileName}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      fileName: f.fileName,
+      preview: f.preview,
+      scanning: true,
+      result: null,
+      error: null,
+    }));
+    setEntries(newEntries);
 
-    try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageB64 }),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.detail || "request failed");
-      if (data.error) throw new Error(data.error);
-      setResult({
-        found: !!data.found,
-        qrCodes: (data.qr_codes as RawQr[]).map(q => ({
-          data: q.data,
-          isUrl: q.is_url,
-          host: q.host ?? null,
-          riskLevel: q.risk_level,
-          reasons: q.reasons,
-        })),
-      });
-    } catch (e) {
-      setError(e instanceof Error && e.message !== "request failed" ? e.message : "Scan failed — try again in a moment.");
-    } finally {
-      clearTimeout(timeout);
-      setScanning(false);
-    }
+    newEntries.forEach((entry, i) => {
+      scanOne(files[i].b64)
+        .then(result => {
+          setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, result } : e)));
+        })
+        .catch(err => {
+          const message = err instanceof Error && err.message !== "request failed" ? err.message : "Scan failed — try again in a moment.";
+          setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, error: message } : e)));
+        });
+    });
   }, []);
 
-  const reset = useCallback(() => {
-    setResult(null);
-    setError(null);
-  }, []);
+  const reset = useCallback(() => setEntries([]), []);
 
-  return { scanning, result, error, scan, reset };
+  return { entries, scanFiles, reset };
 }

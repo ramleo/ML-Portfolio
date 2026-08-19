@@ -15,10 +15,12 @@ analyzed, so scanning a link here can't itself trigger anything on the
 destination.
 
 ## How to use it
-1. Click **Choose photo** and pick an image containing one QR code (a
-   poster, a flyer, a parking-meter sign, or a screenshot of a code you
-   received some other way).
-2. The QR is decoded automatically and its destination link is scored.
+1. Click **Choose photo(s)** and pick one or more images, each containing a
+   QR code (a poster, a flyer, a parking-meter sign, or a screenshot of a
+   code you received some other way).
+2. Each photo is decoded and scored in parallel — results appear as their
+   own card as soon as each scan finishes, so you don't wait for the
+   slowest one before seeing the rest.
 
 ## Reading the result
 Each decoded QR gets one of three risk levels:
