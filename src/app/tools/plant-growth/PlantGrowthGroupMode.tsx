@@ -10,6 +10,7 @@ import { Card, Lightbox, readFileAsDataUrl } from "./PlantGrowthRunner";
 import { CameraCapture } from "./PlantGrowthCamera";
 import { ExportCsvButton, downloadCsv, growthFramesToRows } from "./PlantGrowthCsv";
 import { ProjectionControl, projectGrowth } from "./PlantGrowthProjection";
+import { GifExportButton } from "./PlantGrowthGif";
 
 const ERROR_COLOR = "#f87171";
 
@@ -206,6 +207,10 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
                     )}
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-2">
+                <GifExportButton photoSrcs={g.photoIndices.map(i => photos[i])} filename={`plant-group-${g.groupId + 1}-timelapse.gif`} />
               </div>
             </div>
           ))}

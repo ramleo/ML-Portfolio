@@ -9,6 +9,7 @@ import { SpeciesId } from "./PlantGrowthSpeciesId";
 import { CalibrationModal, type Calibration } from "./PlantGrowthCalibration";
 import { ExportCsvButton, downloadCsv, growthFramesToRows, compareToRows } from "./PlantGrowthCsv";
 import { ProjectionControl, projectGrowth } from "./PlantGrowthProjection";
+import { GifExportButton } from "./PlantGrowthGif";
 
 const ERROR_COLOR = "#f87171";
 
@@ -212,6 +213,12 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {pending.length > 1 && (
+          <div className="mt-2">
+            <GifExportButton photoSrcs={pending.map(p => p.dataUrl)} filename="plant-timelapse.gif" />
           </div>
         )}
 
