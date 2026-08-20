@@ -43,12 +43,15 @@ Safe Browsing's known-threat database") or fell back to structural
 heuristics only.
 
 ## What this is (and isn't)
-These are **structural red flags in the link's text, not a verdict**. A
-"high risk" result is worth real suspicion — but a "low risk" result can
-still lead somewhere malicious in ways a structural check can't see, like a
-freshly-registered domain with a completely plausible name. When in doubt:
-don't scan unfamiliar QR codes in public places, and never enter credentials
-or payment details after following a code you didn't expect.
+This is **two signals, not a verdict**: structural red flags in the link's
+own text, plus (when configured) whether Google already knows this exact
+site is malicious. A "high risk" result — especially one flagged by Safe
+Browsing specifically — is worth real suspicion. But a "low risk" result
+still isn't a guarantee: Safe Browsing only knows about sites it has already
+seen and classified, so a **freshly-registered phishing domain that hasn't
+been indexed yet** can still pass both checks clean. When in doubt: don't
+scan unfamiliar QR codes in public places, and never enter credentials or
+payment details after following a code you didn't expect.
 
 ## Notes & limits
 - Only decodes QR codes (not other barcode formats).
@@ -59,6 +62,12 @@ or payment details after following a code you didn't expect.
   — it is not exhaustive, so a typosquat of a brand outside that list won't
   be flagged by that specific check (other signals like punycode or an
   unusual TLD may still catch it).
+- The Safe Browsing check is a lookup against Google's existing database,
+  not a live analysis of the page — it can only flag a site Google has
+  already crawled and classified as malicious, so very new or low-traffic
+  malicious sites may not be listed yet. If the check is unavailable (not
+  configured, or a temporary lookup failure), the scan still runs on
+  structural heuristics alone and says so.
 `.trim();
 
 export const QR_PHISHING_SUGGESTIONS = [
