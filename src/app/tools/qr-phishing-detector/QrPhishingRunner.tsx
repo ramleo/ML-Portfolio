@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useQrPhishingScan, type RiskLevel } from "./useQrPhishingScan";
 import QrScanHistory from "./QrScanHistory";
+import { downloadCsv, scanEntriesToRows, ExportCsvButton } from "./QrPhishingCsv";
 
 const LOW_COLOR = "#34d399";
 const MEDIUM_COLOR = "#fbbf24";
@@ -144,6 +145,12 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
           ))}
         </div>
       ))}
+
+      {entries.some(e => e.result?.found) && (
+        <div className="self-center">
+          <ExportCsvButton onClick={() => downloadCsv(`qr-phishing-scan-${Date.now()}.csv`, scanEntriesToRows(entries))} />
+        </div>
+      )}
 
       {entries.length > 0 && (
         <p className="text-[10px] text-center" style={{ color: "var(--text3)" }}>

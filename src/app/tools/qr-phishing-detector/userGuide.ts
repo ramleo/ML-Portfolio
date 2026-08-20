@@ -66,6 +66,12 @@ already crawled. When in doubt: don't scan unfamiliar QR codes in public
 places, and never enter credentials or payment details after following a
 code you didn't expect.
 
+## Export CSV
+After scanning, an **Export CSV** button appears below the results — downloads
+every scanned result (source, decoded data, payload type, host, risk level,
+reasons, whether Safe Browsing ran) as a CSV file, generated entirely in your
+browser.
+
 ## Recent scans
 Your last 5 scans are saved right in your browser (not sent anywhere) so
 you can glance back at a result without re-scanning. Click any entry under
