@@ -38,6 +38,14 @@ means "the best fit among the photos you uploaded," not "certainly this."
 Searching the same photos with a different description can reorder and
 re-score everything.
 
+## Find duplicates
+Click **Find duplicates** to check the whole batch for near-identical
+photos (burst shots, accidental re-uploads) — no query needed, it reuses
+the same CLIP embeddings. Matched photos get grouped together and outlined
+in a shared color. This is a heuristic, not exact-file matching: it can
+occasionally group photos that are genuinely just very visually similar
+(not literal duplicates), especially for near-blank or low-detail images.
+
 ## What this is (and isn't)
 CLIP compares overall visual meaning, not exact objects or text in the
 image — it's very good at broad scenes, colors, and concepts, but a very
@@ -59,4 +67,5 @@ export const PHOTO_SEARCH_SUGGESTIONS = [
   "Are my photos stored anywhere?",
   "What kind of descriptions work best?",
   "How does 'Find similar' work?",
+  "How does duplicate detection work?",
 ];

@@ -18,6 +18,8 @@ function scoreColor(relative: number): string {
   return "var(--text3)";
 }
 
+const DUPLICATE_GROUP_COLORS = ["#f97316", "#a78bfa", "#34d399", "#f472b6", "#38bdf8", "#facc15"];
+
 /** Upload a batch of photos, type what you're looking for in plain
  * language, and get them ranked by how well each one matches — CLIP
  * embeds every photo and the text query, no tagging/captioning step
@@ -26,7 +28,7 @@ function scoreColor(relative: number): string {
 export default function PhotoSearchRunner({ accent }: { accent: string }) {
   const {
     photos, addPhotos, removePhoto, query, setQuery, search, searchByImage, imageQueryFilename,
-    searching, results, error, reset,
+    searching, results, error, reset, findDuplicates, findingDuplicates, duplicateGroups,
   } = usePhotoSearch();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +46,17 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
   };
 
   const resultByFilename = new Map((results ?? []).map(r => [r.filename, r.score]));
-  const sortedPhotos = results
+
+  const groupIndexByFilename = new Map<string, number>();
+  (duplicateGroups ?? []).forEach((group, gi) => group.forEach(f => groupIndexByFilename.set(f, gi)));
+
+  const sortedPhotos = duplicateGroups
+    ? [...photos].sort((a, b) => {
+        const ga = groupIndexByFilename.get(a.filename) ?? Infinity;
+        const gb = groupIndexByFilename.get(b.filename) ?? Infinity;
+        return ga - gb;
+      })
+    : results
     ? [...photos].sort((a, b) => {
         if (a.filename === imageQueryFilename) return -1;
         if (b.filename === imageQueryFilename) return 1;
@@ -86,6 +98,13 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
               <button onClick={reset} className="text-xs underline" style={{ color: "var(--text3)" }}>Clear all</button>
             </>
           )}
+          {photos.length > 1 && (
+            <button onClick={findDuplicates} disabled={findingDuplicates}
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors border ml-auto"
+              style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)", opacity: findingDuplicates ? 0.5 : 1 }}>
+              {findingDuplicates ? "Checking…" : "Find duplicates"}
+            </button>
+          )}
         </div>
 
         {photos.length > 0 && (
@@ -112,13 +131,24 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
         </p>
       )}
 
+      {duplicateGroups && (
+        <p className="text-xs px-1" style={{ color: "var(--text3)" }}>
+          {duplicateGroups.length === 0
+            ? "No likely duplicates found in this batch."
+            : `${duplicateGroups.length} possible duplicate group${duplicateGroups.length !== 1 ? "s" : ""} found — grouped and colored below.`}
+        </p>
+      )}
+
       {photos.length > 0 && (
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
           {sortedPhotos.map(p => {
             const score = resultByFilename.get(p.filename);
             const isReference = p.filename === imageQueryFilename;
+            const groupIndex = groupIndexByFilename.get(p.filename);
+            const groupColor = groupIndex !== undefined ? DUPLICATE_GROUP_COLORS[groupIndex % DUPLICATE_GROUP_COLORS.length] : null;
             return (
-              <div key={p.filename} style={{ ...cardStyle, ...(isReference ? { border: `1px solid ${accent}` } : {}) }}
+              <div key={p.filename}
+                style={{ ...cardStyle, ...(isReference ? { border: `1px solid ${accent}` } : groupColor ? { border: `1px solid ${groupColor}` } : {}) }}
                 className="p-2 flex flex-col gap-1.5 relative group">
                 <button onClick={() => removePhoto(p.filename)}
                   className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs z-10"
@@ -128,6 +158,8 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
                 <img src={p.preview} alt="" className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
                 {isReference ? (
                   <span className="text-[10px] font-semibold text-center" style={{ color: accent }}>Reference photo</span>
+                ) : groupColor ? (
+                  <span className="text-[10px] font-semibold text-center" style={{ color: groupColor }}>Possible duplicate</span>
                 ) : score !== undefined ? (
                   <span className="text-[10px] font-semibold text-center" style={{ color: scoreColor(relativePct(score) / 100) }}>
                     {relativePct(score)}% match
