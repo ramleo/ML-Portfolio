@@ -25,6 +25,10 @@ itself trigger anything on the destination.
 2. Each photo is decoded and scored in parallel — results appear as their
    own card as soon as each scan finishes, so you don't wait for the
    slowest one before seeing the rest.
+3. Have a link but no QR code — from an email, a text message, a chat —
+   instead? Type or paste it into **"or check a URL directly"** and click
+   **Check URL** (or press Enter). It runs the exact same three-signal
+   analysis, no QR photo required.
 
 ## Reading the result
 Each decoded QR gets one of three risk levels:

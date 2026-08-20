@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useQrPhishingScan, type RiskLevel } from "./useQrPhishingScan";
 
 const LOW_COLOR = "#34d399";
@@ -22,13 +22,15 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 /** Upload one or more photos/screenshots containing a QR code → decode each
  * locally (OpenCV) → score the decoded URL's structure for phishing/
- * malicious-link signals. Never visits the decoded link — pure text
- * analysis, see mm_qr_phishing.py's docstring for why that's safe by
- * construction. Photos are scanned in parallel, each rendered as its own
- * result card as soon as it finishes. */
+ * malicious-link signals — or skip the photo entirely and type/paste a URL
+ * directly, for a link received some other way. Never visits the decoded
+ * link — pure text analysis, see mm_qr_phishing.py's docstring for why
+ * that's safe by construction. Photos are scanned in parallel, each
+ * rendered as its own result card as soon as it finishes. */
 export default function QrPhishingRunner({ accent }: { accent: string }) {
-  const { entries, scanFiles, reset } = useQrPhishingScan();
+  const { entries, scanFiles, checkUrl, reset } = useQrPhishingScan();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [urlInput, setUrlInput] = useState("");
 
   const onFilesSelected = async (files: FileList) => {
     reset();
@@ -38,6 +40,12 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
       return { fileName: file.name, preview: dataUrl, b64: dataUrl.split(",")[1] ?? "" };
     }));
     scanFiles(prepared);
+  };
+
+  const onCheckUrl = () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    checkUrl(url);
   };
 
   const cardStyle: React.CSSProperties = {
@@ -61,14 +69,30 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
           onChange={e => { if (e.target.files?.length) onFilesSelected(e.target.files); e.target.value = ""; }} />
+
+        <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <span className="text-xs shrink-0" style={{ color: "var(--text3)" }}>or check a URL directly:</span>
+          <input value={urlInput} onChange={e => setUrlInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") onCheckUrl(); }}
+            placeholder="https://example.com/..."
+            className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }} />
+          <button onClick={onCheckUrl} disabled={!urlInput.trim()}
+            className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
+            style={{ borderColor: `${accent}50`, color: accent, opacity: urlInput.trim() ? 1 : 0.5 }}>
+            Check URL
+          </button>
+        </div>
       </div>
 
       {entries.map(entry => (
         <div key={entry.id} style={cardStyle} className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <img src={entry.preview} alt="" className="rounded-lg object-cover shrink-0" style={{ width: 48, height: 48 }} />
+            {entry.preview && (
+              <img src={entry.preview} alt="" className="rounded-lg object-cover shrink-0" style={{ width: 48, height: 48 }} />
+            )}
             <span className="text-xs font-semibold truncate" style={{ color: "var(--text)" }}>{entry.fileName}</span>
-            {entry.scanning && <span className="text-[11px]" style={{ color: "var(--text3)" }}>Scanning…</span>}
+            {entry.scanning && <span className="text-[11px]" style={{ color: "var(--text3)" }}>{entry.preview ? "Scanning…" : "Checking…"}</span>}
           </div>
 
           {entry.error && <p className="text-xs" style={{ color: ERROR_COLOR }}>{entry.error}</p>}
@@ -79,7 +103,7 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
             </p>
           )}
 
-          {entry.result && entry.result.found && (
+          {entry.result && entry.result.found && entry.result.qrCodes.some(q => q.isUrl) && (
             <p className="text-[10px]" style={{ color: "var(--text3)" }}>
               {entry.result.reputationChecked
                 ? "Also checked against Google Safe Browsing's known-threat database."
@@ -96,6 +120,11 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
                 {qr.host && <span className="text-[11px]" style={{ color: "var(--text3)" }}>{qr.host}</span>}
               </div>
               <p className="text-[11px] mb-2 break-all" style={{ color: "var(--text3)" }}>{qr.data}</p>
+              {!qr.isUrl && (
+                <p className="text-[11px]" style={{ color: "var(--text3)" }}>
+                  This doesn&apos;t look like a URL — nothing to check.
+                </p>
+              )}
               {qr.reasons.length > 0 && (
                 <ul className="flex flex-col gap-1">
                   {qr.reasons.map((r, j) => (

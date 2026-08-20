@@ -12,10 +12,10 @@ import { QR_PHISHING_GUIDE, QR_PHISHING_SUGGESTIONS } from "./userGuide";
 const ACCENT = "#f97316";
 
 const TOOL_SUMMARY =
-  "Upload a photo or screenshot containing a QR code — the code is decoded locally (OpenCV, no ML model, " +
-  "no API cost) and its destination URL is checked for structural phishing/malicious-link signals: " +
-  "IP-literal hosts, punycode domains, '@' auth-trick URLs, URL shorteners, suspicious TLDs, and " +
-  "typosquats of well-known brand domains. The link is never actually visited — only its text is analyzed.";
+  "Upload a photo/screenshot containing a QR code, or type a URL directly — decoded locally (OpenCV, no ML " +
+  "model, no API cost) and checked for structural phishing/malicious-link signals (IP-literal hosts, " +
+  "punycode domains, '@' auth-trick URLs, URL shorteners, suspicious TLDs, brand typosquats), a Google Safe " +
+  "Browsing reputation lookup, and a free RDAP domain-age check. The link is never actually visited.";
 
 export default function QrPhishingDetectorPage() {
   useToolTracking("qr-phishing-detector");

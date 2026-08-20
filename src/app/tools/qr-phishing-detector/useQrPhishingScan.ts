@@ -22,7 +22,7 @@ export type ScanResult = {
 export type ScanEntry = {
   id: string;
   fileName: string;
-  preview: string;
+  preview: string | null;
   scanning: boolean;
   result: ScanResult | null;
   error: string | null;
@@ -52,6 +52,35 @@ async function scanOne(imageB64: string): Promise<ScanResult> {
         riskLevel: q.risk_level,
         reasons: q.reasons,
       })),
+      reputationChecked: !!data.reputation_checked,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function scanUrl(url: string): Promise<ScanResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.detail || "request failed");
+    const q = data.result as RawQr;
+    return {
+      found: true,
+      qrCodes: [{
+        data: q.data,
+        isUrl: q.is_url,
+        host: q.host ?? null,
+        riskLevel: q.risk_level,
+        reasons: q.reasons,
+      }],
       reputationChecked: !!data.reputation_checked,
     };
   } finally {
@@ -91,7 +120,28 @@ export function useQrPhishingScan() {
     });
   }, []);
 
+  const checkUrl = useCallback((url: string) => {
+    const entry: ScanEntry = {
+      id: `${url}-${Date.now()}`,
+      fileName: url,
+      preview: null,
+      scanning: true,
+      result: null,
+      error: null,
+    };
+    setEntries([entry]);
+
+    scanUrl(url)
+      .then(result => {
+        setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, result } : e)));
+      })
+      .catch(err => {
+        const message = err instanceof Error && err.message !== "request failed" ? err.message : "Check failed — try again in a moment.";
+        setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, error: message } : e)));
+      });
+  }, []);
+
   const reset = useCallback(() => setEntries([]), []);
 
-  return { entries, scanFiles, reset };
+  return { entries, scanFiles, checkUrl, reset };
 }
