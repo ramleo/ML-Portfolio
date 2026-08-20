@@ -24,7 +24,10 @@ function scoreColor(relative: number): string {
  * required first. Everything happens in one request; nothing is stored
  * server-side between searches. */
 export default function PhotoSearchRunner({ accent }: { accent: string }) {
-  const { photos, addPhotos, removePhoto, query, setQuery, search, searching, results, error, reset } = usePhotoSearch();
+  const {
+    photos, addPhotos, removePhoto, query, setQuery, search, searchByImage, imageQueryFilename,
+    searching, results, error, reset,
+  } = usePhotoSearch();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onFilesSelected = async (files: FileList) => {
@@ -42,7 +45,11 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
 
   const resultByFilename = new Map((results ?? []).map(r => [r.filename, r.score]));
   const sortedPhotos = results
-    ? [...photos].sort((a, b) => (resultByFilename.get(b.filename) ?? -1) - (resultByFilename.get(a.filename) ?? -1))
+    ? [...photos].sort((a, b) => {
+        if (a.filename === imageQueryFilename) return -1;
+        if (b.filename === imageQueryFilename) return 1;
+        return (resultByFilename.get(b.filename) ?? -1) - (resultByFilename.get(a.filename) ?? -1);
+      })
     : photos;
 
   // Raw CLIP cosine similarities sit in a narrow band (typically ~0.15-0.35
@@ -99,22 +106,39 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
 
       {error && <p className="text-xs px-1" style={{ color: "#f87171" }}>{error}</p>}
 
+      {imageQueryFilename && (
+        <p className="text-xs px-1" style={{ color: accent }}>
+          Showing photos similar to the highlighted reference photo below.
+        </p>
+      )}
+
       {photos.length > 0 && (
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
           {sortedPhotos.map(p => {
             const score = resultByFilename.get(p.filename);
+            const isReference = p.filename === imageQueryFilename;
             return (
-              <div key={p.filename} style={cardStyle} className="p-2 flex flex-col gap-1.5 relative">
+              <div key={p.filename} style={{ ...cardStyle, ...(isReference ? { border: `1px solid ${accent}` } : {}) }}
+                className="p-2 flex flex-col gap-1.5 relative group">
                 <button onClick={() => removePhoto(p.filename)}
                   className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs z-10"
                   style={{ background: "rgba(0,0,0,0.6)", color: "var(--text3)" }} aria-label="Remove">
                   ×
                 </button>
                 <img src={p.preview} alt="" className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
-                {score !== undefined && (
+                {isReference ? (
+                  <span className="text-[10px] font-semibold text-center" style={{ color: accent }}>Reference photo</span>
+                ) : score !== undefined ? (
                   <span className="text-[10px] font-semibold text-center" style={{ color: scoreColor(relativePct(score) / 100) }}>
                     {relativePct(score)}% match
                   </span>
+                ) : null}
+                {photos.length > 1 && !isReference && (
+                  <button onClick={() => searchByImage(p.filename)}
+                    className="text-[9px] px-1.5 py-1 rounded border transition-colors hover:bg-white/5"
+                    style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)" }}>
+                    Find similar
+                  </button>
                 )}
               </div>
             );

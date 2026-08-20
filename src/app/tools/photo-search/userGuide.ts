@@ -23,6 +23,13 @@ compare a sentence directly against a photo's visual content.
 3. Photos re-sort with the best match first, each showing a match
    percentage badge.
 
+## Search by an example photo instead
+Instead of typing a description, you can click **Find similar** on any
+photo you've already uploaded to search using that photo itself as the
+query — useful when you know roughly what you want but it's easier to show
+than describe. The reference photo gets outlined and labeled instead of
+scored, and won't appear in its own results.
+
 ## Reading the match percentage
 The percentage is **relative to this batch and this search only** — it
 shows how much better a photo matches your description compared to the
@@ -51,4 +58,5 @@ export const PHOTO_SEARCH_SUGGESTIONS = [
   "Can it find an exact object, like a specific logo?",
   "Are my photos stored anywhere?",
   "What kind of descriptions work best?",
+  "How does 'Find similar' work?",
 ];
