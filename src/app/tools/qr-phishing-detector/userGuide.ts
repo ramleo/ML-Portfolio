@@ -88,4 +88,5 @@ export const QR_PHISHING_SUGGESTIONS = [
   "What makes a link 'high risk' here?",
   "Does this tool actually visit the link?",
   "What does a typosquat mean?",
+  "How does the domain-age check work?",
 ];
