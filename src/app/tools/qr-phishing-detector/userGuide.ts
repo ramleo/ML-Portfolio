@@ -66,6 +66,15 @@ already crawled. When in doubt: don't scan unfamiliar QR codes in public
 places, and never enter credentials or payment details after following a
 code you didn't expect.
 
+## Not every QR code is a link
+QR codes can encode things other than a URL — Wi-Fi network credentials, a
+contact card, an email address, a phone number, a text message, or a map
+location. When a scanned code isn't a URL, the tool labels what it actually
+is (e.g. "Wi-Fi network credentials") instead of just saying "nothing to
+check." A Wi-Fi QR code gets an extra caution note: scanning it configures
+your device to join that network automatically, so only scan one from a
+source you trust.
+
 ## Notes & limits
 - Only decodes QR codes (not other barcode formats).
 - If no QR code is found in the image, the tool says so rather than
@@ -93,4 +102,5 @@ export const QR_PHISHING_SUGGESTIONS = [
   "Does this tool actually visit the link?",
   "What does a typosquat mean?",
   "How does the domain-age check work?",
+  "What if my QR code isn't a link?",
 ];

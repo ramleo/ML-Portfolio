@@ -11,6 +11,8 @@ export type QrResult = {
   host: string | null;
   riskLevel: RiskLevel;
   reasons: string[];
+  payloadType: string;
+  payloadLabel: string;
 };
 
 export type ScanResult = {
@@ -28,7 +30,7 @@ export type ScanEntry = {
   error: string | null;
 };
 
-type RawQr = { data: string; is_url: boolean; host?: string; risk_level: RiskLevel; reasons: string[] };
+type RawQr = { data: string; is_url: boolean; host?: string; risk_level: RiskLevel; reasons: string[]; payload_type: string; payload_label: string };
 
 async function scanOne(imageB64: string): Promise<ScanResult> {
   const controller = new AbortController();
@@ -51,6 +53,8 @@ async function scanOne(imageB64: string): Promise<ScanResult> {
         host: q.host ?? null,
         riskLevel: q.risk_level,
         reasons: q.reasons,
+        payloadType: q.payload_type,
+        payloadLabel: q.payload_label,
       })),
       reputationChecked: !!data.reputation_checked,
     };
@@ -80,6 +84,8 @@ async function scanUrl(url: string): Promise<ScanResult> {
         host: q.host ?? null,
         riskLevel: q.risk_level,
         reasons: q.reasons,
+        payloadType: q.payload_type,
+        payloadLabel: q.payload_label,
       }],
       reputationChecked: !!data.reputation_checked,
     };

@@ -121,8 +121,8 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
               </div>
               <p className="text-[11px] mb-2 break-all" style={{ color: "var(--text3)" }}>{qr.data}</p>
               {!qr.isUrl && (
-                <p className="text-[11px]" style={{ color: "var(--text3)" }}>
-                  This doesn&apos;t look like a URL — nothing to check.
+                <p className="text-[11px] mb-2" style={{ color: "var(--text3)" }}>
+                  {qr.payloadLabel} — not a link, so there&apos;s no destination to check.
                 </p>
               )}
               {qr.reasons.length > 0 && (
