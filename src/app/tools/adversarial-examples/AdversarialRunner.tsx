@@ -148,6 +148,29 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
               ? "The defense changed the prediction but landed on a different wrong label, not the original — a common, honest outcome for preprocessing-only defenses like this one."
               : "The defense had no measurable effect here — JPEG recompression doesn't reliably defeat every attack/strength combination."}
           </p>
+
+          <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
+              Where was the model looking? (Grad-CAM)
+            </span>
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex flex-col gap-2 flex-1 min-w-[180px]">
+                <span className="text-[10px]" style={{ color: "var(--text3)" }}>For &quot;{result.original.label}&quot; (original)</span>
+                <img src={`data:image/png;base64,${result.original.heatmap}`} alt="Original Grad-CAM"
+                  className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[180px]">
+                <span className="text-[10px]" style={{ color: "var(--text3)" }}>For &quot;{result.adversarial.label}&quot; (adversarial)</span>
+                <img src={`data:image/png;base64,${result.adversarial.heatmap}`} alt="Adversarial Grad-CAM"
+                  className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
+              </div>
+            </div>
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+              Warmer colors mark image regions that most drove that specific prediction. The label alone
+              doesn&apos;t show why the model was fooled — but a shift in WHERE it&apos;s looking, for a photo
+              that barely changed, does.
+            </p>
+          </div>
         </div>
       )}
     </div>

@@ -48,6 +48,15 @@ prediction.
   adversarial one — the JPEG pass didn't disrupt the perturbation at all
   for that combination of attack/strength/quality.
 
+## Where was the model looking? (Grad-CAM)
+Below the three images, a second row shows a **Grad-CAM heatmap** for the
+original and adversarial predictions — warmer colors mark the regions that
+most drove that specific prediction. This is the actual "why" behind the
+label change: the photo barely changed to your eye, but the model's
+attention can shift to a completely different region to justify its new,
+wrong answer. Comparing the two heatmaps side by side is often more
+convincing than the label change alone.
+
 ## Why the defense doesn't reliably work — this is the point of the demo
 JPEG-recompression defense is a real, published mitigation technique
 against this attack family, but the real adversarial-ML literature has
@@ -79,4 +88,5 @@ export const ADVERSARIAL_SUGGESTIONS = [
   "Why doesn't the defense always work?",
   "What does 'epsilon' actually control?",
   "Is this attacking the other tools on this site?",
+  "What is Grad-CAM showing me?",
 ];

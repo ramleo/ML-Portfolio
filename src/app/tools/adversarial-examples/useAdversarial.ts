@@ -5,8 +5,8 @@ const RUN_TIMEOUT_MS = 45_000;
 
 export type Prediction = { label: string; confidence: number; top3: { label: string; confidence: number }[] };
 export type AdversarialResult = {
-  original: Prediction;
-  adversarial: Prediction & { fooled: boolean; image: string };
+  original: Prediction & { heatmap: string };
+  adversarial: Prediction & { fooled: boolean; image: string; heatmap: string };
   defended: Prediction & { recovered: boolean; disrupted: boolean; image: string };
   perturbation_preview: string;
 };
