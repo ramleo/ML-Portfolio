@@ -354,6 +354,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/photo-search",
   },
+  {
+    id: "adversarial-examples",
+    title: "Adversarial Examples",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload a photo and craft an FGSM/PGD adversarial perturbation that fools a pretrained ImageNet classifier into a wrong (often high-confidence) prediction, then try a JPEG-recompression defense. Reports honestly whether the defense actually recovered the correct label — real testing found it often doesn't fully, a genuine limitation of preprocessing-only defenses, not a broken demo.",
+    accent: "#f43f5e",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MobileNetV2 + FGSM/PGD (local)",
+    input: "Photo",
+    tags: ["Adversarial ML", "Security", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/adversarial-examples",
+  },
 ];
 
 export default capabilities;
