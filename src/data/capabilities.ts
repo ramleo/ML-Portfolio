@@ -338,6 +338,22 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/qr-phishing-detector",
   },
+  {
+    id: "photo-search",
+    title: "Photo Library Visual Search",
+    subtitle: "CLIP · No API Cost",
+    description:
+      "Upload a batch of photos and describe what you're looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP embeds both the images and the text query into the same space, no manual tagging or captioning needed. Stateless: nothing is stored between searches.",
+    accent: "#38bdf8",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "clip-ViT-B-32 (local)",
+    input: "Batch of photos + text query",
+    tags: ["CLIP", "Embeddings", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/photo-search",
+  },
 ];
 
 export default capabilities;
