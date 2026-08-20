@@ -30,6 +30,15 @@ query — useful when you know roughly what you want but it's easier to show
 than describe. The reference photo gets outlined and labeled instead of
 scored, and won't appear in its own results.
 
+## Excluding a concept
+The optional **excluding** field steers results away from a concept —
+"beach sunset" excluding "people" pushes photos with people further down,
+even if they'd otherwise match well. This works by subtracting the excluded
+concept's direction from the search direction in CLIP's embedding space —
+it's a steer, not a hard filter, so a photo that strongly matches both the
+main description and the excluded concept can still rank low rather than
+being removed outright.
+
 ## Reading the match percentage
 The percentage is **relative to this batch and this search only** — it
 shows how much better a photo matches your description compared to the
@@ -68,4 +77,5 @@ export const PHOTO_SEARCH_SUGGESTIONS = [
   "What kind of descriptions work best?",
   "How does 'Find similar' work?",
   "How does duplicate detection work?",
+  "How does excluding a concept work?",
 ];

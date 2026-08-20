@@ -27,7 +27,8 @@ const DUPLICATE_GROUP_COLORS = ["#f97316", "#a78bfa", "#34d399", "#f472b6", "#38
  * server-side between searches. */
 export default function PhotoSearchRunner({ accent }: { accent: string }) {
   const {
-    photos, addPhotos, removePhoto, query, setQuery, search, searchByImage, imageQueryFilename,
+    photos, addPhotos, removePhoto, query, setQuery, excludeQuery, setExcludeQuery,
+    search, searchByImage, imageQueryFilename,
     searching, results, error, reset, findDuplicates, findingDuplicates, duplicateGroups,
   } = usePhotoSearch();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -108,17 +109,27 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
         </div>
 
         {photos.length > 0 && (
-          <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-            <input value={query} onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") search(); }}
-              placeholder="Describe what you're looking for…"
-              className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }} />
-            <button onClick={search} disabled={!query.trim() || searching}
-              className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
-              style={{ borderColor: `${accent}50`, color: accent, opacity: query.trim() && !searching ? 1 : 0.5 }}>
-              {searching ? "Searching…" : "Search"}
-            </button>
+          <div className="flex flex-col gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center gap-2">
+              <input value={query} onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") search(); }}
+                placeholder="Describe what you're looking for…"
+                className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }} />
+              <button onClick={search} disabled={!query.trim() || searching}
+                className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
+                style={{ borderColor: `${accent}50`, color: accent, opacity: query.trim() && !searching ? 1 : 0.5 }}>
+                {searching ? "Searching…" : "Search"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] shrink-0" style={{ color: "var(--text3)" }}>excluding (optional):</span>
+              <input value={excludeQuery} onChange={e => setExcludeQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") search(); }}
+                placeholder="e.g. people, text, screenshots…"
+                className="flex-1 text-xs rounded-lg px-3 py-1.5 min-w-0"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text)" }} />
+            </div>
           </div>
         )}
       </div>

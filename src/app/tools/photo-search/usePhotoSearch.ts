@@ -16,6 +16,7 @@ export type DuplicateGroups = string[][];
 export function usePhotoSearch() {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [query, setQuery] = useState("");
+  const [excludeQuery, setExcludeQuery] = useState("");
   const [imageQueryFilename, setImageQueryFilename] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[] | null>(null);
@@ -40,6 +41,7 @@ export function usePhotoSearch() {
   const reset = useCallback(() => {
     setPhotos([]);
     setQuery("");
+    setExcludeQuery("");
     setImageQueryFilename(null);
     setResults(null);
     setDuplicateGroups(null);
@@ -76,8 +78,9 @@ export function usePhotoSearch() {
     runSearch({
       photos: photos.map(p => ({ filename: p.filename, image: p.b64 })),
       query: query.trim(),
+      exclude_query: excludeQuery.trim() || undefined,
     });
-  }, [photos, query, runSearch]);
+  }, [photos, query, excludeQuery, runSearch]);
 
   const searchByImage = useCallback((filename: string) => {
     const ref = photos.find(p => p.filename === filename);
@@ -89,8 +92,9 @@ export function usePhotoSearch() {
       photos: photos.map(p => ({ filename: p.filename, image: p.b64 })),
       query_image: ref.b64,
       exclude_filename: filename,
+      exclude_query: excludeQuery.trim() || undefined,
     });
-  }, [photos, runSearch]);
+  }, [photos, excludeQuery, runSearch]);
 
   const findDuplicates = useCallback(async () => {
     if (photos.length < 2) return;
@@ -119,7 +123,8 @@ export function usePhotoSearch() {
   }, [photos]);
 
   return {
-    photos, addPhotos, removePhoto, query, setQuery, search, searchByImage, imageQueryFilename,
+    photos, addPhotos, removePhoto, query, setQuery, excludeQuery, setExcludeQuery,
+    search, searchByImage, imageQueryFilename,
     searching, results, error, reset, findDuplicates, findingDuplicates, duplicateGroups,
   };
 }
