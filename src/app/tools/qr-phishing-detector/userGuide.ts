@@ -8,11 +8,14 @@ export const QR_PHISHING_GUIDE = `
 
 ## What this tool does
 Upload a photo or screenshot containing a QR code, and the tool decodes it
-and checks the destination link two ways: structural analysis of the link's
-own text (local heuristics, always runs, no cost), and a reputation lookup
-against Google Safe Browsing's database of already-known malicious sites
-(a hash-prefix lookup, not a page visit). The decoded link is **never
-actually visited** by this tool either way — so scanning a link here can't
+and checks the destination link three ways: structural analysis of the
+link's own text (local heuristics, always runs, no cost), a reputation
+lookup against Google Safe Browsing's database of already-known malicious
+sites (a hash-prefix lookup, not a page visit), and a domain-age lookup
+(via RDAP, WHOIS's free public successor) that flags sites registered only
+days ago — a strong, independent phishing signal that catches sites too new
+for Safe Browsing to have indexed yet. The decoded link is **never actually
+visited** by this tool in any of the three — so scanning a link here can't
 itself trigger anything on the destination.
 
 ## How to use it
@@ -34,8 +37,12 @@ Each decoded QR gets one of three risk levels:
   real destination after it, uses punycode encoding (often used to disguise
   a lookalike domain), closely resembles a well-known brand's domain by only
   a character or two (a likely typosquat, e.g. "paypa1.com" instead of
-  "paypal.com"), or — strongest signal of all — is already listed in
-  Google Safe Browsing's own database of known malware/phishing sites.
+  "paypal.com"), is registered only days ago (fewer than 30), or — strongest
+  signal of all — is already listed in Google Safe Browsing's own database
+  of known malware/phishing sites.
+
+A domain registered between 30 and 180 days ago also adds a medium-risk
+"relatively new domain" note, even if nothing else about the link looks off.
 
 A small note under each photo's results says whether the Google Safe
 Browsing check actually ran for that scan ("Also checked against Google
@@ -43,15 +50,17 @@ Safe Browsing's known-threat database") or fell back to structural
 heuristics only.
 
 ## What this is (and isn't)
-This is **two signals, not a verdict**: structural red flags in the link's
-own text, plus (when configured) whether Google already knows this exact
-site is malicious. A "high risk" result — especially one flagged by Safe
-Browsing specifically — is worth real suspicion. But a "low risk" result
-still isn't a guarantee: Safe Browsing only knows about sites it has already
-seen and classified, so a **freshly-registered phishing domain that hasn't
-been indexed yet** can still pass both checks clean. When in doubt: don't
-scan unfamiliar QR codes in public places, and never enter credentials or
-payment details after following a code you didn't expect.
+This is **three signals, not a verdict**: structural red flags in the
+link's own text, whether Google already knows this exact site is malicious
+(when configured), and how recently the domain was registered. A "high
+risk" result — especially one flagged by Safe Browsing or registered within
+the last month — is worth real suspicion. But a "low risk" result still
+isn't a guarantee: RDAP coverage isn't universal (some TLDs/registries
+don't expose it), so an occasional freshly-registered domain can still slip
+through without an age signal, and Safe Browsing only knows what it has
+already crawled. When in doubt: don't scan unfamiliar QR codes in public
+places, and never enter credentials or payment details after following a
+code you didn't expect.
 
 ## Notes & limits
 - Only decodes QR codes (not other barcode formats).
@@ -68,6 +77,11 @@ payment details after following a code you didn't expect.
   malicious sites may not be listed yet. If the check is unavailable (not
   configured, or a temporary lookup failure), the scan still runs on
   structural heuristics alone and says so.
+- The domain-age check is best-effort: it relies on RDAP (WHOIS's public
+  successor), which not every domain registry supports yet. When a lookup
+  fails or a domain isn't found, the tool simply doesn't show an age signal
+  for that link — it's never treated as suspicious on its own, only used
+  when a real registration date is available.
 `.trim();
 
 export const QR_PHISHING_SUGGESTIONS = [
