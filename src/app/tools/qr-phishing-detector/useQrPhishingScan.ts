@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { saveHistoryEntry, type QrHistoryEntry } from "./QrScanHistory";
 
 const SCAN_TIMEOUT_MS = 20_000;
 
@@ -118,6 +119,9 @@ export function useQrPhishingScan() {
       scanOne(files[i].b64)
         .then(result => {
           setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, result } : e)));
+          if (result.found) {
+            saveHistoryEntry({ id: entry.id, label: entry.fileName, at: new Date().toISOString(), qrCodes: result.qrCodes, reputationChecked: result.reputationChecked });
+          }
         })
         .catch(err => {
           const message = err instanceof Error && err.message !== "request failed" ? err.message : "Scan failed — try again in a moment.";
@@ -140,6 +144,7 @@ export function useQrPhishingScan() {
     scanUrl(url)
       .then(result => {
         setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, scanning: false, result } : e)));
+        saveHistoryEntry({ id: entry.id, label: url, at: new Date().toISOString(), qrCodes: result.qrCodes, reputationChecked: result.reputationChecked });
       })
       .catch(err => {
         const message = err instanceof Error && err.message !== "request failed" ? err.message : "Check failed — try again in a moment.";
@@ -149,5 +154,16 @@ export function useQrPhishingScan() {
 
   const reset = useCallback(() => setEntries([]), []);
 
-  return { entries, scanFiles, checkUrl, reset };
+  const restoreFromHistory = useCallback((h: QrHistoryEntry) => {
+    setEntries([{
+      id: h.id,
+      fileName: h.label,
+      preview: null,
+      scanning: false,
+      result: { found: true, qrCodes: h.qrCodes, reputationChecked: h.reputationChecked },
+      error: null,
+    }]);
+  }, []);
+
+  return { entries, scanFiles, checkUrl, reset, restoreFromHistory };
 }

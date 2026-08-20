@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useQrPhishingScan, type RiskLevel } from "./useQrPhishingScan";
+import QrScanHistory from "./QrScanHistory";
 
 const LOW_COLOR = "#34d399";
 const MEDIUM_COLOR = "#fbbf24";
@@ -28,7 +29,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
  * that's safe by construction. Photos are scanned in parallel, each
  * rendered as its own result card as soon as it finishes. */
 export default function QrPhishingRunner({ accent }: { accent: string }) {
-  const { entries, scanFiles, checkUrl, reset } = useQrPhishingScan();
+  const { entries, scanFiles, checkUrl, reset, restoreFromHistory } = useQrPhishingScan();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [urlInput, setUrlInput] = useState("");
 
@@ -84,6 +85,8 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
           </button>
         </div>
       </div>
+
+      {entries.length === 0 && <QrScanHistory onRestore={restoreFromHistory} />}
 
       {entries.map(entry => (
         <div key={entry.id} style={cardStyle} className="p-5 flex flex-col gap-4">

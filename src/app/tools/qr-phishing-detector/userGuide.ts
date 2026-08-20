@@ -66,6 +66,13 @@ already crawled. When in doubt: don't scan unfamiliar QR codes in public
 places, and never enter credentials or payment details after following a
 code you didn't expect.
 
+## Recent scans
+Your last 5 scans are saved right in your browser (not sent anywhere) so
+you can glance back at a result without re-scanning. Click any entry under
+"Recent scans" to view its saved result again — this doesn't re-run the
+Safe Browsing or domain-age checks, it just shows what was found at the
+time. Click "Clear" to wipe this local history.
+
 ## Not every QR code is a link
 QR codes can encode things other than a URL — Wi-Fi network credentials, a
 contact card, an email address, a phone number, a text message, or a map
