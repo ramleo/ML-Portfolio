@@ -11,6 +11,7 @@ export type AdversarialResult = {
     target_label?: string; target_achieved?: boolean;
   };
   defended: Prediction & { recovered: boolean; disrupted: boolean; image: string };
+  smoothed: Prediction & { recovered: boolean; disrupted: boolean; vote_confidence: number; num_samples: number; sigma: number };
   perturbation_preview: string;
 };
 

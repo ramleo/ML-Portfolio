@@ -12,9 +12,10 @@ import { ADVERSARIAL_GUIDE, ADVERSARIAL_SUGGESTIONS } from "./userGuide";
 const ACCENT = "#f43f5e";
 
 const TOOL_SUMMARY =
-  "Upload a photo and craft an FGSM/PGD adversarial perturbation that fools a pretrained ImageNet " +
-  "classifier, then try a JPEG-recompression defense. Reports honestly whether the defense actually " +
-  "recovered the correct prediction (often it doesn't fully) rather than only showing favorable cases.";
+  "Upload a photo and craft an FGSM/PGD adversarial perturbation (untargeted, or targeted at a " +
+  "specific ImageNet label) that fools a pretrained classifier, then try two defenses — JPEG " +
+  "recompression and randomized smoothing. Reports honestly whether either defense actually " +
+  "recovered the correct prediction (often neither fully does) rather than only showing favorable cases.";
 
 export default function AdversarialRobustnessLabPage() {
   useToolTracking("adversarial-robustness-lab");

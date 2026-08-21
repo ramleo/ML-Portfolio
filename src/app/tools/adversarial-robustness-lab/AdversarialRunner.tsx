@@ -34,6 +34,41 @@ function PredictionCard({ title, src, prediction, badge, accent }: {
   );
 }
 
+function SmoothedCard({ result, accent }: { result: NonNullable<ReturnType<typeof useAdversarial>["result"]>; accent: string }) {
+  const s = result.smoothed;
+  const badge = s.recovered
+    ? { text: "Recovered", color: "#34d399" }
+    : s.disrupted
+    ? { text: "Disrupted, not recovered", color: "#fbbf24" }
+    : { text: "No effect", color: "#f87171" };
+  return (
+    <div className="flex flex-col gap-2 flex-1 min-w-[180px]">
+      <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
+        After randomized smoothing
+      </span>
+      <div className="flex flex-col gap-2 justify-center rounded-lg p-3" style={{ aspectRatio: "1 / 1", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <span className="text-[9px]" style={{ color: "var(--text3)" }}>
+          Majority vote over {s.num_samples} noised copies (σ={s.sigma})
+        </span>
+        <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: "rgba(255,255,255,0.08)" }}>
+          <div style={{ width: `${Math.round(s.vote_confidence * 100)}%`, height: "100%", background: accent }} />
+        </div>
+        <span className="text-[9px]" style={{ color: "var(--text3)" }}>
+          Vote agreement: {Math.round(s.vote_confidence * 100)}%
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold truncate" style={{ color: "var(--text)" }}>
+          {s.label} ({Math.round(s.confidence * 100)}%)
+        </span>
+        <span className="text-[9px] px-1.5 py-px rounded shrink-0" style={{ background: `${badge.color}18`, color: badge.color }}>
+          {badge.text}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** Upload a photo, fool a pretrained ImageNet classifier with an FGSM/PGD
  * adversarial perturbation, then see whether a JPEG-recompression defense
  * recovers the correct prediction — usually it doesn't fully, which is the
@@ -158,6 +193,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                   : { text: "No effect", color: "#f87171" }
               }
               accent={accent} />
+            <SmoothedCard result={result} accent={accent} />
             <div className="flex flex-col gap-2 flex-1 min-w-[180px]">
               <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>Perturbation (amplified ×8)</span>
               <img src={`data:image/png;base64,${result.perturbation_preview}`} alt="Amplified perturbation"
@@ -177,11 +213,20 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
           )}
 
           <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+            <strong style={{ color: "var(--text2)" }}>JPEG defense: </strong>
             {result.defended.recovered
               ? "The defense fully recovered the original label here — this doesn't always happen."
               : result.defended.disrupted
               ? "The defense changed the prediction but landed on a different wrong label, not the original — a common, honest outcome for preprocessing-only defenses like this one."
               : "The defense had no measurable effect here — JPEG recompression doesn't reliably defeat every attack/strength combination."}
+          </p>
+          <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+            <strong style={{ color: "var(--text2)" }}>Randomized smoothing: </strong>
+            {result.smoothed.recovered
+              ? `The noisy-vote defense recovered the original label, but with only ${Math.round(result.smoothed.vote_confidence * 100)}% agreement across samples — a real but unstable win, not a confident one (this exact vote can shift between runs due to the random noise itself).`
+              : result.smoothed.disrupted
+              ? "The noise vote landed on yet another wrong label, not the original — some disruption, no recovery."
+              : "The vote agreed with the adversarial label almost every time — this defense had essentially no effect at this attack strength."}
           </p>
 
           <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>

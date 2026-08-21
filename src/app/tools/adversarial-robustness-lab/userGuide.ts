@@ -13,9 +13,9 @@ Upload a photo and this tool crafts an **adversarial perturbation** — a
 tiny, mostly-invisible change to the pixels — specifically designed to
 fool a pretrained image classifier (MobileNetV2, trained on ImageNet) into
 predicting the wrong thing, often with HIGH confidence in that wrong
-answer. Then it tries a candidate **defense** (JPEG recompression) and
-shows honestly whether that defense actually recovered the correct
-prediction.
+answer. Then it tries two candidate **defenses** (JPEG recompression,
+randomized smoothing) and shows honestly whether either one actually
+recovered the correct prediction.
 
 ## How to use it
 1. Click **Choose photo** and upload any image.
@@ -28,9 +28,13 @@ prediction.
    to become visible as vague texture at the far end of the range.
 4. Adjust the **defense's JPEG quality** — lower quality is a more
    aggressive (but more visually lossy) defense attempt.
-5. Click **Run attack + defense** to see all three images side by side:
-   Original, Adversarial, and After JPEG defense — each with its own
-   predicted label and confidence.
+5. Optionally type a **target label** (autocompletes over the 1000
+   ImageNet classes) to try a **targeted** attack — forcing that EXACT
+   wrong label, not just any wrong one. This is strictly harder than an
+   untargeted attack; leave it blank for untargeted.
+6. Click **Run attack + defense** to see the results side by side:
+   Original, Adversarial, After JPEG defense, and After randomized
+   smoothing — each with its own predicted label and confidence.
 
 ## Reading the result — read this honestly, not optimistically
 - **Fooled / Not fooled** on the adversarial image: whether the attack
@@ -47,6 +51,23 @@ prediction.
 - **No effect**: the defended image's prediction is identical to the raw
   adversarial one — the JPEG pass didn't disrupt the perturbation at all
   for that combination of attack/strength/quality.
+- **Target achieved / Target not reached** (only shown for a targeted
+  attack): whether the adversarial prediction landed on your EXACT chosen
+  label, not just any wrong one. Not reaching it usually means the epsilon
+  budget was too small for that specific target — try increasing it.
+
+## Randomized smoothing (the second defense)
+This defense classifies many independently noised copies of the
+adversarial image and takes a majority vote, instead of trusting one
+deterministic prediction. The **vote agreement %** shown is the real
+signal to watch: a HIGH vote agreement (whatever the label) means the
+model was consistently confident across the noise; a LOW one (near 30-40%)
+means the vote barely won — an honest sign of instability, not a reliable
+recovery, even in cases where the winning label happens to be correct.
+Real testing found this defense behaves similarly to JPEG recompression:
+sometimes disrupts the attack, rarely reliably recovers the exact original
+label. See mm_adversarial.py's module docstring for the actual sigma
+sweep behind this framing.
 
 ## Where was the model looking? (Grad-CAM)
 Below the three images, a second row shows a **Grad-CAM heatmap** for the
@@ -57,16 +78,17 @@ attention can shift to a completely different region to justify its new,
 wrong answer. Comparing the two heatmaps side by side is often more
 convincing than the label change alone.
 
-## Why the defense doesn't reliably work — this is the point of the demo
-JPEG-recompression defense is a real, published mitigation technique
-against this attack family, but the real adversarial-ML literature has
-always shown it's inconsistent, not a guaranteed fix — and testing this
-exact demo against a real photo confirmed that directly: across a sweep of
-epsilon/quality combinations, the correct label was almost never fully
-recovered, even at aggressive JPEG quality settings. Simple preprocessing
-defenses are cheap and sometimes helpful, but they are not a substitute
-for a genuinely robust, adversarially-trained model — showing that
-honestly is more useful than pretending this toy defense always works.
+## Why the defenses don't reliably work — this is the point of the demo
+Both JPEG recompression and randomized smoothing are real, published
+mitigation techniques against this attack family, but the real
+adversarial-ML literature has always shown they're inconsistent, not a
+guaranteed fix — and testing this exact demo against a real photo
+confirmed that directly for both: across a sweep of epsilon/quality/sigma
+combinations, the correct label was almost never fully and reliably
+recovered. Simple input-side defenses are cheap and sometimes helpful, but
+they are not a substitute for a genuinely robust, adversarially-trained
+model — showing that honestly is more useful than pretending either toy
+defense always works.
 
 ## What this is (and isn't)
 This is an educational demo of a real ML robustness property, using a
@@ -75,18 +97,21 @@ site) — it says nothing about the reliability of this site's other tools.
 Nothing is stored: your photo and the results only exist for this one run.
 
 ## Notes & limits
-- No API cost — the classifier and both attacks run locally on the
-  backend, no external calls.
-- Untargeted attack only: it pushes the prediction away from whatever the
-  model currently predicts, not toward a specific chosen wrong label.
+- No API cost — the classifier, both attacks, and both defenses run
+  locally on the backend, no external calls.
+- A targeted attack is strictly harder than an untargeted one — it may not
+  reach your chosen label within the epsilon range this demo allows.
 - PGD takes a few seconds longer than FGSM since it runs several gradient
   steps instead of one.
+- Randomized smoothing runs 25 extra forward passes per request (one per
+  noised copy), so results take slightly longer than the attack alone.
 `.trim();
 
 export const ADVERSARIAL_SUGGESTIONS = [
   "What's the difference between FGSM and PGD?",
-  "Why doesn't the defense always work?",
+  "Why doesn't either defense always work?",
   "What does 'epsilon' actually control?",
+  "What's a targeted vs. untargeted attack?",
   "Is this attacking the other tools on this site?",
   "What is Grad-CAM showing me?",
 ];
