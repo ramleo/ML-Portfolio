@@ -76,14 +76,11 @@ export default function ProjectsSection() {
                 fontSize: "0.72rem",
                 fontWeight: 600,
                 letterSpacing: "0.02em",
-                border: active ? "none" : "1px solid var(--border2)",
-                background: active
-                  ? "linear-gradient(135deg, #6366f1, #38bdf8)"
-                  : "var(--border)",
-                color: active ? "#fff" : "var(--text2)",
+                border: `1px solid ${active ? "var(--text)" : "var(--border2)"}`,
+                background: active ? "var(--text)" : "transparent",
+                color: active ? "var(--bg)" : "var(--text3)",
                 cursor: "pointer",
-                transition: "background 0.15s, color 0.15s, box-shadow 0.15s",
-                boxShadow: active ? "0 2px 12px rgba(99,102,241,0.35)" : "none",
+                transition: "background 0.15s, color 0.15s, border-color 0.15s",
                 whiteSpace: "nowrap",
               }}
             >

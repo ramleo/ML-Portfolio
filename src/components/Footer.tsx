@@ -27,9 +27,6 @@ export default function Footer() {
 
   return (
     <footer style={{ background: "var(--bg-section)", borderTop: "1px solid var(--border)" }} ref={ref}>
-      {/* Top gradient bar */}
-      <div style={{ height: 3, background: "linear-gradient(90deg, var(--accent-from), var(--accent-via), var(--accent-to))" }} />
-
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "3.5rem 1.5rem 2rem" }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}

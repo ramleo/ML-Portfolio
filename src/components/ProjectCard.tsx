@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 interface Project {
   id: string;
   title: string;
@@ -23,88 +21,18 @@ export default function ProjectCard({ project }: { project: Project }) {
   const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent } = project;
   const isClassification = task === "Classification";
 
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovering, setHovering] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) / rect.width - 0.5;
-    const cy = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: cy * -10, y: cx * 10 });
-  };
-
-  const handleMouseEnter = () => setHovering(true);
-  const handleMouseLeave = () => {
-    setHovering(false);
-    setTilt({ x: 0, y: 0 });
-  };
-
   return (
-    <div
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        borderRadius: 16,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        position: "relative",
-        background: "var(--bg-glass)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${hovering ? accent + "44" : "var(--border)"}`,
-        transform: hovering
-          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
-          : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
-        transition: hovering
-          ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
-          : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
-        boxShadow: hovering
-          ? `0 0 0 1px ${accent}33, 0 20px 60px ${accent}22, 0 8px 24px rgba(0,0,0,0.35)`
-          : "0 4px 24px rgba(0,0,0,0.25)",
-      }}
-    >
-      {/* Shimmer overlay — follows tilt angle */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 16,
-          background: hovering
-            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
-            : "none",
-          pointerEvents: "none",
-          zIndex: 0,
-          transition: "background 0.08s ease",
-        }}
-      />
-
-      {/* Colored top border */}
-      <div style={{ height: 3, background: accent, flexShrink: 0, position: "relative", zIndex: 1 }} />
-
-      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem", position: "relative", zIndex: 1 }}>
+    <div className="subtle-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
           <div>
-            <span
-              style={{
-                display: "inline-block",
-                padding: "2px 10px",
-                borderRadius: 9999,
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                background: `${accent}22`,
-                color: accent,
-                border: `1px solid ${accent}44`,
-                marginBottom: "0.5rem",
-              }}
-            >
-              {task}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
+              <span className="subtle-dot" style={{ width: 6, height: 6, background: accent }} />
+              <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text3)" }}>
+                {task}
+              </span>
+            </div>
             <h3
               style={{
                 fontSize: "1.05rem",
@@ -117,19 +45,9 @@ export default function ProjectCard({ project }: { project: Project }) {
               {title}
             </h3>
           </div>
-          {/* Metric pill */}
-          <div
-            style={{
-              textAlign: "center",
-              padding: "0.4rem 0.75rem",
-              borderRadius: 10,
-              background: `${accent}18`,
-              border: `1px solid ${accent}33`,
-              flexShrink: 0,
-              minWidth: 64,
-            }}
-          >
-            <div style={{ fontSize: "1rem", fontWeight: 700, color: accent, lineHeight: 1.2 }}>
+          {/* Metric */}
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div style={{ fontSize: "1rem", fontWeight: 800, color: accent, lineHeight: 1.2 }}>
               {metric}
             </div>
             <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 1 }}>

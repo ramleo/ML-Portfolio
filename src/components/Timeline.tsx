@@ -98,28 +98,25 @@ export default function Timeline() {
                 >
                   {/* Card */}
                   <div
+                    className="subtle-card"
                     style={{
                       width: isMobile ? "100%" : "calc(50% - 2rem)",
-                      background: "var(--bg-card)",
-                      border: `1px solid ${exp.current ? exp.accent + "60" : "var(--border)"}`,
-                      borderRadius: 14,
+                      border: `1px solid ${exp.current ? exp.accent + "40" : "var(--border)"}`,
                       padding: "1.1rem 1.25rem",
-                      boxShadow: exp.current ? `0 0 20px ${exp.accent}18` : "var(--shadow)",
-                      position: "relative",
                     }}
                   >
-                    {/* Top accent bar */}
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: exp.accent, borderRadius: "14px 14px 0 0" }} />
-
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem", marginTop: 4 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem" }}>
                       <div>
-                        <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.3 }}>{exp.role}</div>
-                        <div style={{ fontSize: "0.78rem", color: exp.accent, fontWeight: 600, marginTop: 2 }}>{exp.company}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <span className="subtle-dot" style={{ width: 6, height: 6, background: exp.accent }} />
+                          <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.3 }}>{exp.role}</span>
+                        </div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: 2, marginLeft: "0.9rem" }}>{exp.company}</div>
                       </div>
                       {exp.current && (
                         <span style={{
                           fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
-                          background: `${exp.accent}20`, color: exp.accent, border: `1px solid ${exp.accent}40`,
+                          color: exp.accent, border: `1px solid ${exp.accent}40`,
                           borderRadius: 4, padding: "2px 6px", flexShrink: 0,
                         }}>
                           Now
@@ -127,23 +124,22 @@ export default function Timeline() {
                       )}
                     </div>
 
-                    <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 6, marginBottom: 8 }}>{exp.period}</div>
-                    <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.65, margin: 0 }}>{exp.description}</p>
+                    <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 6, marginBottom: 8, marginLeft: "0.9rem" }}>{exp.period}</div>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.65, margin: 0, marginLeft: "0.9rem" }}>{exp.description}</p>
                   </div>
 
-                  {/* Dot */}
+                  {/* Timeline dot */}
                   <div
                     style={{
                       position: "absolute",
                       left: isMobile ? "-1.6rem" : "50%",
                       top: "1.2rem",
                       transform: isMobile ? "none" : "translateX(-50%)",
-                      width: 14,
-                      height: 14,
+                      width: 10,
+                      height: 10,
                       borderRadius: "50%",
                       background: exp.accent,
-                      border: "3px solid var(--bg)",
-                      boxShadow: `0 0 0 2px ${exp.accent}`,
+                      border: "2px solid var(--bg)",
                       zIndex: 1,
                     }}
                   />

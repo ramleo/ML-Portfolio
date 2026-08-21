@@ -16,16 +16,6 @@ interface NewsItem {
 const fade = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
 function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; delay: number }) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovering, setHovering] = useState(false);
-
-  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) / rect.width - 0.5;
-    const cy = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: cy * -8, y: cx * 8 });
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -39,65 +29,11 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
         rel="noopener noreferrer"
         style={{ textDecoration: "none", display: "flex", height: "100%" }}
       >
-        <div
-          onMouseMove={onMove}
-          onMouseEnter={() => setHovering(true)}
-          onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.65rem",
-            padding: "1.4rem 1.25rem 1.25rem",
-            position: "relative",
-            borderRadius: 14,
-            background: "var(--bg-glass)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
-            border: `1px solid ${hovering ? accent + "44" : "var(--border)"}`,
-            transform: hovering
-              ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-5px)`
-              : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
-            transition: hovering
-              ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
-              : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
-            boxShadow: hovering
-              ? `0 0 0 1px ${accent}55, 0 16px 48px ${accent}35, 0 6px 20px rgba(0,0,0,0.35)`
-              : "0 4px 20px rgba(0,0,0,0.2)",
-          }}
-        >
-          {/* Shimmer */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: 14,
-              background: hovering
-                ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.06) 0%, transparent 65%)`
-                : "none",
-              pointerEvents: "none",
-            }}
-          />
-
-          {/* Coloured top accent bar */}
-          <div style={{
-            position: "absolute",
-            top: 0, left: 0, right: 0,
-            height: 3,
-            background: accent,
-            borderRadius: "14px 14px 0 0",
-          }} />
-
+        <div className="subtle-card" style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.65rem", padding: "1.4rem 1.25rem 1.25rem" }}>
           {/* Source + date row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", position: "relative" }}>
-            <span
-              style={{
-                fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase",
-                letterSpacing: "0.08em", color: accent,
-                background: `${accent}18`, border: `1px solid ${accent}35`,
-                borderRadius: 4, padding: "2px 7px", flexShrink: 0,
-              }}
-            >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", justifyContent: "space-between" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text3)" }}>
+              <span className="subtle-dot" style={{ width: 6, height: 6, background: accent }} />
               {item.source}
             </span>
             <span style={{ fontSize: "0.68rem", color: "var(--text3)", whiteSpace: "nowrap" }}>{item.published}</span>
@@ -106,21 +42,21 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
           {/* Title */}
           <p style={{
             fontSize: "0.85rem", fontWeight: 600, color: "var(--text)",
-            lineHeight: 1.45, margin: 0, flex: 1, position: "relative",
+            lineHeight: 1.45, margin: 0, flex: 1,
           }}>
             {item.title}
           </p>
 
           {/* Summary */}
           {item.summary && (
-            <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.6, margin: 0, position: "relative" }}>
+            <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.6, margin: 0 }}>
               {item.summary.slice(0, 160)}{item.summary.length > 160 ? "…" : ""}
             </p>
           )}
 
           {/* Authors */}
           {item.authors && (
-            <p style={{ fontSize: "0.7rem", color: "var(--text3)", margin: 0, position: "relative" }}>
+            <p style={{ fontSize: "0.7rem", color: "var(--text3)", margin: 0 }}>
               {item.authors}
             </p>
           )}
@@ -129,7 +65,7 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
           <div style={{
             display: "flex", alignItems: "center", gap: "0.3rem",
             color: accent, fontSize: "0.75rem", fontWeight: 600,
-            position: "relative", marginTop: "auto",
+            marginTop: "auto",
           }}>
             Read more
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
@@ -194,11 +130,10 @@ export default function NewsSection() {
                 onClick={() => setTab(t)}
                 style={{
                   padding: "0.4rem 1.1rem", borderRadius: 9999, fontSize: "0.8rem", fontWeight: 600,
-                  border: tab === t ? "none" : "1px solid var(--border2)",
-                  background: tab === t ? "linear-gradient(135deg, #6366f1, #38bdf8)" : "var(--border)",
-                  color: tab === t ? "#fff" : "var(--text2)",
+                  border: `1px solid ${tab === t ? "var(--text)" : "var(--border2)"}`,
+                  background: tab === t ? "var(--text)" : "transparent",
+                  color: tab === t ? "var(--bg)" : "var(--text3)",
                   cursor: "pointer", transition: "all 0.15s",
-                  boxShadow: tab === t ? "0 2px 12px rgba(99,102,241,0.3)" : "none",
                 }}
               >
                 {t === "papers" ? "📄 Research Papers" : "📰 Industry News"}

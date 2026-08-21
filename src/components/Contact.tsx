@@ -60,26 +60,15 @@ export default function Contact() {
                   href={l.href}
                   target={l.href.startsWith("http") ? "_blank" : undefined}
                   rel="noopener noreferrer"
+                  className="subtle-card"
                   style={{
                     display: "flex", alignItems: "center", gap: "1rem",
                     padding: "0.85rem 1.1rem",
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
                     textDecoration: "none", color: "var(--text2)",
                     fontSize: "0.85rem",
-                    transition: "border-color 0.15s, color 0.15s, transform 0.15s",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border2)";
-                    e.currentTarget.style.color = "var(--text)";
-                    e.currentTarget.style.transform = "translateX(4px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.color = "var(--text2)";
-                    e.currentTarget.style.transform = "translateX(0)";
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
                 >
                   <span style={{
                     width: 32, height: 32, borderRadius: 9,

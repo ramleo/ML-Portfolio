@@ -281,6 +281,7 @@ nav, section, footer { position: relative; z-index: 1; }
   display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
   background: var(--bg-glass); border: 1px solid var(--border2); border-radius: 14px;
   padding: 0.7rem 1rem; margin: 0 0 1rem; backdrop-filter: blur(14px);
+  position: sticky; top: 68px; z-index: 5;
 }
 .cap-search-bar svg { flex-shrink: 0; color: var(--text3); }
 .cap-search-bar input {
@@ -360,4 +361,30 @@ nav, section, footer { position: relative; z-index: 1; }
   width: 28px; height: 28px; border-radius: 9999px; border: 1px solid var(--border2);
   background: var(--border); color: var(--text2); display: flex; align-items: center;
   justify-content: center; text-decoration: none; flex-shrink: 0;
+}
+
+/* ── Shared "subtle card" tokens — quieter alternative to the old loud
+   gradient-top-bar + 3D-tilt + icon-badge card style. Hairline border, a
+   faint inset top highlight, no accent-colored glow shadow. Used across
+   Live ML Apps, Skills, News, Timeline, and Contact for a consistent,
+   calmer visual language site-wide (introduced alongside the ML
+   Capabilities redesign). ── */
+.subtle-card {
+  border-radius: 14px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.15);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.subtle-card:hover {
+  border-color: var(--border2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.subtle-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.subtle-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.62rem;
+  font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: fit-content;
 }
