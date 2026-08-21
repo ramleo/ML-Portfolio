@@ -13,9 +13,11 @@ Upload a photo and this tool crafts an **adversarial perturbation** — a
 tiny, mostly-invisible change to the pixels — specifically designed to
 fool a pretrained image classifier (MobileNetV2, trained on ImageNet) into
 predicting the wrong thing, often with HIGH confidence in that wrong
-answer. Then it tries two candidate **defenses** (JPEG recompression,
-randomized smoothing) and shows honestly whether either one actually
-recovered the correct prediction.
+answer. The attack can be **untargeted** (any wrong label counts) or
+**targeted** (forces one exact chosen label). Then it tries two candidate
+**defenses** (JPEG recompression, randomized smoothing) and shows honestly
+whether either one actually recovered the correct prediction, plus an
+optional **transferability check** against a second, different model.
 
 ## How to use it
 1. Click **Choose photo** and upload any image.
@@ -37,7 +39,8 @@ recovered the correct prediction.
    — see whether the attack fools a model it was never crafted against.
 7. Click **Run attack + defense** to see the results side by side:
    Original, Adversarial, After JPEG defense, and After randomized
-   smoothing — each with its own predicted label and confidence.
+   smoothing — each with its own predicted label and confidence — plus a
+   transferability panel (if checked) and Grad-CAM heatmaps below.
 
 ## Reading the result — read this honestly, not optimistically
 - **Fooled / Not fooled** on the adversarial image: whether the attack
