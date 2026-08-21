@@ -1,32 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useInView } from "framer-motion";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { CapabilityDescriptionPreview } from "./CapabilityDescriptionPreview";
 
-// ── Single card — design mirrors ProjectCard exactly ─────────────────────────
-function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: number; onRunHere?: () => void }) {
-  const ref    = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+const DOMAIN_ORDER = ["ML Pipeline", "Language & Documents", "Computer Vision", "Security & Trust"];
+const DOMAIN_COLOR: Record<string, string> = {
+  "ML Pipeline": "#34d399",
+  "Language & Documents": "#6366f1",
+  "Computer Vision": "#38bdf8",
+  "Security & Trust": "#f43f5e",
+};
+
+// Strict glyph-letter match: a query only matches a card whose NAME starts with it —
+// matching anywhere in the name/description/tags let a single common letter light up
+// nearly every card, which defeated the point of a name-first filter (tested live).
+function matches(cap: Capability, query: string): boolean {
+  if (!query) return true;
+  return cap.title.toLowerCase().startsWith(query);
+}
+
+// ── Single card — glyph + name at rest, flips on hover to show the real detail
+// panel (description, stat, tags, and the actual Try it/Launch + GitHub actions) ──
+function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void }) {
   const router = useRouter();
-  const [tilt, setTilt]       = useState({ x: 0, y: 0 });
-  const [hovering, setHovering] = useState(false);
-  const [previewRect, setPreviewRect] = useState<DOMRect | null>(null);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) / rect.width - 0.5;
-    const cy = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: cy * -10, y: cx * 10 });
-  };
-
-  // Single navigation target shared by the action button and the
-  // description's "See more" link — mirrors the 3-way priority the button
-  // already used (internalLink > in-page modal > new-tab launch) so both
-  // affordances always agree on where "opening this tool" goes.
   const handleNavigate = () => {
     if (cap.internalLink) {
       router.push(cap.internalLink);
@@ -43,327 +42,155 @@ function CapabilityCard({ cap, index, onRunHere }: { cap: Capability; index: num
   };
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 24 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
-      style={{ flexShrink: 0, width: "clamp(280px, 30vw, 320px)", height: "100%", display: "flex" }}
-    >
     <div
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => { setHovering(false); setTilt({ x: 0, y: 0 }); }}
-      style={{
-        width: "100%",
-        height: "100%",
-        borderRadius: 16,
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        background: "var(--bg-glass)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${hovering ? cap.accent + "44" : "var(--border)"}`,
-        transform: hovering
-          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
-          : "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)",
-        transition: hovering
-          ? "transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease"
-          : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease, border-color 0.2s ease",
-        boxShadow: hovering
-          ? `0 0 0 1px ${cap.accent}33, 0 20px 60px ${cap.accent}22, 0 8px 24px rgba(0,0,0,0.35)`
-          : "0 4px 24px rgba(0,0,0,0.25)",
-      }}
+      className="flip-outer"
+      onClick={handleNavigate}
+      title={`Hover to flip, click to open ${cap.title}`}
+      style={{ minHeight: 148, cursor: "pointer" }}
     >
-      {/* Shimmer overlay — follows tilt angle */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 16,
-          background: hovering
-            ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
-            : "none",
-          pointerEvents: "none",
-          zIndex: 0,
-          transition: "background 0.08s ease",
-        }}
-      />
+      <div className="flip-inner" style={{ minHeight: 148 }}>
+        <div className="flip-face front" style={{ ["--acc-glow" as string]: `${cap.accent}14` }}>
+          <div className="card-top" style={{ background: cap.accent }} />
+          <div className="flip-front-body">
+            <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>
+              {cap.title.slice(0, 1)}
+            </div>
+            <div className="txt">
+              <h3>{cap.title}</h3>
+              <span className="sub">{cap.subtitle}</span>
+            </div>
+          </div>
+        </div>
 
-      {/* Colored top border */}
-      <div style={{ height: 3, background: cap.accent, flexShrink: 0, position: "relative", zIndex: 1 }} />
-
-      <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem", position: "relative", zIndex: 1 }}>
-        {/* Header row: badge pill + stat pill */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
-          <div>
-            <span
-              style={{
-                display: "inline-block",
-                padding: "2px 10px",
-                borderRadius: 9999,
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                background: `${cap.accent}22`,
-                color: cap.accent,
-                border: `1px solid ${cap.accent}44`,
-                marginBottom: "0.5rem",
-              }}
-            >
+        <div className="flip-face back" style={{ borderColor: `${cap.accent}33` }}>
+          <div className="card-top" style={{ background: cap.accent }} />
+          <div className="flip-back-body">
+            <span className="badge" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
               {cap.subtitle}
             </span>
-            <h3
-              style={{
-                fontSize: "1.05rem",
-                fontWeight: 700,
-                color: "var(--text)",
-                lineHeight: 1.3,
-                margin: 0,
-              }}
-            >
-              {cap.title}
-            </h3>
-          </div>
-          {/* Stat pill */}
-          <div
-            style={{
-              textAlign: "center",
-              padding: "0.4rem 0.75rem",
-              borderRadius: 10,
-              background: `${cap.accent}18`,
-              border: `1px solid ${cap.accent}33`,
-              flexShrink: 0,
-              minWidth: 64,
-            }}
-          >
-            <div style={{ fontSize: "1rem", fontWeight: 700, color: cap.accent, lineHeight: 1.2 }}>
-              {cap.stat}
+            <h3>{cap.title}</h3>
+            <p className="desc">{cap.description}</p>
+            <div className="stat-row">
+              <span className="stat" style={{ color: cap.accent }}>{cap.stat}</span>
+              <span className="stat-label">{cap.statLabel}</span>
             </div>
-            <div style={{ fontSize: "0.6rem", color: "var(--text3)", marginTop: 1 }}>
-              {cap.statLabel}
+            <div className="tags">
+              {cap.tags.slice(0, 3).map((t) => <span key={t} className="tag">{t}</span>)}
+            </div>
+            <div className="back-actions" onClick={(e) => e.stopPropagation()}>
+              <button onClick={handleNavigate} className="try-btn" style={{ background: cap.accent }}>
+                {cap.internalLink || cap.modalEnabled ? "Try it" : "Launch App"}
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <a href={cap.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="gh-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                </svg>
+              </a>
             </div>
           </div>
-        </div>
-
-        {/* Description — clamped to a fixed number of lines so card height
-            doesn't grow with description length; "See more" opens the tool
-            (same target as the action button). Hovering it shows the full
-            text in a portaled preview instead of expanding the card. */}
-        <div>
-          <p
-            style={{
-              fontSize: "0.85rem",
-              color: "var(--text2)",
-              lineHeight: 1.65,
-              margin: 0,
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {cap.description}
-          </p>
-          <button
-            onClick={handleNavigate}
-            onMouseEnter={(e) => setPreviewRect(e.currentTarget.getBoundingClientRect())}
-            onMouseLeave={() => setPreviewRect(null)}
-            style={{
-              display: "block",
-              marginTop: "0.35rem",
-              padding: 0,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: cap.accent,
-            }}
-          >
-            See more
-          </button>
-          {previewRect && <CapabilityDescriptionPreview text={cap.description} accent={cap.accent} anchorRect={previewRect} />}
-        </div>
-
-        {/* Meta row */}
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          {[
-            { label: "Model", value: cap.model },
-          ].map((m) => (
-            <div key={m.label} style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {m.label}
-              </span>
-              <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text2)" }}>
-                {m.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Input / dataset row */}
-        <div style={{ fontSize: "0.75rem", color: "var(--text3)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <ellipse cx="8" cy="5" rx="6" ry="2.5" />
-            <path d="M2 5v6c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5V5" />
-            <path d="M2 8c0 1.38 2.69 2.5 6 2.5s6-1.12 6-2.5" />
-          </svg>
-          {cap.input}
-        </div>
-
-        {/* Tags */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-          {cap.tags.map((t) => (
-            <span key={t} className="tag">{t}</span>
-          ))}
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-          <button
-            onClick={handleNavigate}
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.4rem",
-              padding: "0.6rem 1rem",
-              borderRadius: 9999,
-              background: cap.accent,
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: "0.82rem",
-              border: "none",
-              cursor: "pointer",
-              transition: "opacity 0.15s, transform 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "0.88";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = "1";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            {cap.internalLink || cap.modalEnabled ? "Try it" : "Launch App"}
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <a
-            href={cap.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 9999,
-              border: "1px solid var(--border2)",
-              background: "var(--border)",
-              color: "var(--text2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textDecoration: "none",
-              transition: "border-color 0.15s, color 0.15s",
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--text3)";
-              e.currentTarget.style.color = "var(--text)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border2)";
-              e.currentTarget.style.color = "var(--text2)";
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-            </svg>
-          </a>
         </div>
       </div>
     </div>
-    </motion.div>
   );
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
-// Self-contained: import this anywhere, pass no props.
-// Card data lives in src/data/capabilities.ts.
-// Layout rule: odd count → horizontal scroll; even count ≥ 6 → 3-column grid.
-// Mobile always scrolls.
+// Self-contained: import this anywhere, pass no props. Card data lives in
+// src/data/capabilities.ts. Tools are grouped into domains and searchable by
+// name; every card flips on hover to reveal its detail panel and real actions.
 export default function MLCapabilities() {
-  const router    = useRouter();
-  const useScroll = capabilities.length % 3 !== 0;
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [activeDomain, setActiveDomain] = useState<string>("all");
+
+  const domains = useMemo(
+    () => DOMAIN_ORDER.filter((d) => capabilities.some((c) => c.domain === d)),
+    []
+  );
+
+  const visibleCount = useMemo(
+    () => capabilities.filter((c) => matches(c, query.trim().toLowerCase())).length,
+    [query]
+  );
 
   return (
-    <>
-      <section
-      id="capabilities"
-      style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}
-    >
-      {/* Header */}
+    <section id="capabilities" style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: "2rem" }}>
         <p style={{ fontSize: "0.75rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
           ML Capabilities
         </p>
         <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-          What powers every{" "}
-          <span className="gradient-text">prediction</span>
+          What powers every <span className="gradient-text">prediction</span>
         </h2>
       </div>
 
-      {useScroll ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "stretch",
-            gap: "1.25rem",
-            overflowX: "auto",
-            paddingBottom: "1rem",
-            scrollSnapType: "x mandatory",
-            WebkitOverflowScrolling: "touch",
-            scrollbarWidth: "none",
-          }}
+      <div className="cap-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" strokeLinecap="round" />
+        </svg>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={`Search ${capabilities.length} tools by name — try "P", "Feature", or "SHAP"…`}
+        />
+        <span className="cap-count">{visibleCount} of {capabilities.length} tools</span>
+      </div>
+
+      <div className="cap-tag-bar">
+        <button
+          className={`cap-rtag${activeDomain === "all" ? " active" : ""}`}
+          onClick={() => setActiveDomain("all")}
         >
-          <style>{`#capabilities div::-webkit-scrollbar { display: none; }`}</style>
-          {capabilities.map((cap, i) => (
-            <div key={cap.id} style={{ scrollSnapAlign: "start", display: "flex" }}>
-              <CapabilityCard
-                cap={cap}
-                index={i}
-                onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
-              />
+          All {capabilities.length} tools
+        </button>
+        {domains.map((d) => (
+          <button
+            key={d}
+            className={`cap-rtag${activeDomain === d ? " active" : ""}`}
+            onClick={() => setActiveDomain(d)}
+          >
+            <span className="cap-dot" style={{ background: DOMAIN_COLOR[d] }} />
+            {d}
+          </button>
+        ))}
+      </div>
+
+      {domains.map((d) => {
+        if (activeDomain !== "all" && activeDomain !== d) return null;
+        const q = query.trim().toLowerCase();
+        const items = capabilities.filter((c) => c.domain === d && matches(c, q));
+        if (items.length === 0) return null;
+        const total = capabilities.filter((c) => c.domain === d).length;
+        return (
+          <div key={d} style={{ marginBottom: "3rem" }}>
+            <div className="cap-cluster-head">
+              <span className="cap-dot" style={{ width: 8, height: 8, background: DOMAIN_COLOR[d] }} />
+              <h4>{d}</h4>
+              <span className="cap-cluster-count">{total} tools</span>
+              <div className="cap-cluster-line" />
             </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1.25rem",
-            alignItems: "stretch",
-          }}
-        >
-          {capabilities.map((cap, i) => (
-            <CapabilityCard
-              key={cap.id}
-              cap={cap}
-              index={i}
-              onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
-            />
-          ))}
-        </div>
+            <div className="cap-grid">
+              {items.map((cap) => (
+                <FlipCard
+                  key={cap.id}
+                  cap={cap}
+                  onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {visibleCount === 0 && (
+        <p style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text3)", fontSize: "0.85rem" }}>
+          No tools match &ldquo;{query}&rdquo;. Try a different search or clear the filter.
+        </p>
       )}
-        </section>
-    </>
+    </section>
   );
 }

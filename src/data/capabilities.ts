@@ -1,5 +1,6 @@
 export type Capability = {
   id: string;
+  domain: string;      // groups the capability into a section on the homepage
   title: string;
   subtitle: string;       // badge pill top-left  (e.g. "4-Model Competition")
   description: string;
@@ -20,6 +21,7 @@ const GITHUB = "https://github.com/ramleo/ML-Unified";
 const capabilities: Capability[] = [
   {
     id: "preprocessing",
+    domain: "ML Pipeline",
     title: "Data Preprocessing",
     subtitle: "Clean Before You Train",
     description:
@@ -36,6 +38,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "featureeng",
+    domain: "ML Pipeline",
     title: "Feature Engineering",
     subtitle: "No-Code Transforms",
     description:
@@ -52,6 +55,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "featureselect",
+    domain: "ML Pipeline",
     title: "Feature Selection",
     subtitle: "Keep Only What Matters",
     description:
@@ -68,6 +72,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "automl",
+    domain: "ML Pipeline",
     title: "AutoML Pipeline",
     subtitle: "4-Model Competition",
     description:
@@ -84,6 +89,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "optuna",
+    domain: "ML Pipeline",
     title: "Optuna Tuning",
     subtitle: "Post-Winner Hyperparameter Search",
     description:
@@ -100,6 +106,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "shap",
+    domain: "ML Pipeline",
     title: "SHAP Explainability",
     subtitle: "Per-Prediction Feature Impact",
     description:
@@ -116,6 +123,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "ensemble",
+    domain: "ML Pipeline",
     title: "Ensemble Methods",
     subtitle: "Combine Top-N Models",
     description:
@@ -132,6 +140,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "drift",
+    domain: "ML Pipeline",
     title: "Data Drift Detection",
     subtitle: "Monitor Production Data",
     description:
@@ -148,6 +157,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "pipeline-builder",
+    domain: "ML Pipeline",
     title: "Pipeline Builder",
     subtitle: "End-to-End ML Canvas",
     description:
@@ -164,6 +174,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "pipeline-cinema",
+    domain: "ML Pipeline",
     title: "Pipeline Cinema",
     subtitle: "Animated ML Showcase",
     description:
@@ -180,6 +191,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "realtime-analytics",
+    domain: "ML Pipeline",
     title: "Real-Time Analytics",
     subtitle: "Live Event Dashboard",
     description:
@@ -196,6 +208,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "text-to-sql",
+    domain: "Language & Documents",
     title: "Text-to-SQL Agent",
     subtitle: "Natural Language → Database Queries",
     description:
@@ -212,6 +225,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "document-intelligence",
+    domain: "Language & Documents",
     title: "Document Intelligence",
     subtitle: "AI-Powered Document Data Extraction",
     description:
@@ -228,6 +242,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "multimodal-rag",
+    domain: "Language & Documents",
     title: "Multimodal RAG",
     subtitle: "Tables & Figures as Citable Knowledge",
     description:
@@ -244,6 +259,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "contract-invoice-reconciliation",
+    domain: "Language & Documents",
     title: "Contract/Invoice Reconciliation Assistant",
     subtitle: "Discrepancy Report Across Documents",
     description:
@@ -260,6 +276,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "text-to-image",
+    domain: "Computer Vision",
     title: "Text-to-Image Generator",
     subtitle: "Describe It, Generate It",
     description:
@@ -276,6 +293,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "face-liveness",
+    domain: "Computer Vision",
     title: "Face Liveness Detector",
     subtitle: "Real vs. Spoofed",
     description:
@@ -292,6 +310,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "depth-parallax",
+    domain: "Computer Vision",
     title: "Depth Parallax",
     subtitle: "One Photo, Instant 3D",
     description:
@@ -308,6 +327,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "plant-growth",
+    domain: "Computer Vision",
     title: "Plant Growth Quantification",
     subtitle: "Local · No API Cost",
     description:
@@ -324,6 +344,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "qr-phishing-detector",
+    domain: "Security & Trust",
     title: "QR Phishing Detector",
     subtitle: "Local · No API Cost",
     description:
@@ -340,6 +361,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "photo-search",
+    domain: "Computer Vision",
     title: "Photo Library Visual Search",
     subtitle: "CLIP · No API Cost",
     description:
@@ -356,6 +378,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "adversarial-examples",
+    domain: "Security & Trust",
     title: "Adversarial Examples",
     subtitle: "Local · No API Cost",
     description:
