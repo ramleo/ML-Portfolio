@@ -16,10 +16,13 @@ the model's gradients at all (Black-box) — specifically designed to fool a
 pretrained image classifier (MobileNetV2, trained on ImageNet) into
 predicting the wrong thing, often with HIGH confidence in that wrong
 answer. The attack can be **untargeted** (any wrong label counts) or
-**targeted** (forces one exact chosen label). Then it tries two candidate
-**defenses** (JPEG recompression, randomized smoothing) and shows honestly
-whether either one actually recovered the correct prediction, plus an
-optional **transferability check** against a second, different model.
+**targeted** (forces one exact chosen label). Then it tries two
+inference-time **defenses** (JPEG recompression, randomized smoothing)
+and shows honestly whether either one actually recovered the correct
+prediction, plus an optional **transferability check** against a second,
+different model. A separate third section further down demonstrates
+**adversarial training** — a fundamentally different kind of defense —
+on a small digit classifier.
 
 ## How to use it
 1. Click **Choose photo** and upload any image.
@@ -198,8 +201,9 @@ site) — it says nothing about the reliability of this site's other tools.
 Nothing is stored: your photo and the results only exist for this one run.
 
 ## Notes & limits
-- No API cost — the classifier, all four attacks, and both defenses run
-  locally on the backend, no external calls.
+- No API cost — the classifier, all four attacks, and all three defenses
+  (including the two small digit-classifier checkpoints) run locally on
+  the backend, no external calls.
 - A targeted attack is strictly harder than an untargeted one — it may not
   reach your chosen label within the epsilon range this demo allows.
 - PGD takes a few seconds longer than FGSM since it runs several gradient
@@ -214,6 +218,9 @@ Nothing is stored: your photo and the results only exist for this one run.
 - The black-box attack's query budget caps at 3000 — a targeted run at the
   max budget can take up to roughly a minute or more; a real, expected
   cost of not having gradient access, not a slow implementation.
+- An uploaded digit photo is capped at 8MB and preprocessed automatically
+  (see the Adversarial training section above) — no manual cropping or
+  thresholding needed on your end.
 `.trim();
 
 export const ADVERSARIAL_SUGGESTIONS = [
