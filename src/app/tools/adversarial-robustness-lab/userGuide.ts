@@ -140,6 +140,29 @@ not a bug. If you see "did not reach the target" for a targeted black-box
 run, that IS the point of this attack — it's demonstrating a real
 security/cost tradeoff, not failing to work.
 
+## Adversarial training (the third defense — a different kind entirely)
+JPEG recompression and randomized smoothing are both **inference-time**
+defenses — tricks applied to an image AFTER a model was already trained
+normally. Adversarial training is fundamentally different: it changes HOW
+the model is trained in the first place, by training directly on
+adversarially-attacked examples instead of only clean ones (Madry et al.
+2018). Because real adversarial training needs many epochs over a real
+dataset — infeasible to redo live against the 1000-class ImageNet
+classifier used above — this section demonstrates it on a much smaller,
+separate pair of digit classifiers (MNIST), trained ONCE offline and
+shipped as static checkpoints, not retrained per request.
+Pick a sample digit, choose an attack strength, and click **Attack both
+models** — the SAME white-box PGD attack (each model attacked with its
+own gradients) runs against a standard-trained model and an
+adversarially-trained model side by side. Real, measured numbers across
+the full MNIST test set: the standard model goes from 98.6% clean
+accuracy to just 1.1% robust accuracy under this attack — essentially
+always fooled; the adversarially-trained model goes from 97.0% clean
+accuracy to 84.3% robust accuracy under the identical attack — a real,
+large, measured robustness gain, at the honest cost of a small drop in
+clean accuracy. This is the real trade-off adversarial training makes,
+demonstrated with actual numbers, not asserted.
+
 ## Where was the model looking? (Grad-CAM)
 Below the three images, a second row shows a **Grad-CAM heatmap** for the
 original and adversarial predictions — warmer colors mark the regions that
@@ -197,4 +220,6 @@ export const ADVERSARIAL_SUGGESTIONS = [
   "Does this attack transfer to a different model?",
   "Is this attacking the other tools on this site?",
   "What is Grad-CAM showing me?",
+  "How is adversarial training different from the other two defenses?",
+  "Why does adversarial training use a different model than the rest of the tool?",
 ];

@@ -382,7 +382,7 @@ const capabilities: Capability[] = [
     title: "Adversarial Robustness Lab",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations, a visible adversarial patch, or a black-box query-only attack with zero gradient access — untargeted or aimed at a specific ImageNet label. Try two defenses (JPEG recompression, randomized smoothing) and an optional transferability check against a second model. Reports honestly whether the defenses actually recovered the correct label, and whether a targeted black-box attack even converges within a request-sized query budget (often it doesn't) — real limitations, not a broken demo.",
+      "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations, a visible adversarial patch, or a black-box query-only attack with zero gradient access — untargeted or aimed at a specific ImageNet label. Try two inference-time defenses (JPEG recompression, randomized smoothing), an optional transferability check against a second model, and a third section demonstrating adversarial TRAINING as a defense on a small digit classifier — attacking a standard-trained vs. an adversarially-trained model with the same PGD attack and showing the real, measured robustness gap (98.6%→1.1% vs. 97.0%→84.3% accuracy under attack). Reports honestly whether defenses actually recovered the correct label, and whether a targeted black-box attack even converges within a request-sized query budget (often it doesn't) — real limitations, not a broken demo.",
     accent: "#f43f5e",
     stat: "0",
     statLabel: "API Calls",

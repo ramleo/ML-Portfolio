@@ -6,6 +6,7 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import AdversarialRunner from "./AdversarialRunner";
+import RobustTrainingDefense from "./RobustTrainingDefense";
 import AdversarialUserGuideModal from "./AdversarialUserGuideModal";
 import { ADVERSARIAL_GUIDE, ADVERSARIAL_SUGGESTIONS } from "./userGuide";
 
@@ -15,10 +16,13 @@ const TOOL_SUMMARY =
   "Upload a photo and craft an adversarial attack against a pretrained classifier — FGSM/PGD " +
   "(subtle, whole-image), a visible adversarial patch (a 'sticker' region), or a black-box " +
   "query-only attack with zero gradient access — untargeted or targeted at a specific ImageNet " +
-  "label. Try two defenses (JPEG recompression, randomized smoothing) plus an optional " +
-  "transferability check against a second model (ResNet18). Reports honestly whether the " +
-  "defenses actually recovered the correct prediction, and whether a targeted black-box attack " +
-  "even converges within a request-sized query budget (often it doesn't) — real limitations, " +
+  "label. Try two inference-time defenses (JPEG recompression, randomized smoothing) plus an " +
+  "optional transferability check against a second model (ResNet18). A third section demonstrates " +
+  "adversarial TRAINING as a defense — a fundamentally different shape than the other two — by " +
+  "attacking two small digit classifiers (one standard-trained, one adversarially-trained) with the " +
+  "same PGD attack and showing the real, measured robustness gap between them. Reports honestly " +
+  "whether the defenses actually recovered the correct prediction, and whether a targeted black-box " +
+  "attack even converges within a request-sized query budget (often it doesn't) — real limitations, " +
   "not bugs.";
 
 export default function AdversarialRobustnessLabPage() {
@@ -85,6 +89,10 @@ export default function AdversarialRobustnessLabPage() {
           <AdversarialUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
           <AdversarialRunner accent={ACCENT} />
+
+          <div className="mt-6">
+            <RobustTrainingDefense accent={ACCENT} />
+          </div>
         </div>
       </div>
     </div>
