@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 interface Project {
   id: string;
   title: string;
@@ -20,6 +22,7 @@ interface Project {
 export default function ProjectCard({ project }: { project: Project }) {
   const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent } = project;
   const isClassification = task === "Classification";
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="subtle-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
@@ -56,19 +59,44 @@ export default function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
 
-        {/* Description — natural height; the action row's marginTop:auto below
-            absorbs any leftover space at the BOTTOM of the card instead of
-            stretching this paragraph into a large blank gap in the middle. */}
-        <p
-          style={{
-            fontSize: "0.85rem",
-            color: "var(--text2)",
-            lineHeight: 1.65,
-            margin: 0,
-          }}
-        >
-          {description}
-        </p>
+        {/* Description — clamped to a fixed number of lines so every card in a
+            row (grid alignItems: stretch) lands at the same height; "See more"
+            expands in place instead of the card silently growing/shrinking. */}
+        <div>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text2)",
+              lineHeight: 1.65,
+              margin: 0,
+              ...(expanded
+                ? {}
+                : {
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                  }),
+            }}
+          >
+            {description}
+          </p>
+          <button
+            onClick={() => setExpanded((e) => !e)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              marginTop: "0.35rem",
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              color: accent,
+              cursor: "pointer",
+            }}
+          >
+            {expanded ? "See less" : "See more"}
+          </button>
+        </div>
 
         {/* Meta row */}
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
