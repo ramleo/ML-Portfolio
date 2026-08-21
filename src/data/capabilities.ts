@@ -393,6 +393,23 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/adversarial-robustness-lab",
   },
+  {
+    id: "face-cloak",
+    domain: "Security & Trust",
+    title: "Face Cloak",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload a personal photo and add an imperceptible adversarial perturbation to the face region that pushes its face-embedding away from where a face-recognition model naturally places it — a simplified, honest version of the real Fawkes privacy technique used to counter unauthorized facial-recognition scrapers (e.g. Clearview AI). Reports the real measured cosine-similarity drop and discloses openly that this protects only the specific cloaked photo, not copies already scraped elsewhere.",
+    accent: "#8b5cf6",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "InceptionResnetV1 (local)",
+    input: "Photo",
+    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/face-cloak",
+  },
 ];
 
 export default capabilities;
