@@ -168,7 +168,7 @@ site) — it says nothing about the reliability of this site's other tools.
 Nothing is stored: your photo and the results only exist for this one run.
 
 ## Notes & limits
-- No API cost — the classifier, both attacks, and both defenses run
+- No API cost — the classifier, all four attacks, and both defenses run
   locally on the backend, no external calls.
 - A targeted attack is strictly harder than an untargeted one — it may not
   reach your chosen label within the epsilon range this demo allows.
