@@ -410,6 +410,23 @@ const capabilities: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/face-cloak",
   },
+  {
+    id: "style-cloak",
+    domain: "Security & Trust",
+    title: "Style Cloak",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload an image and add an imperceptible adversarial perturbation across the whole image that pushes its CLIP embedding away from where it naturally sits — a simplified, honest version of the real Glaze/Nightshade artist-protection technique used to counter unauthorized AI style-mimicry. Reports the real measured cosine-similarity drop, calibrated against a measured unrelated-image baseline, and discloses openly that this protects only the specific cloaked image, not copies already scraped elsewhere.",
+    accent: "#ec4899",
+    stat: "0",
+    statLabel: "API Calls",
+    model: "CLIP ViT-B/32 (local)",
+    input: "Image",
+    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/style-cloak",
+  },
 ];
 
 export default capabilities;
