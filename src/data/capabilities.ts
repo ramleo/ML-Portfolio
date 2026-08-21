@@ -382,11 +382,11 @@ const capabilities: Capability[] = [
     title: "Adversarial Robustness Lab",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations or a visible adversarial patch — untargeted or aimed at a specific ImageNet label. Try two defenses (JPEG recompression, randomized smoothing) and an optional transferability check against a second model. Reports honestly whether the defenses actually recovered the correct label — real testing found neither does reliably, a genuine limitation of input-side defenses, not a broken demo.",
+      "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations, a visible adversarial patch, or a black-box query-only attack with zero gradient access — untargeted or aimed at a specific ImageNet label. Try two defenses (JPEG recompression, randomized smoothing) and an optional transferability check against a second model. Reports honestly whether the defenses actually recovered the correct label, and whether a targeted black-box attack even converges within a request-sized query budget (often it doesn't) — real limitations, not a broken demo.",
     accent: "#f43f5e",
     stat: "0",
     statLabel: "API Calls",
-    model: "MobileNetV2 + FGSM/PGD/Patch (local)",
+    model: "MobileNetV2 + FGSM/PGD/Patch/Black-box (local)",
     input: "Photo",
     tags: ["Adversarial ML", "Security", "Computer Vision", "Local Compute"],
     link: "/?mode=ml",

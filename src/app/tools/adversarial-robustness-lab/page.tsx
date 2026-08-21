@@ -13,11 +13,13 @@ const ACCENT = "#f43f5e";
 
 const TOOL_SUMMARY =
   "Upload a photo and craft an adversarial attack against a pretrained classifier — FGSM/PGD " +
-  "(subtle, whole-image) or a visible adversarial patch (a 'sticker' region) — untargeted or " +
-  "targeted at a specific ImageNet label. Try two defenses (JPEG recompression, randomized " +
-  "smoothing) plus an optional transferability check against a second model (ResNet18). " +
-  "Reports honestly whether the defenses actually recovered the correct prediction (often " +
-  "neither fully does) rather than only showing favorable cases.";
+  "(subtle, whole-image), a visible adversarial patch (a 'sticker' region), or a black-box " +
+  "query-only attack with zero gradient access — untargeted or targeted at a specific ImageNet " +
+  "label. Try two defenses (JPEG recompression, randomized smoothing) plus an optional " +
+  "transferability check against a second model (ResNet18). Reports honestly whether the " +
+  "defenses actually recovered the correct prediction, and whether a targeted black-box attack " +
+  "even converges within a request-sized query budget (often it doesn't) — real limitations, " +
+  "not bugs.";
 
 export default function AdversarialRobustnessLabPage() {
   useToolTracking("adversarial-robustness-lab");

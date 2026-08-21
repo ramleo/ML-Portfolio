@@ -78,9 +78,10 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
     categories, loadCategories, targetLabel, setTargetLabel,
-    checkTransfer, setCheckTransfer, patchFrac, setPatchFrac,
+    checkTransfer, setCheckTransfer, patchFrac, setPatchFrac, maxQueries, setMaxQueries,
   } = useAdversarial();
   const isPatch = method === "patch";
+  const isBlackbox = method === "blackbox";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onFileSelected = async (file: File) => {
@@ -96,13 +97,14 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-4">
       <div style={cardStyle} className="p-5">
         <p className="text-xs mb-4" style={{ color: "var(--text3)" }}>
-          Upload a photo, then craft an adversarial perturbation designed to fool a pretrained ImageNet
-          classifier — either a tiny, mostly-invisible pixel change (FGSM/PGD) or a visible &quot;sticker&quot;
-          patch region. Leave the target label blank for an untargeted attack (any wrong label counts), or
-          type a specific ImageNet class to try to force that exact misprediction — a strictly harder
-          attack. Then try a JPEG-recompression defense and randomized smoothing, and see whether either
-          actually recovers the correct label (often neither does fully — that&apos;s a real, honest
-          finding about these defenses&apos; limits, not a broken demo).
+          Upload a photo, then craft an adversarial attack against a pretrained ImageNet classifier — a
+          tiny, mostly-invisible pixel change (FGSM/PGD), a visible &quot;sticker&quot; patch, or a black-box
+          attack that never sees the model&apos;s gradients, only its predictions. Leave the target label
+          blank for an untargeted attack (any wrong label counts), or type a specific ImageNet class to
+          try to force that exact misprediction — a strictly harder attack. Then try a JPEG-recompression
+          defense and randomized smoothing, and see whether either actually recovers the correct label
+          (often neither does fully — that&apos;s a real, honest finding about these defenses&apos; limits,
+          not a broken demo).
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -123,11 +125,12 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Attack:
-                <select value={method} onChange={e => setMethod(e.target.value as "fgsm" | "pgd" | "patch")}
+                <select value={method} onChange={e => setMethod(e.target.value as "fgsm" | "pgd" | "patch" | "blackbox")}
                   className="text-xs rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }}>
                   <option value="fgsm">FGSM (single-step)</option>
                   <option value="pgd">PGD (iterative, stronger)</option>
                   <option value="patch">Adversarial patch (visible sticker)</option>
+                  <option value="blackbox">Black-box (no gradients, query-only)</option>
                 </select>
               </label>
               {isPatch ? (
@@ -138,9 +141,16 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                 </label>
               ) : (
                 <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
-                  Strength (epsilon): {epsilon.toFixed(3)}
+                  {isBlackbox ? "Per-query step:" : "Strength (epsilon):"} {epsilon.toFixed(3)}
                   <input type="range" min={0.005} max={0.08} step={0.005} value={epsilon}
                     onChange={e => setEpsilon(Number(e.target.value))} className="w-24" />
+                </label>
+              )}
+              {isBlackbox && (
+                <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
+                  Query budget: {maxQueries}
+                  <input type="range" min={200} max={3000} step={100} value={maxQueries}
+                    onChange={e => setMaxQueries(Number(e.target.value))} className="w-24" />
                 </label>
               )}
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
@@ -226,9 +236,11 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
           {result.adversarial.target_label && (
             <p className="text-[10px]" style={{ color: "var(--text3)" }}>
               {result.adversarial.target_achieved
-                ? `Targeted attack succeeded — forced the prediction to the chosen target, "${result.adversarial.target_label}", not just any wrong label.${isPatch ? ` Took ${result.adversarial.patch_steps} optimization steps.` : ""}`
+                ? `Targeted attack succeeded — forced the prediction to the chosen target, "${result.adversarial.target_label}", not just any wrong label.${isPatch ? ` Took ${result.adversarial.patch_steps} optimization steps.` : isBlackbox ? ` Took ${result.adversarial.queries_used} queries.` : ""}`
                 : isPatch
                 ? `Targeted patch did NOT reach "${result.adversarial.target_label}" within the ${result.adversarial.patch_steps}-step budget — a real, honest failure, not a bug. Real testing found a bigger patch converges far faster; try increasing patch size.`
+                : isBlackbox
+                ? `Targeted black-box attack did NOT reach "${result.adversarial.target_label}" within the ${result.adversarial.queries_used}-query budget — a real, expected outcome, not a bug. Real testing found targeted black-box attacks are dramatically harder than untargeted ones and often don't converge within a request-sized query budget at all; a bigger query budget or a larger per-query step may help, but isn't guaranteed to.`
                 : `Targeted attack did NOT reach "${result.adversarial.target_label}" within this epsilon budget — it landed on a different (still wrong) label instead. Try a larger epsilon; targeted attacks are strictly harder to pull off than untargeted ones.`}
             </p>
           )}
@@ -236,6 +248,13 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             <p className="text-[10px]" style={{ color: "var(--text3)" }}>
               Untargeted patches tend to fool the classifier almost instantly — this one took only{" "}
               {result.adversarial.patch_steps} optimization step{result.adversarial.patch_steps === 1 ? "" : "s"}.
+            </p>
+          )}
+          {isBlackbox && !result.adversarial.target_label && (
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+              {result.adversarial.fooled
+                ? `Untargeted black-box attacks tend to converge reasonably fast — this one used ${result.adversarial.queries_used} queries, no gradient access at all.`
+                : `Did not fool the classifier within the ${result.adversarial.queries_used}-query budget — try a larger query budget or per-query step.`}
             </p>
           )}
 

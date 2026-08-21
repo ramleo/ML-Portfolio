@@ -9,11 +9,12 @@ export const ADVERSARIAL_GUIDE = `
 # Adversarial Robustness Lab — User Guide
 
 ## What this tool does
-Upload a photo and this tool crafts an **adversarial perturbation** —
-either a tiny, mostly-invisible change to the pixels (FGSM/PGD) or a
-visible "sticker" patch region (Adversarial patch) — specifically designed
-to fool a pretrained image classifier (MobileNetV2, trained on ImageNet)
-into predicting the wrong thing, often with HIGH confidence in that wrong
+Upload a photo and this tool crafts an **adversarial attack** — a tiny,
+mostly-invisible change to the pixels (FGSM/PGD), a visible "sticker"
+patch region (Adversarial patch), or a query-only attack that never sees
+the model's gradients at all (Black-box) — specifically designed to fool a
+pretrained image classifier (MobileNetV2, trained on ImageNet) into
+predicting the wrong thing, often with HIGH confidence in that wrong
 answer. The attack can be **untargeted** (any wrong label counts) or
 **targeted** (forces one exact chosen label). Then it tries two candidate
 **defenses** (JPEG recompression, randomized smoothing) and shows honestly
@@ -30,9 +31,17 @@ optional **transferability check** against a second, different model.
    - **Adversarial patch** — optimizes one square region (unconstrained,
      no epsilon limit) into a directly VISIBLE sticker-style attack,
      instead of a subtle whole-image perturbation.
-3. For FGSM/PGD, adjust **strength (epsilon)** — how large the perturbation
-   is allowed to be. For the patch attack, adjust **patch size** instead —
-   what fraction of the image the square patch covers.
+   - **Black-box** — the ONLY attack here with zero access to the model's
+     gradients, only its predictions — the realistic threat model against
+     someone else's deployed API. Genuinely much slower and, for a
+     targeted goal, often doesn't converge at all (see its own section
+     below).
+3. For FGSM/PGD/black-box, adjust **strength (epsilon)** (labeled
+   "per-query step" for black-box) — how large the perturbation is allowed
+   to be. For the patch attack, adjust **patch size** instead — what
+   fraction of the image the square patch covers. For black-box, also
+   adjust **query budget** — how many model queries it's allowed before
+   giving up.
 4. Adjust the **defense's JPEG quality** — lower quality is a more
    aggressive (but more visually lossy) defense attempt.
 5. Optionally type a **target label** (autocompletes over the 1000
@@ -111,6 +120,26 @@ patch, easier and faster attack. The optimization step count shown after
 a run is a real measure of how much work THIS run actually needed (it
 stops the moment the goal is met, not always the full budget).
 
+## Black-box attack (the fourth attack — the realistic threat model)
+FGSM, PGD, and the patch attack all need REAL gradient access — this tool
+has the actual model loaded locally, so it can compute "which direction
+would most fool this classifier" directly via backpropagation. A real
+attacker targeting someone else's deployed model usually can't do that —
+they can only send an input and see the prediction come back, like
+querying a live API. This attack simulates exactly that: no gradients, only
+repeated queries that each return a confidence score, using a simplified
+version of a published technique (SimBA). Each query nudges ONE pixel
+value up or down and keeps the change only if it helped, so — unlike
+FGSM/PGD's single-shot epsilon-bounded perturbation — this attack can take
+hundreds to thousands of queries to get anywhere. Real testing found this
+tradeoff is real, not theoretical: an **untargeted** attack converged in
+~350 queries (a few seconds), but a **targeted** attack did NOT converge
+at all even at the maximum 3000-query budget in real testing — a genuine,
+expected limitation of query-only attacks within a request-sized budget,
+not a bug. If you see "did not reach the target" for a targeted black-box
+run, that IS the point of this attack — it's demonstrating a real
+security/cost tradeoff, not failing to work.
+
 ## Where was the model looking? (Grad-CAM)
 Below the three images, a second row shows a **Grad-CAM heatmap** for the
 original and adversarial predictions — warmer colors mark the regions that
@@ -152,6 +181,9 @@ Nothing is stored: your photo and the results only exist for this one run.
 - A targeted adversarial patch can take up to 150 optimization steps and
   may still fail to reach the target (a real, honest outcome, not a bug)
   — a smaller patch is more likely to fail; try a larger one first.
+- The black-box attack's query budget caps at 3000 — a targeted run at the
+  max budget can take up to roughly a minute or more; a real, expected
+  cost of not having gradient access, not a slow implementation.
 `.trim();
 
 export const ADVERSARIAL_SUGGESTIONS = [
@@ -160,6 +192,8 @@ export const ADVERSARIAL_SUGGESTIONS = [
   "What does 'epsilon' actually control?",
   "What's a targeted vs. untargeted attack?",
   "How is the adversarial patch different from FGSM/PGD?",
+  "What makes the black-box attack different from the others?",
+  "Why do targeted black-box attacks often fail?",
   "Does this attack transfer to a different model?",
   "Is this attacking the other tools on this site?",
   "What is Grad-CAM showing me?",
