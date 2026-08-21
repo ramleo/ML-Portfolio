@@ -56,14 +56,15 @@ export default function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
 
-        {/* Description — flex:1 so cards equalize height */}
+        {/* Description — natural height; the action row's marginTop:auto below
+            absorbs any leftover space at the BOTTOM of the card instead of
+            stretching this paragraph into a large blank gap in the middle. */}
         <p
           style={{
             fontSize: "0.85rem",
             color: "var(--text2)",
             lineHeight: 1.65,
             margin: 0,
-            flex: 1,
           }}
         >
           {description}
@@ -132,20 +133,22 @@ export default function ProjectCard({ project }: { project: Project }) {
               gap: "0.4rem",
               padding: "0.6rem 1rem",
               borderRadius: 9999,
-              background: accent,
-              color: "#fff",
+              background: `${accent}14`,
+              border: `1px solid ${accent}40`,
+              color: accent,
               fontWeight: 600,
               fontSize: "0.82rem",
-              border: "none",
               cursor: "pointer",
-              transition: "opacity 0.15s, transform 0.15s",
+              transition: "background 0.15s, border-color 0.15s, transform 0.15s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "0.88";
+              e.currentTarget.style.background = `${accent}22`;
+              e.currentTarget.style.borderColor = `${accent}70`;
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.background = `${accent}14`;
+              e.currentTarget.style.borderColor = `${accent}40`;
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >

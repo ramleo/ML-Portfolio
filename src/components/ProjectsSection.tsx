@@ -96,7 +96,11 @@ export default function ProjectsSection() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
           gap: "1.25rem",
-          alignItems: "stretch",
+          // "start" (not "stretch") — with only 3 cards whose real descriptions
+          // vary a lot in length, stretching every card to match the tallest
+          // one left large empty gaps inside the shorter cards. Letting each
+          // card size to its own content removes that dead space.
+          alignItems: "start",
         }}
       >
         <AnimatePresence mode="popLayout">
