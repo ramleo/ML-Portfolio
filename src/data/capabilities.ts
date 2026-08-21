@@ -377,9 +377,9 @@ const capabilities: Capability[] = [
     internalLink: "/tools/photo-search",
   },
   {
-    id: "adversarial-examples",
+    id: "adversarial-robustness-lab",
     domain: "Security & Trust",
-    title: "Adversarial Examples",
+    title: "Adversarial Robustness Lab",
     subtitle: "Local · No API Cost",
     description:
       "Upload a photo and craft an FGSM/PGD adversarial perturbation that fools a pretrained ImageNet classifier into a wrong (often high-confidence) prediction, then try a JPEG-recompression defense. Reports honestly whether the defense actually recovered the correct label — real testing found it often doesn't fully, a genuine limitation of preprocessing-only defenses, not a broken demo.",
@@ -391,7 +391,7 @@ const capabilities: Capability[] = [
     tags: ["Adversarial ML", "Security", "Computer Vision", "Local Compute"],
     link: "/?mode=ml",
     github: GITHUB,
-    internalLink: "/tools/adversarial-examples",
+    internalLink: "/tools/adversarial-robustness-lab",
   },
 ];
 

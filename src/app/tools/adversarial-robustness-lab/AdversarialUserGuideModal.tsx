@@ -51,7 +51,7 @@ export default function AdversarialUserGuideModal({ open, onClose }: { open: boo
         <div className="flex items-center justify-between px-5 py-3 border-b shrink-0"
           style={{ borderColor: "rgba(255,255,255,0.08)" }}>
           <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
-            User Guide — Adversarial Examples
+            User Guide — Adversarial Robustness Lab
           </span>
           <button onClick={onClose} aria-label="Close guide"
             className="text-lg leading-none px-1" style={{ color: "rgba(255,255,255,0.4)" }}>

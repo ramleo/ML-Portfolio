@@ -42,6 +42,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
   const {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
+    categories, loadCategories, targetLabel, setTargetLabel,
   } = useAdversarial();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,9 +61,11 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
         <p className="text-xs mb-4" style={{ color: "var(--text3)" }}>
           Upload a photo, then craft an adversarial perturbation designed to fool a pretrained ImageNet
           classifier — a tiny, mostly-invisible pixel change that flips its prediction to something
-          wrong. Then try a JPEG-recompression defense and see whether it actually recovers the correct
-          label (often it doesn&apos;t fully — that&apos;s a real, honest finding about this defense&apos;s limits,
-          not a broken demo).
+          wrong. Leave the target label blank for an untargeted attack (any wrong label counts), or
+          type a specific ImageNet class to try to force that exact misprediction — a strictly harder
+          attack, since it may need a larger epsilon to succeed. Then try a JPEG-recompression defense
+          and see whether it actually recovers the correct label (often it doesn&apos;t fully — that&apos;s a
+          real, honest finding about this defense&apos;s limits, not a broken demo).
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -99,6 +102,22 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                 <input type="range" min={10} max={90} step={5} value={jpegQuality}
                   onChange={e => setJpegQuality(Number(e.target.value))} className="w-24" />
               </label>
+              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
+                Target label (optional):
+                <input
+                  type="text"
+                  list="adversarial-target-labels"
+                  placeholder="e.g. golden retriever"
+                  value={targetLabel}
+                  onFocus={loadCategories}
+                  onChange={e => setTargetLabel(e.target.value)}
+                  className="text-xs rounded px-2 py-1 w-40"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }}
+                />
+                <datalist id="adversarial-target-labels">
+                  {(categories ?? []).map(c => <option key={c} value={c} />)}
+                </datalist>
+              </label>
               <button onClick={run} disabled={running}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border"
                 style={{ borderColor: `${accent}50`, color: accent, opacity: running ? 0.5 : 1 }}>
@@ -120,7 +139,15 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
           <div className="flex gap-4 flex-wrap">
             <PredictionCard title="Original" src={preview} prediction={result.original} accent={accent} />
             <PredictionCard title="Adversarial" src={`data:image/png;base64,${result.adversarial.image}`} prediction={result.adversarial}
-              badge={result.adversarial.fooled ? { text: "Fooled", color: "#f87171" } : { text: "Not fooled", color: "#34d399" }}
+              badge={
+                result.adversarial.target_label
+                  ? result.adversarial.target_achieved
+                    ? { text: "Target achieved", color: "#f87171" }
+                    : { text: "Target not reached", color: "#fbbf24" }
+                  : result.adversarial.fooled
+                  ? { text: "Fooled", color: "#f87171" }
+                  : { text: "Not fooled", color: "#34d399" }
+              }
               accent={accent} />
             <PredictionCard title="After JPEG defense" src={`data:image/png;base64,${result.defended.image}`} prediction={result.defended}
               badge={
@@ -140,6 +167,14 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
               </span>
             </div>
           </div>
+
+          {result.adversarial.target_label && (
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+              {result.adversarial.target_achieved
+                ? `Targeted attack succeeded — forced the prediction to the chosen target, "${result.adversarial.target_label}", not just any wrong label.`
+                : `Targeted attack did NOT reach "${result.adversarial.target_label}" within this epsilon budget — it landed on a different (still wrong) label instead. Try a larger epsilon; targeted attacks are strictly harder to pull off than untargeted ones.`}
+            </p>
+          )}
 
           <p className="text-[10px]" style={{ color: "var(--text3)" }}>
             {result.defended.recovered

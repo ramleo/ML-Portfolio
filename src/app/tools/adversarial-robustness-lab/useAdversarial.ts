@@ -6,7 +6,10 @@ const RUN_TIMEOUT_MS = 45_000;
 export type Prediction = { label: string; confidence: number; top3: { label: string; confidence: number }[] };
 export type AdversarialResult = {
   original: Prediction & { heatmap: string };
-  adversarial: Prediction & { fooled: boolean; image: string; heatmap: string };
+  adversarial: Prediction & {
+    fooled: boolean; image: string; heatmap: string;
+    target_label?: string; target_achieved?: boolean;
+  };
   defended: Prediction & { recovered: boolean; disrupted: boolean; image: string };
   perturbation_preview: string;
 };
@@ -27,6 +30,16 @@ export function useAdversarial() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<AdversarialResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[] | null>(null);
+  const [targetLabel, setTargetLabel] = useState<string>("");
+
+  const loadCategories = useCallback(() => {
+    if (categories !== null) return;
+    fetch(`${ML_UNIFIED_API}/rag/mm-adversarial/categories`)
+      .then(res => res.json())
+      .then(data => setCategories(Array.isArray(data?.categories) ? data.categories : []))
+      .catch(() => setCategories([]));
+  }, [categories]);
 
   const setImage = useCallback((dataUrl: string) => {
     setPreview(dataUrl);
@@ -52,7 +65,10 @@ export function useAdversarial() {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-adversarial/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: b64, epsilon, method, jpeg_quality: jpegQuality }),
+        body: JSON.stringify({
+          image: b64, epsilon, method, jpeg_quality: jpegQuality,
+          target_label: targetLabel.trim() || null,
+        }),
         signal: controller.signal,
       });
       const data = await res.json().catch(() => null);
@@ -64,10 +80,11 @@ export function useAdversarial() {
       clearTimeout(timeout);
       setRunning(false);
     }
-  }, [b64, epsilon, method, jpegQuality]);
+  }, [b64, epsilon, method, jpegQuality, targetLabel]);
 
   return {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
+    categories, loadCategories, targetLabel, setTargetLabel,
   };
 }

@@ -1,4 +1,4 @@
-// User guide for Adversarial Examples (attack + defense) — rendered in
+// User guide for Adversarial Robustness Lab (attack + defense) — rendered in
 // AdversarialUserGuideModal (the "User Guide" header button) AND injected
 // into the floating AI Assistant as its ONLY tool knowledge. Keep factual
 // and in sync with the actual feature set — especially the honest framing
@@ -6,7 +6,7 @@
 // module docstring for the actual test findings behind this framing).
 
 export const ADVERSARIAL_GUIDE = `
-# Adversarial Examples — User Guide
+# Adversarial Robustness Lab — User Guide
 
 ## What this tool does
 Upload a photo and this tool crafts an **adversarial perturbation** — a

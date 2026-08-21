@@ -16,8 +16,8 @@ const TOOL_SUMMARY =
   "classifier, then try a JPEG-recompression defense. Reports honestly whether the defense actually " +
   "recovered the correct prediction (often it doesn't fully) rather than only showing favorable cases.";
 
-export default function AdversarialExamplesPage() {
-  useToolTracking("adversarial-examples");
+export default function AdversarialRobustnessLabPage() {
+  useToolTracking("adversarial-robustness-lab");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function AdversarialExamplesPage() {
       <ConstellationBackground />
       <ToolsAIChat context={{
         accent: ACCENT,
-        tool: "Adversarial Examples",
+        tool: "Adversarial Robustness Lab",
         summary: TOOL_SUMMARY,
         guide: ADVERSARIAL_GUIDE,
         suggestions: ADVERSARIAL_SUGGESTIONS,
@@ -56,7 +56,7 @@ export default function AdversarialExamplesPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>Adversarial Examples</h1>
+                <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>Adversarial Robustness Lab</h1>
                 <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
                   style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
                   Local · No API Cost
