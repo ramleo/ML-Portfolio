@@ -9,10 +9,11 @@ export const ADVERSARIAL_GUIDE = `
 # Adversarial Robustness Lab — User Guide
 
 ## What this tool does
-Upload a photo and this tool crafts an **adversarial perturbation** — a
-tiny, mostly-invisible change to the pixels — specifically designed to
-fool a pretrained image classifier (MobileNetV2, trained on ImageNet) into
-predicting the wrong thing, often with HIGH confidence in that wrong
+Upload a photo and this tool crafts an **adversarial perturbation** —
+either a tiny, mostly-invisible change to the pixels (FGSM/PGD) or a
+visible "sticker" patch region (Adversarial patch) — specifically designed
+to fool a pretrained image classifier (MobileNetV2, trained on ImageNet)
+into predicting the wrong thing, often with HIGH confidence in that wrong
 answer. The attack can be **untargeted** (any wrong label counts) or
 **targeted** (forces one exact chosen label). Then it tries two candidate
 **defenses** (JPEG recompression, randomized smoothing) and shows honestly
@@ -22,12 +23,16 @@ optional **transferability check** against a second, different model.
 ## How to use it
 1. Click **Choose photo** and upload any image.
 2. Pick an attack method:
-   - **FGSM** (single-step) — fast, one gradient step.
+   - **FGSM** (single-step) — fast, one gradient step, tiny perturbation
+     over the whole image.
    - **PGD** (iterative, stronger) — several smaller steps, generally more
      effective at fooling the classifier, especially at low strength.
-3. Adjust **strength (epsilon)** — how large the perturbation is allowed
-   to be. Higher values fool the model more reliably but are more likely
-   to become visible as vague texture at the far end of the range.
+   - **Adversarial patch** — optimizes one square region (unconstrained,
+     no epsilon limit) into a directly VISIBLE sticker-style attack,
+     instead of a subtle whole-image perturbation.
+3. For FGSM/PGD, adjust **strength (epsilon)** — how large the perturbation
+   is allowed to be. For the patch attack, adjust **patch size** instead —
+   what fraction of the image the square patch covers.
 4. Adjust the **defense's JPEG quality** — lower quality is a more
    aggressive (but more visually lossy) defense attempt.
 5. Optionally type a **target label** (autocompletes over the 1000
@@ -88,6 +93,24 @@ while PGD's multi-step perturbation transferred at every epsilon tested on
 the same photo — a single-image finding, not a general rule, reported as
 observed. See mm_adversarial.py's module docstring for the actual sweep.
 
+## Adversarial patch (the third attack)
+Unlike FGSM/PGD, this attack doesn't stay imperceptible — it optimizes one
+square, unconstrained patch region into whatever pixel values best fool
+the model, then places it in the center of the photo. This is the single-
+image, single-placement version: the patch is optimized for THIS exact
+photo, not a universal sticker proven to work on any photo from any angle
+(that would need training across many images/positions/rotations, far more
+compute than a live demo can do per-request). Real testing found a sharp
+asymmetry between goals: **untargeted** patches fool the classifier almost
+instantly — often in 1-2 optimization steps, since a patch that large is
+already a big, blunt perturbation even before real optimization. **Targeted**
+patches (forcing one exact label) are genuinely much harder: a small (10%)
+patch failed to reach the target at all within the step budget in real
+testing, while a larger (25%) patch reached it in under 40 steps — bigger
+patch, easier and faster attack. The optimization step count shown after
+a run is a real measure of how much work THIS run actually needed (it
+stops the moment the goal is met, not always the full budget).
+
 ## Where was the model looking? (Grad-CAM)
 Below the three images, a second row shows a **Grad-CAM heatmap** for the
 original and adversarial predictions — warmer colors mark the regions that
@@ -126,6 +149,9 @@ Nothing is stored: your photo and the results only exist for this one run.
   noised copy), so results take slightly longer than the attack alone.
 - The transferability check is OFF by default since it triggers a one-time
   ~45MB ResNet18 weight download on first use, adding to the wait.
+- A targeted adversarial patch can take up to 150 optimization steps and
+  may still fail to reach the target (a real, honest outcome, not a bug)
+  — a smaller patch is more likely to fail; try a larger one first.
 `.trim();
 
 export const ADVERSARIAL_SUGGESTIONS = [
@@ -133,6 +159,7 @@ export const ADVERSARIAL_SUGGESTIONS = [
   "Why doesn't either defense always work?",
   "What does 'epsilon' actually control?",
   "What's a targeted vs. untargeted attack?",
+  "How is the adversarial patch different from FGSM/PGD?",
   "Does this attack transfer to a different model?",
   "Is this attacking the other tools on this site?",
   "What is Grad-CAM showing me?",

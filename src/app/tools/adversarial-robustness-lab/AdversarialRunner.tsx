@@ -78,8 +78,9 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
     categories, loadCategories, targetLabel, setTargetLabel,
-    checkTransfer, setCheckTransfer,
+    checkTransfer, setCheckTransfer, patchFrac, setPatchFrac,
   } = useAdversarial();
+  const isPatch = method === "patch";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onFileSelected = async (file: File) => {
@@ -96,12 +97,12 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
       <div style={cardStyle} className="p-5">
         <p className="text-xs mb-4" style={{ color: "var(--text3)" }}>
           Upload a photo, then craft an adversarial perturbation designed to fool a pretrained ImageNet
-          classifier — a tiny, mostly-invisible pixel change that flips its prediction to something
-          wrong. Leave the target label blank for an untargeted attack (any wrong label counts), or
+          classifier — either a tiny, mostly-invisible pixel change (FGSM/PGD) or a visible &quot;sticker&quot;
+          patch region. Leave the target label blank for an untargeted attack (any wrong label counts), or
           type a specific ImageNet class to try to force that exact misprediction — a strictly harder
-          attack, since it may need a larger epsilon to succeed. Then try a JPEG-recompression defense
-          and see whether it actually recovers the correct label (often it doesn&apos;t fully — that&apos;s a
-          real, honest finding about this defense&apos;s limits, not a broken demo).
+          attack. Then try a JPEG-recompression defense and randomized smoothing, and see whether either
+          actually recovers the correct label (often neither does fully — that&apos;s a real, honest
+          finding about these defenses&apos; limits, not a broken demo).
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -122,17 +123,26 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Attack:
-                <select value={method} onChange={e => setMethod(e.target.value as "fgsm" | "pgd")}
+                <select value={method} onChange={e => setMethod(e.target.value as "fgsm" | "pgd" | "patch")}
                   className="text-xs rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }}>
                   <option value="fgsm">FGSM (single-step)</option>
                   <option value="pgd">PGD (iterative, stronger)</option>
+                  <option value="patch">Adversarial patch (visible sticker)</option>
                 </select>
               </label>
-              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
-                Strength (epsilon): {epsilon.toFixed(3)}
-                <input type="range" min={0.005} max={0.08} step={0.005} value={epsilon}
-                  onChange={e => setEpsilon(Number(e.target.value))} className="w-24" />
-              </label>
+              {isPatch ? (
+                <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
+                  Patch size: {Math.round(patchFrac * 100)}% of image
+                  <input type="range" min={0.05} max={0.35} step={0.01} value={patchFrac}
+                    onChange={e => setPatchFrac(Number(e.target.value))} className="w-24" />
+                </label>
+              ) : (
+                <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
+                  Strength (epsilon): {epsilon.toFixed(3)}
+                  <input type="range" min={0.005} max={0.08} step={0.005} value={epsilon}
+                    onChange={e => setEpsilon(Number(e.target.value))} className="w-24" />
+                </label>
+              )}
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Defense JPEG quality: {jpegQuality}
                 <input type="range" min={10} max={90} step={5} value={jpegQuality}
@@ -200,11 +210,15 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
               accent={accent} />
             <SmoothedCard result={result} accent={accent} />
             <div className="flex flex-col gap-2 flex-1 min-w-[180px]">
-              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>Perturbation (amplified ×8)</span>
-              <img src={`data:image/png;base64,${result.perturbation_preview}`} alt="Amplified perturbation"
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
+                {isPatch ? "The patch region" : "Perturbation (amplified ×8)"}
+              </span>
+              <img src={`data:image/png;base64,${result.perturbation_preview}`} alt={isPatch ? "Patch region" : "Amplified perturbation"}
                 className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
               <span className="text-[10px]" style={{ color: "var(--text3)" }}>
-                What was actually added — invisible at normal contrast, shown here amplified.
+                {isPatch
+                  ? "The optimized patch itself — directly visible, unlike the subtle FGSM/PGD perturbation."
+                  : "What was actually added — invisible at normal contrast, shown here amplified."}
               </span>
             </div>
           </div>
@@ -212,8 +226,16 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
           {result.adversarial.target_label && (
             <p className="text-[10px]" style={{ color: "var(--text3)" }}>
               {result.adversarial.target_achieved
-                ? `Targeted attack succeeded — forced the prediction to the chosen target, "${result.adversarial.target_label}", not just any wrong label.`
+                ? `Targeted attack succeeded — forced the prediction to the chosen target, "${result.adversarial.target_label}", not just any wrong label.${isPatch ? ` Took ${result.adversarial.patch_steps} optimization steps.` : ""}`
+                : isPatch
+                ? `Targeted patch did NOT reach "${result.adversarial.target_label}" within the ${result.adversarial.patch_steps}-step budget — a real, honest failure, not a bug. Real testing found a bigger patch converges far faster; try increasing patch size.`
                 : `Targeted attack did NOT reach "${result.adversarial.target_label}" within this epsilon budget — it landed on a different (still wrong) label instead. Try a larger epsilon; targeted attacks are strictly harder to pull off than untargeted ones.`}
+            </p>
+          )}
+          {isPatch && !result.adversarial.target_label && (
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+              Untargeted patches tend to fool the classifier almost instantly — this one took only{" "}
+              {result.adversarial.patch_steps} optimization step{result.adversarial.patch_steps === 1 ? "" : "s"}.
             </p>
           )}
 

@@ -3,13 +3,16 @@ import { ML_UNIFIED_API } from "@/config/urls";
 
 const RUN_TIMEOUT_MS = 60_000; // higher than the base attack alone — a
 // transferability check can trigger a one-time ResNet18 weight download
+const PATCH_RUN_TIMEOUT_MS = 100_000; // a targeted patch runs up to 150
+// optimization steps (real local testing: ~15s for a small patch that
+// fails to converge at all) — needs more headroom than FGSM/PGD
 
 export type Prediction = { label: string; confidence: number; top3: { label: string; confidence: number }[] };
 export type AdversarialResult = {
   original: Prediction & { heatmap: string };
   adversarial: Prediction & {
     fooled: boolean; image: string; heatmap: string;
-    target_label?: string; target_achieved?: boolean;
+    target_label?: string; target_achieved?: boolean; patch_steps?: number;
   };
   defended: Prediction & { recovered: boolean; disrupted: boolean; image: string };
   smoothed: Prediction & { recovered: boolean; disrupted: boolean; vote_confidence: number; num_samples: number; sigma: number };
@@ -17,7 +20,7 @@ export type AdversarialResult = {
   perturbation_preview: string;
 };
 
-export type AttackMethod = "fgsm" | "pgd";
+export type AttackMethod = "fgsm" | "pgd" | "patch";
 
 /** Runs a full attack+defense cycle in one request against a pretrained
  * ImageNet classifier: craft an adversarial perturbation (FGSM or PGD),
@@ -36,6 +39,7 @@ export function useAdversarial() {
   const [categories, setCategories] = useState<string[] | null>(null);
   const [targetLabel, setTargetLabel] = useState<string>("");
   const [checkTransfer, setCheckTransfer] = useState(false);
+  const [patchFrac, setPatchFrac] = useState(0.2);
 
   const loadCategories = useCallback(() => {
     if (categories !== null) return;
@@ -64,7 +68,7 @@ export function useAdversarial() {
     setRunning(true);
     setError(null);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), method === "patch" ? PATCH_RUN_TIMEOUT_MS : RUN_TIMEOUT_MS);
     try {
       const res = await fetch(`${ML_UNIFIED_API}/rag/mm-adversarial/run`, {
         method: "POST",
@@ -73,6 +77,7 @@ export function useAdversarial() {
           image: b64, epsilon, method, jpeg_quality: jpegQuality,
           target_label: targetLabel.trim() || null,
           check_transfer: checkTransfer,
+          patch_frac: patchFrac,
         }),
         signal: controller.signal,
       });
@@ -85,12 +90,12 @@ export function useAdversarial() {
       clearTimeout(timeout);
       setRunning(false);
     }
-  }, [b64, epsilon, method, jpegQuality, targetLabel, checkTransfer]);
+  }, [b64, epsilon, method, jpegQuality, targetLabel, checkTransfer, patchFrac]);
 
   return {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
     categories, loadCategories, targetLabel, setTargetLabel,
-    checkTransfer, setCheckTransfer,
+    checkTransfer, setCheckTransfer, patchFrac, setPatchFrac,
   };
 }
