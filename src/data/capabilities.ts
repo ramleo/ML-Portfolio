@@ -382,7 +382,7 @@ const capabilities: Capability[] = [
     title: "Adversarial Robustness Lab",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a photo and craft an FGSM/PGD adversarial perturbation — untargeted or aimed at a specific ImageNet label — that fools a pretrained classifier into a wrong (often high-confidence) prediction, then try two defenses: JPEG recompression and randomized smoothing. Reports honestly whether either actually recovered the correct label — real testing found neither does reliably, a genuine limitation of input-side defenses, not a broken demo.",
+      "Upload a photo and craft an FGSM/PGD adversarial perturbation — untargeted or aimed at a specific ImageNet label — that fools a pretrained classifier into a wrong (often high-confidence) prediction, then try two defenses (JPEG recompression, randomized smoothing) and an optional transferability check against a second model. Reports honestly whether the defenses actually recovered the correct label — real testing found neither does reliably, a genuine limitation of input-side defenses, not a broken demo.",
     accent: "#f43f5e",
     stat: "0",
     statLabel: "API Calls",

@@ -32,7 +32,10 @@ recovered the correct prediction.
    ImageNet classes) to try a **targeted** attack — forcing that EXACT
    wrong label, not just any wrong one. This is strictly harder than an
    untargeted attack; leave it blank for untargeted.
-6. Click **Run attack + defense** to see the results side by side:
+6. Optionally check **Check transferability (ResNet18)** to also classify
+   the SAME adversarial image with a second, different model architecture
+   — see whether the attack fools a model it was never crafted against.
+7. Click **Run attack + defense** to see the results side by side:
    Original, Adversarial, After JPEG defense, and After randomized
    smoothing — each with its own predicted label and confidence.
 
@@ -68,6 +71,19 @@ Real testing found this defense behaves similarly to JPEG recompression:
 sometimes disrupts the attack, rarely reliably recovers the exact original
 label. See mm_adversarial.py's module docstring for the actual sigma
 sweep behind this framing.
+
+## Transferability (does it fool a DIFFERENT model too?)
+This attack is crafted using gradients from MobileNetV2 only — it has zero
+access to ResNet18's weights or gradients. If you check "Check
+transferability", the SAME adversarial image is also classified by
+ResNet18, and "Transferred" means ResNet18's own prediction changed too —
+a real security implication: an attacker who can only query a DIFFERENT
+model than the one deployed may still succeed. Real testing found this
+varies a lot: FGSM's single-step perturbation didn't transfer at all in
+one real-photo test (ResNet18 stayed correct across every tested epsilon),
+while PGD's multi-step perturbation transferred at every epsilon tested on
+the same photo — a single-image finding, not a general rule, reported as
+observed. See mm_adversarial.py's module docstring for the actual sweep.
 
 ## Where was the model looking? (Grad-CAM)
 Below the three images, a second row shows a **Grad-CAM heatmap** for the
@@ -105,6 +121,8 @@ Nothing is stored: your photo and the results only exist for this one run.
   steps instead of one.
 - Randomized smoothing runs 25 extra forward passes per request (one per
   noised copy), so results take slightly longer than the attack alone.
+- The transferability check is OFF by default since it triggers a one-time
+  ~45MB ResNet18 weight download on first use, adding to the wait.
 `.trim();
 
 export const ADVERSARIAL_SUGGESTIONS = [
@@ -112,6 +130,7 @@ export const ADVERSARIAL_SUGGESTIONS = [
   "Why doesn't either defense always work?",
   "What does 'epsilon' actually control?",
   "What's a targeted vs. untargeted attack?",
+  "Does this attack transfer to a different model?",
   "Is this attacking the other tools on this site?",
   "What is Grad-CAM showing me?",
 ];

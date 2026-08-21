@@ -14,8 +14,9 @@ const ACCENT = "#f43f5e";
 const TOOL_SUMMARY =
   "Upload a photo and craft an FGSM/PGD adversarial perturbation (untargeted, or targeted at a " +
   "specific ImageNet label) that fools a pretrained classifier, then try two defenses — JPEG " +
-  "recompression and randomized smoothing. Reports honestly whether either defense actually " +
-  "recovered the correct prediction (often neither fully does) rather than only showing favorable cases.";
+  "recompression and randomized smoothing — plus an optional transferability check against a " +
+  "second model (ResNet18). Reports honestly whether the defenses actually recovered the " +
+  "correct prediction (often neither fully does) rather than only showing favorable cases.";
 
 export default function AdversarialRobustnessLabPage() {
   useToolTracking("adversarial-robustness-lab");

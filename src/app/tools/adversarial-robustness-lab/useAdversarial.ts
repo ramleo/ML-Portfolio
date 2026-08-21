@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 
-const RUN_TIMEOUT_MS = 45_000;
+const RUN_TIMEOUT_MS = 60_000; // higher than the base attack alone — a
+// transferability check can trigger a one-time ResNet18 weight download
 
 export type Prediction = { label: string; confidence: number; top3: { label: string; confidence: number }[] };
 export type AdversarialResult = {
@@ -12,6 +13,7 @@ export type AdversarialResult = {
   };
   defended: Prediction & { recovered: boolean; disrupted: boolean; image: string };
   smoothed: Prediction & { recovered: boolean; disrupted: boolean; vote_confidence: number; num_samples: number; sigma: number };
+  transfer: { model: string; original: Prediction; adversarial: Prediction; transferred: boolean } | null;
   perturbation_preview: string;
 };
 
@@ -33,6 +35,7 @@ export function useAdversarial() {
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[] | null>(null);
   const [targetLabel, setTargetLabel] = useState<string>("");
+  const [checkTransfer, setCheckTransfer] = useState(false);
 
   const loadCategories = useCallback(() => {
     if (categories !== null) return;
@@ -69,6 +72,7 @@ export function useAdversarial() {
         body: JSON.stringify({
           image: b64, epsilon, method, jpeg_quality: jpegQuality,
           target_label: targetLabel.trim() || null,
+          check_transfer: checkTransfer,
         }),
         signal: controller.signal,
       });
@@ -81,11 +85,12 @@ export function useAdversarial() {
       clearTimeout(timeout);
       setRunning(false);
     }
-  }, [b64, epsilon, method, jpegQuality, targetLabel]);
+  }, [b64, epsilon, method, jpegQuality, targetLabel, checkTransfer]);
 
   return {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
     categories, loadCategories, targetLabel, setTargetLabel,
+    checkTransfer, setCheckTransfer,
   };
 }

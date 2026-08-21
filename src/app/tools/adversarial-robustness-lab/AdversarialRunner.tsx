@@ -78,6 +78,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
     preview, setImage, reset, epsilon, setEpsilon, method, setMethod, jpegQuality, setJpegQuality,
     run, running, result, error,
     categories, loadCategories, targetLabel, setTargetLabel,
+    checkTransfer, setCheckTransfer,
   } = useAdversarial();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -152,6 +153,10 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                 <datalist id="adversarial-target-labels">
                   {(categories ?? []).map(c => <option key={c} value={c} />)}
                 </datalist>
+              </label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: "var(--text3)" }}>
+                <input type="checkbox" checked={checkTransfer} onChange={e => setCheckTransfer(e.target.checked)} />
+                Check transferability (ResNet18)
               </label>
               <button onClick={run} disabled={running}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border"
@@ -228,6 +233,40 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
               ? "The noise vote landed on yet another wrong label, not the original — some disruption, no recovery."
               : "The vote agreed with the adversarial label almost every time — this defense had essentially no effect at this attack strength."}
           </p>
+
+          {result.transfer && (
+            <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
+                Does it transfer to a different model? (ResNet18)
+              </span>
+              <div className="flex gap-4 flex-wrap text-xs">
+                <div className="flex flex-col gap-1">
+                  <span style={{ color: "var(--text3)" }}>ResNet18 on original photo</span>
+                  <span className="font-semibold" style={{ color: "var(--text)" }}>
+                    {result.transfer.original.label} ({Math.round(result.transfer.original.confidence * 100)}%)
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span style={{ color: "var(--text3)" }}>ResNet18 on the SAME adversarial image</span>
+                  <span className="font-semibold" style={{ color: "var(--text)" }}>
+                    {result.transfer.adversarial.label} ({Math.round(result.transfer.adversarial.confidence * 100)}%)
+                  </span>
+                </div>
+                <span className="text-[9px] px-1.5 py-px rounded shrink-0 self-start"
+                  style={{
+                    background: result.transfer.transferred ? "#f8717118" : "#34d39918",
+                    color: result.transfer.transferred ? "#f87171" : "#34d399",
+                  }}>
+                  {result.transfer.transferred ? "Transferred" : "Did not transfer"}
+                </span>
+              </div>
+              <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+                {result.transfer.transferred
+                  ? "This perturbation was crafted with zero gradient access to ResNet18, yet it changed ResNet18's own prediction too — a real black-box risk: an attacker doesn't need access to the exact model you're running."
+                  : "ResNet18's prediction stayed correct despite the same adversarial image fooling MobileNetV2 — this specific perturbation did not transfer to a different architecture. Real testing found this varies a lot by attack strength and method (see mm_adversarial.py's module docstring)."}
+              </p>
+            </div>
+          )}
 
           <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
             <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
