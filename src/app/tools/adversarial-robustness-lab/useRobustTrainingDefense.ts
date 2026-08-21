@@ -14,6 +14,7 @@ export type ModelResult = {
 };
 export type RobustTrainingResult = {
   label: number;
+  preprocessed_image?: string; // only present for an uploaded photo
   standard: ModelResult;
   adversarial_trained: ModelResult;
 };
@@ -21,8 +22,12 @@ export type RobustTrainingResult = {
 /** Attacks two small MNIST digit classifiers — one standard-trained, one
  * adversarially-trained (Madry-style PGD-in-the-loop) — with the SAME
  * white-box PGD attack at a chosen epsilon, and reports whether each
- * model was fooled. See mm_robust_training.py's module docstring for the
- * real training/eval numbers behind this demo. */
+ * model was fooled. Source can be a bundled sample digit OR a user photo
+ * (preprocessed server-side: grayscale, auto-invert, crop-to-ink, center,
+ * resize to 28x28 — see mm_robust_training.py's _preprocess_upload). See
+ * that module's docstring for the real training/eval numbers behind this
+ * demo, and its honest caveat that a real photo is out-of-distribution
+ * input for a model trained only on clean MNIST. */
 export function useRobustTrainingDefense() {
   const [samples, setSamples] = useState<SampleDigit[]>([]);
   const [samplesError, setSamplesError] = useState<string | null>(null);
@@ -31,6 +36,11 @@ export function useRobustTrainingDefense() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RobustTrainingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<"sample" | "upload">("sample");
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [uploadB64, setUploadB64] = useState<string | null>(null);
+  const [intendedLabel, setIntendedLabel] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,16 +51,37 @@ export function useRobustTrainingDefense() {
     return () => { cancelled = true; };
   }, []);
 
+  const setUploadImage = useCallback((dataUrl: string) => {
+    setUploadPreview(dataUrl);
+    setUploadB64(dataUrl.split(",")[1] ?? "");
+    setResult(null);
+    setError(null);
+  }, []);
+
+  const clearUpload = useCallback(() => {
+    setUploadPreview(null);
+    setUploadB64(null);
+    setResult(null);
+    setError(null);
+  }, []);
+
   const run = useCallback(async () => {
+    if (mode === "upload" && !uploadB64) return;
     setRunning(true);
     setError(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-robust-training/run`, {
+      const url = mode === "upload"
+        ? `${ML_UNIFIED_API}/rag/mm-robust-training/run-upload`
+        : `${ML_UNIFIED_API}/rag/mm-robust-training/run`;
+      const body = mode === "upload"
+        ? { image: uploadB64, intended_label: intendedLabel, epsilon }
+        : { sample_id: selectedId, epsilon };
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sample_id: selectedId, epsilon }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
       const data = await res.json().catch(() => null);
@@ -62,10 +93,13 @@ export function useRobustTrainingDefense() {
       clearTimeout(timeout);
       setRunning(false);
     }
-  }, [selectedId, epsilon]);
+  }, [mode, selectedId, uploadB64, intendedLabel, epsilon]);
 
   return {
     samples, samplesError, selectedId, setSelectedId,
     epsilon, setEpsilon, run, running, result, error,
+    mode, setMode,
+    uploadPreview, setUploadImage, clearUpload,
+    intendedLabel, setIntendedLabel,
   };
 }

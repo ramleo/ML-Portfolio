@@ -151,10 +151,17 @@ dataset — infeasible to redo live against the 1000-class ImageNet
 classifier used above — this section demonstrates it on a much smaller,
 separate pair of digit classifiers (MNIST), trained ONCE offline and
 shipped as static checkpoints, not retrained per request.
-Pick a sample digit, choose an attack strength, and click **Attack both
-models** — the SAME white-box PGD attack (each model attacked with its
-own gradients) runs against a standard-trained model and an
-adversarially-trained model side by side. Real, measured numbers across
+Pick a sample digit (or switch to **Upload your own** and photograph a
+digit you've written on plain paper — it's preprocessed server-side:
+grayscale, auto-invert, cropped to the ink, centered, resized to 28x28,
+and you'll see exactly what the models received), choose an attack
+strength, and click **Attack both models** — the SAME white-box PGD
+attack (each model attacked with its own gradients) runs against a
+standard-trained model and an adversarially-trained model side by side.
+A real photo is out-of-distribution input for a model trained only on
+clean MNIST, so even the CLEAN (unattacked) prediction may occasionally
+be wrong — that's shown honestly, not hidden, since it's a real limit of
+the preprocessing, not a bug. Real, measured numbers across
 the full MNIST test set: the standard model goes from 98.6% clean
 accuracy to just 1.1% robust accuracy under this attack — essentially
 always fooled; the adversarially-trained model goes from 97.0% clean

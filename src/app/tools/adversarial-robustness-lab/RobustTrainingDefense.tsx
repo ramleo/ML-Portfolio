@@ -1,6 +1,16 @@
 "use client";
 
+import { useRef } from "react";
 import { useRobustTrainingDefense, type ModelResult } from "./useRobustTrainingDefense";
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("could not read file"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function ModelPanel({ title, accent, result }: { title: string; accent: string; result: ModelResult }) {
   return (
@@ -28,16 +38,35 @@ function ModelPanel({ title, accent, result }: { title: string; accent: string; 
 /** Section within the Adversarial Robustness Lab demonstrating adversarial
  * training as a defense — a different SHAPE of defense than JPEG
  * recompression / randomized smoothing, since it changes how the model
- * was trained rather than post-processing the input. See
- * useRobustTrainingDefense's docstring and mm_robust_training.py's module
- * docstring for the real numbers behind this framing. */
+ * was trained rather than post-processing the input. Supports a bundled
+ * sample digit OR a user-uploaded photo of a handwritten digit (server-
+ * side preprocessed — see useRobustTrainingDefense's docstring and
+ * mm_robust_training.py's module docstring for the real numbers and
+ * honest out-of-distribution caveat behind this framing). */
 export default function RobustTrainingDefense({ accent }: { accent: string }) {
-  const { samples, samplesError, selectedId, setSelectedId, epsilon, setEpsilon, run, running, result, error } =
-    useRobustTrainingDefense();
+  const {
+    samples, samplesError, selectedId, setSelectedId, epsilon, setEpsilon, run, running, result, error,
+    mode, setMode, uploadPreview, setUploadImage, clearUpload, intendedLabel, setIntendedLabel,
+  } = useRobustTrainingDefense();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onFileSelected = async (file: File) => {
+    const dataUrl = await readFileAsDataUrl(file);
+    setUploadImage(dataUrl);
+  };
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
   };
+
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    fontSize: 12, padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+    background: active ? `${accent}18` : "transparent",
+    color: active ? accent : "var(--text3)",
+    border: `1px solid ${active ? `${accent}40` : "rgba(255,255,255,0.1)"}`,
+  });
+
+  const canRun = mode === "sample" ? samples.length > 0 : !!uploadPreview;
 
   return (
     <div style={cardStyle} className="p-5 flex flex-col gap-4">
@@ -49,29 +78,75 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
           Unlike the two defenses above, this one changes HOW a model is trained, not what happens to
           an image at inference time. Two small digit classifiers were trained once, offline, on the
           same data — one normally, one adversarially (Madry-style: trained directly on PGD-attacked
-          examples). Pick a digit, attack BOTH models with the same white-box PGD attack, and see the
-          real difference.
+          examples). Pick a digit (or upload your own), attack BOTH models with the same white-box PGD
+          attack, and see the real difference.
         </p>
       </div>
 
-      {samplesError && <p className="text-xs" style={{ color: "#f87171" }}>{samplesError}</p>}
+      <div className="flex gap-2">
+        <button style={tabStyle(mode === "sample")} onClick={() => setMode("sample")}>Bundled samples</button>
+        <button style={tabStyle(mode === "upload")} onClick={() => setMode("upload")}>Upload your own</button>
+      </div>
 
-      {samples.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--text3)" }}>Pick a sample digit</span>
-          <div className="flex gap-2 flex-wrap">
-            {samples.map(s => (
-              <button key={s.id} onClick={() => setSelectedId(s.id)}
-                className="rounded-lg p-1 transition-colors"
-                style={{
-                  border: `2px solid ${selectedId === s.id ? accent : "rgba(255,255,255,0.1)"}`,
-                  background: "#000",
-                }}>
-                <img src={`data:image/png;base64,${s.image_b64}`} alt={`Digit ${s.label}`}
-                  style={{ width: 36, height: 36, imageRendering: "pixelated" }} />
-              </button>
-            ))}
+      {mode === "sample" && (
+        <>
+          {samplesError && <p className="text-xs" style={{ color: "#f87171" }}>{samplesError}</p>}
+          {samples.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--text3)" }}>Pick a sample digit</span>
+              <div className="flex gap-2 flex-wrap">
+                {samples.map(s => (
+                  <button key={s.id} onClick={() => setSelectedId(s.id)}
+                    className="rounded-lg p-1 transition-colors"
+                    style={{
+                      border: `2px solid ${selectedId === s.id ? accent : "rgba(255,255,255,0.1)"}`,
+                      background: "#000",
+                    }}>
+                    <img src={`data:image/png;base64,${s.image_b64}`} alt={`Digit ${s.label}`}
+                      style={{ width: 36, height: 36, imageRendering: "pixelated" }} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "upload" && (
+        <div className="flex flex-col gap-3">
+          <p className="text-[11px]" style={{ color: "var(--text3)" }}>
+            Photograph a single digit you&apos;ve written on plain paper (dark ink on a light
+            background works best). This is out-of-distribution input for a model trained only on
+            clean MNIST digits, so even the clean (unattacked) prediction may occasionally be wrong —
+            that&apos;s shown honestly below, not hidden.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={() => fileInputRef.current?.click()}
+              className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
+              style={{ background: accent, color: "#0b0b12" }}>
+              Choose photo
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { if (e.target.files?.[0]) onFileSelected(e.target.files[0]); e.target.value = ""; }} />
+            {uploadPreview && (
+              <button onClick={clearUpload} className="text-xs underline" style={{ color: "var(--text3)" }}>Clear</button>
+            )}
           </div>
+
+          {uploadPreview && (
+            <div className="flex items-center gap-4 flex-wrap">
+              <img src={uploadPreview} alt="Uploaded digit" className="rounded-lg object-contain"
+                style={{ width: 96, height: 96, background: "#111" }} />
+              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
+                What digit is this?
+                <select value={intendedLabel} onChange={e => setIntendedLabel(Number(e.target.value))}
+                  className="text-xs rounded px-2 py-1"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  {Array.from({ length: 10 }, (_, i) => i).map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </label>
+            </div>
+          )}
         </div>
       )}
 
@@ -81,9 +156,9 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
           <input type="range" min={0.02} max={0.4} step={0.02} value={epsilon}
             onChange={e => setEpsilon(Number(e.target.value))} className="w-32" />
         </label>
-        <button onClick={run} disabled={running || samples.length === 0}
+        <button onClick={run} disabled={running || !canRun}
           className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border"
-          style={{ borderColor: `${accent}50`, color: accent, opacity: running ? 0.5 : 1 }}>
+          style={{ borderColor: `${accent}50`, color: accent, opacity: running || !canRun ? 0.5 : 1 }}>
           {running ? "Attacking both models…" : "Attack both models"}
         </button>
       </div>
@@ -92,7 +167,18 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
 
       {result && (
         <div className="flex flex-col gap-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-[11px]" style={{ color: "var(--text3)" }}>True label: <strong style={{ color: "var(--text)" }}>{result.label}</strong></p>
+          <div className="flex items-center gap-4 flex-wrap">
+            <p className="text-[11px]" style={{ color: "var(--text3)" }}>
+              {mode === "upload" ? "Intended digit" : "True label"}: <strong style={{ color: "var(--text)" }}>{result.label}</strong>
+            </p>
+            {result.preprocessed_image && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px]" style={{ color: "var(--text3)" }}>What the models actually saw:</span>
+                <img src={`data:image/png;base64,${result.preprocessed_image}`} alt="Preprocessed digit"
+                  className="rounded" style={{ width: 40, height: 40, imageRendering: "pixelated", background: "#000" }} />
+              </div>
+            )}
+          </div>
           <div className="flex gap-6 flex-wrap">
             <ModelPanel title="Standard-trained model" accent={accent} result={result.standard} />
             <ModelPanel title="Adversarially-trained model" accent={accent} result={result.adversarial_trained} />
