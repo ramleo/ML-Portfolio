@@ -29,7 +29,7 @@ function NewsCard({ item, accent, delay }: { item: NewsItem; accent: string; del
         rel="noopener noreferrer"
         style={{ textDecoration: "none", display: "flex", height: "100%" }}
       >
-        <div className="subtle-card" style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.65rem", padding: "1.4rem 1.25rem 1.25rem" }}>
+        <div className="subtle-card" style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.65rem", padding: "1.4rem 1.25rem 1.25rem", ["--acc-glow" as string]: `${accent}14` }}>
           {/* Source + date row */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", justifyContent: "space-between" }}>
             <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text3)" }}>

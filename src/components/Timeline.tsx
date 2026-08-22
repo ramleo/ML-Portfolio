@@ -103,6 +103,7 @@ export default function Timeline() {
                       width: isMobile ? "100%" : "calc(50% - 2rem)",
                       border: `1px solid ${exp.current ? exp.accent + "40" : "var(--border)"}`,
                       padding: "1.1rem 1.25rem",
+                      ["--acc-glow" as string]: `${exp.accent}14`,
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem" }}>

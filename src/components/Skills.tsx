@@ -77,7 +77,7 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
       transition={{ delay: 0.15 + ci * 0.09, duration: 0.45 }}
       style={{ height: "100%" }}
     >
-      <div className="subtle-card" style={{ height: "100%", padding: "1.25rem 1.25rem 1.5rem" }}>
+      <div className="subtle-card" style={{ height: "100%", padding: "1.25rem 1.25rem 1.5rem", ["--acc-glow" as string]: `${cat.accent}14` }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", marginBottom: "1rem" }}>
           <span className="subtle-dot" style={{ background: cat.accent }} />

@@ -25,7 +25,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="subtle-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
+    <div className="subtle-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%", ["--acc-glow" as string]: `${accent}14` }}>
       <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>

@@ -66,6 +66,7 @@ export default function Contact() {
                     padding: "0.85rem 1.1rem",
                     textDecoration: "none", color: "var(--text2)",
                     fontSize: "0.85rem",
+                    ["--acc-glow" as string]: "color-mix(in srgb, var(--accent) 10%, transparent)",
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
