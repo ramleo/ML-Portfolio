@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
-import MouseTiltCard from "@/components/MouseTiltCard";
 import NumericTransformsPanel from "@/components/FEPanels/NumericTransformsPanel";
 import CategoricalPanel from "@/components/FEPanels/CategoricalPanel";
 import SidebarPanel from "@/components/FEPanels/SidebarPanel";
@@ -34,7 +33,7 @@ function ActionBtn({ onClick, disabled = false, children, secondary = false }: {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick} disabled={disabled} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ padding: "0.6rem 1.4rem", borderRadius: 9999, border: secondary ? "1px solid rgba(255,255,255,0.15)" : "none", background: disabled ? "rgba(255,255,255,0.06)" : secondary ? "transparent" : ACCENT, color: disabled ? "var(--text3)" : secondary ? "var(--text2)" : "#fff", fontWeight: 600, fontSize: "0.82rem", cursor: disabled ? "not-allowed" : "pointer", transition: "opacity 0.15s, transform 0.15s", opacity: hov && !disabled && !secondary ? 0.88 : 1, transform: hov && !disabled && !secondary ? "translateY(-1px)" : "translateY(0)" }}>
+      style={{ padding: "0.6rem 1.4rem", borderRadius: 9999, border: secondary ? "1px solid var(--border2)" : "none", background: disabled ? "var(--border)" : secondary ? "transparent" : ACCENT, color: disabled ? "var(--text3)" : secondary ? "var(--text2)" : "#fff", fontWeight: 600, fontSize: "0.82rem", cursor: disabled ? "not-allowed" : "pointer", transition: "opacity 0.15s, transform 0.15s", opacity: hov && !disabled && !secondary ? 0.88 : 1, transform: hov && !disabled && !secondary ? "translateY(-1px)" : "translateY(0)" }}>
       {children}
     </button>
   );
@@ -204,13 +203,13 @@ function FeatureEngineeringPageInner() {
     <div style={step === "configure" ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" } : { minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={{ position: "sticky", top: 0, zIndex: 50, flexShrink: 0, background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, flexShrink: 0, background: "var(--bg-nav)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <button onClick={() => router.push("/#capabilities")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0, transition: "color 0.15s" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12L4 7l5-5" /></svg>
             Home
           </button>
-          <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
+          <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <Pill label="Step 3" />
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Engineering</span>
@@ -250,15 +249,15 @@ function FeatureEngineeringPageInner() {
               }}
             />
           )}
-          <MouseTiltCard onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current?.click()}
-            style={{ ...CARD, textAlign: "center", padding: "3rem 2rem", cursor: "pointer", borderStyle: "dashed", borderColor: `${ACCENT}40`, transition: "border-color 0.2s, box-shadow 0.2s" }}>
+          <div className="subtle-card" onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current?.click()}
+            style={{ ...CARD, textAlign: "center", padding: "3rem 2rem", cursor: "pointer", borderStyle: "dashed", borderColor: `${ACCENT}40`, ["--acc-glow" as string]: `${ACCENT}14` }}>
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke={ACCENT} strokeWidth="1.5" style={{ display: "block", margin: "0 auto 1rem", opacity: 0.7 }}>
               <path d="M20 26V14M14 20l6-6 6 6" strokeLinecap="round" strokeLinejoin="round" />
               <rect x="6" y="6" width="28" height="28" rx="6" />
             </svg>
             <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: "0.3rem" }}>Drop CSV here or click to browse</div>
             <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Processed entirely in your browser — no upload to any server</div>
-          </MouseTiltCard>
+          </div>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           {error && <div style={{ marginTop: "1rem", color: "#f87171", fontSize: "0.8rem", textAlign: "center" }}>{error}</div>}
         </div>

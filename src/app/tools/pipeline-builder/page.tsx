@@ -239,7 +239,7 @@ export default function PipelineBuilderPage() {
         <ConstellationBackground />
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ padding: "1rem 1.5rem" }}>
-            <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "rgba(180,185,210,0.6)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
+            <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
               <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
               Home
             </button>
@@ -255,18 +255,18 @@ export default function PipelineBuilderPage() {
       <ConstellationBackground />
 
       {/* Header */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1.5rem", background: "rgba(6,13,26,0.88)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "rgba(180,185,210,0.7)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1.5rem", background: "var(--bg-nav)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
+        <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
           Home
         </button>
-        <button onClick={handleReset} style={{ background: "transparent", border: "none", color: "rgba(180,185,210,0.7)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={handleReset} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4 }}>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
           Back
         </button>
-        <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+        <span style={{ color: "var(--border2)" }}>|</span>
         <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--text)" }}>ML Pipeline Builder</span>
-        <span style={{ padding: "0.2rem 0.65rem", borderRadius: 99, fontSize: "0.7rem", fontWeight: 600, background: "rgba(255,255,255,0.07)", color: "rgba(200,205,225,0.7)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <span style={{ padding: "0.2rem 0.65rem", borderRadius: 99, fontSize: "0.7rem", fontWeight: 600, background: "var(--border)", color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {mode === "guided" ? "Guided" : mode === "express" ? "Express" : "A/B Compare"}
         </span>
         <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "#4ade80", fontWeight: 600 }}>{doneCount}/{STAGES.length}</span>
@@ -274,7 +274,7 @@ export default function PipelineBuilderPage() {
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem 1.5rem 5rem", position: "relative", zIndex: 2 }}>
         {/* Progress bar */}
-        <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 99, marginBottom: "1.75rem", overflow: "hidden" }}>
+        <div style={{ height: 4, background: "var(--border)", borderRadius: 99, marginBottom: "1.75rem", overflow: "hidden" }}>
           <motion.div style={{ height: "100%", background: "linear-gradient(90deg,#22c55e,#4ade80)", borderRadius: 99 }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5 }} />
         </div>
 
@@ -284,11 +284,11 @@ export default function PipelineBuilderPage() {
         {/* File info + target */}
         {csvB64 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem", marginBottom: "1.75rem", padding: "0.85rem 1.25rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12 }}>
+            style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem", marginBottom: "1.75rem", padding: "0.85rem 1.25rem", background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
               <span style={{ fontSize: "0.8rem", color: "#4ade80", fontWeight: 600 }}>CSV loaded</span>
-              {columns.length > 0 && <span style={{ fontSize: "0.75rem", color: "rgba(180,185,210,0.6)" }}>({columns.length} cols)</span>}
+              {columns.length > 0 && <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>({columns.length} cols)</span>}
             </div>
             {columns.length > 0 && (
               <>
@@ -333,7 +333,7 @@ export default function PipelineBuilderPage() {
             style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1.5rem", padding: "0.9rem 1.25rem", background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12 }}>
             <div>
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#4ade80", marginBottom: 2 }}>Express Mode</div>
-              <div style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.65)" }}>Runs all 4 pipeline stages automatically with optimal defaults. Results appear as each stage completes.</div>
+              <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Runs all 4 pipeline stages automatically with optimal defaults. Results appear as each stage completes.</div>
             </div>
             <button onClick={runExpressPipeline} disabled={!!runningStage}
               style={{ padding: "0.6rem 1.4rem", borderRadius: 9, background: "#22c55e", color: "#000", fontWeight: 700, fontSize: "0.85rem", border: "none", cursor: runningStage ? "not-allowed" : "pointer", opacity: runningStage ? 0.6 : 1, whiteSpace: "nowrap" }}>

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-const PAGE_BG = "#060d1a";
 const N = 70;
 const MAX_DIST = 130;
 const REPEL_RADIUS = 120;
@@ -105,7 +104,7 @@ export default function ConstellationBackground() {
 
   return (
     <>
-      <style>{`body { background: ${PAGE_BG}; }`}</style>
+      <style>{`body { background: var(--bg); }`}</style>
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} />
     </>
   );

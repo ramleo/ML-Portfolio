@@ -101,7 +101,7 @@ export default function PipelineCinemaPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#060d1a", position: "relative" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", position: "relative" }}>
       <ConstellationBackground />
       <main style={{ minHeight: "100vh", position: "relative", zIndex: 1, padding: "2rem" }}>
 
@@ -110,7 +110,7 @@ export default function PipelineCinemaPage() {
           <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1rem" }}>
             <button
               onClick={handleHome}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", padding: 0 }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: 0 }}
             >
               ← Home
             </button>
@@ -124,7 +124,7 @@ export default function PipelineCinemaPage() {
           <h1 style={{ color: "#f0f4f8", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
             Pipeline Cinema
           </h1>
-          <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0 }}>
+          <p style={{ color: "var(--text3)", fontSize: "0.9rem", margin: 0 }}>
             Watch your data transform — stage by stage
           </p>
         </header>
@@ -253,7 +253,7 @@ export default function PipelineCinemaPage() {
                 padding: "0.7rem 1.4rem",
                 borderRadius: 10,
                 background: paused ? "#0f2744" : "transparent",
-                color: paused ? "#38bdf8" : "#94a3b8",
+                color: paused ? "#38bdf8" : "var(--text3)",
                 fontWeight: 600,
                 fontSize: "0.95rem",
                 border: `1.5px solid ${paused ? "#38bdf8" : "#1e3a5f"}`,
@@ -294,7 +294,7 @@ export default function PipelineCinemaPage() {
               padding: "0.7rem 1.4rem",
               borderRadius: 10,
               background: "transparent",
-              color: "#64748b",
+              color: "var(--text3)",
               fontWeight: 600,
               fontSize: "0.95rem",
               border: "1.5px solid #1e3a5f",

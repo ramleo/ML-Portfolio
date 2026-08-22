@@ -69,8 +69,8 @@ function OptunaPageInner() {
       {/* Header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
+        background: "var(--bg-nav)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid var(--border)",
       }}>
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <button
@@ -84,7 +84,7 @@ function OptunaPageInner() {
             </svg>
             Home
           </button>
-          <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
+          <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <Badge label="Step 3" color={ACCENT} />
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Optuna Tuning</span>

@@ -58,8 +58,8 @@ function EnsemblePageInner() {
       {/* Header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(6,13,26,0.92)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
+        background: "var(--bg-nav)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid var(--border)",
       }}>
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <button
@@ -73,7 +73,7 @@ function EnsemblePageInner() {
             </svg>
             Home
           </button>
-          <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
+          <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "0.62rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>Step 3</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Ensemble Methods</span>

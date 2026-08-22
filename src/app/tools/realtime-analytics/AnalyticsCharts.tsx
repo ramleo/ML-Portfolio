@@ -47,8 +47,8 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
           <stop offset="100%" stopColor={color} stopOpacity="0"/>
         </linearGradient>
       </defs>
-      <line x1={PL} y1={PT} x2={PL} y2={PT+iH} stroke="#ffffff0e" strokeWidth="1"/>
-      <line x1={PL} y1={PT+iH} x2={PL+iW} y2={PT+iH} stroke="#ffffff0e" strokeWidth="1"/>
+      <line x1={PL} y1={PT} x2={PL} y2={PT+iH} stroke="var(--border)" strokeWidth="1"/>
+      <line x1={PL} y1={PT+iH} x2={PL+iW} y2={PT+iH} stroke="var(--border)" strokeWidth="1"/>
       <text x={PL-4} y={PT+4} textAnchor="end" fontSize="8" fill="#6b7280">{fmt(max)}</text>
       <text x={PL-4} y={PT+iH} textAnchor="end" fontSize="8" fill="#6b7280">0</text>
       <path d={area} fill={`url(#${gid})`}/>
@@ -78,7 +78,7 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
           <g pointerEvents="none">
             <line x1={tip.x} y1={tip.y} x2={tip.x} y2={PT + iH} stroke={color} strokeWidth="0.75" strokeDasharray="2 2" opacity="0.4"/>
             <circle cx={tip.x} cy={tip.y} r="3" fill={color}/>
-            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
+            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
             <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">
               {tip.minute} · {tip.count} events
             </text>
@@ -328,12 +328,12 @@ export function GeoMap({ data }: { data: Country[] }) {
   const max = Math.max(...data.map(d => d.count), 1);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setTip(null)}>
-      <rect width={W} height={H} fill="#0a0f1e" rx="6"/>
+      <rect width={W} height={H} fill="var(--bg)" rx="6"/>
       {[-60,-30,0,30,60].map(lat => (
-        <line key={lat} x1={0} y1={toY(lat)} x2={W} y2={toY(lat)} stroke="#ffffff07" strokeWidth="0.5"/>
+        <line key={lat} x1={0} y1={toY(lat)} x2={W} y2={toY(lat)} stroke="var(--border)" strokeWidth="0.5"/>
       ))}
       {[-120,-60,0,60,120].map(lon => (
-        <line key={lon} x1={toX(lon)} y1={0} x2={toX(lon)} y2={H} stroke="#ffffff07" strokeWidth="0.5"/>
+        <line key={lon} x1={toX(lon)} y1={0} x2={toX(lon)} y2={H} stroke="var(--border)" strokeWidth="0.5"/>
       ))}
       {data.map(d => {
         const c = CENTROIDS[d.country];
@@ -358,7 +358,7 @@ export function GeoMap({ data }: { data: Country[] }) {
         const ty = Math.max(tip.y - TH, 2);
         return (
           <g pointerEvents="none">
-            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
+            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
             <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">{tip.label}</text>
           </g>
         );
