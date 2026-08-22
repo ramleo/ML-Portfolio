@@ -1,3 +1,10 @@
+import {
+  Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
+  Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette,
+  type LucideIcon,
+} from "lucide-react";
+
 export type Capability = {
   id: string;
   domain: string;      // groups the capability into a section on the homepage
@@ -5,6 +12,7 @@ export type Capability = {
   subtitle: string;       // badge pill top-left  (e.g. "4-Model Competition")
   description: string;
   accent: string;
+  icon: LucideIcon;       // card glyph — a real, tool-specific icon, not a letter fallback
   stat: string;           // big value top-right  (e.g. "4", "10+", "∞")
   statLabel: string;      // label under stat     (e.g. "Models", "Transforms")
   model: string;          // MODEL meta row
@@ -27,6 +35,7 @@ const capabilities: Capability[] = [
     description:
       "Deduplicate rows, impute missing values with 8+ numeric strategies (Mean, Median, KNN, MICE) and 4 categorical strategies, remove outliers via IQR / Z-score / Winsorize, fix skewness, and apply Yeo-Johnson power transform. Download a clean CSV or hand off directly to AutoML.",
     accent: "#22d3ee",
+    icon: Sparkles,
     stat: "5",
     statLabel: "Steps",
     model: "SimpleImputer · KNN · MICE",
@@ -44,6 +53,7 @@ const capabilities: Capability[] = [
     description:
       "log1p, sqrt, Yeo-Johnson, percentile rank, outlier flag, and missing flag per numeric column. Plus binning, polynomial pairs, interaction terms, date extraction, and cyclical encoding (sin / cos). All transforms are fit on training data only — no leakage.",
     accent: "#38bdf8",
+    icon: Wand2,
     stat: "10+",
     statLabel: "Transforms",
     model: "scikit-learn · pandas",
@@ -61,6 +71,7 @@ const capabilities: Capability[] = [
     description:
       "Four methods — Variance Threshold, Correlation Filter (drop >0.9 correlated), RFE (Random Forest), and SelectKBest (Mutual Info) — automatically prune irrelevant or redundant columns before training. Configurable top-K cutoff.",
     accent: "#fb923c",
+    icon: Filter,
     stat: "4",
     statLabel: "Methods",
     model: "RFE · SelectKBest · Variance",
@@ -78,6 +89,7 @@ const capabilities: Capability[] = [
     description:
       "RF, XGBoost, LightGBM, and CatBoost compete via 5-fold cross-validation. The winner is selected automatically by F1 (classification) or MAE (regression). Optional Optuna tuning and SHAP explanation run on the winner.",
     accent: "#34d399",
+    icon: Trophy,
     stat: "4",
     statLabel: "Models",
     model: "RF · XGB · LGB · CatBoost",
@@ -95,6 +107,7 @@ const capabilities: Capability[] = [
     description:
       "TPE sampler runs up to 30 trials on the AutoML winner to find optimal hyperparameters. Tuning is optional and runs after model selection — not before — so it never inflates the competition score.",
     accent: "#a78bfa",
+    icon: SlidersHorizontal,
     stat: "30",
     statLabel: "Max Trials",
     model: "TPE Sampler · 5-fold CV",
@@ -112,6 +125,7 @@ const capabilities: Capability[] = [
     description:
       "Every prediction comes with a SHAP bar chart showing which features drove the result and by how much. FE-derived columns are grouped back to their originals so you see source-feature influence, not transform noise.",
     accent: "#f59e0b",
+    icon: PieChart,
     stat: "100%",
     statLabel: "Explainable",
     model: "SHAP · TreeExplainer",
@@ -129,6 +143,7 @@ const capabilities: Capability[] = [
     description:
       "Simple voting (VotingClassifier / VotingRegressor) or stacking with a meta-learner on top of the AutoML winners. Reduces variance and improves generalization over any single model.",
     accent: "#f472b6",
+    icon: Layers,
     stat: "2",
     statLabel: "Strategies",
     model: "Voting · Stacking",
@@ -146,6 +161,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a new production batch CSV and compare it against the training baseline. PSI, KS test, and distribution histograms for numeric columns; category frequency shifts for categoricals. Trend sparkline tracks drift score across multiple batches.",
     accent: "#fb923c",
+    icon: GitCompare,
     stat: "PSI",
     statLabel: "+ KS Test",
     model: "Statistical tests",
@@ -163,6 +179,7 @@ const capabilities: Capability[] = [
     description:
       "Visual card canvas that orchestrates all 7 ML stages — Preprocessing, Feature Engineering, Feature Selection, AutoML, Optuna, SHAP, and Ensemble — into one sequential pipeline.",
     accent: "#a78bfa",
+    icon: Workflow,
     stat: "7",
     statLabel: "Stages",
     model: "Full Pipeline",
@@ -180,6 +197,7 @@ const capabilities: Capability[] = [
     description:
       "Watch your data transform in real time — chibi scientist characters process each ML stage with fluid animations. A cinematic walkthrough of the full pipeline.",
     accent: "#f97316",
+    icon: Clapperboard,
     stat: "4",
     statLabel: "Stages",
     model: "Visual Demo",
@@ -197,6 +215,7 @@ const capabilities: Capability[] = [
     description:
       "Track every page view and tool interaction on this portfolio in real time. Events flow from the browser into a PostgreSQL database via a FastAPI ingestion API, then Supabase Realtime pushes each row to the dashboard the moment it lands — no polling, no refresh.",
     accent: "#10b981",
+    icon: Activity,
     stat: "∞",
     statLabel: "Live Events",
     model: "Supabase Realtime · asyncpg",
@@ -214,6 +233,7 @@ const capabilities: Capability[] = [
     description:
       "Ask questions in plain English and get executable SQL instantly. The agent generates SQL, runs it against a real database, explains results, and retries automatically on errors. Supports Chinook demo DB, SQLite upload, and PostgreSQL.",
     accent: "#6366f1",
+    icon: Terminal,
     stat: "3",
     statLabel: "LLM Providers",
     model: "Groq / Gemini / Cohere",
@@ -231,6 +251,7 @@ const capabilities: Capability[] = [
     description:
       "Upload invoices, contracts, resumes, medical reports, bank statements, and more. AI classifies the document type, extracts structured fields with confidence scores, and highlights each field's location with bounding box overlays.",
     accent: "#06b6d4",
+    icon: FileSearch,
     stat: "8",
     statLabel: "Document Types",
     model: "Groq / Gemini / Cohere",
@@ -248,6 +269,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a PDF mixing prose, tables, and charts. Tables are read as structured data and figures get an AI-written caption, so questions whose answer lives in a number or a chart — not just a paragraph — get a grounded, page-cited answer.",
     accent: "#a78bfa",
+    icon: BookOpenCheck,
     stat: "3",
     statLabel: "Chunk Types",
     model: "Groq / Mistral / Gemini",
@@ -265,6 +287,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a contract, then one or more invoices. Flags amounts, dates, and terms that disagree across documents, each with the two source passages and an explanation — never comparing invoices against each other, since they're expected to differ.",
     accent: "#f59e0b",
+    icon: Scale,
     stat: "2",
     statLabel: "Doc Roles",
     model: "Groq (llama-3.1-8b-instant)",
@@ -282,6 +305,7 @@ const capabilities: Capability[] = [
     description:
       "Type a description and get a generated image back — no input photo required, just a prompt. Uses Gemini's paid image model, so a small daily generation budget applies to keep API cost predictable.",
     accent: "#ec4899",
+    icon: ImagePlus,
     stat: "1",
     statLabel: "Prompt In",
     model: "Gemini (gemini-3.1-flash-lite-image)",
@@ -299,6 +323,7 @@ const capabilities: Capability[] = [
     description:
       "Show your face to your camera (or upload a photo) and it checks whether it's a genuinely live face or a spoofed presentation — a printed photo, a phone/screen replay. Same category of check that gates face-unlock and identity-verification systems. Pure local ONNX inference, no API key or budget cost.",
     accent: "#14b8a6",
+    icon: ScanFace,
     stat: "600KB",
     statLabel: "Model Size",
     model: "MiniFASNetV2-SE (ONNX)",
@@ -316,6 +341,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a single photo and get a per-pixel depth map, then watch it come alive as a live parallax diorama — near objects shift more than far ones as you move your pointer. Pure local ONNX inference, no API key or budget cost.",
     accent: "#3b82f6",
+    icon: Layers3,
     stat: "37MB",
     statLabel: "Model Size",
     model: "Depth-Anything-V2-Small (ONNX)",
@@ -333,6 +359,7 @@ const capabilities: Capability[] = [
     description:
       "Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo with multiple plants to compare their current size to each other — an HSV green-hue threshold measures foliage pixel area, no ML model or API call needed. Auto-detects and separates multiple plants in one shot into independent measurements, and auto-detects a before/after collage photo to split and chart as growth over time instead. Also reports an RGB vegetation index (a stress/yellowing signal independent of size) and a leaf count per plant. Catches a stress or decline trend in the numbers before it's visible to the eye.",
     accent: "#4ade80",
+    icon: Sprout,
     stat: "0",
     statLabel: "API Calls",
     model: "HSV segmentation (local)",
@@ -350,6 +377,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a photo or screenshot containing a QR code and its decoded destination URL is checked for structural phishing/malicious-link signals — IP-literal hosts, punycode domains, '@' auth-trick URLs, URL shorteners, suspicious TLDs, and typosquats of well-known brand domains via edit-distance. Pure local heuristics, no ML model or API call, and the decoded link is never actually visited — only its text is analyzed. Reports red flags for a human to weigh, not a binary safe/malicious verdict.",
     accent: "#f97316",
+    icon: QrCode,
     stat: "0",
     statLabel: "API Calls",
     model: "cv2 QRCodeDetector + heuristics (local)",
@@ -367,6 +395,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a batch of photos and describe what you're looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP embeds both the images and the text query into the same space, no manual tagging or captioning needed. Stateless: nothing is stored between searches.",
     accent: "#38bdf8",
+    icon: ScanSearch,
     stat: "0",
     statLabel: "API Calls",
     model: "clip-ViT-B-32 (local)",
@@ -384,6 +413,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations, a visible adversarial patch, or a black-box query-only attack with zero gradient access — untargeted or aimed at a specific ImageNet label. Try two inference-time defenses (JPEG recompression, randomized smoothing), an optional transferability check against a second model, and a third section demonstrating adversarial TRAINING as a defense on a small digit classifier — attacking a standard-trained vs. an adversarially-trained model with the same PGD attack and showing the real, measured robustness gap (98.6%→1.1% vs. 97.0%→84.3% accuracy under attack). Reports honestly whether defenses actually recovered the correct label, and whether a targeted black-box attack even converges within a request-sized query budget (often it doesn't) — real limitations, not a broken demo.",
     accent: "#f43f5e",
+    icon: ShieldAlert,
     stat: "0",
     statLabel: "API Calls",
     model: "MobileNetV2 + FGSM/PGD/Patch/Black-box (local)",
@@ -401,6 +431,7 @@ const capabilities: Capability[] = [
     description:
       "Upload a personal photo and add an imperceptible adversarial perturbation to the face region that pushes its face-embedding away from where a face-recognition model naturally places it — a simplified, honest version of the real Fawkes privacy technique used to counter unauthorized facial-recognition scrapers (e.g. Clearview AI). Reports the real measured cosine-similarity drop and discloses openly that this protects only the specific cloaked photo, not copies already scraped elsewhere.",
     accent: "#8b5cf6",
+    icon: UserX,
     stat: "0",
     statLabel: "API Calls",
     model: "InceptionResnetV1 (local)",
@@ -418,6 +449,7 @@ const capabilities: Capability[] = [
     description:
       "Upload an image and add an imperceptible adversarial perturbation across the whole image that pushes its CLIP embedding away from where it naturally sits — a simplified, honest version of the real Glaze/Nightshade artist-protection technique used to counter unauthorized AI style-mimicry. Reports the real measured cosine-similarity drop, calibrated against a measured unrelated-image baseline, and discloses openly that this protects only the specific cloaked image, not copies already scraped elsewhere.",
     accent: "#ec4899",
+    icon: Palette,
     stat: "0",
     statLabel: "API Calls",
     model: "CLIP ViT-B/32 (local)",

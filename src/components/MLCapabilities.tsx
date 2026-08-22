@@ -50,10 +50,9 @@ function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void 
     >
       <div className="flip-inner" style={{ minHeight: 148 }}>
         <div className="flip-face front" style={{ ["--acc-glow" as string]: `${cap.accent}14` }}>
-          <div className="card-top" style={{ background: cap.accent }} />
           <div className="flip-front-body">
             <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>
-              {cap.title.slice(0, 1)}
+              <cap.icon size={17} strokeWidth={2} />
             </div>
             <div className="txt">
               <h3>{cap.title}</h3>
@@ -63,7 +62,6 @@ function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void 
         </div>
 
         <div className="flip-face back" style={{ borderColor: `${cap.accent}33` }}>
-          <div className="card-top" style={{ background: cap.accent }} />
           <div className="flip-back-body">
             <span className="badge" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
               {cap.subtitle}
