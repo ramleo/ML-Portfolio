@@ -1,9 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
+
+// Every card (front AND flipped-back) shares this one height — never a
+// height computed from that card's own content — so all 24 cards land at
+// the exact same size, in both the resting and "See more"-expanded state.
+// The expanded description scrolls internally within a capped height (see
+// .desc.expanded in globals.css) instead of growing the card, so toggling
+// "See more" never resizes or reflows the grid.
+const CARD_HEIGHT = 310;
 
 const DOMAIN_ORDER = ["ML Pipeline", "Language & Documents", "Computer Vision", "Security & Trust"];
 const DOMAIN_COLOR: Record<string, string> = {
@@ -25,6 +33,22 @@ function matches(cap: Capability, query: string): boolean {
 // panel (description, stat, tags, and the actual Try it/Launch + GitHub actions) ──
 function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void }) {
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
+  const [needsToggle, setNeedsToggle] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  // Only show "See more" for a card whose real (3-line-clamped) description
+  // actually overflows — measured against the real rendered width, not a
+  // guessed character count, so it stays correct at any grid column width.
+  useEffect(() => {
+    const check = () => {
+      const el = descRef.current;
+      if (el) setNeedsToggle(el.scrollHeight > el.clientHeight + 1);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const handleNavigate = () => {
     if (cap.internalLink) {
@@ -45,10 +69,11 @@ function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void 
     <div
       className="flip-outer"
       onClick={handleNavigate}
+      onMouseLeave={() => setExpanded(false)}
       title={`Hover to flip, click to open ${cap.title}`}
-      style={{ minHeight: 148, cursor: "pointer" }}
+      style={{ minHeight: CARD_HEIGHT, cursor: "pointer" }}
     >
-      <div className="flip-inner" style={{ minHeight: 148 }}>
+      <div className="flip-inner" style={{ minHeight: CARD_HEIGHT }}>
         <div className="flip-face front" style={{ ["--acc-glow" as string]: `${cap.accent}14` }}>
           <div className="flip-front-body">
             <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>
@@ -67,13 +92,22 @@ function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void 
               {cap.subtitle}
             </span>
             <h3>{cap.title}</h3>
-            <p className="desc">{cap.description}</p>
+            <p ref={descRef} className={`desc${expanded ? " expanded" : ""}`}>{cap.description}</p>
+            {needsToggle && (
+              <button
+                className="see-more-btn"
+                style={{ color: cap.accent }}
+                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              >
+                {expanded ? "See less" : "See more"}
+              </button>
+            )}
             <div className="stat-row">
               <span className="stat" style={{ color: cap.accent }}>{cap.stat}</span>
               <span className="stat-label">{cap.statLabel}</span>
             </div>
             <div className="tags">
-              {cap.tags.slice(0, 3).map((t) => <span key={t} className="tag">{t}</span>)}
+              {cap.tags.slice(0, 2).map((t) => <span key={t} className="tag">{t}</span>)}
             </div>
             <div className="back-actions" onClick={(e) => e.stopPropagation()}>
               <button onClick={handleNavigate} className="try-btn" style={{ background: cap.accent }}>
