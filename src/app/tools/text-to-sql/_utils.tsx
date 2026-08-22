@@ -51,7 +51,7 @@ export function SqlDiff({ original, edited }: { original: string; edited: string
   }).filter(l => l.type !== "same");
   if (!lines.length) return null;
   return (
-    <div className="mt-2 rounded border border-white/8 overflow-hidden text-[10px] font-mono">
+    <div className="mt-2 rounded border border-[var(--border)] overflow-hidden text-[10px] font-mono">
       {lines.map((l, i) => (
         <div key={i}>
           {(l.type === "del" || l.type === "chg") && (

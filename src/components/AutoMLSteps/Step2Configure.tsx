@@ -64,7 +64,7 @@ export default function Step2Configure({
         <select
           value={target}
           onChange={(e) => onTarget(e.target.value)}
-          style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "#111827", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+          style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "var(--bg-card)", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
         >
           {analyzed.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
         </select>
@@ -119,7 +119,7 @@ export default function Step2Configure({
                   <select
                     value={colEncodings[col] ?? "onehot"}
                     onChange={e => onColEncoding(col, e.target.value)}
-                    style={{ fontSize: "0.73rem", background: "#111827", border: "1px solid rgba(129,140,248,0.2)", borderRadius: 6, padding: "0.2rem 0.4rem", color: "var(--text)", cursor: "pointer" }}
+                    style={{ fontSize: "0.73rem", background: "var(--bg-card)", border: "1px solid rgba(129,140,248,0.2)", borderRadius: 6, padding: "0.2rem 0.4rem", color: "var(--text)", cursor: "pointer" }}
                   >
                     <option value="onehot">One-Hot</option>
                     <option value="ordinal">Ordinal</option>
@@ -159,7 +159,7 @@ export default function Step2Configure({
           type="text"
           value={modelName}
           onChange={(e) => onModelName(e.target.value)}
-          style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "#111827", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", boxSizing: "border-box" as const }}
+          style={{ width: "100%", padding: "0.55rem 0.85rem", borderRadius: 8, background: "var(--bg-card)", border: "1px solid rgba(129,140,248,0.18)", color: "var(--text)", fontSize: "0.85rem", boxSizing: "border-box" as const }}
         />
       </div>
 

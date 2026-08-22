@@ -20,9 +20,9 @@ const pillBase: React.CSSProperties = {
 
 const sourcePill: React.CSSProperties = {
   ...pillBase,
-  background: "#0f2744",
-  border: "1px solid #1e3a5f",
-  color: "#94a3b8",
+  background: "var(--bg-card)",
+  border: "1px solid var(--border2)",
+  color: "var(--text2)",
 };
 
 const newPill: React.CSSProperties = {
@@ -136,7 +136,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
       <div style={{ flex: 1, display: "flex", gap: 0, alignItems: "center", minHeight: 0 }}>
         {/* Left: Source columns */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
-          <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>SOURCE</div>
+          <div style={{ fontSize: 9, color: "var(--text3)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>SOURCE</div>
           {displaySource.map((col, idx) => {
             const isActive = step > 0 && step < 4
               ? idx === (step - 1) % displaySource.length || idx === step % displaySource.length
@@ -144,7 +144,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
             return (
               <motion.div
                 key={col}
-                animate={{ borderColor: isActive ? "#34d399" : "#1e3a5f", color: isActive ? "#e2e8f0" : "#94a3b8" }}
+                animate={{ borderColor: isActive ? "#34d399" : "var(--border2)", color: isActive ? "var(--text)" : "var(--text2)" }}
                 transition={{ duration: 0.3 }}
                 style={{ ...sourcePill }}
               >
@@ -202,7 +202,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
 
         {/* Right: New feature pills */}
         <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-          <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ENGINEERED</div>
+          <div style={{ fontSize: 9, color: "var(--text3)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ENGINEERED</div>
           <AnimatePresence>
             {visibleEngineered.map((label, i) => (
               <motion.div
@@ -218,7 +218,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
             ))}
           </AnimatePresence>
           {noNewFeatures && step >= 4 && (
-            <div style={{ fontSize: 9, color: "#475569", textAlign: "right", marginTop: 6 }}>
+            <div style={{ fontSize: 9, color: "var(--text3)", textAlign: "right", marginTop: 6 }}>
               No new features added.
             </div>
           )}
@@ -233,7 +233,7 @@ export default function FEStory({ active, sourceCols, engineeredCols }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ fontSize: 10, color: "#475569", textAlign: "center", paddingBottom: 2 }}
+            style={{ fontSize: 10, color: "var(--text3)", textAlign: "center", paddingBottom: 2 }}
           >
             {desc}
           </motion.div>

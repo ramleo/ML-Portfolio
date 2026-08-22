@@ -63,7 +63,7 @@ export default function PipelineStatus({ running, retryMsg, hasSql, hasResults, 
                   ? "bg-indigo-500/20 text-indigo-300"
                   : isActive
                   ? "bg-indigo-500/25 text-indigo-200 ring-1 ring-indigo-500/50"
-                  : "text-gray-600"
+                  : "text-[var(--text3)]"
               }`}>
                 {s.icon}
                 <span>{s.label}</span>
@@ -77,7 +77,7 @@ export default function PipelineStatus({ running, retryMsg, hasSql, hasResults, 
                 )}
               </div>
               {i < 3 && (
-                <div className={`w-4 h-px mx-0.5 transition-colors duration-500 ${i < active ? "bg-indigo-500/40" : "bg-white/10"}`} />
+                <div className={`w-4 h-px mx-0.5 transition-colors duration-500 ${i < active ? "bg-indigo-500/40" : "bg-[var(--border2)]"}`} />
               )}
             </div>
           );

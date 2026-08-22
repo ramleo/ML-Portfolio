@@ -18,7 +18,6 @@ const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",
   backdropFilter: "blur(14px)",
   border: "1px solid var(--border)",
-  borderTop: `3px solid ${ACCENT}`,
   borderRadius: 16,
   padding: "1rem",
 };
@@ -67,7 +66,7 @@ export default function DocSidebar({
             </span>
           ))}
         </div>
-        <p className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.2)" }}>
+        <p className="text-[9px] mt-2" style={{ color: "var(--text3)" }}>
           Max 10 MB per file
         </p>
       </div>
@@ -83,11 +82,11 @@ export default function DocSidebar({
             {docTypes.find(d => d.id === detectedType)?.label ?? detectedType}
           </p>
           <div className="flex items-center gap-1.5 mt-1">
-            <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+            <div className="flex-1 h-1 rounded-full" style={{ background: "var(--border)" }}>
               <div className="h-1 rounded-full transition-all"
                 style={{ width: `${Math.round(detectedConfidence * 100)}%`, background: ACCENT }} />
             </div>
-            <span className="text-[9px] tabular-nums" style={{ color: "#94a3b8" }}>
+            <span className="text-[9px] tabular-nums" style={{ color: "var(--text3)" }}>
               {Math.round(detectedConfidence * 100)}%
             </span>
           </div>
@@ -109,7 +108,7 @@ export default function DocSidebar({
           <div key={i} className="flex gap-2 mb-1.5">
             <span className="text-[9px] font-bold shrink-0 w-3.5 tabular-nums"
               style={{ color: `${ACCENT}70` }}>{i + 1}</span>
-            <span className="text-[9px] leading-tight" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <span className="text-[9px] leading-tight" style={{ color: "var(--text3)" }}>
               {step}
             </span>
           </div>
@@ -131,7 +130,7 @@ function TypeOption({ id, label, description, selected, onSelect, disabled, acce
       className="w-full text-left px-2 py-1.5 rounded-lg transition-all"
       style={selected
         ? { background: `${accent}15`, border: `1px solid ${accent}40`, color: accent }
-        : { background: "transparent", border: "1px solid transparent", color: "rgba(255,255,255,0.4)" }}
+        : { background: "transparent", border: "1px solid transparent", color: "var(--text3)" }}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="text-[10px] font-medium">{label}</span>

@@ -215,7 +215,7 @@ export default function ArOcclusionCanvas({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative rounded-xl overflow-hidden mx-auto" style={{ width: dispW, height: dispH, background: "#0a0f1a" }}>
+      <div className="relative rounded-xl overflow-hidden mx-auto" style={{ width: dispW, height: dispH, background: "var(--bg)" }}>
         <canvas ref={canvasRef} onClick={onClick} style={{ width: "100%", height: "100%", display: glError ? "none" : "block", cursor: "crosshair" }} />
         {glError && <img src={imageSrc} alt="" className="w-full h-full object-cover" />}
         {!ready && !glError && (
@@ -233,13 +233,13 @@ export default function ArOcclusionCanvas({
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => fileInputRef.current?.click()}
             className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5"
-            style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)" }}>
+            style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
             {markerImageSrc ? "Change marker image" : "Use my own image as the marker"}
           </button>
           {markerImageSrc && (
             <button onClick={() => setMarkerImageSrc(null)}
               className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5"
-              style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)" }}>
+              style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
               Reset to dot
             </button>
           )}

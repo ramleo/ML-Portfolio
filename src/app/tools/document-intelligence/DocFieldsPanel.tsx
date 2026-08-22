@@ -36,7 +36,7 @@ function ConfidenceRing({ confidence }: { confidence: number }) {
   return (
     <svg width={RING_SIZE} height={RING_SIZE} className="shrink-0">
       <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_R}
-        fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={2.5} />
+        fill="none" stroke="var(--border)" strokeWidth={2.5} />
       <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_R}
         fill="none" stroke={color} strokeWidth={2.5}
         strokeDasharray={`${fill} ${RING_CIRC - fill}`}
@@ -62,7 +62,7 @@ function CopyBtn({ value }: { value: string }) {
   };
   return (
     <button onClick={copy} className="shrink-0 transition-opacity opacity-0 group-hover:opacity-100"
-      style={{ color: copied ? "#10b981" : "#4b5563" }} title="Copy value">
+      style={{ color: copied ? "#10b981" : "var(--text3)" }} title="Copy value">
       {copied
         ? <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
         : <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 11H3.5A1.5 1.5 0 012 9.5v-7A1.5 1.5 0 013.5 1h7A1.5 1.5 0 0112 2.5V3" stroke="currentColor" strokeWidth="1.3"/></svg>
@@ -142,15 +142,15 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
 
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50,
-    background: "rgba(15,20,30,0.97)", border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--bg-card)", border: "1px solid var(--border)",
     borderRadius: 8, padding: "4px", minWidth: 130,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+    boxShadow: "var(--shadow)",
   };
 
   const itemStyle: React.CSSProperties = {
     display: "flex", alignItems: "center", gap: 8,
     padding: "6px 10px", borderRadius: 6, cursor: "pointer",
-    fontSize: 11, color: "rgba(255,255,255,0.7)", width: "100%", border: "none",
+    fontSize: 11, color: "var(--text2)", width: "100%", border: "none",
     background: "transparent", textAlign: "left",
   };
 
@@ -159,7 +159,7 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
       <button
         onClick={() => setOpen(v => !v)}
         className="flex items-center gap-1 text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-white/5"
-        style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+        style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
         Export
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -168,7 +168,7 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
       {open && (
         <div style={menuStyle}>
           <button style={itemStyle} onClick={exportJSON}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--border)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2"/>
@@ -177,7 +177,7 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
             JSON
           </button>
           <button style={itemStyle} onClick={exportCSV}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--border)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
@@ -208,7 +208,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
     <div style={cardStyle} className="flex flex-col min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b shrink-0"
-        style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        style={{ borderColor: "var(--border)" }}>
         <div>
           <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
             style={{ color: `${ACCENT}99` }}>
@@ -243,7 +243,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                 <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.5"/>
                 <path d="M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
-              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+              <p className="text-[10px]" style={{ color: "var(--text3)" }}>
                 Fields will appear here as they are extracted
               </p>
             </div>
@@ -263,8 +263,8 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                   transition={{ duration: 0.2 }}
                   className="group flex items-start gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all"
                   style={{
-                    background: isActive ? "rgba(6,182,212,0.07)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${isActive ? "rgba(6,182,212,0.25)" : "rgba(255,255,255,0.06)"}`,
+                    background: isActive ? "rgba(6,182,212,0.07)" : "var(--bg-glass)",
+                    border: `1px solid ${isActive ? "rgba(6,182,212,0.25)" : "var(--border)"}`,
                   }}
                   onMouseEnter={() => onFieldHover(field.name)}
                   onMouseLeave={() => onFieldHover(null)}
@@ -273,7 +273,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span className="text-[9px] font-bold uppercase tracking-wide"
-                        style={{ color: "rgba(255,255,255,0.4)" }}>
+                        style={{ color: "var(--text3)" }}>
                         {field.label}
                       </span>
                       <span className="text-[7px] px-1 py-px rounded shrink-0"
@@ -296,7 +296,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                           rows={Math.min(5, Math.max(2, Math.ceil(draft.length / 60)))}
                           autoFocus
                           className="w-full bg-transparent text-[11px] px-2 py-1.5 rounded-lg border outline-none resize-y"
-                          style={{ borderColor: "rgba(6,182,212,0.4)", color: "rgba(255,255,255,0.9)" }}
+                          style={{ borderColor: "rgba(6,182,212,0.4)", color: "var(--text)" }}
                         />
                         <div className="flex gap-1.5">
                           <button
@@ -309,15 +309,15 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                           <button
                             onClick={() => setEditing(null)}
                             className="text-[9px] px-2 py-1 rounded-md"
-                            style={{ color: "rgba(255,255,255,0.4)",
-                                     border: "1px solid rgba(255,255,255,0.12)" }}>
+                            style={{ color: "var(--text3)",
+                                     border: "1px solid var(--border2)" }}>
                             Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
                       <>
-                        <p className="text-[11px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
+                        <p className="text-[11px] font-medium truncate" style={{ color: "var(--text)" }}>
                           {field.value}
                         </p>
                         {field.originalValue !== undefined && field.originalValue !== field.value && (
@@ -333,7 +333,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                     <button
                       onClick={e => { e.stopPropagation(); setEditing(field.name); setDraft(field.value); }}
                       className="shrink-0 transition-opacity opacity-0 group-hover:opacity-100"
-                      style={{ color: "#4b5563" }} title="Edit value">
+                      style={{ color: "var(--text3)" }} title="Edit value">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
                           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -352,8 +352,8 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
 
       {fields.length > 0 && (
         <div className="px-4 py-2 border-t shrink-0"
-          style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+          style={{ borderColor: "var(--border)" }}>
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             {fields.length} field{fields.length !== 1 ? "s" : ""} extracted
             {" · "}{fields.filter(f => f.confidence >= 0.9).length} high confidence
             {(() => {

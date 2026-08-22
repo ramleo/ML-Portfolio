@@ -21,7 +21,7 @@ function fmt(n: number) {
 // ── Sparkline with anomaly markers + hover tooltip ────────────────────────────
 export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; color?: string }) {
   const [tip, setTip] = useState<{ x: number; y: number; minute: string; count: number } | null>(null);
-  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No data yet</div>;
+  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No data yet</div>;
   const gid = `sg-${color.replace("#", "")}`;
   const W = 480, H = 80, PL = 32, PR = 8, PT = 8, PB = 20;
   const iW = W - PL - PR, iH = H - PT - PB;
@@ -49,8 +49,8 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
       </defs>
       <line x1={PL} y1={PT} x2={PL} y2={PT+iH} stroke="var(--border)" strokeWidth="1"/>
       <line x1={PL} y1={PT+iH} x2={PL+iW} y2={PT+iH} stroke="var(--border)" strokeWidth="1"/>
-      <text x={PL-4} y={PT+4} textAnchor="end" fontSize="8" fill="#6b7280">{fmt(max)}</text>
-      <text x={PL-4} y={PT+iH} textAnchor="end" fontSize="8" fill="#6b7280">0</text>
+      <text x={PL-4} y={PT+4} textAnchor="end" fontSize="8" fill="var(--text3)">{fmt(max)}</text>
+      <text x={PL-4} y={PT+iH} textAnchor="end" fontSize="8" fill="var(--text3)">0</text>
       <path d={area} fill={`url(#${gid})`}/>
       <path d={line} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
       {pts.map((p, i) => p.count > threshold && std > 0 ? (
@@ -61,8 +61,8 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
       ) : data.length <= 10 ? (
         <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={color}/>
       ) : null)}
-      <text x={PL} y={H-4} fontSize="8" fill="#6b7280">{data[0]?.minute}</text>
-      <text x={PL+iW} y={H-4} textAnchor="end" fontSize="8" fill="#6b7280">{data[data.length-1]?.minute}</text>
+      <text x={PL} y={H-4} fontSize="8" fill="var(--text3)">{data[0]?.minute}</text>
+      <text x={PL+iW} y={H-4} textAnchor="end" fontSize="8" fill="var(--text3)">{data[data.length-1]?.minute}</text>
       {/* Hover capture rects */}
       {pts.map((p, i) => (
         <rect key={i} x={p.x - colW / 2} y={PT} width={colW} height={iH}
@@ -79,7 +79,7 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
             <line x1={tip.x} y1={tip.y} x2={tip.x} y2={PT + iH} stroke={color} strokeWidth="0.75" strokeDasharray="2 2" opacity="0.4"/>
             <circle cx={tip.x} cy={tip.y} r="3" fill={color}/>
             <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
-            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">
+            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="var(--text)">
               {tip.minute} · {tip.count} events
             </text>
           </g>
@@ -91,7 +91,7 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
 
 // ── Horizontal bar (top pages) ────────────────────────────────────────────────
 export function TopPagesBar({ data }: { data: TopPage[] }) {
-  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No data yet</div>;
+  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No data yet</div>;
   const shown = data.slice(0, 8);
   const max = Math.max(...shown.map(d => d.count), 1);
   const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
@@ -106,9 +106,9 @@ export function TopPagesBar({ data }: { data: TopPage[] }) {
           const label = name.length > 22 ? name.slice(0, 21) + "…" : name;
           return (
             <g key={i}>
-              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
+              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
               <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#10b981" opacity="0.75"/>
-              <text x={PL+bW+4} y={y+13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+              <text x={PL+bW+4} y={y+13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
             </g>
           );
         })}
@@ -123,7 +123,7 @@ function truncateRef(ref: string): string {
 }
 
 export function TopReferrersBar({ data }: { data: Referrer[] }) {
-  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No referrer data yet</div>;
+  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No referrer data yet</div>;
   const shown = data.slice(0, 8);
   const max = Math.max(...shown.map(d => d.count), 1);
   const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
@@ -136,9 +136,9 @@ export function TopReferrersBar({ data }: { data: Referrer[] }) {
           const bW = Math.max(((d.count / max) * (W - PL - PR)), 4);
           return (
             <g key={i}>
-              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="#9ca3af">{truncateRef(d.referrer)}</text>
+              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="var(--text2)">{truncateRef(d.referrer)}</text>
               <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#6366f1" opacity="0.75"/>
-              <text x={PL+bW+4} y={y+13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+              <text x={PL+bW+4} y={y+13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
             </g>
           );
         })}
@@ -149,7 +149,7 @@ export function TopReferrersBar({ data }: { data: Referrer[] }) {
 
 // ── Donut (by type) ───────────────────────────────────────────────────────────
 export function TypeDonut({ data }: { data: ByType[] }) {
-  if (!data.length) return <div className="h-24 flex items-center justify-center text-xs text-gray-600">No data yet</div>;
+  if (!data.length) return <div className="h-24 flex items-center justify-center text-xs text-[var(--text3)]">No data yet</div>;
   const total = data.reduce((s, d) => s + d.count, 0);
   const CX = 70, CY = 70, R = 54, r = 30;
   let angle = -Math.PI / 2;
@@ -179,12 +179,12 @@ export function TypeDonut({ data }: { data: ByType[] }) {
           {s.pct}%
         </text>
       ))}
-      <text x={CX} y={CY+4} textAnchor="middle" fontSize="11" fill="#e5e7eb" fontWeight="600">{total.toLocaleString()}</text>
-      <text x={CX} y={CY+15} textAnchor="middle" fontSize="7" fill="#6b7280">total</text>
+      <text x={CX} y={CY+4} textAnchor="middle" fontSize="11" fill="var(--text)" fontWeight="600">{total.toLocaleString()}</text>
+      <text x={CX} y={CY+15} textAnchor="middle" fontSize="7" fill="var(--text3)">total</text>
       {slices.map((s, i) => (
         <g key={i} transform={`translate(155, ${10 + i * 16})`}>
           <rect width="8" height="8" rx="2" fill={s.color} opacity="0.85"/>
-          <text x="12" y="8" fontSize="9" fill="#9ca3af">{s.label} — {s.pct}%</text>
+          <text x="12" y="8" fontSize="9" fill="var(--text2)">{s.label} — {s.pct}%</text>
         </g>
       ))}
     </svg>
@@ -210,9 +210,9 @@ export function FunnelChart({ data }: { data: Funnel }) {
           ? Math.round((s.value / steps[i - 1].value) * 100) : null;
         return (
           <g key={i}>
-            <text x="95" y={y + 13} textAnchor="end" fontSize="9" fill="#9ca3af">{s.label}</text>
+            <text x="95" y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{s.label}</text>
             <rect x="100" y={y} width={bW} height={BAR_H} rx="4" fill={s.color} opacity="0.75"/>
-            <text x={105 + bW} y={y + 13} fontSize="9" fill="#6b7280">
+            <text x={105 + bW} y={y + 13} fontSize="9" fill="var(--text3)">
               {fmt(s.value)}{pct !== null ? `  (${pct}%)` : ""}
             </text>
           </g>
@@ -225,7 +225,7 @@ export function FunnelChart({ data }: { data: Funnel }) {
 // ── Tool comparison bar ───────────────────────────────────────────────────────
 export function ToolComparisonBar({ data }: { data: TopPage[] }) {
   const tools = data.filter(d => d.path.startsWith("/tools/")).slice(0, 6);
-  if (!tools.length) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No tool data yet</div>;
+  if (!tools.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No tool data yet</div>;
   const COLORS = ["#10b981","#6366f1","#f59e0b","#ec4899","#8b5cf6","#14b8a6"];
   const max = Math.max(...tools.map(d => d.count), 1);
   const ROW = 24, W = 480, PL = 110, PR = 48, PT = 4;
@@ -238,9 +238,9 @@ export function ToolComparisonBar({ data }: { data: TopPage[] }) {
         const label = d.path.replace("/tools/", "");
         return (
           <g key={i}>
-            <text x={PL - 6} y={y + 15} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
+            <text x={PL - 6} y={y + 15} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
             <rect x={PL} y={y + 4} width={bW} height={15} rx="3" fill={COLORS[i % COLORS.length]} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 15} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+            <text x={PL + bW + 5} y={y + 15} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
           </g>
         );
       })}
@@ -255,7 +255,7 @@ const PROVIDER_COLORS: Record<string, string> = {
 };
 
 export function ProviderBreakdownBar({ data }: { data: ProviderStat[] }) {
-  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-gray-600">No query data yet</div>;
+  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-[var(--text3)]">No query data yet</div>;
   const max = Math.max(...data.map(d => d.count), 1);
   const ROW = 22, W = 480, PL = 80, PR = 48, PT = 4;
   const svgH = PT + data.length * ROW;
@@ -267,9 +267,9 @@ export function ProviderBreakdownBar({ data }: { data: ProviderStat[] }) {
         const color = PROVIDER_COLORS[d.provider.toLowerCase()] ?? "#6b7280";
         return (
           <g key={i}>
-            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="#9ca3af">{d.provider}</text>
+            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{d.provider}</text>
             <rect x={PL} y={y + 3} width={bW} height={13} rx="3" fill={color} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
           </g>
         );
       })}
@@ -285,7 +285,7 @@ const MODEL_COLORS: Record<string, string> = {
 };
 
 export function ModelBreakdownBar({ data }: { data: ModelStat[] }) {
-  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-gray-600">No model data yet</div>;
+  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-[var(--text3)]">No model data yet</div>;
   const max = Math.max(...data.map(d => d.count), 1);
   const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
   const svgH = PT + data.length * ROW;
@@ -298,9 +298,9 @@ export function ModelBreakdownBar({ data }: { data: ModelStat[] }) {
         const label = d.model.length > 20 ? d.model.slice(0, 19) + "…" : d.model;
         return (
           <g key={i}>
-            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="#9ca3af">{label}</text>
+            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
             <rect x={PL} y={y + 3} width={bW} height={13} rx="3" fill={color} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="#6b7280">{fmt(d.count)}</text>
+            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
           </g>
         );
       })}
@@ -345,12 +345,12 @@ export function GeoMap({ data }: { data: Country[] }) {
             onMouseEnter={() => setTip({ x: cx, y: cy - r - 4, label: `${d.country} · ${d.count}` })}
             className="cursor-default">
             <circle cx={cx} cy={cy} r={r} fill="#10b981" fillOpacity="0.6" stroke="#10b981" strokeWidth="0.5" strokeOpacity="0.4"/>
-            <text x={cx} y={cy - r - 2} textAnchor="middle" fontSize="6" fill="#6b7280">{d.country}</text>
+            <text x={cx} y={cy - r - 2} textAnchor="middle" fontSize="6" fill="var(--text3)">{d.country}</text>
           </g>
         );
       })}
       {data.length === 0 && (
-        <text x={W/2} y={H/2} textAnchor="middle" fontSize="10" fill="#374151">No geo data yet</text>
+        <text x={W/2} y={H/2} textAnchor="middle" fontSize="10" fill="var(--text3)">No geo data yet</text>
       )}
       {tip && (() => {
         const TW = 70, TH = 16;
@@ -359,7 +359,7 @@ export function GeoMap({ data }: { data: Country[] }) {
         return (
           <g pointerEvents="none">
             <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
-            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">{tip.label}</text>
+            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="var(--text)">{tip.label}</text>
           </g>
         );
       })()}

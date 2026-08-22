@@ -176,7 +176,7 @@ export default function Chatbot() {
               backdropFilter: "blur(18px)",
               WebkitBackdropFilter: "blur(18px)",
               border: "1px solid var(--border2)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.35), 0 0 0 1px rgba(129,140,248,0.12)",
+              boxShadow: "var(--shadow), 0 0 0 1px rgba(129,140,248,0.12)",
             }}
           >
             {/* Header */}
@@ -366,7 +366,7 @@ export default function Chatbot() {
                     ? "linear-gradient(135deg, var(--accent), var(--accent-via))"
                     : "var(--border)",
                   border: "none", cursor: input.trim() && !loading ? "pointer" : "not-allowed",
-                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                  color: input.trim() && !loading ? "#fff" : "var(--text3)", display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "background 0.2s, transform 0.15s",
                 }}
                 onMouseEnter={(e) => { if (input.trim() && !loading) e.currentTarget.style.transform = "scale(1.07)"; }}

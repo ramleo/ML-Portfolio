@@ -17,7 +17,7 @@ type Analytics = {
 };
 
 const panelStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+  background: "var(--bg-glass)", border: "1px solid var(--border)",
 };
 
 /** The dashboard body only — no page chrome (back button, background) — so
@@ -49,7 +49,7 @@ export default function AnalyticsContent() {
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex items-center justify-between">
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <p className="text-xs" style={{ color: "var(--text3)" }}>
           Aggregate counts only — never individual queries, filenames, or document content.
           Tracked in memory{data ? ` since ${new Date(data.since * 1000).toLocaleString()}` : ""} —
           resets whenever this demo server restarts, same as everything else here.
@@ -84,13 +84,13 @@ export default function AnalyticsContent() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32, duration: 0.5 }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-2xl p-4" style={panelStyle}>
-              <h2 className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <h2 className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--text3)" }}>
                 Provider mix (non-cached answers)
               </h2>
               <ProviderDonut data={data.provider_mix} />
             </div>
             <div className="rounded-2xl p-4" style={panelStyle}>
-              <h2 className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <h2 className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--text3)" }}>
                 Uploads by file type
               </h2>
               <UploadTypeBars data={uploadsExclTotal} />

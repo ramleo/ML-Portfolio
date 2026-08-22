@@ -74,8 +74,8 @@ export default function CitationToolbar({
   zoneMode, onToggleZone, hasZone, onClearZone,
 }: Props) {
   return (
-    <div className="flex items-center justify-between px-3 py-1.5" style={{ background: "rgba(255,255,255,0.03)" }}>
-      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.4)" }}>
+    <div className="flex items-center justify-between px-3 py-1.5" style={{ background: "var(--border)" }}>
+      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text2)" }}>
         Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
       </span>
       <div className="flex items-center gap-1.5">
@@ -86,7 +86,7 @@ export default function CitationToolbar({
               if (v === "similar") onFindSimilar();
             }}
             className="text-[9px] rounded border"
-            style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
+            style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
             <option value="">Choose an action…</option>
             {captionText && <option value="description">Describe (caption + OCR)</option>}
             {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}

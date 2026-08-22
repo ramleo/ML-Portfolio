@@ -52,7 +52,7 @@ export default function FSUploadHero({
   return (
     <>
       {/* Hero */}
-      <RepulsionCard style={{ ...CARD, borderTop: `3px solid ${ACCENT}` }}>
+      <RepulsionCard style={{ ...CARD }}>
         <div style={{
           display: "flex", alignItems: "flex-start",
           justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",

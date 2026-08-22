@@ -82,10 +82,10 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
   const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#07070f" }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "var(--bg)" }}>
 
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/8 shrink-0"
+      <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)] shrink-0"
         style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.06) 0%, transparent 60%)" }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -99,20 +99,20 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white">Column Profile</span>
+              <span className="text-sm font-bold text-[var(--text)]">Column Profile</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                 style={{ background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                 {name}
               </span>
             </div>
             <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-[11px] text-gray-500">{table.row_count.toLocaleString()} rows</span>
-              <span className="text-gray-700">·</span>
-              <span className="text-[11px] text-gray-500">{cols.length} columns</span>
+              <span className="text-[11px] text-[var(--text3)]">{table.row_count.toLocaleString()} rows</span>
+              <span className="text-[var(--text3)]">·</span>
+              <span className="text-[11px] text-[var(--text3)]">{cols.length} columns</span>
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="text-gray-500 hover:text-white p-1.5 rounded-lg hover:bg-white/8 transition-all">
+        <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-white/8 transition-all">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
@@ -120,8 +120,8 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
       </div>
 
       {/* Type distribution summary */}
-      <div className="px-6 py-3 border-b border-white/5 shrink-0 flex items-center gap-4 flex-wrap">
-        <span className="text-[9px] font-semibold uppercase tracking-widest text-gray-600">Type breakdown</span>
+      <div className="px-6 py-3 border-b border-[var(--border)] shrink-0 flex items-center gap-4 flex-wrap">
+        <span className="text-[9px] font-semibold uppercase tracking-widest text-[var(--text3)]">Type breakdown</span>
         {typeEntries.map(([lbl, count]) => {
           const meta = Object.values(TYPE_META).find(m => m.label === lbl)
             ?? { color: "#94a3b8", bg: "rgba(148,163,184,0.10)", label: lbl };
@@ -129,7 +129,7 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
             <div key={lbl} className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: meta.color }}/>
               <span className="text-[11px] font-semibold" style={{ color: meta.color }}>{lbl}</span>
-              <span className="text-[11px] text-gray-600">×{count}</span>
+              <span className="text-[11px] text-[var(--text3)]">×{count}</span>
             </div>
           );
         })}
@@ -148,12 +148,12 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
       {/* Column list */}
       <div className="flex-1 overflow-auto">
         {/* Table header */}
-        <div className="sticky top-0 z-10 px-6 py-2 grid grid-cols-[24px_1fr_120px_60px] gap-3 items-center border-b border-white/5"
-          style={{ background: "#07070f" }}>
+        <div className="sticky top-0 z-10 px-6 py-2 grid grid-cols-[24px_1fr_120px_60px] gap-3 items-center border-b border-[var(--border)]"
+          style={{ background: "var(--bg)" }}>
           <div/>
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-gray-600">Column</span>
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-gray-600">Type</span>
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-gray-600 text-right">Flags</span>
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-[var(--text3)]">Column</span>
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-[var(--text3)]">Type</span>
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-[var(--text3)] text-right">Flags</span>
         </div>
 
         <div className="px-3 py-2 space-y-1">
@@ -171,7 +171,7 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
                 onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,255,255,0.018)" : "transparent")}>
 
                 {/* Row number */}
-                <span className="text-[10px] text-gray-700 font-mono text-right select-none">{i + 1}</span>
+                <span className="text-[10px] text-[var(--text3)] font-mono text-right select-none">{i + 1}</span>
 
                 {/* Column name + type icon */}
                 <div className="flex items-center gap-2 min-w-0">
@@ -180,7 +180,7 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
                     <TypeIcon rawType={col.type} />
                   </div>
                   <span className="text-[13px] font-medium truncate"
-                    style={{ color: isPk ? "#fbbf24" : isFk ? "#818cf8" : "rgba(255,255,255,0.85)" }}>
+                    style={{ color: isPk ? "#fbbf24" : isFk ? "#818cf8" : "var(--text)" }}>
                     {col.name}
                   </span>
                   {isPk && (
@@ -221,8 +221,8 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
       </div>
 
       {/* Footer legend */}
-      <div className="flex items-center gap-5 px-6 py-2.5 border-t border-white/8 shrink-0"
-        style={{ background: "rgba(0,0,0,0.3)" }}>
+      <div className="flex items-center gap-5 px-6 py-2.5 border-t border-[var(--border)] shrink-0"
+        style={{ background: "var(--bg)" }}>
         {[
           { color: "#818cf8", label: "TEXT" },
           { color: "#34d399", label: "INTEGER" },
@@ -231,10 +231,10 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
         ].map(({ color, label }) => (
           <span key={label} className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-sm" style={{ background: color, opacity: 0.8 }}/>
-            <span className="text-[10px] text-gray-500">{label}</span>
+            <span className="text-[10px] text-[var(--text3)]">{label}</span>
           </span>
         ))}
-        <span className="ml-auto text-[10px] text-gray-700">Single-table upload — no relationships to diagram</span>
+        <span className="ml-auto text-[10px] text-[var(--text3)]">Single-table upload — no relationships to diagram</span>
       </div>
     </div>
   );

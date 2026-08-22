@@ -43,7 +43,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   const resultByFilename = new Map((results ?? []).map(r => [r.filename, r.score]));
@@ -102,20 +102,20 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
           {photos.length > 1 && (
             <button onClick={findDuplicates} disabled={findingDuplicates}
               className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors border ml-auto"
-              style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)", opacity: findingDuplicates ? 0.5 : 1 }}>
+              style={{ borderColor: "var(--border2)", color: "var(--text3)", opacity: findingDuplicates ? 0.5 : 1 }}>
               {findingDuplicates ? "Checking…" : "Find duplicates"}
             </button>
           )}
         </div>
 
         {photos.length > 0 && (
-          <div className="flex flex-col gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="flex flex-col gap-2 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2">
               <input value={query} onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") search(); }}
                 placeholder="Describe what you're looking for…"
                 className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }} />
+                style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
               <button onClick={search} disabled={!query.trim() || searching}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
                 style={{ borderColor: `${accent}50`, color: accent, opacity: query.trim() && !searching ? 1 : 0.5 }}>
@@ -128,7 +128,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
                 onKeyDown={e => { if (e.key === "Enter") search(); }}
                 placeholder="e.g. people, text, screenshots…"
                 className="flex-1 text-xs rounded-lg px-3 py-1.5 min-w-0"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "var(--text)" }} />
+                style={{ background: "var(--border)", border: "1px solid var(--border)", color: "var(--text)" }} />
             </div>
           </div>
         )}
@@ -179,7 +179,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
                 {photos.length > 1 && !isReference && (
                   <button onClick={() => searchByImage(p.filename)}
                     className="text-[9px] px-1.5 py-1 rounded border transition-colors hover:bg-white/5"
-                    style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)" }}>
+                    style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                     Find similar
                   </button>
                 )}

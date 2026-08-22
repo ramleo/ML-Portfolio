@@ -46,11 +46,11 @@ function SmoothedCard({ result, accent }: { result: NonNullable<ReturnType<typeo
       <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
         After randomized smoothing
       </span>
-      <div className="flex flex-col gap-2 justify-center rounded-lg p-3" style={{ aspectRatio: "1 / 1", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="flex flex-col gap-2 justify-center rounded-lg p-3" style={{ aspectRatio: "1 / 1", background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
         <span className="text-[9px]" style={{ color: "var(--text3)" }}>
           Majority vote over {s.num_samples} noised copies (σ={s.sigma})
         </span>
-        <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: "rgba(255,255,255,0.08)" }}>
+        <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: "var(--border)" }}>
           <div style={{ width: `${Math.round(s.vote_confidence * 100)}%`, height: "100%", background: accent }} />
         </div>
         <span className="text-[9px]" style={{ color: "var(--text3)" }}>
@@ -90,7 +90,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   return (
@@ -121,12 +121,12 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
         </div>
 
         {preview && (
-          <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Attack:
                 <select value={method} onChange={e => setMethod(e.target.value as "fgsm" | "pgd" | "patch" | "blackbox")}
-                  className="text-xs rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }}>
+                  className="text-xs rounded px-2 py-1" style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }}>
                   <option value="fgsm">FGSM (single-step)</option>
                   <option value="pgd">PGD (iterative, stronger)</option>
                   <option value="patch">Adversarial patch (visible sticker)</option>
@@ -168,7 +168,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                   onFocus={loadCategories}
                   onChange={e => setTargetLabel(e.target.value)}
                   className="text-xs rounded px-2 py-1 w-40"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }}
+                  style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }}
                 />
                 <datalist id="adversarial-target-labels">
                   {(categories ?? []).map(c => <option key={c} value={c} />)}
@@ -276,7 +276,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
           </p>
 
           {result.transfer && (
-            <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
               <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
                 Does it transfer to a different model? (ResNet18)
               </span>
@@ -309,7 +309,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             </div>
           )}
 
-          <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
             <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
               Where was the model looking? (Grad-CAM)
             </span>

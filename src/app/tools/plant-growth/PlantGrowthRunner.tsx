@@ -14,7 +14,7 @@ import { GifExportButton } from "./PlantGrowthGif";
 const ERROR_COLOR = "#f87171";
 
 // Card chrome matches ProjectCard.tsx / text-to-image's Card: var(--bg-glass)
-// + backdrop blur + var(--border) + a colored 3px accent top bar.
+// + backdrop blur + var(--border).
 // Exported so PlantGrowthGroupMode.tsx (the "unordered batch" mode) can
 // reuse the same chrome instead of duplicating it.
 export function Card({ accent, children, className }: { accent: string; children: React.ReactNode; className?: string }) {
@@ -24,7 +24,6 @@ export function Card({ accent, children, className }: { accent: string; children
       background: "var(--bg-glass)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
       border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
     }}>
-      <div style={{ height: 3, background: accent }} />
       <div className={className} style={{ padding: "1.5rem" }}>
         {children}
       </div>

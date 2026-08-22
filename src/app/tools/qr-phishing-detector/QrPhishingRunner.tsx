@@ -51,7 +51,7 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   return (
@@ -72,13 +72,13 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
         <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
           onChange={e => { if (e.target.files?.length) onFilesSelected(e.target.files); e.target.value = ""; }} />
 
-        <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
           <span className="text-xs shrink-0" style={{ color: "var(--text3)" }}>or check a URL directly:</span>
           <input value={urlInput} onChange={e => setUrlInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") onCheckUrl(); }}
             placeholder="https://example.com/..."
             className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)" }} />
+            style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }} />
           <button onClick={onCheckUrl} disabled={!urlInput.trim()}
             className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
             style={{ borderColor: `${accent}50`, color: accent, opacity: urlInput.trim() ? 1 : 0.5 }}>

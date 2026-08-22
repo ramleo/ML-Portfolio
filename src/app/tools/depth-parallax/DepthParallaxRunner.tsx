@@ -12,16 +12,14 @@ const DISPLAY_MAX_WIDTH = 900;
 
 // Card chrome matches ProjectCard.tsx (the homepage's "Live ML Apps" cards)
 // and text-to-image/TextToImageRunner.tsx's Card: var(--bg-glass) + backdrop
-// blur + var(--border) + a colored 3px top bar in the page's own accent,
-// replacing this page's old plain flat rgba() card.
-function Card({ accent, children, className }: { accent: string; children: React.ReactNode; className?: string }) {
+// blur + var(--border).
+function Card({ children, className }: { accent: string; children: React.ReactNode; className?: string }) {
   return (
     <div style={{
       borderRadius: 16, overflow: "hidden",
       background: "var(--bg-glass)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-      border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+      border: "1px solid var(--border)", boxShadow: "var(--shadow)",
     }}>
-      <div style={{ height: 3, background: accent }} />
       <div className={className} style={{ padding: "1.5rem" }}>
         {children}
       </div>
@@ -79,7 +77,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
     fontSize: 12, padding: "6px 14px", borderRadius: 8, fontWeight: 600,
     background: active ? accent : "transparent",
     color: active ? "#0b0b12" : "var(--text3)",
-    border: active ? "none" : "1px solid rgba(255,255,255,0.12)",
+    border: active ? "none" : "1px solid var(--border2)",
   });
 
   return (

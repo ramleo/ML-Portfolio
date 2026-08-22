@@ -18,7 +18,7 @@ export default function TextToSqlPage() {
 
   return (
     <PipelineProvider>
-      <div className="relative min-h-screen text-white overflow-x-hidden">
+      <div className="relative min-h-screen text-[var(--text)] overflow-x-hidden">
         <ConstellationBackground />
         <ToolsAIChat context={{
           accent: ACCENT,
@@ -32,7 +32,7 @@ export default function TextToSqlPage() {
           {/* Header */}
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
+              className="flex items-center gap-2 text-sm text-[var(--text2)] hover:text-[var(--text)] mb-4 transition-colors">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -49,7 +49,7 @@ export default function TextToSqlPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold">Text-to-SQL Agent</h1>
-                <p className="text-xs text-gray-400">Natural language → SQL → results → explanation</p>
+                <p className="text-xs text-[var(--text2)]">Natural language → SQL → results → explanation</p>
               </div>
             </div>
           </div>

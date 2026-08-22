@@ -52,12 +52,12 @@ export default function DocumentChipsRow({
       <div className="flex items-center gap-2 flex-wrap">
         {showDocuments && (
           <>
-            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
               Documents in this chat:
             </span>
             {documents.map(d => (
               <span key={d.source} className="flex items-center gap-1.5 text-[12px] px-2 py-1 rounded-full"
-                style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "rgba(255,255,255,0.7)" }}>
+                style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
                 {displayName(d.source)}
                 <button onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
                   title="Show extracted structure (tables, figures)"
@@ -75,14 +75,14 @@ export default function DocumentChipsRow({
 
       {(availableChunkTypes.length > 1 || availableEntityTypes.length > 0) && (
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
             Only search:
           </span>
           <button onClick={() => { setChunkTypeFilter(() => []); setEntityTypeFilter(() => []); }}
             className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
             style={chunkTypeFilter.length === 0 && entityTypeFilter.length === 0
               ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
-              : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+              : { borderColor: "var(--border2)", color: "var(--text2)" }}>
             All
           </button>
           {availableChunkTypes.length > 1 && availableChunkTypes.map(t => (
@@ -90,7 +90,7 @@ export default function DocumentChipsRow({
               className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
               style={chunkTypeFilter.includes(t)
                 ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
-                : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                : { borderColor: "var(--border2)", color: "var(--text2)" }}>
               {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
             </button>
           ))}
@@ -100,7 +100,7 @@ export default function DocumentChipsRow({
               className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
               style={entityTypeFilter.includes(t)
                 ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
-                : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                : { borderColor: "var(--border2)", color: "var(--text2)" }}>
               {ENTITY_TYPE_FILTER_LABEL[t] ?? t}
             </button>
           ))}

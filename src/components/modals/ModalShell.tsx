@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const SHELL_BG   = "#0b1120";
+const SHELL_BG   = "var(--bg-card)";
 const SHELL_ACCENT = "#818cf8";
 
 interface ModalShellProps {
@@ -27,7 +27,7 @@ export default function ModalShell({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 9000,
-        background: "rgba(2,8,22,0.92)", backdropFilter: "blur(8px)",
+        background: "color-mix(in srgb, var(--bg) 85%, transparent)", backdropFilter: "blur(8px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
       }}
     >

@@ -132,7 +132,7 @@ export default function ParallaxCanvas({
 
   return (
     <div ref={containerRef} className="relative rounded-xl overflow-hidden mx-auto"
-      style={{ width: dispW, height: dispH, background: "#0a0f1a", touchAction: "none" }}>
+      style={{ width: dispW, height: dispH, background: "var(--bg)", touchAction: "none" }}>
       <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: glError ? "none" : "block" }} />
       {glError && <img src={imageSrc} alt="" className="w-full h-full object-cover" />}
       {!ready && !glError && (

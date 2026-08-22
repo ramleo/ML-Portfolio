@@ -64,7 +64,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             ) : (
               <span title={chat.servedModel ?? undefined}
                 className="text-[10px] px-1.5 py-0.5 rounded"
-                style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)" }}>
+                style={{ background: "var(--border)", color: "var(--text3)" }}>
                 Answered via {chat.servedProvider}
               </span>
             )
@@ -74,7 +74,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             className="text-[11px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
             style={settingsOpen
               ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-              : { borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+              : { borderColor: "var(--border2)", color: "var(--text2)" }}>
             {chat.userKey ? "Using your key" : "Provider"}
           </button>
         </div>
@@ -95,14 +95,14 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
       <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-3">
         {chat.messages.length === 0 ? (
           <div className="text-center py-8 px-2">
-            <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p className="text-[13px]" style={{ color: "var(--text3)" }}>
               Ask a question — e.g. &quot;What does the table on page 2 show?&quot;
               {documents.length > 1 ? " or “compare these documents”" : ""}
             </p>
             {/* First-run capability hint — without this, a new user has no
              * reason to expect the tool understands tables/charts/video
              * frames/multi-doc comparisons beyond plain text Q&A. */}
-            <p className="text-[11px] mt-2" style={{ color: "rgba(255,255,255,0.18)" }}>
+            <p className="text-[11px] mt-2" style={{ color: "var(--text3)" }}>
               Works with tables, charts, images, and video frames — and can
               compare details across multiple uploaded documents.
             </p>
@@ -115,8 +115,8 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
               <div key={i} className="self-start w-full">
                 <div className={m.role === "user" ? "px-3 py-2 rounded-xl text-[15px] leading-snug" : "px-3 py-2 rounded-xl text-[13.5px] leading-relaxed"}
                   style={m.role === "user"
-                    ? { background: `${ACCENT}18`, color: "rgba(255,255,255,0.92)", fontFamily: DISPLAY_FONT }
-                    : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.8)" }}>
+                    ? { background: `${ACCENT}18`, color: "var(--text)", fontFamily: DISPLAY_FONT }
+                    : { background: "var(--border)", color: "var(--text)" }}>
                   {m.role === "assistant"
                     ? <ReactMarkdown>{m.content}</ReactMarkdown>
                     : m.content}
@@ -136,9 +136,9 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
                             aria-label={dir === "up" ? "Good answer" : "Bad answer"}
                             className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors hover:bg-white/5"
                             style={{
-                              borderColor: feedback[i] === dir ? `${ACCENT}55` : "rgba(255,255,255,0.12)",
+                              borderColor: feedback[i] === dir ? `${ACCENT}55` : "var(--border2)",
                               background: feedback[i] === dir ? `${ACCENT}18` : "transparent",
-                              color: feedback[i] === dir ? ACCENT : "rgba(255,255,255,0.4)",
+                              color: feedback[i] === dir ? ACCENT : "var(--text2)",
                             }}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               {dir === "up"
@@ -169,7 +169,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
       </div>
       <div className="p-3 border-t shrink-0" style={{ borderColor: `${ACCENT}18` }}>
         <div className="flex items-end gap-2 rounded-2xl p-1.5 pl-3.5"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+          style={{ background: "var(--border)", border: "1px solid var(--border)" }}>
           <textarea
             ref={chat.inputRef}
             value={chat.input}
@@ -178,7 +178,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             rows={1}
             placeholder="Ask anything about this document…"
             className="flex-1 bg-transparent text-[14px] py-1.5 outline-none resize-none"
-            style={{ color: "rgba(255,255,255,0.85)" }}
+            style={{ color: "var(--text)" }}
           />
           {chat.loading ? (
             <button onClick={chat.stop} title="Stop generating"
@@ -196,7 +196,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             </button>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-1.5 pl-1 text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+        <div className="flex items-center gap-3 mt-1.5 pl-1 text-[11px]" style={{ color: "var(--text3)" }}>
           <span>↵ to ask</span>
           {documents.length > 1 && <span>Try: &quot;compare these documents&quot;</span>}
         </div>

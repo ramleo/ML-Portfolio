@@ -64,7 +64,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
         const isDimmed = !feat.keep && step >= 2;
         const isRemoved = !feat.keep && step >= 3;
         const isKept = feat.keep && step >= 3;
-        const barColor = isKept ? "#f59e0b" : isDimmed ? "#ef4444" : "#1e3a5f";
+        const barColor = isKept ? "#f59e0b" : isDimmed ? "#ef4444" : "var(--border2)";
 
         return (
           <motion.div
@@ -78,7 +78,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
           >
             {/* Label */}
             <div style={{
-              width: 110, fontSize: 10, color: "#94a3b8",
+              width: 110, fontSize: 10, color: "var(--text2)",
               textAlign: "right", flexShrink: 0,
               textDecoration: isDimmed ? "line-through" : "none",
             }}>
@@ -87,7 +87,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
 
             {/* Bar track */}
             <div style={{
-              flex: 1, height: rowH - 4, background: "#0a1628",
+              flex: 1, height: rowH - 4, background: "var(--bg)",
               borderRadius: 4, overflow: "hidden", position: "relative",
             }}>
               {/* Threshold line */}
@@ -112,7 +112,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
                   backgroundColor: barColor,
                   boxShadow: isKept ? "0 0 8px #f59e0b88" : "none",
                 }}
-                initial={{ width: 0, backgroundColor: "#1e3a5f" }}
+                initial={{ width: 0, backgroundColor: "var(--border2)" }}
                 transition={{ duration: 0.6, delay: step === 0 ? i * 0.07 : 0 }}
                 style={{ height: "100%", borderRadius: 4 }}
               />
@@ -122,7 +122,7 @@ export default function FSStory({ active, frozen = false, allCols, keptCols }: P
             <motion.div
               animate={{ opacity: step >= 1 ? 1 : 0 }}
               transition={{ duration: 0.3, delay: i * 0.05 }}
-              style={{ width: 36, fontSize: 10, color: "#64748b", textAlign: "right" }}
+              style={{ width: 36, fontSize: 10, color: "var(--text3)", textAlign: "right" }}
             >
               {feat.score.toFixed(2)}
             </motion.div>

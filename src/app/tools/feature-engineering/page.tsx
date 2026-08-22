@@ -24,7 +24,7 @@ import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import { StepIndicator } from "@/components/StepIndicator";
 
 const ACCENT = "#38bdf8";
-const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}`, borderRadius: 16, padding: "1.25rem 1.4rem" };
+const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" };
 const FE_STEP_KEYS: Step[] = ["upload", "configure", "processing", "results"];
 const FE_STEP_LABELS = ["Upload", "Configure", "Processing", "Results"];
 

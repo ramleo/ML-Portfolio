@@ -29,7 +29,7 @@ export default function StatCard({ icon: Icon, label, value, suffix = "", decima
       style={{ background: `linear-gradient(135deg, ${accent}18, rgba(255,255,255,0.02))`, border: `1px solid ${accent}30` }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
           {label}
         </span>
         <Icon size={16} style={{ color: accent }} />
@@ -37,7 +37,7 @@ export default function StatCard({ icon: Icon, label, value, suffix = "", decima
       <div className="text-2xl font-bold" style={{ color: accent }}>
         {display}{suffix}
       </div>
-      {sub && <div className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</div>}
+      {sub && <div className="text-[10px] mt-1" style={{ color: "var(--text3)" }}>{sub}</div>}
     </motion.div>
   );
 }

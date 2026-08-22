@@ -52,16 +52,16 @@ export default function AnalyticsCalendar({ onSelect }: Props) {
   const monthLabel = new Date(viewYear, viewMonth).toLocaleString("default", { month: "long", year: "numeric" });
 
   return (
-    <div className="absolute top-full left-0 mt-1 z-50 rounded-xl border border-white/10 bg-[#0d1626] p-4 shadow-2xl w-60"
+    <div className="absolute top-full left-0 mt-1 z-50 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-2xl w-60"
       onMouseLeave={() => setHovered(null)}>
       <div className="flex items-center justify-between mb-3">
-        <button onClick={prevMonth} className="text-gray-500 hover:text-white px-1 text-base leading-none">‹</button>
-        <span className="text-[10px] text-gray-400 font-medium">{monthLabel}</span>
-        <button onClick={nextMonth} className="text-gray-500 hover:text-white px-1 text-base leading-none">›</button>
+        <button onClick={prevMonth} className="text-[var(--text3)] hover:text-[var(--text)] px-1 text-base leading-none">‹</button>
+        <span className="text-[10px] text-[var(--text2)] font-medium">{monthLabel}</span>
+        <button onClick={nextMonth} className="text-[var(--text3)] hover:text-[var(--text)] px-1 text-base leading-none">›</button>
       </div>
       <div className="grid grid-cols-7 mb-1">
         {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
-          <span key={d} className="text-center text-[8px] text-gray-600">{d}</span>
+          <span key={d} className="text-center text-[8px] text-[var(--text3)]">{d}</span>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -80,14 +80,14 @@ export default function AnalyticsCalendar({ onSelect }: Props) {
                 : isInRange
                 ? { background: "rgba(16,185,129,0.2)", color: "#10b981" }
                 : isFuture
-                ? { color: "#1f2937" }
-                : { color: "#9ca3af" }}>
+                ? { color: "var(--border2)" }
+                : { color: "var(--text2)" }}>
               {parseInt(day.slice(8))}
             </button>
           );
         })}
       </div>
-      <p className="text-[8px] text-gray-600 mt-2 text-center">
+      <p className="text-[8px] text-[var(--text3)] mt-2 text-center">
         {selecting ? "Click another date for a range" : "Click a date, or two dates for a range"}
       </p>
     </div>

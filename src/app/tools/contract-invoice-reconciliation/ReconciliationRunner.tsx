@@ -12,7 +12,7 @@ const ACCENT = "#f59e0b";
 
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
-  borderTop: `3px solid ${ACCENT}`, borderRadius: 16,
+  borderRadius: 16,
 };
 
 /** Own session_id, NOT shared with useRagChat's — that hook persists a
@@ -80,7 +80,7 @@ export default function ReconciliationRunner() {
       )}
 
       {documents.length > 0 && (!contract || invoices.length === 0) && (
-        <p className="text-[11px] px-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p className="text-[11px] px-1" style={{ color: "var(--text3)" }}>
           {!contract
             ? "Mark one document as the contract to compare against."
             : "Upload at least one invoice to compare against the contract."}

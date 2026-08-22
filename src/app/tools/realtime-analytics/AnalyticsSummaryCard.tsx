@@ -24,8 +24,8 @@ interface Props {
 }
 
 const CARD: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "var(--bg-glass)",
+  border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "1.25rem",
   display: "flex",
@@ -33,13 +33,13 @@ const CARD: React.CSSProperties = {
   gap: "1rem",
 };
 
-const DIVIDER: React.CSSProperties = { height: 1, background: "rgba(255,255,255,0.05)" };
+const DIVIDER: React.CSSProperties = { height: 1, background: "var(--border)" };
 
 function KVRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[10px] text-gray-600">{label}</span>
-      <span className="text-[10px] font-semibold text-gray-300 tabular-nums">{value}</span>
+      <span className="text-[10px] text-[var(--text3)]">{label}</span>
+      <span className="text-[10px] font-semibold text-[var(--text)] tabular-nums">{value}</span>
     </div>
   );
 }
@@ -66,7 +66,7 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
             <p className="text-[1.4rem] font-bold leading-none" style={{ color: "#10b981" }}>
               {(stats?.today_count ?? 0).toLocaleString()}
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--text3)" }}>
               events · {rangeLabel}
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
           <div key={label} className="flex flex-col items-center gap-0.5 rounded-lg py-1.5"
             style={{ background: `${color}0e`, border: `1px solid ${color}22` }}>
             <span className="text-[11px] font-bold tabular-nums" style={{ color }}>{value}</span>
-            <span className="text-[8px] text-gray-600 uppercase tracking-wider">{label}</span>
+            <span className="text-[8px] text-[var(--text3)] uppercase tracking-wider">{label}</span>
           </div>
         ))}
       </div>
@@ -122,8 +122,8 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
       {/* Action buttons */}
       <div className="flex flex-col gap-2">
         <button onClick={onGenerateReport}
-          className="w-full text-[10px] font-semibold py-1.5 rounded-lg border transition-colors hover:bg-white/5"
-          style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+          className="w-full text-[10px] font-semibold py-1.5 rounded-lg border transition-colors hover:bg-[var(--border)]"
+          style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
           ↓ Generate Report
         </button>
         <button onClick={onToggleAI}

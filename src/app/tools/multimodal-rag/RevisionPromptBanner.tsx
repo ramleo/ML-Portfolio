@@ -15,7 +15,7 @@ type Props = {
 export default function RevisionPromptBanner({ newSource, old, accent, onReplace, onKeepBoth }: Props) {
   return (
     <div className="flex items-center gap-2 flex-wrap text-[10px] px-3 py-2 rounded-lg"
-      style={{ background: `${accent}10`, border: `1px solid ${accent}30`, color: "rgba(255,255,255,0.7)" }}>
+      style={{ background: `${accent}10`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
       <span>
         {displayName(newSource)} looks like {old.reason === "same_filename"
           ? "the same file as" : "a revised version of"} &quot;{old.filename}&quot;, already in
@@ -25,7 +25,7 @@ export default function RevisionPromptBanner({ newSource, old, accent, onReplace
         style={{ borderColor: `${accent}40`, color: accent }}>
         Replace old
       </button>
-      <button onClick={onKeepBoth} className="px-2 py-1 rounded shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <button onClick={onKeepBoth} className="px-2 py-1 rounded shrink-0" style={{ color: "var(--text2)" }}>
         Keep both
       </button>
     </div>

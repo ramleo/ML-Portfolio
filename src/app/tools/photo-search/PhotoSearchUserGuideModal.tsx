@@ -15,7 +15,7 @@ const MD = {
       style={{ color: `${ACCENT}cc` }}>{children}</h2>
   ),
   p: ({ children }: React.PropsWithChildren) => (
-    <p className="text-[12px] leading-relaxed mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>{children}</p>
+    <p className="text-[12px] leading-relaxed mb-2" style={{ color: "var(--text2)" }}>{children}</p>
   ),
   ul: ({ children }: React.PropsWithChildren) => (
     <ul className="list-disc pl-5 mb-2 flex flex-col gap-1">{children}</ul>
@@ -24,10 +24,10 @@ const MD = {
     <ol className="list-decimal pl-5 mb-2 flex flex-col gap-1">{children}</ol>
   ),
   li: ({ children }: React.PropsWithChildren) => (
-    <li className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>{children}</li>
+    <li className="text-[12px] leading-relaxed" style={{ color: "var(--text2)" }}>{children}</li>
   ),
   strong: ({ children }: React.PropsWithChildren) => (
-    <strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>{children}</strong>
+    <strong style={{ color: "var(--text)", fontWeight: 600 }}>{children}</strong>
   ),
 };
 
@@ -46,15 +46,15 @@ export default function PhotoSearchUserGuideModal({ open, onClose }: { open: boo
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
-        style={{ background: "rgba(10,16,28,0.98)", border: `1px solid ${ACCENT}30` }}
+        style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b shrink-0"
-          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          style={{ borderColor: "var(--border)" }}>
           <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
             User Guide — Photo Library Visual Search
           </span>
           <button onClick={onClose} aria-label="Close guide"
-            className="text-lg leading-none px-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+            className="text-lg leading-none px-1" style={{ color: "var(--text3)" }}>
             ×
           </button>
         </div>

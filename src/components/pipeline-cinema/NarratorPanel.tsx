@@ -120,7 +120,7 @@ export default function NarratorPanel({ activeStage, viewingStage, running, dyna
         right: 0,
         height: 88,
         background:
-          "linear-gradient(0deg, rgba(6,13,26,0.97) 0%, rgba(6,13,26,0.85) 70%, transparent 100%)",
+          "linear-gradient(0deg, color-mix(in srgb, var(--bg-card) 97%, transparent) 0%, color-mix(in srgb, var(--bg-card) 85%, transparent) 70%, transparent 100%)",
         display: "flex",
         alignItems: "center",
         gap: 12,
@@ -131,7 +131,7 @@ export default function NarratorPanel({ activeStage, viewingStage, running, dyna
     >
       {/* Avatar */}
       <svg width="40" height="48" viewBox="0 0 40 48" fill="none" style={{ flexShrink: 0 }}>
-        <circle cx="20" cy="20" r="16" fill="#0f2744" stroke="#38bdf8" strokeWidth="1.5" />
+        <circle cx="20" cy="20" r="16" fill="var(--bg-card)" stroke="#38bdf8" strokeWidth="1.5" />
         <circle cx="14" cy="17" r="2.5" fill="#38bdf8" />
         <circle cx="26" cy="17" r="2.5" fill="#38bdf8" />
         <motion.path
@@ -174,7 +174,7 @@ export default function NarratorPanel({ activeStage, viewingStage, running, dyna
             style={{
               fontSize: 12,
               lineHeight: 1.5,
-              color: narrateStage !== null ? "#94a3b8" : "#334155",
+              color: narrateStage !== null ? "var(--text2)" : "var(--text3)",
               margin: 0,
               overflow: "hidden",
               display: "-webkit-box",

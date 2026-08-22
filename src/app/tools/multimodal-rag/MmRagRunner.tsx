@@ -208,13 +208,12 @@ export default function MmRagRunner() {
     textSegmentRefs.current[highlightedTextSegment.index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [highlightedTextSegment]);
 
-  // Matches the homepage ProjectCard.tsx pattern (var(--bg-glass) + colored
-  // top bar) used site-wide, same as every other tool page's redesign
-  // (2026-08-15) — previously a bespoke "ink" tint kept for this page only,
-  // overridden per explicit instruction to make every tool page consistent.
+  // Matches the homepage ProjectCard.tsx pattern (var(--bg-glass), no colored
+  // top bar) used site-wide as of 2026-08-22 — the bar was dropped everywhere
+  // after being flagged as a common AI-generated-design tell.
   const cardStyle: React.CSSProperties = {
     background: "var(--bg-glass)", backdropFilter: "blur(14px)",
-    border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}`,
+    border: "1px solid var(--border)",
     borderRadius: 16,
   };
 
@@ -288,7 +287,7 @@ export default function MmRagRunner() {
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center rounded border overflow-hidden self-start"
-              style={{ borderColor: "rgba(255,255,255,0.12)" }}>
+              style={{ borderColor: "var(--border2)" }}>
               {(["concise", "normal", "detailed"] as const).map(len => (
                 <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
                   disabled={chat.messages.length === 0}
@@ -298,7 +297,7 @@ export default function MmRagRunner() {
                   className="text-[11px] px-2 py-1 capitalize transition-colors"
                   style={chat.answerLength === len
                     ? { background: `${ACCENT}22`, color: ACCENT }
-                    : { color: "rgba(255,255,255,0.4)" }}>
+                    : { color: "var(--text2)" }}>
                   {len}
                 </button>
               ))}

@@ -161,9 +161,9 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
   }, [names, schema]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#09090f]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg)]">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0">
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-[var(--border)] shrink-0">
         <div className="flex items-center gap-3">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <rect x="1" y="1" width="6" height="4" rx="1" stroke={ACCENT} strokeWidth="1.2"/>
@@ -171,13 +171,13 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
             <rect x="1" y="11" width="6" height="4" rx="1" stroke="#10b981" strokeWidth="1.2"/>
             <path d="M7 3h2M7 13h2M8 5v6" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeLinecap="round"/>
           </svg>
-          <span className="text-sm font-semibold text-white">Schema Diagram</span>
-          <span className="text-xs text-gray-500">{names.length} tables · {edges.length} relationships</span>
+          <span className="text-sm font-semibold text-[var(--text)]">Schema Diagram</span>
+          <span className="text-xs text-[var(--text3)]">{names.length} tables · {edges.length} relationships</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:block text-[10px] text-gray-600">drag tables · scroll to zoom · tap to select</span>
-          <button onClick={reset} className="text-[11px] px-2.5 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">Reset</button>
-          <button onClick={onClose} className="text-gray-400 hover:text-white p-1 transition-colors">
+          <span className="hidden sm:block text-[10px] text-[var(--text3)]">drag tables · scroll to zoom · tap to select</span>
+          <button onClick={reset} className="text-[11px] px-2.5 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">Reset</button>
+          <button onClick={onClose} className="text-[var(--text2)] hover:text-[var(--text)] p-1 transition-colors">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -314,21 +314,21 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-5 px-5 py-2 border-t border-white/8 shrink-0 bg-[#09090f]">
-        <span className="text-[10px] text-gray-500 flex items-center gap-1.5">
+      <div className="flex items-center gap-5 px-5 py-2 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
+        <span className="text-[10px] text-[var(--text3)] flex items-center gap-1.5">
           <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
             <circle cx="4.5" cy="4.5" r="3" stroke="#f59e0b" strokeWidth="1.5"/>
             <path d="M7 7l3.5 3.5M9 7.5l1 1" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
           Primary key
         </span>
-        <span className="text-[10px] text-gray-500 flex items-center gap-1.5">
+        <span className="text-[10px] text-[var(--text3)] flex items-center gap-1.5">
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
             <path d="M1 4h7M6 1l3 3-3 3" stroke={ACCENT} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Foreign key
         </span>
-        <span className="text-[10px] text-gray-500 flex items-center gap-1.5">
+        <span className="text-[10px] text-[var(--text3)] flex items-center gap-1.5">
           <svg width="16" height="6" viewBox="0 0 16 6" fill="none">
             <path d="M1 3h14" stroke="rgba(99,102,241,0.4)" strokeWidth="1" strokeDasharray="3 2"/>
           </svg>

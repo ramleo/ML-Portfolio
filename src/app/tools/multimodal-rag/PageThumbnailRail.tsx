@@ -17,7 +17,7 @@ export default function PageThumbnailRail({ pageImages, activePage, onSelect }: 
 
   return (
     <div className="flex flex-col gap-2 overflow-y-auto pr-0.5" style={{ maxHeight: 480, width: 88 }}>
-      <span className="text-[8px] font-bold uppercase tracking-wide px-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+      <span className="text-[8px] font-bold uppercase tracking-wide px-0.5" style={{ color: "var(--text3)" }}>
         Pages
       </span>
       {pageImages.map((img, i) => {
@@ -26,11 +26,11 @@ export default function PageThumbnailRail({ pageImages, activePage, onSelect }: 
         return (
           <button key={i} onClick={() => onSelect(pageNum)}
             className="rounded-lg overflow-hidden border text-left shrink-0 transition-colors"
-            style={{ borderColor: active ? ACCENT : "rgba(255,255,255,0.08)" }}>
+            style={{ borderColor: active ? ACCENT : "var(--border)" }}>
             <img src={`data:image/png;base64,${img}`} alt={`Page ${pageNum}`}
-              className="w-full block" style={{ height: 64, objectFit: "cover", background: "#0a0f1a" }} />
+              className="w-full block" style={{ height: 64, objectFit: "cover", background: "var(--bg)" }} />
             <div className="text-[8px] text-center py-0.5"
-              style={{ background: active ? `${ACCENT}22` : "rgba(255,255,255,0.03)", color: active ? ACCENT : "rgba(255,255,255,0.35)" }}>
+              style={{ background: active ? `${ACCENT}22` : "var(--border)", color: active ? ACCENT : "var(--text3)" }}>
               {pageNum}
             </div>
           </button>

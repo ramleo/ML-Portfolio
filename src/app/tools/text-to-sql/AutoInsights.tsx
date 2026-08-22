@@ -20,7 +20,7 @@ interface Insight {
 const SEVERITY_STYLE: Record<Severity, { border: string; bg: string; badge: string; dot: string }> = {
   warn:  { border: "border-amber-500/30",  bg: "bg-amber-500/8",   badge: "bg-amber-500/15 text-amber-300",   dot: "bg-amber-400" },
   info:  { border: "border-indigo-500/25", bg: "bg-indigo-500/6",  badge: "bg-indigo-500/15 text-indigo-300",  dot: "bg-indigo-400" },
-  note:  { border: "border-white/10",      bg: "bg-white/[0.03]",  badge: "bg-white/10 text-gray-400",         dot: "bg-gray-500" },
+  note:  { border: "border-[var(--border)]",      bg: "bg-white/[0.03]",  badge: "bg-[var(--bg-glass)] text-gray-400",         dot: "bg-gray-500" },
 };
 
 function InsightIcon({ type }: { type: InsightType }) {
@@ -145,7 +145,7 @@ export default function AutoInsights({ columns, rows }: Props) {
   const warns = insights.filter(i => i.severity === "warn").length;
 
   return (
-    <div className="rounded-xl border border-emerald-500/20 bg-black/30 overflow-hidden">
+    <div className="rounded-xl border border-emerald-500/20 bg-[var(--bg-glass)] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-white/[0.02] transition-colors text-left"
@@ -160,7 +160,7 @@ export default function AutoInsights({ columns, rows }: Props) {
             {warns} warning{warns > 1 ? "s" : ""}
           </span>
         )}
-        <svg width="9" height="9" viewBox="0 0 8 8" fill="none" className={`ml-auto text-gray-600 transition-transform ${open ? "" : "-rotate-90"}`}>
+        <svg width="9" height="9" viewBox="0 0 8 8" fill="none" className={`ml-auto text-[var(--text3)] transition-transform ${open ? "" : "-rotate-90"}`}>
           <path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
@@ -178,7 +178,7 @@ export default function AutoInsights({ columns, rows }: Props) {
                   <span className={`inline-block text-[9px] font-semibold rounded px-1.5 py-0.5 mb-0.5 font-mono ${s.badge}`}>
                     {ins.col}
                   </span>
-                  <p className="text-[11px] text-gray-300 leading-snug">{ins.text}</p>
+                  <p className="text-[11px] text-[var(--text)] leading-snug">{ins.text}</p>
                 </div>
               </div>
             );

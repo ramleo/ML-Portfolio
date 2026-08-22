@@ -24,12 +24,12 @@ export default function TabBar({ tabs, activeTabId, onSelect, onPin, onClose }: 
           className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] shrink-0 cursor-pointer transition-all ${
             tab.id === activeTabId
               ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-300"
-              : "border-white/8 text-gray-500 hover:text-gray-300 hover:border-white/15"
+              : "border-[var(--border)] text-[var(--text3)] hover:text-[var(--text2)] hover:border-[var(--border2)]"
           }`}>
-          <span className="text-[9px] text-gray-600">{i + 1}</span>
+          <span className="text-[9px] text-[var(--text3)]">{i + 1}</span>
           {tab.pinned && <span className="text-[9px] text-amber-400/70">●</span>}
           <span className="max-w-[120px] truncate">{tab.question || "Query"}</span>
-          {tab.results && <span className="text-[9px] text-gray-600 ml-0.5">{tab.results.count}r</span>}
+          {tab.results && <span className="text-[9px] text-[var(--text3)] ml-0.5">{tab.results.count}r</span>}
           <button onClick={e => { e.stopPropagation(); onPin(tab.id); }}
             title={tab.pinned ? "Unpin" : "Pin"}
             className={`ml-0.5 transition-opacity ${tab.pinned ? "opacity-70 text-amber-400" : "opacity-0 group-hover:opacity-40 hover:!opacity-100"}`}>

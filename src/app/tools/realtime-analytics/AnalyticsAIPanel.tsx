@@ -8,8 +8,8 @@ interface Props {
 }
 
 const PANEL: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "var(--bg-glass)",
+  border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "1.25rem",
 };
@@ -23,10 +23,10 @@ function RenderExplanation({ text }: { text: string }) {
         // Replace **text** with <strong>
         const parts = para.split(/\*\*([^*]+)\*\*/g);
         return (
-          <p key={i} className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
+          <p key={i} className="text-[11px] leading-relaxed" style={{ color: "var(--text2)" }}>
             {parts.map((part, j) =>
               j % 2 === 1
-                ? <strong key={j} style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>{part}</strong>
+                ? <strong key={j} style={{ color: "var(--text)", fontWeight: 700 }}>{part}</strong>
                 : part
             )}
           </p>
@@ -66,26 +66,26 @@ export default function AnalyticsAIPanel({ stats, rangeLabel }: Props) {
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-bold" style={{ color: "#10b981" }}>✦ AI Explanation</span>
           <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-full uppercase tracking-wider"
-            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.3)" }}>
+            style={{ background: "var(--border)", color: "var(--text3)" }}>
             Manual
           </span>
         </div>
         {explanation && !loading && (
           <button onClick={generate}
-            className="text-[9px] px-2 py-[3px] rounded-md transition-colors hover:bg-white/5"
-            style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)" }}>
+            className="text-[9px] px-2 py-[3px] rounded-md transition-colors hover:bg-[var(--border)]"
+            style={{ border: "1px solid var(--border)", color: "var(--text3)" }}>
             Regenerate
           </button>
         )}
       </div>
 
       {/* Divider */}
-      <div className="mb-4" style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
+      <div className="mb-4" style={{ height: 1, background: "var(--border)" }} />
 
       {/* Content */}
       {!explanation && !loading && !error && (
         <div className="flex flex-col items-center gap-3 py-6">
-          <p className="text-[10px] text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+          <p className="text-[10px] text-center" style={{ color: "var(--text3)" }}>
             Generate an AI-powered analysis of the current dashboard data.
             <br />
             This is not automatic — click to trigger.
@@ -101,7 +101,7 @@ export default function AnalyticsAIPanel({ stats, rangeLabel }: Props) {
       {loading && (
         <div className="flex items-center gap-3 py-6 justify-center">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <span className="text-[10px]" style={{ color: "var(--text3)" }}>
             Analyzing dashboard data…
           </span>
         </div>
@@ -110,7 +110,7 @@ export default function AnalyticsAIPanel({ stats, rangeLabel }: Props) {
       {error && (
         <div className="rounded-lg p-3" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)" }}>
           <p className="text-[10px]" style={{ color: "#ef4444" }}>{error}</p>
-          <button onClick={generate} className="text-[9px] mt-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <button onClick={generate} className="text-[9px] mt-2" style={{ color: "var(--text3)" }}>
             Try again
           </button>
         </div>

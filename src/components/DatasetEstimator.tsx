@@ -57,7 +57,7 @@ function AlgoRow({ est }: { est: AlgoEstimate }) {
       gridTemplateColumns: "1fr auto auto",
       gap: "0.5rem 1rem",
       padding: "0.3rem 0",
-      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      borderBottom: "1px solid var(--border)",
       alignItems: "start",
     }}>
       <div>
@@ -122,8 +122,8 @@ export default function DatasetEstimator({ n, p, tool, fsOpts, ldaEnabled, ldaTo
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: "0.5rem",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.07)",
+        background: "var(--bg-glass)",
+        border: "1px solid var(--border)",
         borderRadius: 8, padding: "0.45rem 0.75rem",
       }}>
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -167,8 +167,8 @@ export default function DatasetEstimator({ n, p, tool, fsOpts, ldaEnabled, ldaTo
       {open && estimates.length > 0 && (
         <div style={{
           marginTop: "0.35rem",
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--bg-glass)",
+          border: "1px solid var(--border)",
           borderRadius: 8, padding: "0.5rem 0.75rem",
         }}>
           <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginBottom: "0.35rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>

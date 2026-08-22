@@ -20,15 +20,15 @@ export default function MmRagUsageStatsModal({ open, onClose }: { open: boolean;
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
       <div className="w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
-        style={{ background: "rgba(10,16,28,0.98)", border: `1px solid ${ACCENT}30` }}
+        style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b shrink-0"
-          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          style={{ borderColor: "var(--border)" }}>
           <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
             Usage Stats — Multimodal RAG
           </span>
           <button onClick={onClose} aria-label="Close usage stats"
-            className="text-lg leading-none px-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+            className="text-lg leading-none px-1" style={{ color: "var(--text3)" }}>
             ×
           </button>
         </div>

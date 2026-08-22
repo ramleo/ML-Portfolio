@@ -73,7 +73,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
   return (
     <div style={cardStyle} className="flex flex-col">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b"
-        style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        style={{ borderColor: "var(--border)" }}>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: ACCENT }}>
           <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"
             stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -100,14 +100,14 @@ export default function DocChatPanel({ docText, fields }: Props) {
           <div key={i} className={`max-w-[85%] px-3 py-2 rounded-xl text-[11px] leading-relaxed ${
             m.role === "user" ? "self-end" : "self-start"}`}
             style={m.role === "user"
-              ? { background: "rgba(6,182,212,0.12)", color: "rgba(255,255,255,0.85)" }
-              : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)" }}>
+              ? { background: "rgba(6,182,212,0.12)", color: "var(--text)" }
+              : { background: "var(--bg-glass)", color: "var(--text2)" }}>
             {m.content}
           </div>
         ))}
         {busy && (
           <div className="self-start px-3 py-2 rounded-xl text-[11px]"
-            style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>
+            style={{ background: "var(--bg-glass)", color: "var(--text3)" }}>
             Thinking…
           </div>
         )}
@@ -119,14 +119,14 @@ export default function DocChatPanel({ docText, fields }: Props) {
         )}
       </div>
 
-      <form className="flex gap-2 p-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}
+      <form className="flex gap-2 p-3 border-t" style={{ borderColor: "var(--border)" }}
         onSubmit={e => { e.preventDefault(); ask(input); }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Ask anything about this document…"
           className="flex-1 bg-transparent text-[11px] px-3 py-2 rounded-lg border outline-none"
-          style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
+          style={{ borderColor: "var(--border2)", color: "var(--text)" }}
           disabled={busy}
         />
         <button type="submit" disabled={busy || !input.trim()}

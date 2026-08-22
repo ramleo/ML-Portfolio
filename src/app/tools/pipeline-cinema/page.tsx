@@ -121,7 +121,7 @@ export default function PipelineCinemaPage() {
               ← Pipeline Builder
             </Link>
           </div>
-          <h1 style={{ color: "#f0f4f8", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
+          <h1 style={{ color: "var(--text)", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
             Pipeline Cinema
           </h1>
           <p style={{ color: "var(--text3)", fontSize: "0.9rem", margin: 0 }}>
@@ -148,11 +148,11 @@ export default function PipelineCinemaPage() {
             style={{
               maxWidth: 900,
               margin: "0 auto 1rem",
-              background: "#1a0a0a",
-              border: "1px solid #7f1d1d",
+              background: "rgba(239,68,68,0.1)",
+              border: "1px solid rgba(239,68,68,0.35)",
               borderRadius: 8,
               padding: "0.6rem 1rem",
-              color: "#fca5a5",
+              color: "#ef4444",
               fontSize: "0.8rem",
             }}
           >
@@ -206,9 +206,9 @@ export default function PipelineCinemaPage() {
                 style={{
                   padding: "0.5rem 1.1rem",
                   borderRadius: 999,
-                  border: `1.5px solid ${isActive || isDone ? accent : "#1e3a5f"}`,
+                  border: `1.5px solid ${isActive || isDone ? accent : "var(--border2)"}`,
                   background: isDone ? `${accent}22` : isActive ? `${accent}15` : "transparent",
-                  color: isActive || isDone ? accent : "#475569",
+                  color: isActive || isDone ? accent : "var(--text3)",
                   fontSize: "0.82rem",
                   fontWeight: 600,
                   cursor: running && !isDone ? "default" : "pointer",
@@ -221,7 +221,7 @@ export default function PipelineCinemaPage() {
             );
           })}
 
-          <div style={{ width: 1, height: 28, background: "#1e3a5f" }} />
+          <div style={{ width: 1, height: 28, background: "var(--border2)" }} />
 
           <motion.button
             onClick={handleRunAnimation}
@@ -231,8 +231,8 @@ export default function PipelineCinemaPage() {
             style={{
               padding: "0.7rem 2rem",
               borderRadius: 10,
-              background: running ? "#1e3a5f" : "linear-gradient(135deg, #7c3aed, #a78bfa)",
-              color: running ? "#475569" : "#fff",
+              background: running ? "var(--border2)" : "linear-gradient(135deg, #7c3aed, #a78bfa)",
+              color: running ? "var(--text3)" : "#fff",
               fontWeight: 700,
               fontSize: "0.95rem",
               border: "none",
@@ -252,11 +252,11 @@ export default function PipelineCinemaPage() {
               style={{
                 padding: "0.7rem 1.4rem",
                 borderRadius: 10,
-                background: paused ? "#0f2744" : "transparent",
+                background: paused ? "var(--bg-card)" : "transparent",
                 color: paused ? "#38bdf8" : "var(--text3)",
                 fontWeight: 600,
                 fontSize: "0.95rem",
-                border: `1.5px solid ${paused ? "#38bdf8" : "#1e3a5f"}`,
+                border: `1.5px solid ${paused ? "#38bdf8" : "var(--border2)"}`,
                 cursor: "pointer",
               }}
             >
@@ -297,7 +297,7 @@ export default function PipelineCinemaPage() {
               color: "var(--text3)",
               fontWeight: 600,
               fontSize: "0.95rem",
-              border: "1.5px solid #1e3a5f",
+              border: "1.5px solid var(--border2)",
               cursor: "pointer",
             }}
           >

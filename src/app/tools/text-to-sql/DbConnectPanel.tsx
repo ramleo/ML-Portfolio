@@ -57,7 +57,7 @@ export default function DbConnectPanel({
   loadDemoSchema, status,
 }: Props) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-3" style={{ borderTop: `3px solid ${ACCENT}` }} data-wt="db-connect">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-3" data-wt="db-connect">
       <div className="flex flex-wrap gap-1.5 mb-3">
         {TABS.map(({ id, label, icon }) => {
           const active = dbSource === id;
@@ -65,8 +65,8 @@ export default function DbConnectPanel({
             <button key={id} onClick={() => setDbSource(id)}
               className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border transition-all duration-150"
               style={{
-                borderColor:  active ? ACCENT : "rgba(255,255,255,0.08)",
-                color:        active ? "#e0e7ff" : "#6b7280",
+                borderColor:  active ? ACCENT : "var(--border)",
+                color:        active ? "#e0e7ff" : "var(--text3)",
                 background:   active ? "linear-gradient(135deg,rgba(99,102,241,0.18),rgba(139,92,246,0.12))" : "transparent",
                 boxShadow:    active ? "0 0 12px rgba(99,102,241,0.15)" : "none",
               }}>
@@ -80,8 +80,8 @@ export default function DbConnectPanel({
       {dbSource === "demo" && (
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <p className="text-xs text-gray-400">Chinook music store</p>
-            <p className="text-[10px] text-gray-600">11 tables · ~3.5k rows</p>
+            <p className="text-xs text-[var(--text2)]">Chinook music store</p>
+            <p className="text-[10px] text-[var(--text3)]">11 tables · ~3.5k rows</p>
           </div>
           <button onClick={loadDemoSchema}
             className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-all hover:brightness-110"
@@ -93,7 +93,7 @@ export default function DbConnectPanel({
 
       {dbSource === "upload" && (
         <label className="flex items-center gap-3 cursor-pointer">
-          <span className="text-xs text-gray-400">.db · .sqlite · .duckdb · .parquet · .csv</span>
+          <span className="text-xs text-[var(--text2)]">.db · .sqlite · .duckdb · .parquet · .csv</span>
           <input type="file" accept=".db,.sqlite,.sqlite3,.duckdb,.parquet,.csv" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) uploadDb(f); }} />
           <span className="text-xs px-3 py-1.5 rounded-lg text-white shrink-0 font-medium"
@@ -109,7 +109,7 @@ export default function DbConnectPanel({
             value={dbSource === "postgres" ? pgConn : dbSource === "mysql" ? mysqlConn : mssqlConn}
             onChange={e => dbSource === "postgres" ? setPgConn(e.target.value) : dbSource === "mysql" ? setMysqlConn(e.target.value) : setMssqlConn(e.target.value)}
             placeholder={dbSource === "postgres" ? "postgresql://user:pass@host:5432/db" : dbSource === "mysql" ? "mysql://user:pass@host:3306/db" : "mssql://user:pass@host:1433/db"}
-            className="flex-1 text-xs bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-gray-200 placeholder-gray-600 outline-none focus:border-indigo-500/40 transition-colors"/>
+            className="flex-1 text-xs bg-[var(--bg-glass)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text)] placeholder:text-[var(--text3)] outline-none focus:border-indigo-500/40 transition-colors"/>
           <button onClick={dbSource === "postgres" ? connectPg : dbSource === "mysql" ? connectMySQL : connectMssql}
             className="text-xs px-3 py-1.5 rounded-lg text-white shrink-0 font-medium"
             style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>

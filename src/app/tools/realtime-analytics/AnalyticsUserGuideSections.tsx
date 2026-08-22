@@ -18,8 +18,8 @@ export function Sec({ id, title, children }: { id: string; title: string; childr
 function Feat({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="flex gap-3 mb-2 p-3 rounded-xl" style={{
-      background: "rgba(255,255,255,0.025)", borderLeft: `2px solid ${A}55`,
-      border: "1px solid rgba(255,255,255,0.06)", borderLeftColor: `${A}55`,
+      background: "var(--bg-glass)", borderLeft: `2px solid ${A}55`,
+      border: "1px solid var(--border)", borderLeftColor: `${A}55`,
     }}>
       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{
         background: "linear-gradient(135deg,rgba(16,185,129,0.15),rgba(99,102,241,0.08))",
@@ -28,8 +28,8 @@ function Feat({ icon, title, desc }: { icon: React.ReactNode; title: string; des
         <span style={{ color: A }}>{icon}</span>
       </div>
       <div>
-        <p className="text-[11.5px] font-semibold text-white/90 mb-0.5">{title}</p>
-        <p className="text-[10.5px] text-gray-400 leading-relaxed">{desc}</p>
+        <p className="text-[11.5px] font-semibold text-[var(--text)] mb-0.5">{title}</p>
+        <p className="text-[10.5px] text-[var(--text2)] leading-relaxed">{desc}</p>
       </div>
     </div>
   );
@@ -70,8 +70,8 @@ export default function GuideSections() {
   return (
     <>
       <div className="mb-6 p-4 rounded-xl" style={{ background: `${A}08`, border: `1px solid ${A}22` }}>
-        <p className="text-[11.5px] text-gray-300 leading-relaxed">
-          <span className="text-white font-semibold">Real-Time Analytics</span> tracks every event on this portfolio as it happens — page views, tool opens, and query runs — streamed live via Supabase Realtime. No refresh needed; the feed and stat cards update automatically.
+        <p className="text-[11.5px] text-[var(--text2)] leading-relaxed">
+          <span className="text-[var(--text)] font-semibold">Real-Time Analytics</span> tracks every event on this portfolio as it happens — page views, tool opens, and query runs — streamed live via Supabase Realtime. No refresh needed; the feed and stat cards update automatically.
         </p>
         <div className="flex items-center gap-2 mt-2.5 flex-wrap">
           <Chip color="#6366f1" label="page_view"/>
@@ -105,11 +105,11 @@ export default function GuideSections() {
             { color: "#8b5cf6", label: "Query Success", desc: "% of query_run events with success: true. Sub-line shows avg query length, e.g. 'avg 45ch', from query_run meta. Only Text-to-SQL fires these. Shows — if none in range." },
           ].map(({ color, label, desc }) => (
             <div key={label} className="p-3 rounded-xl" style={{
-              background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--bg-glass)", border: "1px solid var(--border)",
               borderLeft: `2px solid ${color}`,
             }}>
               <Tag color={color} label={label}/>
-              <p className="text-[10px] text-gray-500 leading-relaxed mt-1.5">{desc}</p>
+              <p className="text-[10px] text-[var(--text3)] leading-relaxed mt-1.5">{desc}</p>
             </div>
           ))}
         </div>
@@ -125,26 +125,26 @@ export default function GuideSections() {
         <Note>
           <div>
             <p className="text-[11px] font-semibold text-red-400 mb-0.5">Anomaly marker</p>
-            <p className="text-[10.5px] text-gray-400 leading-relaxed">A red dot when a bucket exceeds <span className="text-white/70">mean + 2σ</span> of all buckets. Signals an unusual spike — check the Live Feed around that time.</p>
+            <p className="text-[10.5px] text-[var(--text2)] leading-relaxed">A red dot when a bucket exceeds <span className="text-[var(--text)]">mean + 2σ</span> of all buckets. Signals an unusual spike — check the Live Feed around that time.</p>
           </div>
         </Note>
       </Sec>
 
       <Sec id="ug-funnel" title="Conversion Funnel">
-        <p className="text-[10.5px] text-gray-500 leading-relaxed mb-3">How many visitors moved through each stage. % next to each bar is conversion from the previous stage.</p>
+        <p className="text-[10.5px] text-[var(--text3)] leading-relaxed mb-3">How many visitors moved through each stage. % next to each bar is conversion from the previous stage.</p>
         <div className="space-y-2">
           {[
             { color: "#6366f1", label: "page_view", desc: "Visitor landed on a page." },
             { color: "#10b981", label: "tool_open", desc: "Visitor navigated into a tool." },
             { color: "#f59e0b", label: "query_run", desc: "Visitor ran a SQL query in Text-to-SQL. Does not fire for ML tools." },
           ].map(({ color, label, desc }) => (
-            <div key={label} className="flex gap-3 items-center p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div key={label} className="flex gap-3 items-center p-2.5 rounded-lg" style={{ background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
               <Chip color={color} label={label}/>
-              <p className="text-[10.5px] text-gray-400">{desc}</p>
+              <p className="text-[10.5px] text-[var(--text2)]">{desc}</p>
             </div>
           ))}
         </div>
-        <p className="text-[9.5px] text-gray-700 mt-2 leading-relaxed">Low page_view → tool_open = visitors don&apos;t explore. Low tool_open → query_run = visitors open but don&apos;t use.</p>
+        <p className="text-[9.5px] text-[var(--text3)] mt-2 leading-relaxed">Low page_view → tool_open = visitors don&apos;t explore. Low tool_open → query_run = visitors open but don&apos;t use.</p>
       </Sec>
 
       <Sec id="ug-geo" title="Visitors by Country">
@@ -172,7 +172,7 @@ export default function GuideSections() {
         <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
           title="Per-tool event cards on the portfolio"
           desc="Shows tool_open events fired from the Vercel-hosted portfolio (ml-portfolio-rho.vercel.app). Covers AutoML, Text-to-SQL, SHAP, Feature Engineering, Drift, Ensemble, Pipeline Builder, Pipeline Cinema, Preprocessing, Optuna, and Document Intelligence. Hidden when no tool events exist."/>
-        <p className="text-[9.5px] text-gray-700 mt-2 leading-relaxed">HF Space Tools and Portfolio Tools are separate sections because they run on different origins — session IDs do not overlap between them.</p>
+        <p className="text-[9.5px] text-[var(--text3)] mt-2 leading-relaxed">HF Space Tools and Portfolio Tools are separate sections because they run on different origins — session IDs do not overlap between them.</p>
       </Sec>
 
       <Sec id="ug-tools" title="Tool Usage Comparison">
@@ -188,7 +188,7 @@ export default function GuideSections() {
       </Sec>
 
       <Sec id="ug-provider" title="AI Provider Usage">
-        <p className="text-[10.5px] text-gray-500 leading-relaxed mb-3">
+        <p className="text-[10.5px] text-[var(--text3)] leading-relaxed mb-3">
           Always-visible horizontal bar chart showing total query counts broken down by the AI provider that handled each request. Appears directly after the Query Success by Tool panel.
         </p>
         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -197,9 +197,9 @@ export default function GuideSections() {
             { color: "#6366f1", label: "OpenAI", desc: "GPT-series models via OpenAI API." },
             { color: "#8b5cf6", label: "Anthropic", desc: "Claude models via Anthropic API." },
           ].map(({ color, label, desc }) => (
-            <div key={label} className="p-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div key={label} className="p-2.5 rounded-xl" style={{ background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
               <Tag color={color} label={label}/>
-              <p className="text-[9.5px] text-gray-500 leading-relaxed mt-1.5">{desc}</p>
+              <p className="text-[9.5px] text-[var(--text3)] leading-relaxed mt-1.5">{desc}</p>
             </div>
           ))}
         </div>
@@ -212,7 +212,7 @@ export default function GuideSections() {
       </Sec>
 
       <Sec id="ug-engage" title="Engagement Metrics">
-        <p className="text-[10.5px] text-gray-500 leading-relaxed mb-3">
+        <p className="text-[10.5px] text-[var(--text3)] leading-relaxed mb-3">
           Three-column row of engagement cards, each counting a specific interaction type across the active range.
         </p>
         <div className="grid grid-cols-3 gap-2 mb-2">
@@ -222,15 +222,15 @@ export default function GuideSections() {
             { color: "#10b981", label: "CSV Exports", desc: "Number of times the Export CSV button on this dashboard was clicked. Tracked as a csv_export event." },
           ].map(({ color, label, desc }) => (
             <div key={label} className="p-3 rounded-xl" style={{
-              background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--bg-glass)", border: "1px solid var(--border)",
               borderLeft: `2px solid ${color}`,
             }}>
               <Tag color={color} label={label}/>
-              <p className="text-[10px] text-gray-500 leading-relaxed mt-1.5">{desc}</p>
+              <p className="text-[10px] text-[var(--text3)] leading-relaxed mt-1.5">{desc}</p>
             </div>
           ))}
         </div>
-        <p className="text-[9.5px] text-gray-700 mt-2 leading-relaxed">High error rate paired with high SQL copies suggests users are correcting output manually. High CSV exports relative to query_run counts indicates the data is being used downstream.</p>
+        <p className="text-[9.5px] text-[var(--text3)] mt-2 leading-relaxed">High error rate paired with high SQL copies suggests users are correcting output manually. High CSV exports relative to query_run counts indicates the data is being used downstream.</p>
       </Sec>
 
       <Sec id="ug-pages" title="Top Pages">
@@ -250,16 +250,16 @@ export default function GuideSections() {
             { ref: "github.com/…", note: "Traffic from a GitHub readme or profile link" },
             { ref: "(empty)", note: "Direct — typed URL, bookmark, or referrer blocked by browser" },
           ].map(({ ref, note }) => (
-            <div key={ref} className="flex gap-3 items-start p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div key={ref} className="flex gap-3 items-start p-2.5 rounded-lg" style={{ background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
               <code className="text-[9.5px] text-indigo-400 shrink-0 mt-0.5 font-mono whitespace-nowrap">{ref}</code>
-              <p className="text-[10px] text-gray-500 leading-relaxed">{note}</p>
+              <p className="text-[10px] text-[var(--text3)] leading-relaxed">{note}</p>
             </div>
           ))}
         </div>
       </Sec>
 
       <Sec id="ug-types" title="Events by Type">
-        <p className="text-[10.5px] text-gray-500 leading-relaxed mb-3">Donut showing event type mix. Four types tracked:</p>
+        <p className="text-[10.5px] text-[var(--text3)] leading-relaxed mb-3">Donut showing event type mix. Four types tracked:</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             { color: "#6366f1", type: "page_view", when: "On app / page load", data: "path, referrer, session_id, meta.device" },
@@ -267,10 +267,10 @@ export default function GuideSections() {
             { color: "#f59e0b", type: "query_run", when: "SQL query in Text-to-SQL only", data: "meta.success, meta.rows, meta.provider, meta.query_length, duration_ms" },
             { color: "#8b5cf6", type: "tool_close", when: "User navigates away from a tool", data: "duration_ms, meta.tool, meta.queries_run" },
           ].map(({ color, type, when, data }) => (
-            <div key={type} className="p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div key={type} className="p-3 rounded-xl" style={{ background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
               <Chip color={color} label={type}/>
-              <p className="text-[10px] text-gray-400 mt-2 leading-snug">{when}</p>
-              <p className="text-[9px] text-gray-600 mt-1 font-mono">{data}</p>
+              <p className="text-[10px] text-[var(--text2)] mt-2 leading-snug">{when}</p>
+              <p className="text-[9px] text-[var(--text3)] mt-1 font-mono">{data}</p>
             </div>
           ))}
         </div>
@@ -283,7 +283,7 @@ export default function GuideSections() {
       </Sec>
 
       <Sec id="ug-feed" title="Live Feed">
-        <p className="text-[10.5px] text-gray-500 leading-relaxed mb-3">
+        <p className="text-[10.5px] text-[var(--text3)] leading-relaxed mb-3">
           Every event arrives instantly via WebSocket. Last 50 events. Each row has a type-colored 3 px left strip, type badge, dimmed <code className="text-indigo-300 text-[9.5px]">/tools/</code> prefix, country chip, session ID, and time ago. <code className="text-purple-400 text-[9.5px]">tool_close</code> rows show a duration chip.
         </p>
         <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1 4h12M1 7h8M1 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
@@ -317,11 +317,11 @@ export default function GuideSections() {
             { p: "page_view → tool_open → query_run", m: "Ideal path — discovered and used a tool end-to-end" },
             { p: "query_run on multiple tools", m: "Power user — explored several tools in one session" },
           ].map(({ p, m }) => (
-            <div key={p} className="flex gap-2.5 p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div key={p} className="flex gap-2.5 p-2.5 rounded-lg" style={{ background: "var(--bg-glass)", border: "1px solid var(--border)" }}>
               <div className="w-1 h-1 rounded-full mt-[5px] shrink-0" style={{ background: A }}/>
               <div>
-                <p className="text-[10.5px] font-semibold text-white/80">{p}</p>
-                <p className="text-[9.5px] text-gray-600 mt-0.5">{m}</p>
+                <p className="text-[10.5px] font-semibold text-[var(--text)]">{p}</p>
+                <p className="text-[9.5px] text-[var(--text3)] mt-0.5">{m}</p>
               </div>
             </div>
           ))}

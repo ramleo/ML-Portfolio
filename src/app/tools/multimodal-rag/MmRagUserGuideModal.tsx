@@ -16,7 +16,7 @@ const MD = {
       style={{ color: `${ACCENT}cc` }}>{children}</h2>
   ),
   p: ({ children }: React.PropsWithChildren) => (
-    <p className="text-[12px] leading-relaxed mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>{children}</p>
+    <p className="text-[12px] leading-relaxed mb-2" style={{ color: "var(--text2)" }}>{children}</p>
   ),
   ul: ({ children }: React.PropsWithChildren) => (
     <ul className="list-disc pl-5 mb-2 flex flex-col gap-1">{children}</ul>
@@ -25,10 +25,10 @@ const MD = {
     <ol className="list-decimal pl-5 mb-2 flex flex-col gap-1">{children}</ol>
   ),
   li: ({ children }: React.PropsWithChildren) => (
-    <li className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>{children}</li>
+    <li className="text-[12px] leading-relaxed" style={{ color: "var(--text2)" }}>{children}</li>
   ),
   strong: ({ children }: React.PropsWithChildren) => (
-    <strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>{children}</strong>
+    <strong style={{ color: "var(--text)", fontWeight: 600 }}>{children}</strong>
   ),
 };
 
@@ -137,20 +137,20 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
-        style={{ background: "rgba(10,16,28,0.98)", border: `1px solid ${ACCENT}30` }}
+        style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b shrink-0"
-          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          style={{ borderColor: "var(--border)" }}>
           <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
             User Guide — Multimodal RAG
           </span>
           <button onClick={onClose} aria-label="Close guide"
-            className="text-lg leading-none px-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+            className="text-lg leading-none px-1" style={{ color: "var(--text3)" }}>
             ×
           </button>
         </div>
         <div className="flex items-center gap-1.5 px-5 py-2 border-b shrink-0"
-          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          style={{ borderColor: "var(--border)" }}>
           <input
             type="text"
             value={query}
@@ -170,21 +170,21 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
             }}
             placeholder="Search this guide…"
             className="flex-1 text-[11px] px-2 py-1 rounded border bg-transparent outline-none"
-            style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+            style={{ borderColor: "var(--border2)", color: "var(--text2)" }}
           />
           {query.trim() && (
             <>
-              <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <span className="text-[10px]" style={{ color: "var(--text3)" }}>
                 {matchIndices.length ? `${cursorPos + 1}/${matchIndices.length}` : "0"}
               </span>
               <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchIndices.length}
                 className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-white/5 disabled:opacity-40"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 ↑
               </button>
               <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchIndices.length}
                 className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-white/5 disabled:opacity-40"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 ↓
               </button>
             </>

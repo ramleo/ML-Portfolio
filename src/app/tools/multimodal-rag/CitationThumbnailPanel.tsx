@@ -234,7 +234,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   const downloadTarget = sharpenedImg && viewSharpened ? sharpenedImg : resultImg;
 
   return (
-    <div className="rounded-xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
       <CitationToolbar
         page={page} chunkType={chunkType} visualAction={visualAction} onVisualAction={setVisualAction}
         isImageOrVideoOnly={isImageOrVideoOnly} captionText={captionText} objects={objects} faces={faces}
@@ -267,7 +267,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
           on the outer div, a bbox at top:50.5% rendered at 50.5% of the
           320px clip (161px) instead of 50.5% of the image's true 787px
           height, visibly misaligned once scrolled. */}
-      <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "#0a0f1a" }}>
+      <div className="w-full overflow-y-auto" style={{ maxHeight: 460, background: "var(--bg)" }}>
         <div className="relative w-full">
           <img key={`${editKey}-${version}`}
             src={sharpenedImg && viewSharpened

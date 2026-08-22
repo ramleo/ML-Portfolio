@@ -29,7 +29,7 @@ function ProcessingRail({ steps }: { steps: StepState[] }) {
                 ? { background: "#10b98130", color: "#10b981", border: "1px solid #10b98150" }
                 : s.status === "running"
                 ? { background: `${ACCENT}25`, color: ACCENT, border: `1px solid ${ACCENT}50`, animation: "pulse 1.5s infinite" }
-                : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                : { background: "var(--bg-glass)", color: "var(--text3)", border: "1px solid var(--border)" }}>
               {s.status === "done"
                 ? <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
                 : s.status === "running"
@@ -37,12 +37,12 @@ function ProcessingRail({ steps }: { steps: StepState[] }) {
                 : i + 1}
             </div>
             <span className="text-[9px]"
-              style={{ color: s.status === "done" ? "#10b981" : s.status === "running" ? ACCENT : "rgba(255,255,255,0.25)" }}>
+              style={{ color: s.status === "done" ? "#10b981" : s.status === "running" ? ACCENT : "var(--text3)" }}>
               {s.label}
             </span>
           </div>
           {i < steps.length - 1 && (
-            <div className="w-6 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
+            <div className="w-6 h-px" style={{ background: "var(--border2)" }} />
           )}
         </div>
       ))}
@@ -249,8 +249,8 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             style={{
               ...cardStyle,
               borderStyle: isDragging ? "solid" : "dashed",
-              borderColor: isDragging ? ACCENT : "rgba(255,255,255,0.12)",
-              background: isDragging ? "rgba(6,182,212,0.05)" : "rgba(255,255,255,0.02)",
+              borderColor: isDragging ? ACCENT : "var(--border2)",
+              background: isDragging ? "rgba(6,182,212,0.05)" : "var(--bg-glass)",
               transition: "all 0.2s",
             }}
             className="flex flex-col items-center justify-center gap-4 py-16 cursor-pointer"
@@ -262,15 +262,15 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             <input ref={inputRef} type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" className="hidden"
               onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-              style={{ color: isDragging ? ACCENT : "rgba(255,255,255,0.2)" }}>
+              style={{ color: isDragging ? ACCENT : "var(--text3)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <div className="text-center">
-              <p className="text-sm font-medium" style={{ color: isDragging ? ACCENT : "rgba(255,255,255,0.6)" }}>
+              <p className="text-sm font-medium" style={{ color: isDragging ? ACCENT : "var(--text2)" }}>
                 {isDragging ? "Drop to analyze" : "Drag & drop or click to upload"}
               </p>
-              <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
+              <p className="text-xs mt-1" style={{ color: "var(--text3)" }}>
                 PDF, DOCX, PNG, JPG, WEBP · Max 10 MB
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
         {step === "idle" && (
           <div style={cardStyle} className="px-4 py-3 flex flex-col gap-1.5">
             <label className="text-[9px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: "rgba(255,255,255,0.35)" }}>
+              style={{ color: "var(--text3)" }}>
               Extra fields to extract <span className="normal-case font-normal">(optional, comma-separated)</span>
             </label>
             <input
@@ -290,7 +290,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               onClick={e => e.stopPropagation()}
               placeholder="e.g. GST Number, HSN Code, PO Reference"
               className="bg-transparent text-[11px] px-3 py-2 rounded-lg border outline-none"
-              style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}
+              style={{ borderColor: "var(--border2)", color: "var(--text)" }}
             />
           </div>
         )}
@@ -305,7 +305,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
             <div style={cardStyle} className="px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex flex-col gap-1">
                 {fileName && (
-                  <p className="text-[9px] truncate max-w-[200px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <p className="text-[9px] truncate max-w-[200px]" style={{ color: "var(--text3)" }}>
                     {fileName}
                   </p>
                 )}
@@ -314,7 +314,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               <button
                 onClick={() => { setStep("idle"); setFields([]); setFileName(null); }}
                 className="text-[9px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5 shrink-0"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 New document
               </button>
             </div>

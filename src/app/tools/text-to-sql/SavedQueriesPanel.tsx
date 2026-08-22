@@ -44,7 +44,7 @@ export default function SavedQueriesPanel({
   const isAlreadySaved = currentQuery ? saved.some(s => s.question === currentQuery.question) : false;
 
   return (
-    <div className="rounded-xl border border-white/8 bg-black/30 p-3">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-3">
       <div className="flex items-center justify-between mb-1.5">
         <button onClick={() => setOpen(o => !o)}
           className="text-[9px] font-semibold text-indigo-400/50 flex items-center gap-1 uppercase tracking-widest hover:text-indigo-400 transition-colors">
@@ -70,12 +70,12 @@ export default function SavedQueriesPanel({
         )}
       </div>
       {open && saved.length === 0 && (
-        <p className="text-[9px] text-gray-700 italic mt-1">No saved queries yet — run a query and click Save</p>
+        <p className="text-[9px] text-[var(--text3)] italic mt-1">No saved queries yet — run a query and click Save</p>
       )}
       {open && saved.map(s => (
         <div key={s.id} className="flex items-center gap-1 py-0.5 group">
           <button onClick={() => { onLoad(s.question); }}
-            className="flex-1 text-left text-[10px] text-gray-500 hover:text-indigo-300 transition-colors truncate py-0.5">
+            className="flex-1 text-left text-[10px] text-[var(--text2)] hover:text-indigo-300 transition-colors truncate py-0.5">
             {s.name}
           </button>
           <button onClick={e => deleteQuery(s.id, e)}

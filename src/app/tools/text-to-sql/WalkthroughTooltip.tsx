@@ -99,17 +99,17 @@ export default function WalkthroughTooltip() {
         animation: "pulse-ring 2s ease-in-out infinite",
       }} />
       {/* tip card */}
-      <div className="fixed z-[1000] rounded-xl border border-indigo-500/40 bg-[#0f0f1f] shadow-2xl p-4 pointer-events-auto"
+      <div className="fixed z-[1000] rounded-xl border border-indigo-500/40 bg-[var(--bg-card)] shadow-2xl p-4 pointer-events-auto"
         style={{ width: CARD_W, ...pos }}>
         <div className="flex items-start justify-between mb-2">
           <span className="text-[9px] text-indigo-400/60 font-semibold uppercase tracking-widest">Step {step + 1} of {STEPS.length}</span>
-          <button onClick={finish} className="text-[10px] text-gray-600 hover:text-gray-300 transition-colors">Skip tour</button>
+          <button onClick={finish} className="text-[10px] text-[var(--text3)] hover:text-[var(--text)] transition-colors">Skip tour</button>
         </div>
-        <p className="text-[13px] font-semibold text-white mb-1">{current.title}</p>
-        <p className="text-[11px] text-gray-400 leading-relaxed mb-3">{current.body}</p>
+        <p className="text-[13px] font-semibold text-[var(--text)] mb-1">{current.title}</p>
+        <p className="text-[11px] text-[var(--text2)] leading-relaxed mb-3">{current.body}</p>
         <div className="flex items-center gap-2">
           {step > 0 && (
-            <button onClick={back} className="text-[11px] px-3 py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white transition-colors">← Back</button>
+            <button onClick={back} className="text-[11px] px-3 py-1 rounded-lg border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">← Back</button>
           )}
           <button onClick={next}
             className="flex-1 text-[11px] px-3 py-1 rounded-lg text-white font-medium transition-all hover:brightness-110"
@@ -119,7 +119,7 @@ export default function WalkthroughTooltip() {
         </div>
         <div className="flex gap-1 justify-center mt-3">
           {STEPS.map((_, i) => (
-            <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === step ? "bg-indigo-400" : "bg-white/15"}`} />
+            <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === step ? "bg-indigo-400" : "bg-[var(--border2)]"}`} />
           ))}
         </div>
       </div>

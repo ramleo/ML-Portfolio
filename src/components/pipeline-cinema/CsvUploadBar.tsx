@@ -46,13 +46,13 @@ export default function CsvUploadBar({
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
           style={{
-            border: "2px dashed #1e3a5f",
+            border: "2px dashed var(--border2)",
             borderRadius: 12,
             padding: "1.5rem",
             textAlign: "center",
             cursor: "pointer",
-            background: "#070f1e",
-            color: "#64748b",
+            background: "var(--bg-glass)",
+            color: "var(--text3)",
             fontSize: "0.85rem",
           }}
         >
@@ -83,11 +83,11 @@ export default function CsvUploadBar({
       {/* Filename badge */}
       <span
         style={{
-          background: "#0f1e35",
-          border: "1px solid #1e3a5f",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border2)",
           borderRadius: 999,
           padding: "0.3rem 0.85rem",
-          color: "#94a3b8",
+          color: "var(--text2)",
           fontSize: "0.8rem",
           fontWeight: 500,
         }}
@@ -96,16 +96,16 @@ export default function CsvUploadBar({
       </span>
 
       {/* Target selector — custom dropdown so it opens downward and stays in viewport */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "#64748b" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "var(--text3)" }}>
         Target:
         <div style={{ position: "relative" }}>
           <button
             onClick={() => setDropdownOpen((o) => !o)}
             style={{
-              background: "#0f1e35",
-              border: "1px solid #1e3a5f",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border2)",
               borderRadius: 6,
-              color: "#f0f4f8",
+              color: "var(--text)",
               padding: "0.25rem 0.6rem",
               fontSize: "0.8rem",
               cursor: "pointer",
@@ -129,13 +129,13 @@ export default function CsvUploadBar({
                 top: "calc(100% + 4px)",
                 left: 0,
                 zIndex: 50,
-                background: "#0f2744",
-                border: "1px solid #1e3a5f",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border2)",
                 borderRadius: 8,
                 minWidth: 160,
                 maxHeight: 220,
                 overflowY: "auto",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                boxShadow: "var(--shadow)",
               }}
             >
               {columns.map((col) => (
@@ -147,8 +147,8 @@ export default function CsvUploadBar({
                     width: "100%",
                     textAlign: "left",
                     padding: "0.4rem 0.75rem",
-                    background: col === target ? "#1e3a5f" : "transparent",
-                    color: col === target ? "#38bdf8" : "#94a3b8",
+                    background: col === target ? "var(--border2)" : "transparent",
+                    color: col === target ? "#38bdf8" : "var(--text2)",
                     fontSize: "0.8rem",
                     border: "none",
                     cursor: "pointer",
@@ -170,9 +170,9 @@ export default function CsvUploadBar({
           style={{
             padding: "0.3rem 0.85rem",
             borderRadius: 999,
-            border: `1.5px solid ${taskType === t ? "#7c3aed" : "#1e3a5f"}`,
+            border: `1.5px solid ${taskType === t ? "#7c3aed" : "var(--border2)"}`,
             background: taskType === t ? "#7c3aed22" : "transparent",
-            color: taskType === t ? "#a78bfa" : "#475569",
+            color: taskType === t ? "#a78bfa" : "var(--text3)",
             fontSize: "0.78rem",
             fontWeight: 600,
             cursor: "pointer",
@@ -188,9 +188,9 @@ export default function CsvUploadBar({
         style={{
           padding: "0.3rem 0.7rem",
           borderRadius: 999,
-          border: "1px solid #1e3a5f",
+          border: "1px solid var(--border2)",
           background: "transparent",
-          color: "#64748b",
+          color: "var(--text3)",
           fontSize: "0.78rem",
           cursor: "pointer",
         }}

@@ -14,7 +14,7 @@ export type QrHistoryEntry = {
   reputationChecked: boolean;
 };
 
-const RISK_DOT: Record<string, string> = { low: "#34d399", medium: "#fbbf24", high: "#f87171", unknown: "rgba(255,255,255,0.3)" };
+const RISK_DOT: Record<string, string> = { low: "#34d399", medium: "#fbbf24", high: "#f87171", unknown: "var(--text3)" };
 
 export function loadHistory(): QrHistoryEntry[] {
   try {
@@ -65,16 +65,16 @@ export default function QrScanHistory({ onRestore }: { onRestore: (e: QrHistoryE
 
   return (
     <div style={{
-      background: "var(--bg-glass, rgba(255,255,255,0.03))", backdropFilter: "blur(14px)",
-      border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
+      background: "var(--bg-glass)", backdropFilter: "blur(14px)",
+      border: "1px solid var(--border)", borderRadius: 14,
     }} className="px-4 py-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
-          style={{ color: "rgba(255,255,255,0.35)" }}>
+          style={{ color: "var(--text3)" }}>
           Recent scans
         </span>
         <button onClick={clear} className="text-[8px] px-1.5 py-0.5 rounded border transition-colors hover:bg-white/5"
-          style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)" }}>
+          style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
           Clear
         </button>
       </div>
@@ -82,13 +82,13 @@ export default function QrScanHistory({ onRestore }: { onRestore: (e: QrHistoryE
         {entries.map(e => (
           <button key={e.id} onClick={() => onRestore(e)}
             className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/5"
-            style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+            style={{ border: "1px solid var(--border)" }}>
             <span className="w-2 h-2 rounded-full shrink-0" style={{ background: RISK_DOT[worstRisk(e.qrCodes)] }} />
             <span className="flex-1 min-w-0">
-              <span className="block text-[11px] truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
+              <span className="block text-[11px] truncate" style={{ color: "var(--text2)" }}>
                 {e.label}
               </span>
-              <span className="block text-[8px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <span className="block text-[8px]" style={{ color: "var(--text3)" }}>
                 {e.qrCodes.length} result{e.qrCodes.length !== 1 ? "s" : ""} · {timeAgo(e.at)}
               </span>
             </span>
@@ -99,7 +99,7 @@ export default function QrScanHistory({ onRestore }: { onRestore: (e: QrHistoryE
           </button>
         ))}
       </div>
-      <p className="text-[8px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+      <p className="text-[8px]" style={{ color: "var(--text3)" }}>
         Stored in your browser only · shows the saved result, doesn&apos;t re-run reputation checks
       </p>
     </div>

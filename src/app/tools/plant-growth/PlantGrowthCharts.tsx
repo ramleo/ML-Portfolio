@@ -155,7 +155,7 @@ export function CompareView({ plants, accent, onImageClick, cmPerPixel }: {
                 {p.relativePct}%
               </span>
             </div>
-            <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "rgba(255,255,255,0.08)" }}>
+            <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "var(--border)" }}>
               <div className="h-full rounded-full" style={{ width: `${p.relativePct}%`, background: p.lowConfidence ? WARN_COLOR : accent }} />
             </div>
           </div>

@@ -50,7 +50,7 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   return (
@@ -63,7 +63,7 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
           frames and averages them, rather than deciding off a single shot.
         </p>
 
-        <div className="relative rounded-xl overflow-hidden mb-4" style={{ background: "#0a0f1a", aspectRatio: "4/3", maxWidth: 480 }}>
+        <div className="relative rounded-xl overflow-hidden mb-4" style={{ background: "var(--bg)", aspectRatio: "4/3", maxWidth: 480 }}>
           <video ref={webcam.videoRef} className="w-full h-full object-cover" muted playsInline
             style={{ display: webcam.active ? "block" : "none", transform: "scaleX(-1)" }} />
           {!webcam.active && (
@@ -89,14 +89,14 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
               </button>
               <button onClick={webcam.stop}
                 className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
-                style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 Stop camera
               </button>
             </>
           )}
           <button onClick={() => fileInputRef.current?.click()} disabled={checking}
             className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
-            style={{ borderColor: "rgba(255,255,255,0.15)", color: "var(--text3)", opacity: checking ? 0.5 : 1 }}>
+            style={{ borderColor: "var(--border2)", color: "var(--text3)", opacity: checking ? 0.5 : 1 }}>
             Upload a photo instead
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden"

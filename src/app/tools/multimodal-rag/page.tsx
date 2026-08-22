@@ -21,7 +21,7 @@ export default function MultimodalRagPage() {
   const [statsOpen, setStatsOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen text-white overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
       <ToolsAIChat context={{
         accent: ACCENT,
@@ -34,7 +34,10 @@ export default function MultimodalRagPage() {
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-[1600px] mx-auto px-4 w-full">
           <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
+            className="flex items-center gap-2 text-sm mb-4 transition-colors"
+            style={{ color: "var(--text3)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -58,7 +61,7 @@ export default function MultimodalRagPage() {
                   Tables + Figures
                 </span>
               </div>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
                 Ask questions about a PDF&apos;s tables and charts, or upload a standalone image — with citations
               </p>
             </div>
@@ -73,7 +76,7 @@ export default function MultimodalRagPage() {
             </button>
             <button onClick={() => setStatsOpen(true)}
               className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
-              style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
+              style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               Usage stats
             </button>
           </div>

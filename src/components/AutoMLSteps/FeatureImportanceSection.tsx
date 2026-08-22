@@ -14,7 +14,7 @@ export function FeatureImportanceSection({ features }: Props) {
         Driving features
       </div>
       <FeatureImportanceChart features={features} />
-      <details style={{ marginTop: "0.5rem", fontSize: "0.78rem", color: "#6b7280", cursor: "pointer" }}>
+      <details style={{ marginTop: "0.5rem", fontSize: "0.78rem", color: "var(--text3)", cursor: "pointer" }}>
         <summary style={{ userSelect: "none" }}>
           Why only {Math.min(features.length, 7)} features shown?
         </summary>

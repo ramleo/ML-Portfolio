@@ -55,35 +55,35 @@ export default function SearchableTextPanel({ items, accent, placeholder, highli
           onChange={e => setQuery(e.target.value)}
           placeholder={placeholder}
           className="flex-1 text-[9px] px-2 py-1 rounded border bg-transparent outline-none"
-          style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+          style={{ borderColor: "var(--border2)", color: "var(--text2)" }}
         />
         {query.trim() && (
           <>
-            <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <span className="text-[9px]" style={{ color: "var(--text3)" }}>
               {matchKeys.length ? `${(matchCursor % matchKeys.length) + 1}/${matchKeys.length}` : "0"}
             </span>
             <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchKeys.length}
               className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
-              style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+              style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               ↑
             </button>
             <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchKeys.length}
               className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
-              style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+              style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               ↓
             </button>
           </>
         )}
       </div>
       <div className="flex flex-col gap-1 overflow-y-auto p-2 rounded-lg min-h-0"
-        style={{ background: "rgba(255,255,255,0.02)", maxHeight: 160 }}>
+        style={{ background: "var(--border)", maxHeight: 160 }}>
         {items.map(it => (
           <p key={it.key}
             ref={el => { refs.current.set(it.key, el); itemRef?.(it.key, el); }}
             onClick={onSelect ? () => onSelect(it.key) : undefined}
             className="text-[10px] leading-relaxed rounded px-1 -mx-1 transition-colors"
             style={{
-              color: "rgba(255,255,255,0.6)",
+              color: "var(--text2)",
               // Only ever tints the whole item for a citation/chapter "jump
               // here" (highlightedKey) — NOT for the current search match.
               // A search match already gets its own per-word <mark>; tinting

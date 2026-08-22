@@ -169,7 +169,7 @@ export default function QueryResultPanel({
             <div className="flex-1 min-w-0">
               <p className="text-xs text-red-400 leading-relaxed">{cleanErr(error)}</p>
               {isConfigErr && (
-                <p className="text-[11px] text-gray-500 mt-1">{providerLabel} key isn&apos;t configured — switch provider in the dropdown.</p>
+                <p className="text-[11px] text-[var(--text3)] mt-1">{providerLabel} key isn&apos;t configured — switch provider in the dropdown.</p>
               )}
               {canRetry && onRetry && (
                 <button onClick={onRetry} className="mt-2 flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
@@ -183,7 +183,7 @@ export default function QueryResultPanel({
       })()}
 
       {generatedSql && (
-        <div className="rounded-xl border border-indigo-500/20 bg-black/50 p-4">
+        <div className="rounded-xl border border-indigo-500/20 bg-[var(--bg-glass)] p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-indigo-400/80 uppercase tracking-wide">Generated SQL</span>
@@ -200,10 +200,10 @@ export default function QueryResultPanel({
                 {sqlExplLoading ? "…" : "Explain"}
               </button>
               <button onClick={() => setEditing(e => !e)}
-                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-indigo-300 hover:border-indigo-500/30 transition-colors">
+                className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-indigo-300 hover:border-indigo-500/30 transition-colors">
                 {editing ? "Done" : "Edit"}
               </button>
-              <button onClick={copySQL} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">
+              <button onClick={copySQL} className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
@@ -215,7 +215,7 @@ export default function QueryResultPanel({
                 onChange={e => handleSqlChange(e.target.value)}
                 rows={Math.max(3, editedSql.split("\n").length + 1)}
                 spellCheck={false}
-                className="w-full text-xs font-mono bg-black/60 border border-indigo-500/30 rounded-lg px-3 py-2 text-gray-300 outline-none resize-none focus:border-indigo-500/60 transition-colors leading-relaxed"
+                className="w-full text-xs font-mono bg-[var(--bg-glass)] border border-indigo-500/30 rounded-lg px-3 py-2 text-[var(--text)] outline-none resize-none focus:border-indigo-500/60 transition-colors leading-relaxed"
               />
               {onRunSQL && (
                 <button
@@ -227,7 +227,7 @@ export default function QueryResultPanel({
               )}
             </div>
           ) : (
-            <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">{highlightSQL(editedSql)}</pre>
+            <pre className="text-xs font-mono text-[var(--text)] overflow-x-auto whitespace-pre-wrap leading-relaxed">{highlightSQL(editedSql)}</pre>
           )}
           {showDiff && sqlEdited && generatedSql && <SqlDiff original={generatedSql} edited={editedSql} />}
           {sqlExplErr && (
@@ -236,48 +236,48 @@ export default function QueryResultPanel({
           {sqlExpl && (
             <div className="mt-3 pt-3 border-t border-indigo-500/15">
               <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest mb-1.5">Query explanation</p>
-              <p className="text-[12px] text-gray-300 leading-relaxed">{sqlExpl}</p>
+              <p className="text-[12px] text-[var(--text)] leading-relaxed">{sqlExpl}</p>
             </div>
           )}
         </div>
       )}
 
       {results && results.columns.length > 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Results</span>
-            <span className="text-[11px] text-gray-500">{results.count} rows · {results.exec_time_ms}ms</span>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] overflow-hidden">
+          <div className="px-4 py-2 border-b border-[var(--border)] flex items-center gap-2">
+            <span className="text-xs font-semibold text-[var(--text2)] uppercase tracking-wide">Results</span>
+            <span className="text-[11px] text-[var(--text3)]">{results.count} rows · {results.exec_time_ms}ms</span>
             {filterActive && (
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Filter active</span>
             )}
             <div className="ml-auto flex items-center gap-1">
               <button onClick={() => downloadFile([results.columns.map(csvEscape).join(","), ...results.rows.map(r => (r as unknown[]).map(csvEscape).join(","))].join("\n"), "results.csv", "text/csv")}
-                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">CSV</button>
+                className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">CSV</button>
               <button onClick={() => downloadFile(JSON.stringify(results.rows.map(r => Object.fromEntries(results.columns.map((c, i) => [c, (r as unknown[])[i]]))), null, 2), "results.json", "application/json")}
-                className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">JSON</button>
+                className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">JSON</button>
               <button onClick={() => {
                 const header = "| " + results.columns.join(" | ") + " |";
                 const divider = "| " + results.columns.map(() => "---").join(" | ") + " |";
                 const body = results.rows.map(r => "| " + (r as unknown[]).map(c => String(c ?? "")).join(" | ") + " |");
                 downloadFile([header, divider, ...body].join("\n"), "results.md", "text/markdown");
-              }} className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">MD</button>
+              }} className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">MD</button>
               {generatedSql && (
                 <button onClick={() => exportNotebook(question ?? "", generatedSql, localExpl)}
-                  className="text-[10px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white transition-colors">.ipynb</button>
+                  className="text-[10px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] transition-colors">.ipynb</button>
               )}
             </div>
           </div>
           <div className="overflow-x-auto max-h-80 overflow-y-auto">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 bg-[#0f0f0f] z-10">
-                <tr className="border-b border-white/10">
+              <thead className="sticky top-0 bg-[var(--bg-card)] z-10">
+                <tr className="border-b border-[var(--border)]">
                   {results.columns.map(c => {
                     const active = sortCol === c;
                     return (
                       <th key={c} onClick={() => {
                         if (active) setSortDir(d => d === "asc" ? "desc" : "asc");
                         else { setSortCol(c); setSortDir("asc"); }
-                      }} className="px-3 py-2 text-left text-gray-400 font-medium whitespace-nowrap cursor-pointer select-none hover:text-indigo-300 transition-colors group">
+                      }} className="px-3 py-2 text-left text-[var(--text2)] font-medium whitespace-nowrap cursor-pointer select-none hover:text-indigo-300 transition-colors group">
                         <span className="flex items-center gap-1">
                           {c}
                           <span className={`text-[9px] transition-opacity ${active ? "opacity-100 text-indigo-400" : "opacity-0 group-hover:opacity-40"}`}>
@@ -301,8 +301,8 @@ export default function QueryResultPanel({
                 ).map((row, i) => (
                   <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.07] transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
                     {(row as unknown[]).map((cell, j) => (
-                      <td key={j} className="px-3 py-1.5 text-gray-300 whitespace-nowrap">
-                        {cell === null ? <span className="text-gray-600">null</span> : formatCell(cell)}
+                      <td key={j} className="px-3 py-1.5 text-[var(--text)] whitespace-nowrap">
+                        {cell === null ? <span className="text-[var(--text3)]">null</span> : formatCell(cell)}
                       </td>
                     ))}
                   </tr>
@@ -310,31 +310,31 @@ export default function QueryResultPanel({
               </tbody>
             </table>
             {totalCount > 0 && onPageChange && (
-              <div className="flex items-center justify-between px-4 py-2 border-t border-white/5">
-                <span className="text-[11px] text-gray-500">
+              <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)]">
+                <span className="text-[11px] text-[var(--text3)]">
                   Rows {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}
                 </span>
                 <div className="flex items-center gap-1">
                   <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage <= 1}
-                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">← Prev</button>
-                  <span className="text-[11px] text-gray-500 px-1">{currentPage} / {Math.ceil(totalCount / pageSize)}</span>
+                    className="text-[11px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">← Prev</button>
+                  <span className="text-[11px] text-[var(--text3)] px-1">{currentPage} / {Math.ceil(totalCount / pageSize)}</span>
                   <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage >= Math.ceil(totalCount / pageSize)}
-                    className="text-[11px] px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">Next →</button>
+                    className="text-[11px] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">Next →</button>
                 </div>
               </div>
             )}
           </div>
           {onFilter && (
-            <div className="px-3 py-2 border-t border-white/5 flex items-center gap-2">
+            <div className="px-3 py-2 border-t border-[var(--border)] flex items-center gap-2">
               <input value={filterText} onChange={e => setFilterText(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && filterText.trim()) handleFilter(); }}
                 placeholder="Filter rows… e.g. revenue > 1000, country is USA"
-                className="flex-1 text-[11px] bg-black/30 border border-white/10 rounded px-2 py-1 text-gray-300 placeholder-gray-600 outline-none" />
+                className="flex-1 text-[11px] bg-[var(--bg-glass)] border border-[var(--border)] rounded px-2 py-1 text-[var(--text)] placeholder:text-[var(--text3)] outline-none" />
               {filterActive && onClearFilter && (
-                <button onClick={onClearFilter} className="text-[10px] text-amber-400 hover:text-white shrink-0 transition-colors">× Clear</button>
+                <button onClick={onClearFilter} className="text-[10px] text-amber-400 hover:text-[var(--text)] shrink-0 transition-colors">× Clear</button>
               )}
               <button onClick={handleFilter} disabled={!filterText.trim() || filterLoading}
-                className="text-[10px] px-2 py-1 rounded border border-white/10 text-gray-400 hover:text-white disabled:opacity-40 transition-colors shrink-0">
+                className="text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text2)] hover:text-[var(--text)] disabled:opacity-40 transition-colors shrink-0">
                 {filterLoading ? "Filtering…" : "Filter"}
               </button>
             </div>
@@ -383,7 +383,7 @@ export default function QueryResultPanel({
             </svg>
             <p className="text-[10px] font-semibold text-indigo-400/70 uppercase tracking-widest">Explanation</p>
           </div>
-          <p className="text-sm text-gray-300 leading-relaxed">{localExpl}</p>
+          <p className="text-sm text-[var(--text)] leading-relaxed">{localExpl}</p>
           {suggestions.length > 0 && (
             <div className="mt-3 flex flex-col gap-1.5">
               <p className="text-[9px] font-semibold text-indigo-400/50 uppercase tracking-widest">You might also ask</p>

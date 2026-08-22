@@ -55,13 +55,13 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
               {speaking ? "Stop reading" : "Read aloud"}
             </button>
           )}
-          <p className="text-[10px] whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.6)" }}>{captionText}</p>
+          <p className="text-[10px] whitespace-pre-wrap" style={{ color: "var(--text2)" }}>{captionText}</p>
         </div>
       )}
       {isImageOrVideoOnly && visualAction === "objects" && objects && objects.length > 0 && (
         <div className="px-3 py-2 flex flex-col gap-1">
           {objects.filter(o => !isCovered(o.bbox)).map((o, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
               {o.label} — {Math.round(o.confidence * 100)}%
             </div>
           ))}
@@ -70,8 +70,8 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
       {isImageOrVideoOnly && visualAction === "entities" && entities && entities.length > 0 && (
         <div className="px-3 py-2 flex flex-col gap-1">
           {entities.map((e, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              <span style={{ color: "rgba(255,255,255,0.3)" }}>{e.type}:</span> {e.value}
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
+              <span style={{ color: "var(--text3)" }}>{e.type}:</span> {e.value}
             </div>
           ))}
         </div>
@@ -86,7 +86,7 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
             surfaces, spokes, and glossy stickers commonly trigger this too. Verify visually.
           </p>
           {tampering.filter(t => !isCovered(t.bbox)).map((t, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
               Region {i + 1} — {tamperingLevel(t.confidence)} confidence ({Math.round(t.confidence * 100)}%)
             </div>
           ))}
@@ -94,7 +94,7 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
       )}
       {isImageOrVideoOnly && visualAction === "plates" && typeof zoneViolationCount === "number" && (
         <div className="px-3 py-2">
-          <p className="text-[9px] font-bold" style={{ color: zoneViolationCount > 0 ? "#f87171" : "rgba(255,255,255,0.5)" }}>
+          <p className="text-[9px] font-bold" style={{ color: zoneViolationCount > 0 ? "#f87171" : "var(--text2)" }}>
             {zoneViolationCount > 0
               ? `${zoneViolationCount} of ${platesCount} plate${platesCount === 1 ? "" : "s"} inside the restricted zone`
               : `No plates inside the restricted zone (${platesCount} total)`}
@@ -103,10 +103,10 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
       )}
       {isImageOrVideoOnly && visualAction === "crowd" && typeof personCount === "number" && (
         <div className="px-3 py-2 flex flex-col gap-1">
-          <p className="text-[20px] font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <p className="text-[20px] font-bold" style={{ color: "var(--text)" }}>
             {personCount} {personCount === 1 ? "person" : "people"}
           </p>
-          <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             The real detected count — not capped like the boxes "Detect objects" draws. Heavy
             overlap/occlusion in a dense crowd can still undercount people hidden behind others.
           </p>
@@ -114,23 +114,23 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
       )}
       {isImageOrVideoOnly && visualAction === "duplicates" && duplicates && duplicates.length > 0 && (
         <div className="px-3 py-2 flex flex-col gap-1">
-          <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             Closely matches other page(s) already uploaded this session:
           </p>
           {duplicates.map((d, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
               {d.source} · Page {d.page} — {Math.round(d.similarity * 100)}% match
             </div>
           ))}
         </div>
       )}
       {similarNote && (
-        <p className="text-[9px] px-3 py-2" style={{ color: "rgba(255,255,255,0.35)" }}>{similarNote}</p>
+        <p className="text-[9px] px-3 py-2" style={{ color: "var(--text3)" }}>{similarNote}</p>
       )}
       {similar && (
         <div className="px-3 py-2 flex flex-col gap-1">
           {similar.map((s, i) => (
-            <div key={i} className="text-[9px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
               Page {s.page} — {Math.round(s.similarity * 100)}% similar
             </div>
           ))}

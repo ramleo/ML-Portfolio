@@ -20,11 +20,6 @@ type Props = {
    * inside another component (e.g. DocumentTray) that already provides
    * the surrounding card, so the two don't nest into a double border. */
   bare?: boolean;
-  /** Hosting page's own accent — colors the card's top accent bar (see
-   * ProjectCard.tsx's pattern). Each caller has its own theme (violet for
-   * Multimodal RAG, amber for Reconciliation), so this can't be hardcoded
-   * here. No default — omitting it just skips the top bar. */
-  accent?: string;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -49,10 +44,10 @@ function Toggle({ checked, onChange, label, caveat }: {
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)}
         className="mt-0.5 accent-[#a78bfa]" />
       <span>
-        <span className="block text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>
+        <span className="block text-[11px] font-medium" style={{ color: "var(--text)" }}>
           {label}
         </span>
-        <span className="block text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <span className="block text-[9px] mt-0.5" style={{ color: "var(--text2)" }}>
           {caveat}
         </span>
       </span>
@@ -60,7 +55,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare, accent }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -151,7 +146,6 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
 
   const cardStyle: React.CSSProperties = bare ? {} : {
     background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16,
-    ...(accent ? { borderTop: `3px solid ${accent}` } : {}),
   };
 
   return (
@@ -162,32 +156,32 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             className={bare
               ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-white/5"
               : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-white/5"}
-            style={{ borderColor: "rgba(255,255,255,0.15)" }}
+            style={{ borderColor: "var(--border2)" }}
             onClick={() => inputRef.current?.click()}
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) upload(f); }}
           >
             <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.csv,.mp4,.mov,.webm,.avi,.mkv,.mp3,.wav,.m4a,.ogg,.flac,.aac" className="hidden"
               onChange={e => { if (e.target.files?.[0]) upload(e.target.files[0]); }} />
-            <svg width={bare ? 18 : 32} height={bare ? 18 : 32} viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <svg width={bare ? 18 : 32} height={bare ? 18 : 32} viewBox="0 0 24 24" fill="none" style={{ color: "var(--text3)" }}>
               <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             {bare ? (
               <>
-                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-[10px]" style={{ color: "var(--text2)" }}>
                   Add a document, image, or video
                 </p>
-                <p className="text-[9px] text-center px-2" style={{ color: "rgba(255,255,255,0.22)" }}>
+                <p className="text-[9px] text-center px-2" style={{ color: "var(--text3)" }}>
                   PDF, image, video, or audio · Max 20 MB
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
                   Drag & drop or click to upload a PDF, image, CSV, video, or audio file
                 </p>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+                <p className="text-xs" style={{ color: "var(--text3)" }}>
                   PDF, PNG, JPG, GIF, WEBP, MP4/MOV/WEBM/AVI/MKV, MP3/WAV/M4A/OGG/FLAC/AAC · Max 20 MB ·
                   PDFs: first 8 pages · Videos: audio transcript + up to 6 sampled frames · Audio: full transcript
                 </p>
@@ -214,7 +208,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
       ) : (
         <div className="flex flex-col gap-3">
           {fileName && (
-            <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.5)" }}>{fileName}</p>
+            <p className="text-[11px] truncate" style={{ color: "var(--text2)" }}>{fileName}</p>
           )}
           <div className="flex items-center gap-2 flex-wrap">
             {STEPS.map((step, i) => {
@@ -227,14 +221,14 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                       ? { background: "#10b98130", color: "#10b981", border: "1px solid #10b98150" }
                       : isActive
                       ? { background: `${ACCENT}25`, color: ACCENT, border: `1px solid ${ACCENT}50` }
-                      : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      : { background: "var(--border)", color: "var(--text3)", border: "1px solid var(--border)" }}>
                     {isDone ? "✓" : i + 1}
                   </div>
                   <span className="text-[9px] capitalize"
-                    style={{ color: isDone ? "#10b981" : isActive ? ACCENT : "rgba(255,255,255,0.25)" }}>
+                    style={{ color: isDone ? "#10b981" : isActive ? ACCENT : "var(--text3)" }}>
                     {step === "extract" ? "Extract + caption" : "Embed"}
                   </span>
-                  {i < STEPS.length - 1 && <div className="w-6 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />}
+                  {i < STEPS.length - 1 && <div className="w-6 h-px" style={{ background: "var(--border2)" }} />}
                 </div>
               );
             })}
@@ -243,24 +237,24 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             <div className="flex flex-col gap-1">
               {state.indeterminate ? (
                 <>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
                     <div style={{
                       width: "40%", height: "100%", borderRadius: 9999,
                       background: ACCENT, animation: "mmragIndeterminate 1.3s ease-in-out infinite",
                     }} />
                   </div>
                   <style>{`@keyframes mmragIndeterminate { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }`}</style>
-                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>{indeterminateLabel(fileName)}</span>
+                  <span className="text-[9px]" style={{ color: "var(--text3)" }}>{indeterminateLabel(fileName)}</span>
                 </>
               ) : state.pages ? (
                 <>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
                     <div style={{
                       width: `${Math.round(((state.page ?? 0) / state.pages) * 100)}%`, height: "100%",
                       borderRadius: 9999, background: ACCENT, transition: "width 0.3s ease",
                     }} />
                   </div>
-                  <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <span className="text-[9px]" style={{ color: "var(--text3)" }}>
                     Page {state.page ?? 0} of {state.pages}
                   </span>
                 </>
@@ -268,7 +262,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             </div>
           )}
           {state.kind === "done" && (
-            <div className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "var(--text2)" }}>
               <span>
                 {[
                   state.summary.text ? `${state.summary.text} text` : null,
@@ -286,7 +280,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               )}
               <button onClick={() => { setState({ kind: "idle" }); setFileName(null); }}
                 className="ml-auto text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-white/5"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                 Add another document
               </button>
             </div>

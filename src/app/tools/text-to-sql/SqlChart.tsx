@@ -284,8 +284,8 @@ function Stat({ cols, rows, s }: { cols: string[]; rows: unknown[][]; s: VS }) {
   return (
     <div className="flex flex-wrap gap-2 py-1">
       {rows.flatMap((r,ri)=>s.n.map(ni=>(
-        <div key={`${ri}-${ni}`} className="flex-1 min-w-[110px] rounded-xl border border-white/10 bg-white/5 p-3">
-          <p className="text-[9px] text-gray-500 uppercase tracking-wide mb-1 truncate">{s.cx>=0?`${String((r as unknown[])[s.cx])} · `:""}{ cols[ni]}</p>
+        <div key={`${ri}-${ni}`} className="flex-1 min-w-[110px] rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-3">
+          <p className="text-[9px] text-[var(--text3)] uppercase tracking-wide mb-1 truncate">{s.cx>=0?`${String((r as unknown[])[s.cx])} · `:""}{ cols[ni]}</p>
           <p className="text-xl font-bold text-indigo-300">{fmt(toN((r as unknown[])[ni]))}</p>
         </div>
       )))}
@@ -317,17 +317,17 @@ export default function SqlChart({ cols, rows, overrideType = null, onOverrideCh
   const isOverridden = overrideType !== null && overrideType !== spec.type;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-black/40 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-white/8">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="6" width="2" height="5" rx="0.5" fill="#6366f1"/><rect x="5" y="3" width="2" height="8" rx="0.5" fill="#8b5cf6"/><rect x="9" y="1" width="2" height="10" rx="0.5" fill="#06b6d4"/></svg>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{LABELS[activeSpec.type]}</span>
-          <span className="text-[9px] text-gray-600">{rows.length} rows · {isOverridden ? "manual" : "auto"}</span>
+          <span className="text-[10px] font-semibold text-[var(--text2)] uppercase tracking-wide">{LABELS[activeSpec.type]}</span>
+          <span className="text-[9px] text-[var(--text3)]">{rows.length} rows · {isOverridden ? "manual" : "auto"}</span>
           {isOverridden && (
             <button onClick={()=>setOverrideType(null)} className="text-[9px] text-indigo-400/60 hover:text-indigo-300 transition-colors">reset</button>
           )}
         </div>
-        <button onClick={()=>setOpen(o=>!o)} className="text-[10px] text-gray-600 hover:text-gray-300 transition-colors">{open?"Hide":"Show"}</button>
+        <button onClick={()=>setOpen(o=>!o)} className="text-[10px] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{open?"Hide":"Show"}</button>
       </div>
       {open && (
         <>
@@ -337,7 +337,7 @@ export default function SqlChart({ cols, rows, overrideType = null, onOverrideCh
                 className={`text-[9px] px-2 py-0.5 rounded border transition-all ${
                   activeSpec.type===t
                     ? "border-indigo-500/50 bg-indigo-500/15 text-indigo-300"
-                    : "border-white/8 text-gray-600 hover:text-gray-300 hover:border-white/20"
+                    : "border-[var(--border)] text-[var(--text3)] hover:text-[var(--text2)] hover:border-[var(--border2)]"
                 }`}>
                 {TYPE_ICONS[t]}
               </button>

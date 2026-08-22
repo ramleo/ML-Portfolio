@@ -14,7 +14,7 @@ const ACCENT  = "#22d3ee";
 const CARD_BG = "var(--bg-glass)";
 
 const selectStyle = {
-  background: "#111827", border: "1px solid var(--border2)", borderRadius: 8,
+  background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: 8,
   color: "var(--text)", fontSize: "0.8rem", padding: "0.4rem 0.6rem", width: "100%",
 } as const;
 
@@ -172,7 +172,7 @@ export function ConfigurePanel({
           )}
 
           {/* Toggles */}
-          <div style={{ padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}` }}>
+          <div style={{ padding: "1rem", borderRadius: 12, background: CARD_BG, border: "1px solid var(--border)" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
               <Toggle on={removeDups}     onChange={v => { setRemoveDups(v);     setActivePreset("custom"); }} label="Remove Duplicates" />
               <Toggle on={removeOutliers} onChange={v => { setRemoveOutliers(v); setActivePreset("custom"); }} label="Remove Outliers (IQR)" />

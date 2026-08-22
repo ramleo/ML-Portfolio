@@ -23,20 +23,20 @@ export default function ReconciliationDocChipsRow({ documents, accent, onSetRole
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
         Documents:
       </span>
       {documents.map(d => (
         <span key={d.source} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
-          style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "rgba(255,255,255,0.7)" }}>
+          style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
           {displayName(d.source)}
           <button onClick={() => onSetRole(d.source, d.role === "contract" ? "invoice" : "contract")}
             title="Click to flip role"
             className="px-1.5 py-px rounded-full font-bold uppercase tracking-wide"
             style={{
               fontSize: 8,
-              background: d.role === "contract" ? `${accent}30` : "rgba(255,255,255,0.06)",
-              color: d.role === "contract" ? accent : "rgba(255,255,255,0.4)",
+              background: d.role === "contract" ? `${accent}30` : "var(--bg-glass)",
+              color: d.role === "contract" ? accent : "var(--text3)",
             }}>
             {d.role}
           </button>

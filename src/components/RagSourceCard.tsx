@@ -196,7 +196,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
       }}
       onMouseLeave={() => setHovering(false)}
       style={{
-        background: "rgba(255,255,255,0.03)",
+        background: "var(--bg-glass)",
         border: `1px solid ${accent}28`,
         borderRadius: 8,
         padding: "0.35rem 0.55rem",
@@ -209,9 +209,9 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
         <div style={{
           position: "fixed", left: tooltipPos.left, zIndex: 9999,
           ...(tooltipPos.below ? { top: tooltipPos.top } : { bottom: window.innerHeight - tooltipPos.top }),
-          maxWidth: 320, background: "#141420", border: `1px solid ${accent}40`,
+          maxWidth: 320, background: "var(--bg-card)", border: `1px solid ${accent}40`,
           borderRadius: 6, padding: "0.4rem 0.55rem", fontSize: "0.78rem", lineHeight: 1.5,
-          color: "var(--text2)", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", pointerEvents: "none",
+          color: "var(--text2)", boxShadow: "var(--shadow)", pointerEvents: "none",
         }}>
           {text.slice(0, 180)}{text.length > 180 ? "…" : ""}
         </div>,
@@ -278,14 +278,14 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
           fontSize: "0.79rem",
           color: "var(--text3)",
           lineHeight: 1.6,
-          borderTop: `1px solid rgba(255,255,255,0.06)`,
+          borderTop: `1px solid var(--border)`,
           paddingTop: "0.35rem",
         }}>
           {chunkType === "table" ? (
             <RagTableView text={text} accent={accent} filename={`${displayName(source, cat).replace(/\.[^.]+$/, "") || "table"}-p${page ?? 1}.csv`} />
           ) : (
             <div style={{
-              background: "rgba(255,255,255,0.03)", borderLeft: `2px solid ${accent}`, borderRadius: 4,
+              background: "var(--bg-glass)", borderLeft: `2px solid ${accent}`, borderRadius: 4,
               padding: "0.4rem 0.55rem", marginBottom: "0.45rem", color: "var(--text2)",
             }}>
               {text.slice(0, 220)}{text.length > 220 ? "…" : ""}
@@ -316,7 +316,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span>Rerank score</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <div style={{ width: 48, height: 4, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ width: 48, height: 4, borderRadius: 3, background: "var(--border)", overflow: "hidden" }}>
                     <div style={{ width: `${Math.round(rerankValue * 100)}%`, height: "100%", background: accent }} />
                   </div>
                   <span style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>{rerankValue.toFixed(2)}</span>
@@ -378,7 +378,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                     {pageChunks.map((c, i) => (
-                      <div key={i} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 6, padding: "0.3rem 0.45rem" }}>
+                      <div key={i} style={{ background: "var(--bg-glass)", borderRadius: 6, padding: "0.3rem 0.45rem" }}>
                         {c.chunk_type && c.chunk_type !== "text" && (
                           <span style={{ fontSize: "0.72rem", fontWeight: 700, color: accent, textTransform: "uppercase", marginRight: "0.3rem" }}>
                             {CHUNK_TYPE_LABEL[c.chunk_type] ?? c.chunk_type}

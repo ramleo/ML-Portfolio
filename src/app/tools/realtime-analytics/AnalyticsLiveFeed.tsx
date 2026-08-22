@@ -49,14 +49,14 @@ function EventDetail({ ev }: { ev: FeedEvent }) {
     ...Object.entries(meta).map(([k, v]) => [k, String(v)] as [string, string]),
   ];
   return (
-    <div className="mx-4 mb-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col gap-1">
+    <div className="mx-4 mb-2 rounded-lg border border-[var(--border)] bg-[var(--bg-glass)] p-3 flex flex-col gap-1">
       {rows.map(([k, v]) => (
         <div key={k} className="flex gap-2 text-[9px]">
-          <span className="text-gray-600 w-20 shrink-0">{k}</span>
-          <span className="text-gray-400 font-mono truncate">{v}</span>
+          <span className="text-[var(--text3)] w-20 shrink-0">{k}</span>
+          <span className="text-[var(--text2)] font-mono truncate">{v}</span>
         </div>
       ))}
-      {rows.length === 0 && <span className="text-[9px] text-gray-700">No extra details</span>}
+      {rows.length === 0 && <span className="text-[9px] text-[var(--text3)]">No extra details</span>}
     </div>
   );
 }
@@ -75,13 +75,13 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
 
   return (
     <div className="rounded-xl overflow-hidden" style={{
-      background: "linear-gradient(160deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.02) 100%)",
-      border: "1px solid rgba(255,255,255,0.10)",
+      background: "var(--bg-glass)",
+      border: "1px solid var(--border)",
       boxShadow: "0 0 0 1px rgba(255,255,255,0.03) inset,0 8px 32px rgba(0,0,0,0.35)",
     }}>
       <style>{`@keyframes feedIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}`}</style>
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
         <p className="text-[10px] font-bold uppercase tracking-widest" style={{
           background: "linear-gradient(90deg,#10b981,#6366f1)",
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
@@ -90,16 +90,16 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"/>
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"/>
         </span>
-        <span className="text-[9px] text-gray-700 ml-auto">click session ID to trace</span>
+        <span className="text-[9px] text-[var(--text3)] ml-auto">click session ID to trace</span>
       </div>
       {/* Filter bar — only renders when there's something to filter */}
       {(types.length > 1 || countries.length > 1) && (
-        <div className="flex items-center gap-1.5 px-4 py-2 flex-wrap border-b border-white/[0.04]">
+        <div className="flex items-center gap-1.5 px-4 py-2 flex-wrap border-b border-[var(--border)]">
           <button onClick={() => { setTypeFilter(null); setCountryFilter(null); }}
             className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
             style={!typeFilter && !countryFilter
               ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
-              : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+              : { borderColor: "var(--border)", color: "var(--text3)" }}>
             All
           </button>
           {types.map(t => (
@@ -107,17 +107,17 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
               className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
               style={typeFilter === t
                 ? { borderColor: TYPE_DOT[t] ?? "#6b7280", color: TYPE_DOT[t] ?? "#6b7280", background: `${TYPE_DOT[t] ?? "#6b7280"}18` }
-                : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+                : { borderColor: "var(--border)", color: "var(--text3)" }}>
               {t}
             </button>
           ))}
-          {countries.length > 1 && <span className="text-[8px] text-gray-800 mx-0.5">|</span>}
+          {countries.length > 1 && <span className="text-[8px] text-[var(--text3)] mx-0.5">|</span>}
           {countries.length > 1 && countries.map(c => (
             <button key={c} onClick={() => setCountryFilter(countryFilter === c ? null : c)}
               className="text-[8px] px-2 py-[2px] rounded-full border transition-colors"
               style={countryFilter === c
-                ? { borderColor: "#64748b", color: "#94a3b8", background: "rgba(100,116,139,0.1)" }
-                : { borderColor: "rgba(255,255,255,0.07)", color: "#374151" }}>
+                ? { borderColor: "var(--text3)", color: "var(--text2)", background: "rgba(100,116,139,0.1)" }
+                : { borderColor: "var(--border)", color: "var(--text3)" }}>
               {c}
             </button>
           ))}
@@ -125,7 +125,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
       )}
       {/* Feed rows */}
       <div className="flex flex-col max-h-[260px] overflow-y-auto">
-        {filtered.length === 0 && <p className="text-xs text-gray-600 px-4 py-3">{feed.length === 0 ? "Waiting for events…" : "No events match filter."}</p>}
+        {filtered.length === 0 && <p className="text-xs text-[var(--text3)] px-4 py-3">{feed.length === 0 ? "Waiting for events…" : "No events match filter."}</p>}
         {filtered.map((ev, i) => {
           const color = TYPE_DOT[ev.type] ?? "#6b7280";
           const evKey = `${ev.session_id}:${ev.created_at}`;
@@ -134,9 +134,9 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
           const friendlyPath = pathLabel(ev.path || "/");
           const showDur = ev.type === "tool_close" && (ev.duration_ms ?? 0) > 0;
           return (
-            <div key={ev.id ?? i} className="border-b border-white/[0.04]">
+            <div key={ev.id ?? i} className="border-b border-[var(--border)]">
             <div
-              className="group relative flex items-center gap-2 pr-4 transition-colors hover:bg-white/[0.015] cursor-pointer"
+              className="group relative flex items-center gap-2 pr-4 transition-colors hover:bg-[var(--border)] cursor-pointer"
               onClick={() => setExpandedId(isExpanded ? null : evKey)}
               style={{
                 paddingLeft: "14px", paddingTop: "11px", paddingBottom: "11px",
@@ -154,7 +154,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
                 {ev.type}
               </span>
               {/* Path — friendly name */}
-              <span className="flex-1 font-mono truncate text-[11px]" style={{ color: "#94a3b8" }}>
+              <span className="flex-1 font-mono truncate text-[11px]" style={{ color: "var(--text2)" }}>
                 {friendlyPath}
               </span>
               {/* Duration chip — tool_close only */}
@@ -167,7 +167,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
               {/* Country chip */}
               {ev.country && (
                 <span className="text-[8px] font-semibold px-1.5 py-[2px] rounded shrink-0"
-                  style={{ background: "rgba(255,255,255,0.05)", color: "#64748b" }}>
+                  style={{ background: "var(--border)", color: "var(--text3)" }}>
                   {ev.country}
                 </span>
               )}
@@ -175,13 +175,13 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
               {ev.session_id && (
                 <button onClick={e => { e.stopPropagation(); onTraceSession(ev.session_id); }}
                   className="text-[8px] font-mono shrink-0 tabular-nums transition-colors hover:opacity-80"
-                  style={{ color: isActive ? "#10b981" : "#4b5563" }}>
+                  style={{ color: isActive ? "#10b981" : "var(--text3)" }}>
                   {ev.session_id.slice(0, 8)}
                 </button>
               )}
               {/* Time — fixed width */}
               <span className="text-[9px] tabular-nums text-right shrink-0"
-                style={{ color: "#374151", minWidth: "22px" }}>
+                style={{ color: "var(--text3)", minWidth: "22px" }}>
                 {timeAgo(ev.created_at)}
               </span>
               {/* Trace button — visible on hover only */}
@@ -190,7 +190,7 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
                   className="text-[9px] shrink-0 px-1.5 py-[2px] rounded border transition-all opacity-0 group-hover:opacity-100"
                   style={isActive
                     ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
-                    : { borderColor: "rgba(255,255,255,0.10)", color: "#4b5563" }}>
+                    : { borderColor: "var(--border)", color: "var(--text3)" }}>
                   trace
                 </button>
               )}

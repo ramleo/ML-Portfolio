@@ -115,11 +115,11 @@ export default function PreprocessStory({ active, csvPreviewCols, csvPreviewRows
 
       {/* Table */}
       <div style={{ overflowX: "auto", flex: 1 }}>
-        <table style={{ fontSize: 11, borderCollapse: "collapse", width: "100%", color: "#e2e8f0" }}>
+        <table style={{ fontSize: 11, borderCollapse: "collapse", width: "100%", color: "var(--text)" }}>
           <thead>
             <tr>
               {tableCols.map((h) => (
-                <th key={h} style={{ background: "#0f2744", color: "#64748b", padding: "4px 8px", fontWeight: 700, fontSize: 10, textAlign: "left" }}>
+                <th key={h} style={{ background: "var(--border2)", color: "var(--text3)", padding: "4px 8px", fontWeight: 700, fontSize: 10, textAlign: "left" }}>
                   {h}
                 </th>
               ))}
@@ -138,9 +138,9 @@ export default function PreprocessStory({ active, csvPreviewCols, csvPreviewRows
                       key={colIdx}
                       style={{
                         padding: "3px 8px",
-                        borderBottom: "1px solid #0f2744",
+                        borderBottom: "1px solid var(--border2)",
                         transition: "background 0.4s",
-                        color: isRowNum ? "#475569" : undefined,
+                        color: isRowNum ? "var(--text3)" : undefined,
                         fontSize: isRowNum ? 10 : undefined,
                         ...style,
                       }}
@@ -163,7 +163,7 @@ export default function PreprocessStory({ active, csvPreviewCols, csvPreviewRows
                   style={{ background: step >= 1 ? "rgba(251,191,36,0.2)" : "transparent", color: step >= 1 ? "#fde68a" : "inherit", overflow: "hidden" }}
                 >
                   {tableCols.map((_, colIdx) => (
-                    <td key={colIdx} style={{ padding: "3px 8px", borderBottom: "1px solid #0f2744", color: colIdx === 0 ? "#475569" : undefined, fontSize: colIdx === 0 ? 10 : undefined }}>
+                    <td key={colIdx} style={{ padding: "3px 8px", borderBottom: "1px solid var(--border2)", color: colIdx === 0 ? "var(--text3)" : undefined, fontSize: colIdx === 0 ? 10 : undefined }}>
                       {tableRows[4]?.[colIdx] ?? "—"}
                     </td>
                   ))}
@@ -198,7 +198,7 @@ export default function PreprocessStory({ active, csvPreviewCols, csvPreviewRows
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(3,14,32,0.7)", borderRadius: 8 }}
+            style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb, var(--bg) 70%, transparent)", borderRadius: 8 }}
           >
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 32, color: "#34d399" }}>✓</div>

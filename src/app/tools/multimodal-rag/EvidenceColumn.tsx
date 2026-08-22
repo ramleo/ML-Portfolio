@@ -136,7 +136,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
         <div className="flex-1 flex flex-col gap-3 min-w-0">
           {activeCitation && activeCitation.source && !activeDoc ? (
             <div style={cardStyle} className="flex items-center justify-center py-16">
-              <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+              <p className="text-[10px] text-center px-6" style={{ color: "var(--text3)" }}>
                 No preview — this citation is from a document that&apos;s no longer loaded.
               </p>
             </div>
@@ -162,7 +162,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               onEditChange={(page, edit) => onEditChange(activeDoc.source, page, edit)} />
           ) : (
             <div style={cardStyle} className="flex items-center justify-center py-16">
-              <p className="text-[10px] text-center px-6" style={{ color: "rgba(255,255,255,0.25)" }}>
+              <p className="text-[10px] text-center px-6" style={{ color: "var(--text3)" }}>
                 Click a citation to see its page
               </p>
             </div>

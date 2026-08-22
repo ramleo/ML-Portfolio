@@ -7,7 +7,7 @@ interface Props { onClose: () => void; }
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-8">
-      <h2 className="text-[13px] font-bold text-white mb-3 flex items-center gap-2">
+      <h2 className="text-[13px] font-bold text-[var(--text)] mb-3 flex items-center gap-2">
         <div className="w-1 h-4 rounded-full" style={{ background: ACCENT }} />
         {title}
       </h2>
@@ -24,8 +24,8 @@ function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; 
         <span style={{ color: ACCENT }}>{icon}</span>
       </div>
       <div>
-        <p className="text-[12px] font-semibold text-white/90 mb-0.5">{title}</p>
-        <p className="text-[11px] text-gray-400 leading-relaxed">{desc}</p>
+        <p className="text-[12px] font-semibold text-[var(--text)] mb-0.5">{title}</p>
+        <p className="text-[11px] text-[var(--text2)] leading-relaxed">{desc}</p>
       </div>
     </div>
   );
@@ -33,7 +33,7 @@ function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; 
 
 function KbdRow({ keys, desc }: { keys: string[]; desc: string }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
+    <div className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
       <div className="flex gap-1 shrink-0">
         {keys.map(k => (
           <kbd key={k} className="text-[10px] px-1.5 py-0.5 rounded font-mono"
@@ -42,7 +42,7 @@ function KbdRow({ keys, desc }: { keys: string[]; desc: string }) {
           </kbd>
         ))}
       </div>
-      <span className="text-[11px] text-gray-400">{desc}</span>
+      <span className="text-[11px] text-[var(--text2)]">{desc}</span>
     </div>
   );
 }
@@ -61,23 +61,23 @@ export default function UserGuideModal({ onClose }: Props) {
     <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto py-8 px-4"
       style={{ background: "rgba(0,0,0,0.75)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl"
-        style={{ background: "#0d0d1a" }}>
+      <div className="w-full max-w-2xl rounded-2xl border border-[var(--border)] shadow-2xl"
+        style={{ background: "var(--bg-card)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 sticky top-0 rounded-t-2xl z-10"
-          style={{ background: "#0d0d1a" }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] sticky top-0 rounded-t-2xl z-10"
+          style={{ background: "var(--bg-card)" }}>
           <div>
             <div className="flex items-center gap-2">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M8 1C4.13 1 1 4.13 1 8s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7z" stroke={ACCENT} strokeWidth="1.3"/>
                 <path d="M8 11V7.5M8 5.5v-.5" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
-              <h1 className="text-[15px] font-bold text-white">Text-to-SQL User Guide</h1>
+              <h1 className="text-[15px] font-bold text-[var(--text)]">Text-to-SQL User Guide</h1>
             </div>
-            <p className="text-[11px] text-gray-500 mt-0.5 ml-6">Everything you need to query data with natural language</p>
+            <p className="text-[11px] text-[var(--text3)] mt-0.5 ml-6">Everything you need to query data with natural language</p>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white p-1.5 rounded-lg hover:bg-white/8 transition-all">
+          <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-white/8 transition-all">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -90,17 +90,17 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* Intro */}
           <div className="mb-6 p-4 rounded-xl border border-indigo-500/20"
             style={{ background: "rgba(99,102,241,0.06)" }}>
-            <p className="text-[12px] text-gray-300 leading-relaxed">
-              <span className="text-white font-semibold">Text-to-SQL Agent</span> converts your plain English questions into SQL queries, runs them against your database, and returns results with charts, pagination, AI explanation, and export — no SQL knowledge required.
+            <p className="text-[12px] text-[var(--text)] leading-relaxed">
+              <span className="text-[var(--text)] font-semibold">Text-to-SQL Agent</span> converts your plain English questions into SQL queries, runs them against your database, and returns results with charts, pagination, AI explanation, and export — no SQL knowledge required.
             </p>
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] text-gray-500">Natural language</span>
+              <span className="text-[10px] text-[var(--text3)]">Natural language</span>
               <svg width="20" height="8" viewBox="0 0 20 8" fill="none"><path d="M1 4h16M14 1l3 3-3 3" stroke={ACCENT} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span className="text-[10px] text-gray-500">SQL</span>
+              <span className="text-[10px] text-[var(--text3)]">SQL</span>
               <svg width="20" height="8" viewBox="0 0 20 8" fill="none"><path d="M1 4h16M14 1l3 3-3 3" stroke={ACCENT} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span className="text-[10px] text-gray-500">Results</span>
+              <span className="text-[10px] text-[var(--text3)]">Results</span>
               <svg width="20" height="8" viewBox="0 0 20 8" fill="none"><path d="M1 4h16M14 1l3 3-3 3" stroke={ACCENT} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span className="text-[10px] text-gray-500">Explanation</span>
+              <span className="text-[10px] text-[var(--text3)]">Explanation</span>
             </div>
           </div>
 
@@ -125,18 +125,18 @@ export default function UserGuideModal({ onClose }: Props) {
 
           {/* Connecting Data */}
           <Section title="Connecting Your Data">
-            <div className="space-y-2 text-[11px] text-gray-400 leading-relaxed">
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
+            <div className="space-y-2 text-[11px] text-[var(--text2)] leading-relaxed">
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
                 <Tag color="#6366f1" label="Demo" />
-                <p><span className="text-white/80 font-medium">Chinook Demo</span> — the built-in music store database (11 tables, 15k+ rows). No setup needed. Includes artists, albums, tracks, invoices, customers.</p>
+                <p><span className="text-[var(--text)] font-medium">Chinook Demo</span> — the built-in music store database (11 tables, 15k+ rows). No setup needed. Includes artists, albums, tracks, invoices, customers.</p>
               </div>
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
                 <Tag color="#10b981" label="Upload" />
-                <p><span className="text-white/80 font-medium">Upload File</span> — drag or choose a <code className="text-indigo-300 text-[10px]">.db</code>, <code className="text-indigo-300 text-[10px]">.sqlite</code>, <code className="text-indigo-300 text-[10px]">.duckdb</code>, <code className="text-indigo-300 text-[10px]">.parquet</code>, or <code className="text-indigo-300 text-[10px]">.csv</code> file. The backend loads it into an in-memory session. CSV files are auto-converted.</p>
+                <p><span className="text-[var(--text)] font-medium">Upload File</span> — drag or choose a <code className="text-indigo-300 text-[10px]">.db</code>, <code className="text-indigo-300 text-[10px]">.sqlite</code>, <code className="text-indigo-300 text-[10px]">.duckdb</code>, <code className="text-indigo-300 text-[10px]">.parquet</code>, or <code className="text-indigo-300 text-[10px]">.csv</code> file. The backend loads it into an in-memory session. CSV files are auto-converted.</p>
               </div>
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
                 <Tag color="#38bdf8" label="Remote" />
-                <p><span className="text-white/80 font-medium">PostgreSQL / MySQL / SQL Server</span> — paste a connection string and click Connect. The schema is loaded automatically. All queries run on your database.</p>
+                <p><span className="text-[var(--text)] font-medium">PostgreSQL / MySQL / SQL Server</span> — paste a connection string and click Connect. The schema is loaded automatically. All queries run on your database.</p>
               </div>
             </div>
           </Section>
@@ -149,14 +149,14 @@ export default function UserGuideModal({ onClose }: Props) {
                 { name: "Gemini", color: "#10b981", note: "Google — good for complex joins" },
                 { name: "Cohere", color: "#6366f1", note: "Fallback if others hit rate limits" },
               ].map(p => (
-                <div key={p.name} className="p-3 rounded-xl border border-white/8 text-center" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={p.name} className="p-3 rounded-xl border border-[var(--border)] text-center" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <div className="w-2 h-2 rounded-full mx-auto mb-1.5" style={{ background: p.color }} />
-                  <p className="font-semibold text-white/80 mb-1">{p.name}</p>
-                  <p className="text-gray-500 text-[10px] leading-snug">{p.note}</p>
+                  <p className="font-semibold text-[var(--text)] mb-1">{p.name}</p>
+                  <p className="text-[var(--text3)] text-[10px] leading-snug">{p.note}</p>
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600 mt-2">Switch provider from the dropdown next to the Ask button. If you hit a rate limit, switch and retry.</p>
+            <p className="text-[10px] text-[var(--text3)] mt-2">Switch provider from the dropdown next to the Ask button. If you hit a rate limit, switch and retry.</p>
           </Section>
 
           {/* Working with Results */}
@@ -191,7 +191,7 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* Auto-Insights */}
           <Section title="Auto-Insights">
             <div className="mb-3 p-3 rounded-xl border border-emerald-500/20" style={{ background: "rgba(16,185,129,0.05)" }}>
-              <p className="text-[11px] text-gray-300 leading-relaxed">
+              <p className="text-[11px] text-[var(--text)] leading-relaxed">
                 After every query, the <span className="text-emerald-400 font-semibold">Auto-Insights</span> panel automatically scans the result rows and surfaces patterns — no extra click needed. It appears between the results table and the chart, collapsed or expanded.
               </p>
             </div>
@@ -204,12 +204,12 @@ export default function UserGuideModal({ onClose }: Props) {
                 { label: "Constant column", color: "#94a3b8", desc: "Every row has the same value — column adds no information." },
                 { label: "Skew", color: "#818cf8", desc: "Numeric range spans more than 100× (e.g. min=1, max=450)." },
               ].map(({ label, color, desc }) => (
-                <div key={label} className="p-2.5 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={label} className="p-2.5 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <span className="inline-block text-[9px] font-semibold rounded px-1.5 py-0.5 mb-1 font-mono"
                     style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
                     {label}
                   </span>
-                  <p className="text-[10px] text-gray-500 leading-snug">{desc}</p>
+                  <p className="text-[10px] text-[var(--text3)] leading-snug">{desc}</p>
                 </div>
               ))}
             </div>
@@ -220,12 +220,12 @@ export default function UserGuideModal({ onClose }: Props) {
               </svg>
               <p className="text-[10px] text-amber-300/80 leading-relaxed"><span className="font-semibold">Requires at least 4 result rows</span> — queries returning 2–3 rows won&apos;t show insights (too few data points for meaningful statistics).</p>
             </div>
-            <p className="text-[10px] text-gray-600 leading-relaxed mt-2">Up to 8 insights shown, ranked by interestingness. Amber = warning (act on it), indigo = informational. Click the panel header to collapse/expand.</p>
+            <p className="text-[10px] text-[var(--text3)] leading-relaxed mt-2">Up to 8 insights shown, ranked by interestingness. Amber = warning (act on it), indigo = informational. Click the panel header to collapse/expand.</p>
           </Section>
 
           {/* Multi-Tab */}
           <Section title="Multi-Tab Workflow">
-            <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
+            <p className="text-[11px] text-[var(--text2)] leading-relaxed mb-3">
               Every query opens in its own tab. Up to 5 tabs are kept at once (pinned tabs never auto-close). Each tab has its own SQL, results, filter, page, and chart override — completely isolated.
             </p>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -235,9 +235,9 @@ export default function UserGuideModal({ onClose }: Props) {
                 ["Tab persistence", "All open tabs (including SQL, results, and chart overrides) are saved in sessionStorage and restored on page reload."],
                 ["Question sync", "Switching tabs updates the question input to show that tab's original question."],
               ].map(([title, desc]) => (
-                <div key={title as string} className="p-3 rounded-lg border border-white/6" style={{ background: "rgba(255,255,255,0.02)" }}>
-                  <p className="text-white/80 font-semibold mb-1">{title}</p>
-                  <p className="text-gray-500 text-[10px] leading-snug">{desc}</p>
+                <div key={title as string} className="p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <p className="text-[var(--text)] font-semibold mb-1">{title}</p>
+                  <p className="text-[var(--text3)] text-[10px] leading-snug">{desc}</p>
                 </div>
               ))}
             </div>
@@ -259,8 +259,8 @@ export default function UserGuideModal({ onClose }: Props) {
 
           {/* AI Explanation */}
           <Section title="AI Explanation">
-            <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
-              After results load, click <span className="text-white/70 font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)" }}>Explain</span> at the bottom of the result panel. The AI streams a plain-English explanation of the SQL logic and what the results mean.
+            <p className="text-[11px] text-[var(--text2)] leading-relaxed mb-3">
+              After results load, click <span className="text-[var(--text)] font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)" }}>Explain</span> at the bottom of the result panel. The AI streams a plain-English explanation of the SQL logic and what the results mean.
             </p>
             <Feature
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M3.22 3.22l1.41 1.41M9.37 9.37l1.41 1.41M3.22 10.78l1.41-1.41M9.37 4.63l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
@@ -272,7 +272,7 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* Teach the AI */}
           <Section title="Teach the AI">
             <div className="mb-3 p-3 rounded-xl border border-amber-500/20" style={{ background: "rgba(245,158,11,0.05)" }}>
-              <p className="text-[11px] text-gray-300 leading-relaxed">
+              <p className="text-[11px] text-[var(--text)] leading-relaxed">
                 When the AI gets something wrong, <span className="text-amber-400 font-semibold">Teach the AI</span> lets you correct it — permanently. Corrections are saved to localStorage and injected into every future prompt for that database, so you only need to explain something once.
               </p>
             </div>
@@ -298,8 +298,8 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* Column Lineage */}
           <Section title="Column Lineage Graph">
             <div className="mb-3 p-3 rounded-xl border border-violet-500/20" style={{ background: "rgba(139,92,246,0.05)" }}>
-              <p className="text-[11px] text-gray-300 leading-relaxed">
-                The <span className="text-violet-400 font-semibold">Column Lineage Graph</span> answers: <span className="italic text-gray-400">"where did each output column come from?"</span> — a pure-frontend SVG diagram that maps source table.column pairs to the output column names without any extra API call.
+              <p className="text-[11px] text-[var(--text)] leading-relaxed">
+                The <span className="text-violet-400 font-semibold">Column Lineage Graph</span> answers: <span className="italic text-[var(--text2)]">"where did each output column come from?"</span> — a pure-frontend SVG diagram that maps source table.column pairs to the output column names without any extra API call.
               </p>
             </div>
             <Feature
@@ -354,7 +354,7 @@ export default function UserGuideModal({ onClose }: Props) {
 
           {/* Keyboard Shortcuts */}
           <Section title="Keyboard Shortcuts">
-            <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: "rgba(255,255,255,0.02)" }}>
+            <div className="rounded-xl border border-[var(--border)] overflow-hidden" style={{ background: "rgba(255,255,255,0.02)" }}>
               <div className="px-4 py-2">
                 <KbdRow keys={["⌘", "Enter"]} desc="Run the current query" />
                 <KbdRow keys={["⌘", "K"]} desc="Focus the question input and select all text" />
@@ -375,11 +375,11 @@ export default function UserGuideModal({ onClose }: Props) {
                 { tip: "Share queries (Chinook only)", detail: "Click the Share button to copy a URL that pre-fills the question box. Useful for sharing interesting findings." },
                 { tip: "Try Ask a follow-up", detail: "After results load, scroll down and click 'Ask a follow-up' — previous query context is retained so you can drill down without re-explaining the schema." },
               ].map(({ tip, detail }) => (
-                <div key={tip} className="flex gap-2.5 p-3 rounded-lg border border-white/5" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={tip} className="flex gap-2.5 p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <div className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ background: ACCENT }} />
                   <div>
-                    <p className="text-[11px] font-semibold text-white/80">{tip}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">{detail}</p>
+                    <p className="text-[11px] font-semibold text-[var(--text)]">{tip}</p>
+                    <p className="text-[10px] text-[var(--text3)] mt-0.5 leading-relaxed">{detail}</p>
                   </div>
                 </div>
               ))}
@@ -389,9 +389,9 @@ export default function UserGuideModal({ onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/8 rounded-b-2xl flex items-center justify-between"
-          style={{ background: "rgba(0,0,0,0.2)" }}>
-          <span className="text-[10px] text-gray-600">Text-to-SQL Agent — ML Portfolio</span>
+        <div className="px-6 py-3 border-t border-[var(--border)] rounded-b-2xl flex items-center justify-between"
+          style={{ background: "var(--bg)" }}>
+          <span className="text-[10px] text-[var(--text3)]">Text-to-SQL Agent — ML Portfolio</span>
           <button onClick={onClose}
             className="text-[11px] px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:brightness-110"
             style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>

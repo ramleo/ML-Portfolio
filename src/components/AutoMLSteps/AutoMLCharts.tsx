@@ -197,7 +197,7 @@ export function FeatureImportanceChart({ features }: { features: FeatureImportan
               {f.feature}
             </span>
             {getParentLabel(f.feature) && (
-              <span style={{ fontSize: "0.65rem", color: "#6b7280", display: "block" }}>
+              <span style={{ fontSize: "0.65rem", color: "var(--text3)", display: "block" }}>
                 ↳ {getParentLabel(f.feature)}
               </span>
             )}

@@ -33,7 +33,7 @@ function iconForModel(name: string, color: string) {
     return (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M10 2 L17 10 L10 18 L3 10 Z" fill={color} opacity="0.85" />
-        <path d="M10 5 L14 10 L10 15 L6 10 Z" fill="#0a1628" />
+        <path d="M10 5 L14 10 L10 15 L6 10 Z" fill="var(--bg-card)" />
       </svg>
     );
   }
@@ -98,7 +98,7 @@ function ModelCard({ model, index, step, winnerIdx }: {
       animate={step >= 1 ? { opacity: isDimmed ? 0.4 : 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.4, delay: step === 1 ? index * 0.3 : 0 }}
       style={{
-        background: "#0a1628",
+        background: "var(--bg-card)",
         border: `1px solid ${isWinner && step >= 3 ? "#fbbf24" : model.color + "44"}`,
         borderRadius: 10, padding: "0.75rem", position: "relative",
         boxShadow: isWinner && step >= 3 ? "0 0 20px #fbbf2466" : "none",
@@ -124,7 +124,7 @@ function ModelCard({ model, index, step, winnerIdx }: {
 
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
         {iconForModel(model.name, model.color)}
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{model.name}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>{model.name}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 800, color: model.color, lineHeight: 1 }}>
         {score.toFixed(3)}
@@ -190,10 +190,10 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
 
   return (
     <div style={{ padding: "1rem" }}>
-      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, marginBottom: 4, letterSpacing: 1 }}>
+      <div style={{ fontSize: 11, color: "var(--text3)", fontWeight: 700, marginBottom: 4, letterSpacing: 1 }}>
         MODEL COMPETITION
       </div>
-      <div style={{ fontSize: 9, color: "#475569", marginBottom: 8, letterSpacing: 0.5 }}>
+      <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 8, letterSpacing: 0.5 }}>
         scored by {metricLabel}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -211,7 +211,7 @@ export default function AutoMLStory({ active, frozen = false, taskType, automlRe
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             style={{
-              marginTop: 12, fontSize: 11, color: "#94a3b8",
+              marginTop: 12, fontSize: 11, color: "var(--text2)",
               textAlign: "center", lineHeight: 1.5,
             }}
           >

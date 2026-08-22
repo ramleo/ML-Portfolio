@@ -79,13 +79,13 @@ export default function DocumentTray({ documents, accent, cardStyle, activeSourc
             <div key={d.source}
               onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
               className="flex items-start gap-2 px-1.5 py-1.5 rounded-lg cursor-pointer transition-colors"
-              style={{ background: isOpen || isActive ? "rgba(255,255,255,0.05)" : "transparent" }}>
+              style={{ background: isOpen || isActive ? "var(--border)" : "transparent" }}>
               <span className="mt-0.5 shrink-0" style={{ color: accent }}><DocIcon kind={kindOf(d.source)} /></span>
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
+                <div className="text-[13px] font-medium truncate" style={{ color: "var(--text)" }}>
                   {displayName(d.source)}
                 </div>
-                <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>
+                <div className="text-[11px] mt-0.5" style={{ color: "var(--text2)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>
                   {subtitle(d)}
                 </div>
               </div>

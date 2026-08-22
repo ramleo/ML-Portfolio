@@ -46,26 +46,26 @@ function StageProp({ stage, state }: { stage: StageKind; state: CharacterState }
     <motion.g animate={{ opacity }} transition={{ duration: 0.3 }}>
       {stage === "preprocessing" && (
         <g transform="translate(55, 50)">
-          <line x1="0" y1="0" x2="0" y2="14" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-          <line x1="-5" y1="14" x2="5" y2="14" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-          <line x1="-4" y1="11" x2="4" y2="11" stroke="#888" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="0" y1="0" x2="0" y2="14" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round" />
+          <line x1="-5" y1="14" x2="5" y2="14" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round" />
+          <line x1="-4" y1="11" x2="4" y2="11" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round" />
         </g>
       )}
       {stage === "feature-eng" && (
         <g transform="translate(54, 50)">
-          <path d="M-2,0 L2,0 L4,4 L6,3 L7,5 L5,6 L6,8 L2,8 L0,4 Z" fill="#888" />
-          <line x1="2" y1="8" x2="-4" y2="14" stroke="#888" strokeWidth="2" strokeLinecap="round" />
+          <path d="M-2,0 L2,0 L4,4 L6,3 L7,5 L5,6 L6,8 L2,8 L0,4 Z" fill="var(--text3)" />
+          <line x1="2" y1="8" x2="-4" y2="14" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round" />
         </g>
       )}
       {stage === "feature-select" && (
         <g transform="translate(53, 48)">
-          <circle cx="0" cy="0" r="5" fill="none" stroke="#888" strokeWidth="2" />
-          <line x1="4" y1="4" x2="9" y2="9" stroke="#888" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="5" fill="none" stroke="var(--text3)" strokeWidth="2" />
+          <line x1="4" y1="4" x2="9" y2="9" stroke="var(--text3)" strokeWidth="2" strokeLinecap="round" />
         </g>
       )}
       {stage === "automl" && (
         <g transform="translate(55, 46)">
-          <path d="M0,0 L-3,7 L1,7 L-2,14 L6,5 L2,5 L5,0 Z" fill="#888" />
+          <path d="M0,0 L-3,7 L1,7 L-2,14 L6,5 L2,5 L5,0 Z" fill="var(--text3)" />
         </g>
       )}
     </motion.g>

@@ -134,7 +134,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
 
   return (
     <div style={cardStyle} className="p-3 flex flex-col gap-1.5">
-      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
         Extracted from {d.source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "")}
       </span>
       {isVideo && (
@@ -150,11 +150,11 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
             src={`${ML_UNIFIED_API}/rag/video/${encodeURIComponent(d.source)}`} />
           <div className="flex items-center gap-1"
             title="This transcribes speech only. Music or instrumental audio has no speech to transcribe — Whisper may still return a hallucinated (made-up) transcript for it instead of describing the sound.">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text3)", flexShrink: 0 }}>
               <path d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.66h18a1 1 0 00.89-1.62L13.71 3.86a1 1 0 00-1.72 0z"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <span className="text-[9px]" style={{ color: "var(--text3)" }}>
               Speech only — music/instrumental audio may transcribe inaccurately
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
         const linePath = `M${points.join(" L")}`;
         return (
           <div title="Parts of the video you've jumped back to and replayed in this session — resets when you leave.">
-            <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
               Your most re-watched moments (this session)
             </span>
             <div className="relative" style={{ height: 18 }}>
@@ -203,7 +203,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               <button
                 onClick={() => downloadText(`${baseName}-transcript.txt`, d.transcript ?? "")}
                 className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                 .txt
               </button>
               {hasSegments && (
@@ -211,7 +211,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
                   onClick={() => downloadText(`${baseName}-transcript.srt`, buildSrt(d.transcriptSegments))}
                   title="Subtitle file with timestamps"
                   className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
+                  style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                   .srt
                 </button>
               )}
@@ -246,7 +246,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               }))}
             />
           ) : (
-            <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+            <p className="text-[10px] leading-relaxed" style={{ color: "var(--text2)" }}>
               {d.transcript}
             </p>
           )}
@@ -275,7 +275,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
         </div>
       )}
       {d.notableChunks.length === 0 ? (
-        <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p className="text-[10px]" style={{ color: "var(--text3)" }}>
           No tables or figures were detected — only plain text.
         </p>
       ) : (

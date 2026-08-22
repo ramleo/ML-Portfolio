@@ -29,7 +29,7 @@ export default function DocumentIntelligencePage() {
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen text-white overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
       <ToolsAIChat context={{
         accent: ACCENT,
@@ -43,7 +43,10 @@ export default function DocumentIntelligencePage() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           {/* Back button */}
           <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
+            className="flex items-center gap-2 text-sm mb-4 transition-colors"
+            style={{ color: "var(--text3)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -63,13 +66,13 @@ export default function DocumentIntelligencePage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold">Document Intelligence</h1>
+                <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>Document Intelligence</h1>
                 <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
                   style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
                   AI Extraction
                 </span>
               </div>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
                 Extract structured data from invoices, contracts, resumes & more — powered by LLM analysis
               </p>
             </div>

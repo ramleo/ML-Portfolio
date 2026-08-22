@@ -21,13 +21,13 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }
   accent?: string;
 }) {
   const displayVal = raw ?? (typeof value === "number" ? value.toLocaleString() : value);
-  const color = accent ?? "#ffffff";
+  const color = accent ?? "var(--text)";
 
   return (
-    <div style={{ ...CARD_STYLE, borderTop: `3px solid ${color}` }}>
+    <div style={{ ...CARD_STYLE }}>
       {/* Label row */}
       <div className="flex items-center gap-2 mb-2">
-        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">{label}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--text3)" }}>{label}</p>
         {live && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
         {trend != null && (
           <span
@@ -42,20 +42,20 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }
       </div>
 
       {/* Divider */}
-      <div className="mb-2.5" style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
+      <div className="mb-2.5" style={{ height: 1, background: "var(--border)" }} />
 
       {/* Hero number */}
       <p className="font-bold tabular-nums leading-none" style={{ fontSize: "2rem", color }}>
         {displayVal}
         {suffix && (
-          <span className="text-sm font-normal ml-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <span className="text-sm font-normal ml-1.5" style={{ color: "var(--text3)" }}>
             {suffix}
           </span>
         )}
       </p>
 
       {sub && (
-        <p className="text-[10px] mt-2 tabular-nums" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <p className="text-[10px] mt-2 tabular-nums" style={{ color: "var(--text3)" }}>
           {sub}
         </p>
       )}
@@ -85,9 +85,9 @@ export function EngagementRow({ by_type, error_count, query_total_count, export_
 export function SkeletonCard() {
   return (
     <div className="animate-pulse" style={{ ...CARD_STYLE }}>
-      <div className="h-2 w-20 rounded mb-3" style={{ background: "rgba(255,255,255,0.06)" }} />
-      <div className="h-px w-full mb-3" style={{ background: "rgba(255,255,255,0.04)" }} />
-      <div className="h-8 w-16 rounded" style={{ background: "rgba(255,255,255,0.08)" }} />
+      <div className="h-2 w-20 rounded mb-3" style={{ background: "var(--border)" }} />
+      <div className="h-px w-full mb-3" style={{ background: "var(--border)" }} />
+      <div className="h-8 w-16 rounded" style={{ background: "var(--border2)" }} />
     </div>
   );
 }

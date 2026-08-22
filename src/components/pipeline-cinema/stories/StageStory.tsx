@@ -52,7 +52,7 @@ const PulsingDots = () => (
         key={i}
         animate={{ opacity: [0.2, 1, 0.2] }}
         transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.3 }}
-        style={{ width: 6, height: 6, borderRadius: "50%", background: "#334155" }}
+        style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text3)" }}
       />
     ))}
   </div>
@@ -75,7 +75,7 @@ export default function StageStory({ stage, active, frozen = false, taskType, cs
               alignItems: "center", justifyContent: "center",
             }}
           >
-            <div style={{ fontSize: 13, color: "#334155", textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "var(--text3)", textAlign: "center" }}>
               Click Run Animation to start
             </div>
             <PulsingDots />
@@ -95,7 +95,7 @@ export default function StageStory({ stage, active, frozen = false, taskType, cs
               fontSize: 11, fontWeight: 700,
               color: STAGE_META[stage].accent,
               textTransform: "uppercase", letterSpacing: 2,
-              borderBottom: "1px solid #0f2744",
+              borderBottom: "1px solid var(--border2)",
               display: "flex", alignItems: "center", gap: 8,
             }}>
               <div style={{

@@ -18,7 +18,7 @@ export default function RealtimeAnalyticsPage() {
 
   return (
     <PipelineProvider>
-      <div className="relative min-h-screen text-white overflow-x-hidden">
+      <div className="relative min-h-screen text-[var(--text)] overflow-x-hidden">
         <ConstellationBackground />
         <ToolsAIChat context={{
           accent: ACCENT,
@@ -31,7 +31,7 @@ export default function RealtimeAnalyticsPage() {
         <div className="relative z-10 flex flex-col gap-6 pt-6">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-4 transition-colors">
+              className="flex items-center gap-2 text-sm text-[var(--text3)] hover:text-[var(--text)] mb-4 transition-colors">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -48,7 +48,7 @@ export default function RealtimeAnalyticsPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold">Real-Time Analytics</h1>
-                <p className="text-xs text-gray-400">Live event stream from this portfolio — powered by Supabase Realtime</p>
+                <p className="text-xs text-[var(--text2)]">Live event stream from this portfolio — powered by Supabase Realtime</p>
               </div>
             </div>
           </div>

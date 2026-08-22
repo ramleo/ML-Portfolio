@@ -16,11 +16,11 @@ const INF = Infinity;
 function Gear({ cx, cy, r, stroke, spin }: { cx: number; cy: number; r: number; stroke: string; spin: boolean }) {
   return (
     <motion.g animate={spin ? { rotate: 360 } : {}} transition={{ repeat: spin ? INF : 0, duration: 2, ease: "linear" }} style={{ originX: `${cx}px`, originY: `${cy}px` }}>
-      <circle cx={cx} cy={cy} r={r} fill="#0f2744" stroke={stroke} strokeWidth={1.2} />
+      <circle cx={cx} cy={cy} r={r} fill="var(--bg-card)" stroke={stroke} strokeWidth={1.2} />
       {Array.from({ length: 6 }, (_, i) => {
         const a = (i * 60 * Math.PI) / 180;
         const tx = cx + Math.cos(a) * (r + 3), ty = cy + Math.sin(a) * (r + 3);
-        return <rect key={i} x={tx - 2} y={ty - 2.5} width={4} height={5} rx={0.5} fill="#0f2744" stroke={stroke} strokeWidth={0.6} transform={`rotate(${i * 60},${tx},${ty})`} />;
+        return <rect key={i} x={tx - 2} y={ty - 2.5} width={4} height={5} rx={0.5} fill="var(--bg-card)" stroke={stroke} strokeWidth={0.6} transform={`rotate(${i * 60},${tx},${ty})`} />;
       })}
     </motion.g>
   );
@@ -31,7 +31,7 @@ function PreprocessingIcon({ state, accent }: { state: CharacterState; accent: s
   const gc = done ? "#22c55e" : accent;
   return (
     <>
-      <path d="M15,10 L65,10 L55,55 L25,55 Z" fill="#0f2744" stroke={gc} strokeWidth={1.5} />
+      <path d="M15,10 L65,10 L55,55 L25,55 Z" fill="var(--bg-card)" stroke={gc} strokeWidth={1.5} />
       {[{ x: 22, y: 18 }, { x: 35, y: 14 }, { x: 48, y: 20 }].map((p, i) => (
         <motion.rect key={i} x={p.x} y={p.y} width={8} height={8} rx={1} fill={done ? accent : "#ef4444"} opacity={0.85}
           animate={active ? { y: [0, 5, 10], opacity: [0.85, 0.5, 0.85] } : {}}
@@ -57,16 +57,16 @@ function FeatureEngIcon({ state, accent }: { state: CharacterState; accent: stri
   return (
     <>
       {[28, 42].map((y, i) => (
-        <motion.rect key={i} x={5} y={y} width={8} height={8} rx={1} fill="#1e3a5f" stroke={accent} strokeWidth={0.8}
+        <motion.rect key={i} x={5} y={y} width={8} height={8} rx={1} fill="var(--border2)" stroke={accent} strokeWidth={0.8}
           animate={active ? { x: [0, 4, 0] } : {}}
           transition={{ repeat: active ? INF : 0, duration: 1.2, delay: i * 0.3 }} />
       ))}
-      <rect x={20} y={20} width={40} height={45} rx={4} fill="#0f2744" stroke={accent} strokeWidth={1.5} />
+      <rect x={20} y={20} width={40} height={45} rx={4} fill="var(--bg-card)" stroke={accent} strokeWidth={1.5} />
       <Gear cx={40} cy={42} r={10} stroke={accent} spin={active} />
       <motion.path d="M36,38 L44,38 M40,34 L40,42" stroke={accent} strokeWidth={1.5} strokeLinecap="round"
         animate={active ? { opacity: [1, 0.3, 1] } : {}} transition={{ repeat: active ? INF : 0, duration: 0.8 }} />
       {[24, 36, 48].map((y, i) => (
-        <motion.rect key={i} x={67} y={y} width={8} height={8} rx={1} fill={done ? accent : "#1e3a5f"} stroke={accent} strokeWidth={0.8}
+        <motion.rect key={i} x={67} y={y} width={8} height={8} rx={1} fill={done ? accent : "var(--border2)"} stroke={accent} strokeWidth={0.8}
           initial={{ opacity: 0, x: -5 }} animate={active || done ? { opacity: 1, x: 0 } : { opacity: 0.3, x: -5 }}
           transition={{ delay: i * 0.2, duration: 0.4 }} />
       ))}
@@ -85,7 +85,7 @@ function FeatureSelectIcon({ state, accent }: { state: CharacterState; accent: s
   return (
     <>
       <motion.g animate={active ? { y: [-1, 1, -1] } : {}} transition={{ repeat: active ? INF : 0, duration: 1.5 }}>
-        <circle cx={40} cy={20} r={12} fill="#0f2744" stroke={accent} strokeWidth={2} />
+        <circle cx={40} cy={20} r={12} fill="var(--bg-card)" stroke={accent} strokeWidth={2} />
         <line x1={49} y1={29} x2={58} y2={38} stroke={accent} strokeWidth={2.5} strokeLinecap="round" />
         {done && (
           <motion.path d="M34,20 L38,24 L46,16" stroke="#22c55e" strokeWidth={2} fill="none" strokeLinecap="round"
@@ -94,7 +94,7 @@ function FeatureSelectIcon({ state, accent }: { state: CharacterState; accent: s
       </motion.g>
       {bars.map((w, i) => {
         const keep = i < 3;
-        const fill = active || done ? (keep ? accent : "#ef4444") : "#1e3a5f";
+        const fill = active || done ? (keep ? accent : "#ef4444") : "var(--border2)";
         const tx = active || done ? (keep ? -15 : 15) : 0;
         const op = active || done ? (keep ? 1 : 0.4) : 1;
         return (
@@ -126,16 +126,16 @@ function AutoMLIcon({ state, accent }: { state: CharacterState; accent: string }
         const barH = (r.pct / 100) * trackH;
         return (
           <g key={ri}>
-            <rect x={r.x} y={15} width={14} height={48} rx={2} fill="#0f2744"
-              stroke={done && winner ? accent : "#1e3a5f"} strokeWidth={done && winner ? 1.5 : 1} />
+            <rect x={r.x} y={15} width={14} height={48} rx={2} fill="var(--bg-card)"
+              stroke={done && winner ? accent : "var(--border2)"} strokeWidth={done && winner ? 1.5 : 1} />
             {[0, 1].map(li => (
               <motion.circle key={li} cx={r.x + 4 + li * 5} cy={20} r={1.5}
-                fill={active ? (li === 0 ? "#22c55e" : accent) : "#1e3a5f"}
+                fill={active ? (li === 0 ? "#22c55e" : accent) : "var(--border2)"}
                 animate={active ? { opacity: [1, 0.2, 1] } : {}}
                 transition={{ repeat: active ? INF : 0, duration: 0.8, delay: (ri + li) * 0.12 }} />
             ))}
-            <text x={r.x + 7} y={69} fontSize={5.5} fill={done && !winner ? "#64748b" : accent} textAnchor="middle" fontWeight="bold">{r.label}</text>
-            <rect x={r.x + 2} y={trackY} width={10} height={trackH} rx={1} fill="#0f2744" stroke="#1e3a5f" strokeWidth={0.5} />
+            <text x={r.x + 7} y={69} fontSize={5.5} fill={done && !winner ? "var(--text3)" : accent} textAnchor="middle" fontWeight="bold">{r.label}</text>
+            <rect x={r.x + 2} y={trackY} width={10} height={trackH} rx={1} fill="var(--bg-card)" stroke="var(--border2)" strokeWidth={0.5} />
             <motion.rect x={r.x + 2} y={trackY + trackH - barH} width={10} height={barH} rx={1}
               fill={r.color} opacity={done && !winner ? 0.4 : 1}
               initial={{ scaleY: 0 }} animate={active || done ? { scaleY: 1 } : { scaleY: 0 }}

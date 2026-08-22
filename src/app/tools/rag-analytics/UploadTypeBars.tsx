@@ -27,15 +27,15 @@ export default function UploadTypeBars({ data }: { data: Record<string, number> 
         return (
           <div key={type} className="flex items-center gap-2.5 text-[11px]">
             <Icon size={14} style={{ color: meta.color }} className="shrink-0" />
-            <span className="w-14 shrink-0" style={{ color: "rgba(255,255,255,0.6)" }}>{meta.label}</span>
-            <div className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+            <span className="w-14 shrink-0" style={{ color: "var(--text2)" }}>{meta.label}</span>
+            <div className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ delay: i * 0.08, duration: 0.6, ease: "easeOut" }}
                 style={{ height: "100%", background: meta.color, borderRadius: 9999 }} />
             </div>
-            <span className="w-6 text-right shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>{count}</span>
+            <span className="w-6 text-right shrink-0" style={{ color: "var(--text2)" }}>{count}</span>
           </div>
         );
       })}

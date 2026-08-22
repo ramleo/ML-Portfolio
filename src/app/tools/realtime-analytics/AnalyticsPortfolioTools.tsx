@@ -72,8 +72,8 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
     <div
       className="flex flex-col rounded-xl overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.025)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "var(--bg-glass)",
+        border: "1px solid var(--border)",
         borderLeft: `4px solid ${color}`,
       }}
     >
@@ -97,7 +97,7 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
           >
             {total.toLocaleString()}
           </span>
-          <span className="text-[10px] text-gray-600 font-medium">events</span>
+          <span className="text-[10px] text-[var(--text3)] font-medium">events</span>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
       {/* Action breakdown */}
       <div className="px-4 py-3 flex flex-col gap-2.5 flex-1">
         {meaningful.length === 0 ? (
-          <p className="text-[10px] text-gray-700 italic">no specific actions yet</p>
+          <p className="text-[10px] text-[var(--text3)] italic">no specific actions yet</p>
         ) : (
           meaningful.map(([action, count]) => {
             const pct      = total > 0 ? Math.round((count / total) * 100) : 0;
@@ -115,15 +115,15 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
             return (
               <div key={action}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-gray-400">{labelAction(action)}</span>
+                  <span className="text-[10px] text-[var(--text2)]">{labelAction(action)}</span>
                   <span className="text-[10px] tabular-nums">
-                    <span className="font-semibold text-gray-300">{count}</span>
-                    <span className="text-gray-600 ml-1">{pct}%</span>
+                    <span className="font-semibold text-[var(--text)]">{count}</span>
+                    <span className="text-[var(--text3)] ml-1">{pct}%</span>
                   </span>
                 </div>
                 <div
                   className="h-[3px] rounded-full overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.05)" }}
+                  style={{ background: "var(--border)" }}
                 >
                   <div
                     className="h-full rounded-full"
@@ -152,8 +152,8 @@ export default function AnalyticsPortfolioTools({ portfolioTools }: PortfolioToo
   const topTool = activeTools.reduce((best, t) => (totals[t] > (totals[best] ?? 0) ? t : best), activeTools[0]);
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
-      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-4">
+      <p className="text-[10px] font-semibold text-[var(--text3)] uppercase tracking-widest mb-3">
         Portfolio Tools
       </p>
 
@@ -174,7 +174,7 @@ export default function AnalyticsPortfolioTools({ portfolioTools }: PortfolioToo
                   className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                   style={{ background: color }}
                 />
-                <span className="text-[10px] font-semibold text-gray-400">
+                <span className="text-[10px] font-semibold text-[var(--text2)]">
                   {TOOL_NAMES[tool]}
                 </span>
                 <span
@@ -190,7 +190,7 @@ export default function AnalyticsPortfolioTools({ portfolioTools }: PortfolioToo
       )}
 
       {activeTools.length === 0 ? (
-        <p className="text-[10px] text-gray-600">No portfolio tool activity in this period</p>
+        <p className="text-[10px] text-[var(--text3)]">No portfolio tool activity in this period</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {activeTools.map(tool => (

@@ -53,7 +53,7 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
 
       {state === "done" && result && (
         result.contradictions.length === 0 ? (
-          <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             No contradictions found ({result.checked_pairs} overlapping passage{result.checked_pairs === 1 ? "" : "s"} checked across your documents).
           </p>
         ) : (
@@ -64,13 +64,13 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
             {result.contradictions.map((c, i) => (
               <div key={i} className="text-[10px] rounded-lg p-2.5 flex flex-col gap-1.5"
                 style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)" }}>
-                <p style={{ color: "rgba(255,255,255,0.75)" }}>{c.explanation}</p>
+                <p style={{ color: "var(--text)" }}>{c.explanation}</p>
                 {[c.chunk_a, c.chunk_b].map((chunk, j) => (
-                  <div key={j} className="rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.04)" }}>
-                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <div key={j} className="rounded px-2 py-1" style={{ background: "var(--border)" }}>
+                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
                       {displayName(chunk.source)}{chunk.page ? ` · page ${chunk.page}` : ""}
                     </span>
-                    <p style={{ color: "rgba(255,255,255,0.65)" }}>{chunk.text}</p>
+                    <p style={{ color: "var(--text2)" }}>{chunk.text}</p>
                   </div>
                 ))}
               </div>

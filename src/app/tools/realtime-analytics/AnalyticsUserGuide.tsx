@@ -31,10 +31,10 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
       `}</style>
 
       <div className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: "#0b0e1c", border: "1px solid rgba(255,255,255,0.09)" }}>
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
 
         <div className="flex items-center justify-between px-6 py-4 sticky top-0 z-10"
-          style={{ background: "#0b0e1c", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{
               background: "linear-gradient(135deg,rgba(16,185,129,0.2),rgba(99,102,241,0.12))",
@@ -50,14 +50,14 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
                 background: `linear-gradient(90deg, ${A}, #6366f1)`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>Real-Time Analytics</h1>
-              <p className="text-[9px] text-gray-600 uppercase tracking-[0.14em] mt-0.5">User Guide</p>
+              <p className="text-[9px] text-[var(--text3)] uppercase tracking-[0.14em] mt-0.5">User Guide</p>
             </div>
           </div>
           <button onClick={onClose}
             className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
-            style={{ color: "#4b5563", border: "1px solid rgba(255,255,255,0.08)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#4b5563"; }}>
+            style={{ color: "var(--text3)", border: "1px solid var(--border)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--border)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text3)"; }}>
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -66,11 +66,11 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
 
         <div className="px-6 py-5">
           <div className="ug-nav flex gap-1.5 overflow-x-auto pb-3 mb-5"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            style={{ borderBottom: "1px solid var(--border)" }}>
             {NAV.map(({ id, label }) => (
               <a key={id} href={`#${id}`}
                 className="ug-pill text-[9px] px-2.5 py-[4px] rounded-full whitespace-nowrap transition-colors shrink-0"
-                style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#4b5563" }}>
+                style={{ border: "1px solid var(--border)", color: "var(--text3)" }}>
                 {label}
               </a>
             ))}
@@ -79,8 +79,8 @@ export default function AnalyticsUserGuide({ onClose }: Props) {
         </div>
 
         <div className="px-6 py-3 flex items-center justify-between"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.25)" }}>
-          <span className="text-[9.5px] text-gray-700 uppercase tracking-widest">Real-Time Analytics · ML Portfolio</span>
+          style={{ borderTop: "1px solid var(--border)", background: "var(--bg-glass)" }}>
+          <span className="text-[9.5px] text-[var(--text3)] uppercase tracking-widest">Real-Time Analytics · ML Portfolio</span>
           <button onClick={onClose}
             className="text-[11px] px-4 py-1.5 rounded-lg font-semibold text-white transition-all hover:brightness-110"
             style={{ background: `linear-gradient(135deg, ${A}, #059669)` }}>

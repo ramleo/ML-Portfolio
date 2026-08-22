@@ -48,7 +48,7 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
 
       {state === "done" && result && (
         result.discrepancies.length === 0 ? (
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <p className="text-[11px]" style={{ color: "var(--text3)" }}>
             No discrepancies found — {result.checked_pairs} contract/invoice passage pair{result.checked_pairs === 1 ? "" : "s"} checked.
           </p>
         ) : (
@@ -60,7 +60,7 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
               <div key={i} className="text-[11px] rounded-lg p-3 flex flex-col gap-2"
                 style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)" }}>
                 <div className="flex items-center justify-between gap-2">
-                  <p style={{ color: "rgba(255,255,255,0.8)" }}>{d.explanation}</p>
+                  <p style={{ color: "var(--text)" }}>{d.explanation}</p>
                   <div className="shrink-0 flex items-center gap-1">
                     {!d.confirmed && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
@@ -76,17 +76,17 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="rounded px-2 py-1.5" style={{ background: "rgba(255,255,255,0.04)" }}>
-                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <div className="rounded px-2 py-1.5" style={{ background: "var(--bg-glass)" }}>
+                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
                       Contract{d.contract_chunk.page ? ` · page ${d.contract_chunk.page}` : ""}
                     </span>
-                    <p style={{ color: "rgba(255,255,255,0.65)" }}>{d.contract_chunk.text}</p>
+                    <p style={{ color: "var(--text2)" }}>{d.contract_chunk.text}</p>
                   </div>
-                  <div className="rounded px-2 py-1.5" style={{ background: "rgba(255,255,255,0.04)" }}>
-                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <div className="rounded px-2 py-1.5" style={{ background: "var(--bg-glass)" }}>
+                    <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
                       Invoice: {displayName(d.invoice_chunk.source)}{d.invoice_chunk.page ? ` · page ${d.invoice_chunk.page}` : ""}
                     </span>
-                    <p style={{ color: "rgba(255,255,255,0.65)" }}>{d.invoice_chunk.text}</p>
+                    <p style={{ color: "var(--text2)" }}>{d.invoice_chunk.text}</p>
                   </div>
                 </div>
               </div>

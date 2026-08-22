@@ -34,7 +34,7 @@ export default function DocViewerPanel({
     <div style={cardStyle} className="flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b"
-        style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        style={{ borderColor: "var(--border)" }}>
         <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
           style={{ color: `${ACCENT}99` }}>
           Document Preview
@@ -53,7 +53,7 @@ export default function DocViewerPanel({
 
       {/* Viewer */}
       <div className="relative flex-1 flex items-center justify-center p-3 min-h-[320px]"
-        style={{ background: "rgba(255,255,255,0.015)" }}>
+        style={{ background: "var(--bg-glass)" }}>
         {pageImages.length === 0 ? (
           processingMode === "docx" && !isScanning ? (
             <div className="text-center max-w-[340px] px-6 py-8 rounded-xl"
@@ -69,7 +69,7 @@ export default function DocViewerPanel({
               <p className="text-[11px] font-semibold mb-1.5" style={{ color: ACCENT }}>
                 Word document processed successfully
               </p>
-              <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="text-[10px] leading-relaxed" style={{ color: "var(--text2)" }}>
                 All fields on the right were extracted from the document&apos;s full text.
                 A visual page preview with field highlighting is available when you upload
                 a PDF or image instead.
@@ -81,7 +81,7 @@ export default function DocViewerPanel({
               <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M8 7h8M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+            <p className="text-[10px]" style={{ color: "var(--text3)" }}>
               {isScanning ? "Processing document…" : "Document preview will appear here"}
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function DocViewerPanel({
                   src={`data:image/png;base64,${b64}`}
                   alt={`Page ${idx + 1}`}
                   className="rounded w-full object-contain"
-                  style={{ display: "block", border: "1px solid rgba(255,255,255,0.1)" }}
+                  style={{ display: "block", border: "1px solid var(--border)" }}
                 />
                 {/* Bounding box overlay — each field renders on its own page */}
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none"

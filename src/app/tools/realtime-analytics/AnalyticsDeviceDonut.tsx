@@ -4,7 +4,7 @@ const P = ["#6366f1","#10b981","#f59e0b","#8b5cf6","#ef4444","#ec4899","#14b8a6"
 const COLORS: Record<string, string> = { desktop: "#6366f1", mobile: "#10b981" };
 
 export function DeviceDonut({ data }: { data: { device: string; count: number }[] }) {
-  if (!data.length) return <div className="h-10 flex items-center text-xs text-gray-600">No device data yet</div>;
+  if (!data.length) return <div className="h-10 flex items-center text-xs text-[var(--text3)]">No device data yet</div>;
 
   const total = data.reduce((s, d) => s + d.count, 0);
 
@@ -14,9 +14,9 @@ export function DeviceDonut({ data }: { data: { device: string; count: number }[
     return (
       <div className="flex items-center gap-3 py-1">
         <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: color }} />
-        <span className="text-[11px] font-semibold text-gray-300 capitalize">{data[0].device}</span>
+        <span className="text-[11px] font-semibold text-[var(--text)] capitalize">{data[0].device}</span>
         <span className="text-[11px] tabular-nums" style={{ color }}>100%</span>
-        <span className="text-[10px] text-gray-600">· {total} sessions</span>
+        <span className="text-[10px] text-[var(--text3)]">· {total} sessions</span>
       </div>
     );
   }
@@ -44,12 +44,12 @@ export function DeviceDonut({ data }: { data: { device: string; count: number }[
       {slices.map((s, i) => s.pct >= 10 && (
         <text key={i} x={s.lx} y={s.ly + 3.5} textAnchor="middle" fontSize="7" fill="#fff" fontWeight="700" opacity="0.9">{s.pct}%</text>
       ))}
-      <text x={CX} y={CY + 4} textAnchor="middle" fontSize="9" fill="#e5e7eb" fontWeight="600">{total}</text>
-      <text x={CX} y={CY + 13} textAnchor="middle" fontSize="6" fill="#6b7280">sessions</text>
+      <text x={CX} y={CY + 4} textAnchor="middle" fontSize="9" fill="var(--text)" fontWeight="600">{total}</text>
+      <text x={CX} y={CY + 13} textAnchor="middle" fontSize="6" fill="var(--text3)">sessions</text>
       {slices.map((s, i) => (
         <g key={i} transform={`translate(108, ${28 + i * 18})`}>
           <rect width="7" height="7" rx="1.5" fill={s.color} opacity="0.85"/>
-          <text x="11" y="7" fontSize="8" fill="#9ca3af" className="capitalize">{s.label} — {s.pct}%</text>
+          <text x="11" y="7" fontSize="8" fill="var(--text2)" className="capitalize">{s.label} — {s.pct}%</text>
         </g>
       ))}
     </svg>

@@ -97,13 +97,13 @@ export default function CinemaScene({
   return (
     <div
       ref={containerRef}
+      className="cinema-screen"
       style={{
         width: "100%",
         aspectRatio: "16/9",
         minHeight: 420,
         maxHeight: 680,
         position: "relative",
-        background: "linear-gradient(180deg, #030810 0%, #060d1a 40%, #0a1628 100%)",
         borderRadius: 20,
         overflow: "hidden",
       }}
@@ -151,7 +151,7 @@ export default function CinemaScene({
           left: "7.5%",
           width: "85%",
           height: 3,
-          background: "#1e3a5f",
+          background: "var(--border2)",
           borderRadius: 2,
           zIndex: 2,
         }}
@@ -226,7 +226,7 @@ export default function CinemaScene({
                 width: 14,
                 height: 14,
                 borderRadius: "50%",
-                background: state === "idle" ? "#1e3a5f" : accent,
+                background: state === "idle" ? "var(--border2)" : accent,
                 boxShadow: state === "active" ? `0 0 16px 4px ${accent}` : state === "done" ? `0 0 8px ${accent}` : "none",
                 margin: "0 auto",
                 opacity: state === "idle" ? 0.4 : 1,
@@ -273,7 +273,7 @@ export default function CinemaScene({
           left: 0,
           right: 0,
           height: 1,
-          background: "#0f2744",
+          background: "var(--border2)",
         }}
       />
 
@@ -285,7 +285,9 @@ export default function CinemaScene({
           left: 0,
           right: 0,
           height: storyHeight,
-          background: "#070f1e",
+          background: "var(--bg-glass)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
           overflowY: "auto",
         }}
       >

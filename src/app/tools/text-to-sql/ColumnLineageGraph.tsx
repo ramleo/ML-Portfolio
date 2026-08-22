@@ -126,7 +126,7 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
   const outY = (i: number) => PAD / 2 + i * ROW + ((srcKeys.length - columns.length) * ROW / 2);
 
   return (
-    <div className="rounded-xl border border-violet-500/15 bg-black/30 overflow-hidden">
+    <div className="rounded-xl border border-violet-500/15 bg-[var(--bg-glass)] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-white/[0.02] transition-colors"
@@ -140,17 +140,17 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
         <span className="text-[10px] font-semibold text-violet-400/70 uppercase tracking-widest flex-1 text-left">
           Column Lineage
         </span>
-        <span className="text-[9px] text-gray-600 mr-1">
+        <span className="text-[9px] text-[var(--text3)] mr-1">
           {srcKeys.length} source{srcKeys.length !== 1 ? "s" : ""} → {columns.length} output{columns.length !== 1 ? "s" : ""}
         </span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-          className={`text-gray-600 transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+          className={`text-[var(--text3)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
       </button>
 
       {open && (
-        <div className="px-4 pb-3 pt-1 border-t border-white/5 overflow-x-auto">
+        <div className="px-4 pb-3 pt-1 border-t border-[var(--border)] overflow-x-auto">
           <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ minWidth: 300, maxWidth: W }}>
             {/* Bezier edges */}
             {columns.map((col, oi) =>
@@ -201,7 +201,7 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
           </svg>
 
           {tableColor.size > 0 && (
-            <div className="flex flex-wrap gap-3 mt-1 pt-2 border-t border-white/5">
+            <div className="flex flex-wrap gap-3 mt-1 pt-2 border-t border-[var(--border)]">
               {[...tableColor.entries()].map(([tbl, color]) => (
                 <span key={tbl} className="flex items-center gap-1.5 text-[9px]" style={{ color }}>
                   <span className="w-2 h-2 rounded-sm inline-block" style={{ background: color, opacity: 0.55 }} />

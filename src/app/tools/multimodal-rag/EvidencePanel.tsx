@@ -68,14 +68,14 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
        * background/faint border — otherwise this reads as blending into
        * the scrolled list beneath it instead of sitting above it. */}
       <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between relative z-10" style={{
-        borderColor: `${ACCENT}30`, background: "rgba(10,8,18,0.92)",
+        borderColor: `${ACCENT}30`, background: "var(--bg-card)",
         boxShadow: "0 6px 12px -6px rgba(0,0,0,0.5)",
       }}>
         <span className="text-[17px]" style={{ color: ACCENT, fontFamily: "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source Serif Pro', Georgia, serif" }}>
           Evidence
         </span>
         {chat.sources.length > 0 && (
-          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>
+          <span className="text-[11px]" style={{ color: "var(--text3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>
             {chat.sources.length} cited
           </span>
         )}
@@ -91,7 +91,7 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
         WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 32px)",
       }}>
         {!hasContent && (
-          <p className="text-[13px] text-center py-8 px-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <p className="text-[13px] text-center py-8 px-2" style={{ color: "var(--text3)" }}>
             Ask a question — the sources it draws from will rank here.
           </p>
         )}
@@ -105,7 +105,7 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
                 {chat.sources.map((s, i) => (used!.includes(i) ? renderCard(s, i) : null))}
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}
+                <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}
                   title="Sent to the AI as context, but the answer doesn't appear to draw from this">
                   Additional context (not used in this answer)
                 </span>

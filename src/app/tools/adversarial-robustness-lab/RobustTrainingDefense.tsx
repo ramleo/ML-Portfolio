@@ -56,14 +56,14 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     fontSize: 12, padding: "6px 12px", borderRadius: 8, cursor: "pointer",
     background: active ? `${accent}18` : "transparent",
     color: active ? accent : "var(--text3)",
-    border: `1px solid ${active ? `${accent}40` : "rgba(255,255,255,0.1)"}`,
+    border: `1px solid ${active ? `${accent}40` : "var(--border)"}`,
   });
 
   const canRun = mode === "sample" ? samples.length > 0 : !!uploadPreview;
@@ -99,7 +99,7 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
                   <button key={s.id} onClick={() => setSelectedId(s.id)}
                     className="rounded-lg p-1 transition-colors"
                     style={{
-                      border: `2px solid ${selectedId === s.id ? accent : "rgba(255,255,255,0.1)"}`,
+                      border: `2px solid ${selectedId === s.id ? accent : "var(--border)"}`,
                       background: "#000",
                     }}>
                     <img src={`data:image/png;base64,${s.image_b64}`} alt={`Digit ${s.label}`}
@@ -141,7 +141,7 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
                 What digit is this?
                 <select value={intendedLabel} onChange={e => setIntendedLabel(Number(e.target.value))}
                   className="text-xs rounded px-2 py-1"
-                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  style={{ background: "var(--bg-glass)", color: "var(--text)", border: "1px solid var(--border2)" }}>
                   {Array.from({ length: 10 }, (_, i) => i).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </label>
@@ -166,7 +166,7 @@ export default function RobustTrainingDefense({ accent }: { accent: string }) {
       {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 
       {result && (
-        <div className="flex flex-col gap-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex flex-col gap-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
           <div className="flex items-center gap-4 flex-wrap">
             <p className="text-[11px]" style={{ color: "var(--text3)" }}>
               {mode === "upload" ? "Intended digit" : "True label"}: <strong style={{ color: "var(--text)" }}>{result.label}</strong>

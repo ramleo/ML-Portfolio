@@ -179,6 +179,20 @@ body {
   transform: translateX(-50%);
 }
 
+/* ── Pipeline Cinema screen ── */
+.cinema-screen {
+  background: linear-gradient(180deg, #030810 0%, #060d1a 40%, #0a1628 100%);
+  border: 1px solid var(--border);
+}
+html.light .cinema-screen {
+  background: linear-gradient(
+    180deg,
+    var(--bg-card) 0%,
+    color-mix(in srgb, var(--accent-via) 5%, var(--bg-card)) 45%,
+    var(--bg) 100%
+  );
+}
+
 /* ── Pipeline stage ── */
 .pipeline-stage {
   background: var(--bg-card);

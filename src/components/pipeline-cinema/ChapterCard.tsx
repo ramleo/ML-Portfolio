@@ -57,7 +57,7 @@ export default function ChapterCard({ chapterStage, onDismiss }: Props) {
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(6,13,26,0.92)",
+            background: "color-mix(in srgb, var(--bg) 92%, transparent)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -69,7 +69,7 @@ export default function ChapterCard({ chapterStage, onDismiss }: Props) {
             style={{
               fontVariant: "small-caps",
               fontSize: 11,
-              color: "#64748b",
+              color: "var(--text3)",
               letterSpacing: 6,
               marginBottom: 10,
             }}
@@ -91,7 +91,7 @@ export default function ChapterCard({ chapterStage, onDismiss }: Props) {
             style={{
               marginTop: 12,
               fontSize: 13,
-              color: "#64748b",
+              color: "var(--text3)",
               textAlign: "center",
             }}
           >

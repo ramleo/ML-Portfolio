@@ -73,7 +73,7 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
             left: `${(activeBbox[0] + activeBbox[2] / 2) * 100}%`, top: `${activeBbox[1] * 100}%`,
             transform: "translate(-50%, calc(-100% - 8px))",
             width: 220, maxWidth: "calc(100% - 16px)",
-            background: "rgba(10,10,16,0.95)", border: `1px solid ${ACCENT}40`,
+            background: "var(--bg-card)", border: `1px solid ${ACCENT}40`,
             boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
           }}>
           <div className="flex items-center gap-1.5">
@@ -82,16 +82,16 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
                 className="text-[9px] px-2 py-0.5 rounded border"
                 style={tab === t
                   ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
-                  : { borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>
+                  : { borderColor: "var(--border2)", color: "var(--text2)" }}>
                 {t === "text" ? "Text" : t === "image" ? "Image" : "AI fill"}
               </button>
             ))}
-            <button onClick={close} className="text-[9px] ml-auto px-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>✕</button>
+            <button onClick={close} className="text-[9px] ml-auto px-1.5" style={{ color: "var(--text2)" }}>✕</button>
           </div>
           {tab === "text" && (
             <div className="flex items-center gap-1.5">
               <input value={text} onChange={e => setText(e.target.value)} placeholder="Label or caption…"
-                className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#eee" }} />
+                className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
               <button onClick={() => { onAddText(activeIndex, text); close(); }} disabled={!text.trim()}
                 className="text-[9px] px-2 py-1 rounded" style={{ background: ACCENT, color: "#0b0b12", opacity: text.trim() ? 1 : 0.4 }}>
                 Add
@@ -99,14 +99,14 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
             </div>
           )}
           {tab === "image" && (
-            <input type="file" accept="image/*" className="text-[9px]" style={{ color: "rgba(255,255,255,0.6)" }}
+            <input type="file" accept="image/*" className="text-[9px]" style={{ color: "var(--text2)" }}
               onChange={e => { const f = e.target.files?.[0]; if (f) { onAddImage(activeIndex, f); close(); } }} />
           )}
           {tab === "ai" && (
             <div className="flex items-center gap-1.5">
               <input value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe what goes here (optional)…"
                 disabled={aiFilling}
-                className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#eee" }} />
+                className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
               <button onClick={async () => { await onAddAiFill(activeIndex, prompt); close(); }} disabled={aiFilling}
                 className="text-[9px] px-2 py-1 rounded whitespace-nowrap" style={{ background: ACCENT, color: "#0b0b12", opacity: aiFilling ? 0.5 : 1 }}>
                 {aiFilling ? "Generating…" : "Generate"}
@@ -114,12 +114,12 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
             </div>
           )}
           {tab === "ai" && aiFilling && (
-            <div className="rounded-full overflow-hidden" style={{ height: 4, background: "rgba(255,255,255,0.1)" }}>
+            <div className="rounded-full overflow-hidden" style={{ height: 4, background: "var(--border)" }}>
               <div style={{ width: `${aiFillProgress}%`, height: "100%", background: ACCENT, transition: "width 0.3s linear" }} />
             </div>
           )}
           {tab === "ai" && (
-            <p className="text-[8px]" style={{ color: "rgba(255,255,255,0.35)" }}>Usually takes a few seconds.</p>
+            <p className="text-[8px]" style={{ color: "var(--text3)" }}>Usually takes a few seconds.</p>
           )}
         </div>
       )}

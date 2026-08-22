@@ -42,7 +42,7 @@ export default function WatermarkControls({ img, source, page }: Props) {
         {verifying ? "Checking…" : "Verify watermark"}
       </button>
       {verifyResult && (
-        <span className="text-[9px]" style={{ color: verifyResult.present ? "#34d399" : "rgba(255,255,255,0.4)" }}>
+        <span className="text-[9px]" style={{ color: verifyResult.present ? "#34d399" : "var(--text2)" }}>
           {verifyResult.present
             ? `✓ "${verifyResult.label}" (${Math.round(verifyResult.confidence * 100)}%)`
             : "No watermark detected"}

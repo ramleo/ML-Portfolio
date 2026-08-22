@@ -18,7 +18,7 @@ function renderMd(text: string): React.ReactNode[] {
   return text.split("\n").map((line, i) => {
     // bold: **text**
     const parts = line.split(/\*\*(.+?)\*\*/g).map((seg, j) =>
-      j % 2 === 1 ? <strong key={j} className="text-gray-100 font-semibold">{seg}</strong> : seg
+      j % 2 === 1 ? <strong key={j} className="text-[var(--text)] font-semibold">{seg}</strong> : seg
     );
     // indent sub-bullets (lines starting with spaces + *)
     const isSub = /^\s+\*/.test(line);
@@ -92,8 +92,8 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
   };
 
   return (
-    <div className="rounded-xl border border-indigo-500/15 bg-black/30 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/6">
+    <div className="rounded-xl border border-indigo-500/15 bg-[var(--bg-glass)] overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)]">
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="text-indigo-400 shrink-0">
           <path d="M2 2h8v6H7l-2 2V8H2V2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
           <path d="M4 5h4M4 6.5h2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
@@ -107,7 +107,7 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
         )}
         {shown && !loading && reasoning && (
           <button onClick={() => setShown(false)}
-            className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors">
+            className="text-[10px] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
             Hide
           </button>
         )}
@@ -125,14 +125,14 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
           )}
           {err && <p className="text-[11px] text-red-400">{err}</p>}
           {reasoning && (
-            <div className="text-[12px] text-gray-300 leading-relaxed space-y-0.5">
+            <div className="text-[12px] text-[var(--text)] leading-relaxed space-y-0.5">
               {renderMd(reasoning)}
               {loading && <span className="inline-block w-1.5 h-3.5 bg-indigo-400 ml-0.5 animate-pulse rounded-sm" />}
             </div>
           )}
 
           {!loading && (reasoning || err) && (
-            <div className="mt-4 pt-3 border-t border-white/6">
+            <div className="mt-4 pt-3 border-t border-[var(--border)]">
               <div className="flex items-center gap-1.5 mb-2">
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="text-amber-400 shrink-0">
                   <path d="M6 1v2M6 9v2M1 6h2M9 6h2M2.93 2.93l1.41 1.41M7.66 7.66l1.41 1.41M2.93 9.07l1.41-1.41M7.66 4.34l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -148,7 +148,7 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
                   <p className="text-[10px] text-emerald-300/80 flex-1 leading-relaxed">
                     <span className="font-semibold">Saved correction:</span> {saved}
                   </p>
-                  <button onClick={handleDeleteSaved} className="text-[9px] text-gray-600 hover:text-red-400 transition-colors shrink-0">✕</button>
+                  <button onClick={handleDeleteSaved} className="text-[9px] text-[var(--text3)] hover:text-red-400 transition-colors shrink-0">✕</button>
                 </div>
               )}
 
@@ -157,17 +157,17 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
                 onChange={e => setCorrection(e.target.value)}
                 placeholder="Something wrong? Tell the AI what it got wrong — e.g. &quot;revenue means UnitPrice × Quantity, not just UnitPrice&quot;"
                 rows={3}
-                className="w-full text-[11px] font-mono bg-black/40 border border-amber-500/20 rounded-lg px-3 py-2 text-gray-300 placeholder-gray-600 outline-none resize-none focus:border-amber-500/40 transition-colors leading-relaxed"
+                className="w-full text-[11px] font-mono bg-[var(--bg-glass)] border border-amber-500/20 rounded-lg px-3 py-2 text-[var(--text)] placeholder:text-[var(--text3)] outline-none resize-none focus:border-amber-500/40 transition-colors leading-relaxed"
               />
               <div className="flex items-center justify-between mt-2">
-                <p className="text-[9px] text-gray-700">Your correction will be saved and applied to all future queries on this dataset</p>
+                <p className="text-[9px] text-[var(--text3)]">Your correction will be saved and applied to all future queries on this dataset</p>
                 <button
                   onClick={handleRerun}
                   disabled={!correction.trim()}
                   className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   style={correction.trim()
                     ? { background: "rgba(245,158,11,0.12)", borderColor: "rgba(245,158,11,0.4)", color: "#fbbf24" }
-                    : { background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)", color: "#6b7280" }
+                    : { background: "var(--border)", borderColor: "var(--border)", color: "var(--text3)" }
                   }
                 >
                   <svg width="10" height="10" viewBox="0 0 12 12" fill="none">

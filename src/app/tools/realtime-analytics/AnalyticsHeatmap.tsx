@@ -19,7 +19,7 @@ export default function AnalyticsHeatmap({ data }: Props) {
   const H = TOP + 7 * (CELL + GAP);
 
   if (data.length === 0) return (
-    <div className="h-20 flex items-center justify-center text-xs text-gray-600">No data yet</div>
+    <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No data yet</div>
   );
 
   return (
@@ -29,14 +29,14 @@ export default function AnalyticsHeatmap({ data }: Props) {
         {Array.from({ length: 24 }, (_, h) => h % 3 === 0 && (
           <text key={h}
             x={LEFT + h * (CELL + GAP) + CELL / 2} y={12}
-            textAnchor="middle" fontSize="7" fill="#4b5563">
+            textAnchor="middle" fontSize="7" fill="var(--text3)">
             {h}h
           </text>
         ))}
         {DAY_LABELS.map((label, d) => (
           <g key={d}>
             <text x={LEFT - 4} y={TOP + d * (CELL + GAP) + CELL / 2 + 3}
-              textAnchor="end" fontSize="7" fill="#4b5563">{label}</text>
+              textAnchor="end" fontSize="7" fill="var(--text3)">{label}</text>
             {Array.from({ length: 24 }, (_, h) => {
               const count = grid[d][h];
               const intensity = count === 0 ? 0 : 0.15 + (count / max) * 0.75;
@@ -62,8 +62,8 @@ export default function AnalyticsHeatmap({ data }: Props) {
           return (
             <g pointerEvents="none">
               <rect x={tx} y={ty} width={TW} height={TH} rx="3"
-                fill="#1f2937" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
-              <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="#e5e7eb">
+                fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
+              <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="var(--text)">
                 {tip.label}
               </text>
             </g>

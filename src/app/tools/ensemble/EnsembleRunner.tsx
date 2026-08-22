@@ -224,7 +224,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
   }, []);
 
   return (
-    <div style={{ ...CARD, borderTop: `3px solid ${ACCENT}`, marginBottom: "1.5rem" }}>
+    <div style={{ ...CARD, marginBottom: "1.5rem" }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
         <div>

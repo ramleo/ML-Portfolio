@@ -41,7 +41,7 @@ export default function StyleCloakRunner({ accent }: { accent: string }) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16,
+    background: "var(--bg-glass)", border: "1px solid var(--border)", borderRadius: 16,
   };
 
   const protection = result?.protection_level ? PROTECTION_COPY[result.protection_level] : null;
@@ -71,7 +71,7 @@ export default function StyleCloakRunner({ accent }: { accent: string }) {
         </div>
 
         {preview && (
-          <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Strength (epsilon): {epsilon.toFixed(3)}
@@ -118,7 +118,7 @@ export default function StyleCloakRunner({ accent }: { accent: string }) {
                   {protection.text}
                 </span>
               </div>
-              <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "rgba(255,255,255,0.08)" }}>
+              <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "var(--border)" }}>
                 <div style={{
                   width: `${Math.round(((1 - (result.cosine_similarity ?? 1)) / 2) * 100)}%`,
                   height: "100%", background: protection.color, transition: "width 0.3s ease",

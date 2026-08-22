@@ -20,7 +20,7 @@ export default function ProviderDonut({ data, size = 160 }: { data: Record<strin
     <div className="flex items-center gap-5 flex-wrap">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={14} />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--border)" strokeWidth={14} />
           {entries.map(([name, count], i) => {
             const frac = count / total;
             const dash = frac * circumference;
@@ -41,8 +41,8 @@ export default function ProviderDonut({ data, size = 160 }: { data: Record<strin
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-lg font-bold text-white">{hover ? data[hover] : total}</span>
-          <span className="text-[9px] truncate max-w-[70%]" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <span className="text-lg font-bold" style={{ color: "var(--text)" }}>{hover ? data[hover] : total}</span>
+          <span className="text-[9px] truncate max-w-[70%]" style={{ color: "var(--text3)" }}>
             {hover ?? "total"}
           </span>
         </div>
@@ -56,8 +56,8 @@ export default function ProviderDonut({ data, size = 160 }: { data: Record<strin
               onMouseEnter={() => setHover(name)} onMouseLeave={() => setHover(null)}
               style={{ opacity: hover && hover !== name ? 0.5 : 1 }}>
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-              <span style={{ color: "rgba(255,255,255,0.7)" }}>{name}</span>
-              <span style={{ color: "rgba(255,255,255,0.35)" }}>{count} · {pct}%</span>
+              <span style={{ color: "var(--text2)" }}>{name}</span>
+              <span style={{ color: "var(--text3)" }}>{count} · {pct}%</span>
             </div>
           );
         })}

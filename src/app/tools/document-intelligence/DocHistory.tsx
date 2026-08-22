@@ -57,11 +57,11 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
     }} className="px-4 py-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
-          style={{ color: "rgba(255,255,255,0.35)" }}>
+          style={{ color: "var(--text3)" }}>
           Recent documents
         </span>
         <button onClick={clear} className="text-[8px] px-1.5 py-0.5 rounded border transition-colors hover:bg-white/5"
-          style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)" }}>
+          style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
           Clear
         </button>
       </div>
@@ -69,18 +69,18 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
         {entries.map(e => (
           <button key={e.id} onClick={() => onRestore(e)}
             className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/5"
-            style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+            style={{ border: "1px solid var(--border)" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0"
-              style={{ color: "rgba(255,255,255,0.25)" }}>
+              style={{ color: "var(--text3)" }}>
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
                 stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
               <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
             </svg>
             <span className="flex-1 min-w-0">
-              <span className="block text-[11px] truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
+              <span className="block text-[11px] truncate" style={{ color: "var(--text2)" }}>
                 {e.fileName}
               </span>
-              <span className="block text-[8px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <span className="block text-[8px]" style={{ color: "var(--text3)" }}>
                 {e.docTypeLabel ?? "Document"} · {e.fields.length} fields · {timeAgo(e.at)}
               </span>
             </span>
@@ -91,7 +91,7 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
           </button>
         ))}
       </div>
-      <p className="text-[8px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+      <p className="text-[8px]" style={{ color: "var(--text3)" }}>
         Stored in your browser only · restores fields &amp; chat (not the page preview)
       </p>
     </div>
