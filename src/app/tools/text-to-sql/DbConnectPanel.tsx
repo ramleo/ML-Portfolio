@@ -66,7 +66,7 @@ export default function DbConnectPanel({
               className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border transition-all duration-150"
               style={{
                 borderColor:  active ? ACCENT : "var(--border)",
-                color:        active ? "#e0e7ff" : "var(--text3)",
+                color:        active ? ACCENT : "var(--text3)",
                 background:   active ? "linear-gradient(135deg,rgba(99,102,241,0.18),rgba(139,92,246,0.12))" : "transparent",
                 boxShadow:    active ? "0 0 12px rgba(99,102,241,0.15)" : "none",
               }}>

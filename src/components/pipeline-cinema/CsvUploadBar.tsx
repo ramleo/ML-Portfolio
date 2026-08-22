@@ -42,6 +42,7 @@ export default function CsvUploadBar({
     return (
       <div style={{ maxWidth: 900, margin: "0 auto 1.25rem" }}>
         <div
+          className="subtle-card"
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
@@ -54,6 +55,7 @@ export default function CsvUploadBar({
             background: "var(--bg-glass)",
             color: "var(--text3)",
             fontSize: "0.85rem",
+            ["--acc-glow" as string]: "#38bdf814",
           }}
         >
           <input
