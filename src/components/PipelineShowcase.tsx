@@ -217,12 +217,6 @@ function StageCard({
           opacity: stage.comingSoon ? 0.65 : 1,
         }}
       >
-        {/* Accent top bar */}
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0,
-          height: 3, background: stage.accent, borderRadius: "16px 16px 0 0",
-        }} />
-
         {/* Shimmer overlay */}
         <div style={{
           position: "absolute", inset: 0, borderRadius: 16,

@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 import capabilities, { type Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
 
-// Every card (front AND flipped-back) shares this one height — never a
-// height computed from that card's own content — so all 24 cards land at
-// the exact same size, in both the resting and "See more"-expanded state.
-// The expanded description scrolls internally within a capped height (see
-// .desc.expanded in globals.css) instead of growing the card, so toggling
-// "See more" never resizes or reflows the grid.
-const CARD_HEIGHT = 310;
-
 const DOMAIN_ORDER = ["ML Pipeline", "Language & Documents", "Computer Vision", "Security & Trust"];
 const DOMAIN_COLOR: Record<string, string> = {
   "ML Pipeline": "#34d399",
@@ -67,14 +59,14 @@ function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void 
 
   return (
     <div
-      className="flip-outer"
+      className={`flip-outer${expanded ? " expanded" : ""}`}
       onClick={handleNavigate}
       onMouseLeave={() => setExpanded(false)}
       title={`Hover to flip, click to open ${cap.title}`}
-      style={{ minHeight: CARD_HEIGHT, cursor: "pointer" }}
+      style={{ ["--acc-glow" as string]: `${cap.accent}14` }}
     >
-      <div className="flip-inner" style={{ minHeight: CARD_HEIGHT }}>
-        <div className="flip-face front" style={{ ["--acc-glow" as string]: `${cap.accent}14` }}>
+      <div className="flip-inner">
+        <div className="flip-face front">
           <div className="flip-front-body">
             <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>
               <cap.icon size={17} strokeWidth={2} />
