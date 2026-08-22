@@ -84,6 +84,7 @@ function FeatureSelectionPageInner() {
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const hasFile = cols.length > 0;
+  const runnerStep = !hasFile ? 1 : result ? 3 : 2;
   const numericCols = cols.filter(c => c.type === "numeric");
   const categoricalCols = cols.filter(c => c.type === "categorical");
   const candidateCount = numericCols.filter(c => c.name !== opts.targetCol).length;
@@ -195,7 +196,7 @@ function FeatureSelectionPageInner() {
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
 
-      <FSPageHeader accent={ACCENT} onHome={() => router.push("/#capabilities")} />
+      <FSPageHeader accent={ACCENT} onHome={() => router.push("/#capabilities")} currentStep={runnerStep} />
 
       <div style={{
         maxWidth: 960, margin: "0 auto",
@@ -249,7 +250,7 @@ function FeatureSelectionPageInner() {
                     }));
                   }}
                   style={{
-                    background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)",
+                    background: "var(--border)", border: "1px solid var(--border2)",
                     borderRadius: 6, color: "var(--text)", fontSize: "0.82rem",
                     padding: "0.35rem 0.65rem", outline: "none", cursor: "pointer",
                   }}
@@ -262,7 +263,7 @@ function FeatureSelectionPageInner() {
                     ? `${targetInfo?.type === "categorical" ? "Categorical" : "Numeric"} target — MI and F-scores computed against this column.`
                     : "No target — features ranked by normalized variance."}
                 </div>
-                <button onClick={handleReset} style={{ fontSize: "0.76rem", padding: "0.3rem 0.85rem", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--text3)", cursor: "pointer", marginLeft: "auto" }}>
+                <button onClick={handleReset} style={{ fontSize: "0.76rem", padding: "0.3rem 0.85rem", borderRadius: 6, background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text3)", cursor: "pointer", marginLeft: "auto" }}>
                   Reset Methods
                 </button>
               </div>

@@ -8,8 +8,12 @@ import AutoMLModal, { type TrainResult } from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import { StepIndicator } from "@/components/StepIndicator";
+import type { Step as AutoMLStep } from "@/lib/automlUtils";
 
 const ACCENT = "#22c55e";
+const AUTOML_STEP_KEYS: AutoMLStep[] = ["upload", "config", "training", "results"];
+const AUTOML_STEP_LABELS = ["Upload", "Config", "Training", "Results"];
 
 function AutoMLPageInner() {
   const router     = useRouter();
@@ -19,6 +23,7 @@ function AutoMLPageInner() {
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded]         = useState(false);
   const [trainResult, setTrainResult]       = useState<TrainResult | null>(null);
+  const [modalStep, setModalStep]           = useState<AutoMLStep>("upload");
 
   const handleReady = useCallback((trigger: (f: File) => void) => {
     triggerRef.current = trigger;
@@ -91,8 +96,10 @@ function AutoMLPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "0.62rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#22c55e14", border: "1px solid #22c55e30" }}>Step 4</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} />
           </div>
         </div>
       </div>
@@ -111,7 +118,7 @@ function AutoMLPageInner() {
             }}
           />
         )}
-        <AutoMLModal onClose={handleBack} isPage onReady={handleReady} onResultChange={(r) => setTrainResult(r)} />
+        <AutoMLModal onClose={handleBack} isPage onReady={handleReady} onResultChange={(r) => setTrainResult(r)} onStepChange={setModalStep} />
       </div>
 
       <ToolsAIChat context={{

@@ -35,16 +35,18 @@ interface AutoMLModalProps {
   onResultChange?:    (result: TrainResult | null, history: HistoryEntry[]) => void;
   isPage?:            boolean;
   onReady?:           (trigger: (f: File) => void) => void;
+  onStepChange?:      (step: Step) => void;
 }
 
 export default function AutoMLModal({
   onClose, onSavedToPipeline, initialResult, initialHistory, onResultChange,
-  isPage = false, onReady,
+  isPage = false, onReady, onStepChange,
 }: AutoMLModalProps) {
   const { setState } = usePipeline();
   const { handleTrain: runTrain } = useAutoMLTrain();
 
   const [step, setStep]           = useState<Step>(initialResult ? "results" : "upload");
+  useEffect(() => { onStepChange?.(step); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [file, setFile]           = useState<File | null>(null);
   const [analyzed, setAnalyzed]   = useState<AnalyzeResult | null>(null);
   const [target, setTarget]       = useState("");

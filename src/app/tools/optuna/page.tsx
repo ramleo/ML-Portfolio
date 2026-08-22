@@ -8,19 +8,10 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import OptunaRunner from "./OptunaRunner";
+import { StepIndicator } from "@/components/StepIndicator";
 
 const ACCENT = "#a78bfa";
-
-function Badge({ label, color }: { label: string; color: string }) {
-  return (
-    <span style={{
-      fontSize: "0.62rem", fontWeight: 600, color,
-      textTransform: "uppercase", letterSpacing: "0.08em",
-      padding: "2px 8px", borderRadius: 9999,
-      background: `${color}14`, border: `1px solid ${color}30`,
-    }}>{label}</span>
-  );
-}
+const OPTUNA_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function OptunaPageInner() {
   const router = useRouter();
@@ -29,6 +20,7 @@ function OptunaPageInner() {
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
   const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[]; best_params?: Record<string, number | string> } | null>(null);
+  const [runnerStep, setRunnerStep] = useState(1);
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -86,8 +78,10 @@ function OptunaPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <Badge label="Step 3" color={ACCENT} />
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Optuna Tuning</span>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <StepIndicator labels={OPTUNA_STEP_LABELS} currentIndex={runnerStep - 1} accent={ACCENT} />
           </div>
         </div>
       </div>
@@ -106,7 +100,7 @@ function OptunaPageInner() {
             }}
           />
         )}
-        <OptunaRunner onReady={handleReady} onResult={setTrainResult} />
+        <OptunaRunner onReady={handleReady} onResult={setTrainResult} onStepChange={setRunnerStep} />
       </div>
 
       <ToolsAIChat context={{

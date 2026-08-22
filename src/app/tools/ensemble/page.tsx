@@ -8,8 +8,10 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import EnsembleRunner from "./EnsembleRunner";
+import { StepIndicator } from "@/components/StepIndicator";
 
 const ACCENT = "#f472b6";
+const ENSEMBLE_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function EnsemblePageInner() {
   const router = useRouter();
@@ -18,6 +20,7 @@ function EnsemblePageInner() {
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
   const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[] } | null>(null);
+  const [runnerStep, setRunnerStep] = useState(1);
 
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
 
@@ -75,8 +78,10 @@ function EnsemblePageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "0.62rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>Step 3</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Ensemble Methods</span>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <StepIndicator labels={ENSEMBLE_STEP_LABELS} currentIndex={runnerStep - 1} accent={ACCENT} />
           </div>
         </div>
       </div>
@@ -95,7 +100,7 @@ function EnsemblePageInner() {
             }}
           />
         )}
-        <EnsembleRunner onReady={handleReady} onResult={setTrainResult} accent="#f472b6" />
+        <EnsembleRunner onReady={handleReady} onResult={setTrainResult} onStepChange={setRunnerStep} accent="#f472b6" />
       </div>
 
       <ToolsAIChat context={{

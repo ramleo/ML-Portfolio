@@ -21,13 +21,12 @@ import { useFEAISuggest } from "@/hooks/useFEAISuggest";
 import { useFEFileLoad } from "@/hooks/useFEFileLoad";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
+import { StepIndicator } from "@/components/StepIndicator";
 
 const ACCENT = "#38bdf8";
 const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderTop: `3px solid ${ACCENT}`, borderRadius: 16, padding: "1.25rem 1.4rem" };
-
-function Pill({ label, color = ACCENT }: { label: string; color?: string }) {
-  return <span style={{ fontSize: "0.65rem", fontWeight: 600, color, background: `${color}22`, border: `1px solid ${color}44`, borderRadius: 9999, padding: "1px 8px" }}>{label}</span>;
-}
+const FE_STEP_KEYS: Step[] = ["upload", "configure", "processing", "results"];
+const FE_STEP_LABELS = ["Upload", "Configure", "Processing", "Results"];
 
 function ActionBtn({ onClick, disabled = false, children, secondary = false }: { onClick: () => void; disabled?: boolean; children: React.ReactNode; secondary?: boolean }) {
   const [hov, setHov] = useState(false);
@@ -211,22 +210,24 @@ function FeatureEngineeringPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <Pill label="Step 3" />
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Engineering</span>
             <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
           </div>
-          {step === "configure" && (
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ fontSize: "0.72rem", color: "var(--text3)", maxWidth: 340, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={transformSummary || undefined}>{transformSummary || "0 transforms selected"}</span>
-              <ActionBtn onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
-            </div>
-          )}
-          {step === "results" && (
-            <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem" }}>
-              <ActionBtn secondary onClick={() => setStep("configure")}>Back to Configure</ActionBtn>
-              <ActionBtn onClick={downloadResult}>Download CSV</ActionBtn>
-            </div>
-          )}
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" }}>
+            {step === "configure" && (
+              <>
+                <span style={{ fontSize: "0.72rem", color: "var(--text3)", maxWidth: 340, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={transformSummary || undefined}>{transformSummary || "0 transforms selected"}</span>
+                <ActionBtn onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
+              </>
+            )}
+            {step === "results" && (
+              <>
+                <ActionBtn secondary onClick={() => setStep("configure")}>Back to Configure</ActionBtn>
+                <ActionBtn onClick={downloadResult}>Download CSV</ActionBtn>
+              </>
+            )}
+            <StepIndicator labels={FE_STEP_LABELS} currentIndex={FE_STEP_KEYS.indexOf(step)} accent={ACCENT} />
+          </div>
         </div>
       </div>
 

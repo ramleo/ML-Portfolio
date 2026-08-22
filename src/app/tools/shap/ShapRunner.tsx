@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { MODELS, Step, useShapRunner } from "./useShapRunner";
 import type { TrainResult } from "./useShapRunner";
 import ShapResults from "./ShapResults";
@@ -18,9 +19,10 @@ const CARD: React.CSSProperties = {
 interface ShapRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
   onResult?: (r: TrainResult | null) => void;
+  onStepChange?: (step: Step) => void;
 }
 
-export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
+export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunnerProps) {
   const {
     state,
     step, dragging, setDragging, file, analyzing, analyzeResult, error,
@@ -30,6 +32,8 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
     inputRef, paramsInputRef,
     onDrop, onInputChange, handleTrain, reset, loadParamsFromFile,
   } = useShapRunner({ onReady, onResult });
+
+  useEffect(() => { onStepChange?.(step); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ ...CARD, marginBottom: "1.5rem" }}>
@@ -44,29 +48,10 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
           </div>
         </div>
         {step > 1 && (
-          <button onClick={reset} style={{ fontSize: "0.72rem", color: "var(--text3)", background: "none", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
+          <button onClick={reset} style={{ fontSize: "0.72rem", color: "var(--text3)", background: "none", border: `1px solid var(--border2)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
             Reset
           </button>
         )}
-      </div>
-
-      {/* Step indicator */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
-        {([1, 2, 3] as Step[]).map(s => (
-          <div key={s} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: 9999, display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "0.65rem", fontWeight: 700,
-              background: step >= s ? ACCENT : "rgba(255,255,255,0.06)",
-              color: step >= s ? "#000" : "var(--text3)",
-              border: step === s ? `2px solid ${ACCENT}` : "2px solid transparent",
-            }}>{s}</div>
-            <span style={{ fontSize: "0.72rem", color: step >= s ? "var(--text2)" : "var(--text3)" }}>
-              {s === 1 ? "Upload" : s === 2 ? "Configure" : "Results"}
-            </span>
-            {s < 3 && <div style={{ width: 24, height: 1, background: "rgba(255,255,255,0.1)", marginLeft: "0.15rem" }} />}
-          </div>
-        ))}
       </div>
 
       {/* STEP 1: Upload */}
@@ -105,7 +90,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Target Column</label>
-              <select value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              <select value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
                 {analyzeResult.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
             </div>
@@ -113,7 +98,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
               <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Task Type</label>
               <div style={{ display: "flex", gap: "0.4rem" }}>
                 {(["classification", "regression"] as const).map(t => (
-                  <button key={t} onClick={() => setTask(t)} style={{ flex: 1, padding: "0.45rem 0.5rem", borderRadius: 7, border: `1px solid ${task === t ? ACCENT : "rgba(255,255,255,0.1)"}`, background: task === t ? `${ACCENT}20` : "rgba(0,0,0,0.3)", color: task === t ? ACCENT : "var(--text3)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer" }}>
+                  <button key={t} onClick={() => setTask(t)} style={{ flex: 1, padding: "0.45rem 0.5rem", borderRadius: 7, border: `1px solid ${task === t ? ACCENT : "var(--border2)"}`, background: task === t ? `${ACCENT}20` : "var(--border)", color: task === t ? ACCENT : "var(--text3)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer" }}>
                     {t === "classification" ? "Classification" : "Regression"}
                   </button>
                 ))}
@@ -123,7 +108,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
 
           <div>
             <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Model</label>
-            <select value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+            <select value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
               {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
@@ -154,7 +139,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
               <input ref={paramsInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={loadParamsFromFile} />
             </div>
             {usePresetParams && presetParams && (
-              <div style={{ marginTop: "0.5rem", fontSize: "0.72rem", color: "var(--text3)", background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "0.4rem 0.65rem" }}>
+              <div style={{ marginTop: "0.5rem", fontSize: "0.72rem", color: "var(--text3)", background: "var(--border)", borderRadius: 6, padding: "0.4rem 0.65rem" }}>
                 {Object.entries(presetParams).slice(0, 5).map(([k, v]) => `${k}: ${v}`).join(" · ")}
                 {Object.keys(presetParams).length > 5 && ` · +${Object.keys(presetParams).length - 5} more`}
               </div>
@@ -179,7 +164,7 @@ export default function ShapRunner({ onReady, onResult }: ShapRunnerProps) {
               <span>{status || "Running..."}</span>
               <span style={{ color: ACCENT, fontWeight: 700 }}>{progress}%</span>
             </div>
-            <div style={{ height: 8, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+            <div style={{ height: 8, borderRadius: 9999, background: "var(--border)" }}>
               <div style={{ height: "100%", width: `${progress}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 8px ${ACCENT}55`, transition: "width 0.3s" }} />
             </div>
           </div>

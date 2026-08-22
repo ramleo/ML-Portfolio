@@ -5,7 +5,6 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
 import { track } from "@/hooks/useAnalytics";
 import OptunaResults from "./OptunaResults";
-import OptunaStepBar from "@/components/OptunaSteps/OptunaStepBar";
 import OptunaConfigForm from "@/components/OptunaSteps/OptunaConfigForm";
 
 const ACCENT = "#a78bfa";
@@ -50,12 +49,14 @@ const MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees
 interface OptunaRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
   onResult?: (r: TrainResult | null) => void;
+  onStepChange?: (step: Step) => void;
 }
 
-export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
+export default function OptunaRunner({ onReady, onResult, onStepChange }: OptunaRunnerProps) {
   const { state, setState } = usePipeline();
 
   const [step, setStep] = useState<Step>(1);
+  useEffect(() => { onStepChange?.(step); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -238,14 +239,11 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
           </div>
         </div>
         {step > 1 && (
-          <button onClick={reset} style={{ fontSize: "0.72rem", color: "var(--text3)", background: "none", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
+          <button onClick={reset} style={{ fontSize: "0.72rem", color: "var(--text3)", background: "none", border: `1px solid var(--border2)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>
             Reset
           </button>
         )}
       </div>
-
-      {/* Step indicator */}
-      <OptunaStepBar step={step} ACCENT={ACCENT} />
 
       {/* STEP 1: Upload */}
       {step === 1 && (
@@ -308,7 +306,7 @@ export default function OptunaRunner({ onReady, onResult }: OptunaRunnerProps) {
               <span>{status || "Running..."}</span>
               <span style={{ color: ACCENT, fontWeight: 700 }}>{progress}%</span>
             </div>
-            <div style={{ height: 8, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+            <div style={{ height: 8, borderRadius: 9999, background: "var(--border)" }}>
               <div style={{ height: "100%", width: `${progress}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 8px ${ACCENT}55`, transition: "width 0.3s" }} />
             </div>
           </div>
