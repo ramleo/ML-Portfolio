@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import AdversarialRunner from "./AdversarialRunner";
 import RobustTrainingDefense from "./RobustTrainingDefense";
 import AdversarialUserGuideModal from "./AdversarialUserGuideModal";
@@ -84,6 +85,7 @@ export default function AdversarialRobustnessLabPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <AdversarialUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

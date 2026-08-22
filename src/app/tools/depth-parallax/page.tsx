@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import DepthParallaxRunner from "./DepthParallaxRunner";
 
 const ACCENT = "#3b82f6";
@@ -71,6 +72,9 @@ export default function DepthParallaxPage() {
               <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
                 Estimates per-pixel depth from a single photo, then drives a live parallax diorama effect
               </p>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              <ThemeToggle />
             </div>
           </div>
 

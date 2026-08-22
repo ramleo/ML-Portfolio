@@ -12,6 +12,7 @@ import {
   STEP_KEYS, STEP_LABELS,
 } from "@/lib/preprocessingAlgorithms";
 import { StepIndicator } from "@/components/StepIndicator";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ConfigurePanel } from "@/components/PreprocessingPanels/ConfigurePanel";
 import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
@@ -232,7 +233,10 @@ function PreprocessingPageInner() {
               <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
             </div>
           </div>
-          <StepIndicator labels={STEP_LABELS} currentIndex={STEP_KEYS.indexOf(step)} accent={ACCENT} />
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <StepIndicator labels={STEP_LABELS} currentIndex={STEP_KEYS.indexOf(step)} accent={ACCENT} />
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 

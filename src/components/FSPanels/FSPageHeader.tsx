@@ -1,6 +1,7 @@
 "use client";
 
 import { StepIndicator } from "@/components/StepIndicator";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface BadgeProps { label: string; color: string; }
 function Badge({ label, color }: BadgeProps) {
@@ -54,8 +55,9 @@ export default function FSPageHeader({ accent, onHome, currentStep }: Props) {
           <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Selection</span>
           <Badge label="runs in browser" color="#22c55e" />
         </div>
-        <div style={{ marginLeft: "auto" }}>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <StepIndicator labels={FS_STEP_LABELS} currentIndex={currentStep - 1} accent={accent} />
+          <ThemeToggle />
         </div>
       </div>
     </div>

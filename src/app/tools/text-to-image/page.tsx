@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import TextToImageRunner, { type TextToImageRunnerHandle } from "./TextToImageRunner";
 import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from "./useTextToImageRunner";
 import { extractImagePrompt } from "@/components/chatImageIntent";
@@ -112,6 +113,9 @@ export default function TextToImagePage() {
               <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
                 Type a prompt, get a generated image back — no input photo needed
               </p>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              <ThemeToggle />
             </div>
           </div>
 

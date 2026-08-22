@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ThemeToggle from "@/components/ThemeToggle";
 import AnalyticsContent from "./AnalyticsContent";
 
 export default function RagAnalyticsPage() {
@@ -27,7 +28,10 @@ export default function RagAnalyticsPage() {
             Back
           </button>
 
-          <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text)" }}>RAG Usage Analytics</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>RAG Usage Analytics</h1>
+            <ThemeToggle />
+          </div>
           <AnalyticsContent />
         </div>
       </div>

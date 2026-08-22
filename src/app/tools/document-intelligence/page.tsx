@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import DocIntelRunner from "./DocIntelRunner";
 import DocUserGuideModal from "./DocUserGuideModal";
 import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
@@ -85,6 +86,7 @@ export default function DocumentIntelligencePage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <DocUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

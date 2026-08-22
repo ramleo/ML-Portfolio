@@ -9,6 +9,7 @@ import ToolsAIChat from "@/components/ToolsAIChat";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import EnsembleRunner from "./EnsembleRunner";
 import { StepIndicator } from "@/components/StepIndicator";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const ACCENT = "#f472b6";
 const ENSEMBLE_STEP_LABELS = ["Upload", "Configure", "Results"];
@@ -80,8 +81,9 @@ function EnsemblePageInner() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Ensemble Methods</span>
           </div>
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <StepIndicator labels={ENSEMBLE_STEP_LABELS} currentIndex={runnerStep - 1} accent={ACCENT} />
+            <ThemeToggle />
           </div>
         </div>
       </div>

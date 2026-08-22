@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ANALYTICS_GUIDE, ANALYTICS_SUGGESTIONS } from "./userGuide";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
@@ -49,6 +50,9 @@ export default function RealtimeAnalyticsPage() {
               <div>
                 <h1 className="text-xl font-bold">Real-Time Analytics</h1>
                 <p className="text-xs text-[var(--text2)]">Live event stream from this portfolio — powered by Supabase Realtime</p>
+              </div>
+              <div style={{ marginLeft: "auto" }}>
+                <ThemeToggle />
               </div>
             </div>
           </div>

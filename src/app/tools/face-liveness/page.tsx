@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ThemeToggle from "@/components/ThemeToggle";
 import FaceLivenessRunner from "./FaceLivenessRunner";
 
 const ACCENT = "#14b8a6";
@@ -49,6 +50,9 @@ export default function FaceLivenessPage() {
               <p className="text-xs mt-0.5" style={{ color: "var(--text3)" }}>
                 Distinguishes a live face from a photo/screen spoof held up to the camera
               </p>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              <ThemeToggle />
             </div>
           </div>
 

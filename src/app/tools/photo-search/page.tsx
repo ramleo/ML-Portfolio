@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import PhotoSearchRunner from "./PhotoSearchRunner";
 import PhotoSearchUserGuideModal from "./PhotoSearchUserGuideModal";
 import { PHOTO_SEARCH_GUIDE, PHOTO_SEARCH_SUGGESTIONS } from "./userGuide";
@@ -75,6 +76,7 @@ export default function PhotoSearchPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <PhotoSearchUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

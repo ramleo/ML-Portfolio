@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import QrPhishingRunner from "./QrPhishingRunner";
 import QrPhishingUserGuideModal from "./QrPhishingUserGuideModal";
 import { QR_PHISHING_GUIDE, QR_PHISHING_SUGGESTIONS } from "./userGuide";
@@ -78,6 +79,7 @@ export default function QrPhishingDetectorPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <QrPhishingUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

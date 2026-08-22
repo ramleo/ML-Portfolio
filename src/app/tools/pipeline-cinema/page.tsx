@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ThemeToggle from "@/components/ThemeToggle";
 import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
 import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
@@ -107,7 +108,7 @@ export default function PipelineCinemaPage() {
 
         {/* Header */}
         <header style={{ maxWidth: 900, margin: "0 auto 2rem" }}>
-          <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1rem" }}>
             <button
               onClick={handleHome}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: 0 }}
@@ -120,6 +121,9 @@ export default function PipelineCinemaPage() {
             >
               ← Pipeline Builder
             </Link>
+            <div style={{ marginLeft: "auto" }}>
+              <ThemeToggle />
+            </div>
           </div>
           <h1 style={{ color: "var(--text)", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
             Pipeline Cinema

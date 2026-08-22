@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import DriftRunner from "./DriftRunner";
 import { DriftResult, FeatureDrift } from "./driftTypes";
 
@@ -71,6 +72,9 @@ export default function DriftPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#fb923c", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#fb923c14", border: "1px solid #fb923c30" }}>Monitor</span>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Data Drift Detection</span>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <ThemeToggle />
           </div>
         </div>
       </div>

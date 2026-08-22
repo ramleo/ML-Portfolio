@@ -8,6 +8,7 @@ import AutoMLModal, { type TrainResult } from "@/components/modals/AutoMLModal";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
 
@@ -98,8 +99,9 @@ function AutoMLPageInner() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
           </div>
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} />
+            <ThemeToggle />
           </div>
         </div>
       </div>

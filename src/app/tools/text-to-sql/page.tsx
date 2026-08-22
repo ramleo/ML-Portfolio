@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import { PipelineProvider } from "@/context/PipelineContext";
 import TextToSqlRunner from "./TextToSqlRunner";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
@@ -50,6 +51,9 @@ export default function TextToSqlPage() {
               <div>
                 <h1 className="text-xl font-bold">Text-to-SQL Agent</h1>
                 <p className="text-xs text-[var(--text2)]">Natural language → SQL → results → explanation</p>
+              </div>
+              <div style={{ marginLeft: "auto" }}>
+                <ThemeToggle />
               </div>
             </div>
           </div>

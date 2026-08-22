@@ -22,6 +22,7 @@ import { useFEFileLoad } from "@/hooks/useFEFileLoad";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import { StepIndicator } from "@/components/StepIndicator";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const ACCENT = "#38bdf8";
 const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" };
@@ -227,6 +228,7 @@ function FeatureEngineeringPageInner() {
               </>
             )}
             <StepIndicator labels={FE_STEP_LABELS} currentIndex={FE_STEP_KEYS.indexOf(step)} accent={ACCENT} />
+            <ThemeToggle />
           </div>
         </div>
       </div>

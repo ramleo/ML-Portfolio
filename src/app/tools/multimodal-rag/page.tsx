@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import MmRagRunner from "./MmRagRunner";
 import MmRagUserGuideModal from "./MmRagUserGuideModal";
 import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
@@ -79,6 +80,7 @@ export default function MultimodalRagPage() {
               style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               Usage stats
             </button>
+            <ThemeToggle />
           </div>
 
           <MmRagUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

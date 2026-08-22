@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import StyleCloakRunner from "./StyleCloakRunner";
 import StyleCloakUserGuideModal from "./StyleCloakUserGuideModal";
 import { STYLE_CLOAK_GUIDE, STYLE_CLOAK_SUGGESTIONS } from "./userGuide";
@@ -81,6 +82,7 @@ export default function StyleCloakPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <StyleCloakUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import PlantGrowthRunner from "./PlantGrowthRunner";
 import PlantGrowthGroupMode from "./PlantGrowthGroupMode";
 import PlantGrowthUserGuideModal from "./PlantGrowthUserGuideModal";
@@ -79,6 +80,7 @@ export default function PlantGrowthPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <PlantGrowthUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

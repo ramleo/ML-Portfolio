@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import ThemeToggle from "@/components/ThemeToggle";
 import FaceCloakRunner from "./FaceCloakRunner";
 import FaceCloakUserGuideModal from "./FaceCloakUserGuideModal";
 import { FACE_CLOAK_GUIDE, FACE_CLOAK_SUGGESTIONS } from "./userGuide";
@@ -78,6 +79,7 @@ export default function FaceCloakPage() {
               </svg>
               User Guide
             </button>
+            <ThemeToggle />
           </div>
 
           <FaceCloakUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
