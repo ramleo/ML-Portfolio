@@ -229,7 +229,7 @@ export default function CinemaScene({
                 background: state === "idle" ? "var(--border2)" : accent,
                 boxShadow: state === "active" ? `0 0 16px 4px ${accent}` : state === "done" ? `0 0 8px ${accent}` : "none",
                 margin: "0 auto",
-                opacity: state === "idle" ? 0.4 : 1,
+                opacity: state === "idle" ? "var(--cinema-idle-dot-opacity, 0.4)" : 1,
               }}
               animate={{ scale: isActive ? [1, 1.4, 1] : 1 }}
               transition={{ repeat: isActive ? Infinity : 0, duration: 0.8 }}
@@ -242,7 +242,7 @@ export default function CinemaScene({
                 bottom: 18,
                 left: "50%",
                 transform: `translateX(-50%) scale(${isActive ? 1.1 : 1})`,
-                opacity: state === "idle" ? 0.35 : 1,
+                opacity: state === "idle" ? "var(--cinema-idle-opacity, 0.35)" : 1,
                 transition: "opacity 0.3s, transform 0.3s",
               }}
             >

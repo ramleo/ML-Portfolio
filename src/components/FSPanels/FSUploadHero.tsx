@@ -1,7 +1,6 @@
 "use client";
 
 import type { ColInfo, SelectionOpts } from "@/lib/fsAlgorithms";
-import RepulsionCard from "@/components/RepulsionCard";
 import DatasetEstimator from "@/components/DatasetEstimator";
 
 const ACCENT = "#fb923c";
@@ -52,7 +51,7 @@ export default function FSUploadHero({
   return (
     <>
       {/* Hero */}
-      <RepulsionCard style={{ ...CARD }}>
+      <div className="subtle-card" style={{ ...CARD, ["--acc-glow" as string]: `${ACCENT}14` }}>
         <div style={{
           display: "flex", alignItems: "flex-start",
           justifyContent: "space-between", gap: "1rem", flexWrap: "wrap",
@@ -74,15 +73,16 @@ export default function FSUploadHero({
             ))}
           </div>
         </div>
-      </RepulsionCard>
+      </div>
 
       {/* Upload */}
-      <RepulsionCard
+      <div
+        className="subtle-card"
         style={{
           ...CARD, cursor: "pointer", textAlign: "center",
           borderStyle: hasFile ? "solid" : "dashed",
-          borderColor: hasFile ? `${ACCENT}33` : "rgba(255,255,255,0.15)",
-          transition: "border-color 0.2s",
+          borderColor: hasFile ? `${ACCENT}33` : "var(--border2)",
+          ["--acc-glow" as string]: `${ACCENT}14`,
         }}
         onClick={() => fileRef.current?.click()}
         onDrop={onDrop}
@@ -133,7 +133,7 @@ export default function FSUploadHero({
             </div>
           </div>
         )}
-      </RepulsionCard>
+      </div>
     </>
   );
 }

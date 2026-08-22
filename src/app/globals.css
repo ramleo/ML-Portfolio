@@ -183,6 +183,8 @@ body {
 .cinema-screen {
   background: linear-gradient(180deg, #030810 0%, #060d1a 40%, #0a1628 100%);
   border: 1px solid var(--border);
+  --cinema-idle-opacity: 0.35;
+  --cinema-idle-dot-opacity: 0.4;
 }
 html.light .cinema-screen {
   background: linear-gradient(
@@ -191,6 +193,11 @@ html.light .cinema-screen {
     color-mix(in srgb, var(--accent-via) 5%, var(--bg-card)) 45%,
     var(--bg) 100%
   );
+  /* Idle accent-on-dark reads fine at low opacity; the same opacity on a
+     near-white screen washes out almost to invisible, so idle stages need
+     much less dimming here to stay legible before Run Animation is clicked. */
+  --cinema-idle-opacity: 0.75;
+  --cinema-idle-dot-opacity: 0.75;
 }
 
 /* ── Pipeline stage ── */

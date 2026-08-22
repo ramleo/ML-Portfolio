@@ -265,7 +265,7 @@ function PreprocessingPageInner() {
                 border: `2px dashed ${dragging ? ACCENT : "var(--border2)"}`,
                 borderRadius: 16, padding: "3.5rem 2rem",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: "0.85rem",
-                cursor: "pointer", transition: "border-color 0.2s",
+                cursor: "pointer",
                 background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
                 backdropFilter: "blur(14px)",
                 ["--acc-glow" as string]: `${ACCENT}14`,
