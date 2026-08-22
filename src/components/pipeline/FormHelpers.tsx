@@ -5,14 +5,14 @@
 export const labelStyle: React.CSSProperties = {
   fontSize: "0.78rem",
   fontWeight: 600,
-  color: "var(--text2, rgba(200,205,225,0.8))",
+  color: "var(--text2)",
   marginBottom: "0.35rem",
   display: "block",
 };
 
 export const selectStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--border)",
+  border: "1px solid var(--border2)",
   borderRadius: 8,
   color: "var(--text)",
   padding: "0.4rem 0.7rem",
@@ -26,7 +26,7 @@ export const toggleStyle: React.CSSProperties = {
   gap: "0.6rem",
   cursor: "pointer",
   fontSize: "0.82rem",
-  color: "var(--text2, rgba(200,205,225,0.8))",
+  color: "var(--text2)",
 };
 
 export const MODELS = ["RandomForest", "XGBoost", "LightGBM", "CatBoost"];
@@ -85,7 +85,7 @@ export function SliderField({
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ width: "100%", accentColor: "#38bdf8" }}
       />
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem", color: "var(--text3)" }}>
         <span>{min}</span>
         <span>{max}</span>
       </div>
@@ -123,9 +123,9 @@ export function ModelPills({
               fontSize: "0.75rem",
               fontWeight: 600,
               cursor: "pointer",
-              background: on ? accentOn : "rgba(255,255,255,0.05)",
-              border: `1px solid ${on ? borderOn : "rgba(255,255,255,0.12)"}`,
-              color: on ? colorOn : "rgba(255,255,255,0.5)",
+              background: on ? accentOn : "var(--border)",
+              border: `1px solid ${on ? borderOn : "var(--border2)"}`,
+              color: on ? colorOn : "var(--text3)",
               transition: "all 0.15s",
             }}
           >

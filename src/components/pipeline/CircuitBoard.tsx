@@ -142,8 +142,8 @@ export default function CircuitBoard({
             p.completed
               ? ACCENT
               : p.active
-              ? "rgba(255,255,255,0.25)"
-              : "rgba(255,255,255,0.1)"
+              ? "var(--border2)"
+              : "var(--border)"
           }
           strokeWidth={p.completed ? 1.5 : 1}
           strokeDasharray={p.completed ? undefined : "6 4"}

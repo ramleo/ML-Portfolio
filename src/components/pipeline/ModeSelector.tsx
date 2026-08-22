@@ -131,7 +131,7 @@ export default function ModeSelector({ onSelect }: Props) {
         <p
           style={{
             fontSize: "0.9rem",
-            color: "var(--text2, rgba(200,205,225,0.8))",
+            color: "var(--text2)",
             marginTop: "0.6rem",
           }}
         >
@@ -159,8 +159,8 @@ export default function ModeSelector({ onSelect }: Props) {
             whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(m.id)}
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--bg-glass)",
+              border: "1px solid var(--border)",
               borderRadius: 16,
               padding: "2rem 1.5rem",
               cursor: "pointer",
@@ -174,8 +174,7 @@ export default function ModeSelector({ onSelect }: Props) {
               (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 24px 2px ${m.accent}22`;
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.borderColor =
-                "rgba(255,255,255,0.08)";
+              (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
               (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
             }}
           >
@@ -207,7 +206,7 @@ export default function ModeSelector({ onSelect }: Props) {
               <div
                 style={{
                   fontSize: "0.83rem",
-                  color: "var(--text2, rgba(200,205,225,0.8))",
+                  color: "var(--text2)",
                   lineHeight: 1.55,
                 }}
               >

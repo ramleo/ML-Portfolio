@@ -72,8 +72,8 @@ function PipelineTrack({ label, accent, simStep, offset }: PipelineTrackProps) {
                     transition={{ duration: 0.9, repeat: Infinity }}
                     style={{
                       width: 28, height: 28, borderRadius: "50%", position: "relative", zIndex: 1,
-                      background: isDone ? accent : isRunning ? `${accent}22` : "rgba(255,255,255,0.05)",
-                      border: `2px solid ${isDone || isRunning ? accent : "rgba(255,255,255,0.1)"}`,
+                      background: isDone ? accent : isRunning ? `${accent}22` : "var(--border)",
+                      border: `2px solid ${isDone || isRunning ? accent : "var(--border)"}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       transition: "background 0.3s, border-color 0.3s",
                       boxShadow: isRunning ? `0 0 12px ${accent}55` : "none",
@@ -88,7 +88,7 @@ function PipelineTrack({ label, accent, simStep, offset }: PipelineTrackProps) {
                       />
                     )}
                     {isPending && (
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.12)" }} />
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--border2)" }} />
                     )}
                   </motion.div>
                 </div>
@@ -96,7 +96,7 @@ function PipelineTrack({ label, accent, simStep, offset }: PipelineTrackProps) {
                 <span style={{
                   fontSize: "0.62rem", whiteSpace: "nowrap",
                   fontWeight: isDone || isRunning ? 600 : 400,
-                  color: isDone ? accent : isRunning ? "rgba(220,230,250,0.9)" : "rgba(200,210,230,0.28)",
+                  color: isDone ? accent : isRunning ? "var(--text)" : "var(--text3)",
                   transition: "color 0.3s",
                 }}>
                   {stage.label}
@@ -107,7 +107,7 @@ function PipelineTrack({ label, accent, simStep, offset }: PipelineTrackProps) {
               {i < AB_STAGES.length - 1 && (
                 <div style={{
                   flex: 1, height: 2, margin: "0 0.4rem", marginBottom: "1.25rem",
-                  background: "rgba(255,255,255,0.06)", position: "relative", overflow: "hidden",
+                  background: "var(--border)", position: "relative", overflow: "hidden",
                   borderRadius: 2,
                 }}>
                   {isDone && (
@@ -167,7 +167,7 @@ export default function ABRunner({ abRunning }: Props) {
         >
           <div style={{
             position: "relative", overflow: "hidden",
-            background: "rgba(13,17,28,0.92)",
+            background: "var(--bg-glass)",
             border: "1px solid rgba(167,139,250,0.18)",
             borderRadius: 12, padding: "1.1rem 1.5rem",
           }}>
@@ -195,7 +195,7 @@ export default function ABRunner({ abRunning }: Props) {
               <PipelineTrack label="Pipeline A" accent={ACCENT_A} simStep={simStep} offset={0} />
 
               {/* Divider */}
-              <div style={{ width: 1, background: "rgba(255,255,255,0.08)", flexShrink: 0, alignSelf: "stretch" }} />
+              <div style={{ width: 1, background: "var(--border)", flexShrink: 0, alignSelf: "stretch" }} />
 
               {/* Pipeline B: stages done when simStep > i + 4 (offset 4) */}
               <PipelineTrack label="Pipeline B" accent={ACCENT_B} simStep={simStep} offset={4} />

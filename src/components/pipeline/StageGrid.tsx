@@ -60,7 +60,7 @@ function FlowConnector({ active }: { active: boolean }) {
         position: "absolute", left: 0, right: 0, top: "50%", height: 1,
         background: active
           ? "linear-gradient(90deg, rgba(56,189,248,0.6), rgba(56,189,248,0.2))"
-          : "rgba(255,255,255,0.1)",
+          : "var(--border)",
         transform: "translateY(-50%)",
       }} />
       <div style={{
@@ -69,7 +69,7 @@ function FlowConnector({ active }: { active: boolean }) {
         transform: "translateY(-50%)",
         width: 5, height: 5,
         borderRadius: "50%",
-        background: active ? "#38bdf8" : "rgba(255,255,255,0.2)",
+        background: active ? "#38bdf8" : "var(--border2)",
         boxShadow: active ? "0 0 6px 2px rgba(56,189,248,0.7)" : "none",
         animation: active
           ? "flow-dot 1.2s ease-in-out infinite"
@@ -99,7 +99,7 @@ function DownArrow({ active }: { active: boolean }) {
           position: "absolute", top: 0, bottom: 0, left: "50%", width: 1,
           background: active
             ? "linear-gradient(180deg, rgba(56,189,248,0.6), rgba(56,189,248,0.2))"
-            : "rgba(255,255,255,0.1)",
+            : "var(--border)",
           transform: "translateX(-50%)",
         }} />
         <div style={{
@@ -108,7 +108,7 @@ function DownArrow({ active }: { active: boolean }) {
           transform: "translateX(-50%)",
           width: 5, height: 5,
           borderRadius: "50%",
-          background: active ? "#38bdf8" : "rgba(255,255,255,0.2)",
+          background: active ? "#38bdf8" : "var(--border2)",
           boxShadow: active ? "0 0 6px 2px rgba(56,189,248,0.7)" : "none",
           animation: active
             ? "flow-dot-down 1.2s ease-in-out infinite"

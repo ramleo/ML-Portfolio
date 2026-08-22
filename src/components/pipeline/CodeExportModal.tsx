@@ -67,8 +67,8 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
             maxWidth: 860,
             margin: "auto",
             padding: "1.5rem",
-            background: "rgba(8,15,28,0.98)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
             borderRadius: 14,
             position: "relative",
           }}
@@ -83,7 +83,7 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "rgba(200,205,225,0.5)",
+              color: "var(--text3)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -92,10 +92,10 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
               transition: "color 0.15s",
             }}
             onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.color = "rgba(200,205,225,0.9)")
+              ((e.currentTarget as HTMLButtonElement).style.color = "var(--text)")
             }
             onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.color = "rgba(200,205,225,0.5)")
+              ((e.currentTarget as HTMLButtonElement).style.color = "var(--text3)")
             }
             aria-label="Close modal"
           >
@@ -112,7 +112,7 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
                 margin: 0,
                 fontSize: "1.05rem",
                 fontWeight: 700,
-                color: "rgba(220,225,240,0.95)",
+                color: "var(--text)",
               }}
             >
               Export Pipeline Code
@@ -121,7 +121,7 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
               style={{
                 margin: "0.3rem 0 0",
                 fontSize: "0.8rem",
-                color: "rgba(200,205,225,0.45)",
+                color: "var(--text3)",
               }}
             >
               Copy or download the auto-generated Python script
@@ -151,11 +151,11 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
                   alignItems: "center",
                   gap: "0.35rem",
                   padding: "0.35rem 0.7rem",
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "var(--border)",
+                  border: "1px solid var(--border2)",
                   borderRadius: 7,
                   cursor: "pointer",
-                  color: copied ? "#4ade80" : "rgba(200,205,225,0.75)",
+                  color: copied ? "#4ade80" : "var(--text2)",
                   fontSize: "0.75rem",
                   fontWeight: 500,
                   transition: "all 0.15s",
@@ -177,11 +177,11 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
                   alignItems: "center",
                   gap: "0.35rem",
                   padding: "0.35rem 0.7rem",
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "var(--border)",
+                  border: "1px solid var(--border2)",
                   borderRadius: 7,
                   cursor: "pointer",
-                  color: "rgba(200,205,225,0.75)",
+                  color: "var(--text2)",
                   fontSize: "0.75rem",
                   fontWeight: 500,
                   transition: "all 0.15s",
@@ -202,13 +202,13 @@ export default function CodeExportModal({ code, onClose }: CodeExportModalProps)
                 margin: 0,
                 padding: "1rem",
                 paddingTop: "3.25rem",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: 10,
                 fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
                 fontSize: "0.8rem",
                 lineHeight: 1.65,
-                color: "rgba(200,215,235,0.88)",
+                color: "var(--text)",
                 overflowY: "auto",
                 maxHeight: "60vh",
                 overflowX: "auto",

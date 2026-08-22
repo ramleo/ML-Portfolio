@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: StageStatus }) {
           gap: 4,
           fontSize: "0.7rem",
           fontWeight: 600,
-          color: "rgba(255,255,255,0.35)",
+          color: "var(--text3)",
           letterSpacing: "0.06em",
         }}
       >
@@ -170,8 +170,8 @@ function ActionButton({
         disabled
         style={{
           ...BTN_BASE,
-          background: "rgba(255,255,255,0.06)",
-          color: "rgba(255,255,255,0.3)",
+          background: "var(--border)",
+          color: "var(--text3)",
           cursor: "not-allowed",
         }}
       >
@@ -195,8 +195,8 @@ function ActionButton({
         disabled
         style={{
           ...BTN_BASE,
-          background: "rgba(255,255,255,0.06)",
-          color: "rgba(255,255,255,0.4)",
+          background: "var(--border)",
+          color: "var(--text3)",
           cursor: "not-allowed",
         }}
       >
@@ -270,7 +270,7 @@ export default function StageCard({
       ? `${accent}55`
       : status === "error"
       ? "rgba(248,113,113,0.5)"
-      : "rgba(255,255,255,0.08)";
+      : "var(--border)";
 
   const isRunning = status === "running";
 
@@ -279,9 +279,9 @@ export default function StageCard({
       <style>{`
         @keyframes sc-spin { to { transform: rotate(360deg); } }
         @keyframes pipeline-running-border {
-          0%   { border-color: rgba(255,255,255,0.1); }
-          50%  { border-color: rgba(255,255,255,0.4); }
-          100% { border-color: rgba(255,255,255,0.1); }
+          0%   { border-color: var(--border); }
+          50%  { border-color: var(--border2); }
+          100% { border-color: var(--border); }
         }
         @keyframes sc-shimmer {
           0% { transform: translateX(-100%); }
@@ -302,7 +302,7 @@ export default function StageCard({
         }}
         whileHover={status !== "locked" ? { scale: 1.02 } : undefined}
         style={{
-          background: "rgba(255,255,255,0.03)",
+          background: "var(--bg-glass)",
           border: `1px solid ${borderColor}`,
           borderRadius: 14,
           padding: "1.25rem",
@@ -323,7 +323,7 @@ export default function StageCard({
       >
         {isRunning && (
           <div style={{ position: "absolute", inset: 0, borderRadius: 14, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
-            <div style={{ position: "absolute", top: 0, left: 0, width: "40%", height: "100%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)", animation: "sc-shimmer 1.5s ease-in-out infinite" }} />
+            <div style={{ position: "absolute", top: 0, left: 0, width: "40%", height: "100%", background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 8%, transparent), transparent)", animation: "sc-shimmer 1.5s ease-in-out infinite" }} />
           </div>
         )}
         <div
@@ -364,7 +364,7 @@ export default function StageCard({
           <div
             style={{
               fontSize: "0.8rem",
-              color: "rgba(200,205,225,0.7)",
+              color: "var(--text2)",
               lineHeight: 1.5,
             }}
           >

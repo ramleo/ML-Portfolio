@@ -30,7 +30,7 @@ export default function ExpressRunner({ runningStage, completedStages }: Props) 
         >
           <div style={{
             position: "relative", overflow: "hidden",
-            background: "rgba(13,17,28,0.92)",
+            background: "var(--bg-glass)",
             border: "1px solid rgba(56,189,248,0.18)",
             borderRadius: 12, padding: "1.1rem 1.5rem",
           }}>
@@ -81,8 +81,8 @@ export default function ExpressRunner({ runningStage, completedStages }: Props) 
                           transition={{ duration: 0.9, repeat: Infinity }}
                           style={{
                             width: 30, height: 30, borderRadius: "50%", position: "relative", zIndex: 1,
-                            background: isDone ? stage.accent : isRunning ? `${stage.accent}22` : "rgba(255,255,255,0.05)",
-                            border: `2px solid ${isDone || isRunning ? stage.accent : "rgba(255,255,255,0.1)"}`,
+                            background: isDone ? stage.accent : isRunning ? `${stage.accent}22` : "var(--border)",
+                            border: `2px solid ${isDone || isRunning ? stage.accent : "var(--border)"}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             transition: "background 0.3s, border-color 0.3s",
                             boxShadow: isRunning ? `0 0 14px ${stage.accent}55` : "none",
@@ -101,14 +101,14 @@ export default function ExpressRunner({ runningStage, completedStages }: Props) 
                             />
                           )}
                           {isPending && (
-                            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.12)" }} />
+                            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--border2)" }} />
                           )}
                         </motion.div>
                       </div>
 
                       <span style={{
                         fontSize: "0.67rem", whiteSpace: "nowrap", fontWeight: isDone || isRunning ? 600 : 400,
-                        color: isDone ? stage.accent : isRunning ? "rgba(220,230,250,0.9)" : "rgba(200,210,230,0.28)",
+                        color: isDone ? stage.accent : isRunning ? "var(--text)" : "var(--text3)",
                         transition: "color 0.3s",
                       }}>
                         {stage.label}
@@ -119,7 +119,7 @@ export default function ExpressRunner({ runningStage, completedStages }: Props) 
                     {i < STAGES.length - 1 && (
                       <div style={{
                         flex: 1, height: 2, margin: "0 0.5rem", marginBottom: "1.35rem",
-                        background: "rgba(255,255,255,0.06)", position: "relative", overflow: "hidden",
+                        background: "var(--border)", position: "relative", overflow: "hidden",
                         borderRadius: 2,
                       }}>
                         {/* Fill when stage done */}

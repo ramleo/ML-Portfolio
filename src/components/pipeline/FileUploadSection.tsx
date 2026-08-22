@@ -29,6 +29,7 @@ export default function FileUploadSection({ onFile }: Props) {
 
   return (
     <label
+      className="subtle-card"
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={(e) => {
@@ -44,24 +45,24 @@ export default function FileUploadSection({ onFile }: Props) {
         justifyContent: "center",
         gap: "0.75rem",
         padding: "2.5rem 2rem",
-        border: `2px dashed ${dragOver ? "#38bdf8" : "rgba(255,255,255,0.12)"}`,
+        border: `2px dashed ${dragOver ? "#38bdf8" : "var(--border2)"}`,
         borderRadius: 14,
-        background: dragOver ? "rgba(56,189,248,0.06)" : "rgba(255,255,255,0.02)",
+        background: dragOver ? "rgba(56,189,248,0.06)" : "var(--bg-glass)",
         cursor: "pointer",
-        transition: "all 0.2s",
         textAlign: "center",
         marginBottom: "2rem",
+        ["--acc-glow" as string]: "#38bdf814",
       }}
     >
-      <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="rgba(200,205,225,0.5)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="17 8 12 3 7 8" />
         <line x1="12" y1="3" x2="12" y2="15" />
       </svg>
-      <span style={{ fontSize: "0.9rem", color: "var(--text2, rgba(200,205,225,0.8))" }}>
+      <span style={{ fontSize: "0.9rem", color: "var(--text2)" }}>
         Drop a CSV file here or click to upload
       </span>
-      <span style={{ fontSize: "0.75rem", color: "rgba(180,185,210,0.5)" }}>Supports .csv files</span>
+      <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Supports .csv files</span>
       <input
         type="file"
         accept=".csv"

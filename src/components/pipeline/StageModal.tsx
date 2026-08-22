@@ -60,9 +60,9 @@ function Spinner({ accent }: { accent: string }) {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        style={{ width: 40, height: 40, borderRadius: "50%", border: `3px solid rgba(255,255,255,0.1)`, borderTopColor: accent }}
+        style={{ width: 40, height: 40, borderRadius: "50%", border: `3px solid var(--border)`, borderTopColor: accent }}
       />
-      <p style={{ color: "rgba(200,210,230,0.7)", fontSize: "0.85rem" }}>Running stage…</p>
+      <p style={{ color: "var(--text2)", fontSize: "0.85rem" }}>Running stage…</p>
     </div>
   );
 }
@@ -99,7 +99,7 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
     });
 
     const sectionLabel = (text: string): React.CSSProperties => ({
-      fontSize: "0.7rem", fontWeight: 700, color: "rgba(200,210,230,0.5)",
+      fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)",
       textTransform: "uppercase", letterSpacing: "0.08em",
       marginBottom: "0.4rem", marginTop: "0.9rem",
     });
@@ -110,9 +110,9 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
           {statTiles.map(([label, val]) => (
             <motion.div key={label} variants={fadeUp}
-              style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "0.65rem 0.85rem" }}>
-              <div style={{ fontSize: "0.7rem", color: "rgba(200,210,230,0.55)", marginBottom: 3 }}>{label}</div>
-              <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#fff" }}>{String(val ?? "—")}</div>
+              style={{ background: "var(--bg-glass)", borderRadius: 8, padding: "0.65rem 0.85rem" }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginBottom: 3 }}>{label}</div>
+              <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--text)" }}>{String(val ?? "—")}</div>
             </motion.div>
           ))}
         </div>
@@ -158,7 +158,7 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
     const cols = (d.new_columns as string[]) ?? [];
     return (
       <motion.div variants={stagger} initial="initial" animate="animate" style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-        {cols.length === 0 && <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No new columns added.</p>}
+        {cols.length === 0 && <p style={{ color: "var(--text3)", fontSize: "0.85rem" }}>No new columns added.</p>}
         {cols.map((c) => (
           <motion.span key={c} variants={fadeUp}
             style={{ background: "rgba(52,211,153,0.15)", color: "#34d399", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 6, padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>
@@ -179,13 +179,13 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
         <div>
           <div style={{ fontSize: "0.72rem", color: "#34d399", marginBottom: "0.5rem", fontWeight: 600 }}>Kept ({kept.length})</div>
           <div style={colStyle}>
-            {kept.map((f) => <motion.div key={f} variants={fadeUp} style={{ fontSize: "0.8rem", color: "rgba(220,230,250,0.85)" }}>{f}</motion.div>)}
+            {kept.map((f) => <motion.div key={f} variants={fadeUp} style={{ fontSize: "0.8rem", color: "var(--text)" }}>{f}</motion.div>)}
           </div>
         </div>
         <div>
           <div style={{ fontSize: "0.72rem", color: "rgba(248,113,113,0.9)", marginBottom: "0.5rem", fontWeight: 600 }}>Dropped ({dropped.length})</div>
           <div style={colStyle}>
-            {dropped.map((f) => <motion.div key={f} variants={fadeUp} style={{ fontSize: "0.8rem", color: "rgba(200,210,230,0.5)" }}>{f}</motion.div>)}
+            {dropped.map((f) => <motion.div key={f} variants={fadeUp} style={{ fontSize: "0.8rem", color: "var(--text3)" }}>{f}</motion.div>)}
           </div>
         </div>
       </motion.div>
@@ -199,18 +199,18 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
       <motion.div variants={stagger} initial="initial" animate="animate" style={{ width: "100%" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border2)" }}>
               {["Algorithm", "Score"].map((h) => (
-                <th key={h} style={{ padding: "0.5rem 0.75rem", textAlign: "left", color: "rgba(200,210,230,0.6)", fontWeight: 500 }}>{h}</th>
+                <th key={h} style={{ padding: "0.5rem 0.75rem", textAlign: "left", color: "var(--text3)", fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {lb.map((row) => (
               <motion.tr key={row.algo} variants={fadeUp}
-                style={{ background: row.algo === winner ? `${accent}22` : "transparent", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <td style={{ padding: "0.5rem 0.75rem", color: row.algo === winner ? accent : "rgba(220,230,250,0.85)", fontWeight: row.algo === winner ? 600 : 400 }}>{row.algo}</td>
-                <td style={{ padding: "0.5rem 0.75rem", color: "rgba(220,230,250,0.9)" }}>{row.score?.toFixed(4)}</td>
+                style={{ background: row.algo === winner ? `${accent}22` : "transparent", borderBottom: "1px solid var(--border)" }}>
+                <td style={{ padding: "0.5rem 0.75rem", color: row.algo === winner ? accent : "var(--text2)", fontWeight: row.algo === winner ? 600 : 400 }}>{row.algo}</td>
+                <td style={{ padding: "0.5rem 0.75rem", color: "var(--text)" }}>{row.score?.toFixed(4)}</td>
               </motion.tr>
             ))}
           </tbody>
@@ -226,10 +226,10 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
     return (
       <motion.div variants={stagger} initial="initial" animate="animate"
         style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        {[["Before", before, "rgba(200,210,230,0.6)"], ["After", after, accent], ["Delta", delta, "#34d399"]].map(([label, val, color]) => (
+        {[["Before", before, "var(--text3)"], ["After", after, accent], ["Delta", delta, "#34d399"]].map(([label, val, color]) => (
           <motion.div key={String(label)} variants={fadeUp}
-            style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "1rem", textAlign: "center" }}>
-            <div style={{ fontSize: "0.72rem", color: "rgba(200,210,230,0.5)", marginBottom: 6 }}>{String(label)}</div>
+            style={{ flex: 1, background: "var(--bg-glass)", borderRadius: 8, padding: "1rem", textAlign: "center" }}>
+            <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: 6 }}>{String(label)}</div>
             <div style={{ fontSize: "1.3rem", fontWeight: 700, color: String(color) }}>
               {typeof val === "number" ? (label === "Delta" && val > 0 ? "+" : "") + (val as number).toFixed(4) : "—"}
             </div>
@@ -244,16 +244,16 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
     const max = items[0]?.importance ?? 1;
     return (
       <motion.div variants={stagger} initial="initial" animate="animate" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        {items.length === 0 && <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No SHAP values available.</p>}
+        {items.length === 0 && <p style={{ color: "var(--text3)", fontSize: "0.85rem" }}>No SHAP values available.</p>}
         {items.map(({ feature, importance }) => (
           <motion.div key={feature} variants={fadeUp} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div style={{ width: 110, fontSize: "0.75rem", color: "rgba(220,230,250,0.8)", textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature}</div>
-            <div style={{ flex: 1, height: 14, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ width: 110, fontSize: "0.75rem", color: "var(--text2)", textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{feature}</div>
+            <div style={{ flex: 1, height: 14, background: "var(--border)", borderRadius: 4, overflow: "hidden" }}>
               <motion.div initial={{ width: 0 }} animate={{ width: `${(importance / max) * 100}%` }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 style={{ height: "100%", background: accent, borderRadius: 4 }} />
             </div>
-            <div style={{ width: 52, fontSize: "0.72rem", color: "rgba(200,210,230,0.6)", textAlign: "right" }}>{importance.toFixed(4)}</div>
+            <div style={{ width: 52, fontSize: "0.72rem", color: "var(--text3)", textAlign: "right" }}>{importance.toFixed(4)}</div>
           </motion.div>
         ))}
       </motion.div>
@@ -267,21 +267,21 @@ function renderResults(stageId: string, result: StageResult, accent: string) {
       <motion.div variants={stagger} initial="initial" animate="animate" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <motion.div variants={fadeUp}
           style={{ background: `${accent}22`, border: `1px solid ${accent}44`, borderRadius: 8, padding: "0.75rem 1rem", display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "rgba(220,230,250,0.8)", fontSize: "0.85rem" }}>Ensemble Score</span>
+          <span style={{ color: "var(--text2)", fontSize: "0.85rem" }}>Ensemble Score</span>
           <span style={{ color: accent, fontWeight: 700, fontSize: "1rem" }}>{ensScore?.toFixed(4)}</span>
         </motion.div>
         {Object.entries(individuals).map(([algo, score]) => (
           <motion.div key={algo} variants={fadeUp}
-            style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "0.6rem 1rem", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "rgba(200,210,230,0.7)", fontSize: "0.82rem" }}>{algo}</span>
-            <span style={{ color: "rgba(220,230,250,0.9)", fontSize: "0.82rem" }}>{score?.toFixed(4)}</span>
+            style={{ background: "var(--border)", borderRadius: 8, padding: "0.6rem 1rem", display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--text2)", fontSize: "0.82rem" }}>{algo}</span>
+            <span style={{ color: "var(--text)", fontSize: "0.82rem" }}>{score?.toFixed(4)}</span>
           </motion.div>
         ))}
       </motion.div>
     );
   }
 
-  return <p style={{ color: "rgba(200,210,230,0.5)", fontSize: "0.85rem" }}>No result display available.</p>;
+  return <p style={{ color: "var(--text3)", fontSize: "0.85rem" }}>No result display available.</p>;
 }
 
 export default function StageModal({ stageId, title, accent, csvB64, target, taskType, columns, modelId, onClose, onComplete, onConfigCapture, existingResult }: Props) {
@@ -321,15 +321,15 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
         <motion.div initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
           transition={{ type: "spring", stiffness: 280, damping: 28 }}
           onClick={(e) => e.stopPropagation()}
-          style={{ width: "90vw", maxWidth: 1000, height: "85vh", background: "#0f1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          style={{ width: "90vw", maxWidth: 1000, height: "85vh", background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <div style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
-              <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "#fff", margin: 0 }}>{title}</h2>
+              <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text)", margin: 0 }}>{title}</h2>
             </div>
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(200,210,230,0.5)", padding: 4, lineHeight: 0 }}>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", padding: 4, lineHeight: 0 }}>
               <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -339,7 +339,7 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
           {/* Body */}
           <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
             {/* Config panel */}
-            <div style={{ width: "40%", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div style={{ width: "40%", borderRight: "1px solid var(--border)", padding: "1.25rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <StageConfigForm stageId={stageId} config={config} setConfig={setConfig} columns={columns} target={target} taskType={taskType} existingResult={existingResult} />
               {error && <p style={{ color: "#f87171", fontSize: "0.8rem", margin: 0 }}>{error}</p>}
               <button onClick={handleRun} disabled={running}
@@ -353,13 +353,13 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
               {running && <Spinner accent={accent} />}
               {!running && !result && (
                 <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <p style={{ color: "rgba(200,210,230,0.3)", fontSize: "0.88rem" }}>Configure and run the stage to see results.</p>
+                  <p style={{ color: "var(--text3)", fontSize: "0.88rem" }}>Configure and run the stage to see results.</p>
                 </div>
               )}
               {!running && result && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                   {result.metric && (
-                    <div style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.55)" }}>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>
                       Metric: <span style={{ color: accent, fontWeight: 600 }}>{result.metric}</span>
                     </div>
                   )}

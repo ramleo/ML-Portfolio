@@ -66,7 +66,7 @@ function CountUp({ value }: { value: number }) {
   return <>{useCountUp(value)}</>;
 }
 
-const MUTED = "rgba(200,205,225,0.38)";
+const MUTED = "var(--text3)";
 const MUTED_SM: React.CSSProperties = { fontSize: "0.65rem", color: MUTED, fontWeight: 400 };
 
 function RowLabel({ stage }: { stage: WaterfallStage }) {
@@ -90,7 +90,7 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
 
     if (!rowChanged && !colChanged) {
       return (
-        <span style={{ fontSize: "0.72rem", color: "rgba(200,205,225,0.35)", fontStyle: "italic" }}>
+        <span style={{ fontSize: "0.72rem", color: "var(--text3)", fontStyle: "italic" }}>
           No change
         </span>
       );
@@ -115,7 +115,7 @@ function RowLabel({ stage }: { stage: WaterfallStage }) {
   }
 
   return (
-    <span style={{ fontSize: "0.7rem", color: "rgba(200,205,225,0.3)", fontStyle: "italic" }}>
+    <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontStyle: "italic" }}>
       no change
     </span>
   );
@@ -156,8 +156,8 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{
-        background: "rgba(13,17,28,0.8)",
-        border: `1px solid ${glowing ? "rgba(56,189,248,0.5)" : "rgba(255,255,255,0.08)"}`,
+        background: "var(--bg-glass)",
+        border: `1px solid ${glowing ? "rgba(56,189,248,0.5)" : "var(--border)"}`,
         boxShadow: glowing ? "0 0 28px rgba(56,189,248,0.18), inset 0 0 20px rgba(56,189,248,0.04)" : "none",
         borderRadius: 14, padding: "1.25rem 1.5rem", marginTop: "2rem",
         transition: "border-color 0.35s, box-shadow 0.35s",
@@ -166,15 +166,15 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
       {/* Header with typewriter + accent underline */}
       <div style={{ marginBottom: "1.2rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.55rem" }}>
-          <span style={{ fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.1em", color: "rgba(200,205,225,0.7)", fontFamily: "monospace" }}>
+          <span style={{ fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--text2)", fontFamily: "monospace" }}>
             {header}
             <motion.span
               animate={{ opacity: [1, 0] }}
               transition={{ repeat: Infinity, duration: 0.7 }}
-              style={{ marginLeft: 2, borderRight: "2px solid rgba(200,205,225,0.5)", display: "inline-block", height: "0.85em", verticalAlign: "middle" }}
+              style={{ marginLeft: 2, borderRight: "2px solid var(--text3)", display: "inline-block", height: "0.85em", verticalAlign: "middle" }}
             />
           </span>
-          <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(200,205,225,0.28)" }}>
+          <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text3)" }}>
             output
           </span>
         </div>
@@ -211,9 +211,9 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                 {hoveredId === stage.id && stage.tooltip && (
                   <div style={{
                     position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50,
-                    background: "rgba(15,22,38,0.97)", border: "1px solid rgba(255,255,255,0.1)",
+                    background: "var(--bg-card)", border: "1px solid var(--border2)",
                     borderRadius: 8, padding: "0.5rem 0.85rem",
-                    fontSize: "0.73rem", color: "rgba(200,210,230,0.85)",
+                    fontSize: "0.73rem", color: "var(--text)",
                     whiteSpace: "nowrap", pointerEvents: "none",
                     boxShadow: "0 4px 24px rgba(0,0,0,0.5)"
                   }}>
@@ -221,11 +221,11 @@ export default function WaterfallChart({ stages }: WaterfallChartProps) {
                   </div>
                 )}
 
-                <span style={{ minWidth: 140, fontSize: "0.82rem", color: "rgba(200,205,225,0.75)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span style={{ minWidth: 140, fontSize: "0.82rem", color: "var(--text2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {stage.label}
                 </span>
 
-                <div style={{ flex: 1, height: 20, background: "rgba(255,255,255,0.04)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+                <div style={{ flex: 1, height: 20, background: "var(--border)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
                   <motion.div
                     initial={{ width: "0%" }}
                     animate={{ width: `${barWidth}%` }}

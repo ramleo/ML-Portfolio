@@ -29,8 +29,8 @@ export default function TargetDropdown({ value, options, onChange }: Props) {
           display: "flex",
           alignItems: "center",
           gap: "0.4rem",
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.12)",
+          background: "var(--border)",
+          border: "1px solid var(--border2)",
           borderRadius: 7,
           color: "var(--text)",
           padding: "0.3rem 0.6rem",
@@ -49,7 +49,7 @@ export default function TargetDropdown({ value, options, onChange }: Props) {
       {open && (
         <div style={{
           position: "absolute", top: "100%", left: 0, zIndex: 200, marginTop: 4,
-          background: "rgba(20,27,45,0.98)", border: "1px solid rgba(255,255,255,0.12)",
+          background: "var(--bg-card)", border: "1px solid var(--border2)",
           borderRadius: 8, maxHeight: 200, overflowY: "auto", minWidth: "100%",
         }}>
           {options.map((opt) => (
@@ -62,7 +62,7 @@ export default function TargetDropdown({ value, options, onChange }: Props) {
                 background: "transparent", display: "flex", alignItems: "center",
                 justifyContent: "space-between", gap: "0.5rem", whiteSpace: "nowrap",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.07)"; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "var(--border)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
             >
               {opt}

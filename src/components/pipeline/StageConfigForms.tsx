@@ -14,11 +14,11 @@ interface Props {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "var(--bg-glass)",
+  border: "1px solid var(--border2)",
   borderRadius: 8,
   padding: "0.5rem 0.75rem",
-  color: "#e2e8f0",
+  color: "var(--text)",
   fontSize: "0.82rem",
   width: "100%",
   outline: "none",
@@ -26,7 +26,7 @@ const inputStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   fontSize: "0.78rem",
-  color: "rgba(200,205,225,0.8)",
+  color: "var(--text2)",
   marginBottom: 4,
   display: "block",
 };
@@ -38,9 +38,9 @@ const pillBase: React.CSSProperties = {
   borderRadius: 20,
   fontSize: "0.78rem",
   cursor: "pointer",
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(255,255,255,0.05)",
-  color: "rgba(200,210,230,0.7)",
+  border: "1px solid var(--border2)",
+  background: "var(--bg-glass)",
+  color: "var(--text2)",
   transition: "all 0.15s",
 };
 
@@ -130,7 +130,7 @@ function InteractionPicker({
           <option value="">Col A</option>
           {columns.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <span style={{ color: "rgba(200,210,230,0.4)", fontSize: "0.9rem" }}>×</span>
+        <span style={{ color: "var(--text3)", fontSize: "0.9rem" }}>×</span>
         <select value={colB} onChange={(e) => setColB(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
           <option value="">Col B</option>
           {columns.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -145,7 +145,7 @@ function InteractionPicker({
           {interactions.map(([a, b], i) => (
             <span key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 5, padding: "0.15rem 0.5rem", fontSize: "0.73rem", color: "#c4b5fd" }}>
               {a} × {b}
-              <button type="button" onClick={() => onRemove(i)} style={{ background: "none", border: "none", color: "rgba(200,210,230,0.4)", cursor: "pointer", padding: 0, lineHeight: 1, fontSize: "0.85rem" }}>×</button>
+              <button type="button" onClick={() => onRemove(i)} style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", padding: 0, lineHeight: 1, fontSize: "0.85rem" }}>×</button>
             </span>
           ))}
         </div>
@@ -175,7 +175,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
         <Toggle label="Fix skewness" checked={get(config, "fix_skewness", false)} onChange={(v) => set("fix_skewness", v)} />
         <Field label="Drop columns">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: 150, overflowY: "auto" }}>
-            {featureCols.length === 0 && <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.4)" }}>No columns loaded</span>}
+            {featureCols.length === 0 && <span style={{ fontSize: "0.75rem", color: "var(--text3)" }}>No columns loaded</span>}
             {featureCols.map((col) => {
               const dropped = get<string[]>(config, "drop_cols", []);
               return (
@@ -183,7 +183,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                   <input type="checkbox" checked={dropped.includes(col)}
                     onChange={(e) => set("drop_cols", e.target.checked ? [...dropped, col] : dropped.filter((c) => c !== col))}
                     style={{ accentColor: "#8b5cf6" }} />
-                  <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
+                  <span style={{ fontSize: "0.78rem", color: "var(--text2)" }}>{col}</span>
                 </label>
               );
             })}
@@ -229,8 +229,8 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
             {featureCols.map((col) => {
               const cur = transforms[col] ?? [];
               return (
-                <div key={col} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.55)", marginBottom: "0.3rem" }}>{col}</div>
+                <div key={col} style={{ background: "var(--border)", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text3)", marginBottom: "0.3rem" }}>{col}</div>
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     {NUMERIC_TRANSFORMS.map((t) => (
                       <label key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer" }}>
@@ -239,7 +239,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                             const next = e.target.checked ? [...cur, t.id] : cur.filter((x) => x !== t.id);
                             set("transforms", { ...transforms, [col]: next });
                           }} style={{ accentColor: "#8b5cf6" }} />
-                        <span style={{ fontSize: "0.72rem", color: "rgba(200,210,230,0.7)" }}>{t.label}</span>
+                        <span style={{ fontSize: "0.72rem", color: "var(--text2)" }}>{t.label}</span>
                       </label>
                     ))}
                   </div>
@@ -259,7 +259,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                 <input type="checkbox" checked={polyCols.includes(col)}
                   onChange={(e) => set("poly_cols", e.target.checked ? [...polyCols, col] : polyCols.filter((c) => c !== col))}
                   style={{ accentColor: "#8b5cf6" }} />
-                <span style={{ fontSize: "0.73rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
+                <span style={{ fontSize: "0.73rem", color: "var(--text2)" }}>{col}</span>
               </label>
             ))}
           </div>
@@ -268,7 +268,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
               {[2, 3].map((d) => (
                 <label key={d} style={{ display: "flex", alignItems: "center", gap: "0.35rem", cursor: "pointer" }}>
                   <input type="radio" checked={polyDegree === d} onChange={() => set("poly_degree", d)} style={{ accentColor: "#8b5cf6" }} />
-                  <span style={{ fontSize: "0.75rem", color: "rgba(200,210,230,0.75)" }}>Degree {d}</span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>Degree {d}</span>
                 </label>
               ))}
             </div>
@@ -282,7 +282,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                 <input type="checkbox" checked={dateCols.includes(col)}
                   onChange={(e) => set("date_cols", e.target.checked ? [...dateCols, col] : dateCols.filter((c) => c !== col))}
                   style={{ accentColor: "#8b5cf6" }} />
-                <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{col}</span>
+                <span style={{ fontSize: "0.78rem", color: "var(--text2)" }}>{col}</span>
               </label>
             ))}
           </div>
@@ -295,7 +295,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                   <input type="checkbox" checked={dateParts.includes(p)}
                     onChange={(e) => set("date_parts", e.target.checked ? [...dateParts, p] : dateParts.filter((x) => x !== p))}
                     style={{ accentColor: "#8b5cf6" }} />
-                  <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.75)" }}>{p}</span>
+                  <span style={{ fontSize: "0.78rem", color: "var(--text2)" }}>{p}</span>
                 </label>
               ))}
             </div>
@@ -331,7 +331,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                 <input type="radio" name="task_type" value={t}
                   checked={get(config, "task_type", taskType) === t}
                   onChange={() => set("task_type", t)} style={{ accentColor: "#8b5cf6" }} />
-                <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.8)" }}>{t}</span>
+                <span style={{ fontSize: "0.78rem", color: "var(--text2)" }}>{t}</span>
               </label>
             ))}
           </div>
@@ -347,11 +347,11 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
         <SliderField label="Trials" value={get(config, "n_trials", 30)} min={10} max={50}
           onChange={(v) => set("n_trials", v)} />
         {winner && (
-          <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 8, padding: "0.6rem 0.75rem", fontSize: "0.78rem", color: "rgba(200,210,230,0.8)" }}>
+          <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 8, padding: "0.6rem 0.75rem", fontSize: "0.78rem", color: "var(--text2)" }}>
             Tuning model: <span style={{ color: "#c4b5fd", fontWeight: 600 }}>{winner}</span>
           </div>
         )}
-        <p style={{ fontSize: "0.78rem", color: "rgba(200,205,225,0.55)", margin: 0 }}>
+        <p style={{ fontSize: "0.78rem", color: "var(--text3)", margin: 0 }}>
           Hyperparameter tuning with Optuna Bayesian search on the best model from AutoML.
         </p>
       </div>
@@ -362,11 +362,11 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
     const winner = existingResult?.data?.winner as string | undefined;
     return (
       <div style={sectionStyle}>
-        <p style={{ fontSize: "0.82rem", color: "rgba(200,205,225,0.7)", margin: 0 }}>
+        <p style={{ fontSize: "0.82rem", color: "var(--text2)", margin: 0 }}>
           SHAP will explain the trained model&apos;s predictions using Shapley values.
         </p>
         {winner && (
-          <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 8, padding: "0.6rem 0.75rem", fontSize: "0.78rem", color: "rgba(200,210,230,0.8)" }}>
+          <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 8, padding: "0.6rem 0.75rem", fontSize: "0.78rem", color: "var(--text2)" }}>
             Explaining: <span style={{ color: "#c4b5fd", fontWeight: 600 }}>{winner}</span>
           </div>
         )}
@@ -384,7 +384,7 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
                 <input type="radio" name="ensemble_type" value={t}
                   checked={get(config, "ensemble_type", "voting") === t}
                   onChange={() => set("ensemble_type", t)} style={{ accentColor: "#8b5cf6" }} />
-                <span style={{ fontSize: "0.78rem", color: "rgba(200,210,230,0.8)" }}>{t}</span>
+                <span style={{ fontSize: "0.78rem", color: "var(--text2)" }}>{t}</span>
               </label>
             ))}
           </div>
@@ -396,5 +396,5 @@ export function StageConfigForm({ stageId, config, setConfig, columns, target, t
     );
   }
 
-  return <p style={{ fontSize: "0.82rem", color: "rgba(200,205,225,0.5)" }}>No configuration needed for this stage.</p>;
+  return <p style={{ fontSize: "0.82rem", color: "var(--text3)" }}>No configuration needed for this stage.</p>;
 }

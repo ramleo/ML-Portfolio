@@ -251,9 +251,9 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               borderStyle: isDragging ? "solid" : "dashed",
               borderColor: isDragging ? ACCENT : "var(--border2)",
               background: isDragging ? "rgba(6,182,212,0.05)" : "var(--bg-glass)",
-              transition: "all 0.2s",
+              ["--acc-glow" as string]: `${ACCENT}14`,
             }}
-            className="flex flex-col items-center justify-center gap-4 py-16 cursor-pointer"
+            className="subtle-card flex flex-col items-center justify-center gap-4 py-16 cursor-pointer"
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}

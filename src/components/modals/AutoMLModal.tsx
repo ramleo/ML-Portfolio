@@ -22,7 +22,6 @@ import Step2Configure from "@/components/AutoMLSteps/Step2Configure";
 import Step3Train     from "@/components/AutoMLSteps/Step3Train";
 import Step4Results   from "@/components/AutoMLSteps/Step4Results";
 import SavedRunsView  from "@/components/AutoMLSteps/SavedRunsView";
-import StepIndicator  from "@/components/AutoMLSteps/StepIndicator";
 import AutoMLFooter   from "@/components/AutoMLSteps/AutoMLFooter";
 
 export type { TrainResult, HistoryEntry };
@@ -204,7 +203,6 @@ export default function AutoMLModal({
 
       {view === "wizard" && (
         <>
-          <StepIndicator step={step} />
           {step === "upload" && (
             <Step1Upload
               analyzing={analyzing} dragging={dragging} error={error}

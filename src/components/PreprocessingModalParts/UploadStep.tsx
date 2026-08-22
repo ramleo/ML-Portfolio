@@ -23,6 +23,7 @@ export default function UploadStep({ analyzing, error, onFile }: UploadStepProps
   return (
     <div>
       <div
+        className="subtle-card"
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
@@ -31,8 +32,9 @@ export default function UploadStep({ analyzing, error, onFile }: UploadStepProps
           border: `2px dashed ${dragging ? ACCENT : "var(--border2)"}`,
           borderRadius: 14, padding: "3rem 2rem",
           display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem",
-          cursor: "pointer", transition: "border-color 0.2s",
+          cursor: "pointer",
           background: dragging ? `${ACCENT}08` : "transparent",
+          ["--acc-glow" as string]: `${ACCENT}14`,
         }}
       >
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

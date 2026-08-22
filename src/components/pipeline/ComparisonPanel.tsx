@@ -98,7 +98,7 @@ function ResultColumn({ result, label, accent, isWinner }: ResultColumnProps) {
               fontSize: "2.4rem",
               fontWeight: 800,
               lineHeight: 1.1,
-              color: isWinner ? "#4ade80" : "rgba(215,220,235,0.95)",
+              color: isWinner ? "#4ade80" : "var(--text)",
               fontVariantNumeric: "tabular-nums",
               letterSpacing: "-0.02em",
             }}
@@ -110,7 +110,7 @@ function ResultColumn({ result, label, accent, isWinner }: ResultColumnProps) {
           <span
             style={{
               fontSize: "0.85rem",
-              color: "rgba(200,205,225,0.7)",
+              color: "var(--text2)",
               textAlign: "center",
               maxWidth: 180,
               overflow: "hidden",
@@ -125,7 +125,7 @@ function ResultColumn({ result, label, accent, isWinner }: ResultColumnProps) {
           <span
             style={{
               fontSize: "0.78rem",
-              color: "rgba(200,205,225,0.4)",
+              color: "var(--text3)",
             }}
           >
             Time:{" "}
@@ -139,7 +139,8 @@ function ResultColumn({ result, label, accent, isWinner }: ResultColumnProps) {
           style={{
             fontSize: "2.4rem",
             fontWeight: 800,
-            color: "rgba(200,205,225,0.15)",
+            color: "var(--text3)",
+            opacity: 0.4,
           }}
         >
           —
@@ -175,7 +176,7 @@ export default function ComparisonPanel({
             display: "flex",
             alignItems: "center",
             gap: "0.5rem",
-            color: "rgba(200,205,225,0.5)",
+            color: "var(--text3)",
             fontSize: "0.82rem",
           }}
         >
@@ -225,7 +226,7 @@ export default function ComparisonPanel({
           style={{
             fontSize: "0.85rem",
             fontWeight: 600,
-            color: "rgba(200,205,225,0.5)",
+            color: "var(--text3)",
           }}
         >
           Tie — equal performance
@@ -239,8 +240,8 @@ export default function ComparisonPanel({
   return (
     <div
       style={{
-        background: "rgba(13,17,28,0.8)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--bg-glass)",
+        border: "1px solid var(--border)",
         borderRadius: 14,
         padding: "1.5rem",
         marginTop: "2rem",
@@ -266,7 +267,7 @@ export default function ComparisonPanel({
           style={{
             width: 1,
             alignSelf: "stretch",
-            background: "rgba(255,255,255,0.07)",
+            background: "var(--border)",
             margin: "0.25rem 0",
           }}
         />
@@ -287,7 +288,7 @@ export default function ComparisonPanel({
           alignItems: "center",
           marginTop: "1.1rem",
           paddingTop: "1rem",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid var(--border)",
           minHeight: "2rem",
         }}
       >

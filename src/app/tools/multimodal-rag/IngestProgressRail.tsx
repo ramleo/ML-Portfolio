@@ -20,6 +20,7 @@ type Props = {
    * inside another component (e.g. DocumentTray) that already provides
    * the surrounding card, so the two don't nest into a double border. */
   bare?: boolean;
+  accent?: string;
 };
 
 const STEPS = ["extract", "embed"] as const;
@@ -55,7 +56,7 @@ function Toggle({ checked, onChange, label, caveat }: {
   );
 }
 
-export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare }: Props) {
+export default function IngestProgressRail({ sessionId, ensureSessionId, onIngested, hideToggles, bare, accent = "#818cf8" }: Props) {
   const [state, setState] = useState<IngestState>({ kind: "idle" });
   const [findSimilar, setFindSimilar] = useState(false);
   const [shared, setShared] = useState(false);
@@ -146,10 +147,11 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
 
   const cardStyle: React.CSSProperties = bare ? {} : {
     background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16,
+    ["--acc-glow" as string]: `${accent}14`,
   };
 
   return (
-    <div style={cardStyle} className={bare ? "flex flex-col gap-4" : "flex flex-col gap-4 p-5"}>
+    <div style={cardStyle} className={bare ? "flex flex-col gap-4" : "flex flex-col gap-4 p-5 subtle-card"}>
       {state.kind === "idle" || state.kind === "error" ? (
         <>
           <div

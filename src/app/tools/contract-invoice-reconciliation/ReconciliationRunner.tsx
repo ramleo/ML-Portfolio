@@ -13,6 +13,7 @@ const ACCENT = "#f59e0b";
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",
   borderRadius: 16,
+  ["--acc-glow" as string]: `${ACCENT}14`,
 };
 
 /** Own session_id, NOT shared with useRagChat's — that hook persists a
@@ -65,15 +66,15 @@ export default function ReconciliationRunner() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div style={cardStyle} className="p-5">
+      <div style={cardStyle} className="p-5 subtle-card">
         <IngestProgressRail sessionId={sessionId} ensureSessionId={ensureSessionId}
-          onIngested={handleIngested} hideToggles />
+          onIngested={handleIngested} hideToggles bare accent={ACCENT} />
       </div>
 
       <ReconciliationDocChipsRow documents={documents} accent={ACCENT} onSetRole={setRole} onRemove={removeDocument} />
 
       {contract && invoices.length > 0 && (
-        <div style={cardStyle} className="p-5">
+        <div style={cardStyle} className="p-5 subtle-card">
           <ReconciliationReport sessionId={sessionId} contractSource={contract.source}
             invoiceSources={invoices.map(d => d.source)} accent={ACCENT} />
         </div>
