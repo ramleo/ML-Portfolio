@@ -256,6 +256,7 @@ function PreprocessingPageInner() {
               </p>
             </div>
             <div
+              className="subtle-card"
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
@@ -267,6 +268,7 @@ function PreprocessingPageInner() {
                 cursor: "pointer", transition: "border-color 0.2s",
                 background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
                 backdropFilter: "blur(14px)",
+                ["--acc-glow" as string]: `${ACCENT}14`,
               }}
             >
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

@@ -58,6 +58,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
       {step === 1 && (
         <div>
           <div
+            className="subtle-card"
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
@@ -67,9 +68,16 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
               borderRadius: 10, padding: "2rem 1rem", textAlign: "center", cursor: "pointer",
               background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
               transition: "all 0.2s",
+              ["--acc-glow" as string]: `${ACCENT}14`,
             }}
           >
-            <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>📂</div>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ACCENT}
+              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ margin: "0 auto 0.5rem" }}>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
             <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text2)", marginBottom: "0.25rem" }}>
               {analyzing ? "Analyzing..." : "Drop CSV or click to upload"}
             </div>

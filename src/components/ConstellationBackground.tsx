@@ -49,6 +49,7 @@ export default function ConstellationBackground() {
 
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
+      const isLight = document.documentElement.classList.contains("light");
 
       for (const p of pts) {
         const dx = mouse.x - p.ox;
@@ -75,7 +76,7 @@ export default function ConstellationBackground() {
         p.y += p.vy;
 
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(34,211,238,0.55)"; ctx.fill();
+        ctx.fillStyle = isLight ? "rgba(56,132,190,0.55)" : "rgba(34,211,238,0.55)"; ctx.fill();
       }
 
       for (let i = 0; i < N; i++) {
@@ -84,7 +85,8 @@ export default function ConstellationBackground() {
           const d = Math.sqrt(dx * dx + dy * dy);
           if (d < MAX_DIST) {
             ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(34,211,238,${0.13 * (1 - d / MAX_DIST)})`;
+            const lineAlpha = (isLight ? 0.22 : 0.13) * (1 - d / MAX_DIST);
+            ctx.strokeStyle = isLight ? `rgba(56,132,190,${lineAlpha})` : `rgba(34,211,238,${lineAlpha})`;
             ctx.lineWidth = 0.6; ctx.stroke();
           }
         }

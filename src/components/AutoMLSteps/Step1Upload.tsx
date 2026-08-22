@@ -24,6 +24,7 @@ export default function Step1Upload({
         Upload any labeled CSV. AutoML will run RF, XGBoost, LightGBM, and CatBoost via 5-fold CV and pick the winner.
       </p>
       <div
+        className="subtle-card"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -34,6 +35,7 @@ export default function Step1Upload({
           cursor: "pointer", background: dragging ? `${ACCENT}08` : "var(--bg-glass)",
           backdropFilter: "blur(14px)",
           transition: "border-color 0.2s, background 0.2s",
+          ["--acc-glow" as string]: `${ACCENT}14`,
         }}
       >
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={ACCENT}
