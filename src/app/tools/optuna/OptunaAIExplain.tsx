@@ -76,7 +76,7 @@ export default function OptunaAIExplain({ result, tuningRan }: { result: TrainRe
 
       {!optunaExp && showExpForm && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-          <select value={provider} onChange={e => setProvider(e.target.value)} style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}>
+          <select value={provider} onChange={e => setProvider(e.target.value)} style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}>
             <option value="gemini-2.5">Gemini 2.5 Flash</option>
             <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
             <option value="openai">OpenAI GPT-4o Mini</option>
@@ -88,7 +88,7 @@ export default function OptunaAIExplain({ result, tuningRan }: { result: TrainRe
             placeholder={provider.startsWith("gemini") ? "Google AI API key..." : provider === "openai" ? "OpenAI API key..." : provider === "cohere" ? "Cohere API key..." : "Groq API key..."}
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
-            style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}
+            style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.4rem 0.6rem", color: "var(--text)", fontSize: "0.8rem", outline: "none" }}
           />
           <button
             onClick={handleExplain}
@@ -104,7 +104,7 @@ export default function OptunaAIExplain({ result, tuningRan }: { result: TrainRe
                 <span>Generating explanation...</span>
                 <span style={{ color: ACCENT, fontWeight: 700 }}>{Math.round(expProgress)}%</span>
               </div>
-              <div style={{ height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+              <div style={{ height: 6, borderRadius: 9999, background: "rgba(var(--fg-rgb),0.07)" }}>
                 <div style={{
                   height: "100%", borderRadius: 9999, background: ACCENT,
                   boxShadow: `0 0 8px ${ACCENT}66`,
@@ -123,7 +123,7 @@ export default function OptunaAIExplain({ result, tuningRan }: { result: TrainRe
             style={{ fontSize: "0.8rem", color: "var(--text2)", lineHeight: 1.7 }}
             dangerouslySetInnerHTML={{ __html: mdToHtml(optunaExp) }}
           />
-          <button onClick={() => { setOptunaExp(null); setShowExpForm(true); }} style={{ display: "block", marginTop: "0.75rem", fontSize: "0.7rem", color: "var(--text3)", background: "none", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 5, padding: "3px 8px", cursor: "pointer" }}>
+          <button onClick={() => { setOptunaExp(null); setShowExpForm(true); }} style={{ display: "block", marginTop: "0.75rem", fontSize: "0.7rem", color: "var(--text3)", background: "none", border: `1px solid rgba(var(--fg-rgb),0.1)`, borderRadius: 5, padding: "3px 8px", cursor: "pointer" }}>
             Re-explain
           </button>
         </div>

@@ -103,7 +103,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                       <span style={{ width: 120, fontSize: "0.72rem", fontWeight: 600, color: "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {param}
                       </span>
-                      <div style={{ flex: 1, height: 7, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                      <div style={{ flex: 1, height: 7, borderRadius: 9999, background: "rgba(var(--fg-rgb),0.07)" }}>
                         <div style={{ height: "100%", width: `${(imp / maxImp) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 5px ${ACCENT}44` }} />
                       </div>
                       <span style={{ width: 40, fontSize: "0.7rem", fontWeight: 700, color: ACCENT, textAlign: "right", flexShrink: 0 }}>
@@ -173,7 +173,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
                   <span style={{ width: 160, fontSize: "0.75rem", fontWeight: i === 0 ? 700 : 500, color: i === 0 ? "var(--text)" : "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {f.feature}
                   </span>
-                  <div style={{ flex: 1, height: 8, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                  <div style={{ flex: 1, height: 8, borderRadius: 9999, background: "rgba(var(--fg-rgb),0.07)" }}>
                     <div style={{ height: "100%", width: `${(f.importance / maxFI) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 5px ${ACCENT}44` }} />
                   </div>
                   <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, width: 45, textAlign: "right" }}>
