@@ -112,7 +112,7 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-white/8 transition-all">
+        <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-[rgba(var(--fg-rgb),0.08)] transition-all">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
@@ -166,9 +166,9 @@ export default function ColumnProfileView({ schema, onClose }: Props) {
             return (
               <div key={col.name}
                 className="group px-3 py-2.5 rounded-xl grid grid-cols-[24px_1fr_120px_60px] gap-3 items-center transition-all"
-                style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.018)" : "transparent" }}
+                style={{ background: i % 2 === 0 ? "rgba(var(--fg-rgb),0.018)" : "transparent" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.07)")}
-                onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,255,255,0.018)" : "transparent")}>
+                onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(var(--fg-rgb),0.018)" : "transparent")}>
 
                 {/* Row number */}
                 <span className="text-[10px] text-[var(--text3)] font-mono text-right select-none">{i + 1}</span>

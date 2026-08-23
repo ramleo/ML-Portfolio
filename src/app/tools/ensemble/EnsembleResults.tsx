@@ -33,7 +33,7 @@ export default function EnsembleResults({ result, accent }: { result: TrainResul
     if (!cfg) {
       return (
         <svg width="16" height="16" viewBox="0 0 16 16">
-          <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" />
+          <circle cx="8" cy="8" r="7" fill="rgba(var(--fg-rgb),0.06)" stroke="rgba(var(--fg-rgb),0.15)" strokeWidth="1.2" />
           <text x="8" y="11.5" textAnchor="middle" fontSize="7" fontWeight="700" fill="var(--text3)">{rank + 1}</text>
         </svg>
       );
@@ -70,7 +70,7 @@ export default function EnsembleResults({ result, accent }: { result: TrainResul
         <div>
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Algorithm Leaderboard</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 90px 80px 80px", gap: "0.5rem", padding: "0.35rem 0.5rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 90px 80px 80px", gap: "0.5rem", padding: "0.35rem 0.5rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(var(--fg-rgb),0.07)" }}>
               <span>#</span><span>Model</span><span style={{ textAlign: "right" }}>Score</span><span></span><span style={{ textAlign: "right" }}>Stability</span>
             </div>
             {sorted.map((r, i) => {
@@ -79,14 +79,14 @@ export default function EnsembleResults({ result, accent }: { result: TrainResul
               const consistency = modelConsistency(r);
               const consistColor = consistency === "Consistent" ? "#34d399" : consistency === "Variable" ? "#f59e0b" : "var(--text3)";
               return (
-                <div key={r.name} style={{ display: "grid", gridTemplateColumns: "20px 1fr 90px 80px 80px", gap: "0.5rem", padding: "0.55rem 0.5rem", fontSize: "0.8rem", borderBottom: "1px solid rgba(255,255,255,0.04)", background: isWinner ? `${ACCENT}08` : "transparent", alignItems: "center" }}>
+                <div key={r.name} style={{ display: "grid", gridTemplateColumns: "20px 1fr 90px 80px 80px", gap: "0.5rem", padding: "0.55rem 0.5rem", fontSize: "0.8rem", borderBottom: "1px solid rgba(var(--fg-rgb),0.04)", background: isWinner ? `${ACCENT}08` : "transparent", alignItems: "center" }}>
                   <MedalRibbon rank={i} />
                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", overflow: "hidden" }}>
                     <span style={{ fontWeight: isWinner ? 700 : 500, color: isWinner ? "var(--text)" : "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
                     {isWinner && <span style={{ fontSize: "0.55rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", padding: "1px 5px", borderRadius: 9999, background: `${ACCENT}18`, border: `1px solid ${ACCENT}30`, flexShrink: 0 }}>winner</span>}
                   </div>
                   <span style={{ fontWeight: 700, color: isWinner ? ACCENT : "var(--text2)", textAlign: "right" }}>{r.score.toFixed(4)}</span>
-                  <div style={{ height: 6, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                  <div style={{ height: 6, borderRadius: 9999, background: "rgba(var(--fg-rgb),0.07)" }}>
                     <div style={{ height: "100%", width: `${barPct}%`, borderRadius: 9999, background: isWinner ? ACCENT : `${ACCENT}70` }} />
                   </div>
                   <span style={{ fontSize: "0.68rem", fontWeight: 600, color: consistColor, textAlign: "right" }}>{consistency}</span>

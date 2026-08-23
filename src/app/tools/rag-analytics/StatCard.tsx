@@ -26,7 +26,7 @@ export default function StatCard({ icon: Icon, label, value, suffix = "", decima
       transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
       whileHover={{ y: -3, boxShadow: `0 10px 30px -10px ${accent}70` }}
       className="rounded-2xl p-4"
-      style={{ background: `linear-gradient(135deg, ${accent}18, rgba(255,255,255,0.02))`, border: `1px solid ${accent}30` }}
+      style={{ background: `linear-gradient(135deg, ${accent}18, rgba(var(--fg-rgb),0.02))`, border: `1px solid ${accent}30` }}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>

@@ -37,7 +37,7 @@ function KbdRow({ keys, desc }: { keys: string[]; desc: string }) {
       <div className="flex gap-1 shrink-0">
         {keys.map(k => (
           <kbd key={k} className="text-[10px] px-1.5 py-0.5 rounded font-mono"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#c7d2fe" }}>
+            style={{ background: "rgba(var(--fg-rgb),0.07)", border: "1px solid rgba(var(--fg-rgb),0.12)", color: "var(--text2)" }}>
             {k}
           </kbd>
         ))}
@@ -77,7 +77,7 @@ export default function UserGuideModal({ onClose }: Props) {
             </div>
             <p className="text-[11px] text-[var(--text3)] mt-0.5 ml-6">Everything you need to query data with natural language</p>
           </div>
-          <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-white/8 transition-all">
+          <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text)] p-1.5 rounded-lg hover:bg-[rgba(var(--fg-rgb),0.08)] transition-all">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -126,15 +126,15 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* Connecting Data */}
           <Section title="Connecting Your Data">
             <div className="space-y-2 text-[11px] text-[var(--text2)] leading-relaxed">
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                 <Tag color="#6366f1" label="Demo" />
                 <p><span className="text-[var(--text)] font-medium">Chinook Demo</span> — the built-in music store database (11 tables, 15k+ rows). No setup needed. Includes artists, albums, tracks, invoices, customers.</p>
               </div>
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                 <Tag color="#10b981" label="Upload" />
                 <p><span className="text-[var(--text)] font-medium">Upload File</span> — drag or choose a <code className="text-indigo-300 text-[10px]">.db</code>, <code className="text-indigo-300 text-[10px]">.sqlite</code>, <code className="text-indigo-300 text-[10px]">.duckdb</code>, <code className="text-indigo-300 text-[10px]">.parquet</code>, or <code className="text-indigo-300 text-[10px]">.csv</code> file. The backend loads it into an in-memory session. CSV files are auto-converted.</p>
               </div>
-              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="flex gap-2 items-start p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                 <Tag color="#38bdf8" label="Remote" />
                 <p><span className="text-[var(--text)] font-medium">PostgreSQL / MySQL / SQL Server</span> — paste a connection string and click Connect. The schema is loaded automatically. All queries run on your database.</p>
               </div>
@@ -149,7 +149,7 @@ export default function UserGuideModal({ onClose }: Props) {
                 { name: "Gemini", color: "#10b981", note: "Google — good for complex joins" },
                 { name: "Cohere", color: "#6366f1", note: "Fallback if others hit rate limits" },
               ].map(p => (
-                <div key={p.name} className="p-3 rounded-xl border border-[var(--border)] text-center" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={p.name} className="p-3 rounded-xl border border-[var(--border)] text-center" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                   <div className="w-2 h-2 rounded-full mx-auto mb-1.5" style={{ background: p.color }} />
                   <p className="font-semibold text-[var(--text)] mb-1">{p.name}</p>
                   <p className="text-[var(--text3)] text-[10px] leading-snug">{p.note}</p>
@@ -204,7 +204,7 @@ export default function UserGuideModal({ onClose }: Props) {
                 { label: "Constant column", color: "#94a3b8", desc: "Every row has the same value — column adds no information." },
                 { label: "Skew", color: "#818cf8", desc: "Numeric range spans more than 100× (e.g. min=1, max=450)." },
               ].map(({ label, color, desc }) => (
-                <div key={label} className="p-2.5 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={label} className="p-2.5 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                   <span className="inline-block text-[9px] font-semibold rounded px-1.5 py-0.5 mb-1 font-mono"
                     style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
                     {label}
@@ -235,7 +235,7 @@ export default function UserGuideModal({ onClose }: Props) {
                 ["Tab persistence", "All open tabs (including SQL, results, and chart overrides) are saved in sessionStorage and restored on page reload."],
                 ["Question sync", "Switching tabs updates the question input to show that tab's original question."],
               ].map(([title, desc]) => (
-                <div key={title as string} className="p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={title as string} className="p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                   <p className="text-[var(--text)] font-semibold mb-1">{title}</p>
                   <p className="text-[var(--text3)] text-[10px] leading-snug">{desc}</p>
                 </div>
@@ -260,7 +260,7 @@ export default function UserGuideModal({ onClose }: Props) {
           {/* AI Explanation */}
           <Section title="AI Explanation">
             <p className="text-[11px] text-[var(--text2)] leading-relaxed mb-3">
-              After results load, click <span className="text-[var(--text)] font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)" }}>Explain</span> at the bottom of the result panel. The AI streams a plain-English explanation of the SQL logic and what the results mean.
+              After results load, click <span className="text-[var(--text)] font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(var(--fg-rgb),0.06)" }}>Explain</span> at the bottom of the result panel. The AI streams a plain-English explanation of the SQL logic and what the results mean.
             </p>
             <Feature
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M3.22 3.22l1.41 1.41M9.37 9.37l1.41 1.41M3.22 10.78l1.41-1.41M9.37 4.63l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>}
@@ -354,7 +354,7 @@ export default function UserGuideModal({ onClose }: Props) {
 
           {/* Keyboard Shortcuts */}
           <Section title="Keyboard Shortcuts">
-            <div className="rounded-xl border border-[var(--border)] overflow-hidden" style={{ background: "rgba(255,255,255,0.02)" }}>
+            <div className="rounded-xl border border-[var(--border)] overflow-hidden" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
               <div className="px-4 py-2">
                 <KbdRow keys={["⌘", "Enter"]} desc="Run the current query" />
                 <KbdRow keys={["⌘", "K"]} desc="Focus the question input and select all text" />
@@ -375,7 +375,7 @@ export default function UserGuideModal({ onClose }: Props) {
                 { tip: "Share queries (Chinook only)", detail: "Click the Share button to copy a URL that pre-fills the question box. Useful for sharing interesting findings." },
                 { tip: "Try Ask a follow-up", detail: "After results load, scroll down and click 'Ask a follow-up' — previous query context is retained so you can drill down without re-explaining the schema." },
               ].map(({ tip, detail }) => (
-                <div key={tip} className="flex gap-2.5 p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <div key={tip} className="flex gap-2.5 p-3 rounded-lg border border-[var(--border)]" style={{ background: "rgba(var(--fg-rgb),0.02)" }}>
                   <div className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ background: ACCENT }} />
                   <div>
                     <p className="text-[11px] font-semibold text-[var(--text)]">{tip}</p>
