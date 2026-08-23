@@ -131,6 +131,29 @@ export default function MmRagRunner() {
 
   const activeDoc = documents.find(d => d.source === activeCitation?.source) ?? null;
 
+  // Switches the Evidence panel to a different already-uploaded document's
+  // page 1 — same page-1-preview logic handleIngested uses for a freshly
+  // uploaded doc, factored out so DocumentTray's "Session sources" list can
+  // call it too. Clicking a document there previously only toggled its
+  // summary popup and had no way to actually change what's shown.
+  const selectDocument = useCallback((source: string) => {
+    const doc = documents.find(d => d.source === source);
+    if (!doc) return;
+    const page1Chunk = doc.notableChunks.find(c => (c.page ?? 1) === 1);
+    setActiveCitation({
+      page: 1,
+      chunkType: page1Chunk?.chunkType ?? null,
+      source,
+      bbox: page1Chunk?.bbox ?? null,
+      objects: page1Chunk?.objects ?? null,
+      piiTypes: page1Chunk?.piiTypes ?? null,
+      entities: page1Chunk?.entities ?? null,
+      signatures: page1Chunk?.signatures ?? null,
+      tampering: page1Chunk?.tampering ?? null,
+      personCount: page1Chunk?.personCount ?? null,
+    });
+  }, [documents]);
+
   // Persists (or clears, edit === null) a region-removal edit into the
   // owning doc's `edits` map — lifted here (not left in useInpaint's local
   // state) so it survives switching to a different citation and back.
@@ -268,7 +291,7 @@ export default function MmRagRunner() {
           ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_440px] gap-4 lg:h-[88vh]"
           : "max-w-xs"}>
           <DocumentTray documents={documents} accent={ACCENT} cardStyle={cardStyle}
-            activeSource={activeCitation?.source ?? null}
+            activeSource={activeCitation?.source ?? null} onSelectDocument={selectDocument}
             summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
             sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
 

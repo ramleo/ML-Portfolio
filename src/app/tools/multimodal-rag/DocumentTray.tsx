@@ -49,6 +49,9 @@ type Props = {
   accent: string;
   cardStyle: React.CSSProperties;
   activeSource: string | null;
+  /** Switches the Evidence panel to this document's page 1 — see
+   * MmRagRunner.tsx's selectDocument. */
+  onSelectDocument: (source: string) => void;
   summaryOpenFor: string | null;
   setSummaryOpenFor: (fn: (s: string | null) => string | null) => void;
   removeDocument: (source: string) => void;
@@ -58,14 +61,17 @@ type Props = {
 };
 
 /** Vertical "evidence stack" of the session's uploaded documents — the left
- * column of the 3-column layout. Clicking a row toggles its extracted-
- * structure summary, the same action the horizontal chip row's "summary"
- * link already performed. Hosts the actual upload control (IngestProgressRail,
+ * column of the 3-column layout. Clicking a row switches the Evidence panel
+ * to that document's page 1 AND toggles its extracted-structure summary
+ * (the same summary action the horizontal chip row's "summary" link already
+ * performs) — previously only the summary toggle happened, so clicking a
+ * different document in this list appeared to do nothing to the view. Hosts
+ * the actual upload control (IngestProgressRail,
  * in its borderless "bare" mode) at the bottom, so there's exactly one
  * "add a document" entry point instead of a second one duplicated above the
  * 3-column grid. Split out of MmRagRunner.tsx to stay under the project's
  * file-length limit. */
-export default function DocumentTray({ documents, accent, cardStyle, activeSource, summaryOpenFor, setSummaryOpenFor, removeDocument, sessionId, ensureSessionId, onIngested }: Props) {
+export default function DocumentTray({ documents, accent, cardStyle, activeSource, onSelectDocument, summaryOpenFor, setSummaryOpenFor, removeDocument, sessionId, ensureSessionId, onIngested }: Props) {
   return (
     <div style={cardStyle} className="flex flex-col gap-1 p-2 h-full">
       <span className="text-[11px] font-bold uppercase tracking-[0.1em] px-1.5 pt-1 pb-1.5 shrink-0" style={{ color: `${accent}99` }}>
@@ -77,7 +83,7 @@ export default function DocumentTray({ documents, accent, cardStyle, activeSourc
           const isActive = activeSource === d.source;
           return (
             <div key={d.source}
-              onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
+              onClick={() => { onSelectDocument(d.source); setSummaryOpenFor(s => s === d.source ? null : d.source); }}
               className="flex items-start gap-2 px-1.5 py-1.5 rounded-lg cursor-pointer transition-colors"
               style={{ background: isOpen || isActive ? "var(--border)" : "transparent" }}>
               <span className="mt-0.5 shrink-0" style={{ color: accent }}><DocIcon kind={kindOf(d.source)} /></span>
