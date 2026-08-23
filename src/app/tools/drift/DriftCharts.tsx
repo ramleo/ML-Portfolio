@@ -77,14 +77,14 @@ export function NumericHistogram({ bins }: { bins: NonNullable<FeatureDrift["his
           const y = PAD.t + CH - t * CH;
           return (
             <g key={t}>
-              <line x1={PAD.l} x2={VW - PAD.r} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.8} />
+              <line x1={PAD.l} x2={VW - PAD.r} y1={y} y2={y} stroke="rgba(var(--fg-rgb),0.05)" strokeWidth={0.8} />
               <text x={PAD.l - 3} y={y + 3} textAnchor="end" fill="var(--text3)" fontSize="8">{(t * 100).toFixed(0)}%</text>
             </g>
           );
         })}
 
         {/* Baseline */}
-        <line x1={PAD.l} x2={VW - PAD.r} y1={baseY} y2={baseY} stroke="rgba(255,255,255,0.12)" strokeWidth={0.8} />
+        <line x1={PAD.l} x2={VW - PAD.r} y1={baseY} y2={baseY} stroke="rgba(var(--fg-rgb),0.12)" strokeWidth={0.8} />
 
         {/* Reference bars */}
         {refBars.map((b, i) => (
@@ -179,12 +179,12 @@ export function CDFChart({ bins, ksLabel }: {
           const y = PAD.t + CH * (1 - t);
           return (
             <g key={t}>
-              <line x1={PAD.l} x2={VW - PAD.r} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.8} />
+              <line x1={PAD.l} x2={VW - PAD.r} y1={y} y2={y} stroke="rgba(var(--fg-rgb),0.05)" strokeWidth={0.8} />
               <text x={PAD.l - 3} y={y + 3} textAnchor="end" fill="var(--text3)" fontSize="8">{(t * 100).toFixed(0)}%</text>
             </g>
           );
         })}
-        <line x1={PAD.l} x2={VW - PAD.r} y1={PAD.t + CH} y2={PAD.t + CH} stroke="rgba(255,255,255,0.12)" strokeWidth={0.8} />
+        <line x1={PAD.l} x2={VW - PAD.r} y1={PAD.t + CH} y2={PAD.t + CH} stroke="rgba(var(--fg-rgb),0.12)" strokeWidth={0.8} />
         {refLine && <path d={refLine} fill="none" stroke={`${ACCENT}70`} strokeWidth={1.8} strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />}
         {actLine && <path d={actLine} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
         {[0, Math.floor(n / 2), n - 1].map(i => (
@@ -228,14 +228,14 @@ export function CategoricalBars({ f }: { f: FeatureDrift }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: "0.5rem", color: "var(--text3)", width: 16, flexShrink: 0 }}>ref</span>
-                <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
+                <div style={{ flex: 1, height: 8, background: "rgba(var(--fg-rgb),0.05)", borderRadius: 3 }}>
                   <div style={{ height: "100%", width: `${refW}%`, background: `linear-gradient(90deg, ${ACCENT}55, ${ACCENT}33)`, borderRadius: 3 }} />
                 </div>
                 <span style={{ fontSize: "0.52rem", color: "var(--text3)", width: 32, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(ref * 100).toFixed(1)}%</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: "0.5rem", color: "var(--text3)", width: 16, flexShrink: 0 }}>now</span>
-                <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
+                <div style={{ flex: 1, height: 8, background: "rgba(var(--fg-rgb),0.05)", borderRadius: 3 }}>
                   <div style={{ height: "100%", width: `${recW}%`, background: `linear-gradient(90deg, ${ACCENT}bb, ${ACCENT})`, borderRadius: 3 }} />
                 </div>
                 <span style={{ fontSize: "0.52rem", color: dc, width: 32, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{(rec * 100).toFixed(1)}%</span>

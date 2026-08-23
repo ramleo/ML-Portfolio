@@ -71,7 +71,7 @@ export default function DriftRadarChart({ features }: { features: FeatureDrift[]
         {/* Grid rings */}
         {GRID.map(t => (
           <circle key={t} cx={CX} cy={CY} r={R * t}
-            fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={t === 1 ? 1.5 : 0.8} />
+            fill="none" stroke="rgba(var(--fg-rgb),0.07)" strokeWidth={t === 1 ? 1.5 : 0.8} />
         ))}
 
         {/* Grid ring labels */}
@@ -84,7 +84,7 @@ export default function DriftRadarChart({ features }: { features: FeatureDrift[]
         {/* Spokes */}
         {angles.map((a, i) => {
           const [x, y] = spoke(a, R);
-          return <line key={i} x1={CX} y1={CY} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(255,255,255,0.08)" strokeWidth={0.8} />;
+          return <line key={i} x1={CX} y1={CY} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(var(--fg-rgb),0.08)" strokeWidth={0.8} />;
         })}
 
         {/* Drift fill polygon */}
@@ -121,7 +121,7 @@ export default function DriftRadarChart({ features }: { features: FeatureDrift[]
         })}
 
         {/* Center dot */}
-        <circle cx={CX} cy={CY} r={3} fill="rgba(255,255,255,0.15)" />
+        <circle cx={CX} cy={CY} r={3} fill="rgba(var(--fg-rgb),0.15)" />
       </svg>
     </div>
   );

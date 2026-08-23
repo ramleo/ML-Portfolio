@@ -169,7 +169,7 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
             <rect x="1" y="1" width="6" height="4" rx="1" stroke={ACCENT} strokeWidth="1.2"/>
             <rect x="9" y="1" width="6" height="4" rx="1" stroke="#06b6d4" strokeWidth="1.2"/>
             <rect x="1" y="11" width="6" height="4" rx="1" stroke="#10b981" strokeWidth="1.2"/>
-            <path d="M7 3h2M7 13h2M8 5v6" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeLinecap="round"/>
+            <path d="M7 3h2M7 13h2M8 5v6" stroke="rgba(var(--fg-rgb),0.2)" strokeWidth="1" strokeLinecap="round"/>
           </svg>
           <span className="text-sm font-semibold text-[var(--text)]">Schema Diagram</span>
           <span className="text-xs text-[var(--text3)]">{names.length} tables · {edges.length} relationships</span>
@@ -190,7 +190,7 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
         <svg className="w-full h-full" onPointerDown={e => onPDown(e, "bg")} onWheel={onWheel} style={{ userSelect: "none" }}>
           <defs>
             <pattern id="dot" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.04)"/>
+              <circle cx="1" cy="1" r="0.8" fill="rgba(var(--fg-rgb),0.04)"/>
             </pattern>
             {/* Subtle glow for normal edges */}
             <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
@@ -251,20 +251,20 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
                   <rect x={3} y={4} width={TW} height={h} rx={7} fill="rgba(0,0,0,0.5)" pointerEvents="none"/>
                   {/* Card body — no pointerEvents="none" so it acts as the hit area for the whole card */}
                   <rect width={TW} height={h} rx={7}
-                    fill="#0d0d18" stroke={sel ? clr : "rgba(255,255,255,0.08)"}
+                    fill="var(--bg-card)" stroke={sel ? clr : "var(--border2)"}
                     strokeWidth={sel ? 1.5 : 1}/>
                   <rect width={3} height={h} rx={1.5} fill={clr} opacity={0.9} pointerEvents="none"/>
                   <rect width={TW} height={HEADER_H} rx={7} fill={`${clr}18`} pointerEvents="none"/>
                   <rect y={HEADER_H - 8} width={TW} height={8} fill={`${clr}18`} pointerEvents="none"/>
 
                   <text x={14} y={21} fontSize={10.5} fontWeight="700"
-                    fill={sel ? clr : "rgba(255,255,255,0.92)"} style={{ pointerEvents: "none" }}>
+                    fill={sel ? clr : "var(--text)"} style={{ pointerEvents: "none" }}>
                     {name}
                   </text>
                   <text x={TW - 8} y={21} fontSize={8} fill={`${clr}80`} textAnchor="end" style={{ pointerEvents: "none" }}>
                     {t.row_count.toLocaleString()}
                   </text>
-                  <line x1={0} y1={HEADER_H} x2={TW} y2={HEADER_H} stroke="rgba(255,255,255,0.06)" strokeWidth={1} style={{ pointerEvents: "none" }}/>
+                  <line x1={0} y1={HEADER_H} x2={TW} y2={HEADER_H} stroke="rgba(var(--fg-rgb),0.06)" strokeWidth={1} style={{ pointerEvents: "none" }}/>
 
                   {t.columns.map((col, ci) => {
                     const cy  = HEADER_H + ci * ROW_H;
@@ -272,14 +272,14 @@ function SchemaDiagramCanvas({ schema, onClose }: Props) {
                     const lbl = col.type.split("(")[0].slice(0, 9).toUpperCase();
                     return (
                       <g key={col.name} style={{ pointerEvents: "none" }}>
-                        {ci % 2 === 0 && <rect x={0} y={cy} width={TW} height={ROW_H} fill="rgba(255,255,255,0.015)"/>}
+                        {ci % 2 === 0 && <rect x={0} y={cy} width={TW} height={ROW_H} fill="rgba(var(--fg-rgb),0.015)"/>}
                         {col.pk && <foreignObject x={5} y={cy + 4} width={10} height={10}><KeyIcon/></foreignObject>}
                         {fk && !col.pk && <foreignObject x={5} y={cy + 4} width={10} height={10}><LinkIcon/></foreignObject>}
                         <text x={col.pk || fk ? 20 : 10} y={cy + 13} fontSize={9}
-                          fill={col.pk ? "#f59e0b" : fk ? ACCENT : "rgba(255,255,255,0.65)"}>
+                          fill={col.pk ? "#f59e0b" : fk ? ACCENT : "var(--text2)"}>
                           {col.name}
                         </text>
-                        <text x={TW - 8} y={cy + 13} fontSize={7.5} fill="rgba(255,255,255,0.2)" textAnchor="end">
+                        <text x={TW - 8} y={cy + 13} fontSize={7.5} fill="rgba(var(--fg-rgb),0.2)" textAnchor="end">
                           {lbl}
                         </text>
                       </g>

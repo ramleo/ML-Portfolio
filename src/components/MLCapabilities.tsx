@@ -129,6 +129,7 @@ export default function MLCapabilities() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeDomain, setActiveDomain] = useState<string>("all");
+  const searchBarRef = useRef<HTMLDivElement>(null);
 
   const domains = useMemo(
     () => DOMAIN_ORDER.filter((d) => capabilities.some((c) => c.domain === d)),
@@ -139,6 +140,21 @@ export default function MLCapabilities() {
     () => capabilities.filter((c) => matches(c, query.trim().toLowerCase())).length,
     [query]
   );
+
+  // Filtering can collapse whole domain sections (zero matches), shrinking the
+  // page enough that this sticky search bar ends up scrolled above the
+  // viewport with nothing compensating — the bar (and the results below it)
+  // then appear to "vanish" until the user manually scrolls back up. Snap the
+  // bar back into view only when that's actually happened (top < 0), so
+  // normal typing that doesn't shrink the page never triggers an unwanted
+  // scroll jump.
+  useEffect(() => {
+    const el = searchBarRef.current;
+    if (!el) return;
+    if (el.getBoundingClientRect().top < 0) {
+      el.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  }, [query, activeDomain]);
 
   return (
     <section id="capabilities" style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
@@ -151,7 +167,7 @@ export default function MLCapabilities() {
         </h2>
       </div>
 
-      <div className="cap-search-bar">
+      <div className="cap-search-bar" ref={searchBarRef}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" strokeLinecap="round" />
         </svg>

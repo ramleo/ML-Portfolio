@@ -48,6 +48,10 @@ html.palette-ocean {
   --border:          rgba(255, 255, 255, 0.07);
   --border2:         rgba(255, 255, 255, 0.13);
   --shadow:          0 4px 24px rgba(0, 0, 0, 0.4);
+  /* RGB triplet matching --text, for chart gridlines/axis-text/track
+     backgrounds that need a hand-tuned alpha (rgba(var(--fg-rgb), 0.05) etc.)
+     rather than a fixed-opacity token like --border2. */
+  --fg-rgb:          241, 245, 249;
   /* glass-card tokens used by Pipeline + Skills */
   --glass-bg:        rgba(17, 24, 39, 0.60);
   --glass-border:    rgba(255, 255, 255, 0.09);
@@ -66,6 +70,7 @@ html.light {
   --border:          rgba(0, 0, 0, 0.07);
   --border2:         rgba(0, 0, 0, 0.12);
   --shadow:          0 4px 24px rgba(0, 0, 0, 0.08);
+  --fg-rgb:          15, 23, 42;
   --glass-bg:        rgba(255, 255, 255, 0.60);
   --glass-border:    rgba(0, 0, 0, 0.10);
   --glass-shadow:    0 2px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);

@@ -113,7 +113,7 @@ export default function DriftHeatmap({ modelId }: { modelId: string }) {
           })}
 
           {/* Separator */}
-          <line x1={0} x2={W} y1={HEADER_H + CELL_H - 2} y2={HEADER_H + CELL_H - 2} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+          <line x1={0} x2={W} y1={HEADER_H + CELL_H - 2} y2={HEADER_H + CELL_H - 2} stroke="rgba(var(--fg-rgb),0.08)" strokeWidth={1} />
 
           {/* Feature rows */}
           {featNames.map((name, i) => {
@@ -131,7 +131,7 @@ export default function DriftHeatmap({ modelId }: { modelId: string }) {
                   return (
                     <g key={j}>
                       <rect x={LABEL_W + j * CELL_W + 1} y={y + 1} width={CELL_W - 2} height={CELL_H - 2}
-                        fill={feat ? color : "rgba(255,255,255,0.03)"}
+                        fill={feat ? color : "rgba(var(--fg-rgb),0.03)"}
                         opacity={feat ? 0.12 + score * 0.55 : 1} rx={3} />
                       <text x={LABEL_W + j * CELL_W + CELL_W / 2} y={y + CELL_H / 2 + 4}
                         textAnchor="middle" fill={feat ? color : "var(--text3)"} fontSize="9" fontWeight={feat ? "600" : "400"}>

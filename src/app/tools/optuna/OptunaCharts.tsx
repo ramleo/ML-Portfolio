@@ -6,7 +6,7 @@ const ACCENT = "#a78bfa";
 export function mdToHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0.75rem 0"/>')
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(var(--fg-rgb),0.08);margin:0.75rem 0"/>')
     .replace(/^### (.+)$/gm, '<h4 style="margin:0.9rem 0 0.25rem;font-size:0.84rem;font-weight:700;color:var(--text)">$1</h4>')
     .replace(/^## (.+)$/gm, '<h3 style="margin:1rem 0 0.3rem;font-size:0.9rem;font-weight:700;color:var(--text)">$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:700">$1</strong>')
@@ -78,15 +78,15 @@ export function TrialHistoryChart({ trials, bestTrial, primaryMetricLabel, secon
           const val = yMin + yRange * f;
           return (
             <g key={f}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              <text x={PL - 2} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(255,255,255,0.3)">{val.toFixed(2)}</text>
+              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(var(--fg-rgb),0.06)" strokeWidth="1" />
+              <text x={PL - 2} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(var(--fg-rgb),0.3)">{val.toFixed(2)}</text>
             </g>
           );
         })}
         {/* X axis labels */}
         {trials.filter((_, i) => i === 0 || i === trials.length - 1 || (i + 1) % 10 === 0).map(t => {
           const i = trials.indexOf(t);
-          return <text key={t.trial} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">{t.trial}</text>;
+          return <text key={t.trial} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(var(--fg-rgb),0.3)">{t.trial}</text>;
         })}
         {/* Running best line */}
         <polyline points={bestPolyline} fill="none" stroke={`${ACCENT}50`} strokeWidth="1.5" strokeDasharray="4 2" />
@@ -102,7 +102,7 @@ export function TrialHistoryChart({ trials, bestTrial, primaryMetricLabel, secon
           return (
             <circle key={t.trial} cx={toX(i)} cy={toY(t.value)} r={isBest ? 5 : 2.5}
               fill={isBest ? ACCENT : `${ACCENT}99`}
-              stroke={isBest ? "rgba(255,255,255,0.3)" : "none"}
+              stroke={isBest ? "rgba(var(--fg-rgb),0.3)" : "none"}
               strokeWidth={isBest ? 1.5 : 0}
               style={isBest ? { filter: `drop-shadow(0 0 4px ${ACCENT})` } : {}}
             />
@@ -183,13 +183,13 @@ export function LearningCurveChart({ trainSizes, trainScores, valScores, metricL
           const val = yMin + yRange * f;
           return (
             <g key={f}>
-              <line x1={PL} y1={y} x2={svgW - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-              <text x={PL - 4} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(255,255,255,0.35)">{val.toFixed(2)}</text>
+              <line x1={PL} y1={y} x2={svgW - PR} y2={y} stroke="rgba(var(--fg-rgb),0.06)" strokeWidth="1" />
+              <text x={PL - 4} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(var(--fg-rgb),0.35)">{val.toFixed(2)}</text>
             </g>
           );
         })}
         {trainSizes.map(s => (
-          <text key={s} x={toX(s)} y={H - 4} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.35)">{s}</text>
+          <text key={s} x={toX(s)} y={H - 4} textAnchor="middle" fontSize="11" fill="rgba(var(--fg-rgb),0.35)">{s}</text>
         ))}
         {hasVal && <polyline points={valPts}   fill="none" stroke={`${ACCENT}55`} strokeWidth="1.5" strokeDasharray="5 3" />}
         <polyline points={trainPts} fill="none" stroke={ACCENT} strokeWidth="1.5" />

@@ -52,7 +52,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
               return (
                 <div key={f.feature} style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
                   <span style={{ width: 150, fontSize: "0.75rem", fontWeight: i === 0 ? 700 : 500, color: i === 0 ? "var(--text)" : "var(--text2)", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.feature}</span>
-                  <div style={{ flex: 1, height: 10, borderRadius: 9999, background: "rgba(255,255,255,0.07)" }}>
+                  <div style={{ flex: 1, height: 10, borderRadius: 9999, background: "rgba(var(--fg-rgb),0.07)" }}>
                     <div style={{ height: "100%", width: `${(f.importance / max) * 100}%`, borderRadius: 9999, background: ACCENT, boxShadow: `0 0 6px ${ACCENT}55` }} />
                   </div>
                   <span style={{ fontSize: "0.72rem", fontWeight: 700, color: ACCENT, width: 45, textAlign: "right" }}>{f.importance.toFixed(1)}%</span>
@@ -68,7 +68,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
         <div>
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Feature Breakdown</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", gap: "0.5rem", padding: "0.3rem 0.6rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", gap: "0.5rem", padding: "0.3rem 0.6rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(var(--fg-rgb),0.07)" }}>
               <span>Feature</span><span style={{ textAlign: "right" }}>Importance</span><span style={{ textAlign: "right" }}>Contribution</span>
             </div>
             {topFeatures.map((f, i) => {
@@ -76,7 +76,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
               const label = contributionLabel(pct);
               const labelColor = pct >= 20 ? "#34d399" : pct >= 5 ? ACCENT : "var(--text3)";
               return (
-                <div key={f.feature} style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", gap: "0.5rem", padding: "0.45rem 0.6rem", fontSize: "0.78rem", borderBottom: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 0 ? "rgba(0,0,0,0.12)" : "transparent", alignItems: "center" }}>
+                <div key={f.feature} style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", gap: "0.5rem", padding: "0.45rem 0.6rem", fontSize: "0.78rem", borderBottom: "1px solid rgba(var(--fg-rgb),0.04)", background: i % 2 === 0 ? "rgba(0,0,0,0.12)" : "transparent", alignItems: "center" }}>
                   <span style={{ color: "var(--text)", fontWeight: i === 0 ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.feature}</span>
                   <span style={{ textAlign: "right", fontWeight: 700, color: ACCENT }}>{f.importance.toFixed(1)}%</span>
                   <span style={{ textAlign: "right", fontSize: "0.72rem", fontWeight: 600, color: labelColor }}>{label}</span>

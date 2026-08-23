@@ -33,7 +33,7 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
           if (y < 0 || y > H) return null;
           return (
             <g key={t}>
-              <line x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
+              <line x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke="rgba(var(--fg-rgb),0.05)" strokeWidth={1} />
               <text x={PAD_L - 3} y={y + 3.5} textAnchor="end" fill="var(--text3)" fontSize="7">{(t * 100).toFixed(0)}%</text>
             </g>
           );
@@ -117,7 +117,7 @@ function OverallScore({ score, level }: { score: number; level: string }) {
         </span>
       </div>
       {/* Score bar */}
-      <div style={{ position: "relative", height: 7, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}>
+      <div style={{ position: "relative", height: 7, background: "rgba(var(--fg-rgb),0.06)", borderRadius: 4 }}>
         <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 4, transition: "width 0.6s ease" }} />
         <div style={{ position: "absolute", top: -3, bottom: -3, left: "10%", width: 1.5, background: "#fbbf2455" }} title="10% — medium threshold" />
         <div style={{ position: "absolute", top: -3, bottom: -3, left: "25%", width: 1.5, background: "#f8717155" }} title="25% — high threshold" />
