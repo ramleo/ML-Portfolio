@@ -131,6 +131,7 @@ export default function MLCapabilities() {
   const [activeDomain, setActiveDomain] = useState<string>("all");
   const searchBarRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const domains = useMemo(
     () => DOMAIN_ORDER.filter((d) => capabilities.some((c) => c.domain === d)),
@@ -142,29 +143,39 @@ export default function MLCapabilities() {
     [query]
   );
 
-  // Filtering can collapse whole domain sections (zero matches), shrinking the
-  // page enough that the results end up scrolled out of view — either above
-  // the viewport (search bar pushed past top: 0) or, if the user was
-  // scrolled deep into a domain that just collapsed, entirely below it (the
-  // whole section's remaining content sits above where the user is now).
-  // Snap back to the section start in either case. Deliberately scrolls the
-  // plain (non-sticky) section container rather than the sticky search bar
-  // itself — scrollIntoView on a position:sticky element is unreliable,
-  // since the browser's scroll-target calculation and the element's own
-  // sticky recalculation can disagree mid-scroll. Also deliberately
-  // "instant", not "smooth": fast typing re-fires this effect on every
-  // keystroke, and a still-animating smooth scroll from the previous
-  // keystroke makes the next keystroke's rect check read a stale,
-  // mid-animation position — sometimes concluding (wrongly) that nothing
-  // needs to move. An instant jump finishes before the next render's effect
-  // can run, so there's no animation to race against.
+  // Filtering can collapse whole domain sections (zero matches), shrinking
+  // the page enough that the actual results end up scrolled out of view —
+  // either above the viewport (search bar pushed past top: 0) or, if the
+  // user was scrolled deep into a domain that just collapsed, entirely
+  // below it (the whole section's remaining content sits above where the
+  // user is now). Earlier versions of this fix checked proxies for
+  // visibility (the search bar's own position, or the section wrapper's
+  // bottom edge) — both had real gaps: a proxy can read as "close enough"
+  // while the actual result cards, nested further in, are still mostly or
+  // fully off-screen. Check the actual results content directly instead.
+  // Scrolls the plain (non-sticky) section container rather than the sticky
+  // search bar itself — scrollIntoView on a position:sticky element is
+  // unreliable, since the browser's scroll-target calculation and the
+  // element's own sticky recalculation can disagree mid-scroll. Also
+  // deliberately "instant", not "smooth": fast typing re-fires this effect
+  // on every keystroke, and a still-animating smooth scroll from the
+  // previous keystroke makes the next keystroke's check read a stale,
+  // mid-animation position.
   useEffect(() => {
-    const bar = searchBarRef.current;
     const section = sectionRef.current;
-    if (!bar || !section) return;
-    const barOutOfView = bar.getBoundingClientRect().top < 0;
-    const sectionScrolledPast = section.getBoundingClientRect().bottom < 80;
-    if (barOutOfView || sectionScrolledPast) {
+    const results = resultsRef.current;
+    if (!section || !results) return;
+    const items = Array.from(results.querySelectorAll(".cap-grid, .cap-no-results"));
+    // A single visible pixel technically counts as "in the viewport" but
+    // isn't usably visible — require a real, legible amount of the element
+    // showing (or all of it, if it's naturally shorter than that).
+    const MIN_VISIBLE_PX = 120;
+    const anyResultVisible = items.some((el) => {
+      const r = el.getBoundingClientRect();
+      const visibleHeight = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+      return visibleHeight >= Math.min(MIN_VISIBLE_PX, r.height);
+    });
+    if (items.length > 0 && !anyResultVisible) {
       section.scrollIntoView({ block: "start", behavior: "instant" });
     }
   }, [query, activeDomain]);
@@ -212,38 +223,40 @@ export default function MLCapabilities() {
         ))}
       </div>
 
-      {domains.map((d) => {
-        if (activeDomain !== "all" && activeDomain !== d) return null;
-        const q = query.trim().toLowerCase();
-        const items = capabilities.filter((c) => c.domain === d && matches(c, q));
-        if (items.length === 0) return null;
-        const total = capabilities.filter((c) => c.domain === d).length;
-        return (
-          <div key={d} style={{ marginBottom: "3rem" }}>
-            <div className="cap-cluster-head">
-              <span className="cap-dot" style={{ width: 8, height: 8, background: DOMAIN_COLOR[d] }} />
-              <h4>{d}</h4>
-              <span className="cap-cluster-count">{total} tools</span>
-              <div className="cap-cluster-line" />
+      <div ref={resultsRef}>
+        {domains.map((d) => {
+          if (activeDomain !== "all" && activeDomain !== d) return null;
+          const q = query.trim().toLowerCase();
+          const items = capabilities.filter((c) => c.domain === d && matches(c, q));
+          if (items.length === 0) return null;
+          const total = capabilities.filter((c) => c.domain === d).length;
+          return (
+            <div key={d} style={{ marginBottom: "3rem" }}>
+              <div className="cap-cluster-head">
+                <span className="cap-dot" style={{ width: 8, height: 8, background: DOMAIN_COLOR[d] }} />
+                <h4>{d}</h4>
+                <span className="cap-cluster-count">{total} tools</span>
+                <div className="cap-cluster-line" />
+              </div>
+              <div className="cap-grid">
+                {items.map((cap) => (
+                  <FlipCard
+                    key={cap.id}
+                    cap={cap}
+                    onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="cap-grid">
-              {items.map((cap) => (
-                <FlipCard
-                  key={cap.id}
-                  cap={cap}
-                  onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
 
-      {visibleCount === 0 && (
-        <p style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text3)", fontSize: "0.85rem" }}>
-          No tools match &ldquo;{query}&rdquo;. Try a different search or clear the filter.
-        </p>
-      )}
+        {visibleCount === 0 && (
+          <p className="cap-no-results" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text3)", fontSize: "0.85rem" }}>
+            No tools match &ldquo;{query}&rdquo;. Try a different search or clear the filter.
+          </p>
+        )}
+      </div>
     </section>
   );
 }
