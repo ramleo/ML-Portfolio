@@ -169,6 +169,49 @@ meant to place things in general terms, not measure them precisely.
   — pick it to see which other source/page it matches and how similar (a
   percentage). Useful for catching an accidental re-upload of the same
   photo, or two documents that share the same embedded image.
+- **"Possible hidden data" flags LSB steganography — and can identify the
+  actual hidden file, not just a statistical pattern.** Where available,
+  "Possible hidden data (N%)" runs the classical chi-square LSB attack
+  (checks whether pixel value-pairs are suspiciously equalized, the
+  fingerprint of data hidden in the least-significant bit of each pixel).
+  Only meaningful on a losslessly-saved image (PNG/BMP/TIFF) — JPEG
+  compression destroys LSB data, so a JPEG upload will essentially never
+  trigger a true positive. Only runs on images at least 500px on each side:
+  below that, the statistic itself becomes unreliable and was found to
+  false-positive on completely ordinary small photos, so it's skipped
+  entirely rather than shown with a misleading number. Click "Show what the
+  computer sees" to view the raw bit-plane the detector reads — it looks
+  like static either way (that's the point: a hidden payload doesn't
+  visually change the image), so the picture itself proves nothing; the
+  confidence number and any signature match below it are the real evidence.
+  When the option reads "...— looks like a [file type]," the tool went
+  further than the statistical hint: it actually extracted the hidden bytes
+  and matched them against known file signatures (ZIP, Windows/Linux
+  executables, RAR, 7z, gzip, PDF, or a script). That's a much stronger
+  claim — a real recognizable file was found, not just a suspicious
+  pattern — though it still isn't proof of anything malicious, only that
+  something real is hidden there.
+- **"Possible screen/scan pattern" flags a photo taken of a screen or a
+  scanned document.** Where available, this looks for a repeating ripple
+  hidden in the image's frequency structure — the kind of interference
+  pattern (moiré) that shows up when a camera photographs a display or a
+  scanned page, rather than a real scene directly. Click "Show what the
+  computer sees" to see the image's own frequency-spectrum picture with the
+  actual detected pattern circled in red — every photo's spectrum has the
+  same smooth cloudy shape in the middle, so only the two circled spots
+  matter. A strong hint, not proof: some real photos with fine repeating
+  textures (mesh, fabric, a wire fence) can occasionally trigger this too.
+- **"Possible same camera" flags two photos sharing a sensor fingerprint.**
+  Where available, this compares each photo's camera sensor noise pattern
+  (PRNU — Photo Response Non-Uniformity, a real source-camera-identification
+  forensic technique, not a look-alike comparison) against every other
+  image already uploaded in the same session. A match means two DIFFERENT
+  photos were likely taken by the physical same camera — different from
+  "Possible duplicate" above, which flags the SAME photo uploaded twice.
+  Both photos are resized to a common working resolution before comparing,
+  so a heavily cropped or rescaled copy of a photo from the same camera may
+  not match even though it genuinely is the same sensor — a real,
+  un-worked-around limitation, not a claim of robustness against it.
 - **Detected objects and caption details aren't linked to each other.**
   The detector and the AI caption are two separate passes over the same
   image with no shared memory — so a question like "which side is the
