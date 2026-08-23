@@ -22,9 +22,9 @@ export default function SchemaPanel({ schema, accent }: Props) {
   if (!schema) return (
     <div className="flex flex-col items-center gap-2 py-6 px-2">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-        <ellipse cx="12" cy="6" rx="8" ry="3" stroke="#374151" strokeWidth="1.5"/>
-        <path d="M4 6v4c0 1.657 3.582 3 8 3s8-1.343 8-3V6" stroke="#374151" strokeWidth="1.5"/>
-        <path d="M4 10v4c0 1.657 3.582 3 8 3s8-1.343 8-3v-4" stroke="#374151" strokeWidth="1.5"/>
+        <ellipse cx="12" cy="6" rx="8" ry="3" stroke="var(--text3)" strokeWidth="1.5"/>
+        <path d="M4 6v4c0 1.657 3.582 3 8 3s8-1.343 8-3V6" stroke="var(--text3)" strokeWidth="1.5"/>
+        <path d="M4 10v4c0 1.657 3.582 3 8 3s8-1.343 8-3v-4" stroke="var(--text3)" strokeWidth="1.5"/>
       </svg>
       <p className="text-[11px] text-[var(--text3)] text-center">Load a database<br/>to explore schema</p>
     </div>
@@ -42,8 +42,8 @@ export default function SchemaPanel({ schema, accent }: Props) {
     <div className="flex flex-col gap-1.5">
       <div className="relative mb-0.5">
         <svg className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 14 14" fill="none">
-          <circle cx="6" cy="6" r="4.5" stroke="#4b5563" strokeWidth="1.4"/>
-          <path d="M9.5 9.5l2.5 2.5" stroke="#4b5563" strokeWidth="1.4" strokeLinecap="round"/>
+          <circle cx="6" cy="6" r="4.5" stroke="var(--text3)" strokeWidth="1.4"/>
+          <path d="M9.5 9.5l2.5 2.5" stroke="var(--text3)" strokeWidth="1.4" strokeLinecap="round"/>
         </svg>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Search tables / columns…"
@@ -71,7 +71,7 @@ export default function SchemaPanel({ schema, accent }: Props) {
               <span className="text-[11px] font-mono font-medium text-[var(--text)] flex-1 truncate">{tn}</span>
               <span className="text-[11px] text-[var(--text3)] tabular-nums shrink-0">{t.row_count.toLocaleString()}</span>
               <svg width="7" height="7" viewBox="0 0 7 7" fill="none" className={`shrink-0 transition-transform duration-150 ${isOpen ? "rotate-90" : ""}`}>
-                <path d="M1.5 1.5l2.5 2-2.5 2" stroke="#4b5563" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1.5 1.5l2.5 2-2.5 2" stroke="var(--text3)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
 
