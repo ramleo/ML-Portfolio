@@ -34,7 +34,13 @@ export type PlantComparison = {
 };
 
 export type PlantResult =
-  | { mode: "growth"; plants: PlantTrack[]; autoSplitCollage: boolean }
+  | { mode: "growth"; plants: PlantTrack[]; autoSplitCollage: boolean;
+      /** [dx, dy] per uploaded photo, index-aligned to the request's own
+       * `frames` list — corrects for camera shake between shots (pure
+       * translation only, see mm_plant_growth_align.py). Purely cosmetic,
+       * consumed only by the time-lapse GIF export; the measurement above
+       * never depends on it. */
+      frameAlignment: [number, number][] }
   | { mode: "compare"; plants: PlantComparison[] };
 
 type RawFrame = {
@@ -123,6 +129,7 @@ export function usePlantGrowthRunner() {
             frames: p.frames.map(toGrowthFrame),
           })),
           autoSplitCollage: Boolean(data.auto_split_collage),
+          frameAlignment: Array.isArray(data.frame_alignment) ? data.frame_alignment : [],
         });
       } else {
         throw new Error("unrecognized response");

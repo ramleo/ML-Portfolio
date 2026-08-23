@@ -217,7 +217,8 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
 
         {pending.length > 1 && (
           <div className="mt-2">
-            <GifExportButton photoSrcs={pending.map(p => p.dataUrl)} filename="plant-timelapse.gif" />
+            <GifExportButton photoSrcs={pending.map(p => p.dataUrl)} filename="plant-timelapse.gif"
+              frameAlignment={result?.mode === "growth" ? result.frameAlignment : undefined} />
           </div>
         )}
 
