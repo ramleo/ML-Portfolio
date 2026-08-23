@@ -2,13 +2,13 @@
 
 import { SharpenButtons } from "./SharpenControls";
 import WatermarkControls from "./WatermarkControls";
-import type { DetectedObject } from "./_types";
+import type { DetectedObject, StegoResult } from "./_types";
 
 const ACCENT = "#a78bfa";
 const FACE_COLOR = "#fbbf24";
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 
-export type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd";
+export type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography";
 
 type Props = {
   page: number;
@@ -27,6 +27,7 @@ type Props = {
   personCount?: number | null;
   tampering?: DetectedObject[] | null;
   duplicates?: unknown[] | null;
+  steganography?: StegoResult | null;
   canFindSimilar: boolean;
   loadingSimilar: boolean;
   onFindSimilar: () => void;
@@ -68,7 +69,7 @@ type Props = {
  * the underlying state and hooks. */
 export default function CitationToolbar({
   page, chunkType, visualAction, onVisualAction, isImageOrVideoOnly, captionText, objects, faces, entities, piiTypes,
-  signatures, plates, weapons, personCount, tampering, duplicates, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
+  signatures, plates, weapons, personCount, tampering, duplicates, steganography, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
   onToggleDraw, sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode,
   onSharpenWhole, onCancelSharpen, downloadTarget, onDownload, resultImg, onReset, watermarkImg, source, showFaces, setShowFaces,
   zoneMode, onToggleZone, hasZone, onClearZone,
@@ -99,6 +100,7 @@ export default function CitationToolbar({
             {typeof personCount === "number" && personCount > 1 && <option value="crowd">Crowd density ({personCount})</option>}
             {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
             {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
+            {steganography?.detected && <option value="steganography">Possible hidden data ({Math.round(steganography.confidence * 100)}%)</option>}
             {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
               <option value="similar">Find visually similar</option>
             )}

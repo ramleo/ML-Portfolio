@@ -19,6 +19,12 @@ export type Entity = { type: string; value: string };
  * another page/frame already uploaded this session whose image is the same
  * or a lightly modified (resized/recompressed/cropped) copy of this one. */
 export type DuplicateMatch = { source: string; page: number; similarity: number };
+/** Chi-square LSB-steganalysis verdict (mm_steganography.py) — a WHOLE-IMAGE
+ * result, unlike tampering/signatures/objects above: a hidden payload is
+ * typically spread across the entire image, not one region, so there's no
+ * bbox. Only meaningful on a losslessly-saved image (PNG/BMP/TIFF) — LSB
+ * data does not survive JPEG re-compression. */
+export type StegoResult = { detected: boolean; confidence: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
   /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
   timestampS?: number | null;
@@ -37,6 +43,8 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   tampering?: DetectedObject[] | null;
   /** Near-duplicate matches (backlog item 3) — see DuplicateMatch above. */
   duplicates?: DuplicateMatch[] | null;
+  /** Chi-square LSB-steganalysis verdict — see StegoResult above. */
+  steganography?: StegoResult | null;
   /** Real, uncapped count of Person-class detections (crowd density) —
    * deliberately separate from `objects`, which caps at _MAX_DETECTIONS
    * (8) server-side for box-drawing UI and would undercount a real crowd
