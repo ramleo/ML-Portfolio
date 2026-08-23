@@ -25,6 +25,11 @@ export type DuplicateMatch = { source: string; page: number; similarity: number 
  * bbox. Only meaningful on a losslessly-saved image (PNG/BMP/TIFF) — LSB
  * data does not survive JPEG re-compression. */
 export type StegoResult = { detected: boolean; confidence: number };
+/** Moire/scan-line pattern verdict (mm_moire.py, FFT spectrum analysis) — a
+ * WHOLE-IMAGE result like StegoResult above, no bbox: a repeating capture
+ * artifact (photo-of-a-screen, scanned page) shows up in the image's overall
+ * frequency spectrum, not one region. */
+export type MoireResult = { detected: boolean; confidence: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
   /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
   timestampS?: number | null;
@@ -45,6 +50,8 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   duplicates?: DuplicateMatch[] | null;
   /** Chi-square LSB-steganalysis verdict — see StegoResult above. */
   steganography?: StegoResult | null;
+  /** Moire/scan-line pattern verdict — see MoireResult above. */
+  moire?: MoireResult | null;
   /** Real, uncapped count of Person-class detections (crowd density) —
    * deliberately separate from `objects`, which caps at _MAX_DETECTIONS
    * (8) server-side for box-drawing UI and would undercount a real crowd

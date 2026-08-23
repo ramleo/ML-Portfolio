@@ -1,13 +1,14 @@
 "use client";
 
-import type { Bbox, DetectedObject, DuplicateMatch, Entity, StegoResult } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, MoireResult, StegoResult } from "./_types";
+import type { VisualizeState } from "./useVisualizeActions";
 import { tamperingLevel } from "./tamperingLevel";
 import { useNarration } from "./useNarration";
 
 const TAMPERING_COLOR = "#f87171"; // same accent as the box overlay in CitationThumbnailPanel
 
 type SimilarResult = { source: string; page: number; similarity: number };
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire";
 
 type Props = {
   inpaintError: string | null;
@@ -20,14 +21,14 @@ type Props = {
   tampering?: DetectedObject[] | null;
   duplicates?: DuplicateMatch[] | null;
   steganography?: StegoResult | null;
-  /** "Show what the computer sees" illustration state (useStegoVisualize,
-   * owned by CitationThumbnailPanel since it has the current image bytes) —
-   * a black/white rendering of one color channel's last bit, NOT a claim
-   * about where hidden data is (there's no "where", see mm_steganography.py). */
-  stegoVisualizing?: boolean;
-  stegoVizImage?: string | null;
-  stegoVizError?: string | null;
-  onVisualizeStego?: () => void;
+  moire?: MoireResult | null;
+  /** "Show what the computer sees" illustration state for every on-demand
+   * visualize action (useVisualizeActions, owned by CitationThumbnailPanel
+   * since it has the current image bytes) — steganography's is a black/
+   * white rendering of one color channel's last bit (NOT a claim about
+   * where hidden data is, there's no "where", see mm_steganography.py);
+   * moire's is a labeled FFT spectrum image (see mm_moire.py). */
+  viz: Record<"steganography" | "moire", VisualizeState>;
   personCount?: number | null;
   /** Restricted-zone plate enforcement — set only when both a zone is
    * marked AND at least one plate exists; drives a violation summary line
@@ -46,7 +47,7 @@ type Props = {
  * object/entity/PII/tampering/duplicate lists, "find similar" results) —
  * split out of CitationThumbnailPanel.tsx purely to keep that file under
  * the project's 400-line cap; no behavior changed by the split. */
-export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, stegoVisualizing, stegoVizImage, stegoVizError, onVisualizeStego, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
+export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, moire, viz, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
   const { speaking, toggle: toggleNarration, supported: narrationSupported } = useNarration();
   return (
     // FIXED height, not max-height — see CitationThumbnailPanel.tsx's
@@ -132,24 +133,59 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
             something a normal photo almost never does on its own. A strong hint, not proof, and
             only works on PNG-style images (a JPEG photo can&apos;t hide data this way).
           </p>
-          {!stegoVizImage && (
-            <button onClick={onVisualizeStego} disabled={stegoVisualizing}
+          {!viz.steganography.vizImage && (
+            <button onClick={viz.steganography.visualize} disabled={viz.steganography.visualizing}
               className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
-              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: stegoVisualizing ? 0.5 : 1 }}>
-              {stegoVisualizing ? "Generating…" : "Show what the computer sees"}
+              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: viz.steganography.visualizing ? 0.5 : 1 }}>
+              {viz.steganography.visualizing ? "Generating…" : "Show what the computer sees"}
             </button>
           )}
-          {stegoVizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{stegoVizError}</p>}
-          {stegoVizImage && (
+          {viz.steganography.vizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{viz.steganography.vizError}</p>}
+          {viz.steganography.vizImage && (
             <div className="flex flex-col gap-1">
               {/* eslint-disable-next-line @next/next/no-img-element -- small on-demand illustration, not the main citation image */}
-              <img src={`data:image/png;base64,${stegoVizImage}`} alt="Last bit of each pixel, shown as black or white"
+              <img src={`data:image/png;base64,${viz.steganography.vizImage}`} alt="Last bit of each pixel, shown as black or white"
                 className="rounded border max-w-[160px]" style={{ borderColor: "var(--border)" }} />
               <p className="text-[9px]" style={{ color: "var(--text3)" }}>
                 This is the very last bit of every pixel in one color channel, shown as black or
                 white. It&apos;s NOT a picture of the hidden message or where it is — a normal photo
                 looks like this same static too. It just makes the invisible thing the detector
                 measures visible.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+      {isImageOrVideoOnly && visualAction === "moire" && moire?.detected && (
+        <div className="px-3 py-2 flex flex-col gap-2">
+          <p className="text-[20px] font-bold" style={{ color: TAMPERING_COLOR }}>
+            {Math.round(moire.confidence * 100)}% confidence
+          </p>
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
+            A repeating ripple pattern shows up in the image&apos;s underlying structure that isn&apos;t
+            there in an ordinary photo — the kind of thing that happens when a photo is taken of a
+            screen or a scanned page instead of a real scene directly. A strong hint, not proof —
+            some real photos with fine repeating textures (mesh, fabric, a wire fence) can
+            occasionally trigger this too.
+          </p>
+          {!viz.moire.vizImage && (
+            <button onClick={viz.moire.visualize} disabled={viz.moire.visualizing}
+              className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
+              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: viz.moire.visualizing ? 0.5 : 1 }}>
+              {viz.moire.visualizing ? "Generating…" : "Show what the computer sees"}
+            </button>
+          )}
+          {viz.moire.vizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{viz.moire.vizError}</p>}
+          {viz.moire.vizImage && (
+            <div className="flex flex-col gap-1">
+              {/* eslint-disable-next-line @next/next/no-img-element -- small on-demand illustration, not the main citation image */}
+              <img src={`data:image/png;base64,${viz.moire.vizImage}`} alt="The image's frequency pattern, with the repeating pattern circled in red"
+                className="rounded border max-w-[160px]" style={{ borderColor: "var(--border)" }} />
+              <p className="text-[9px]" style={{ color: "var(--text3)" }}>
+                This shows the image broken down into its underlying repeating patterns — every
+                photo produces this same soft, cloudy shape in the middle, so that part is normal.
+                The two spots circled in red are the actual repeating pattern the detector found;
+                an ordinary photo wouldn&apos;t have anything standing out at those two spots.
               </p>
             </div>
           )}

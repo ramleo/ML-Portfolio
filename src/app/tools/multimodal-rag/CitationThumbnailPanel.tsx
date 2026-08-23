@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import { useSharpen } from "./useSharpen";
-import { useStegoVisualize } from "./useStegoVisualize";
+import { useVisualizeActions } from "./useVisualizeActions";
 import { SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
@@ -13,7 +13,7 @@ import CitationToolbar from "./CitationToolbar";
 import DetectionBoxOverlay from "./DetectionBoxOverlay";
 import { downloadBase64Image } from "./imageComposite";
 import { tamperingLevel } from "./tamperingLevel";
-import type { Bbox, DetectedObject, DuplicateMatch, Entity, PersistedEdit, StegoResult } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, MoireResult, PersistedEdit, StegoResult } from "./_types";
 
 const ACCENT = "#a78bfa";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
@@ -85,6 +85,7 @@ type Props = {
    * IMAGE result like duplicates above (no bbox, no per-region list), same
    * ingest-time-only availability. */
   steganography?: StegoResult | null;
+  moire?: MoireResult | null; // FFT-based moire/scan-line verdict (mm_moire.py) — same shape/availability as steganography above
   /** Real, uncapped count of Person-class detections (crowd density) — see
    * mm_objects.py's detect_objects() docstring for why this is a separate
    * field from `objects` rather than just `objects.filter(...).length`. */
@@ -119,9 +120,9 @@ const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weap
 // photo of a kitchen counter.
 const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword", "Bomb", "Missile"]);
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire";
 
-export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, steganography, personCount, edits, onEditChange }: Props) {
+export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, steganography, moire, personCount, edits, onEditChange }: Props) {
   const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [similarNote, setSimilarNote] = useState<string | null>(null);
@@ -175,7 +176,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // sharpened against a now-stale base image. See useSharpen.ts.
   const { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenDescription, sharpenError,
     viewSharpened, setViewSharpened, sharpen, cancelSharpen } = useSharpen(`${editKey}-${version}`);
-  const { visualizing: stegoVisualizing, vizImage: stegoVizImage, vizError: stegoVizError, visualize: visualizeStego } = useStegoVisualize();
+  const viz = useVisualizeActions({ steganography: "mm-steganography", moire: "mm-moire" }, () => resultImg ?? currentImg ?? ""); // currentImg stands in for `img`, defined only after the guard below
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -246,7 +247,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         isImageOrVideoOnly={isImageOrVideoOnly} captionText={captionText} objects={objects} faces={faces}
         entities={entities} piiTypes={piiTypes} signatures={signatures} plates={plates} weapons={weapons} tampering={tampering}
         personCount={personCount}
-        duplicates={duplicates} steganography={steganography} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
+        duplicates={duplicates} steganography={steganography} moire={moire} canFindSimilar={canFindSimilar} loadingSimilar={loadingSimilar} onFindSimilar={findSimilar}
         canEdit={canEdit} drawMode={drawMode} onToggleDraw={() => { setDrawMode(v => !v); setRegionMode(false); setZoneMode(false); }}
         sharpening={sharpening} sharpenedImg={sharpenedImg} viewSharpened={viewSharpened} setViewSharpened={setViewSharpened}
         regionMode={regionMode} setRegionMode={setRegionMode} setDrawMode={setDrawMode}
@@ -381,11 +382,10 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
       </div>
       <CitationResultsPanel inpaintError={inpaintError || sharpenError} isImageOrVideoOnly={isImageOrVideoOnly}
         visualAction={visualAction} captionText={captionText} objects={objects} entities={entities}
-        piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} steganography={steganography} personCount={personCount} isCovered={isCovered}
+        piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} steganography={steganography} moire={moire} personCount={personCount} isCovered={isCovered}
         zoneViolationCount={restrictedZone && plates.length > 0 ? plates.filter(p => centerInZone(p.bbox, restrictedZone)).length : null}
         platesCount={restrictedZone && plates.length > 0 ? plates.length : null}
-        stegoVisualizing={stegoVisualizing} stegoVizImage={stegoVizImage} stegoVizError={stegoVizError}
-        onVisualizeStego={() => visualizeStego(resultImg ?? img)}
+        viz={viz}
         similarNote={similarNote} similar={similar} />
     </div>
   );

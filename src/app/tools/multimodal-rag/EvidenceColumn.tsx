@@ -4,7 +4,7 @@ import { useRagChat } from "@/components/useRagChat";
 import EvidencePanel from "./EvidencePanel";
 import CitationThumbnailPanel from "./CitationThumbnailPanel";
 import PageThumbnailRail from "./PageThumbnailRail";
-import type { Bbox, DetectedObject, DuplicateMatch, Entity, IngestState, PersistedEdit, StegoResult } from "./_types";
+import type { Bbox, DetectedObject, DuplicateMatch, Entity, IngestState, MoireResult, PersistedEdit, StegoResult } from "./_types";
 
 type Doc = Extract<IngestState, { kind: "done" }>;
 type ActiveCitation = { page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null; tampering?: DetectedObject[] | null; personCount?: number | null };
@@ -108,6 +108,9 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
   // Steganography verdict — same ingest-time-only availability as
   // duplicates above, no query-time ActiveCitation path carries it either.
   const steganography: StegoResult | null = mediaChunk?.steganography ?? null;
+  // Moire/scan-line pattern verdict — same ingest-time-only availability as
+  // steganography above, no query-time ActiveCitation path carries it either.
+  const moire: MoireResult | null = mediaChunk?.moire ?? null;
 
   return (
     // Evidence gets its own FIXED height (702px), not a flex-1 share of a
@@ -162,6 +165,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
               personCount={effectivePersonCount}
               duplicates={duplicates}
               steganography={steganography}
+              moire={moire}
               edits={activeDoc.edits}
               onEditChange={(page, edit) => onEditChange(activeDoc.source, page, edit)} />
           ) : (
