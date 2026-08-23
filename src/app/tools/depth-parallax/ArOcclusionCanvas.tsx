@@ -232,13 +232,13 @@ export default function ArOcclusionCanvas({
         </label>
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => fileInputRef.current?.click()}
-            className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5"
+            className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
             {markerImageSrc ? "Change marker image" : "Use my own image as the marker"}
           </button>
           {markerImageSrc && (
             <button onClick={() => setMarkerImageSrc(null)}
-              className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5"
+              className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
               style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
               Reset to dot
             </button>

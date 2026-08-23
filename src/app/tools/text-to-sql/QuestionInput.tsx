@@ -119,7 +119,7 @@ export default function QuestionInput({
               {suggestions.map((s, i) => (
                 <button key={s} onMouseDown={e => { e.preventDefault(); applySuggestion(s); }}
                   className={`w-full text-left px-3 py-1.5 text-[12px] flex items-center gap-2 transition-colors ${
-                    i === suggIdx ? "bg-indigo-500/20 text-indigo-200" : "text-[var(--text2)] hover:bg-white/5"
+                    i === suggIdx ? "bg-indigo-500/20 text-indigo-200" : "text-[var(--text2)] hover:bg-[rgba(var(--fg-rgb),0.05)]"
                   }`}>
                   <span className="text-[9px] text-indigo-500/60 font-mono uppercase">
                     {Object.keys(schema ?? {}).includes(s) ? "table" : "col"}
@@ -133,7 +133,7 @@ export default function QuestionInput({
                   <p className="px-3 pt-1.5 text-[9px] text-[var(--text3)] uppercase tracking-widest">Past queries</p>
                   {pastMatches.map(q => (
                     <button key={q} onMouseDown={e => { e.preventDefault(); onQuestionChange(q); setSuggestions([]); setPastMatches([]); questionRef.current?.focus(); }}
-                      className="w-full text-left px-3 py-1.5 text-[11px] text-[var(--text2)] hover:bg-white/5 hover:text-indigo-200 transition-colors truncate">
+                      className="w-full text-left px-3 py-1.5 text-[11px] text-[var(--text2)] hover:bg-[rgba(var(--fg-rgb),0.05)] hover:text-indigo-200 transition-colors truncate">
                       {q}
                     </button>
                   ))}

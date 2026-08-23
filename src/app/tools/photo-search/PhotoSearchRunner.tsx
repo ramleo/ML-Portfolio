@@ -178,7 +178,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
                 ) : null}
                 {photos.length > 1 && !isReference && (
                   <button onClick={() => searchByImage(p.filename)}
-                    className="text-[9px] px-1.5 py-1 rounded border transition-colors hover:bg-white/5"
+                    className="text-[9px] px-1.5 py-1 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                     style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                     Find similar
                   </button>

@@ -55,7 +55,7 @@ export default function AnalyticsContent() {
           resets whenever this demo server restarts, same as everything else here.
         </p>
         <button onClick={load} disabled={loading}
-          className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0 ml-3"
+          className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0 ml-3"
           style={{ borderColor: "#38bdf850", color: "#38bdf8" }}>
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           Refresh

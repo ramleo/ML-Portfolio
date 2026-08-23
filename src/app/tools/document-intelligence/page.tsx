@@ -78,7 +78,7 @@ export default function DocumentIntelligencePage() {
               </p>
             </div>
             <button onClick={() => setGuideOpen(true)}
-              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5 shrink-0"
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
               style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"

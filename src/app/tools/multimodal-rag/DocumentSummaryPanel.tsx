@@ -202,7 +202,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => downloadText(`${baseName}-transcript.txt`, d.transcript ?? "")}
-                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                 .txt
               </button>
@@ -210,7 +210,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
                 <button
                   onClick={() => downloadText(`${baseName}-transcript.srt`, buildSrt(d.transcriptSegments))}
                   title="Subtitle file with timestamps"
-                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                  className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                   style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                   .srt
                 </button>
@@ -222,7 +222,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
               {d.chapters.map((ch, i) => (
                 <button key={i}
                   onClick={() => onSelectChapter(ch.time)}
-                  className="text-[9px] px-1.5 py-0.5 rounded-full border transition-colors hover:bg-white/5"
+                  className="text-[9px] px-1.5 py-0.5 rounded-full border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                   style={{ borderColor: `${accent}30`, color: `${accent}cc` }}>
                   [{mmss(ch.time)}] {ch.label}
                 </button>

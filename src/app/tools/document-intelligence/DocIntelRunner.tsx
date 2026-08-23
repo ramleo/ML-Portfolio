@@ -313,7 +313,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
               </div>
               <button
                 onClick={() => { setStep("idle"); setFields([]); setFileName(null); }}
-                className="text-[9px] px-2.5 py-1 rounded-md border transition-colors hover:bg-white/5 shrink-0"
+                className="text-[9px] px-2.5 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
                 style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 New document
               </button>

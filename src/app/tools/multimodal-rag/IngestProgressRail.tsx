@@ -156,8 +156,8 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
         <>
           <div
             className={bare
-              ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-white/5"
-              : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-white/5"}
+              ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
+              : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"}
             style={{ borderColor: "var(--border2)" }}
             onClick={() => inputRef.current?.click()}
             onDragOver={e => e.preventDefault()}
@@ -281,7 +281,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 </span>
               )}
               <button onClick={() => { setState({ kind: "idle" }); setFileName(null); }}
-                className="ml-auto text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-white/5"
+                className="ml-auto text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                 Add another document
               </button>

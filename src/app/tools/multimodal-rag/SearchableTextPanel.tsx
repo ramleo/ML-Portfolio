@@ -63,12 +63,12 @@ export default function SearchableTextPanel({ items, accent, placeholder, highli
               {matchKeys.length ? `${(matchCursor % matchKeys.length) + 1}/${matchKeys.length}` : "0"}
             </span>
             <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchKeys.length}
-              className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
+              className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-[rgba(var(--fg-rgb),0.05)]"
               style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               ↑
             </button>
             <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchKeys.length}
-              className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-white/5"
+              className="text-[9px] px-1.5 py-0.5 rounded border hover:bg-[rgba(var(--fg-rgb),0.05)]"
               style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
               ↓
             </button>

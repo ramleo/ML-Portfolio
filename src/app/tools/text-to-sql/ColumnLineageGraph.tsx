@@ -129,7 +129,7 @@ export default function ColumnLineageGraph({ sql }: { sql: string }) {
     <div className="rounded-xl border border-violet-500/15 bg-[var(--bg-glass)] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[rgba(var(--fg-rgb),0.02)] transition-colors"
       >
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="text-violet-400 shrink-0">
           <circle cx="1.5" cy="6" r="1.5" fill="currentColor" />

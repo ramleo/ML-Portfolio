@@ -20,7 +20,7 @@ interface Insight {
 const SEVERITY_STYLE: Record<Severity, { border: string; bg: string; badge: string; dot: string }> = {
   warn:  { border: "border-amber-500/30",  bg: "bg-amber-500/8",   badge: "bg-amber-500/15 text-amber-300",   dot: "bg-amber-400" },
   info:  { border: "border-indigo-500/25", bg: "bg-indigo-500/6",  badge: "bg-indigo-500/15 text-indigo-300",  dot: "bg-indigo-400" },
-  note:  { border: "border-[var(--border)]",      bg: "bg-white/[0.03]",  badge: "bg-[var(--bg-glass)] text-gray-400",         dot: "bg-gray-500" },
+  note:  { border: "border-[var(--border)]",      bg: "bg-[rgba(var(--fg-rgb),0.03)]",  badge: "bg-[var(--bg-glass)] text-gray-400",         dot: "bg-gray-500" },
 };
 
 function InsightIcon({ type }: { type: InsightType }) {
@@ -148,7 +148,7 @@ export default function AutoInsights({ columns, rows }: Props) {
     <div className="rounded-xl border border-emerald-500/20 bg-[var(--bg-glass)] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-white/[0.02] transition-colors text-left"
+        className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[rgba(var(--fg-rgb),0.02)] transition-colors text-left"
       >
         <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className="shrink-0 text-emerald-400">
           <path d="M7 1l1.5 4H13l-3.5 2.5 1.3 4L7 9l-3.8 2.5L4.5 7.5 1 5h4.5L7 1z" fill="currentColor" opacity="0.8"/>

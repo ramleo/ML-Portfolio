@@ -76,7 +76,7 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
         <div className="flex items-center gap-2 flex-wrap">
           {!webcam.active ? (
             <button onClick={webcam.start}
-              className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
+              className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
               style={{ borderColor: `${accent}40`, color: accent }}>
               Start camera
             </button>
@@ -88,14 +88,14 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
                 {checking ? `Checking… (${progress}/${frameCount})` : "Capture & check"}
               </button>
               <button onClick={webcam.stop}
-                className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
+                className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 Stop camera
               </button>
             </>
           )}
           <button onClick={() => fileInputRef.current?.click()} disabled={checking}
-            className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-white/5"
+            className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: "var(--border2)", color: "var(--text3)", opacity: checking ? 0.5 : 1 }}>
             Upload a photo instead
           </button>

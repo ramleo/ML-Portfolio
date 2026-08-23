@@ -64,7 +64,7 @@ export default function QueryHistoryPanel({ history, onClear, onReuse }: Props) 
                   />
                   <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-glass)] overflow-hidden">
                     <button
-                      className="w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-white/5 transition-colors"
+                      className="w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-[rgba(var(--fg-rgb),0.05)] transition-colors"
                       onClick={() => setExpanded(expanded === i ? null : i)}>
                       <div className="flex flex-col items-start shrink-0 mt-0.5 gap-0.5">
                         <span className="text-[9px] font-mono text-[var(--text3)]">Q{i + 1}</span>

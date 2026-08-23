@@ -89,7 +89,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
           <div className="flex flex-wrap gap-1.5">
             {SUGGESTIONS.map(s => (
               <button key={s} onClick={() => ask(s)}
-                className="text-[9px] px-2 py-1 rounded-full border transition-colors hover:bg-white/5"
+                className="text-[9px] px-2 py-1 rounded-full border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: "rgba(6,182,212,0.25)", color: `${ACCENT}cc` }}>
                 {s}
               </button>

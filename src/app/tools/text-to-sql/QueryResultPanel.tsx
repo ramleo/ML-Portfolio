@@ -299,7 +299,7 @@ export default function QueryResultPanel({
                     })
                   : results.rows
                 ).map((row, i) => (
-                  <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.07] transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
+                  <tr key={i} className={`border-b border-[rgba(var(--fg-rgb),0.05)] hover:bg-[rgba(var(--fg-rgb),0.07)] transition-colors ${i % 2 === 0 ? "bg-[rgba(var(--fg-rgb),0.02)]" : ""}`}>
                     {(row as unknown[]).map((cell, j) => (
                       <td key={j} className="px-3 py-1.5 text-[var(--text)] whitespace-nowrap">
                         {cell === null ? <span className="text-[var(--text3)]">null</span> : formatCell(cell)}

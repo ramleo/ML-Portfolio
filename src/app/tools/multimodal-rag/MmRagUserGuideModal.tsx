@@ -178,12 +178,12 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
                 {matchIndices.length ? `${cursorPos + 1}/${matchIndices.length}` : "0"}
               </span>
               <button onClick={() => setMatchCursor(c => c - 1)} disabled={!matchIndices.length}
-                className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-white/5 disabled:opacity-40"
+                className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-[rgba(var(--fg-rgb),0.05)] disabled:opacity-40"
                 style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 ↑
               </button>
               <button onClick={() => setMatchCursor(c => c + 1)} disabled={!matchIndices.length}
-                className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-white/5 disabled:opacity-40"
+                className="text-[10px] px-1.5 py-0.5 rounded border hover:bg-[rgba(var(--fg-rgb),0.05)] disabled:opacity-40"
                 style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
                 ↓
               </button>

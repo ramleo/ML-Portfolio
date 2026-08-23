@@ -71,7 +71,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
           )}
           <button onClick={() => setSettingsOpen(o => !o)}
             title="Provider & API key settings"
-            className="text-[11px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            className="text-[11px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={settingsOpen
               ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
               : { borderColor: "var(--border2)", color: "var(--text2)" }}>
@@ -134,7 +134,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
                           <button key={dir} onClick={() => setFeedback(f => ({ ...f, [i]: dir }))}
                             title={dir === "up" ? "Good answer" : "Bad answer"}
                             aria-label={dir === "up" ? "Good answer" : "Bad answer"}
-                            className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors hover:bg-white/5"
+                            className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                             style={{
                               borderColor: feedback[i] === dir ? `${ACCENT}55` : "var(--border2)",
                               background: feedback[i] === dir ? `${ACCENT}18` : "transparent",

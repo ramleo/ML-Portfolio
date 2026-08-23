@@ -106,7 +106,7 @@ export default function CitationToolbar({
         ) : null}
         {canEdit && (
           <button onClick={onToggleDraw}
-            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={drawMode
               ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
               : { borderColor: `${ACCENT}40`, color: ACCENT }}>
@@ -121,7 +121,7 @@ export default function CitationToolbar({
         )}
         {plates.length > 0 && (
           <button onClick={zoneMode ? onToggleZone : hasZone ? onClearZone : onToggleZone}
-            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={zoneMode || hasZone
               ? { borderColor: "#c084fc55", background: "#c084fc22", color: "#c084fc" }
               : { borderColor: "#c084fc40", color: "#c084fc" }}>
@@ -130,14 +130,14 @@ export default function CitationToolbar({
         )}
         {canEdit && downloadTarget && (
           <button onClick={onDownload}
-            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
             Download
           </button>
         )}
         {canEdit && resultImg && (
           <button onClick={onReset}
-            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+            className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
             Reset
           </button>
@@ -147,7 +147,7 @@ export default function CitationToolbar({
           <>
             {faces.length > 0 && (
               <button onClick={() => setShowFaces(v => !v)}
-                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={showFaces
                   ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
                   : { borderColor: `${FACE_COLOR}40`, color: FACE_COLOR }}>
@@ -156,7 +156,7 @@ export default function CitationToolbar({
             )}
             {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
               <button onClick={onFindSimilar} disabled={loadingSimilar}
-                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+                className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
                 {loadingSimilar ? "Checking…" : "Find similar figures"}
               </button>

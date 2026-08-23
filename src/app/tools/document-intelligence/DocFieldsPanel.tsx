@@ -158,7 +158,7 @@ function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; do
     <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1 text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-white/5"
+        className="flex items-center gap-1 text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
         Export
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none">

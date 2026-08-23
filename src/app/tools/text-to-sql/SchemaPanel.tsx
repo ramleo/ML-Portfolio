@@ -60,9 +60,9 @@ export default function SchemaPanel({ schema, accent }: Props) {
       {filtered.map(([tn, t]) => {
         const isOpen = openTables.has(tn) || !!q;
         return (
-          <div key={tn} className="rounded-lg border border-[var(--border)] overflow-hidden bg-white/[0.02]">
+          <div key={tn} className="rounded-lg border border-[var(--border)] overflow-hidden bg-[rgba(var(--fg-rgb),0.02)]">
             <button onClick={() => toggle(tn)}
-              className="w-full flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/5 transition-colors text-left">
+              className="w-full flex items-center gap-1.5 px-2 py-1.5 hover:bg-[rgba(var(--fg-rgb),0.05)] transition-colors text-left">
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
                 <ellipse cx="6" cy="3.5" rx="4" ry="1.5" stroke={accent} strokeWidth="1.1"/>
                 <path d="M2 3.5v2.5c0 .828 1.79 1.5 4 1.5s4-.672 4-1.5V3.5" stroke={accent} strokeWidth="1.1"/>

@@ -50,7 +50,7 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
         <div className="px-3 py-2 flex flex-col gap-1">
           {narrationSupported && (
             <button onClick={() => toggleNarration(captionText)}
-              className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-white/5"
+              className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
               style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8" }}>
               {speaking ? "Stop reading" : "Read aloud"}
             </button>

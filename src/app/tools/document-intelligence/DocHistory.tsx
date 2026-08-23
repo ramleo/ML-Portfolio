@@ -60,7 +60,7 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
           style={{ color: "var(--text3)" }}>
           Recent documents
         </span>
-        <button onClick={clear} className="text-[8px] px-1.5 py-0.5 rounded border transition-colors hover:bg-white/5"
+        <button onClick={clear} className="text-[8px] px-1.5 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
           style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
           Clear
         </button>
@@ -68,7 +68,7 @@ export default function DocHistory({ onRestore }: { onRestore: (e: HistoryEntry)
       <div className="flex flex-col gap-1">
         {entries.map(e => (
           <button key={e.id} onClick={() => onRestore(e)}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/5"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ border: "1px solid var(--border)" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0"
               style={{ color: "var(--text3)" }}>
