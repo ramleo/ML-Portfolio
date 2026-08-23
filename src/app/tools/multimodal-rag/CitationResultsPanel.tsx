@@ -20,6 +20,14 @@ type Props = {
   tampering?: DetectedObject[] | null;
   duplicates?: DuplicateMatch[] | null;
   steganography?: StegoResult | null;
+  /** "Show what the computer sees" illustration state (useStegoVisualize,
+   * owned by CitationThumbnailPanel since it has the current image bytes) —
+   * a black/white rendering of one color channel's last bit, NOT a claim
+   * about where hidden data is (there's no "where", see mm_steganography.py). */
+  stegoVisualizing?: boolean;
+  stegoVizImage?: string | null;
+  stegoVizError?: string | null;
+  onVisualizeStego?: () => void;
   personCount?: number | null;
   /** Restricted-zone plate enforcement — set only when both a zone is
    * marked AND at least one plate exists; drives a violation summary line
@@ -38,7 +46,7 @@ type Props = {
  * object/entity/PII/tampering/duplicate lists, "find similar" results) —
  * split out of CitationThumbnailPanel.tsx purely to keep that file under
  * the project's 400-line cap; no behavior changed by the split. */
-export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
+export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, stegoVisualizing, stegoVizImage, stegoVizError, onVisualizeStego, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
   const { speaking, toggle: toggleNarration, supported: narrationSupported } = useNarration();
   return (
     // FIXED height, not max-height — see CitationThumbnailPanel.tsx's
@@ -114,15 +122,37 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
         </div>
       )}
       {isImageOrVideoOnly && visualAction === "steganography" && steganography?.detected && (
-        <div className="px-3 py-2 flex flex-col gap-1">
+        <div className="px-3 py-2 flex flex-col gap-2">
           <p className="text-[20px] font-bold" style={{ color: TAMPERING_COLOR }}>
             {Math.round(steganography.confidence * 100)}% confidence
           </p>
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
-            This image&apos;s colors show a pattern that usually only shows up when something is
-            secretly hidden inside it — a strong hint, not proof. Only works on PNG-style images
-            (a JPEG photo can&apos;t hide data this way), and may miss a very small hidden message.
+            Every pixel has a color number, and hidden data quietly nudges some of those numbers
+            so that certain pairs (like pixels colored 100 vs. 101) show up equally often —
+            something a normal photo almost never does on its own. A strong hint, not proof, and
+            only works on PNG-style images (a JPEG photo can&apos;t hide data this way).
           </p>
+          {!stegoVizImage && (
+            <button onClick={onVisualizeStego} disabled={stegoVisualizing}
+              className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
+              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: stegoVisualizing ? 0.5 : 1 }}>
+              {stegoVisualizing ? "Generating…" : "Show what the computer sees"}
+            </button>
+          )}
+          {stegoVizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{stegoVizError}</p>}
+          {stegoVizImage && (
+            <div className="flex flex-col gap-1">
+              {/* eslint-disable-next-line @next/next/no-img-element -- small on-demand illustration, not the main citation image */}
+              <img src={`data:image/png;base64,${stegoVizImage}`} alt="Last bit of each pixel, shown as black or white"
+                className="rounded border max-w-[160px]" style={{ borderColor: "var(--border)" }} />
+              <p className="text-[9px]" style={{ color: "var(--text3)" }}>
+                This is the very last bit of every pixel in one color channel, shown as black or
+                white. It&apos;s NOT a picture of the hidden message or where it is — a normal photo
+                looks like this same static too. It just makes the invisible thing the detector
+                measures visible.
+              </p>
+            </div>
+          )}
         </div>
       )}
       {isImageOrVideoOnly && visualAction === "duplicates" && duplicates && duplicates.length > 0 && (

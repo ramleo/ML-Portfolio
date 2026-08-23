@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import { useSharpen } from "./useSharpen";
+import { useStegoVisualize } from "./useStegoVisualize";
 import { SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
@@ -174,6 +175,7 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // sharpened against a now-stale base image. See useSharpen.ts.
   const { sharpening, sharpenProgress, sharpenedImg, sharpenConfidence, sharpenText, sharpenDescription, sharpenError,
     viewSharpened, setViewSharpened, sharpen, cancelSharpen } = useSharpen(`${editKey}-${version}`);
+  const { visualizing: stegoVisualizing, vizImage: stegoVizImage, vizError: stegoVizError, visualize: visualizeStego } = useStegoVisualize();
 
   // Which detections actually draw on the image right now. In image/video-
   // only mode the dropdown (visualAction) decides; otherwise this is exactly
@@ -382,6 +384,8 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
         piiTypes={piiTypes} tampering={tampering} duplicates={duplicates} steganography={steganography} personCount={personCount} isCovered={isCovered}
         zoneViolationCount={restrictedZone && plates.length > 0 ? plates.filter(p => centerInZone(p.bbox, restrictedZone)).length : null}
         platesCount={restrictedZone && plates.length > 0 ? plates.length : null}
+        stegoVisualizing={stegoVisualizing} stegoVizImage={stegoVizImage} stegoVizError={stegoVizError}
+        onVisualizeStego={() => visualizeStego(resultImg ?? img)}
         similarNote={similarNote} similar={similar} />
     </div>
   );
