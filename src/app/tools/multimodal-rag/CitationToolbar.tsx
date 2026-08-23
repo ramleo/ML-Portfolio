@@ -101,7 +101,12 @@ export default function CitationToolbar({
             {typeof personCount === "number" && personCount > 1 && <option value="crowd">Crowd density ({personCount})</option>}
             {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
             {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
-            {steganography?.detected && <option value="steganography">Possible hidden data ({Math.round(steganography.confidence * 100)}%)</option>}
+            {steganography?.detected && (
+              <option value="steganography">
+                Possible hidden data ({Math.round(steganography.confidence * 100)}%)
+                {steganography.payloadType ? ` — looks like a ${steganography.payloadType}` : ""}
+              </option>
+            )}
             {moire?.detected && <option value="moire">Possible screen/scan pattern ({Math.round(moire.confidence * 100)}%)</option>}
             {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
               <option value="similar">Find visually similar</option>

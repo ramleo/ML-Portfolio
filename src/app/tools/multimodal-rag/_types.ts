@@ -24,7 +24,12 @@ export type DuplicateMatch = { source: string; page: number; similarity: number 
  * typically spread across the entire image, not one region, so there's no
  * bbox. Only meaningful on a losslessly-saved image (PNG/BMP/TIFF) — LSB
  * data does not survive JPEG re-compression. */
-export type StegoResult = { detected: boolean; confidence: number };
+export type StegoResult = { detected: boolean; confidence: number;
+  /** Set only when the hidden bytes were actually extracted and matched a
+   * known file signature (mm_steganography.py's check_stego_payload) — a
+   * real recognizable file (e.g. "ZIP/JAR archive"), not just the bare
+   * statistical hint. Null when no signature was found, even if detected. */
+  payloadType?: string | null };
 /** Moire/scan-line pattern verdict (mm_moire.py, FFT spectrum analysis) — a
  * WHOLE-IMAGE result like StegoResult above, no bbox: a repeating capture
  * artifact (photo-of-a-screen, scanned page) shows up in the image's overall

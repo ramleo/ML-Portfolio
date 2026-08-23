@@ -127,11 +127,18 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
           <p className="text-[20px] font-bold" style={{ color: TAMPERING_COLOR }}>
             {Math.round(steganography.confidence * 100)}% confidence
           </p>
+          {steganography.payloadType && (
+            <p className="text-[11px] font-bold" style={{ color: TAMPERING_COLOR }}>
+              Found what looks like a real {steganography.payloadType} hidden inside.
+            </p>
+          )}
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             Every pixel has a color number, and hidden data quietly nudges some of those numbers
             so that certain pairs (like pixels colored 100 vs. 101) show up equally often —
-            something a normal photo almost never does on its own. A strong hint, not proof, and
-            only works on PNG-style images (a JPEG photo can&apos;t hide data this way).
+            something a normal photo almost never does on its own.
+            {steganography.payloadType
+              ? " On top of that pattern, the hidden bytes themselves were pulled out and they match a known file format — a much stronger signal than the pattern alone."
+              : " A strong hint, not proof, and only works on PNG-style images (a JPEG photo can't hide data this way)."}
           </p>
           {!viz.steganography.vizImage && (
             <button onClick={viz.steganography.visualize} disabled={viz.steganography.visualizing}
