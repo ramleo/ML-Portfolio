@@ -132,6 +132,7 @@ export default function MLCapabilities() {
   const searchBarRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const isFirstRun = useRef(true);
 
   const domains = useMemo(
     () => DOMAIN_ORDER.filter((d) => capabilities.some((c) => c.domain === d)),
@@ -162,6 +163,15 @@ export default function MLCapabilities() {
   // previous keystroke makes the next keystroke's check read a stale,
   // mid-animation position.
   useEffect(() => {
+    // Skip on mount: this effect's dependencies also fire on first render,
+    // when the section is legitimately below the fold (unscrolled page load)
+    // — that's not "results scrolled out of view by filtering", it's just
+    // where the section normally lives, and correcting for it forces an
+    // unwanted auto-scroll down on every page load/refresh.
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      return;
+    }
     const section = sectionRef.current;
     const results = resultsRef.current;
     if (!section || !results) return;
