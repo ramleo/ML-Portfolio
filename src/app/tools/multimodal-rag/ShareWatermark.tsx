@@ -24,7 +24,7 @@ export default function ShareWatermark({ token }: { token: string }) {
       >
         {tiles.map((_, i) => (
           <span key={i} style={{
-            fontSize: 10, whiteSpace: "nowrap", color: "rgba(255,255,255,0.06)",
+            fontSize: 10, whiteSpace: "nowrap", color: "rgba(var(--fg-rgb),0.06)",
             fontWeight: 600, letterSpacing: "0.04em",
           }}>
             {label}
