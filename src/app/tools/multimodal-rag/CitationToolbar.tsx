@@ -2,13 +2,13 @@
 
 import { SharpenButtons } from "./SharpenControls";
 import WatermarkControls from "./WatermarkControls";
-import type { DetectedObject, MoireResult, StegoResult } from "./_types";
+import type { CameraMatch, DetectedObject, MoireResult, StegoResult } from "./_types";
 
 const ACCENT = "#a78bfa";
 const FACE_COLOR = "#fbbf24";
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 
-export type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire";
+export type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire" | "cameraMatch";
 
 type Props = {
   page: number;
@@ -29,6 +29,7 @@ type Props = {
   duplicates?: unknown[] | null;
   steganography?: StegoResult | null;
   moire?: MoireResult | null;
+  cameraMatch?: CameraMatch[] | null;
   canFindSimilar: boolean;
   loadingSimilar: boolean;
   onFindSimilar: () => void;
@@ -70,7 +71,7 @@ type Props = {
  * the underlying state and hooks. */
 export default function CitationToolbar({
   page, chunkType, visualAction, onVisualAction, isImageOrVideoOnly, captionText, objects, faces, entities, piiTypes,
-  signatures, plates, weapons, personCount, tampering, duplicates, steganography, moire, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
+  signatures, plates, weapons, personCount, tampering, duplicates, steganography, moire, cameraMatch, canFindSimilar, loadingSimilar, onFindSimilar, canEdit, drawMode,
   onToggleDraw, sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode,
   onSharpenWhole, onCancelSharpen, downloadTarget, onDownload, resultImg, onReset, watermarkImg, source, showFaces, setShowFaces,
   zoneMode, onToggleZone, hasZone, onClearZone,
@@ -108,6 +109,7 @@ export default function CitationToolbar({
               </option>
             )}
             {moire?.detected && <option value="moire">Possible screen/scan pattern ({Math.round(moire.confidence * 100)}%)</option>}
+            {cameraMatch && cameraMatch.length > 0 && <option value="cameraMatch">Possible same camera ({cameraMatch.length})</option>}
             {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
               <option value="similar">Find visually similar</option>
             )}

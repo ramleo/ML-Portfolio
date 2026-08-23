@@ -35,6 +35,13 @@ export type StegoResult = { detected: boolean; confidence: number;
  * artifact (photo-of-a-screen, scanned page) shows up in the image's overall
  * frequency spectrum, not one region. */
 export type MoireResult = { detected: boolean; confidence: number };
+/** PRNU camera-sensor-fingerprint match (mm_prnu.py) — another page/frame
+ * already uploaded this session whose noise residual matches THIS one's,
+ * suggesting the same physical camera took both. Same list shape as
+ * DuplicateMatch above (a "compare against every other image this session"
+ * result), but a completely different signal: two DIFFERENT photos from the
+ * same camera, not the same photo seen twice. */
+export type CameraMatch = { source: string; page: number; confidence: number };
 export type NotableChunk = { chunkType: string | null; page: number | null; text: string; bbox?: Bbox | null; objects?: DetectedObject[] | null; numberMismatch?: boolean; piiTypes?: string | null; blurry?: boolean;
   /** Real seconds into the source video for a captioned frame chunk (MMRAG-09) — null for everything else. */
   timestampS?: number | null;
@@ -57,6 +64,8 @@ export type NotableChunk = { chunkType: string | null; page: number | null; text
   steganography?: StegoResult | null;
   /** Moire/scan-line pattern verdict — see MoireResult above. */
   moire?: MoireResult | null;
+  /** PRNU camera-fingerprint matches — see CameraMatch above. */
+  cameraMatch?: CameraMatch[] | null;
   /** Real, uncapped count of Person-class detections (crowd density) —
    * deliberately separate from `objects`, which caps at _MAX_DETECTIONS
    * (8) server-side for box-drawing UI and would undercount a real crowd

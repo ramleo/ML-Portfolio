@@ -1,6 +1,6 @@
 "use client";
 
-import type { Bbox, DetectedObject, DuplicateMatch, Entity, MoireResult, StegoResult } from "./_types";
+import type { Bbox, CameraMatch, DetectedObject, DuplicateMatch, Entity, MoireResult, StegoResult } from "./_types";
 import type { VisualizeState } from "./useVisualizeActions";
 import { tamperingLevel } from "./tamperingLevel";
 import { useNarration } from "./useNarration";
@@ -8,7 +8,7 @@ import { useNarration } from "./useNarration";
 const TAMPERING_COLOR = "#f87171"; // same accent as the box overlay in CitationThumbnailPanel
 
 type SimilarResult = { source: string; page: number; similarity: number };
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire";
+type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire" | "cameraMatch";
 
 type Props = {
   inpaintError: string | null;
@@ -22,6 +22,7 @@ type Props = {
   duplicates?: DuplicateMatch[] | null;
   steganography?: StegoResult | null;
   moire?: MoireResult | null;
+  cameraMatch?: CameraMatch[] | null;
   /** "Show what the computer sees" illustration state for every on-demand
    * visualize action (useVisualizeActions, owned by CitationThumbnailPanel
    * since it has the current image bytes) — steganography's is a black/
@@ -47,7 +48,7 @@ type Props = {
  * object/entity/PII/tampering/duplicate lists, "find similar" results) —
  * split out of CitationThumbnailPanel.tsx purely to keep that file under
  * the project's 400-line cap; no behavior changed by the split. */
-export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, moire, viz, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
+export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly, visualAction, captionText, objects, entities, piiTypes, tampering, duplicates, steganography, moire, cameraMatch, viz, personCount, zoneViolationCount, platesCount, isCovered, similarNote, similar }: Props) {
   const { speaking, toggle: toggleNarration, supported: narrationSupported } = useNarration();
   return (
     // FIXED height, not max-height — see CitationThumbnailPanel.tsx's
@@ -196,6 +197,20 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
               </p>
             </div>
           )}
+        </div>
+      )}
+      {isImageOrVideoOnly && visualAction === "cameraMatch" && cameraMatch && cameraMatch.length > 0 && (
+        <div className="px-3 py-2 flex flex-col gap-1">
+          <p className="text-[9px]" style={{ color: "var(--text3)" }}>
+            Shares a camera sensor fingerprint with other page(s) already uploaded this session —
+            a real forensic technique, not a guess from how the photo looks. A strong hint, not
+            proof; resizing or heavily cropping either photo can break a real match.
+          </p>
+          {cameraMatch.map((m, i) => (
+            <div key={i} className="text-[9px]" style={{ color: "var(--text2)" }}>
+              {m.source} · Page {m.page} — {Math.round(m.confidence * 100)}% match
+            </div>
+          ))}
         </div>
       )}
       {isImageOrVideoOnly && visualAction === "duplicates" && duplicates && duplicates.length > 0 && (
