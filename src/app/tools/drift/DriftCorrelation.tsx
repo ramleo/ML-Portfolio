@@ -92,7 +92,7 @@ export default function DriftCorrelation({ correlation }: { correlation: Correla
                   );
                 })}
                 {/* Row separator */}
-                <line x1={LABEL_W} x2={W} y1={rowY + CELL} y2={rowY + CELL} stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+                <line x1={LABEL_W} x2={W} y1={rowY + CELL} y2={rowY + CELL} stroke="rgba(var(--fg-rgb),0.04)" strokeWidth={0.5} />
               </g>
             );
           })}
@@ -101,7 +101,7 @@ export default function DriftCorrelation({ correlation }: { correlation: Correla
           {features.map((_, j) => (
             <line key={j} x1={LABEL_W + (j + 1) * CELL} x2={LABEL_W + (j + 1) * CELL}
               y1={HEADER_H} y2={HEADER_H + n * CELL}
-              stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+              stroke="rgba(var(--fg-rgb),0.04)" strokeWidth={0.5} />
           ))}
         </svg>
       </div>

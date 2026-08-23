@@ -18,7 +18,7 @@ export function PercentileTable({ f }: { f: FeatureDrift }) {
         <thead>
           <tr>
             {["Pct", "Reference", "Batch", "Delta"].map(h => (
-              <th key={h} style={{ textAlign: h === "Pct" ? "left" : "right", fontWeight: 600, color: "var(--text3)", padding: "3px 6px 3px 0", fontSize: "0.57rem", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
+              <th key={h} style={{ textAlign: h === "Pct" ? "left" : "right", fontWeight: 600, color: "var(--text3)", padding: "3px 6px 3px 0", fontSize: "0.57rem", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid rgba(var(--fg-rgb),0.08)" }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -31,7 +31,7 @@ export function PercentileTable({ f }: { f: FeatureDrift }) {
             const highlight = relChange > 0.15;
             const dc = delta > 0.001 ? "#34d399" : delta < -0.001 ? "#f87171" : "var(--text3)";
             return (
-              <tr key={lbl} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={lbl} style={{ borderTop: "1px solid rgba(var(--fg-rgb),0.04)" }}>
                 <td style={{ padding: "4px 6px 4px 0", color: "var(--text3)", fontWeight: 600 }}>{lbl}</td>
                 <td style={{ textAlign: "right", padding: "4px 6px 4px 0", color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>{ref.toFixed(3)}</td>
                 <td style={{ textAlign: "right", padding: "4px 6px 4px 0", fontVariantNumeric: "tabular-nums", fontWeight: highlight ? 700 : 400, color: highlight ? "#fbbf24" : "var(--text)" }}>{rec.toFixed(3)}</td>
@@ -87,7 +87,7 @@ export function PSIWaterfall({ bins, psi }: {
       </div>
       <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: "100%", height: "auto", maxHeight: 110, display: "block" }} aria-label="PSI bin waterfall">
         {/* Zero baseline */}
-        <line x1={PAD.l} x2={VW - PAD.r} y1={midY} y2={midY} stroke="rgba(255,255,255,0.15)" strokeWidth={0.8} />
+        <line x1={PAD.l} x2={VW - PAD.r} y1={midY} y2={midY} stroke="rgba(var(--fg-rgb),0.15)" strokeWidth={0.8} />
 
         {/* +/- labels */}
         <text x={PAD.l} y={PAD.t + 7} fill="var(--text3)" fontSize="7">+more batch</text>

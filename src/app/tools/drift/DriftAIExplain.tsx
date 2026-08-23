@@ -43,7 +43,7 @@ function Recommendations({ result }: { result: DriftResult }) {
   const iconColor = { high: "#f87171", medium: "#fbbf24", info: "var(--text3)" } as const;
 
   return (
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+    <div style={{ borderTop: "1px solid rgba(var(--fg-rgb),0.07)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
       <div style={{ fontSize: "0.62rem", fontWeight: 700, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
         Recommendations
       </div>
@@ -142,7 +142,7 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
           {PROVIDERS.map(p => (
             <button key={p.id} onClick={() => setProvider(p.id as ProviderId)} style={{
               fontSize: "0.62rem", fontWeight: 600, padding: "3px 10px", borderRadius: 6, cursor: "pointer",
-              border: `1px solid ${provider === p.id ? p.color : "rgba(255,255,255,0.12)"}`,
+              border: `1px solid ${provider === p.id ? p.color : "rgba(var(--fg-rgb),0.12)"}`,
               background: provider === p.id ? `${p.color}18` : "transparent",
               color: provider === p.id ? p.color : "var(--text3)", transition: "all 0.15s",
             }}>
@@ -154,8 +154,8 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
         {/* Generate button */}
         <button onClick={generate} style={{
           fontSize: "0.7rem", fontWeight: 600, padding: "6px 16px", borderRadius: 7, cursor: "pointer",
-          background: loading ? "rgba(255,255,255,0.05)" : `${ACCENT}22`,
-          border: `1px solid ${loading ? "rgba(255,255,255,0.15)" : ACCENT + "55"}`,
+          background: loading ? "rgba(var(--fg-rgb),0.05)" : `${ACCENT}22`,
+          border: `1px solid ${loading ? "rgba(var(--fg-rgb),0.15)" : ACCENT + "55"}`,
           color: loading ? "var(--text3)" : ACCENT, transition: "all 0.15s",
           display: "flex", alignItems: "center", gap: "0.4rem",
         }}>
@@ -179,7 +179,7 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
       {/* Output */}
       {(text || loading) && (
         <div style={{
-          background: "rgba(0,0,0,0.22)", border: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(0,0,0,0.22)", border: "1px solid rgba(var(--fg-rgb),0.06)",
           borderRadius: 9, padding: "1rem 1.2rem", fontSize: "0.72rem", lineHeight: 1.75,
           color: "var(--text2)", minHeight: 80,
         }}>
@@ -190,11 +190,11 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
               h3: ({ children }) => <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)", margin: "0.6rem 0 0.25rem" }}>{children}</div>,
               p:  ({ children }) => <p style={{ margin: "0.35rem 0", color: "var(--text2)" }}>{children}</p>,
               strong: ({ children }) => <strong style={{ color: "var(--text)", fontWeight: 700 }}>{children}</strong>,
-              hr: () => <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "0.75rem 0" }} />,
+              hr: () => <hr style={{ border: "none", borderTop: "1px solid rgba(var(--fg-rgb),0.08)", margin: "0.75rem 0" }} />,
               ul: ({ children }) => <ul style={{ margin: "0.3rem 0", paddingLeft: "1.2rem" }}>{children}</ul>,
               ol: ({ children }) => <ol style={{ margin: "0.3rem 0", paddingLeft: "1.2rem" }}>{children}</ol>,
               li: ({ children }) => <li style={{ margin: "0.15rem 0", color: "var(--text2)" }}>{children}</li>,
-              code: ({ children }) => <code style={{ background: "rgba(255,255,255,0.07)", borderRadius: 3, padding: "1px 5px", fontSize: "0.68rem", color: ACCENT }}>{children}</code>,
+              code: ({ children }) => <code style={{ background: "rgba(var(--fg-rgb),0.07)", borderRadius: 3, padding: "1px 5px", fontSize: "0.68rem", color: ACCENT }}>{children}</code>,
             }}
           >
             {text}

@@ -45,7 +45,7 @@ export default function DriftRankingChart({ features }: { features: FeatureDrift
           const isDivider = idx > 0 && sorted[idx - 1].drift_level !== f.drift_level;
           return (
             <div key={f.name}>
-              {isDivider && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "0.3rem 0" }} />}
+              {isDivider && <div style={{ height: 1, background: "rgba(var(--fg-rgb),0.06)", margin: "0.3rem 0" }} />}
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 {/* Name */}
                 <div style={{
@@ -57,7 +57,7 @@ export default function DriftRankingChart({ features }: { features: FeatureDrift
                 </div>
 
                 {/* Bar track */}
-                <div style={{ flex: 1, height: 16, background: "rgba(255,255,255,0.04)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+                <div style={{ flex: 1, height: 16, background: "rgba(var(--fg-rgb),0.04)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
                   <div style={{
                     height: "100%", width: `${pct}%`,
                     background: `linear-gradient(90deg, ${lc}66, ${lc}cc)`,
@@ -91,7 +91,7 @@ export default function DriftRankingChart({ features }: { features: FeatureDrift
                 {/* Type pill */}
                 <div style={{
                   width: 44, fontSize: "0.52rem", color: "var(--text3)", textAlign: "center",
-                  padding: "1px 4px", borderRadius: 4, background: "rgba(255,255,255,0.05)", flexShrink: 0,
+                  padding: "1px 4px", borderRadius: 4, background: "rgba(var(--fg-rgb),0.05)", flexShrink: 0,
                 }}>
                   {f.type === "numeric" ? "num" : "cat"}
                 </div>

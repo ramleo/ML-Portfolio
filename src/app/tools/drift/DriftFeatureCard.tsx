@@ -69,13 +69,13 @@ function StatsTable({ f }: { f: FeatureDrift }) {
 
       {/* Null exclusion note */}
       {hasPartialNulls && (
-        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #fbbf2444" }}>
+        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(var(--fg-rgb),0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #fbbf2444" }}>
           Batch stats computed on <strong style={{ color: "var(--text2)" }}>{f.n_recent} non-null rows</strong> ({nullPct}% nulls excluded).
           Mean/std differences may be partly explained by which rows were non-null.
         </div>
       )}
       {f.null_rate >= 1 && (
-        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #f8717144" }}>
+        <div style={{ fontSize: "0.6rem", color: "var(--text3)", padding: "4px 8px", background: "rgba(var(--fg-rgb),0.04)", borderRadius: 6, marginBottom: 8, borderLeft: "2px solid #f8717144" }}>
           All batch values are null — no non-null rows to compute stats from. Null rate shift is the signal here.
         </div>
       )}
@@ -94,7 +94,7 @@ function StatsTable({ f }: { f: FeatureDrift }) {
         </thead>
         <tbody>
           {rows.map(r => (
-            <tr key={r.label} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            <tr key={r.label} style={{ borderTop: "1px solid rgba(var(--fg-rgb),0.05)" }}>
               <td style={{ padding: "5px 0", color: "var(--text2)", fontWeight: 500 }}>{r.label}</td>
               <td style={{ textAlign: "right", padding: "5px 8px", color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{r.ref}</td>
               <td style={{ textAlign: "right", padding: "5px 0", fontVariantNumeric: "tabular-nums", fontWeight: r.highlight ? 700 : 400, color: r.highlight ? "#fbbf24" : (r.batch === "—" ? "var(--text3)" : "var(--text)") }}>
@@ -124,7 +124,7 @@ function GaugeBar({ label, value, max = 1, lowT = 0.1, highT = 0.25, tip }: {
         </div>
         <span style={{ fontSize: "0.68rem", fontWeight: 700, color, fontVariantNumeric: "tabular-nums" }}>{value.toFixed(3)}</span>
       </div>
-      <div style={{ position: "relative", height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}>
+      <div style={{ position: "relative", height: 8, background: "rgba(var(--fg-rgb),0.06)", borderRadius: 4 }}>
         <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${pct}%`, background: `linear-gradient(90deg, ${color}88, ${color})`, borderRadius: 4, transition: "width 0.5s ease" }} />
         <div style={{ position: "absolute", top: -3, bottom: -3, left: `${(lowT / max) * 100}%`, width: 1.5, background: "#fbbf2455" }} />
         <div style={{ position: "absolute", top: -3, bottom: -3, left: `${(highT / max) * 100}%`, width: 1.5, background: "#f8717155" }} />
@@ -148,7 +148,7 @@ export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
 
   return (
     <div style={{
-      border: `1px solid ${f.drift_level !== "low" ? lc + "44" : "rgba(255,255,255,0.07)"}`,
+      border: `1px solid ${f.drift_level !== "low" ? lc + "44" : "rgba(var(--fg-rgb),0.07)"}`,
       borderRadius: 10, overflow: "hidden",
       boxShadow: f.drift_level === "high" ? `0 0 14px ${lc}14` : "none",
     }}>
@@ -166,7 +166,7 @@ export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
         </svg>
         <span style={{ fontSize: "0.76rem", fontWeight: 600, flex: 1 }}>{f.label}</span>
         {highNull && <span style={{ fontSize: "0.58rem", color: "#fbbf24" }} title="Null rate ≥ 80% in batch — distribution unreliable">⚠ high nulls</span>}
-        <span style={{ fontSize: "0.58rem", color: "var(--text3)", padding: "1px 6px", borderRadius: 4, background: "rgba(255,255,255,0.05)" }}>{f.type}</span>
+        <span style={{ fontSize: "0.58rem", color: "var(--text3)", padding: "1px 6px", borderRadius: 4, background: "rgba(var(--fg-rgb),0.05)" }}>{f.type}</span>
         <span style={{ fontSize: "0.6rem", fontWeight: 700, padding: "2px 9px", borderRadius: 9999, background: `${lc}18`, border: `1px solid ${lc}44`, color: lc }}>
           {f.drift_level.toUpperCase()} · {(f.drift_score * 100).toFixed(0)}%
         </span>
@@ -174,7 +174,7 @@ export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
 
       {/* Expanded */}
       {open && (
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.18)", padding: "1rem 1.1rem", display: "flex", flexDirection: "column", gap: "1.35rem" }}>
+        <div style={{ borderTop: "1px solid rgba(var(--fg-rgb),0.06)", background: "rgba(0,0,0,0.18)", padding: "1rem 1.1rem", display: "flex", flexDirection: "column", gap: "1.35rem" }}>
 
           {/* High-null warning */}
           {highNull && (
@@ -269,7 +269,7 @@ export default function DriftFeatureCard({ f }: { f: FeatureDrift }) {
           )}
 
           {f.high_cardinality && (
-            <div style={{ fontSize: "0.65rem", color: "var(--text3)", padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.03)", borderRadius: 7, border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: "0.65rem", color: "var(--text3)", padding: "0.5rem 0.75rem", background: "rgba(var(--fg-rgb),0.03)", borderRadius: 7, border: "1px solid rgba(var(--fg-rgb),0.06)" }}>
               High-cardinality column — per-category breakdown not shown. Use PSI and KS gauges above as drift signals.
             </div>
           )}

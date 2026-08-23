@@ -100,7 +100,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", minWidth: 220 }}>
             <label style={{ fontSize: "0.65rem", fontWeight: 600, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Trained model</label>
             <select value={modelId} onChange={e => setModelId(e.target.value)} style={{
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(var(--fg-rgb),0.05)", border: "1px solid rgba(var(--fg-rgb),0.12)",
               borderRadius: 7, color: "var(--text)", fontSize: "0.75rem", padding: "0.4rem 0.6rem", cursor: "pointer",
             }}>
               {models.length === 0 && <option value="">No models trained yet</option>}
@@ -114,7 +114,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
             <input
               value={batchLabel} onChange={e => setBatchLabel(e.target.value)}
               placeholder="e.g. Week 3 production batch"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: "var(--text)", fontSize: "0.75rem", padding: "0.4rem 0.6rem", outline: "none" }}
+              style={{ background: "rgba(var(--fg-rgb),0.05)", border: "1px solid rgba(var(--fg-rgb),0.12)", borderRadius: 7, color: "var(--text)", fontSize: "0.75rem", padding: "0.4rem 0.6rem", outline: "none" }}
             />
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
           onDrop={e => { e.preventDefault(); setDragging(false); onFiles(e.dataTransfer.files); }}
           onClick={() => fileRef.current?.click()}
           style={{
-            border: `2px dashed ${dragging ? ACCENT : "rgba(255,255,255,0.12)"}`,
+            border: `2px dashed ${dragging ? ACCENT : "rgba(var(--fg-rgb),0.12)"}`,
             borderRadius: 10, padding: "1.5rem", textAlign: "center", cursor: "pointer",
             background: dragging ? `${ACCENT}08` : "transparent", transition: "all 0.15s",
           }}
@@ -152,7 +152,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
             onClick={() => setCompareToTraining(v => !v)}
             style={{
               width: 32, height: 18, borderRadius: 9999, border: "none", cursor: "pointer",
-              background: compareToTraining ? ACCENT : "rgba(255,255,255,0.12)",
+              background: compareToTraining ? ACCENT : "rgba(var(--fg-rgb),0.12)",
               position: "relative", transition: "background 0.2s", flexShrink: 0,
             }}
           >
