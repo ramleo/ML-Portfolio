@@ -119,11 +119,9 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
             {Math.round(steganography.confidence * 100)}% confidence
           </p>
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
-            Pixel value-pair statistics resemble LSB-embedded data (a common way to hide a payload
-            inside an image) — a statistical signal, not a certainty. Only meaningful for a
-            losslessly-saved image (PNG/BMP/TIFF); a JPEG-sourced photo cannot carry survivable
-            hidden data this way. Sensitivity drops off for a small hidden message occupying only a
-            few percent of the image.
+            This image&apos;s colors show a pattern that usually only shows up when something is
+            secretly hidden inside it — a strong hint, not proof. Only works on PNG-style images
+            (a JPEG photo can&apos;t hide data this way), and may miss a very small hidden message.
           </p>
         </div>
       )}
