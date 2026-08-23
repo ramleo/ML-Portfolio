@@ -130,6 +130,7 @@ export default function MLCapabilities() {
   const [query, setQuery] = useState("");
   const [activeDomain, setActiveDomain] = useState<string>("all");
   const searchBarRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const domains = useMemo(
     () => DOMAIN_ORDER.filter((d) => capabilities.some((c) => c.domain === d)),
@@ -142,22 +143,34 @@ export default function MLCapabilities() {
   );
 
   // Filtering can collapse whole domain sections (zero matches), shrinking the
-  // page enough that this sticky search bar ends up scrolled above the
-  // viewport with nothing compensating — the bar (and the results below it)
-  // then appear to "vanish" until the user manually scrolls back up. Snap the
-  // bar back into view only when that's actually happened (top < 0), so
-  // normal typing that doesn't shrink the page never triggers an unwanted
-  // scroll jump.
+  // page enough that the results end up scrolled out of view — either above
+  // the viewport (search bar pushed past top: 0) or, if the user was
+  // scrolled deep into a domain that just collapsed, entirely below it (the
+  // whole section's remaining content sits above where the user is now).
+  // Snap back to the section start in either case. Deliberately scrolls the
+  // plain (non-sticky) section container rather than the sticky search bar
+  // itself — scrollIntoView on a position:sticky element is unreliable,
+  // since the browser's scroll-target calculation and the element's own
+  // sticky recalculation can disagree mid-scroll. Also deliberately
+  // "instant", not "smooth": fast typing re-fires this effect on every
+  // keystroke, and a still-animating smooth scroll from the previous
+  // keystroke makes the next keystroke's rect check read a stale,
+  // mid-animation position — sometimes concluding (wrongly) that nothing
+  // needs to move. An instant jump finishes before the next render's effect
+  // can run, so there's no animation to race against.
   useEffect(() => {
-    const el = searchBarRef.current;
-    if (!el) return;
-    if (el.getBoundingClientRect().top < 0) {
-      el.scrollIntoView({ block: "start", behavior: "smooth" });
+    const bar = searchBarRef.current;
+    const section = sectionRef.current;
+    if (!bar || !section) return;
+    const barOutOfView = bar.getBoundingClientRect().top < 0;
+    const sectionScrolledPast = section.getBoundingClientRect().bottom < 80;
+    if (barOutOfView || sectionScrolledPast) {
+      section.scrollIntoView({ block: "start", behavior: "instant" });
     }
   }, [query, activeDomain]);
 
   return (
-    <section id="capabilities" style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
+    <section id="capabilities" ref={sectionRef} style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: "2rem" }}>
         <p style={{ fontSize: "0.75rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
           ML Capabilities
