@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { useInpaint } from "./useInpaint";
 import { useSharpen } from "./useSharpen";
 import { useVisualizeActions } from "./useVisualizeActions";
+import { useCitationVisualState } from "./useCitationVisualState";
 import { SharpenOverlay } from "./SharpenControls";
 import CitationResultsPanel from "./CitationResultsPanel";
 import FreehandDrawLayer from "./FreehandDrawLayer";
@@ -17,8 +17,6 @@ import type { Bbox, CameraMatch, DetectedObject, DuplicateMatch, Entity, MoireRe
 
 const ACCENT = "#a78bfa";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
-
-type SimilarResult = { source: string; page: number; similarity: number };
 
 type Props = {
   pageImages: string[];
@@ -124,31 +122,18 @@ const WEAPON_COLOR = "#f87171"; // reuses the tampering "warning" red — a weap
 // photo of a kitchen counter.
 const WEAPON_LABELS = new Set(["Weapon", "Knife", "Handgun", "Rifle", "Sword", "Bomb", "Missile"]);
 
-type VisualAction = "" | "description" | "objects" | "faces" | "similar" | "entities" | "pii" | "signatures" | "tampering" | "duplicates" | "plates" | "weapons" | "crowd" | "steganography" | "moire" | "cameraMatch";
-
 export default function CitationThumbnailPanel({ pageImages, page, chunkType, bbox, matchedObjects, objects, source, canFindSimilar, captionText, isImageOrVideoOnly, entities, piiTypes, signatures, tampering, duplicates, steganography, moire, cameraMatch, personCount, edits, onEditChange }: Props) {
-  const [similar, setSimilar] = useState<SimilarResult[] | null>(null);
-  const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const [similarNote, setSimilarNote] = useState<string | null>(null);
-  const [showFaces, setShowFaces] = useState(false);
-  const [visualAction, setVisualAction] = useState<VisualAction>("");
-  // "Draw region" (freehand mask drawing) — stays on across multiple draws,
-  // same as detected-box removal already chains; user explicitly toggles
-  // off via "Stop drawing" when done.
-  const [drawMode, setDrawMode] = useState(false);
-  // "Sharpen region" (AI deblur scoped to a drawn box) — mutually exclusive
-  // with drawMode (object-removal drawing): each toggle handler turns the
-  // other off, same reasoning FreehandDrawLayer's single active-instance
-  // convention already relies on elsewhere in this file.
-  const [regionMode, setRegionMode] = useState(false);
-  // "Mark restricted zone" (plate enforcement) — same mutual-exclusion
-  // pattern as drawMode/regionMode above, reusing FreehandDrawLayer purely
-  // for its rectangle bbox output (its mask/polygon output is ignored here,
-  // a zone is a plain rectangle, not a pixel-accurate shape). Persists
-  // across a re-render/citation-panel interaction the same way a drawn
-  // sharpen region would, but is cleared explicitly via "Clear zone".
-  const [zoneMode, setZoneMode] = useState(false);
-  const [restrictedZone, setRestrictedZone] = useState<Bbox | null>(null);
+  // editKey (source:page) tells useCitationVisualState (and useInpaint below)
+  // when the viewed citation itself changed vs. just a re-render, so both
+  // re-sync local state to THAT citation instead of keeping the previous
+  // citation's selection/results on screen.
+  const editKey = `${source}:${page ?? ""}`;
+  const {
+    similar, setSimilar, loadingSimilar, setLoadingSimilar, similarNote, setSimilarNote,
+    showFaces, setShowFaces, visualAction, setVisualAction,
+    drawMode, setDrawMode, regionMode, setRegionMode, zoneMode, setZoneMode,
+    restrictedZone, setRestrictedZone,
+  } = useCitationVisualState(editKey);
   const faces = (objects ?? []).filter(o => o.label === "Human face");
   // "Detect plates" — no separate backend field, unlike signatures/tampering
   // above: the 601-class object detector already outputs "Vehicle
@@ -163,11 +148,6 @@ export default function CitationThumbnailPanel({ pageImages, page, chunkType, bb
   // Props (not `img`, only computed after the early return below) since the
   // hook must run unconditionally on every render.
   const currentImg = page && page >= 1 && page <= pageImages.length ? pageImages[page - 1] : null;
-  // editKey (source:page) tells useInpaint when the viewed citation itself
-  // changed vs. just a re-render, so it re-syncs local state to THAT
-  // citation's persisted edit (or lack of one) instead of keeping the
-  // previous citation's result on screen.
-  const editKey = `${source}:${page ?? ""}`;
   const {
     inpainting, aiFilling, aiFillProgress, resultImg, error: inpaintError, run: runInpaint, reset: resetInpaint, isCovered, version,
     removedBboxes, filledIndices, addText, addImage, addAiFill,
