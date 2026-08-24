@@ -86,19 +86,24 @@ export function useSharpen(syncKey: string) {
         body: JSON.stringify({ image: baseImage, bbox: bbox ?? null }),
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(res.status === 429 ? "rate_limited" : "failed");
       const data = await res.json();
       setSharpenedImg(data.image as string);
       setSharpenConfidence((data.confidence as "high" | "low" | undefined) ?? null);
       setSharpenText((data.text as string | undefined) ?? null);
       setSharpenDescription((data.description as string | undefined) ?? null);
       setViewSharpened(true);
-    } catch {
+    } catch (err) {
       // Note: the backend keeps running its (already-dispatched) Gemini/OCR
       // calls to completion even after this abort — cancelling only stops
       // the CLIENT from waiting on/showing a result, there's no server-side
       // cancellation. Fine for a best-effort feature; just wasted compute.
-      setSharpenError(cancelledRef.current ? "Sharpen cancelled." : "Sharpen is temporarily unavailable — try again in a moment.");
+      const isRateLimited = err instanceof Error && err.message === "rate_limited";
+      setSharpenError(
+        cancelledRef.current ? "Sharpen cancelled."
+        : isRateLimited ? "Sharpen is rate-limited right now — the image model has hit its usage quota. Try again in a few minutes."
+        : "Sharpen is temporarily unavailable — try again in a moment."
+      );
     } finally {
       clearTimeout(timeout);
       clearInterval(progressTimer);
