@@ -11,6 +11,7 @@ const CHUNK_TYPE_FILTER_LABEL: Record<string, string> = {
 const ENTITY_TYPE_FILTER_LABEL: Record<string, string> = {
   money: "Money", date: "Date", percent: "Percent",
   person: "Person", org: "Organization", location: "Location",
+  legal_clause: "Legal Clause", financial_term: "Financial Term", medical_condition: "Medical Condition",
 };
 
 type Doc = Extract<IngestState, { kind: "done" }>;
