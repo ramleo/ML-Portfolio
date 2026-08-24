@@ -62,10 +62,12 @@ export default function DocumentChipsRow({
                 {displayName(d.source)}
                 <button onClick={() => setSummaryOpenFor(s => s === d.source ? null : d.source)}
                   title="Show extracted structure (tables, figures)"
+                  aria-label={`Show extracted structure for ${displayName(d.source)}`}
                   style={{ color: summaryOpenFor === d.source ? accent : `${accent}99`, lineHeight: 1 }}>
                   {summaryOpenFor === d.source ? "▾" : "▸"} summary
                 </button>
                 <button onClick={() => removeDocument(d.source)} title="Remove this document"
+                  aria-label={`Remove ${displayName(d.source)}`}
                   style={{ color: `${accent}99`, lineHeight: 1 }}>×</button>
               </span>
             ))}
@@ -75,36 +77,52 @@ export default function DocumentChipsRow({
       </div>
 
       {(availableChunkTypes.length > 1 || availableEntityTypes.length > 0) && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
-            Only search:
-          </span>
-          <button onClick={() => { setChunkTypeFilter(() => []); setEntityTypeFilter(() => []); }}
-            className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
-            style={chunkTypeFilter.length === 0 && entityTypeFilter.length === 0
-              ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
-              : { borderColor: "var(--border2)", color: "var(--text2)" }}>
-            All
-          </button>
-          {availableChunkTypes.length > 1 && availableChunkTypes.map(t => (
-            <button key={t} onClick={() => toggleChunkType(t)}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
+              Only search:
+            </span>
+            <button onClick={() => { setChunkTypeFilter(() => []); setEntityTypeFilter(() => []); }}
               className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
-              style={chunkTypeFilter.includes(t)
+              style={chunkTypeFilter.length === 0 && entityTypeFilter.length === 0
                 ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
                 : { borderColor: "var(--border2)", color: "var(--text2)" }}>
-              {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
+              All
             </button>
-          ))}
-          {availableEntityTypes.map(t => (
-            <button key={t} onClick={() => toggleEntityType(t)}
-              title={`Only search chunks containing a ${ENTITY_TYPE_FILTER_LABEL[t]?.toLowerCase() ?? t}`}
-              className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
-              style={entityTypeFilter.includes(t)
-                ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
-                : { borderColor: "var(--border2)", color: "var(--text2)" }}>
-              {ENTITY_TYPE_FILTER_LABEL[t] ?? t}
-            </button>
-          ))}
+          </div>
+          {availableChunkTypes.length > 1 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--text3)" }}>
+                Content type:
+              </span>
+              {availableChunkTypes.map(t => (
+                <button key={t} onClick={() => toggleChunkType(t)}
+                  className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
+                  style={chunkTypeFilter.includes(t)
+                    ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
+                    : { borderColor: "var(--border2)", color: "var(--text2)" }}>
+                  {CHUNK_TYPE_FILTER_LABEL[t] ?? t}
+                </button>
+              ))}
+            </div>
+          )}
+          {availableEntityTypes.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--text3)" }}>
+                Contains:
+              </span>
+              {availableEntityTypes.map(t => (
+                <button key={t} onClick={() => toggleEntityType(t)}
+                  title={`Only search chunks containing a ${ENTITY_TYPE_FILTER_LABEL[t]?.toLowerCase() ?? t}`}
+                  className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
+                  style={entityTypeFilter.includes(t)
+                    ? { borderColor: `${accent}55`, background: `${accent}22`, color: accent }
+                    : { borderColor: "var(--border2)", color: "var(--text2)" }}>
+                  {ENTITY_TYPE_FILTER_LABEL[t] ?? t}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

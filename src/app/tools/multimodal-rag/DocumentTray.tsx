@@ -81,9 +81,14 @@ export default function DocumentTray({ documents, accent, cardStyle, activeSourc
         {documents.map(d => {
           const isOpen = summaryOpenFor === d.source;
           const isActive = activeSource === d.source;
+          const select = () => { onSelectDocument(d.source); setSummaryOpenFor(s => s === d.source ? null : d.source); };
           return (
             <div key={d.source}
-              onClick={() => { onSelectDocument(d.source); setSummaryOpenFor(s => s === d.source ? null : d.source); }}
+              onClick={select}
+              role="button"
+              tabIndex={0}
+              aria-label={`Select ${displayName(d.source)}`}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); } }}
               className="flex items-start gap-2 px-1.5 py-1.5 rounded-lg cursor-pointer transition-colors"
               style={{ background: isOpen || isActive ? "var(--border)" : "transparent" }}>
               <span className="mt-0.5 shrink-0" style={{ color: accent }}><DocIcon kind={kindOf(d.source)} /></span>
@@ -96,6 +101,7 @@ export default function DocumentTray({ documents, accent, cardStyle, activeSourc
                 </div>
               </div>
               <button onClick={(e) => { e.stopPropagation(); removeDocument(d.source); }} title="Remove this document"
+                aria-label={`Remove ${displayName(d.source)}`}
                 className="shrink-0 px-1 text-[13px]" style={{ color: `${accent}99` }}>
                 ×
               </button>

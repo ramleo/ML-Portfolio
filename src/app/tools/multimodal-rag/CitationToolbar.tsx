@@ -88,28 +88,43 @@ export default function CitationToolbar({
               onVisualAction(v);
               if (v === "similar") onFindSimilar();
             }}
+            aria-label="Choose a detection or edit action"
             className="text-[9px] rounded border"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
             <option value="">Choose an action…</option>
-            {captionText && <option value="description">Describe (caption + OCR)</option>}
-            {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
-            {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
-            {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
-            {piiTypes && <option value="pii">PII detected</option>}
-            {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
-            {plates.length > 0 && <option value="plates">Detect plates ({plates.length})</option>}
-            {weapons.length > 0 && <option value="weapons">Detect weapons ({weapons.length})</option>}
-            {typeof personCount === "number" && personCount > 1 && <option value="crowd">Crowd density ({personCount})</option>}
-            {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
-            {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
-            {steganography?.detected && (
-              <option value="steganography">
-                Possible hidden data ({Math.round(steganography.confidence * 100)}%)
-                {steganography.payloadType ? ` — looks like a ${steganography.payloadType}` : ""}
-              </option>
+            {(captionText || (entities && entities.length > 0) || piiTypes) && (
+              <optgroup label="Describe">
+                {captionText && <option value="description">Describe (caption + OCR)</option>}
+                {entities && entities.length > 0 && <option value="entities">Key facts ({entities.length})</option>}
+                {piiTypes && <option value="pii">PII detected</option>}
+              </optgroup>
             )}
-            {moire?.detected && <option value="moire">Possible screen/scan pattern ({Math.round(moire.confidence * 100)}%)</option>}
-            {cameraMatch && cameraMatch.length > 0 && <option value="cameraMatch">Possible same camera ({cameraMatch.length})</option>}
+            {((objects && objects.length > 0) || faces.length > 0 || (signatures && signatures.length > 0) ||
+              plates.length > 0 || weapons.length > 0 || (typeof personCount === "number" && personCount > 1)) && (
+              <optgroup label="Detect">
+                {objects && objects.length > 0 && <option value="objects">Detect objects ({objects.length})</option>}
+                {faces.length > 0 && <option value="faces">Detect faces ({faces.length})</option>}
+                {signatures && signatures.length > 0 && <option value="signatures">Detect signatures ({signatures.length})</option>}
+                {plates.length > 0 && <option value="plates">Detect plates ({plates.length})</option>}
+                {weapons.length > 0 && <option value="weapons">Detect weapons ({weapons.length})</option>}
+                {typeof personCount === "number" && personCount > 1 && <option value="crowd">Crowd density ({personCount})</option>}
+              </optgroup>
+            )}
+            {((tampering && tampering.length > 0) || (duplicates && duplicates.length > 0) ||
+              steganography?.detected || moire?.detected || (cameraMatch && cameraMatch.length > 0)) && (
+              <optgroup label="Verify">
+                {tampering && tampering.length > 0 && <option value="tampering">Check for tampering ({tampering.length})</option>}
+                {duplicates && duplicates.length > 0 && <option value="duplicates">Possible duplicate ({duplicates.length})</option>}
+                {steganography?.detected && (
+                  <option value="steganography">
+                    Possible hidden data ({Math.round(steganography.confidence * 100)}%)
+                    {steganography.payloadType ? ` — looks like a ${steganography.payloadType}` : ""}
+                  </option>
+                )}
+                {moire?.detected && <option value="moire">Possible screen/scan pattern ({Math.round(moire.confidence * 100)}%)</option>}
+                {cameraMatch && cameraMatch.length > 0 && <option value="cameraMatch">Possible same camera ({cameraMatch.length})</option>}
+              </optgroup>
+            )}
             {canFindSimilar && (isImageOrVideoOnly || chunkType === "figure" || chunkType === "image") && (
               <option value="similar">Find visually similar</option>
             )}

@@ -51,6 +51,7 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
         )}
       </div>
 
+      <div aria-live="polite">
       {state === "done" && result && (
         result.contradictions.length === 0 ? (
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
@@ -78,6 +79,7 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
           </div>
         )
       )}
+      </div>
     </div>
   );
 }

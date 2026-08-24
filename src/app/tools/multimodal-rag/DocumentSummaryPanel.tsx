@@ -196,7 +196,7 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
         );
       })()}
       {(d.deepfake?.avDesync?.flagged || d.deepfake?.voiceArtifact?.flagged) && (
-        <div className="flex flex-col gap-1 mb-1 px-2 py-1.5 rounded" style={{ border: `1px solid ${DEEPFAKE_COLOR}40` }}>
+        <div role="alert" className="flex flex-col gap-1 mb-1 px-2 py-1.5 rounded" style={{ border: `1px solid ${DEEPFAKE_COLOR}40` }}>
           <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: DEEPFAKE_COLOR }}>
             Possible deepfake signals — coarse heuristics, not a verdict
           </span>
