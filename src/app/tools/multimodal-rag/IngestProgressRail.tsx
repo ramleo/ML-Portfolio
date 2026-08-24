@@ -128,6 +128,9 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 chapters: (evt.chapters ?? []).map((c: { time: number; label: string }) => ({
                   time: c.time, label: c.label,
                 })),
+                deepfake: evt.deepfake
+                  ? { avDesync: evt.deepfake.av_desync ?? null, voiceArtifact: evt.deepfake.voice_artifact ?? null }
+                  : null,
                 possibleRevisionOf: evt.possible_revision_of ?? null,
                 entityTypes: evt.entity_types ?? [],
                 textSegments: (evt.text_segments ?? []).map((s: { page: number | null; text: string }) => ({

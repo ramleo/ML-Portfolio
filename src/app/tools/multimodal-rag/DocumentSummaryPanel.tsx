@@ -6,6 +6,8 @@ import SearchableTextPanel from "./SearchableTextPanel";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox, DetectedObject, Entity, IngestState, TranscriptSegment } from "./_types";
 
+const DEEPFAKE_COLOR = "#f87171"; // same forensics-warning red as CitationResultsPanel's TAMPERING_COLOR
+
 type Doc = Extract<IngestState, { kind: "done" }>;
 
 type Props = {
@@ -193,6 +195,23 @@ export default function DocumentSummaryPanel({ doc: d, accent, cardStyle, highli
           </div>
         );
       })()}
+      {(d.deepfake?.avDesync?.flagged || d.deepfake?.voiceArtifact?.flagged) && (
+        <div className="flex flex-col gap-1 mb-1 px-2 py-1.5 rounded" style={{ border: `1px solid ${DEEPFAKE_COLOR}40` }}>
+          <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: DEEPFAKE_COLOR }}>
+            Possible deepfake signals — coarse heuristics, not a verdict
+          </span>
+          {d.deepfake?.avDesync?.flagged && (
+            <p className="text-[9px]" style={{ color: "var(--text2)" }}>
+              Audio/lip-motion desync ({Math.round(d.deepfake.avDesync.confidence * 100)}%) — {d.deepfake.avDesync.note}
+            </p>
+          )}
+          {d.deepfake?.voiceArtifact?.flagged && (
+            <p className="text-[9px]" style={{ color: "var(--text2)" }}>
+              Possible synthetic voice ({Math.round(d.deepfake.voiceArtifact.confidence * 100)}%) — {d.deepfake.voiceArtifact.note}
+            </p>
+          )}
+        </div>
+      )}
       {d.transcript && (
         <div className="flex flex-col gap-1 mb-1">
           <div className="flex items-center justify-between">

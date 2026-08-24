@@ -85,6 +85,16 @@ export type PersistedEdit = {
 };
 export type TranscriptSegment = { start: number; end: number; text: string; speaker?: string | null };
 export type Chapter = { time: number; label: string };
+/** One deepfake-signal flag (mm_deepfake.py) — coarse signal-processing
+ * heuristic, not a trained classifier. `note` carries the disclosed
+ * limitation text and is only populated when `flagged` is true. */
+export type DeepfakeFlag = { flagged: boolean; confidence: number; note: string };
+/** Whole-clip (not per-chunk) deepfake indicators — audio-visual lip-sync
+ * desync (video only) + voice-clone/synthetic-audio artifact (any audio).
+ * Either half may be null if that signal couldn't be computed (e.g. no face
+ * found for avDesync, or no video frames at all for a standalone audio
+ * upload). See mm_deepfake.py's module docstring for validation detail. */
+export type DeepfakeSignals = { avDesync: DeepfakeFlag | null; voiceArtifact: DeepfakeFlag | null };
 export type RevisionCandidate = { source: string; filename: string; reason: "same_filename" | "similar_content"; similarity: number };
 
 export type IngestState =
@@ -101,6 +111,9 @@ export type IngestState =
       pageImages: string[]; cached: boolean; saveScope: "session" | "shared";
       embeddingMode: EmbeddingMode; notableChunks: NotableChunk[]; transcript: string | null;
       transcriptSegments: TranscriptSegment[]; chapters: Chapter[]; possibleRevisionOf: RevisionCandidate | null;
+      /** Audio-visual desync + voice-clone artifact heuristics — null for a
+       * non-video/audio upload or when neither signal could be computed. */
+      deepfake?: DeepfakeSignals | null;
       /** Which entity types (money/date/percent) appear anywhere in this
        * document (MMRAG-03) — powers the "Only search" entity filter chips. */
       entityTypes: string[];
