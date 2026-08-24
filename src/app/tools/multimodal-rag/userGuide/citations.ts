@@ -145,6 +145,14 @@ that answer came from — click one to expand it and see more.
   an unusually long list caps at 8 chips with a "+N more" tail rather than
   crowding the citation. Only chunks that actually contain one of these show
   any chips.
+- **Domain-term chips (legal / financial / medical).** The same chip row can
+  also surface contract-clause language ("indemnification," "force majeure,"
+  "non-compete"), accounting/finance terms ("EBITDA," "accounts receivable,"
+  "working capital"), or medical-condition names ("diabetes," "hypertension")
+  when a chunk mentions one. All three are matched against curated term
+  lists, not a trained model — the medical category in particular is a plain
+  keyword spotter for condition NAMES only (not symptoms, dosages, or drug
+  names) and is not a diagnostic tool or clinically validated in any way.
 - **Groundedness score.** Open "How I searched" under any answer and you'll
   see a Groundedness badge (High/Medium/Low, plus a %) — how well the
   answer's own sentences actually match the retrieved sources, checked

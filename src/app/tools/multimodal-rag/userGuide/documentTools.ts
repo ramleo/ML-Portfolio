@@ -29,9 +29,10 @@ not a paraphrase from surrounding text. Click "All" to go back to normal.
 This only appears when a document actually has 2+ distinct content types
 to choose between — a plain-text-only upload has nothing to filter.
 The same row also lets you filter by the key-fact type a chunk contains —
-Money, Date, Percent, Person, Organization, or Location — once at least
-one uploaded chunk has one, for narrowing down to (say) only chunks that
-name a specific person or company.
+Money, Date, Percent, Person, Organization, Location, Legal Clause,
+Financial Term, or Medical Condition — once at least one uploaded chunk has
+one, for narrowing down to (say) only chunks that name a specific person or
+company, or only chunks that mention contract-clause language.
 
 ## Using your own API key (optional)
 The "Provider" button above the chat lets you pick a specific AI provider

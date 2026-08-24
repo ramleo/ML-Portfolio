@@ -89,6 +89,22 @@ YouTube's "most replayed" graph but scoped to just your own session
 private to whoever uploaded it). It only appears once you've actually
 jumped around at least once; a linear first watch shows nothing yet.
 
+Every video/audio upload is also automatically checked for two possible
+deepfake indicators — nothing to click, they run in the background. A red
+"Possible deepfake signals" box appears above the transcript only if
+something looks off: (1) **audio/lip-motion desync** — whether the
+speaker's mouth movement actually tracks when the audio has speech in it,
+using face-landmark tracking compared against the audio's volume pattern
+over time; (2) **possible synthetic voice** — whether the audio's frequency
+pattern looks more like a TTS/cloned voice than natural human speech.
+Neither is a trained deepfake-detection model — both are statistical
+heuristics, tested and disclosed as reliably catching a fully mismatched
+audio/video pairing but weaker at a subtle few-hundred-millisecond offset,
+and the voice check has only been validated against system text-to-speech,
+not sophisticated voice-cloning tools. Treat a flag as "worth a closer
+look," not a verdict — and treat no flag as "nothing obviously wrong,"
+not "confirmed genuine."
+
 ## How to use it
 0. You can upload more than one file into the same chat — each stays listed
    above the chat with a way to remove it, and questions are answered across
