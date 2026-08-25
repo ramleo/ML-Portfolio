@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell,
   type LucideIcon,
 } from "lucide-react";
 
@@ -422,6 +422,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/pose-vj-visuals",
+  },
+  {
+    id: "movement-form-comparison",
+    domain: "Computer Vision",
+    title: "Movement Form Comparison",
+    subtitle: "Client-Side · No API Cost",
+    description:
+      "Upload your workout video and a reference video of the same movement, and this tracks body pose in both with MediaPipe's PoseLandmarker, computing 6 real joint angles (elbows, knees, hips) from 3D world-landmark coordinates — the geometrically correct choice for angle math, matching published MediaPipe joint-angle validation studies. Both clips are aligned to a shared 0-100% movement-phase axis so a 4-second clip is directly comparable to a 6-second one, then ranked by RMS angle deviation with the single biggest-gap moment called out per joint. Assumes one person per video and one full rep start-to-finish — a training-form aid, not a clinical assessment. Runs entirely in the browser; no video ever leaves the device.",
+    accent: "#22c55e",
+    icon: Dumbbell,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MediaPipe PoseLandmarker (local)",
+    input: "2 Videos",
+    tags: ["Computer Vision", "Sports Tech", "Client-Side", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/movement-form-comparison",
   },
   {
     id: "adversarial-robustness-lab",
