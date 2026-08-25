@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar,
   type LucideIcon,
 } from "lucide-react";
 
@@ -476,6 +476,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/malware-image-triage",
+  },
+  {
+    id: "face-deanonymization-demo",
+    domain: "Security & Trust",
+    title: "Face Deanonymization Risk Demo",
+    subtitle: "Local · No API Cost",
+    description:
+      "Upload a target photo and a small gallery of other photos, and this runs the same face-embedding similarity search that Clearview-style re-identification systems rely on — ranking the gallery by how closely each face matches the target, with a real measured score, not a simulated one. A \"Protect & re-test\" step then cloaks the target using the Face Cloak tool's own technique and re-runs the identical search to show whether the match breaks. Explicitly does not search the internet or any real database — only compares photos supplied in the one request.",
+    accent: "#f97316",
+    icon: Radar,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "InceptionResnetV1 (local)",
+    input: "Photos",
+    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/face-deanonymization-demo",
   },
   {
     id: "face-cloak",
