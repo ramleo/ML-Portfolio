@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -422,6 +422,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/adversarial-robustness-lab",
+  },
+  {
+    id: "captcha-hardening-lab",
+    domain: "Security & Trust",
+    title: "CAPTCHA Hardening Lab",
+    subtitle: "VLM Read Attempt · Before/After",
+    description:
+      "Upload a CAPTCHA-style image and a vision-language model attempts to read it — modern VLMs solve plain text CAPTCHAs far more easily than classic OCR ever could. A single intensity slider then stacks three classic, model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast/color reduction) and the model tries again, shown side by side. Deliberately non-gradient (no FGSM/PGD): the model here is a black-box hosted API, the same real constraint a CAPTCHA vendor faces against an unknown solver, so this reproduces genuine hardening technique rather than an attack tailored to one model. Only ever reads an image you upload — never contacts or automates a live CAPTCHA challenge on a real website.",
+    accent: "#f59e0b",
+    icon: Puzzle,
+    stat: "2",
+    statLabel: "VLM Read Attempts",
+    model: "Mistral/Gemini vision cascade",
+    input: "Photo",
+    tags: ["Security Research", "CAPTCHA", "Adversarial ML", "Vision-Language Model"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/captcha-hardening-lab",
   },
   {
     id: "face-cloak",
