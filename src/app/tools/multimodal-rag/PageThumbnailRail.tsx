@@ -16,8 +16,8 @@ export default function PageThumbnailRail({ pageImages, activePage, onSelect }: 
   if (pageImages.length <= 1) return null;
 
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto pr-0.5" style={{ maxHeight: 480, width: 88 }}>
-      <span className="text-[8px] font-bold uppercase tracking-wide px-0.5" style={{ color: "var(--text3)" }}>
+    <div className="flex flex-row sm:flex-col gap-2 overflow-x-auto sm:overflow-x-visible sm:overflow-y-auto pr-0 sm:pr-0.5 sm:w-[88px] sm:max-h-[480px]">
+      <span className="text-[8px] font-bold uppercase tracking-wide px-0.5 shrink-0" style={{ color: "var(--text3)" }}>
         Pages
       </span>
       {pageImages.map((img, i) => {
@@ -25,7 +25,7 @@ export default function PageThumbnailRail({ pageImages, activePage, onSelect }: 
         const active = pageNum === activePage;
         return (
           <button key={i} onClick={() => onSelect(pageNum)}
-            className="rounded-lg overflow-hidden border text-left shrink-0 transition-colors"
+            className="rounded-lg overflow-hidden border text-left shrink-0 transition-colors max-sm:w-14"
             style={{ borderColor: active ? ACCENT : "var(--border)" }}>
             <img src={`data:image/png;base64,${img}`} alt={`Page ${pageNum}`}
               className="w-full block" style={{ height: 64, objectFit: "cover", background: "var(--bg)" }} />

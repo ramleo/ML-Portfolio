@@ -45,7 +45,7 @@ export default function MultimodalRagPage() {
             Home
           </button>
 
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: `${ACCENT}18`, border: `1px solid ${ACCENT}30` }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -54,8 +54,8 @@ export default function MultimodalRagPage() {
                 <path d="M8 7h8M8 11h5" stroke={ACCENT} strokeWidth="1.3" strokeLinecap="round"/>
               </svg>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-[160px]">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold" style={{ fontFamily: DISPLAY_FONT, fontWeight: 600 }}>Multimodal RAG</h1>
                 <span className="text-[9px] px-2 py-[3px] rounded-full font-bold uppercase tracking-wider"
                   style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}35` }}>
@@ -66,21 +66,23 @@ export default function MultimodalRagPage() {
                 Ask questions about a PDF&apos;s tables and charts, or upload a standalone image — with citations
               </p>
             </div>
-            <button onClick={() => setGuideOpen(true)}
-              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
-              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
-                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              User Guide
-            </button>
-            <button onClick={() => setStatsOpen(true)}
-              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
-              style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
-              Usage stats
-            </button>
-            <ThemeToggle />
+            <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={() => setGuideOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+                style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                User Guide
+              </button>
+              <button onClick={() => setStatsOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+                style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
+                Usage stats
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
 
           <MmRagUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />

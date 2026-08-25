@@ -81,7 +81,7 @@ export default function CitationToolbar({
       <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text2)" }}>
         Page {page}{chunkType && chunkType in TYPE_LABEL ? ` · ${TYPE_LABEL[chunkType]}` : ""}
       </span>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-wrap">
         {isImageOrVideoOnly ? (
           <select value={visualAction} onChange={e => {
               const v = e.target.value as VisualAction;

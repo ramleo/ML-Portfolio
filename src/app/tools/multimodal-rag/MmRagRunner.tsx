@@ -61,6 +61,13 @@ export default function MmRagRunner() {
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [activeCitation, setActiveCitation] = useState<{ page: number | null; chunkType: string | null; source: string | null; bbox: Bbox | null; objects: DetectedObject[] | null; entities?: Entity[] | null; piiTypes?: string | null; signatures?: DetectedObject[] | null; tampering?: DetectedObject[] | null; personCount?: number | null } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Below `lg`, the 3-column (or 2-column shared-view) workspace becomes a
+  // single-panel tab switcher instead of one long stacked page — ChatPanel/
+  // DocumentTray's internal scroll relies on `h-full` off a definite
+  // ancestor height, which the grid only supplies at `lg:`. See
+  // EvidenceColumn/DocumentTray/ChatPanel wrappers below for the mobile-only
+  // height these tabs are given.
+  const [mobileTab, setMobileTab] = useState<"documents" | "evidence" | "chat">("chat");
   const [summaryOpenFor, setSummaryOpenFor] = useState<string | null>(null);
   const [highlightedSegment, setHighlightedSegment] = useState<{ source: string; index: number } | null>(null);
   // Same idea as highlightedSegment, but for a PDF/CSV/image document's
@@ -287,60 +294,98 @@ export default function MmRagRunner() {
       ))}
 
       {!isSharedView && (
-        <div className={documents.length > 0
-          ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_440px] gap-4 lg:h-[88vh]"
-          : "max-w-xs"}>
-          <DocumentTray documents={documents} accent={ACCENT} cardStyle={cardStyle}
-            activeSource={activeCitation?.source ?? null} onSelectDocument={selectDocument}
-            summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
-            sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
-
-          {documents.length > 0 && (<>
-
-          {/* EvidenceColumn (which holds the citation image/detection-box
-              panel) gets the flexible middle slot instead of ChatPanel —
-              a citation image with several overlapping detection boxes
-              needs real width for its labels to stay readable; a fixed
-              440px column was cramping small/narrow boxes badly. ChatPanel
-              is just a message list + input, which stays comfortable at a
-              fixed width, so it takes the slot Evidence used to have. */}
-          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
-            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
-            onEditChange={updateDocEdit} />
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center rounded border overflow-hidden self-start"
+        <>
+          {documents.length > 0 && (
+            <div className="flex items-center rounded border overflow-hidden self-start lg:hidden"
               style={{ borderColor: "var(--border2)" }}>
-              {(["concise", "normal", "detailed"] as const).map(len => (
-                <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
-                  disabled={chat.messages.length === 0}
-                  title={len === "concise" ? "1-3 sentences, no extra context"
-                       : len === "detailed" ? "Thorough — includes reasoning and related details"
-                       : "Default answer length"}
-                  className="text-[11px] px-2 py-1 capitalize transition-colors"
-                  style={chat.answerLength === len
+              {(["documents", "evidence", "chat"] as const).map(tab => (
+                <button key={tab} onClick={() => setMobileTab(tab)}
+                  className="text-[11px] px-3 py-1.5 capitalize transition-colors"
+                  style={mobileTab === tab
                     ? { background: `${ACCENT}22`, color: ACCENT }
                     : { color: "var(--text2)" }}>
-                  {len}
+                  {tab}
                 </button>
               ))}
             </div>
-            <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
-              settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+          )}
+          <div className={documents.length > 0
+            ? "grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_440px] gap-4 lg:h-[88vh]"
+            : "max-w-xs"}>
+            <div className={documents.length === 0 ? "" : `${mobileTab === "documents" ? "block" : "hidden"} lg:block max-lg:h-[70dvh] max-lg:overflow-y-auto`}>
+              <DocumentTray documents={documents} accent={ACCENT} cardStyle={cardStyle}
+                activeSource={activeCitation?.source ?? null} onSelectDocument={selectDocument}
+                summaryOpenFor={summaryOpenFor} setSummaryOpenFor={setSummaryOpenFor} removeDocument={removeDocument}
+                sessionId={chat.sessionId} ensureSessionId={ensureSessionId} onIngested={handleIngested} />
+            </div>
+
+            {documents.length > 0 && (<>
+
+            {/* EvidenceColumn (which holds the citation image/detection-box
+                panel) gets the flexible middle slot instead of ChatPanel —
+                a citation image with several overlapping detection boxes
+                needs real width for its labels to stay readable; a fixed
+                440px column was cramping small/narrow boxes badly. ChatPanel
+                is just a message list + input, which stays comfortable at a
+                fixed width, so it takes the slot Evidence used to have. */}
+            <div className={`${mobileTab === "evidence" ? "block" : "hidden"} lg:block max-lg:h-[70dvh] max-lg:overflow-y-auto`}>
+              <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
+                activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
+                onEditChange={updateDocEdit} />
+            </div>
+
+            <div className={`${mobileTab === "chat" ? "flex" : "hidden"} lg:flex flex-col gap-2 max-lg:h-[70dvh] max-lg:overflow-y-auto`}>
+              <div className="flex items-center rounded border overflow-hidden self-start"
+                style={{ borderColor: "var(--border2)" }}>
+                {(["concise", "normal", "detailed"] as const).map(len => (
+                  <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
+                    disabled={chat.messages.length === 0}
+                    title={len === "concise" ? "1-3 sentences, no extra context"
+                         : len === "detailed" ? "Thorough — includes reasoning and related details"
+                         : "Default answer length"}
+                    className="text-[11px] px-2 py-1 capitalize transition-colors"
+                    style={chat.answerLength === len
+                      ? { background: `${ACCENT}22`, color: ACCENT }
+                      : { color: "var(--text2)" }}>
+                    {len}
+                  </button>
+                ))}
+              </div>
+              <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
+                settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+            </div>
+            </>)}
           </div>
-          </>)}
-        </div>
+        </>
       )}
 
       {isSharedView && (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_440px] gap-4 lg:h-[88vh]">
-          <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
-            activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
-            onEditChange={updateDocEdit} />
+        <>
+          <div className="flex items-center rounded border overflow-hidden self-start lg:hidden"
+            style={{ borderColor: "var(--border2)" }}>
+            {(["evidence", "chat"] as const).map(tab => (
+              <button key={tab} onClick={() => setMobileTab(tab)}
+                className="text-[11px] px-3 py-1.5 capitalize transition-colors"
+                style={mobileTab === tab
+                  ? { background: `${ACCENT}22`, color: ACCENT }
+                  : { color: "var(--text2)" }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_440px] gap-4 lg:h-[88vh]">
+            <div className={`${mobileTab === "evidence" ? "block" : "hidden"} lg:block max-lg:h-[70dvh] max-lg:overflow-y-auto`}>
+              <EvidenceColumn chat={chat} accent={ACCENT} cardStyle={cardStyle} jumpToCitation={jumpToCitation}
+                activeCitation={activeCitation} activeDoc={activeDoc} setActiveCitation={setActiveCitation}
+                onEditChange={updateDocEdit} />
+            </div>
 
-          <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
-            settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
-        </div>
+            <div className={`${mobileTab === "chat" ? "block" : "hidden"} lg:block max-lg:h-[70dvh] max-lg:overflow-y-auto`}>
+              <ChatPanel chat={chat} documents={documents} accent={ACCENT} cardStyle={cardStyle}
+                settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

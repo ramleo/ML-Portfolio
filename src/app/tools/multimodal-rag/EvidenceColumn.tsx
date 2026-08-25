@@ -126,7 +126,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
     // column is the only way "selecting a dropdown action never changes
     // Evidence's size" can hold unconditionally, at every viewport width.
     <div className="flex flex-col gap-3 min-h-0">
-      <div style={{ height: 502 }} className="min-h-0 shrink-0">
+      <div className="min-h-0 shrink-0 h-[502px] max-lg:h-[280px]">
         <EvidencePanel chat={chat} accent={accent} cardStyle={cardStyle} jumpToCitation={jumpToCitation} />
       </div>
 
@@ -141,7 +141,7 @@ export default function EvidenceColumn({ chat, accent, cardStyle, jumpToCitation
           the row's natural height only ever varies within a small, known
           range. Letting it size naturally keeps Evidence as large as
           possible the rest of the time. */}
-      <div className="flex gap-3 shrink-0">
+      <div className="flex flex-col sm:flex-row gap-3 shrink-0">
         <div className="flex-1 flex flex-col gap-3 min-w-0">
           {activeCitation && activeCitation.source && !activeDoc ? (
             <div style={cardStyle} className="flex items-center justify-center py-16">
