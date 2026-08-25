@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary,
   type LucideIcon,
 } from "lucide-react";
 
@@ -458,6 +458,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/captcha-hardening-lab",
+  },
+  {
+    id: "malware-image-triage",
+    domain: "Security & Trust",
+    title: "Binary Byte-Plot & Entropy Triage",
+    subtitle: "Static Analysis · No Execution",
+    description:
+      "Upload any file and it's converted into the same grayscale \"byte-plot\" image real malware-visualization research uses, alongside a sliding-window Shannon-entropy heatmap — sustained near-random entropy is a genuine, established sign of packed or encrypted content, the actual technique tools like PEiD/Detect It Easy rely on. If the file parses as a Windows executable, a hand-rolled PE header read also checks a classic packer tell: whether the entry point sits in the file's last section. Deliberately not a malware-family classifier — no viable pretrained model or accessible labeled dataset exists for that without gambling on an unreliable data source, so this ships the real technique the field falls back on for triage instead. Never executes the uploaded file; pure static byte analysis, capped at 5MB.",
+    accent: "#f43f5e",
+    icon: Binary,
+    stat: "0",
+    statLabel: "Files Executed",
+    model: "Byte-plot + Shannon entropy (local)",
+    input: "Any file",
+    tags: ["Security Research", "Static Analysis", "Malware Triage", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/malware-image-triage",
   },
   {
     id: "face-cloak",
