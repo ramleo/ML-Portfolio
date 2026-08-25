@@ -163,6 +163,10 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"}
             style={{ borderColor: "var(--border2)" }}
             onClick={() => inputRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload a document, image, video, or audio file"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) upload(f); }}
           >

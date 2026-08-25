@@ -84,7 +84,7 @@ export default function DetectionBoxOverlay({ list: fullList, color: colorProp, 
               <button onClick={() => runInpaint(o.bbox, o.mask)} disabled={inpainting}
                 className="absolute pointer-events-auto text-[9px] font-bold rounded-full flex items-center justify-center hover:brightness-110"
                 style={{ top: -7, right: -7, width: 14, height: 14, background: color, color: "#0b0b12", opacity: inpainting ? 0.5 : 1, boxShadow: "0 0 0 2px rgba(0,0,0,0.4)" }}
-                title="Remove this region">
+                title="Remove this region" aria-label="Remove this region">
                 ✕
               </button>
             )}
