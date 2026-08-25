@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -494,6 +494,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/face-deanonymization-demo",
+  },
+  {
+    id: "video-keystroke-inference",
+    domain: "Security & Trust",
+    title: "Video-Call Keystroke Inference",
+    subtitle: "Client-Side Only",
+    description:
+      "Upload a short video of hands typing and this steps through it frame-by-frame with MediaPipe hand tracking, running a real tap-detection pass on fingertip motion to recover a keystroke-event timeline — timestamps, which hand, and likely word boundaries from timing gaps — the same hand-tracking side channel published attacks (USENIX Security '23 video-based keystroke inference) rely on. Deliberately does not attempt character-level text recovery: the real attack's language-model decoding stage needs per-target trained models this demo doesn't have, so it stops at the honest, measurable signal — WHEN keys were pressed, never WHAT was typed. Runs entirely in the browser; no video ever leaves the device.",
+    accent: "#38bdf8",
+    icon: Keyboard,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MediaPipe HandLandmarker (local)",
+    input: "Video",
+    tags: ["Security Research", "Side-Channel", "Computer Vision", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/video-keystroke-inference",
   },
   {
     id: "face-cloak",
