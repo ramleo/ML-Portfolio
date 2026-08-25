@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves,
   type LucideIcon,
 } from "lucide-react";
 
@@ -404,6 +404,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/photo-search",
+  },
+  {
+    id: "pose-vj-visuals",
+    domain: "Computer Vision",
+    title: "Pose VJ Visuals",
+    subtitle: "Client-Side · No API Cost",
+    description:
+      "Turn on your camera and your hand movements drive a real-time generative particle visual — a creative-coding bridge between pose tracking and VJ-style motion graphics. Hand landmarks are tracked entirely in your browser via MediaPipe (no video frame ever leaves your device). Optionally turn on your microphone too: particle size and density react to live volume — whatever the mic hears, not beat or genre detection. The only tool on this site with no backend call at all.",
+    accent: "#d946ef",
+    icon: Waves,
+    stat: "0",
+    statLabel: "Backend Calls",
+    model: "MediaPipe HandLandmarker (client-side WASM)",
+    input: "Webcam + optional microphone",
+    tags: ["Computer Vision", "Creative Coding", "Client-Side", "Generative Art"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/pose-vj-visuals",
   },
   {
     id: "adversarial-robustness-lab",
