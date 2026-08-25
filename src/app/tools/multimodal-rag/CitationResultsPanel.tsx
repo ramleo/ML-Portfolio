@@ -4,6 +4,7 @@ import type { Bbox, CameraMatch, DetectedObject, DuplicateMatch, Entity, MoireRe
 import type { VisualizeState } from "./useVisualizeActions";
 import { tamperingLevel } from "./tamperingLevel";
 import { useNarration } from "./useNarration";
+import Skeleton from "./Skeleton";
 
 const TAMPERING_COLOR = "#f87171"; // same accent as the box overlay in CitationThumbnailPanel
 
@@ -141,13 +142,14 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
               ? " On top of that pattern, the hidden bytes themselves were pulled out and they match a known file format — a much stronger signal than the pattern alone."
               : " A strong hint, not proof, and only works on PNG-style images (a JPEG photo can't hide data this way)."}
           </p>
-          {!viz.steganography.vizImage && (
-            <button onClick={viz.steganography.visualize} disabled={viz.steganography.visualizing}
+          {!viz.steganography.vizImage && !viz.steganography.visualizing && (
+            <button onClick={viz.steganography.visualize}
               className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
-              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: viz.steganography.visualizing ? 0.5 : 1 }}>
-              {viz.steganography.visualizing ? "Generating…" : "Show what the computer sees"}
+              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8" }}>
+              Show what the computer sees
             </button>
           )}
+          {viz.steganography.visualizing && <Skeleton className="max-w-[160px] h-[120px]" />}
           {viz.steganography.vizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{viz.steganography.vizError}</p>}
           {viz.steganography.vizImage && (
             <div className="flex flex-col gap-1">
@@ -176,13 +178,14 @@ export default function CitationResultsPanel({ inpaintError, isImageOrVideoOnly,
             some real photos with fine repeating textures (mesh, fabric, a wire fence) can
             occasionally trigger this too.
           </p>
-          {!viz.moire.vizImage && (
-            <button onClick={viz.moire.visualize} disabled={viz.moire.visualizing}
+          {!viz.moire.vizImage && !viz.moire.visualizing && (
+            <button onClick={viz.moire.visualize}
               className="self-start text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
-              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8", opacity: viz.moire.visualizing ? 0.5 : 1 }}>
-              {viz.moire.visualizing ? "Generating…" : "Show what the computer sees"}
+              style={{ borderColor: "rgba(56,189,248,0.4)", color: "#38bdf8" }}>
+              Show what the computer sees
             </button>
           )}
+          {viz.moire.visualizing && <Skeleton className="max-w-[160px] h-[120px]" />}
           {viz.moire.vizError && <p className="text-[9px]" style={{ color: TAMPERING_COLOR }}>{viz.moire.vizError}</p>}
           {viz.moire.vizImage && (
             <div className="flex flex-col gap-1">

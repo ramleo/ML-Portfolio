@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import Skeleton from "./Skeleton";
 
 type Contradiction = {
   similarity: number;
@@ -52,6 +53,20 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
       </div>
 
       <div aria-live="polite">
+      {state === "loading" && (
+        <div className="flex flex-col gap-2">
+          {[0, 1].map(i => (
+            <div key={i} className="rounded-lg p-2.5 flex flex-col gap-1.5"
+              style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)" }}>
+              <Skeleton className="h-3 w-3/4" />
+              <div className="flex gap-1.5">
+                <Skeleton className="h-8 flex-1" />
+                <Skeleton className="h-8 flex-1" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {state === "done" && result && (
         result.contradictions.length === 0 ? (
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>

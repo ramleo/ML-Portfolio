@@ -2,6 +2,7 @@
 
 import { useRagChat } from "@/components/useRagChat";
 import RagSourceCard from "@/components/RagSourceCard";
+import Skeleton from "./Skeleton";
 import type { Bbox, DetectedObject, Entity } from "./_types";
 
 type Props = {
@@ -90,7 +91,18 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
         maskImage: "linear-gradient(to bottom, transparent 0, black 32px)",
         WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 32px)",
       }}>
-        {!hasContent && (
+        {!hasContent && chat.loading && (
+          <div className="flex flex-col gap-1.5">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="rounded-lg p-2.5 flex flex-col gap-1.5" style={cardStyle}>
+                <Skeleton className="h-2.5 w-1/3" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+            ))}
+          </div>
+        )}
+        {!hasContent && !chat.loading && (
           <p className="text-[13px] text-center py-8 px-2" style={{ color: "var(--text3)" }}>
             Ask a question — the sources it draws from will rank here.
           </p>
