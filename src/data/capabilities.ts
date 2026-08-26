@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -530,6 +530,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/video-keystroke-inference",
+  },
+  {
+    id: "extension-permission-analyzer",
+    domain: "Security & Trust",
+    title: "Browser Extension Permission Risk Analyzer",
+    subtitle: "Local · No API Cost",
+    description:
+      "Paste a Chrome/Edge extension's manifest.json and get it checked against a documented risk taxonomy: individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history…), broad host access (<all_urls>), and known dangerous combinations — e.g. broad host access + network interception + cookie access, which together enable session hijacking on any site. Static declared-permission analysis only, not a behavioral scan — a legitimate password manager can need the same broad permissions, so results are framed as \"worth a closer look,\" never a verdict on intent.",
+    accent: "#eab308",
+    icon: Blocks,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "Rule-based (local)",
+    input: "Text",
+    tags: ["Browser Security", "Static Analysis", "Zero ML", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/extension-permission-analyzer",
   },
   {
     id: "email-auth-checker",
