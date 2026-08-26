@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints,
   type LucideIcon,
 } from "lucide-react";
 
@@ -440,6 +440,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/pose-vj-visuals",
+  },
+  {
+    id: "gait-pattern-comparison",
+    domain: "Computer Vision",
+    title: "Gait Pattern Comparison",
+    subtitle: "Client-Side · No API Cost",
+    description:
+      "Upload two side-view walking videos and this tracks body pose with MediaPipe (reusing Movement Form Comparison's exact extraction pipeline), detects each video's repeating gait cycles from knee-angle peaks, averages the joint-angle curve across all detected strides into one signature per video, then compares the two. Deliberately NOT a validated biometric identification technique — real gait-recognition research uses silhouette-based deep embeddings under controlled conditions and still has real error rates; this coarser, monocular, uncalibrated technique only shows whether two clips display a similar walking pattern, never proof of identity. Runs entirely in the browser; no video ever leaves the device.",
+    accent: "#84cc16",
+    icon: Footprints,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MediaPipe PoseLandmarker (local)",
+    input: "2 Videos",
+    tags: ["Computer Vision", "Gait Analysis", "Client-Side", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/gait-pattern-comparison",
   },
   {
     id: "movement-form-comparison",
