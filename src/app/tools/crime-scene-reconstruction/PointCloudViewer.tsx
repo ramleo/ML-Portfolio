@@ -82,7 +82,7 @@ export default function PointCloudViewer({ points, cameraPoses, accent }: {
 
   return (
     <div style={{ width: "100%", height: 420, borderRadius: 12, overflow: "hidden", background: "var(--bg)", border: "1px solid var(--border)" }}>
-      <Canvas camera={{ position: cameraPosition, fov: 60, near: cameraDistance / 100, far: cameraDistance * 20 }} gl={{ antialias: true }}>
+      <Canvas camera={{ position: cameraPosition, fov: 60, near: cameraDistance / 100, far: cameraDistance * 20 }} gl={{ antialias: true, preserveDrawingBuffer: true }}>
         <ambientLight intensity={0.9} />
         <pointLight position={[cameraPosition[0] + framing.radius, cameraPosition[1] + framing.radius, cameraPosition[2]]} intensity={0.6} />
         <Cloud points={points} pointSize={3} />
