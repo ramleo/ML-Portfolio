@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box,
   type LucideIcon,
 } from "lucide-react";
 
@@ -296,6 +296,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/contract-invoice-reconciliation",
+  },
+  {
+    id: "crime-scene-reconstruction",
+    domain: "Computer Vision",
+    title: "Crime Scene Reconstruction",
+    subtitle: "Sparse SfM",
+    description:
+      "Upload 2-6 photos of the same static scene from different angles and get a real sparse Structure-from-Motion reconstruction: SIFT feature matching, essential-matrix pose estimation for the first pair, then incremental PnP-based camera registration and triangulation for each additional photo, rendered as an interactive colored 3D point cloud. No bundle adjustment, no camera calibration, no dense mesh — an educational demonstration of the real photogrammetry technique behind COLMAP-style tools, explicitly not a forensic-grade measurement tool.",
+    accent: "#b91c1c",
+    icon: Box,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "OpenCV SIFT + incremental SfM",
+    input: "Images",
+    tags: ["Structure-from-Motion", "Photogrammetry", "3D Reconstruction", "OpenCV"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/crime-scene-reconstruction",
   },
   {
     id: "text-to-image",
