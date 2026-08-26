@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -584,6 +584,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/prompt-injection-playground",
+  },
+  {
+    id: "ai-code-detector",
+    domain: "Security & Trust",
+    title: "AI-Generated Code Detector",
+    subtitle: "Signals, Not A Verdict",
+    description:
+      "Paste a code snippet and see documented stylometric signals (comment density, generic naming, docstring formality, exception-handling style, boilerplate phrasing) alongside an independent LLM opinion, side by side. Deliberately never outputs a probability or an \"AI-written\" verdict — no reliable general-purpose detector exists in published research, and shipping a specific confidence number here would repeat the exact overclaiming mistake this site rejected for fire-detection and signature-verification.",
+    accent: "#14b8a6",
+    icon: FileCode2,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "Client heuristics + Mistral judge",
+    input: "Text",
+    tags: ["Code Stylometry", "LLM Security", "Zero Overclaiming", "Second Opinion"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/ai-code-detector",
   },
   {
     id: "face-cloak",
