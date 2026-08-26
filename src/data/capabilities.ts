@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -530,6 +530,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/video-keystroke-inference",
+  },
+  {
+    id: "email-auth-checker",
+    domain: "Security & Trust",
+    title: "Email Header Authentication Checker",
+    subtitle: "Live DNS · Zero ML",
+    description:
+      "Paste raw email headers and get two honest signals: what the receiving mail server's own Authentication-Results already found (SPF/DKIM/DMARC verdicts, relayed not re-verified), plus independent live DNS lookups of the sending domain's real SPF/DMARC records and DKIM key status, with a From:-domain alignment check. Deliberately does not attempt cryptographic DKIM signature verification, which needs the full message body — disclosed openly rather than faked.",
+    accent: "#0ea5e9",
+    icon: MailCheck,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "DNS TXT lookups (live)",
+    input: "Text",
+    tags: ["Email Security", "DNS", "Anti-Spoofing", "Zero ML"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/email-auth-checker",
   },
   {
     id: "face-cloak",
