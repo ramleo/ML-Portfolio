@@ -17,8 +17,8 @@ inconsistent code. This tool exists to show what the actual, real signals
 people point to look like — and, just as importantly, to demonstrate why
 none of them, alone or combined, should be trusted as a verdict. It's an
 honesty-first sibling to this site's other "documented, evadable heuristics
-shown as raw evidence" tools ([[extension-permission-analyzer]],
-[[prompt-injection-playground]]).
+shown as raw evidence" tools (the Browser Extension Permission Risk
+Analyzer, the LLM Prompt Injection Detection Playground).
 
 ## How to use it
 1. Paste a code snippet, or click one of the three example buttons.
