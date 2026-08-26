@@ -4,11 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import ExtensionAnalyzerRunner from "./ExtensionAnalyzerRunner";
 import ExtensionAnalyzerUserGuideModal from "./ExtensionAnalyzerUserGuideModal";
+import { EXTENSION_ANALYZER_GUIDE, EXTENSION_ANALYZER_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#eab308";
+
+const TOOL_SUMMARY =
+  "Paste a Chrome/Edge extension's manifest.json — checks declared permissions and host access against a " +
+  "documented risk taxonomy, flagging high-risk permissions and known dangerous combinations (e.g. broad host " +
+  "access + network interception + cookie access). Static analysis only, entirely client-side.";
 
 export default function ExtensionPermissionAnalyzerPage() {
   useToolTracking("extension-permission-analyzer");
@@ -19,6 +26,13 @@ export default function ExtensionPermissionAnalyzerPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Browser Extension Permission Risk Analyzer",
+        summary: TOOL_SUMMARY,
+        guide: EXTENSION_ANALYZER_GUIDE,
+        suggestions: EXTENSION_ANALYZER_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">

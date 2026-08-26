@@ -4,11 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import CaptchaHardeningRunner from "./CaptchaHardeningRunner";
 import CaptchaHardeningUserGuideModal from "./CaptchaHardeningUserGuideModal";
+import { CAPTCHA_HARDENING_GUIDE, CAPTCHA_HARDENING_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#f59e0b";
+
+const TOOL_SUMMARY =
+  "Upload a CAPTCHA-style image — a vision-language model attempts to read it, then a hardening slider stacks " +
+  "three classic, model-agnostic perturbations (noise, occlusion wave, reduced contrast) and the model tries " +
+  "again. Only reads images you upload, never contacts a live CAPTCHA.";
 
 export default function CaptchaHardeningLabPage() {
   useToolTracking("captcha-hardening-lab");
@@ -19,6 +26,13 @@ export default function CaptchaHardeningLabPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "CAPTCHA Hardening Lab",
+        summary: TOOL_SUMMARY,
+        guide: CAPTCHA_HARDENING_GUIDE,
+        suggestions: CAPTCHA_HARDENING_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">

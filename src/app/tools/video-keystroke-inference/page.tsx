@@ -4,11 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import VideoKeystrokeInferenceRunner from "./VideoKeystrokeInferenceRunner";
 import KeystrokeUserGuideModal from "./KeystrokeUserGuideModal";
+import { KEYSTROKE_GUIDE, KEYSTROKE_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#38bdf8";
+
+const TOOL_SUMMARY =
+  "Upload a video of hands typing — tracks fingertip motion frame-by-frame (MediaPipe HandLandmarker, entirely " +
+  "client-side) and detects keystroke-shaped press-release events purely from timing, the real side-channel " +
+  "published attacks key off. Recovers WHEN keys were pressed, never WHICH characters.";
 
 export default function VideoKeystrokeInferencePage() {
   useToolTracking("video-keystroke-inference");
@@ -19,6 +26,13 @@ export default function VideoKeystrokeInferencePage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Video-Call Keystroke Inference",
+        summary: TOOL_SUMMARY,
+        guide: KEYSTROKE_GUIDE,
+        suggestions: KEYSTROKE_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">

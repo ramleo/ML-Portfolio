@@ -4,11 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import EmailAuthCheckerRunner from "./EmailAuthCheckerRunner";
 import EmailAuthUserGuideModal from "./EmailAuthUserGuideModal";
+import { EMAIL_AUTH_GUIDE, EMAIL_AUTH_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#0ea5e9";
+
+const TOOL_SUMMARY =
+  "Paste raw email headers — parses the receiving mail server's own Authentication-Results (SPF/DKIM/DMARC), " +
+  "then runs independent live DNS checks against the sending domain's real SPF/DMARC records and DKIM key, plus " +
+  "a From:-domain alignment check. Does not cryptographically verify the DKIM signature (needs the message body).";
 
 export default function EmailAuthCheckerPage() {
   useToolTracking("email-auth-checker");
@@ -19,6 +26,13 @@ export default function EmailAuthCheckerPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Email Header Authentication Checker",
+        summary: TOOL_SUMMARY,
+        guide: EMAIL_AUTH_GUIDE,
+        suggestions: EMAIL_AUTH_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">

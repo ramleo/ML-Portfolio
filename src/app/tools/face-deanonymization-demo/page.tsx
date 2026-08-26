@@ -4,11 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import FaceReidDemoRunner from "./FaceReidDemoRunner";
 import FaceReidUserGuideModal from "./FaceReidUserGuideModal";
+import { FACE_REID_GUIDE, FACE_REID_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#f97316";
+
+const TOOL_SUMMARY =
+  "Upload a target photo and a small gallery of other photos — runs a real face-embedding similarity search " +
+  "(the same mechanism facial-recognition re-identification systems use) to rank the closest match, then lets " +
+  "you cloak the target (Face Cloak's technique) and re-test whether the match breaks. Never searches the internet.";
 
 export default function FaceDeanonymizationDemoPage() {
   useToolTracking("face-deanonymization-demo");
@@ -19,6 +26,13 @@ export default function FaceDeanonymizationDemoPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Face Deanonymization Risk Demo",
+        summary: TOOL_SUMMARY,
+        guide: FACE_REID_GUIDE,
+        suggestions: FACE_REID_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">
