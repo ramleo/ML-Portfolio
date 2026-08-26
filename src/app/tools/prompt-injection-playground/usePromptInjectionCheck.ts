@@ -1,0 +1,54 @@
+import { useCallback, useState } from "react";
+import { ML_UNIFIED_API } from "@/config/urls";
+
+const CHECK_TIMEOUT_MS = 25_000;
+
+export type PatternHit = { category: string; description: string; matched_text: string; position: number };
+export type LlmVerdict = { is_injection: boolean; confidence: string; category: string; explanation: string };
+
+export type PromptInjectionResult = {
+  heuristic_hits: PatternHit[];
+  llm_verdict: LlmVerdict | null;
+  overall_risk: string;
+  overall_reason: string;
+};
+
+export function usePromptInjectionCheck() {
+  const [text, setText] = useState("");
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<PromptInjectionResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const check = useCallback(async () => {
+    if (!text.trim()) return;
+    setRunning(true);
+    setError(null);
+    setResult(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
+    try {
+      const res = await fetch(`${ML_UNIFIED_API}/prompt-injection/check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Check failed.");
+      setResult(data as PromptInjectionResult);
+    } catch (err) {
+      setError(err instanceof Error && err.name === "AbortError" ? "Request timed out — the LLM judge call took too long." : (err as Error).message || "Check failed.");
+    } finally {
+      clearTimeout(timeout);
+      setRunning(false);
+    }
+  }, [text]);
+
+  const reset = useCallback(() => {
+    setText("");
+    setResult(null);
+    setError(null);
+  }, []);
+
+  return { text, setText, check, running, result, error, reset };
+}

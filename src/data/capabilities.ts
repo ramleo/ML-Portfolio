@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning,
   type LucideIcon,
 } from "lucide-react";
 
@@ -566,6 +566,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/email-auth-checker",
+  },
+  {
+    id: "prompt-injection-playground",
+    domain: "Security & Trust",
+    title: "LLM Prompt Injection Detection Playground",
+    subtitle: "Pattern + LLM Judge",
+    description:
+      "Paste a prompt or a document an AI might be asked to read and see two independent detection signals side by side: a transparent, evadable-by-design pattern library (direct override, jailbreak roleplay, indirect injection, encoding tricks) and a second, independently-prompted LLM judge. Combines both into an overall risk badge rather than a single fabricated confidence score — no detector here is claimed to be 100% reliable.",
+    accent: "#8b5cf6",
+    icon: MessageSquareWarning,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "Regex heuristics + Mistral judge",
+    input: "Text",
+    tags: ["Prompt Injection", "LLM Security", "AI Red-Teaming", "RAG"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/prompt-injection-playground",
   },
   {
     id: "face-cloak",
