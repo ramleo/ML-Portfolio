@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso,
   type LucideIcon,
 } from "lucide-react";
 
@@ -440,6 +440,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/pose-vj-visuals",
+  },
+  {
+    id: "text-prompted-video-tracking",
+    domain: "Computer Vision",
+    title: "Text-Prompted Video Object Tracking",
+    subtitle: "Grounded-SAM",
+    description:
+      "Upload a short video and type a description of an object (e.g. \"the red backpack\") — Grounding DINO (IDEA Research, Apache 2.0) finds it once in the first frame, then SAM2 (Meta, Apache 2.0) tracks and masks it through the rest of the clip via its video memory mechanism. Originally scoped around Meta's SAM3, which does this natively from text, but SAM3's checkpoints are currently gated behind a Meta access request with no reliable pip package — so this uses the well-established real \"Grounded-SAM\" combination of two freely-available models instead. Both are inference-only forward passes, verified end-to-end on real CPU hardware (no GPU needed, unlike 3D Gaussian Splatting which was rejected for exactly that reason). Output is a downscaled, reduced-framerate sampled preview, not a full-resolution exported video file.",
+    accent: "#7c3aed",
+    icon: Lasso,
+    stat: "1",
+    statLabel: "API Call",
+    model: "SAM2 + Grounding DINO",
+    input: "Video + Text",
+    tags: ["Video Segmentation", "Open-Vocabulary Detection", "Grounded-SAM", "Object Tracking"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/text-prompted-video-tracking",
   },
   {
     id: "gait-pattern-comparison",
