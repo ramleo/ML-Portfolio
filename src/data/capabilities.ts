@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope,
   type LucideIcon,
 } from "lucide-react";
 
@@ -476,6 +476,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/gait-pattern-comparison",
+  },
+  {
+    id: "astrophotography-anomaly-detector",
+    domain: "Computer Vision",
+    title: "Astrophotography Anomaly Detector",
+    subtitle: "Frame Differencing + Hough Transform",
+    description:
+      "Upload 5-30 photos from one fixed-tripod night-sky session and this detects meteor/satellite streaks using the real technique operational detectors use: differencing time-adjacent frames, then a Hough transform on the difference. The key discriminator is a dipole vs. monopole check — a star that drifts slightly between frames leaves a paired positive/negative streak in the difference (which cancels out), while a transient meteor or satellite trail leaves a one-sided streak with no opposite-sign counterpart. Also returns a median-stacked \"clean\" image, since median stacking rejects the same transients this tool detects. Deliberately does NOT attempt a meteor-vs-satellite verdict — tested against synthetic ground truth and found genuinely unreliable to distinguish with position drift alone, so every detection is labeled \"possible meteor or satellite trail,\" never a confident classification. No neural network, no GPU needed — pure classical OpenCV.",
+    accent: "#0ea5e9",
+    icon: Telescope,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "OpenCV Hough Transform",
+    input: "5-30 Images",
+    tags: ["Astrophotography", "Frame Differencing", "Hough Transform", "Image Stacking"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/astrophotography-anomaly-detector",
   },
   {
     id: "movement-form-comparison",
