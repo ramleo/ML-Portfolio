@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "password-audit",
+    domain: "Security & Trust",
+    title: "Password Strength & Breach Checker",
+    subtitle: "Local · No API Cost",
+    description:
+      "Type a password to score its real strength via zxcvbn — the same pattern-matching algorithm (dictionaries, keyboard walks, dates, repeats) behind many real password meters, not naive character-class counting — entirely in your browser. Optionally check it against Have I Been Pwned's Pwned Passwords database using k-anonymity: only a 5-character SHA-1 hash prefix is ever sent, never the password or the full hash. No backend, no API key, and nothing is stored between visits.",
+    accent: "#14b8a6",
+    icon: KeyRound,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "zxcvbn-ts + HIBP k-anonymity range API",
+    input: "Password (never stored)",
+    tags: ["Security", "Password Strength", "Breach Detection", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/password-audit",
   },
   {
     id: "qr-phishing-detector",
