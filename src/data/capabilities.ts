@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand,
   type LucideIcon,
 } from "lucide-react";
 
@@ -530,6 +530,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/ppe-compliance-check",
+  },
+  {
+    id: "asl-fingerspelling-recognition",
+    domain: "Computer Vision",
+    title: "ASL Fingerspelling Recognition",
+    subtitle: "Client-Side · No API Cost",
+    description:
+      "Hold up one hand fingerspelling an ASL letter and this recognizes it live from your webcam — MediaPipe hand landmarks feed a k-NN classifier trained on real photos, entirely client-side. Rescoped from a general \"sign language translator\" brainstorm to the real sub-problem a single-frame classifier can honestly do: individual letters, not whole signed words or ASL grammar (which needs sequence models over video, a fundamentally different problem). J and Z are excluded since both require motion a static frame can't capture, matching the same convention as the Sign Language MNIST benchmark. Measured held-out accuracy: 79% across 24 letters (chance is ~4%), evaluated on real photos never included in the shipped classifier — rotation-normalizing the hand was tried and found to hurt accuracy, so it was dropped.",
+    accent: "#0891b2",
+    icon: Hand,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MediaPipe HandLandmarker + k-NN (local)",
+    input: "Live Webcam",
+    tags: ["Sign Language", "Hand Tracking", "Client-Side", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/asl-fingerspelling-recognition",
   },
   {
     id: "movement-form-comparison",
