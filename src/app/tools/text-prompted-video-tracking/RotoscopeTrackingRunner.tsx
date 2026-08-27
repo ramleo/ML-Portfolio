@@ -109,7 +109,9 @@ export default function RotoscopeTrackingRunner({ accent }: { accent: string }) 
         checkpoints are currently gated behind a Meta access request, so this uses SAM2 + Grounding DINO
         (&quot;Grounded-SAM&quot;) instead, both freely available. The output is a sampled-frame preview
         (reduced fps/resolution), not a full-resolution exported video file, and Grounding DINO only looks
-        at the first frame — if it can&apos;t find your description there, tracking can&apos;t start.
+        at the first frame. It also has no reliable way to say &quot;nothing here matches&quot; — a wrong
+        description can still return a plausible-looking (but wrong) tracked region instead of an error, so
+        always check the result visually.
       </div>
     </div>
   );
