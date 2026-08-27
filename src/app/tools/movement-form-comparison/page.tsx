@@ -1,22 +1,39 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
+import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import MovementComparisonRunner from "./MovementComparisonRunner";
+import MovementComparisonUserGuideModal from "./MovementComparisonUserGuideModal";
+import { MOVEMENT_COMPARISON_GUIDE, MOVEMENT_COMPARISON_SUGGESTIONS } from "./userGuide";
 
 const ACCENT = "#22c55e";
+
+const TOOL_SUMMARY =
+  "Upload your movement video and a reference video of the same exercise — tracks body pose with MediaPipe, " +
+  "computes 6 real joint angles (elbows, knees, hips), and compares them on a shared 0-100% movement-phase axis " +
+  "so clips of different length/speed are directly comparable. A training-form aid, not a clinical assessment. " +
+  "Runs entirely in the browser; no video is uploaded anywhere.";
 
 export default function MovementFormComparisonPage() {
   useToolTracking("movement-form-comparison");
   const router = useRouter();
   const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
       <ConstellationBackground />
+      <ToolsAIChat context={{
+        accent: ACCENT,
+        tool: "Movement Form Comparison",
+        summary: TOOL_SUMMARY,
+        guide: MOVEMENT_COMPARISON_GUIDE,
+        suggestions: MOVEMENT_COMPARISON_SUGGESTIONS,
+      }} />
 
       <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">
@@ -52,8 +69,19 @@ export default function MovementFormComparisonPage() {
                 Compares your workout video to a reference using real, measured joint angles
               </p>
             </div>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
             <ThemeToggle />
           </div>
+
+          <MovementComparisonUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
           <MovementComparisonRunner accent={ACCENT} />
         </div>

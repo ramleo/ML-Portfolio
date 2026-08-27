@@ -237,7 +237,9 @@ export default function MLCapabilities() {
         {domains.map((d) => {
           if (activeDomain !== "all" && activeDomain !== d) return null;
           const q = query.trim().toLowerCase();
-          const items = capabilities.filter((c) => c.domain === d && matches(c, q));
+          const items = capabilities
+            .filter((c) => c.domain === d && matches(c, q))
+            .sort((a, b) => a.title.localeCompare(b.title));
           if (items.length === 0) return null;
           const total = capabilities.filter((c) => c.domain === d).length;
           return (
