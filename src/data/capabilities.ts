@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint,
   type LucideIcon,
 } from "lucide-react";
 
@@ -494,6 +494,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/astrophotography-anomaly-detector",
+  },
+  {
+    id: "wildlife-reidentification",
+    domain: "Computer Vision",
+    title: "Wildlife Re-Identification",
+    subtitle: "MegaDescriptor",
+    description:
+      "Upload a new sighting photo and a gallery of past sightings of the same species — crops the animal from each photo (reusing the site's existing 601-class object detector), then compares them with MegaDescriptor (BVRA/MegaDescriptor-T-224), a foundation model built specifically for individual animal re-identification rather than a generic vision embedding. Verified with real photos: two different goldfish side-by-side in one photo scored 0.60 cosine similarity (correctly \"different\"), the same fish crop compared to itself scored 1.00 (\"same\"). Deliberately not a validated identification system — same/uncertain/different bands are informed by one real test, not a calibrated multi-individual benchmark. MegaDescriptor is CC-BY-NC-4.0 (non-commercial).",
+    accent: "#a16207",
+    icon: PawPrint,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "MegaDescriptor-T-224",
+    input: "Target + Gallery Photos",
+    tags: ["Wildlife", "Re-Identification", "Embedding Similarity", "Computer Vision"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/wildlife-reidentification",
   },
   {
     id: "movement-form-comparison",
