@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat,
   type LucideIcon,
 } from "lucide-react";
 
@@ -512,6 +512,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/wildlife-reidentification",
+  },
+  {
+    id: "ppe-compliance-check",
+    domain: "Computer Vision",
+    title: "PPE Compliance Check",
+    subtitle: "YOLOv8n PPE",
+    description:
+      "Upload a photo and this detects each person and checks whether a hard hat and safety vest are visible on them. Verified the existing 601-class object detector has no safety-vest class of any kind before building this, so a dedicated model (Hansung-Cho/yolov8-ppe-detection, MIT-licensed weights, exported locally to ONNX — no new AGPL runtime dependency, same pattern as the site's existing detector) was hands-on tested rather than trusted from its model card. An initial test on a very low-resolution photo gave a weak result; re-tested on 3 higher-resolution real photos and got a real, confident pass (hard hat 0.72-0.88, safety vest 0.39-0.69), including correctly avoiding a false compliance claim on a photo of gear just lying on the ground (reported \"unclear\" rather than guessing). Compliance is always read from an explicit present/absent signal the model was trained on, never inferred from a lack of detection.",
+    accent: "#ea580c",
+    icon: HardHat,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "YOLOv8n PPE (ONNX)",
+    input: "Image",
+    tags: ["PPE Detection", "Workplace Safety", "Object Detection", "Computer Vision"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/ppe-compliance-check",
   },
   {
     id: "movement-form-comparison",
