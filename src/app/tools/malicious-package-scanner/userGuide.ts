@@ -46,6 +46,20 @@ to have seen it.
 - **Embedded URLs** — any hardcoded network address found in the source,
   surfaced as evidence worth reviewing (not scored or judged — that's a
   different job from this tool's).
+- **Hardcoded secrets** — recognizable real secret formats (AWS
+  \`AKIA...\` access key IDs, GitHub \`ghp_\`/\`github_pat_\` tokens, Slack
+  \`xox...\` tokens, PEM private-key blocks) plus a generic
+  \`api_key\`/\`password\`/\`token\` \`= "..."\` assignment pattern — obvious
+  placeholder values (\`changeme\`, \`your-password\`, etc.) are skipped to
+  cut noise from docs/config examples. Matched values are shown partially
+  masked in the UI.
+- **SQL-injection-shaped query building** (CWE-89) — a line naming a SQL
+  keyword (\`SELECT\`/\`INSERT\`/\`UPDATE\`/\`DELETE\`) combined with an
+  f-string, template-literal, string-concatenation, or \`%\`-format
+  interpolation, rather than a properly parameterized placeholder.
+- **Insecure deserialization** (CWE-502) — Python's classic, well-documented
+  unsafe patterns: \`pickle.loads(\`/\`pickle.load(\`, \`marshal.loads(\`, and
+  \`yaml.load(\` used without \`SafeLoader\` (PyYAML's own documented fix).
 
 ## What this is (and isn't)
 Every result here is a **signal, not a verdict** — real, non-fabricated

@@ -149,11 +149,17 @@ export function scanManifest(text: string): ManifestScanResult | null {
 export type ApiCallFlag = { pattern: string; line: number; snippet: string };
 export type ObfuscationFlag = { line: number; snippet: string; entropy: number };
 export type UrlFlag = { line: number; url: string };
+export type SecretFlag = { pattern: string; line: number; masked: string };
+export type SqlInjectionFlag = { line: number; snippet: string };
+export type DeserializationFlag = { pattern: string; line: number; snippet: string };
 
 export type SourceScanResult = {
   suspiciousApiCalls: ApiCallFlag[];
   obfuscationTells: ObfuscationFlag[];
   embeddedUrls: UrlFlag[];
+  hardcodedSecrets: SecretFlag[];
+  sqlInjectionTells: SqlInjectionFlag[];
+  insecureDeserialization: DeserializationFlag[];
 };
 
 const SUSPICIOUS_API_PATTERNS: { name: string; regex: RegExp }[] = [
@@ -170,11 +176,58 @@ const LONG_STRING_REGEX = /["'`]([A-Za-z0-9+/=]{40,}|[0-9a-fA-F]{40,})["'`]/g;
 const URL_REGEX = /https?:\/\/[^\s"'`)]+/g;
 const ENTROPY_THRESHOLD = 4.2;
 
+// Real, recognizable secret-format prefixes (CWE-798) — near-zero false-positive
+// rate since these are specific, documented formats, not generic long strings
+// (which the obfuscation-entropy check above already covers separately).
+const SECRET_FORMAT_PATTERNS: { name: string; regex: RegExp }[] = [
+  { name: "AWS Access Key ID", regex: /\bAKIA[0-9A-Z]{16}\b/ },
+  { name: "GitHub personal access token", regex: /\bgh[po]_[A-Za-z0-9]{36}\b|\bgithub_pat_[A-Za-z0-9_]{20,}\b/ },
+  { name: "Slack token", regex: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
+  { name: "PEM private key block", regex: /-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/ },
+];
+
+// Generic "sensitive-name = value" assignment — real secrets are common here,
+// but so are docs/config placeholders, so an obvious-placeholder denylist
+// (case-insensitive) is checked before flagging.
+const GENERIC_SECRET_ASSIGNMENT = /\b(api[_-]?key|secret(?:[_-]?key)?|access[_-]?token|auth[_-]?token|password|passwd|client[_-]?secret)\s*[:=]\s*["']([^"'\s]{6,})["']/i;
+const PLACEHOLDER_VALUES = new Set([
+  "changeme", "xxx", "xxxxxxxx", "yourpassword", "your-password", "your_password",
+  "<password>", "password", "secret", "token", "example", "placeholder", "test",
+  "000000", "123456", "insert-key-here", "your-api-key", "your_api_key", "todo",
+]);
+
+function maskSecret(value: string): string {
+  if (value.length <= 8) return `${value.slice(0, 2)}…${value.slice(-2)}`;
+  return `${value.slice(0, 4)}…${value.slice(-4)}`;
+}
+
+// SQL-injection-shaped string building (CWE-89): a line naming a SQL keyword
+// combined with an interpolation/concatenation mechanism, rather than a
+// parameterized placeholder (?, %s used as a real bound parameter, not
+// string-formatted in).
+const SQL_KEYWORD = /\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b/i;
+const SQL_FSTRING_INTERP = /f["'][^"'\n]*\{[^}]+\}[^"'\n]*["']/;
+const SQL_TEMPLATE_LITERAL = /`[^`\n]*\$\{[^}]+\}[^`\n]*`/;
+const SQL_CONCAT = /["'`]\s*\+|\+\s*["'`]/;
+const SQL_PERCENT_FORMAT = /%[sd]["'].*%\s*[([]/;
+
+// Insecure deserialization (CWE-502) — Python's classic, extremely
+// well-documented unsafe patterns. yaml.load is only flagged when the same
+// line lacks SafeLoader, PyYAML's own documented fix for this exact issue.
+const DESERIALIZATION_PATTERNS: { name: string; regex: RegExp; requireAbsent?: RegExp }[] = [
+  { name: "pickle.loads/load(", regex: /\bpickle\s*\.\s*loads?\s*\(/ },
+  { name: "marshal.loads(", regex: /\bmarshal\s*\.\s*loads?\s*\(/ },
+  { name: "yaml.load( without SafeLoader", regex: /\byaml\s*\.\s*load\s*\(/, requireAbsent: /SafeLoader/ },
+];
+
 export function scanSourceCode(text: string): SourceScanResult {
   const lines = text.split("\n");
   const suspiciousApiCalls: ApiCallFlag[] = [];
   const obfuscationTells: ObfuscationFlag[] = [];
   const embeddedUrls: UrlFlag[] = [];
+  const hardcodedSecrets: SecretFlag[] = [];
+  const sqlInjectionTells: SqlInjectionFlag[] = [];
+  const insecureDeserialization: DeserializationFlag[] = [];
 
   lines.forEach((line, i) => {
     for (const { name, regex } of SUSPICIOUS_API_PATTERNS) {
@@ -191,7 +244,26 @@ export function scanSourceCode(text: string): SourceScanResult {
     for (const match of line.matchAll(URL_REGEX)) {
       embeddedUrls.push({ line: i + 1, url: match[0] });
     }
+
+    for (const { name, regex } of SECRET_FORMAT_PATTERNS) {
+      const m = regex.exec(line);
+      if (m) hardcodedSecrets.push({ pattern: name, line: i + 1, masked: maskSecret(m[0]) });
+    }
+    const generic = GENERIC_SECRET_ASSIGNMENT.exec(line);
+    if (generic && !PLACEHOLDER_VALUES.has(generic[2].toLowerCase())) {
+      hardcodedSecrets.push({ pattern: "Hardcoded credential assignment", line: i + 1, masked: maskSecret(generic[2]) });
+    }
+
+    if (SQL_KEYWORD.test(line) && (SQL_FSTRING_INTERP.test(line) || SQL_TEMPLATE_LITERAL.test(line) || SQL_CONCAT.test(line) || SQL_PERCENT_FORMAT.test(line))) {
+      sqlInjectionTells.push({ line: i + 1, snippet: line.trim().slice(0, 140) });
+    }
+
+    for (const { name, regex, requireAbsent } of DESERIALIZATION_PATTERNS) {
+      if (regex.test(line) && !(requireAbsent && requireAbsent.test(line))) {
+        insecureDeserialization.push({ pattern: name, line: i + 1, snippet: line.trim().slice(0, 120) });
+      }
+    }
   });
 
-  return { suspiciousApiCalls, obfuscationTells, embeddedUrls };
+  return { suspiciousApiCalls, obfuscationTells, embeddedUrls, hardcodedSecrets, sqlInjectionTells, insecureDeserialization };
 }

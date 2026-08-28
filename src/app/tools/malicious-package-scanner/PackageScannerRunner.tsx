@@ -16,7 +16,10 @@ const SAMPLE_MANIFEST = `{
 
 const SAMPLE_SOURCE = `const payload = "ZXZpbCBjb2RlIGhlcmUgdGhhdCBkb2VzIGJhZCB0aGluZ3MgdG8geW91ciBzeXN0ZW0=";
 eval(atob(payload));
-fetch("http://malicious-c2.example.com/beacon");`;
+fetch("http://malicious-c2.example.com/beacon");
+const awsKey = "AKIAIOSFODNN7EXAMPLE";
+query = f"SELECT * FROM users WHERE id = {user_id}"
+data = pickle.loads(untrusted_bytes)`;
 
 type Mode = "manifest" | "source";
 
@@ -76,7 +79,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
         <p className="text-xs mb-3" style={{ color: "var(--text3)" }}>
           {mode === "manifest"
             ? "Paste a package.json or requirements.txt. Checked for suspicious install/lifecycle scripts and dependency-name typosquats against a curated list of well-known packages."
-            : "Paste a JS/TS or Python source file. Checked for suspicious dynamic-execution API calls, obfuscated (high-entropy) string literals, and embedded network URLs."}
+            : "Paste a JS/TS or Python source file. Checked for suspicious dynamic-execution API calls, obfuscated (high-entropy) string literals, embedded network URLs, hardcoded secrets, SQL-injection-shaped query building, and insecure deserialization (pickle/yaml.load/marshal)."}
         </p>
 
         <textarea
@@ -138,10 +141,35 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
 
       {mode === "source" && sourceResult && (
         <div style={cardStyle} className="p-5 flex flex-col gap-4">
-          {sourceResult.suspiciousApiCalls.length === 0 && sourceResult.obfuscationTells.length === 0 && sourceResult.embeddedUrls.length === 0 ? (
-            <p className="text-xs" style={{ color: "#34d399" }}>No suspicious API calls, obfuscation tells, or embedded URLs found.</p>
+          {sourceResult.suspiciousApiCalls.length === 0 && sourceResult.obfuscationTells.length === 0 && sourceResult.embeddedUrls.length === 0
+            && sourceResult.hardcodedSecrets.length === 0 && sourceResult.sqlInjectionTells.length === 0 && sourceResult.insecureDeserialization.length === 0 ? (
+            <p className="text-xs" style={{ color: "#34d399" }}>No suspicious findings.</p>
           ) : (
             <>
+              {sourceResult.hardcodedSecrets.map((s, i) => (
+                <div key={i} className="rounded-lg p-3" style={{ border: "1px solid #f8717140" }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: "#f87171" }}>
+                    Line {s.line}: {s.pattern}
+                  </p>
+                  <p className="text-[11px] font-mono" style={{ color: "var(--text2)" }}>{s.masked}</p>
+                </div>
+              ))}
+              {sourceResult.sqlInjectionTells.map((s, i) => (
+                <div key={i} className="rounded-lg p-3" style={{ border: "1px solid #f8717140" }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: "#f87171" }}>
+                    Line {s.line}: SQL query built via interpolation/concatenation — injection-shaped, not parameterized
+                  </p>
+                  <p className="text-[11px] font-mono break-all" style={{ color: "var(--text2)" }}>{s.snippet}</p>
+                </div>
+              ))}
+              {sourceResult.insecureDeserialization.map((d, i) => (
+                <div key={i} className="rounded-lg p-3" style={{ border: "1px solid #f8717140" }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: "#f87171" }}>
+                    Line {d.line}: {d.pattern} — insecure deserialization
+                  </p>
+                  <p className="text-[11px] font-mono break-all" style={{ color: "var(--text2)" }}>{d.snippet}</p>
+                </div>
+              ))}
               {sourceResult.suspiciousApiCalls.map((c, i) => (
                 <div key={i} className="rounded-lg p-3" style={{ border: "1px solid #f8717140" }}>
                   <p className="text-xs font-bold mb-1" style={{ color: "#f87171" }}>
