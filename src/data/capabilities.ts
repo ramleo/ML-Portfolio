@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch, ScanEye,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "attack-surface-scanner",
+    domain: "Security & Trust",
+    title: "Attack-Surface / Exposed-Path Scanner",
+    subtitle: "Live Recon · Zero ML",
+    description:
+      "Type a domain and 4 real, entirely passive recon checks run live: exposed sensitive paths (.git/HEAD, .env, .DS_Store, etc. — only flagged when the response content actually matches the expected file, not just a 200 status), Apache/nginx directory-listing detection, passive CMS fingerprinting via the standard <meta name=\"generator\"> tag, and a short common-port TCP-connect check (FTP/SSH/MySQL/Redis/etc. — open/closed only, no banner grab). SSRF-hardened: refuses to connect to any private, loopback, or internal address. Reports real findings for a human to weigh, never a fabricated risk score.",
+    accent: "#dc2626",
+    icon: ScanEye,
+    stat: "4",
+    statLabel: "Passive Checks",
+    model: "httpx + socket (server-side, no ML)",
+    input: "Domain name",
+    tags: ["Security", "Recon", "Attack Surface", "Live Network Check"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/attack-surface-scanner",
   },
   {
     id: "malicious-package-scanner",
