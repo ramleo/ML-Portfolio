@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "malicious-package-scanner",
+    domain: "Security & Trust",
+    title: "Malicious Package Scanner",
+    subtitle: "Local · No API Cost",
+    description:
+      "Paste a package.json/requirements.txt or a JS/TS/Python source file and it's checked with real, published static-analysis heuristics (GuardDog-style): suspicious npm lifecycle install scripts (preinstall/install/postinstall), dependency-name typosquats against a curated list of well-known packages, suspicious dynamic-execution API calls (eval/exec/subprocess/child_process), high-entropy obfuscated string literals, and embedded network URLs. Pattern-matching common attacker techniques rather than comparing against known-malware signatures — the same approach that lets it flag never-before-seen malicious packages. Every result is real evidence for a human to weigh, never a fabricated malicious/safe verdict. Fully client-side, zero backend, zero API cost.",
+    accent: "#f59e0b",
+    icon: PackageSearch,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "Static heuristics (local)",
+    input: "Pasted manifest or source code",
+    tags: ["Security", "Supply Chain", "Static Analysis", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/malicious-package-scanner",
   },
   {
     id: "tls-security-headers-scanner",
