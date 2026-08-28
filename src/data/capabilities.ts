@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "phishing-email-classifier",
+    domain: "Security & Trust",
+    title: "Phishing Email Body Classifier",
+    subtitle: "Local · No API Cost",
+    description:
+      "Paste the body text of an email and a Multinomial Naive Bayes classifier — trained on 18,630 real phishing and legitimate emails, 90.95% measured accuracy on a genuine held-out test set — scores the language itself: urgency phrasing, generic greetings, manipulative wording. Unlike this site's other phishing tools (which check URL structure, DNS, or SPF/DKIM/DMARC headers), this one reads what the message actually says. Shows the real top contributing words as evidence, plus an independent, transparent rule-based flag list — two signals, never fused into one black-box score. Fully client-side, zero backend, zero API cost.",
+    accent: "#e11d48",
+    icon: MailWarning,
+    stat: "91%",
+    statLabel: "Held-Out Accuracy",
+    model: "Multinomial Naive Bayes (local)",
+    input: "Pasted email body text",
+    tags: ["Security", "Phishing Detection", "NLP", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/phishing-email-classifier",
   },
   {
     id: "siem-alert-triage",
