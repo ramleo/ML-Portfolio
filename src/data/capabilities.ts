@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "tls-security-headers-scanner",
+    domain: "Security & Trust",
+    title: "TLS / Security-Headers Scanner",
+    subtitle: "Live TLS + Headers · Zero ML",
+    description:
+      "Type a domain and it's checked live, Mozilla-Observatory-style: a real TLS handshake verifies certificate chain validity, expiry, and protocol version (flagging deprecated SSLv3/TLS 1.0/1.1), and a live HTTPS request checks for the 6 standard security response headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy). SSRF-hardened: the backend resolves the hostname first and refuses to connect to any private, loopback, or internal address rather than silently scanning it. Reports an honest qualitative verdict plus the real warnings behind it, never a fabricated numeric score.",
+    accent: "#0ea5e9",
+    icon: LockKeyhole,
+    stat: "6",
+    statLabel: "Headers Checked",
+    model: "ssl/socket + httpx (server-side, no ML)",
+    input: "Domain name",
+    tags: ["Security", "TLS", "HTTP Security Headers", "Live Network Check"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/tls-security-headers-scanner",
   },
   {
     id: "phishing-email-classifier",
