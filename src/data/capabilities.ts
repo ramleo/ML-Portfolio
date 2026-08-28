@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "dns-tunneling-detector",
+    domain: "Security & Trust",
+    title: "DNS Tunneling / Exfiltration Detector",
+    subtitle: "Local · No API Cost",
+    description:
+      "Paste a DNS query log (one hostname per line) or check a single hostname, analyzed with the real, published heuristics security tools use for DNS tunneling/exfiltration detection (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy, and query volume per parent domain. A parent domain is only flagged when multiple signals agree together — never length or entropy alone, which avoids false-flagging ordinary long CDN-style subdomains. Pure heuristics, no ML model, fully client-side.",
+    accent: "#8b5cf6",
+    icon: Network,
+    stat: "0",
+    statLabel: "API Calls",
+    model: "Shannon entropy + heuristics (local)",
+    input: "Pasted DNS query log or hostname",
+    tags: ["Security", "DNS Tunneling", "Data Exfiltration", "Local Compute"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/dns-tunneling-detector",
   },
   {
     id: "password-audit",
