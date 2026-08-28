@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -386,6 +386,24 @@ const capabilities: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/plant-growth",
+  },
+  {
+    id: "siem-alert-triage",
+    domain: "Security & Trust",
+    title: "SIEM Alert Triage Agent",
+    subtitle: "Grouping + LLM Judge",
+    description:
+      "Paste raw security alert lines and near-identical ones are deduplicated/grouped by normalized template entirely in your browser first (a simplified version of real log-template-extraction techniques). Only the grouped summary — never your raw unbounded log — is sent to an independent LLM judge (the same fixed-server-key Mistral pattern used by Prompt Injection Playground and AI Code Detector) for a priority, one-sentence reasoning, and one-sentence suggested next step per group. Advisory only: every suggestion is phrased for a human analyst to act on, never as something this tool did itself.",
+    accent: "#0891b2",
+    icon: ListChecks,
+    stat: "2",
+    statLabel: "Analysis Layers",
+    model: "Client-side grouping + Mistral small (server key)",
+    input: "Pasted raw alert log",
+    tags: ["Security", "SIEM", "Alert Triage", "LLM Judge"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/siem-alert-triage",
   },
   {
     id: "dns-tunneling-detector",
