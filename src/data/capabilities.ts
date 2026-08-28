@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch, ScanEye, Fingerprint,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch, ScanEye, Fingerprint, Bug,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +27,24 @@ export type Capability = {
 const GITHUB = "https://github.com/ramleo/ML-Unified";
 
 const capabilities: Capability[] = [
+  {
+    id: "yara-file-scanner",
+    domain: "Security & Trust",
+    title: "YARA File Scanner",
+    subtitle: "Live Engine · Real YARA",
+    description:
+      "Upload a file and it's scanned with the real, open-source YARA pattern-matching engine — the actual industry-standard tool antivirus, EDR, and threat-intel teams use to write and share malware-detection rules. Scan with a small built-in educational rule set (EICAR test signature, PowerShell LOLBin encoding, generic webshell/macro/reverse-shell patterns, embedded-PE smuggling, YARA's own entropy math module — self-authored and disclosed as a demo, not a pulled third-party threat-intel feed), or write and test your own YARA rule against the file, the real everyday workflow YARA exists for. Never executes the uploaded file; every result is a real matched rule with real evidence (matched string, offset), never a fabricated malicious/clean verdict.",
+    accent: "#b91c1c",
+    icon: Bug,
+    stat: "7",
+    statLabel: "Built-in Rules",
+    model: "yara-python (real YARA engine)",
+    input: "Uploaded file + optional custom rule",
+    tags: ["Security", "YARA", "Malware Analysis", "Live Engine"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/yara-file-scanner",
+  },
   {
     id: "keystroke-biometric-auth-risk",
     domain: "Security & Trust",
