@@ -1,7 +1,7 @@
 import {
   Sparkles, Wand2, Filter, Trophy, SlidersHorizontal, PieChart, Layers, GitCompare,
   Workflow, Clapperboard, Activity, Terminal, FileSearch, BookOpenCheck, Scale,
-  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch, ScanEye,
+  ImagePlus, ScanFace, Layers3, Sprout, ScanSearch, QrCode, ShieldAlert, UserX, Palette, Puzzle, Waves, Binary, Radar, Keyboard, Dumbbell, MailCheck, Blocks, MessageSquareWarning, FileCode2, Box, Footprints, Lasso, Telescope, PawPrint, HardHat, Hand, KeyRound, Network, ListChecks, MailWarning, LockKeyhole, PackageSearch, ScanEye, Fingerprint,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +27,24 @@ export type Capability = {
 const GITHUB = "https://github.com/ramleo/ML-Unified";
 
 const capabilities: Capability[] = [
+  {
+    id: "keystroke-biometric-auth-risk",
+    domain: "Security & Trust",
+    title: "Keystroke Biometric Auth-Risk Demo",
+    subtitle: "Live Biometric Demo · Zero ML",
+    description:
+      "Type a fixed phrase 3 times to enroll a real keystroke-timing profile (dwell time per key + flight time between keys, the classic 'digraph timing' signal), then retype it once more to get a live risk score. Scoring uses scaled Manhattan distance — each feature's deviation from your enrolled mean normalized by its own standard deviation — a real, published top-performing classifier for keystroke-dynamics anomaly detection (CMU's Killourhy & Maxion benchmark and follow-on research), not a heuristic invented for this demo. Try retyping normally (Low risk) vs. deliberately faster/slower/hunt-and-peck (risk rises) to see the mechanism live. Entirely client-side, zero ML model, zero server call — disclosed honestly as a concept demo, not a calibrated production authenticator.",
+    accent: "#22c55e",
+    icon: Fingerprint,
+    stat: "2",
+    statLabel: "Timing Signals",
+    model: "Scaled Manhattan distance (client-side)",
+    input: "Typed keystroke timing",
+    tags: ["Security", "Biometrics", "Keystroke Dynamics", "Client-Side"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/keystroke-biometric-auth-risk",
+  },
   {
     id: "preprocessing",
     domain: "ML Pipeline",
