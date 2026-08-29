@@ -23,12 +23,15 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ml-portfolio-rho.vercel.app"),
+  // The browser tab and the Google result are the first thing anyone reads,
+  // and "ML Engineer Portfolio" framed the whole site as a CV. The personal
+  // page sets its own title; this one describes the product.
   title: {
-    default: "AIRaML | ML Engineer Portfolio",
+    default: "AIRaML — 50 free machine-learning tools",
     template: "%s",
   },
   description:
-    "End-to-end machine learning, built and deployed — 50 live, testable tools spanning AutoML, NLP, computer vision and security, each backed by a real model or algorithm.",
+    "Run 50 machine-learning tools in your browser: AutoML pipelines, computer vision, document intelligence and security analysis. Free, no signup, nothing to install.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

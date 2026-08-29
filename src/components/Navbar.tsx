@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import PalettePicker from "./PalettePicker";
 
@@ -11,20 +12,25 @@ import PalettePicker from "./PalettePicker";
 // at all; and "Timeline" is now "Experience", matching that section's own
 // heading. The Projects, Pipeline and News sections still render in place —
 // they're reached by scrolling rather than by their own top-level link.
-// "Work" lands on the platforms section, with the tool grid immediately below
-// it — that order reads as the whole body of work (three full apps, then the
-// tools) rather than dropping the visitor into the middle of it.
+// Product-first, and rooted paths rather than bare hashes: the personal
+// sections now live on /about, so a hash like "#skills" would resolve against
+// whichever page the visitor happens to be on and silently do nothing. Each
+// link names something a visitor can do or see, with the one link to the
+// personal side last.
 const NAV_LINKS = [
-  { label: "About",      href: "#about" },
-  { label: "Work",       href: "#projects" },
-  { label: "Skills",     href: "#skills" },
-  { label: "Experience", href: "#timeline" },
-  { label: "Contact",    href: "#contact" },
+  { label: "Platforms",    href: "/#projects" },
+  { label: "Tools",        href: "/#capabilities" },
+  { label: "How it works", href: "/#architecture" },
+  { label: "About",        href: "/about" },
 ];
 
 export default function Navbar() {
   const [scrolled,  setScrolled]  = useState(false);
   const [menuOpen,  setMenuOpen]  = useState(false);
+  // A resume download in the global header is the loudest "this is a CV"
+  // signal there is, so it belongs on the personal page only — not above a
+  // page of tools someone came to use.
+  const onAboutPage = usePathname() === "/about";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -50,7 +56,9 @@ export default function Navbar() {
       }}
     >
       {/* Logo */}
-      <a href="#" style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text)", textDecoration: "none", letterSpacing: "-0.03em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      {/* Rooted, not "#": from /about the bare hash reloaded the same page
+          instead of returning to the product. */}
+      <a href="/" style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text)", textDecoration: "none", letterSpacing: "-0.03em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--brand-gradient)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
           AI
         </span>
@@ -73,18 +81,20 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a
-            href="/Resume_W_Ramakrishnasai.pdf"
-            download
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.35rem 0.9rem", borderRadius: 9999, background: "linear-gradient(135deg, var(--accent), var(--accent-via))", color: "#fff", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.15s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Resume
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 1v7M2 9l4 2 4-2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+          {onAboutPage && (
+            <a
+              href="/Resume_W_Ramakrishnasai.pdf"
+              download
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.35rem 0.9rem", borderRadius: 9999, background: "linear-gradient(135deg, var(--accent), var(--accent-via))", color: "#fff", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Resume
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 1v7M2 9l4 2 4-2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          )}
         </div>
 
         {/* Theme toggle — always visible on both desktop and mobile */}
@@ -132,25 +142,27 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          {/* Resume in dropdown */}
-          <a
-            href="/Resume_W_Ramakrishnasai.pdf"
-            download
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "0.4rem",
-              marginTop: "1rem",
-              padding: "0.55rem 1.25rem", borderRadius: 9999,
-              background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
-              color: "#fff", fontSize: "0.85rem", fontWeight: 600,
-              textDecoration: "none", alignSelf: "flex-start",
-            }}
-          >
-            Resume
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 1v7M2 9l4 2 4-2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+          {/* Resume in dropdown — personal page only, same reasoning as desktop */}
+          {onAboutPage && (
+            <a
+              href="/Resume_W_Ramakrishnasai.pdf"
+              download
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                marginTop: "1rem",
+                padding: "0.55rem 1.25rem", borderRadius: 9999,
+                background: "linear-gradient(135deg, var(--accent), var(--accent-via))",
+                color: "#fff", fontSize: "0.85rem", fontWeight: 600,
+                textDecoration: "none", alignSelf: "flex-start",
+              }}
+            >
+              Resume
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 1v7M2 9l4 2 4-2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          )}
         </div>
       )}
     </nav>

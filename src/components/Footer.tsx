@@ -5,19 +5,20 @@ import { motion, useInView } from "framer-motion";
 import { SiteIcon } from "./SiteIcons";
 import { ML_UNIFIED_API } from "@/config/urls";
 
-// A footer can carry a fuller index than the navbar, but it has to use the same
-// names for the same things. This list still said "Projects" and "Timeline"
-// after the navbar moved to "Platforms"/"Experience", and had no entry at all
-// for the tool grid — the largest section on the page.
+// The footer is the one place both halves of the site are indexed together,
+// so it spans the product and the personal page. Rooted paths, not bare
+// hashes: the footer renders on /about too, where "#capabilities" would
+// resolve against the wrong document and do nothing. Skills, Experience and
+// Contact all live on /about now, hence the /about#... targets.
 const QUICK_LINKS = [
-  { label: "About",      href: "#about" },
-  { label: "Platforms",  href: "#projects" },
-  { label: "The Toolkit", href: "#capabilities" },
-  { label: "Skills",     href: "#skills" },
-  { label: "Pipeline",   href: "#pipeline" },
-  { label: "Experience", href: "#timeline" },
-  { label: "News",       href: "#news" },
-  { label: "Contact",    href: "#contact" },
+  { label: "Platforms",   href: "/#projects" },
+  { label: "The Toolkit", href: "/#capabilities" },
+  { label: "How it works", href: "/#architecture" },
+  { label: "Pipeline",    href: "/#pipeline" },
+  { label: "News",        href: "/#news" },
+  { label: "About",       href: "/about" },
+  { label: "Experience",  href: "/about#timeline" },
+  { label: "Contact",     href: "/about#contact" },
 ];
 
 const SOCIALS = [

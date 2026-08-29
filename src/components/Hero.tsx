@@ -216,7 +216,9 @@ export default function Hero() {
               boxShadow: "0 0 6px #34d399",
             }}
           />
-          Machine Learning Engineer
+          {/* Was "Machine Learning Engineer" — a job title above a page of
+              tools tells the visitor they're reading a CV. */}
+          Free ML Toolkit · No Signup
         </div>
 
         {/* Headline with typewriter */}
@@ -257,8 +259,13 @@ export default function Hero() {
             margin: "0 auto 2.5rem",
           }}
         >
-          I build end-to-end ML pipelines — from raw data to deployed prediction APIs
-          with interactive frontends. Every project below is live and testable.
+          {/* Second person, and about what the visitor can do rather than what
+              the author built. Every claim here is checkable: the count comes
+              from the same data the grid renders, and there is no auth, no
+              paid tier and nothing to download. */}
+          {TOOL_COUNT} machine-learning tools you can run right now — AutoML, computer
+          vision, document intelligence and security analysis. Free, no signup,
+          nothing to install.
         </p>
 
         {/* Stats row with count-up */}
@@ -281,7 +288,7 @@ export default function Hero() {
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
           <MagneticButton>
           <a
-            href="#projects"
+            href="#capabilities"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -305,7 +312,7 @@ export default function Hero() {
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            View Projects
+            Browse the tools
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M8 3v10M3 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
