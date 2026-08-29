@@ -10,29 +10,33 @@
  * put them. So it accumulated tokens, a base reset, twenty component styles
  * and four separate mobile patches in one scroll.
  *
- * ORDER IS LOAD-BEARING. Several rules here win only because of where they
- * sit, not by specificity — most visibly `09-mobile-late`, whose `.flip-*`
- * overrides lose to the desktop card rules in `08-tools` if they are moved any
- * earlier. That is why the parts are numbered and why this list is the single
- * place their sequence is defined. Adding a part in the wrong position is a
- * silent visual bug, not an error.
+ * ORDER MATTERS, and the numbering is the contract — a part added in the wrong
+ * position is a silent visual bug, not an error:
  *
- * The numbering is the whole contract:
- *   00  theme     — Tailwind's own @theme block
- *   01  tokens    — type roles, radii, four brand palettes, both themes
- *   02  base      — reset, body, headings, scrollbar, gradient text, tag, card
- *   03  layout    — .section rhythm, heading scale, separator
- *   04  components— skill chip, timeline, cinema, pipeline, news, form, navbar
+ *   00  theme        — Tailwind's own @theme block
+ *   01  tokens       — type roles, radii, four brand palettes, both themes
+ *   02  base         — reset, body, headings, scrollbar, gradient text, tag, card
+ *   03  layout       — .section rhythm, heading scale, separator
+ *   04  components   — skill chip, timeline, cinema, pipeline, news, form, navbar
  *   05  architecture — stage accent tokens + the request-path diagram
- *   06  mobile-core  — phone overrides for everything defined ABOVE this line
- *   07  animations   — hero background + keyframes
- *   08  tools     — toolkit search bar, domain clusters, flip cards
- *   09  mobile-late  — phone overrides that MUST follow 08 to win
+ *   06  animations   — hero background + keyframes
+ *   07  tools        — toolkit search bar, domain clusters, flip cards
+ *   08  responsive   — every media query, last so it wins
  *
- * The 06/09 split is the ordering constraint made visible rather than hidden.
- * Merging them into one responsive file would be the real fix, but it changes
- * which rules win and so belongs in its own change with its own verification —
- * this split deliberately preserves the existing cascade byte for byte.
+ * One rule keeps that list honest: an override that has to beat a rule defined
+ * above it goes in 08. Phone rules used to sit in two blocks either side of the
+ * card styles, because an override written in the earlier one had the same
+ * specificity as the desktop rule and silently lost on source order — the file
+ * carried a comment warning the next person not to add `.flip-*` rules there.
+ * Loading those last removes the hazard instead of documenting it, so a new
+ * override now works wherever in 08 it is written.
+ *
+ * 07 keeps one media query of its own, the `(hover: hover)` flip block. It is
+ * not an override — it is the card's own desktop behaviour, written with
+ * `:hover` selectors that outrank the base rules on specificity, so it cannot
+ * lose on order and belongs next to the card styles it describes. If you add a
+ * media query that would tie on specificity with something above it, it goes
+ * in 08.
  */
 @import "./styles/00-theme.css";
 @import "./styles/01-tokens.css";
@@ -40,7 +44,6 @@
 @import "./styles/03-layout.css";
 @import "./styles/04-components.css";
 @import "./styles/05-architecture.css";
-@import "./styles/06-mobile-core.css";
-@import "./styles/07-animations.css";
-@import "./styles/08-tools.css";
-@import "./styles/09-mobile-late.css";
+@import "./styles/06-animations.css";
+@import "./styles/07-tools.css";
+@import "./styles/08-responsive.css";

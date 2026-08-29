@@ -1,0 +1,137 @@
+/* ── Every responsive override, in one place, loaded last ──
+   Previously these lived in two blocks either side of the tool-card styles:
+   one before, one after. The split was not a choice — it was a workaround.
+   Phone overrides for the cards had the same specificity as the desktop card
+   rules, so an override written in the earlier block silently lost on source
+   order and simply did not apply. The earlier block carried a comment warning
+   the next person not to add .flip-* rules to it, which is a hazard documented
+   rather than removed.
+
+   Loading all of it after every component stylesheet removes the hazard: a
+   media query here now beats the base rule it is overriding on order, so a new
+   phone override works wherever in this file it is written.
+
+   The only ordering that still matters is between the two queries below, and
+   only if they ever target the same selector — they do not today. Keep it that
+   way and this file has no ordering constraints at all. */
+
+/* Everything that keys purely off width. Three separate max-width blocks were
+   merged here; they targeted disjoint selectors, so the merge is a
+   consolidation rather than a behaviour change. */
+@media (max-width: 768px) {
+  .section {
+    padding: 3rem 1.25rem;
+  }
+  .nav-links     { display: none !important; }
+  .nav-hamburger { display: flex !important; }
+
+  /* Header controls are the only navigation on a phone, and they measured
+     28-36px — under the 44px minimum touch size. Grow the tap area without
+     changing the icons: the visual circle is drawn by the button's own
+     background, so padding here just widens what a thumb can hit. */
+  nav button,
+  header button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Secondary copy sized for a desktop card is too small on a phone. These
+     measured 9.9-11.8px; nudged up so running text clears ~13px while true
+     labels (badges, kickers) stay deliberately small. */
+  .arch-items li          { font-size: 0.8rem; }
+  .arch-meta              { font-size: 0.68rem; }
+  /* Single column at this width, so the connector points down between stages
+     rather than off the right edge into nothing. */
+  .arch-stage::after {
+    top: auto;
+    bottom: -0.72rem;
+    right: 50%;
+    transform: translateX(50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--border2);
+    border-bottom: none;
+  }
+  .timeline-line {
+    left: 0.5rem;
+    transform: none;
+  }
+
+  /* ── Step indicator ──
+     The full row (circle + label + connector, per step) measured 403px at a
+     390px viewport and pushed the AutoML page 285px wider than the screen.
+     Shared by six pipeline tool pages, so this fixes all of them: keep every
+     numbered circle, hide the labels of steps you are not on, and shorten the
+     connectors. The current step still names itself, so the row stays
+     meaningful rather than becoming anonymous dots. Inline widths in the
+     component need overriding, hence the !important on the connector. */
+  .step-indicator { gap: 0.3rem; flex-wrap: wrap; }
+  .step-item      { gap: 0.3rem; }
+  .step-label     { display: none; }
+  .step-label.is-active { display: inline; }
+  .step-connector { width: 10px !important; }
+
+  /* ── Tool-page sticky header ──
+     Seven pipeline tool pages hand-roll the same header: a fixed 60px-tall,
+     non-wrapping flex row holding a Home button, a breadcrumb pill, the tool
+     title, a status badge, the step indicator and the theme toggle. At 390px
+     that content is wider than the screen, so the page scrolled sideways —
+     measured 173px over on Preprocessing, 72px on Feature Engineering, 11px on
+     SHAP. Letting the row wrap and grow past its fixed height keeps every
+     control reachable instead of clipping or scrolling them off-screen. */
+  .tool-header-row {
+    height: auto !important;
+    min-height: 60px;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    column-gap: 0.75rem !important;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  /* The breadcrumb is a nested flex row of its own (pill + title + status
+     badge) and stayed on one line even once the outer row wrapped, leaving
+     Preprocessing 26px over. flex-wrap only engages when content actually
+     overflows, so applying it down the header's own subtree is safe. */
+  .tool-header-row > div,
+  .tool-header-row > div > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
+/* ── Static tool card: touch screens and narrow windows ──
+   Keys off hover as well as width, so it stays its own query. With no hover
+   there is no flip, so the back face is dropped entirely and the front carries
+   what the back used to hide — description, tags, and an explicit open
+   affordance. The face stops being absolutely positioned so the card can size
+   to its own content instead of being pinned to a fixed 148px.
+
+   Type sizes: the card description and subtitle measured 11.5px and 11.2px on a
+   phone; raised so the text a visitor actually reads clears ~13px. */
+@media (hover: none), (max-width: 768px) {
+  .flip-outer { min-height: 0; }
+  .flip-inner { min-height: 0; transform: none; transform-style: flat; }
+  .flip-face.back { display: none; }
+  .flip-face.front { position: relative; inset: auto; backface-visibility: visible; }
+
+  .flip-front-body { padding: 1rem 1.1rem; justify-content: flex-start; }
+  /* Full names wrap rather than ellipsing — there is room for them here. */
+  .flip-front-body h3 { white-space: normal; font-size: 0.92rem; }
+  .flip-front-body .sub { white-space: normal; font-size: 0.78rem; }
+
+  .flip-front-desc {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 0.82rem; line-height: 1.5; color: var(--text2); margin: 0;
+  }
+  .flip-front-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.5rem; margin-top: auto; padding-top: 0.15rem;
+  }
+  .flip-front-foot .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; min-width: 0; }
+  .flip-front-open {
+    display: inline-flex; align-items: center; gap: 0.25rem; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.01em;
+  }
+}
