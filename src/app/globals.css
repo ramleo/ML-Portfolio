@@ -263,6 +263,18 @@ h1, h2, h3 {
 }
 
 /* ── Timeline ── */
+
+/* Each timeline row slides in horizontally before it scrolls into view, and
+   the direction comes from useIsMobile(), which returns false on the first
+   client render because it only learns the width in an effect. Framer captures
+   `initial` at mount, so phones get the desktop ±40px offset anyway — and
+   those transforms widened the document by 20px at 390px, letting the whole
+   page be dragged sideways from load until the section animated in.
+   `clip` contains the decorative transform; unlike `hidden` it doesn't create
+   a scroll container. The row dots sit inside the padding box, so nothing
+   visible is cut. */
+#timeline { overflow-x: clip; }
+
 .timeline-line {
   position: absolute;
   left: 50%;
@@ -479,6 +491,25 @@ html.light {
   }
   .nav-links     { display: none !important; }
   .nav-hamburger { display: flex !important; }
+
+  /* Header controls are the only navigation on a phone, and they measured
+     28-36px — under the 44px minimum touch size. Grow the tap area without
+     changing the icons: the visual circle is drawn by the button's own
+     background, so padding here just widens what a thumb can hit. */
+  nav button,
+  header button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Secondary copy sized for a desktop card is too small on a phone. These
+     measured 9.9-11.8px; nudged up so running text clears ~13px while true
+     labels (badges, kickers) stay deliberately small.
+     NB: the .flip-* overrides can't live here — those rules are defined later
+     in this file and would win on source order — so they sit in a second
+     media block at the end. */
+  .arch-items li          { font-size: 0.8rem; }
+  .arch-meta              { font-size: 0.68rem; }
   /* Single column at this width, so the connector points down between stages
      rather than off the right edge into nothing. */
   .arch-stage::after {
@@ -661,4 +692,15 @@ html.light {
 .subtle-badge {
   display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.62rem;
   font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: fit-content;
+}
+
+/* ── Mobile type overrides that must come last ──
+   The .flip-* card rules are defined above with the same specificity, so an
+   override inside the earlier mobile media block loses on source order. Kept
+   at the end of the file for that reason. Card description and subtitle
+   measured 11.5px and 11.2px on a phone; raised so the text a visitor
+   actually reads clears ~13px. Desktop sizes are untouched. */
+@media (max-width: 768px) {
+  .flip-back-body .desc { font-size: 0.82rem; }
+  .flip-front-body .sub { font-size: 0.78rem; }
 }
