@@ -156,7 +156,7 @@ export default function NewsSection() {
           {noKey && (
             <div style={{
               background: "var(--bg-glass)", backdropFilter: "blur(14px)",
-              border: "1px solid var(--border2)", borderRadius: 14,
+              border: "1px solid var(--border2)", borderRadius: "var(--radius-card)",
               padding: "2rem", textAlign: "center",
             }}>
               <div style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>🔑</div>

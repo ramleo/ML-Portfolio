@@ -65,7 +65,7 @@ export default function Navbar() {
       {/* Rooted, not "#": from /about the bare hash reloaded the same page
           instead of returning to the product. */}
       <a href="/" style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text)", textDecoration: "none", letterSpacing: "-0.03em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--brand-gradient)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+        <span style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", background: "var(--brand-gradient)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
           AI
         </span>
         <span className="gradient-text">AIRaML</span>

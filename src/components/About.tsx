@@ -118,7 +118,7 @@ export default function About() {
                   >
                     <span
                       style={{
-                        width: 28, height: 28, borderRadius: 8,
+                        width: 28, height: 28, borderRadius: "var(--radius-sm)",
                         background: "var(--border)", border: "1px solid var(--border2)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0, color: "var(--text2)",
@@ -175,7 +175,7 @@ export default function About() {
                     style={{
                       background: "var(--bg-card)",
                       border: "1px solid var(--border)",
-                      borderRadius: 12,
+                      borderRadius: "var(--radius-card)",
                       padding: "0.9rem 1.1rem",
                       display: "flex",
                       justifyContent: "space-between",

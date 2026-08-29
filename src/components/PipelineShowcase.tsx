@@ -140,7 +140,7 @@ function IconTile({ step, accent, size = 52 }: { step: number; accent: string; s
     <div style={{
       width: size,
       height: size,
-      borderRadius: 13,
+      borderRadius: "var(--radius-sm)",
       background: `${accent}18`,
       border: `1px solid ${accent}2e`,
       display: "flex",
@@ -195,7 +195,7 @@ function StageCard({
           height: "100%",
           padding: "1.1rem 0.9rem",
           textAlign: "center",
-          borderRadius: 16,
+          borderRadius: "var(--radius-card)",
           cursor: "pointer",
           position: "relative",
           overflow: "hidden",
@@ -217,9 +217,10 @@ function StageCard({
           opacity: stage.comingSoon ? 0.65 : 1,
         }}
       >
-        {/* Shimmer overlay */}
+        {/* Shimmer overlay — sits exactly on the card above, so its radius has
+            to track the same token or the highlight's corners overhang it. */}
         <div style={{
-          position: "absolute", inset: 0, borderRadius: 16,
+          position: "absolute", inset: 0, borderRadius: "var(--radius-card)",
           background: hovering
             ? `radial-gradient(circle at ${50 + tilt.y * 4}% ${50 - tilt.x * 4}%, rgba(255,255,255,0.07) 0%, transparent 65%)`
             : "none",
@@ -327,7 +328,7 @@ export default function PipelineShowcase() {
                 style={{
                   background: "var(--bg-card)",
                   border: `1px solid ${active.accent}40`,
-                  borderRadius: 16,
+                  borderRadius: "var(--radius-card)",
                   padding: "1.75rem",
                   boxShadow: `0 0 0 1px ${active.accent}20, 0 12px 40px ${active.accent}15`,
                 }}

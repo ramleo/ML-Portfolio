@@ -72,7 +72,7 @@ export default function Contact() {
                   onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
                 >
                   <span style={{
-                    width: 32, height: 32, borderRadius: 9,
+                    width: 32, height: 32, borderRadius: "var(--radius-sm)",
                     background: "var(--border)", border: "1px solid var(--border2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     flexShrink: 0, color: "var(--text2)",
@@ -94,7 +94,7 @@ export default function Contact() {
               {status === "sent" ? (
                 <div style={{
                   background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.3)",
-                  borderRadius: 14, padding: "2rem", textAlign: "center",
+                  borderRadius: "var(--radius-card)", padding: "2rem", textAlign: "center",
                 }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}><CheckCircleIcon size={36} /></div>
                   <div style={{ fontWeight: 700, color: "var(--text)" }}>Message sent!</div>

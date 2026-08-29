@@ -83,7 +83,7 @@ function StatCard({ stat, inView }: { stat: typeof STATS[number]; inView: boolea
       style={{
         textAlign: "center",
         padding: "0.9rem 1.5rem",
-        borderRadius: 14,
+        borderRadius: "var(--radius-card)",
         background: "var(--border)",
         border: "1px solid var(--border2)",
         minWidth: 100,

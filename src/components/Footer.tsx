@@ -47,7 +47,7 @@ export default function Footer() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
                 <span style={{
-                  width: 32, height: 32, borderRadius: 9,
+                  width: 32, height: 32, borderRadius: "var(--radius-sm)",
                   background: "var(--brand-gradient)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "0.7rem", fontWeight: 800, color: "#fff", flexShrink: 0,
@@ -130,7 +130,7 @@ export default function Footer() {
                     rel="noopener noreferrer"
                     aria-label={s.label}
                     style={{
-                      width: 36, height: 36, borderRadius: 9,
+                      width: 36, height: 36, borderRadius: "var(--radius-sm)",
                       background: "var(--border)", border: "1px solid var(--border2)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       color: "var(--text2)", textDecoration: "none",

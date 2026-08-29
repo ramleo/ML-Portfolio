@@ -121,7 +121,7 @@ export default function DataCube3D() {
                 justifyContent: "center",
                 background: `${face.color}14`,
                 border: `1.5px solid ${face.color}40`,
-                borderRadius: 12,
+                borderRadius: "var(--radius-card)",
                 backdropFilter: "blur(4px)",
                 boxShadow: `inset 0 0 20px ${face.color}0a, 0 0 12px ${face.color}18`,
               }}
