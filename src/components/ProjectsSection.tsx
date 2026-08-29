@@ -17,38 +17,20 @@ export default function ProjectsSection() {
     : registry.filter((p) => p.tags.includes(activeTag));
 
   return (
-    <section
-      id="projects"
-      style={{
-        padding: "5rem 1.5rem",
-        maxWidth: 1100,
-        margin: "0 auto",
-      }}
-    >
+    // This section hand-rolled its own container, label and heading styles
+    // instead of using the shared .section / .section-label / .section-heading
+    // classes every other section uses. That produced two type scales on one
+    // page (40px here vs 44px elsewhere) and two vertical rhythms (80px of
+    // section padding vs 96px). Now on the shared classes.
+    <section id="projects">
+      <div className="section">
 
       {/* Section header */}
       <div style={{ marginBottom: "2rem" }}>
-        <p
-          style={{
-            fontSize: "0.75rem",
-            color: "var(--text3)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            marginBottom: "0.5rem",
-          }}
-        >
+        <p className="section-label">
           Deployed Platforms
         </p>
-        <h2
-          style={{
-            fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
-            fontWeight: 800,
-            color: "var(--text)",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.2,
-            margin: 0,
-          }}
-        >
+        <h2 className="section-heading" style={{ marginBottom: 0 }}>
           Three full apps —{" "}
           <span className="heading-accent">click to predict</span>
         </h2>
@@ -155,6 +137,7 @@ export default function ProjectsSection() {
         All three run on a free Hugging Face Space — if it has gone idle, the first load
         takes a few seconds to wake up.
       </p>
+      </div>
     </section>
   );
 }

@@ -205,12 +205,16 @@ export default function MLCapabilities() {
   }, [query, activeDomain]);
 
   return (
-    <section id="capabilities" ref={sectionRef} style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
+    // Was hand-rolling its own container/label/heading styles rather than the
+    // shared .section classes, which gave the page two heading scales (40px
+    // here vs 44px elsewhere) and two section rhythms (80px vs 96px padding).
+    <section id="capabilities" ref={sectionRef}>
+      <div className="section">
       <div style={{ marginBottom: "2rem" }}>
-        <p style={{ fontSize: "0.75rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
+        <p className="section-label">
           The Toolkit
         </p>
-        <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
+        <h2 className="section-heading" style={{ marginBottom: 0 }}>
           {capabilities.length} tools, each{" "}
           <span className="heading-accent">live and testable</span>
         </h2>
@@ -310,6 +314,7 @@ export default function MLCapabilities() {
             No tools match &ldquo;{query}&rdquo;. Try a different search or clear the filter.
           </p>
         )}
+      </div>
       </div>
     </section>
   );
