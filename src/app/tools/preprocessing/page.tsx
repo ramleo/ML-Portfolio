@@ -213,7 +213,7 @@ function PreprocessingPageInner() {
         background: "var(--bg-nav)", backdropFilter: "blur(12px)",
         borderBottom: "1px solid var(--border)",
       }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="tool-header-row" style={{ maxWidth: 1140, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             <button
               onClick={() => router.push("/#capabilities")}

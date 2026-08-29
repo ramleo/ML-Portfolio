@@ -65,7 +65,7 @@ function ShapPageInner() {
         background: "var(--bg-nav)", backdropFilter: "blur(12px)",
         borderBottom: "1px solid var(--border)",
       }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
+        <div className="tool-header-row" style={{ maxWidth: 960, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <button
             onClick={handleBack}
             style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0, transition: "color 0.15s" }}

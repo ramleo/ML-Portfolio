@@ -8,13 +8,18 @@ const ACCENT_DEFAULT = "#22d3ee";
  * Feature Selection, AutoML, Optuna, SHAP, Ensemble) can share it even
  * though each tracks a different number of steps under different names. */
 export function StepIndicator({ labels, currentIndex, accent = ACCENT_DEFAULT }: { labels: string[]; currentIndex: number; accent?: string }) {
+  // The class names carry no styling of their own on desktop; they exist so
+  // the mobile rules in globals.css can shrink this. At 390px the full row
+  // measured 403px and pushed the whole AutoML page 285px wider than the
+  // viewport, so on phones every label except the current step's is hidden
+  // and the connectors shorten — the row stays readable without overflowing.
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+    <div className="step-indicator" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
       {labels.map((label, i) => {
         const done = i < currentIndex;
         const active = i === currentIndex;
         return (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div key={label} className="step-item" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <div style={{
               width: 24, height: 24, borderRadius: 9999,
               background: active ? accent : done ? `${accent}33` : "var(--border)",
@@ -30,8 +35,13 @@ export function StepIndicator({ labels, currentIndex, accent = ACCENT_DEFAULT }:
                 </svg>
               ) : i + 1}
             </div>
-            <span style={{ fontSize: "0.72rem", color: active ? "var(--text)" : "var(--text3)", fontWeight: active ? 600 : 400 }}>{label}</span>
-            {i < labels.length - 1 && <div style={{ width: 24, height: 1, background: "var(--border)" }} />}
+            <span
+              className={`step-label${active ? " is-active" : ""}`}
+              style={{ fontSize: "0.72rem", color: active ? "var(--text)" : "var(--text3)", fontWeight: active ? 600 : 400 }}
+            >
+              {label}
+            </span>
+            {i < labels.length - 1 && <div className="step-connector" style={{ width: 24, height: 1, background: "var(--border)" }} />}
           </div>
         );
       })}

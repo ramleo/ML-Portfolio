@@ -704,3 +704,50 @@ html.light {
   .flip-back-body .desc { font-size: 0.82rem; }
   .flip-front-body .sub { font-size: 0.78rem; }
 }
+
+/* ── Step indicator on phones ──
+   The full row (circle + label + connector, per step) measured 403px at a
+   390px viewport and pushed the AutoML page 285px wider than the screen.
+   Shared by six pipeline tool pages, so this fixes all of them: keep every
+   numbered circle, hide the labels of steps you are not on, and shorten the
+   connectors. The current step still names itself, so the row stays
+   meaningful rather than becoming anonymous dots. Inline widths in the
+   component need overriding, hence the !important on the connector. */
+@media (max-width: 768px) {
+  .step-indicator { gap: 0.3rem; flex-wrap: wrap; }
+  .step-item      { gap: 0.3rem; }
+  .step-label     { display: none; }
+  .step-label.is-active { display: inline; }
+  .step-connector { width: 10px !important; }
+}
+
+/* ── Tool-page sticky header on phones ──
+   Seven pipeline tool pages hand-roll the same header: a fixed 60px-tall,
+   non-wrapping flex row holding a Home button, a breadcrumb pill, the tool
+   title, a status badge, the step indicator and the theme toggle. At 390px
+   that content is wider than the screen, so the page scrolled sideways —
+   measured 173px over on Preprocessing, 72px on Feature Engineering, 11px on
+   SHAP. Letting the row wrap and grow past its fixed height keeps every
+   control reachable instead of clipping or scrolling them off-screen. */
+@media (max-width: 768px) {
+  .tool-header-row {
+    height: auto !important;
+    min-height: 60px;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    column-gap: 0.75rem !important;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  /* The breadcrumb is a nested flex row of its own (pill + title + status
+     badge) and stayed on one line even once the outer row wrapped, leaving
+     Preprocessing 26px over. flex-wrap only engages when content actually
+     overflows, so applying it down the header's own subtree is safe. */
+  .tool-header-row > div,
+  .tool-header-row > div > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
