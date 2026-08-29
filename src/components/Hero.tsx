@@ -87,17 +87,30 @@ function StatCard({ stat, inView }: { stat: typeof STATS[number]; inView: boolea
     >
       <div
         style={{
-          fontSize: "2rem",
-          fontWeight: 800,
+          // Mono for the figures: these count up on scroll, and a monospaced
+          // face keeps every card the same width through the animation
+          // instead of jittering as digits change.
+          fontFamily: "var(--type-data)",
+          fontSize: "1.9rem",
+          fontWeight: 700,
           color: "var(--text)",
           lineHeight: 1.1,
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.03em",
           fontVariantNumeric: "tabular-nums",
         }}
       >
         {display}
       </div>
-      <div style={{ fontSize: "0.7rem", color: "var(--text3)", marginTop: 4 }}>
+      <div
+        style={{
+          fontFamily: "var(--type-data)",
+          fontSize: "0.65rem",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "var(--text3)",
+          marginTop: 6,
+        }}
+      >
         {stat.label}
       </div>
     </div>

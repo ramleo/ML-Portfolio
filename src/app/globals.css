@@ -5,6 +5,25 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ── Type roles ──
+   Three deliberate jobs rather than one face doing everything:
+     display — Archivo, headings only. Denser and slightly narrower than the
+               body face, so headings carry weight without going larger.
+     sans    — Geist Sans, all running text. Unchanged.
+     mono    — Geist Mono. Already bundled and already used on the tool pages,
+               but nothing on the homepage touched it. Now carries the numeric
+               and label furniture (stat values, counts, section eyebrows),
+               which suits a portfolio whose substance is measurements. */
+:root {
+  /* --font-display / --font-geist-* are injected on <html> by next/font;
+     these are the role names the stylesheet actually uses, so a face can be
+     swapped in one place. Each keeps a real fallback stack in case a font
+     file fails to load. */
+  --type-display: var(--font-display), var(--font-geist-sans), 'Inter', sans-serif;
+  --type-body:    var(--font-geist-sans), 'Inter', sans-serif;
+  --type-data:    var(--font-geist-mono), ui-monospace, 'SF Mono', monospace;
+}
+
 /* ── Corner radius scale ──
    Cards previously used three different radii for the same conceptual thing:
    12px on the 50 tool cards, 14px on the skill/news cards directly above
@@ -127,9 +146,15 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-geist-sans, 'Inter', sans-serif);
+  font-family: var(--type-body);
   transition: background 0.25s ease, color 0.25s ease;
   min-height: 100vh;
+}
+
+/* Headings take the display face by default so any h1-h3 added later inherits
+   it without needing to remember a class. */
+h1, h2, h3 {
+  font-family: var(--type-display);
 }
 
 ::-webkit-scrollbar { width: 6px; }
@@ -188,22 +213,29 @@ body {
   margin: 0 auto;
 }
 
+/* Eyebrow above each heading — mono, so the small uppercase label reads as
+   a system tag rather than shrunken body copy. */
 .section-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-family: var(--type-data);
+  font-size: 0.7rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: var(--text3);
   margin-bottom: 0.6rem;
 }
 
 .section-heading {
+  font-family: var(--type-display);
   font-size: clamp(1.9rem, 4vw, 2.75rem);
-  font-weight: 800;
+  /* Archivo carries more weight per stroke than Geist, so 800 read as heavy
+     at heading sizes; 700 matches the previous visual density. */
+  font-weight: 700;
   color: var(--text);
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin: 0 0 1rem;
+  text-wrap: balance;
 }
 
 /* ── Section separator ── */
@@ -371,7 +403,7 @@ nav, section, footer { position: relative; z-index: 1; }
   color: var(--text); font-size: 0.9rem; font-family: inherit;
 }
 .cap-search-bar input::placeholder { color: var(--text3); }
-.cap-count { font-size: 0.72rem; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cap-count { font-family: var(--type-data); font-size: 0.7rem; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .cap-tag-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.25rem; }
 .cap-rtag {
@@ -385,7 +417,7 @@ nav, section, footer { position: relative; z-index: 1; }
 
 .cap-cluster-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.1rem; }
 .cap-cluster-head h4 { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text); }
-.cap-cluster-count { font-size: 0.75rem; color: var(--text3); }
+.cap-cluster-count { font-family: var(--type-data); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
 .cap-cluster-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border2), transparent); }
 
 .cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; perspective: 1600px; }
@@ -445,8 +477,8 @@ nav, section, footer { position: relative; z-index: 1; }
   font-size: 0.64rem; font-weight: 700; letter-spacing: 0.02em; cursor: pointer;
 }
 .flip-back-body .stat-row { display: flex; align-items: baseline; gap: 0.4rem; }
-.flip-back-body .stat { font-size: 0.95rem; font-weight: 800; }
-.flip-back-body .stat-label { font-size: 0.62rem; color: var(--text3); }
+.flip-back-body .stat { font-family: var(--type-data); font-size: 0.95rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.flip-back-body .stat-label { font-family: var(--type-data); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
 .flip-back-body .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; max-height: 52px; overflow: hidden; }
 .flip-back-body .back-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: auto; }
 .try-btn {
