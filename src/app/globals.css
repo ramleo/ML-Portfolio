@@ -348,6 +348,130 @@ nav, section, footer { position: relative; z-index: 1; }
 .nav-links     { display: flex; align-items: center; gap: 1.25rem; }
 .nav-hamburger { display: none; }
 
+/* Stage accents for the architecture diagram. Defined as tokens rather than
+   passed as hex from the component, because the dark-theme values fail WCAG on
+   the light background — measured 1.74-3.32:1 against #f0f4f8 where the small
+   uppercase kicker needs 4.5:1. Same hues, darkened for light; every value
+   below clears 4.5:1 on its own ground (dark 5.20-9.93, light 4.96-6.32). */
+:root {
+  --arch-1: #38bdf8;
+  --arch-2: #f43f5e;
+  --arch-3: #34d399;
+  --arch-4: #a78bfa;
+}
+html.light {
+  --arch-1: #0369a1;
+  --arch-2: #be123c;
+  --arch-3: #047857;
+  --arch-4: #7e22ce;
+}
+
+/* ── Architecture diagram ──
+   Four stages of one request. auto-fit rather than a fixed four columns, so
+   the row reflows to 2x2 and then to a single column without a breakpoint per
+   step. The connector arrow is drawn on each stage's ::after and hidden on the
+   last one; below the stacking width it rotates to point down instead. */
+.arch-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+}
+.arch-stage {
+  position: relative;
+  background: var(--bg-glass);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-card);
+  padding: 1.1rem 1.15rem 1.25rem;
+  backdrop-filter: blur(10px);
+  /* Accent reads as a spine on the leading edge rather than a full border, so
+     four coloured cards in a row don't compete with each other. */
+  border-left: 2px solid var(--stage-accent);
+}
+.arch-stage::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -0.72rem;
+  width: 0;
+  height: 0;
+  transform: translateY(-50%);
+  border-left: 6px solid var(--border2);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  pointer-events: none;
+}
+.arch-stage:last-child::after { display: none; }
+
+.arch-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+}
+.arch-kicker {
+  font-family: var(--type-data);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--stage-accent);
+}
+.arch-step {
+  font-family: var(--type-data);
+  font-size: 0.6rem;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+.arch-title {
+  font-family: var(--type-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.15rem;
+}
+.arch-meta {
+  font-family: var(--type-data);
+  font-size: 0.62rem;
+  color: var(--text3);
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
+.arch-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.arch-items li {
+  position: relative;
+  padding-left: 0.75rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text2);
+}
+.arch-items li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.52em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--stage-accent);
+  opacity: 0.65;
+}
+.arch-note {
+  font-size: 0.78rem;
+  color: var(--text3);
+  margin-top: 1.5rem;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .section {
@@ -355,6 +479,18 @@ nav, section, footer { position: relative; z-index: 1; }
   }
   .nav-links     { display: none !important; }
   .nav-hamburger { display: flex !important; }
+  /* Single column at this width, so the connector points down between stages
+     rather than off the right edge into nothing. */
+  .arch-stage::after {
+    top: auto;
+    bottom: -0.72rem;
+    right: 50%;
+    transform: translateX(50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--border2);
+    border-bottom: none;
+  }
   .timeline-line {
     left: 0.5rem;
     transform: none;
