@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import capabilities, { type Capability } from "@/data/capabilities";
-import { ML_UNIFIED_API } from "@/config/urls";
+import capabilities from "@/data/capabilities";
+import ToolCard from "./ToolCard";
+import { scoreCapability, deriveFilterTags, hasTag } from "@/lib/toolSearch";
 
 const DOMAIN_ORDER = ["ML Pipeline", "Language & Documents", "Computer Vision", "Security & Trust"];
 const DOMAIN_COLOR: Record<string, string> = {
@@ -13,122 +14,17 @@ const DOMAIN_COLOR: Record<string, string> = {
   "Security & Trust": "#f43f5e",
 };
 
-// Strict glyph-letter match: a query only matches a card whose NAME starts with it —
-// matching anywhere in the name/description/tags let a single common letter light up
-// nearly every card, which defeated the point of a name-first filter (tested live).
-function matches(cap: Capability, query: string): boolean {
-  if (!query) return true;
-  return cap.title.toLowerCase().startsWith(query);
-}
-
-// ── Single card — glyph + name at rest, flips on hover to show the real detail
-// panel (description, stat, tags, and the actual Try it/Launch + GitHub actions) ──
-function FlipCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void }) {
-  const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
-  const [needsToggle, setNeedsToggle] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  // Only show "See more" for a card whose real (3-line-clamped) description
-  // actually overflows — measured against the real rendered width, not a
-  // guessed character count, so it stays correct at any grid column width.
-  useEffect(() => {
-    const check = () => {
-      const el = descRef.current;
-      if (el) setNeedsToggle(el.scrollHeight > el.clientHeight + 1);
-    };
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  const handleNavigate = () => {
-    if (cap.internalLink) {
-      router.push(cap.internalLink);
-    } else if (cap.modalEnabled && onRunHere) {
-      onRunHere();
-    } else {
-      const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
-      let palette = "cosmic";
-      try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
-      const base = ML_UNIFIED_API + cap.link;
-      const sep = base.includes("?") ? "&" : "?";
-      window.open(`${base}${sep}theme=${theme}&palette=${palette}`, "_blank");
-    }
-  };
-
-  return (
-    <div
-      className={`flip-outer${expanded ? " expanded" : ""}`}
-      onClick={handleNavigate}
-      onMouseLeave={() => setExpanded(false)}
-      title={`Hover to flip, click to open ${cap.title}`}
-      style={{ ["--acc-glow" as string]: `${cap.accent}14` }}
-    >
-      <div className="flip-inner">
-        <div className="flip-face front">
-          <div className="flip-front-body">
-            <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>
-              <cap.icon size={17} strokeWidth={2} />
-            </div>
-            <div className="txt">
-              <h3>{cap.title}</h3>
-              <span className="sub">{cap.subtitle}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flip-face back" style={{ borderColor: `${cap.accent}33` }}>
-          <div className="flip-back-body">
-            <span className="badge" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
-              {cap.subtitle}
-            </span>
-            <h3>{cap.title}</h3>
-            <p ref={descRef} className={`desc${expanded ? " expanded" : ""}`}>{cap.description}</p>
-            {needsToggle && (
-              <button
-                className="see-more-btn"
-                style={{ color: cap.accent }}
-                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-              >
-                {expanded ? "See less" : "See more"}
-              </button>
-            )}
-            <div className="stat-row">
-              <span className="stat" style={{ color: cap.accent }}>{cap.stat}</span>
-              <span className="stat-label">{cap.statLabel}</span>
-            </div>
-            <div className="tags">
-              {cap.tags.slice(0, 2).map((t) => <span key={t} className="tag">{t}</span>)}
-            </div>
-            <div className="back-actions" onClick={(e) => e.stopPropagation()}>
-              <button onClick={handleNavigate} className="try-btn" style={{ background: cap.accent }}>
-                {cap.internalLink || cap.modalEnabled ? "Try it" : "Launch App"}
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <a href={cap.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="gh-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Section ───────────────────────────────────────────────────────────────────
 // Self-contained: import this anywhere, pass no props. Card data lives in
-// src/data/capabilities.ts. Tools are grouped into domains and searchable by
-// name; every card flips on hover to reveal its detail panel and real actions.
+// src/data/capabilities.ts, the card itself in ToolCard.tsx, and the matching
+// and faceting rules in lib/toolSearch.ts. Tools are grouped into domains and
+// filterable three ways — free-text search, domain, and a cross-cutting tag —
+// which combine rather than override each other.
 export default function MLCapabilities() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeDomain, setActiveDomain] = useState<string>("all");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -139,15 +35,27 @@ export default function MLCapabilities() {
     []
   );
 
+  const filterTags = useMemo(() => deriveFilterTags(capabilities, domains), [domains]);
+
+  // Every filter in one place, so the count in the search bar and the cards on
+  // screen can never disagree. The old count ignored the domain buttons and
+  // read "50 of 50 tools" while a single domain was showing.
+  const matching = useMemo(() => {
+    const q = query.trim();
+    return capabilities
+      .map((cap) => ({ cap, score: scoreCapability(cap, q) }))
+      .filter(({ cap, score }) => score > 0 && (!activeTag || hasTag(cap, activeTag)));
+  }, [query, activeTag]);
+
   const visibleCount = useMemo(
-    () => capabilities.filter((c) => matches(c, query.trim().toLowerCase())).length,
-    [query]
+    () => matching.filter(({ cap }) => activeDomain === "all" || cap.domain === activeDomain).length,
+    [matching, activeDomain]
   );
 
   // A visitor skimming for well under a minute previously met 50 equally
   // weighted cards and no signal about where to start. These few lead, with
   // the full grid unchanged below. Shown only in the unfiltered view — once
-  // someone is searching or has picked a domain they've stated their intent,
+  // someone is searching or has narrowed down they've stated their intent,
   // and a fixed row on top would just be in the way.
   const featured = useMemo(
     () =>
@@ -156,7 +64,7 @@ export default function MLCapabilities() {
         .sort((a, b) => (a.featured ?? 0) - (b.featured ?? 0)),
     []
   );
-  const showFeatured = featured.length > 0 && !query.trim() && activeDomain === "all";
+  const showFeatured = featured.length > 0 && !query.trim() && activeDomain === "all" && !activeTag;
 
   // Filtering can collapse whole domain sections (zero matches), shrinking
   // the page enough that the actual results end up scrolled out of view —
@@ -202,7 +110,7 @@ export default function MLCapabilities() {
     if (items.length > 0 && !anyResultVisible) {
       section.scrollIntoView({ block: "start", behavior: "instant" });
     }
-  }, [query, activeDomain]);
+  }, [query, activeDomain, activeTag]);
 
   return (
     // Was hand-rolling its own container/label/heading styles rather than the
@@ -235,8 +143,16 @@ export default function MLCapabilities() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Search ${capabilities.length} tools by name — try "P", "Feature", or "SHAP"…`}
+          aria-label="Search tools"
+          placeholder={`Search ${capabilities.length} tools — try "malware", "PDF" or "SHAP"…`}
         />
+        {query && (
+          <button className="cap-clear" onClick={() => setQuery("")} aria-label="Clear search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
         <span className="cap-count">{visibleCount} of {capabilities.length} tools</span>
       </div>
 
@@ -259,6 +175,33 @@ export default function MLCapabilities() {
         ))}
       </div>
 
+      {/* Cross-cutting facets, derived from the tags already on each tool. The
+          domain row above answers "what kind of thing is this"; this one
+          answers "where does it run and what powers it", which the domains
+          cannot express — several of the browser-only tools sit in different
+          domains. Single-select on purpose: ANDing two long-tail tags empties
+          the grid almost immediately. */}
+      {filterTags.length > 0 && (
+        <div className="cap-facet-bar">
+          <span className="cap-facet-label">Filter</span>
+          {filterTags.map((tag) => (
+            <button
+              key={tag}
+              className={`cap-facet${activeTag === tag ? " active" : ""}`}
+              aria-pressed={activeTag === tag}
+              onClick={() => setActiveTag((prev) => (prev === tag ? null : tag))}
+            >
+              {tag}
+            </button>
+          ))}
+          {activeTag && (
+            <button className="cap-facet-clear" onClick={() => setActiveTag(null)}>
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       {showFeatured && (
         <div style={{ marginBottom: "3.5rem" }}>
           <div className="cap-cluster-head">
@@ -269,7 +212,7 @@ export default function MLCapabilities() {
           </div>
           <div className="cap-grid">
             {featured.map((cap) => (
-              <FlipCard
+              <ToolCard
                 key={`featured-${cap.id}`}
                 cap={cap}
                 onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
@@ -282,10 +225,12 @@ export default function MLCapabilities() {
       <div ref={resultsRef}>
         {domains.map((d) => {
           if (activeDomain !== "all" && activeDomain !== d) return null;
-          const q = query.trim().toLowerCase();
-          const items = capabilities
-            .filter((c) => c.domain === d && matches(c, q))
-            .sort((a, b) => a.title.localeCompare(b.title));
+          // Most relevant first while searching; alphabetical at rest, where
+          // every card scores the same and a stable order is easier to scan.
+          const items = matching
+            .filter(({ cap }) => cap.domain === d)
+            .sort((a, b) => b.score - a.score || a.cap.title.localeCompare(b.cap.title))
+            .map(({ cap }) => cap);
           if (items.length === 0) return null;
           const total = capabilities.filter((c) => c.domain === d).length;
           return (
@@ -293,12 +238,14 @@ export default function MLCapabilities() {
               <div className="cap-cluster-head">
                 <span className="cap-dot" style={{ width: 8, height: 8, background: DOMAIN_COLOR[d] }} />
                 <h4>{d}</h4>
-                <span className="cap-cluster-count">{total} tools</span>
+                <span className="cap-cluster-count">
+                  {items.length === total ? `${total} tools` : `${items.length} of ${total}`}
+                </span>
                 <div className="cap-cluster-line" />
               </div>
               <div className="cap-grid">
                 {items.map((cap) => (
-                  <FlipCard
+                  <ToolCard
                     key={cap.id}
                     cap={cap}
                     onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
@@ -311,7 +258,8 @@ export default function MLCapabilities() {
 
         {visibleCount === 0 && (
           <p className="cap-no-results" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text3)", fontSize: "0.85rem" }}>
-            No tools match &ldquo;{query}&rdquo;. Try a different search or clear the filter.
+            No tools match{query.trim() ? ` “${query}”` : ""}
+            {activeTag ? ` in ${activeTag}` : ""}. Try a different search or clear the filters.
           </p>
         )}
       </div>

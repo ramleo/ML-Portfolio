@@ -571,8 +571,15 @@ html.light {
 }
 .cap-search-bar input::placeholder { color: var(--text3); }
 .cap-count { font-family: var(--type-data); font-size: 0.7rem; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cap-clear {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 22px; height: 22px; padding: 0; border-radius: 9999px;
+  border: 1px solid var(--border2); background: transparent; color: var(--text3); cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.cap-clear:hover { color: var(--text); border-color: var(--text3); }
 
-.cap-tag-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.25rem; }
+.cap-tag-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
 .cap-rtag {
   font-size: 0.75rem; padding: 5px 12px; border-radius: 9999px; border: 1px solid var(--border2);
   background: transparent; color: var(--text3); cursor: pointer; transition: all 0.15s ease;
@@ -581,6 +588,31 @@ html.light {
 .cap-rtag.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 .cap-rtag:not(.active):hover { color: var(--text); border-color: var(--text3); }
 .cap-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+/* Second, quieter chip row: cross-cutting tag facets. Deliberately lighter
+   than .cap-rtag above — smaller, no dot, an accent tint rather than a solid
+   fill when active — so two chip rows read as a primary filter and a refinement
+   rather than as two rows competing for the same click. */
+.cap-facet-bar { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 2.25rem; }
+.cap-facet-label {
+  font-family: var(--type-data); font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3); margin-right: 0.15rem;
+}
+.cap-facet {
+  font-size: 0.7rem; padding: 3px 10px; border-radius: 9999px;
+  border: 1px solid var(--border); background: transparent; color: var(--text3);
+  cursor: pointer; font-family: inherit; transition: all 0.15s ease;
+}
+.cap-facet:hover { color: var(--text2); border-color: var(--text3); }
+.cap-facet.active {
+  color: var(--accent); border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.cap-facet-clear {
+  font-size: 0.68rem; padding: 3px 4px; border: none; background: none;
+  color: var(--text3); cursor: pointer; font-family: inherit; text-decoration: underline;
+}
+.cap-facet-clear:hover { color: var(--text); }
 
 .cap-cluster-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.1rem; }
 .cap-cluster-head h4 { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text); }
@@ -591,14 +623,29 @@ html.light {
 .flip-outer {
   min-height: 148px; cursor: pointer; transition: min-height 0.3s cubic-bezier(0.23,1,0.32,1);
 }
-.flip-outer:hover { min-height: 310px; }
-.flip-outer:hover.expanded { min-height: 448px; }
 .flip-inner {
   position: relative; width: 100%; height: 100%; min-height: 148px;
   transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), min-height 0.3s cubic-bezier(0.23,1,0.32,1);
 }
-.flip-outer:hover .flip-inner { transform: rotateY(180deg); min-height: 310px; }
-.flip-outer:hover.expanded .flip-inner { min-height: 448px; }
+
+/* ── Flip on hover: pointer devices only ──
+   Every rule that depends on :hover lives in here. On a touch screen the flip
+   never fired, which left the description, tags, stat and actions stranded
+   behind `backface-visibility: hidden` — a phone visitor saw a name and a
+   three-word badge on all 50 cards and nothing else. The static touch layout
+   further down replaces it rather than trying to fake hover with a tap, which
+   would collide with tapping the card to open the tool.
+   The width half of the query matters too: a narrow desktop window is a
+   pointer device but has no room for a 240px card to flip legibly, and gets
+   the readable static layout for the same reason a phone does. */
+@media (hover: hover) and (min-width: 769px) {
+  .flip-outer:hover { min-height: 310px; }
+  .flip-outer:hover.expanded { min-height: 448px; }
+  .flip-outer:hover .flip-inner { transform: rotateY(180deg); min-height: 310px; }
+  .flip-outer:hover.expanded .flip-inner { min-height: 448px; }
+  .flip-outer:hover .flip-face { border-color: var(--border2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.25); }
+  .flip-outer:hover .flip-face::after { opacity: 1; }
+}
 .flip-face {
   position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--radius-card);
   background: var(--bg-glass); border: 1px solid var(--border);
@@ -606,15 +653,22 @@ html.light {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.2);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.flip-outer:hover .flip-face { border-color: var(--border2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.25); }
 .flip-face.back { transform: rotateY(180deg); }
 .flip-face::after {
   content: ""; position: absolute; inset: 0; border-radius: var(--radius-card); opacity: 0; pointer-events: none;
   background: radial-gradient(circle at 50% 10%, var(--acc-glow, transparent) 0%, transparent 70%);
   transition: opacity 0.3s ease;
 }
-.flip-outer:hover .flip-face::after { opacity: 1; }
-.flip-front-body { padding: 1.1rem 1.2rem; display: flex; flex-direction: row; gap: 0.75rem; flex: 1; align-items: center; text-align: left; position: relative; z-index: 1; }
+/* Column, and vertically centred — on a pointer device the description and
+   footer below are hidden, so this collapses back to the original single
+   centred glyph+name row. */
+.flip-front-body {
+  padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.6rem;
+  flex: 1; justify-content: center; text-align: left; position: relative; z-index: 1;
+}
+.flip-front-head { display: flex; flex-direction: row; align-items: center; gap: 0.75rem; min-width: 0; }
+/* Shown only in the static touch/narrow layout at the end of this file. */
+.flip-front-desc, .flip-front-foot { display: none; }
 .flip-front-body .glyph {
   width: 34px; height: 34px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; opacity: 0.9;
@@ -694,15 +748,41 @@ html.light {
   font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: fit-content;
 }
 
-/* ── Mobile type overrides that must come last ──
-   The .flip-* card rules are defined above with the same specificity, so an
-   override inside the earlier mobile media block loses on source order. Kept
-   at the end of the file for that reason. Card description and subtitle
-   measured 11.5px and 11.2px on a phone; raised so the text a visitor
-   actually reads clears ~13px. Desktop sizes are untouched. */
-@media (max-width: 768px) {
-  .flip-back-body .desc { font-size: 0.82rem; }
-  .flip-front-body .sub { font-size: 0.78rem; }
+/* ── Static tool card: touch screens and narrow windows ──
+   Must come last: the .flip-* rules above have the same specificity, so an
+   override placed in the earlier mobile media block loses on source order.
+
+   With no hover there is no flip, so the back face is dropped entirely and the
+   front carries what the back used to hide — description, tags, and an explicit
+   open affordance. The face stops being absolutely positioned so the card can
+   size to its own content instead of being pinned to a fixed 148px.
+
+   Type sizes: the card description and subtitle measured 11.5px and 11.2px on a
+   phone; raised so the text a visitor actually reads clears ~13px. */
+@media (hover: none), (max-width: 768px) {
+  .flip-outer { min-height: 0; }
+  .flip-inner { min-height: 0; transform: none; transform-style: flat; }
+  .flip-face.back { display: none; }
+  .flip-face.front { position: relative; inset: auto; backface-visibility: visible; }
+
+  .flip-front-body { padding: 1rem 1.1rem; justify-content: flex-start; }
+  /* Full names wrap rather than ellipsing — there is room for them here. */
+  .flip-front-body h3 { white-space: normal; font-size: 0.92rem; }
+  .flip-front-body .sub { white-space: normal; font-size: 0.78rem; }
+
+  .flip-front-desc {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 0.82rem; line-height: 1.5; color: var(--text2); margin: 0;
+  }
+  .flip-front-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.5rem; margin-top: auto; padding-top: 0.15rem;
+  }
+  .flip-front-foot .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; min-width: 0; }
+  .flip-front-open {
+    display: inline-flex; align-items: center; gap: 0.25rem; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.01em;
+  }
 }
 
 /* ── Step indicator on phones ──
