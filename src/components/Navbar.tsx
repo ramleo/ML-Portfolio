@@ -17,9 +17,14 @@ import PalettePicker from "./PalettePicker";
 // whichever page the visitor happens to be on and silently do nothing. Each
 // link names something a visitor can do or see, with the one link to the
 // personal side last.
+// Tools leads: it is what the hero promises ("Browse the tools") and it is the
+// bulk of the site, where Platforms is three apps. Having the hero CTA and the
+// first nav item point at different sections was a small inconsistency.
+// No "Home" entry on purpose — the logo links to / and doubling that up is
+// redundant.
 const NAV_LINKS = [
-  { label: "Platforms",    href: "/#projects" },
   { label: "Tools",        href: "/#capabilities" },
+  { label: "Platforms",    href: "/#projects" },
   { label: "How it works", href: "/#architecture" },
   { label: "Docs",         href: "/docs" },
   { label: "About",        href: "/about" },
