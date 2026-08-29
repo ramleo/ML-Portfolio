@@ -116,7 +116,7 @@ export default function NewsSection() {
         <motion.div initial="hidden" animate={inView ? "visible" : "hidden"} variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="section-label" variants={fade}>AI News</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            What&apos;s happening in <span className="gradient-text">AI & ML</span>
+            What&apos;s happening in <span className="heading-accent">AI & ML</span>
           </motion.h2>
           <motion.p variants={fade} style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 500, marginBottom: "2rem" }}>
             Latest research papers from arXiv and industry news — updated hourly.

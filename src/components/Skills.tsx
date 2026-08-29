@@ -149,7 +149,7 @@ export default function Skills() {
         <motion.div initial="hidden" animate={inView ? "visible" : "hidden"} variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="section-label" variants={fade}>Skills</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            The full <span className="gradient-text">AI/ML stack</span>
+            The full <span className="heading-accent">AI/ML stack</span>
           </motion.h2>
           <motion.p
             variants={fade}

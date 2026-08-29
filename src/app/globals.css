@@ -35,6 +35,39 @@ html.palette-ocean {
   --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
 }
 
+/* ── Light-theme gradient stops ──────────────────────────────────────────
+   The palettes above are tuned for the dark background, where every stop
+   clears WCAG comfortably (6.4-9.9:1). On the light background they all
+   failed: measured 1.51-3.58:1 against #f0f4f8, where 4.5:1 is needed for
+   the gradient wordmark in the navbar and footer (small text) and 3:1 for
+   the large section headings. Emerald was worst at 1.74:1 — under half the
+   requirement — which is why headings looked washed out in light mode.
+
+   Same hue progression, darkened until every stop clears 4.5:1, so the
+   brand look is unchanged and only the values shift with the theme.
+   Verified per stop: cosmic 5.69/5.37/4.96, sunset 4.69/4.54/6.42,
+   aurora 6.32/5.46/5.69, ocean 5.37/4.85/4.96. */
+html.light {
+  --accent-from: #4f46e5;
+  --accent-via:  #0369a1;
+  --accent-to:   #047857;
+}
+html.light.palette-sunset {
+  --accent-from: #c2410c;
+  --accent-via:  #b45309;
+  --accent-to:   #92400e;
+}
+html.light.palette-aurora {
+  --accent-from: #7e22ce;
+  --accent-via:  #be185d;
+  --accent-to:   #be123c;
+}
+html.light.palette-ocean {
+  --accent-from: #0369a1;
+  --accent-via:  #0e7490;
+  --accent-to:   #047857;
+}
+
 /* ── Theme tokens ── */
 :root {
   --bg:              #0a0f1e;
@@ -93,12 +126,25 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 ::selection { background: rgba(99, 102, 241, 0.3); }
 
-/* ── Gradient text ── */
+/* ── Gradient text ──
+   Reserved for the AIRaML wordmark (hero, navbar, footer). It previously ran
+   on all eight section headings too, at which point an effect meant to draw
+   the eye was simply the default heading style. */
 .gradient-text {
   background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── Heading accent ──
+   The emphasised half of a section heading ("Building ML — end to end").
+   One flat brand colour instead of the three-stop gradient: the two-tone
+   rhythm and the brand hue stay, the rainbow does not. Tracks --accent-from,
+   so it follows all four palettes and both themes automatically, and clears
+   WCAG in both (6.40:1 on dark, 5.69:1 on light for the default palette). */
+.heading-accent {
+  color: var(--accent-from);
 }
 
 /* ── Tag pill ── */

@@ -39,7 +39,7 @@ export default function About() {
           {/* Label + heading */}
           <motion.p className="section-label" variants={fade}>About</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            Building ML — <span className="gradient-text">end to end</span>
+            Building ML — <span className="heading-accent">end to end</span>
           </motion.h2>
           <motion.p
             variants={fade}

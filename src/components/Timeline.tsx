@@ -70,7 +70,7 @@ export default function Timeline() {
         <motion.div initial="hidden" animate={inView ? "visible" : "hidden"} variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="section-label" variants={fade}>Experience</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            Career <span className="gradient-text">timeline</span>
+            Career <span className="heading-accent">timeline</span>
           </motion.h2>
           <motion.p variants={fade} style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 500, marginBottom: "3.5rem" }}>
             A journey from financial services to full-stack ML engineering.

@@ -277,7 +277,7 @@ export default function PipelineShowcase() {
         <motion.div initial="hidden" animate={inView ? "visible" : "hidden"} variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="section-label" variants={fade}>ML Pipeline</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            From raw data to <span className="gradient-text">live prediction</span>
+            From raw data to <span className="heading-accent">live prediction</span>
           </motion.h2>
           <motion.p
             variants={fade}

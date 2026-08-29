@@ -212,7 +212,7 @@ export default function MLCapabilities() {
         </p>
         <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
           {capabilities.length} tools, each{" "}
-          <span className="gradient-text">live and testable</span>
+          <span className="heading-accent">live and testable</span>
         </h2>
         <p style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginTop: "0.75rem" }}>
           Single-purpose tools, each backed by a real model or algorithm — separate from the{" "}

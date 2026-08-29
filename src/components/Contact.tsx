@@ -43,7 +43,7 @@ export default function Contact() {
         <motion.div initial="hidden" animate={inView ? "visible" : "hidden"} variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="section-label" variants={fade}>Contact</motion.p>
           <motion.h2 className="section-heading" variants={fade}>
-            Let&apos;s <span className="gradient-text">work together</span>
+            Let&apos;s <span className="heading-accent">work together</span>
           </motion.h2>
           <motion.p variants={fade} style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 480, marginBottom: "3rem" }}>
             Open to ML engineering roles, freelance projects, and collaborations. Drop a message or reach out directly.
