@@ -104,15 +104,23 @@ function PulsingCore({ isDark }: { isDark: boolean }) {
       meshRef.current.scale.setScalar(s);
     }
   });
+  // Sits at the exact centre of the hero, directly behind the headline and
+  // sub-paragraph. As a fully opaque sphere it rendered as a hard disc over
+  // that text (and over the stat row on mobile), badly hurting contrast in
+  // both themes. Kept as the network's "core" but made translucent and
+  // smaller so it reads as a soft glow the text stays legible against.
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.18, 16, 16]} />
+      <sphereGeometry args={[0.13, 16, 16]} />
       <meshStandardMaterial
         color="#38bdf8"
         emissive="#38bdf8"
         emissiveIntensity={isDark ? 1.2 : 0.4}
         roughness={0.1}
         metalness={0.8}
+        transparent
+        opacity={isDark ? 0.4 : 0.28}
+        depthWrite={false}
       />
     </mesh>
   );

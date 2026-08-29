@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, Suspense, lazy } from "react";
 import { useInView } from "framer-motion";
 import MagneticButton from "./MagneticButton";
 import { useIsDark } from "../hooks/useIsDark";
+import capabilities from "../data/capabilities";
 
 const NeuralNetwork3D = lazy(() => import("./NeuralNetwork3D"));
 
@@ -41,10 +42,17 @@ function useCountUp(target: number, inView: boolean, duration = 1400) {
   return value;
 }
 
+// Derived from the real capabilities list rather than hardcoded, so these can
+// never drift out of sync with the tool grid further down the page again (the
+// hero previously claimed "2 Live Platforms / 4 Datasets" while the same page
+// rendered 50 tools).
+const TOOL_COUNT   = capabilities.length;
+const DOMAIN_COUNT = new Set(capabilities.map((c) => c.domain)).size;
+
 const STATS = [
-  { target: 2,    suffix: "",   label: "Live Platforms" },
-  { target: 4,    suffix: "",   label: "Datasets" },
-  { target: 96.7, suffix: "%",  label: "Best Accuracy" },
+  { target: TOOL_COUNT,   suffix: "",  label: "Live Tools" },
+  { target: DOMAIN_COUNT, suffix: "",  label: "ML Domains" },
+  { target: 96.7,         suffix: "%", label: "Best Accuracy" },
   { target: null, label: "Pipeline", static: "Auto-ML" },
 ] as const;
 
