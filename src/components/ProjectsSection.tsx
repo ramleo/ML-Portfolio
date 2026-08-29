@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProjectCard from "./ProjectCard";
 import registry from "@/data/registry.json";
+import capabilities from "@/data/capabilities";
 
 const ALL = "All";
 const uniqueTags = [ALL, ...Array.from(new Set(registry.flatMap((p) => p.tags)))];
@@ -36,7 +37,7 @@ export default function ProjectsSection() {
             marginBottom: "0.5rem",
           }}
         >
-          Projects
+          Deployed Platforms
         </p>
         <h2
           style={{
@@ -48,9 +49,21 @@ export default function ProjectsSection() {
             margin: 0,
           }}
         >
-          Live ML Apps —{" "}
+          Three full apps —{" "}
           <span className="gradient-text">click to predict</span>
         </h2>
+        {/* This section and the tool grid below it are different things — full
+            multi-model applications here, single-purpose tools there — but
+            nothing on the page said so, leaving two similar-looking card
+            sections back to back with no stated relationship. */}
+        <p style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginTop: "0.75rem" }}>
+          Complete, multi-model platforms you can use end to end. For the {" "}
+          {capabilities.length} single-purpose tools that sit alongside them, see{" "}
+          <a href="#capabilities" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+            the toolkit
+          </a>{" "}
+          below.
+        </p>
       </div>
 
       {/* Tag filter — #18 AnimatePresence on filter chips */}

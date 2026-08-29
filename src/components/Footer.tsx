@@ -5,14 +5,19 @@ import { motion, useInView } from "framer-motion";
 import { SiteIcon } from "./SiteIcons";
 import { ML_UNIFIED_API } from "@/config/urls";
 
+// A footer can carry a fuller index than the navbar, but it has to use the same
+// names for the same things. This list still said "Projects" and "Timeline"
+// after the navbar moved to "Platforms"/"Experience", and had no entry at all
+// for the tool grid — the largest section on the page.
 const QUICK_LINKS = [
-  { label: "About",    href: "#about" },
-  { label: "Skills",   href: "#skills" },
-  { label: "Projects", href: "#projects" },
-  { label: "Pipeline", href: "#pipeline" },
-  { label: "News",     href: "#news" },
-  { label: "Timeline", href: "#timeline" },
-  { label: "Contact",  href: "#contact" },
+  { label: "About",      href: "#about" },
+  { label: "Platforms",  href: "#projects" },
+  { label: "The Toolkit", href: "#capabilities" },
+  { label: "Skills",     href: "#skills" },
+  { label: "Pipeline",   href: "#pipeline" },
+  { label: "Experience", href: "#timeline" },
+  { label: "News",       href: "#news" },
+  { label: "Contact",    href: "#contact" },
 ];
 
 const SOCIALS = [

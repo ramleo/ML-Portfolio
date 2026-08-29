@@ -208,11 +208,19 @@ export default function MLCapabilities() {
     <section id="capabilities" ref={sectionRef} style={{ padding: "5rem 1.5rem", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: "2rem" }}>
         <p style={{ fontSize: "0.75rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
-          ML Capabilities
+          The Toolkit
         </p>
         <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-          What powers every <span className="gradient-text">prediction</span>
+          {capabilities.length} tools, each{" "}
+          <span className="gradient-text">live and testable</span>
         </h2>
+        <p style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginTop: "0.75rem" }}>
+          Single-purpose tools, each backed by a real model or algorithm — separate from the{" "}
+          <a href="#projects" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+            three full platforms
+          </a>{" "}
+          above. Start with the featured few, or search all {capabilities.length}.
+        </p>
       </div>
 
       <div className="cap-search-bar" ref={searchBarRef}>

@@ -11,9 +11,12 @@ import PalettePicker from "./PalettePicker";
 // at all; and "Timeline" is now "Experience", matching that section's own
 // heading. The Projects, Pipeline and News sections still render in place —
 // they're reached by scrolling rather than by their own top-level link.
+// "Work" lands on the platforms section, with the tool grid immediately below
+// it — that order reads as the whole body of work (three full apps, then the
+// tools) rather than dropping the visitor into the middle of it.
 const NAV_LINKS = [
   { label: "About",      href: "#about" },
-  { label: "Work",       href: "#capabilities" },
+  { label: "Work",       href: "#projects" },
   { label: "Skills",     href: "#skills" },
   { label: "Experience", href: "#timeline" },
   { label: "Contact",    href: "#contact" },
