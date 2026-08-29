@@ -1,0 +1,113 @@
+/* ── Skill chip ── */
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.skill-chip:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Timeline ── */
+
+/* Each timeline row slides in horizontally before it scrolls into view, and
+   the direction comes from useIsMobile(), which returns false on the first
+   client render because it only learns the width in an effect. Framer captures
+   `initial` at mount, so phones get the desktop ±40px offset anyway — and
+   those transforms widened the document by 20px at 390px, letting the whole
+   page be dragged sideways from load until the section animated in.
+   `clip` contains the decorative transform; unlike `hidden` it doesn't create
+   a scroll container. The row dots sit inside the padding box, so nothing
+   visible is cut. */
+#timeline { overflow-x: clip; }
+
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--border2) 10%, var(--border2) 90%, transparent);
+  transform: translateX(-50%);
+}
+
+/* ── Pipeline Cinema screen ── */
+.cinema-screen {
+  background: linear-gradient(180deg, #030810 0%, #060d1a 40%, #0a1628 100%);
+  border: 1px solid var(--border);
+  --cinema-idle-opacity: 0.35;
+  --cinema-idle-dot-opacity: 0.4;
+}
+html.light .cinema-screen {
+  background: linear-gradient(
+    180deg,
+    var(--bg-card) 0%,
+    color-mix(in srgb, var(--accent-via) 5%, var(--bg-card)) 45%,
+    var(--bg) 100%
+  );
+  /* Idle accent-on-dark reads fine at low opacity; the same opacity on a
+     near-white screen washes out almost to invisible, so idle stages need
+     much less dimming here to stay legible before Run Animation is clicked. */
+  --cinema-idle-opacity: 0.75;
+  --cinema-idle-dot-opacity: 0.75;
+}
+
+/* ── Pipeline stage ── */
+.pipeline-stage {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.pipeline-stage:hover {
+  transform: translateY(-4px);
+}
+
+/* ── News card ── */
+.news-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.news-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-3px);
+}
+
+/* ── Form input ── */
+.form-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.form-input::placeholder { color: var(--text3); }
+
+/* ── Layer content above particle grid ── */
+nav, section, footer { position: relative; z-index: 1; }
+
+/* ── Navbar responsive ── */
+.nav-links     { display: flex; align-items: center; gap: 1.25rem; }
+.nav-hamburger { display: none; }

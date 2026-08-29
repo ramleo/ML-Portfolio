@@ -1,0 +1,66 @@
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--type-body);
+  transition: background 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+}
+
+/* Headings take the display face by default so any h1-h3 added later inherits
+   it without needing to remember a class. */
+h1, h2, h3 {
+  font-family: var(--type-display);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::selection { background: rgba(99, 102, 241, 0.3); }
+
+/* ── Gradient text ──
+   Reserved for the AIRaML wordmark (hero, navbar, footer). It previously ran
+   on all eight section headings too, at which point an effect meant to draw
+   the eye was simply the default heading style. */
+.gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Heading accent ──
+   The emphasised half of a section heading ("Building ML — end to end").
+   One flat brand colour instead of the three-stop gradient: the two-tone
+   rhythm and the brand hue stay, the rainbow does not. Tracks --accent-from,
+   so it follows all four palettes and both themes automatically, and clears
+   WCAG in both (6.40:1 on dark, 5.69:1 on light for the default palette). */
+.heading-accent {
+  color: var(--accent-from);
+}
+
+/* ── Tag pill ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: var(--border);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  letter-spacing: 0.02em;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  height: 100%;
+}

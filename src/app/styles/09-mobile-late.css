@@ -1,0 +1,83 @@
+/* ── Static tool card: touch screens and narrow windows ──
+   Must come last: the .flip-* rules above have the same specificity, so an
+   override placed in the earlier mobile media block loses on source order.
+
+   With no hover there is no flip, so the back face is dropped entirely and the
+   front carries what the back used to hide — description, tags, and an explicit
+   open affordance. The face stops being absolutely positioned so the card can
+   size to its own content instead of being pinned to a fixed 148px.
+
+   Type sizes: the card description and subtitle measured 11.5px and 11.2px on a
+   phone; raised so the text a visitor actually reads clears ~13px. */
+@media (hover: none), (max-width: 768px) {
+  .flip-outer { min-height: 0; }
+  .flip-inner { min-height: 0; transform: none; transform-style: flat; }
+  .flip-face.back { display: none; }
+  .flip-face.front { position: relative; inset: auto; backface-visibility: visible; }
+
+  .flip-front-body { padding: 1rem 1.1rem; justify-content: flex-start; }
+  /* Full names wrap rather than ellipsing — there is room for them here. */
+  .flip-front-body h3 { white-space: normal; font-size: 0.92rem; }
+  .flip-front-body .sub { white-space: normal; font-size: 0.78rem; }
+
+  .flip-front-desc {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 0.82rem; line-height: 1.5; color: var(--text2); margin: 0;
+  }
+  .flip-front-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.5rem; margin-top: auto; padding-top: 0.15rem;
+  }
+  .flip-front-foot .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; min-width: 0; }
+  .flip-front-open {
+    display: inline-flex; align-items: center; gap: 0.25rem; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.01em;
+  }
+}
+
+/* ── Step indicator on phones ──
+   The full row (circle + label + connector, per step) measured 403px at a
+   390px viewport and pushed the AutoML page 285px wider than the screen.
+   Shared by six pipeline tool pages, so this fixes all of them: keep every
+   numbered circle, hide the labels of steps you are not on, and shorten the
+   connectors. The current step still names itself, so the row stays
+   meaningful rather than becoming anonymous dots. Inline widths in the
+   component need overriding, hence the !important on the connector. */
+@media (max-width: 768px) {
+  .step-indicator { gap: 0.3rem; flex-wrap: wrap; }
+  .step-item      { gap: 0.3rem; }
+  .step-label     { display: none; }
+  .step-label.is-active { display: inline; }
+  .step-connector { width: 10px !important; }
+}
+
+/* ── Tool-page sticky header on phones ──
+   Seven pipeline tool pages hand-roll the same header: a fixed 60px-tall,
+   non-wrapping flex row holding a Home button, a breadcrumb pill, the tool
+   title, a status badge, the step indicator and the theme toggle. At 390px
+   that content is wider than the screen, so the page scrolled sideways —
+   measured 173px over on Preprocessing, 72px on Feature Engineering, 11px on
+   SHAP. Letting the row wrap and grow past its fixed height keeps every
+   control reachable instead of clipping or scrolling them off-screen. */
+@media (max-width: 768px) {
+  .tool-header-row {
+    height: auto !important;
+    min-height: 60px;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    column-gap: 0.75rem !important;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  /* The breadcrumb is a nested flex row of its own (pill + title + status
+     badge) and stayed on one line even once the outer row wrapped, leaving
+     Preprocessing 26px over. flex-wrap only engages when content actually
+     overflows, so applying it down the header's own subtree is safe. */
+  .tool-header-row > div,
+  .tool-header-row > div > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}

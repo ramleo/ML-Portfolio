@@ -1,0 +1,133 @@
+/* ── Type roles ──
+   Three deliberate jobs rather than one face doing everything:
+     display — Archivo, headings only. Denser and slightly narrower than the
+               body face, so headings carry weight without going larger.
+     sans    — Geist Sans, all running text. Unchanged.
+     mono    — Geist Mono. Already bundled and already used on the tool pages,
+               but nothing on the homepage touched it. Now carries the numeric
+               and label furniture (stat values, counts, section eyebrows),
+               which suits a portfolio whose substance is measurements. */
+:root {
+  /* --font-display / --font-geist-* are injected on <html> by next/font;
+     these are the role names the stylesheet actually uses, so a face can be
+     swapped in one place. Each keeps a real fallback stack in case a font
+     file fails to load. */
+  --type-display: var(--font-display), var(--font-geist-sans), 'Inter', sans-serif;
+  --type-body:    var(--font-geist-sans), 'Inter', sans-serif;
+  --type-data:    var(--font-geist-mono), ui-monospace, 'SF Mono', monospace;
+}
+
+/* ── Corner radius scale ──
+   Cards previously used three different radii for the same conceptual thing:
+   12px on the 50 tool cards, 14px on the skill/news cards directly above
+   them, and 16px on the pipeline stages. Standardised on one card radius so
+   stacked sections line up, with a smaller step for inputs and icon tiles.
+   (Pills stay 9999px, avatars 50%, scrollbar 3px — those are semantic.) */
+:root {
+  --radius-sm:   10px;  /* inputs, small icon tiles */
+  --radius-card: 14px;  /* every card-like surface */
+}
+
+/* ── Brand palette tokens (overridden per palette class) ── */
+:root {
+  --accent-from: #818cf8;
+  --accent-via:  #38bdf8;
+  --accent-to:   #34d399;
+  --accent:      #6366f1;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-sunset {
+  --accent-from: #f97316;
+  --accent-via:  #f59e0b;
+  --accent-to:   #fbbf24;
+  --accent:      #f97316;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-aurora {
+  --accent-from: #a855f7;
+  --accent-via:  #ec4899;
+  --accent-to:   #f43f5e;
+  --accent:      #a855f7;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+html.palette-ocean {
+  --accent-from: #0ea5e9;
+  --accent-via:  #06b6d4;
+  --accent-to:   #10b981;
+  --accent:      #0ea5e9;
+  --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+}
+
+/* ── Light-theme gradient stops ──────────────────────────────────────────
+   The palettes above are tuned for the dark background, where every stop
+   clears WCAG comfortably (6.4-9.9:1). On the light background they all
+   failed: measured 1.51-3.58:1 against #f0f4f8, where 4.5:1 is needed for
+   the gradient wordmark in the navbar and footer (small text) and 3:1 for
+   the large section headings. Emerald was worst at 1.74:1 — under half the
+   requirement — which is why headings looked washed out in light mode.
+
+   Same hue progression, darkened until every stop clears 4.5:1, so the
+   brand look is unchanged and only the values shift with the theme.
+   Verified per stop: cosmic 5.69/5.37/4.96, sunset 4.69/4.54/6.42,
+   aurora 6.32/5.46/5.69, ocean 5.37/4.85/4.96. */
+html.light {
+  --accent-from: #4f46e5;
+  --accent-via:  #0369a1;
+  --accent-to:   #047857;
+}
+html.light.palette-sunset {
+  --accent-from: #c2410c;
+  --accent-via:  #b45309;
+  --accent-to:   #92400e;
+}
+html.light.palette-aurora {
+  --accent-from: #7e22ce;
+  --accent-via:  #be185d;
+  --accent-to:   #be123c;
+}
+html.light.palette-ocean {
+  --accent-from: #0369a1;
+  --accent-via:  #0e7490;
+  --accent-to:   #047857;
+}
+
+/* ── Theme tokens ── */
+:root {
+  --bg:              #0a0f1e;
+  --bg-section:      rgba(10, 15, 30, 0.84);
+  --bg-card:         #111827;
+  --bg-glass:        rgba(17, 24, 39, 0.60);
+  --bg-nav:          rgba(10, 15, 30, 0.88);
+  --text:            #f1f5f9;
+  --text2:           #94a3b8;
+  --text3:           #64748b;
+  --border:          rgba(255, 255, 255, 0.07);
+  --border2:         rgba(255, 255, 255, 0.13);
+  --shadow:          0 4px 24px rgba(0, 0, 0, 0.4);
+  /* RGB triplet matching --text, for chart gridlines/axis-text/track
+     backgrounds that need a hand-tuned alpha (rgba(var(--fg-rgb), 0.05) etc.)
+     rather than a fixed-opacity token like --border2. */
+  --fg-rgb:          241, 245, 249;
+  /* glass-card tokens used by Pipeline + Skills */
+  --glass-bg:        rgba(17, 24, 39, 0.60);
+  --glass-border:    rgba(255, 255, 255, 0.09);
+  --glass-shadow:    0 4px 24px rgba(0, 0, 0, 0.22);
+}
+
+html.light {
+  --bg:              #f0f4f8;
+  --bg-section:      rgba(240, 244, 248, 0.84);
+  --bg-card:         #ffffff;
+  --bg-glass:        rgba(255, 255, 255, 0.60);
+  --bg-nav:          rgba(240, 244, 248, 0.92);
+  --text:            #0f172a;
+  --text2:           #475569;
+  --text3:           #94a3b8;
+  --border:          rgba(0, 0, 0, 0.07);
+  --border2:         rgba(0, 0, 0, 0.12);
+  --shadow:          0 4px 24px rgba(0, 0, 0, 0.08);
+  --fg-rgb:          15, 23, 42;
+  --glass-bg:        rgba(255, 255, 255, 0.60);
+  --glass-border:    rgba(0, 0, 0, 0.10);
+  --glass-shadow:    0 2px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);
+}
