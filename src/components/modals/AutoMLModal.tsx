@@ -114,7 +114,7 @@ export default function AutoMLModal({
       setStep("config");
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
-        setError("Server not responding — the backend may be starting up on Render (cold start). Wait 30s and try again.");
+        setError("Server not responding — the backend runs on a free Hugging Face Space and may be waking up. Wait ~30s and try again.");
       } else {
         setError(e instanceof Error ? e.message : "Analysis failed.");
       }

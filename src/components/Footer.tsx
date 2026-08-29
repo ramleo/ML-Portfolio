@@ -158,11 +158,21 @@ export default function Footer() {
 
           {/* Bottom bar */}
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-            <p style={{ fontSize: "0.75rem", color: "var(--text3)", margin: 0 }}>
-              © 2025 Ramakrishnasai Wuppalapati · All rights reserved
+            <p style={{ fontSize: "0.75rem", color: "var(--text3)", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span>© {new Date().getFullYear()} Ramakrishnasai Wuppalapati</span>
+              <span aria-hidden="true">·</span>
+              <a
+                href="/privacy"
+                style={{ color: "var(--text2)", textDecoration: "none" }}
+              >
+                Privacy &amp; Terms
+              </a>
             </p>
+            {/* Said "Models on Render", but every backend call goes to the
+                Hugging Face Space — same stale claim that was in the meta
+                description and the platforms footnote. */}
             <p style={{ fontSize: "0.75rem", color: "var(--text3)", margin: 0 }}>
-              Built with Next.js · Deployed on Vercel · Models on Render
+              Next.js on Vercel · models on a Hugging Face Space
             </p>
           </div>
         </motion.div>

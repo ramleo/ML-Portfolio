@@ -386,7 +386,7 @@ const capabilities: Capability[] = [
     title: "Face Liveness Detector",
     subtitle: "Real vs. Spoofed",
     description:
-      "Show your face to the camera, or upload a photo, and see whether it reads as a genuinely present face or a spoof — a printed photo or a screen replay. The same category of check that gates face-unlock and identity verification. Runs locally through ONNX: no API key, no budget.",
+      "Show your face to the camera, or upload a photo, and see whether it reads as a genuinely present face or a spoof — a printed photo or a screen replay. The same category of check that gates face-unlock and identity verification. The model runs on this project's own server rather than any third-party AI provider — your photo is sent there for the check, processed in memory and not stored.",
     accent: "#14b8a6",
     icon: ScanFace,
     stat: "600KB",
@@ -404,7 +404,7 @@ const capabilities: Capability[] = [
     title: "Depth Parallax",
     subtitle: "One Photo, Instant 3D",
     description:
-      "Upload one photo and get a per-pixel depth map, then watch it become a parallax diorama — near objects shift more than far ones as you move your pointer. Runs locally through ONNX: no API key, no budget.",
+      "Upload one photo and get a per-pixel depth map, then watch it become a parallax diorama — near objects shift more than far ones as you move your pointer. The model runs on this project's own server rather than any third-party AI provider — your photo is sent there to build the depth map, processed in memory and not stored.",
     accent: "#3b82f6",
     icon: Layers3,
     stat: "37MB",

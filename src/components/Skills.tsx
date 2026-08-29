@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 
-// This section rendered all 84 skill chips at once, which read as an
+// This section rendered all 78 skill chips at once, which read as an
 // undifferentiated wall of keywords rather than a considered summary. Each
 // card now shows its first few by default with the rest one click away —
 // every skill is still here, just no longer competing for attention at once.
