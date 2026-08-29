@@ -2,10 +2,17 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import capabilities from "@/data/capabilities";
+import registry from "@/data/registry.json";
 
+// Two faces used to carry claims nothing on the site backs up: "96.7% Accuracy"
+// (the same unsourced figure the hero showed) and "4+ Live Apps" (stale — there
+// are three platforms and 50 tools). Both are now counted from this repo's own
+// data, so they stay true on their own. The remaining faces are facts about the
+// author, not measured results.
 const FACES = [
-  { label: "96.7%", sub: "Accuracy", color: "#6366f1" },
-  { label: "4+",    sub: "Live Apps", color: "#38bdf8" },
+  { label: String(capabilities.length), sub: "Live Tools", color: "#6366f1" },
+  { label: String(registry.length),     sub: "Platforms",  color: "#38bdf8" },
   { label: "2+",    sub: "Years ML",  color: "#34d399" },
   { label: "3.7/4", sub: "GPA",       color: "#f59e0b" },
   { label: "CNN",   sub: "DL Expert", color: "#a78bfa" },

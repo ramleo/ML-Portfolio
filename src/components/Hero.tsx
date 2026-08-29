@@ -49,10 +49,14 @@ function useCountUp(target: number, inView: boolean, duration = 1400) {
 const TOOL_COUNT   = capabilities.length;
 const DOMAIN_COUNT = new Set(capabilities.map((c) => c.domain)).size;
 
+// Only figures that can be derived from this repo's own data, or that state a
+// fact about the build rather than a result. "96.7% Best Accuracy" was removed:
+// it was a hardcoded performance claim with nothing on the site backing it up,
+// and a headline number a visitor might ask about should be one the author can
+// stand behind. Nothing here is a measured-result claim any more.
 const STATS = [
-  { target: TOOL_COUNT,   suffix: "",  label: "Live Tools" },
-  { target: DOMAIN_COUNT, suffix: "",  label: "ML Domains" },
-  { target: 96.7,         suffix: "%", label: "Best Accuracy" },
+  { target: TOOL_COUNT,   suffix: "", label: "Live Tools" },
+  { target: DOMAIN_COUNT, suffix: "", label: "ML Domains" },
   { target: null, label: "Pipeline", static: "Auto-ML" },
 ] as const;
 
