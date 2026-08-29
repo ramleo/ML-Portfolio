@@ -16,8 +16,9 @@ const QUICK_LINKS = [
   { label: "How it works", href: "/#architecture" },
   { label: "Pipeline",    href: "/#pipeline" },
   { label: "News",        href: "/#news" },
+  { label: "Docs & API",  href: "/docs" },
+  { label: "Changelog",   href: "/changelog" },
   { label: "About",       href: "/about" },
-  { label: "Experience",  href: "/about#timeline" },
   { label: "Contact",     href: "/about#contact" },
 ];
 

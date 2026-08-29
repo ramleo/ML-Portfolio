@@ -21,6 +21,7 @@ const NAV_LINKS = [
   { label: "Platforms",    href: "/#projects" },
   { label: "Tools",        href: "/#capabilities" },
   { label: "How it works", href: "/#architecture" },
+  { label: "Docs",         href: "/docs" },
   { label: "About",        href: "/about" },
 ];
 
