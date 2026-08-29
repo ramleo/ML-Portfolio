@@ -22,6 +22,13 @@ export type Capability = {
   github: string;
   modalEnabled?: boolean;   // true = "Run Here" button opens inline modal
   internalLink?: string;    // internal Next.js route — shows "Try it", navigates client-side
+  /**
+   * Rank (1 = first) in the "Featured work" row shown above the full grid.
+   * A visitor skimming for under a minute sees depth here before breadth
+   * below; leave undefined for everything that isn't a flagship. Change the
+   * line-up by moving this one field between tools — no component edits.
+   */
+  featured?: number;
 };
 
 const GITHUB = "https://github.com/ramleo/ML-Unified";
@@ -119,6 +126,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "automl",
+    featured: 1,
     domain: "ML Pipeline",
     title: "AutoML Pipeline",
     subtitle: "4-Model Competition",
@@ -263,6 +271,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "text-to-sql",
+    featured: 5,
     domain: "Language & Documents",
     title: "Text-to-SQL Agent",
     subtitle: "Natural Language → Database Queries",
@@ -299,6 +308,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "multimodal-rag",
+    featured: 2,
     domain: "Language & Documents",
     title: "Multimodal RAG",
     subtitle: "Tables & Figures as Citable Knowledge",
@@ -335,6 +345,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "crime-scene-reconstruction",
+    featured: 3,
     domain: "Computer Vision",
     title: "Crime Scene Reconstruction",
     subtitle: "Sparse SfM",
@@ -479,6 +490,7 @@ const capabilities: Capability[] = [
   },
   {
     id: "phishing-email-classifier",
+    featured: 4,
     domain: "Security & Trust",
     title: "Phishing Email Body Classifier",
     subtitle: "Local · No API Cost",

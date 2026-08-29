@@ -1,7 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+
+// This section rendered all 84 skill chips at once, which read as an
+// undifferentiated wall of keywords rather than a considered summary. Each
+// card now shows its first few by default with the rest one click away —
+// every skill is still here, just no longer competing for attention at once.
+const VISIBLE_SKILLS = 6;
 
 const CATEGORIES = [
   {
@@ -70,6 +76,10 @@ const CATEGORIES = [
 type Category = typeof CATEGORIES[number];
 
 function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boolean }) {
+  const [showAll, setShowAll] = useState(false);
+  const hidden  = cat.skills.length - VISIBLE_SKILLS;
+  const shown   = showAll ? cat.skills : cat.skills.slice(0, VISIBLE_SKILLS);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 32 }}
@@ -84,19 +94,42 @@ function SkillCard({ cat, ci, inView }: { cat: Category; ci: number; inView: boo
           <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text)" }}>{cat.title}</span>
         </div>
 
-        {/* Skill chips — every skill, unchanged */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-          {cat.skills.map((skill, si) => (
+        {/* Skill chips — capped by default, all of them one click away */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", alignItems: "center" }}>
+          {shown.map((skill, si) => (
             <motion.span
               key={skill}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: 0.2 + ci * 0.06 + si * 0.02, duration: 0.25 }}
+              transition={{
+                // Chips revealed by the toggle animate in immediately; only the
+                // initial set is staggered with the card's entrance.
+                delay: si < VISIBLE_SKILLS ? 0.2 + ci * 0.06 + si * 0.02 : 0,
+                duration: 0.25,
+              }}
               className="tag"
             >
               {skill}
             </motion.span>
           ))}
+
+          {hidden > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="tag"
+              style={{
+                cursor: "pointer",
+                background: "transparent",
+                color: cat.accent,
+                borderColor: `${cat.accent}55`,
+                fontWeight: 600,
+              }}
+            >
+              {showAll ? "Show less" : `+${hidden} more`}
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

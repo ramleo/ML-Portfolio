@@ -144,6 +144,20 @@ export default function MLCapabilities() {
     [query]
   );
 
+  // A visitor skimming for well under a minute previously met 50 equally
+  // weighted cards and no signal about where to start. These few lead, with
+  // the full grid unchanged below. Shown only in the unfiltered view — once
+  // someone is searching or has picked a domain they've stated their intent,
+  // and a fixed row on top would just be in the way.
+  const featured = useMemo(
+    () =>
+      capabilities
+        .filter((c) => typeof c.featured === "number")
+        .sort((a, b) => (a.featured ?? 0) - (b.featured ?? 0)),
+    []
+  );
+  const showFeatured = featured.length > 0 && !query.trim() && activeDomain === "all";
+
   // Filtering can collapse whole domain sections (zero matches), shrinking
   // the page enough that the actual results end up scrolled out of view —
   // either above the viewport (search bar pushed past top: 0) or, if the
@@ -232,6 +246,26 @@ export default function MLCapabilities() {
           </button>
         ))}
       </div>
+
+      {showFeatured && (
+        <div style={{ marginBottom: "3.5rem" }}>
+          <div className="cap-cluster-head">
+            <span className="cap-dot" style={{ width: 8, height: 8, background: "var(--accent)" }} />
+            <h4>Featured work</h4>
+            <span className="cap-cluster-count">Start here</span>
+            <div className="cap-cluster-line" />
+          </div>
+          <div className="cap-grid">
+            {featured.map((cap) => (
+              <FlipCard
+                key={`featured-${cap.id}`}
+                cap={cap}
+                onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div ref={resultsRef}>
         {domains.map((d) => {

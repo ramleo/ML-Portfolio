@@ -24,9 +24,12 @@ export default function Home() {
       <ProjectsSection />
       <MLCapabilities />
       <PipelineShowcase />
-      <NewsSection />
       <Timeline />
       <Contact />
+      {/* Moved below Contact: this is an external AI news feed, and sitting
+          mid-page it pushed the experience and contact sections further down
+          behind content that isn't the author's own work. */}
+      <NewsSection />
       <Footer />
     </>
   );

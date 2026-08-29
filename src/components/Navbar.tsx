@@ -4,14 +4,19 @@ import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 import PalettePicker from "./PalettePicker";
 
+// Seven links plus the logo, resume, theme and palette controls made for a
+// crowded bar with no clear priority. Trimmed to the five a visitor actually
+// navigates by. Two deliberate changes beyond the cut: "Work" points at the
+// 50-tool grid, which is the main body of work and previously had no nav entry
+// at all; and "Timeline" is now "Experience", matching that section's own
+// heading. The Projects, Pipeline and News sections still render in place —
+// they're reached by scrolling rather than by their own top-level link.
 const NAV_LINKS = [
-  { label: "About",    href: "#about" },
-  { label: "Skills",   href: "#skills" },
-  { label: "Projects", href: "#projects" },
-  { label: "Pipeline", href: "#pipeline" },
-  { label: "News",     href: "#news" },
-  { label: "Timeline", href: "#timeline" },
-  { label: "Contact",  href: "#contact" },
+  { label: "About",      href: "#about" },
+  { label: "Work",       href: "#capabilities" },
+  { label: "Skills",     href: "#skills" },
+  { label: "Experience", href: "#timeline" },
+  { label: "Contact",    href: "#contact" },
 ];
 
 export default function Navbar() {
