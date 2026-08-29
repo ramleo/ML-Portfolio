@@ -40,7 +40,7 @@ const capabilities: Capability[] = [
     title: "YARA File Scanner",
     subtitle: "Live Engine · Real YARA",
     description:
-      "Upload a file and it's scanned with the real, open-source YARA pattern-matching engine — the actual industry-standard tool antivirus, EDR, and threat-intel teams use to write and share malware-detection rules. Scan with a small built-in educational rule set (EICAR test signature, PowerShell LOLBin encoding, generic webshell/macro/reverse-shell patterns, embedded-PE smuggling, YARA's own entropy math module — self-authored and disclosed as a demo, not a pulled third-party threat-intel feed), or write and test your own YARA rule against the file, the real everyday workflow YARA exists for. Never executes the uploaded file; every result is a real matched rule with real evidence (matched string, offset), never a fabricated malicious/clean verdict.",
+      "Scan a file with real YARA — the same pattern-matching engine antivirus and threat-intel teams use to write and share detection rules. Run it against a small built-in rule set (EICAR, PowerShell LOLBin encoding, webshell and macro patterns, embedded-PE smuggling, an entropy rule), or write your own rule and test it, which is what YARA actually exists for. Your file is never executed, and every hit shows the matched string and offset rather than a bare verdict.",
     accent: "#b91c1c",
     icon: Bug,
     stat: "7",
@@ -58,7 +58,7 @@ const capabilities: Capability[] = [
     title: "Keystroke Biometric Auth-Risk Demo",
     subtitle: "Live Biometric Demo · Zero ML",
     description:
-      "Type a fixed phrase 3 times to enroll a real keystroke-timing profile (dwell time per key + flight time between keys, the classic 'digraph timing' signal), then retype it once more to get a live risk score. Scoring uses scaled Manhattan distance — each feature's deviation from your enrolled mean normalized by its own standard deviation — a real, published top-performing classifier for keystroke-dynamics anomaly detection (CMU's Killourhy & Maxion benchmark and follow-on research), not a heuristic invented for this demo. Try retyping normally (Low risk) vs. deliberately faster/slower/hunt-and-peck (risk rises) to see the mechanism live. Entirely client-side, zero ML model, zero server call — disclosed honestly as a concept demo, not a calibrated production authenticator.",
+      "Type a short phrase three times to enrol a keystroke-timing profile, then type it once more and see how closely the rhythm matches. Scoring uses scaled Manhattan distance over dwell and flight times, a published approach for keystroke-dynamics anomaly detection. Try typing normally, then deliberately faster or hunt-and-peck, and watch the score move. A concept demo rather than a calibrated authenticator — and entirely client-side, with no server call.",
     accent: "#22c55e",
     icon: Fingerprint,
     stat: "2",
@@ -76,7 +76,7 @@ const capabilities: Capability[] = [
     title: "Data Preprocessing",
     subtitle: "Clean Before You Train",
     description:
-      "Deduplicate rows, impute missing values with 8+ numeric strategies (Mean, Median, KNN, MICE) and 4 categorical strategies, remove outliers via IQR / Z-score / Winsorize, fix skewness, and apply Yeo-Johnson power transform. Download a clean CSV or hand off directly to AutoML.",
+      "Clean a messy CSV before you train on it. Deduplicate rows, fill missing values with 8+ numeric strategies (mean, median, KNN, MICE) or 4 categorical ones, strip outliers by IQR, Z-score or Winsorize, and correct skew with a Yeo-Johnson transform. Download the cleaned file, or send it straight through to AutoML.",
     accent: "#22d3ee",
     icon: Sparkles,
     stat: "5",
@@ -94,7 +94,7 @@ const capabilities: Capability[] = [
     title: "Feature Engineering",
     subtitle: "No-Code Transforms",
     description:
-      "log1p, sqrt, Yeo-Johnson, percentile rank, outlier flag, and missing flag per numeric column. Plus binning, polynomial pairs, interaction terms, date extraction, and cyclical encoding (sin / cos). All transforms are fit on training data only — no leakage.",
+      "Build new features out of your columns without writing code. Per-column transforms (log1p, sqrt, Yeo-Johnson, percentile rank, outlier and missing flags) plus binning, polynomial and interaction terms, date extraction and cyclical sin/cos encoding. Everything is fit on training data only, so nothing leaks in from your test set.",
     accent: "#38bdf8",
     icon: Wand2,
     stat: "10+",
@@ -112,7 +112,7 @@ const capabilities: Capability[] = [
     title: "Feature Selection",
     subtitle: "Keep Only What Matters",
     description:
-      "Four methods — Variance Threshold, Correlation Filter (drop >0.9 correlated), RFE (Random Forest), and SelectKBest (Mutual Info) — automatically prune irrelevant or redundant columns before training. Configurable top-K cutoff.",
+      "Cut a dataset down to the columns that actually carry signal. Four methods — variance threshold, correlation filter (drops anything above 0.9), recursive feature elimination with a Random Forest, and SelectKBest on mutual information — prune redundant columns before training, with a configurable top-K cutoff.",
     accent: "#fb923c",
     icon: Filter,
     stat: "4",
@@ -131,7 +131,7 @@ const capabilities: Capability[] = [
     title: "AutoML Pipeline",
     subtitle: "4-Model Competition",
     description:
-      "RF, XGBoost, LightGBM, and CatBoost compete via 5-fold cross-validation. The winner is selected automatically by F1 (classification) or MAE (regression). Optional Optuna tuning and SHAP explanation run on the winner.",
+      "Upload a CSV and get a trained model without writing any code. Four algorithms — Random Forest, XGBoost, LightGBM and CatBoost — compete on 5-fold cross-validation, and the winner is chosen automatically on F1 for classification or MAE for regression. Optional Optuna tuning and a SHAP explanation then run on whichever model won.",
     accent: "#34d399",
     icon: Trophy,
     stat: "4",
@@ -149,7 +149,7 @@ const capabilities: Capability[] = [
     title: "Optuna Tuning",
     subtitle: "Post-Winner Hyperparameter Search",
     description:
-      "TPE sampler runs up to 30 trials on the AutoML winner to find optimal hyperparameters. Tuning is optional and runs after model selection — not before — so it never inflates the competition score.",
+      "Squeeze more out of the model AutoML picked. A TPE sampler runs up to 30 trials searching for better hyperparameters. It runs after model selection rather than before, so tuning can never inflate the score that won the competition in the first place.",
     accent: "#a78bfa",
     icon: SlidersHorizontal,
     stat: "30",
@@ -167,7 +167,7 @@ const capabilities: Capability[] = [
     title: "SHAP Explainability",
     subtitle: "Per-Prediction Feature Impact",
     description:
-      "Every prediction comes with a SHAP bar chart showing which features drove the result and by how much. FE-derived columns are grouped back to their originals so you see source-feature influence, not transform noise.",
+      "See why a model made a particular prediction, not just what it predicted. Every result comes with a SHAP bar chart showing which features pushed it and by how much. Engineered columns are grouped back to the original feature they came from, so you read source influence rather than transform noise.",
     accent: "#f59e0b",
     icon: PieChart,
     stat: "1",
@@ -185,7 +185,7 @@ const capabilities: Capability[] = [
     title: "Ensemble Methods",
     subtitle: "Combine Top-N Models",
     description:
-      "Simple voting (VotingClassifier / VotingRegressor) or stacking with a meta-learner on top of the AutoML winners. Reduces variance and improves generalization over any single model.",
+      "Combine the strongest models instead of betting on one. Voting (VotingClassifier / VotingRegressor) or stacking with a meta-learner on top of the AutoML winners, which typically reduces variance and generalises better than any single model on its own.",
     accent: "#f472b6",
     icon: Layers,
     stat: "2",
@@ -203,7 +203,7 @@ const capabilities: Capability[] = [
     title: "Data Drift Detection",
     subtitle: "Monitor Production Data",
     description:
-      "Upload a new production batch CSV and compare it against the training baseline. PSI, KS test, and distribution histograms for numeric columns; category frequency shifts for categoricals. Trend sparkline tracks drift score across multiple batches.",
+      "Check whether live data has drifted away from what your model was trained on. Upload a new production batch and compare it against the training baseline: PSI, KS test and distribution histograms for numeric columns, category frequency shifts for categoricals. A trend sparkline tracks the drift score across successive batches.",
     accent: "#fb923c",
     icon: GitCompare,
     stat: "PSI",
@@ -221,7 +221,7 @@ const capabilities: Capability[] = [
     title: "Pipeline Builder",
     subtitle: "End-to-End ML Canvas",
     description:
-      "Visual card canvas that orchestrates all 7 ML stages — Preprocessing, Feature Engineering, Feature Selection, AutoML, Optuna, SHAP, and Ensemble — into one sequential pipeline.",
+      "Run the whole pipeline as one sequence instead of tool by tool. A visual canvas chains all seven stages together — preprocessing, feature engineering, feature selection, AutoML, Optuna tuning, SHAP explanation and ensembling — so a labelled CSV goes in one end and a trained, explained model comes out the other.",
     accent: "#a78bfa",
     icon: Workflow,
     stat: "7",
@@ -239,7 +239,7 @@ const capabilities: Capability[] = [
     title: "Pipeline Cinema",
     subtitle: "Animated ML Showcase",
     description:
-      "Watch your data transform in real time — chibi scientist characters process each ML stage with fluid animations. A cinematic walkthrough of the full pipeline.",
+      "Watch the seven ML stages play out as an animation rather than reading about them. Illustrated characters carry data through each step of the pipeline in turn. Nothing to upload — it is a walkthrough of how the stages fit together.",
     accent: "#f97316",
     icon: Clapperboard,
     stat: "4",
@@ -257,7 +257,7 @@ const capabilities: Capability[] = [
     title: "Real-Time Analytics",
     subtitle: "Live Event Dashboard",
     description:
-      "Track every page view and tool interaction on this portfolio in real time. Events flow from the browser into a PostgreSQL database via a FastAPI ingestion API, then Supabase Realtime pushes each row to the dashboard the moment it lands — no polling, no refresh.",
+      "Watch traffic to this site arrive as it happens. Page views and tool opens flow from the browser into PostgreSQL through a FastAPI ingestion endpoint, and Supabase Realtime pushes each new row straight to the dashboard — no polling, no refresh button.",
     accent: "#10b981",
     icon: Activity,
     stat: "∞",
@@ -276,7 +276,7 @@ const capabilities: Capability[] = [
     title: "Text-to-SQL Agent",
     subtitle: "Natural Language → Database Queries",
     description:
-      "Ask questions in plain English and get executable SQL instantly. The agent generates SQL, runs it against a real database, explains results, and retries automatically on errors. Supports Chinook demo DB, SQLite upload, and PostgreSQL.",
+      "Ask a question in plain English and get SQL you can actually run. The agent writes the query, executes it against a real database, explains what came back, and retries itself if the query errors. Bring your own SQLite file or a PostgreSQL connection, or try it on the Chinook demo database.",
     accent: "#6366f1",
     icon: Terminal,
     stat: "3",
@@ -294,7 +294,7 @@ const capabilities: Capability[] = [
     title: "Document Intelligence",
     subtitle: "AI-Powered Document Data Extraction",
     description:
-      "Upload invoices, contracts, resumes, medical reports, bank statements, and more. AI classifies the document type, extracts structured fields with confidence scores, and highlights each field's location with bounding box overlays.",
+      "Upload an invoice, contract, resume, medical report or bank statement and get its fields back as structured data. The document type is identified automatically, each field is extracted with a confidence score, and a box is drawn on the page showing exactly where the value was found.",
     accent: "#06b6d4",
     icon: FileSearch,
     stat: "8",
@@ -313,7 +313,7 @@ const capabilities: Capability[] = [
     title: "Multimodal RAG",
     subtitle: "Tables & Figures as Citable Knowledge",
     description:
-      "Upload a PDF mixing prose, tables, and charts. Tables are read as structured data and figures get an AI-written caption, so questions whose answer lives in a number or a chart — not just a paragraph — get a grounded, page-cited answer.",
+      "Ask questions about a PDF and get answers cited back to the page they came from — including answers that live in a table or a chart rather than a paragraph. Tables are read as structured data and figures get an AI-written caption, so a number buried in a bar chart is still findable.",
     accent: "#a78bfa",
     icon: BookOpenCheck,
     stat: "3",
@@ -331,7 +331,7 @@ const capabilities: Capability[] = [
     title: "Contract/Invoice Reconciliation Assistant",
     subtitle: "Discrepancy Report Across Documents",
     description:
-      "Upload a contract, then one or more invoices. Flags amounts, dates, and terms that disagree across documents, each with the two source passages and an explanation — never comparing invoices against each other, since they're expected to differ.",
+      "Upload a contract, then the invoices billed against it, and see where they disagree. Mismatched amounts, dates and terms are flagged with both source passages side by side and an explanation of the conflict. Invoices are only ever checked against the contract, never against each other — they are supposed to differ.",
     accent: "#f59e0b",
     icon: Scale,
     stat: "2",
@@ -350,7 +350,7 @@ const capabilities: Capability[] = [
     title: "Crime Scene Reconstruction",
     subtitle: "Sparse SfM",
     description:
-      "Upload 2-6 photos of the same static scene from different angles and get a real sparse Structure-from-Motion reconstruction: SIFT feature matching, essential-matrix pose estimation for the first pair, then incremental PnP-based camera registration and triangulation for each additional photo, rendered as an interactive colored 3D point cloud. No bundle adjustment, no camera calibration, no dense mesh — an educational demonstration of the real photogrammetry technique behind COLMAP-style tools, explicitly not a forensic-grade measurement tool.",
+      "Upload 2-6 photos of the same static scene from different angles and get an interactive 3D point cloud built from them. This is real Structure-from-Motion — SIFT feature matching, essential-matrix pose estimation, then incremental camera registration and triangulation — the same technique behind COLMAP-style photogrammetry. What it will not do is measure: there is no bundle adjustment, no camera calibration and no dense mesh, so treat the result as a demonstration rather than a forensic-grade tool.",
     accent: "#b91c1c",
     icon: Box,
     stat: "0",
@@ -368,7 +368,7 @@ const capabilities: Capability[] = [
     title: "Text-to-Image Generator",
     subtitle: "Describe It, Generate It",
     description:
-      "Type a description and get a generated image back — no input photo required, just a prompt. Uses Gemini's paid image model, so a small daily generation budget applies to keep API cost predictable.",
+      "Type a description and get an image back — no input photo needed, just a prompt. This one runs on Gemini's paid image model, so a small daily generation budget applies to keep the API cost predictable.",
     accent: "#ec4899",
     icon: ImagePlus,
     stat: "1",
@@ -386,7 +386,7 @@ const capabilities: Capability[] = [
     title: "Face Liveness Detector",
     subtitle: "Real vs. Spoofed",
     description:
-      "Show your face to your camera (or upload a photo) and it checks whether it's a genuinely live face or a spoofed presentation — a printed photo, a phone/screen replay. Same category of check that gates face-unlock and identity-verification systems. Pure local ONNX inference, no API key or budget cost.",
+      "Show your face to the camera, or upload a photo, and see whether it reads as a genuinely present face or a spoof — a printed photo or a screen replay. The same category of check that gates face-unlock and identity verification. Runs locally through ONNX: no API key, no budget.",
     accent: "#14b8a6",
     icon: ScanFace,
     stat: "600KB",
@@ -404,7 +404,7 @@ const capabilities: Capability[] = [
     title: "Depth Parallax",
     subtitle: "One Photo, Instant 3D",
     description:
-      "Upload a single photo and get a per-pixel depth map, then watch it come alive as a live parallax diorama — near objects shift more than far ones as you move your pointer. Pure local ONNX inference, no API key or budget cost.",
+      "Upload one photo and get a per-pixel depth map, then watch it become a parallax diorama — near objects shift more than far ones as you move your pointer. Runs locally through ONNX: no API key, no budget.",
     accent: "#3b82f6",
     icon: Layers3,
     stat: "37MB",
@@ -422,7 +422,7 @@ const capabilities: Capability[] = [
     title: "Plant Growth Quantification",
     subtitle: "Local · No API Cost",
     description:
-      "Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo with multiple plants to compare their current size to each other — an HSV green-hue threshold measures foliage pixel area, no ML model or API call needed. Auto-detects and separates multiple plants in one shot into independent measurements, and auto-detects a before/after collage photo to split and chart as growth over time instead. Also reports an RGB vegetation index (a stress/yellowing signal independent of size) and a leaf count per plant. Catches a stress or decline trend in the numbers before it's visible to the eye.",
+      "Track how a plant is actually growing. Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo of several plants to compare their sizes against each other. Foliage area is measured by an HSV green-hue threshold — no model, no API call. Several plants in one shot are separated automatically, and a before/after collage is split and charted as growth. It also reports a vegetation index (a yellowing signal independent of size) and a leaf count, so a decline can show up in the numbers before you can see it.",
     accent: "#4ade80",
     icon: Sprout,
     stat: "0",
@@ -440,7 +440,7 @@ const capabilities: Capability[] = [
     title: "Attack-Surface / Exposed-Path Scanner",
     subtitle: "Live Recon · Zero ML",
     description:
-      "Type a domain and 4 real, entirely passive recon checks run live: exposed sensitive paths (.git/HEAD, .env, .DS_Store, etc. — only flagged when the response content actually matches the expected file, not just a 200 status), Apache/nginx directory-listing detection, passive CMS fingerprinting via the standard <meta name=\"generator\"> tag, and a short common-port TCP-connect check (FTP/SSH/MySQL/Redis/etc. — open/closed only, no banner grab). SSRF-hardened: refuses to connect to any private, loopback, or internal address. Reports real findings for a human to weigh, never a fabricated risk score.",
+      "Enter a domain and see what it exposes to the open internet. Four passive checks run live: sensitive paths like .git/HEAD and .env (only flagged when the response really is that file, not merely a 200), Apache/nginx directory listings, CMS fingerprinting from the standard generator tag, and a short common-port connect check. It refuses to touch private, loopback or internal addresses, and reports real findings for you to weigh rather than a made-up risk score.",
     accent: "#dc2626",
     icon: ScanEye,
     stat: "4",
@@ -458,7 +458,7 @@ const capabilities: Capability[] = [
     title: "Malicious Package Scanner",
     subtitle: "Local · No API Cost",
     description:
-      "Paste a package.json/requirements.txt or a JS/TS/Python source file and it's checked with real, published static-analysis heuristics (GuardDog-style supply-chain checks plus lightweight SAST): suspicious npm lifecycle install scripts (preinstall/install/postinstall), dependency-name typosquats against a curated list of well-known packages, suspicious dynamic-execution API calls (eval/exec/subprocess/child_process), high-entropy obfuscated string literals, embedded network URLs, hardcoded secrets (AWS/GitHub/Slack tokens, PEM keys, generic credential assignments), SQL-injection-shaped query building (CWE-89), and insecure deserialization (Python pickle/yaml.load/marshal, CWE-502). Pattern-matching common attacker techniques rather than comparing against known-malware signatures — the same approach that lets it flag never-before-seen malicious packages. Every result is real evidence for a human to weigh, never a fabricated malicious/safe verdict. Fully client-side, zero backend, zero API cost.",
+      "Paste a package.json, requirements.txt or a source file and see what a supply-chain reviewer would flag. Checks for npm install-script hooks, dependency names that typosquat well-known packages, dynamic execution calls (eval, exec, subprocess), obfuscated high-entropy strings, embedded URLs, hardcoded secrets, SQL built by string interpolation, and unsafe deserialization. It matches attacker techniques rather than known signatures, which is what lets it flag packages nobody has seen before. Every hit is real evidence to judge, never a safe/malicious verdict. Runs fully in your browser.",
     accent: "#f59e0b",
     icon: PackageSearch,
     stat: "0",
@@ -476,7 +476,7 @@ const capabilities: Capability[] = [
     title: "TLS / Security-Headers Scanner",
     subtitle: "Live TLS + Headers · Zero ML",
     description:
-      "Type a domain and it's checked live, Mozilla-Observatory-style: a real TLS handshake verifies certificate chain validity, expiry, and protocol version (flagging deprecated SSLv3/TLS 1.0/1.1), and a live HTTPS request checks for the 6 standard security response headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy). SSRF-hardened: the backend resolves the hostname first and refuses to connect to any private, loopback, or internal address rather than silently scanning it. Reports an honest qualitative verdict plus the real warnings behind it, never a fabricated numeric score.",
+      "Enter a domain and check its TLS and security headers the way Mozilla Observatory does. A real handshake verifies the certificate chain, expiry and protocol version, flagging deprecated SSLv3 and TLS 1.0/1.1, and a live request checks the six standard security headers. It refuses to connect to private, loopback or internal addresses, and gives a qualitative verdict with the actual warnings behind it rather than a numeric score.",
     accent: "#0ea5e9",
     icon: LockKeyhole,
     stat: "6",
@@ -495,7 +495,7 @@ const capabilities: Capability[] = [
     title: "Phishing Email Body Classifier",
     subtitle: "Local · No API Cost",
     description:
-      "Paste the body text of an email and a Multinomial Naive Bayes classifier — trained on a corpus of real phishing and legitimate emails — scores the language itself: urgency phrasing, generic greetings, manipulative wording. Unlike this site's other phishing tools (which check URL structure, DNS, or SPF/DKIM/DMARC headers), this one reads what the message actually says. Shows the real top contributing words as evidence, plus an independent, transparent rule-based flag list — two signals, never fused into one black-box score. Fully client-side, zero backend, zero API cost.",
+      "Paste an email's body text and see whether the writing itself reads like phishing — urgency, generic greetings, manipulative phrasing. A Multinomial Naive Bayes classifier trained on real phishing and legitimate mail shows you the exact words driving its score, next to a separate, transparent list of rule-based flags. Two signals shown side by side, never blended into one black-box number. Runs fully client-side — nothing you paste leaves your browser.",
     accent: "#e11d48",
     icon: MailWarning,
     stat: "0",
@@ -513,7 +513,7 @@ const capabilities: Capability[] = [
     title: "SIEM Alert Triage Agent",
     subtitle: "Grouping + LLM Judge",
     description:
-      "Paste raw security alert lines and near-identical ones are deduplicated/grouped by normalized template entirely in your browser first (a simplified version of real log-template-extraction techniques). Only the grouped summary — never your raw unbounded log — is sent to an independent LLM judge (the same fixed-server-key Mistral pattern used by Prompt Injection Playground and AI Code Detector) for a priority, one-sentence reasoning, and one-sentence suggested next step per group. Advisory only: every suggestion is phrased for a human analyst to act on, never as something this tool did itself.",
+      "Paste raw alert lines and get them grouped and prioritised. Near-identical alerts are deduplicated by template in your browser first, so only the grouped summary — never your raw log — is sent on to an LLM for a priority, a one-line reason and a suggested next step per group. Advisory only: every suggestion is written for you to act on, never phrased as something already done.",
     accent: "#0891b2",
     icon: ListChecks,
     stat: "2",
@@ -531,7 +531,7 @@ const capabilities: Capability[] = [
     title: "DNS Tunneling / Exfiltration Detector",
     subtitle: "Local · No API Cost",
     description:
-      "Paste a DNS query log (one hostname per line) or check a single hostname, analyzed with the real, published heuristics security tools use for DNS tunneling/exfiltration detection (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy, and query volume per parent domain. A parent domain is only flagged when multiple signals agree together — never length or entropy alone, which avoids false-flagging ordinary long CDN-style subdomains. Pure heuristics, no ML model, fully client-side.",
+      "Paste a DNS query log, or check a single hostname, and spot possible tunnelling or exfiltration. Uses the published heuristics real tools rely on for this (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy and query volume per parent domain. A domain is only flagged when several signals agree, so ordinary long CDN-style subdomains don't trip it. Pure heuristics, no model, fully client-side.",
     accent: "#8b5cf6",
     icon: Network,
     stat: "0",
@@ -549,7 +549,7 @@ const capabilities: Capability[] = [
     title: "Password Strength & Breach Checker",
     subtitle: "Local · No API Cost",
     description:
-      "Type a password to score its real strength via zxcvbn — the same pattern-matching algorithm (dictionaries, keyboard walks, dates, repeats) behind many real password meters, not naive character-class counting — entirely in your browser. Optionally check it against Have I Been Pwned's Pwned Passwords database using k-anonymity: only a 5-character SHA-1 hash prefix is ever sent, never the password or the full hash. No backend, no API key, and nothing is stored between visits.",
+      "Check how strong a password really is. Scored in your browser by zxcvbn, the pattern-matching algorithm behind many real password meters — dictionaries, keyboard walks, dates, repeats — rather than naive character-class counting. You can also check it against Have I Been Pwned using k-anonymity: only the first five characters of its SHA-1 hash ever leave your machine, never the password itself. Nothing is stored.",
     accent: "#14b8a6",
     icon: KeyRound,
     stat: "0",
@@ -567,7 +567,7 @@ const capabilities: Capability[] = [
     title: "QR Phishing Detector",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a photo or screenshot containing a QR code and its decoded destination URL is checked for structural phishing/malicious-link signals — IP-literal hosts, punycode domains, '@' auth-trick URLs, URL shorteners, suspicious TLDs, and typosquats of well-known brand domains via edit-distance. Pure local heuristics, no ML model or API call, and the decoded link is never actually visited — only its text is analyzed. Reports red flags for a human to weigh, not a binary safe/malicious verdict.",
+      "Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.",
     accent: "#f97316",
     icon: QrCode,
     stat: "0",
@@ -585,7 +585,7 @@ const capabilities: Capability[] = [
     title: "Photo Library Visual Search",
     subtitle: "CLIP · No API Cost",
     description:
-      "Upload a batch of photos and describe what you're looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP embeds both the images and the text query into the same space, no manual tagging or captioning needed. Stateless: nothing is stored between searches.",
+      "Upload a batch of photos and describe what you are looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP puts the images and your words in the same embedding space, so nothing needs tagging or captioning first. Nothing is stored between searches.",
     accent: "#38bdf8",
     icon: ScanSearch,
     stat: "0",
@@ -603,7 +603,7 @@ const capabilities: Capability[] = [
     title: "Pose VJ Visuals",
     subtitle: "Client-Side · No API Cost",
     description:
-      "Turn on your camera and your hand movements drive a real-time generative particle visual — a creative-coding bridge between pose tracking and VJ-style motion graphics. Hand landmarks are tracked entirely in your browser via MediaPipe (no video frame ever leaves your device). Optionally turn on your microphone too: particle size and density react to live volume — whatever the mic hears, not beat or genre detection. The only tool on this site with no backend call at all.",
+      "Turn on your camera and drive a live generative particle visual with your hand movements. Hand landmarks are tracked in your browser by MediaPipe, so no video frame leaves your device. Switch the microphone on as well and particle size and density react to live volume — raw loudness, not beat or genre detection.",
     accent: "#d946ef",
     icon: Waves,
     stat: "0",
@@ -621,7 +621,7 @@ const capabilities: Capability[] = [
     title: "Text-Prompted Video Object Tracking",
     subtitle: "Grounded-SAM",
     description:
-      "Upload a short video and type a description of an object (e.g. \"the red backpack\") — Grounding DINO (IDEA Research, Apache 2.0) finds it once in the first frame, then SAM2 (Meta, Apache 2.0) tracks and masks it through the rest of the clip via its video memory mechanism. Originally scoped around Meta's SAM3, which does this natively from text, but SAM3's checkpoints are currently gated behind a Meta access request with no reliable pip package — so this uses the well-established real \"Grounded-SAM\" combination of two freely-available models instead. Both are inference-only forward passes, verified end-to-end on real CPU hardware (no GPU needed, unlike 3D Gaussian Splatting which was rejected for exactly that reason). Output is a downscaled, reduced-framerate sampled preview, not a full-resolution exported video file.",
+      "Upload a short clip, type what to follow — 'the red backpack' — and get that object masked through the rest of the video. Grounding DINO locates it in the first frame, then SAM2 tracks it forward using its video memory. The result is a downscaled, reduced-framerate preview rather than a full-resolution export.",
     accent: "#7c3aed",
     icon: Lasso,
     stat: "1",
@@ -639,7 +639,7 @@ const capabilities: Capability[] = [
     title: "Gait Pattern Comparison",
     subtitle: "Client-Side · No API Cost",
     description:
-      "Upload two side-view walking videos and this tracks body pose with MediaPipe (reusing Movement Form Comparison's exact extraction pipeline), detects each video's repeating gait cycles from knee-angle peaks, averages the joint-angle curve across all detected strides into one signature per video, then compares the two. Deliberately NOT a validated biometric identification technique — real gait-recognition research uses silhouette-based deep embeddings under controlled conditions and still has real error rates; this coarser, monocular, uncalibrated technique only shows whether two clips display a similar walking pattern, never proof of identity. Runs entirely in the browser; no video ever leaves the device.",
+      "Upload two side-view walking videos and compare how the two people move. Body pose is tracked per frame, individual stride cycles are found from knee-angle peaks, and each video's strides are averaged into one walking signature before the two are compared. This is not identification: a monocular, uncalibrated view can show that two clips walk similarly, never that they are the same person. Runs entirely in the browser; no video leaves your device.",
     accent: "#84cc16",
     icon: Footprints,
     stat: "0",
@@ -657,7 +657,7 @@ const capabilities: Capability[] = [
     title: "Astrophotography Anomaly Detector",
     subtitle: "Frame Differencing + Hough Transform",
     description:
-      "Upload 5-30 photos from one fixed-tripod night-sky session and this detects meteor/satellite streaks using the real technique operational detectors use: differencing time-adjacent frames, then a Hough transform on the difference. The key discriminator is a dipole vs. monopole check — a star that drifts slightly between frames leaves a paired positive/negative streak in the difference (which cancels out), while a transient meteor or satellite trail leaves a one-sided streak with no opposite-sign counterpart. Also returns a median-stacked \"clean\" image, since median stacking rejects the same transients this tool detects. Deliberately does NOT attempt a meteor-vs-satellite verdict — tested against synthetic ground truth and found genuinely unreliable to distinguish with position drift alone, so every detection is labeled \"possible meteor or satellite trail,\" never a confident classification. No neural network, no GPU needed — pure classical OpenCV.",
+      "Upload 5-30 frames from one fixed-tripod night session and find the meteor and satellite streaks in them. Time-adjacent frames are differenced and a Hough transform picks out the trails; a drifting star leaves a paired positive/negative streak that cancels, while a real transient leaves a one-sided one. You also get a median-stacked clean image with those transients removed. It will not tell you which is a meteor and which is a satellite — that proved unreliable to call from a single session, so every hit is labelled as possibly either. Classical OpenCV throughout; no neural network, no GPU.",
     accent: "#0ea5e9",
     icon: Telescope,
     stat: "0",
@@ -675,7 +675,7 @@ const capabilities: Capability[] = [
     title: "Wildlife Re-Identification",
     subtitle: "MegaDescriptor",
     description:
-      "Upload a new sighting photo and a gallery of past sightings of the same species — crops the animal from each photo (reusing the site's existing 601-class object detector), then compares them with MegaDescriptor (BVRA/MegaDescriptor-T-224), a foundation model built specifically for individual animal re-identification rather than a generic vision embedding. Verified with real photos: two different goldfish side-by-side in one photo scored 0.60 cosine similarity (correctly \"different\"), the same fish crop compared to itself scored 1.00 (\"same\"). Deliberately not a validated identification system — same/uncertain/different bands are informed by one real test, not a calibrated multi-individual benchmark. MegaDescriptor is CC-BY-NC-4.0 (non-commercial).",
+      "Upload a new sighting and a gallery of past ones and see which individual animal it most likely matches. The animal is cropped out of each photo, then compared using MegaDescriptor, a foundation model built specifically for individual animal re-identification rather than a general-purpose vision embedding. Treat it as a ranking aid, not an identification system — the same/uncertain/different bands are not calibrated against a benchmark. MegaDescriptor is CC-BY-NC-4.0, so non-commercial use only.",
     accent: "#a16207",
     icon: PawPrint,
     stat: "0",
@@ -693,7 +693,7 @@ const capabilities: Capability[] = [
     title: "PPE Compliance Check",
     subtitle: "YOLOv8n PPE",
     description:
-      "Upload a photo and this detects each person and checks whether a hard hat and safety vest are visible on them. Verified the existing 601-class object detector has no safety-vest class of any kind before building this, so a dedicated model (Hansung-Cho/yolov8-ppe-detection, MIT-licensed weights, exported locally to ONNX — no new AGPL runtime dependency, same pattern as the site's existing detector) was hands-on tested rather than trusted from its model card. An initial test on a very low-resolution photo gave a weak result; re-tested on 3 higher-resolution real photos and got a real, confident pass (hard hat 0.72-0.88, safety vest 0.39-0.69), including correctly avoiding a false compliance claim on a photo of gear just lying on the ground (reported \"unclear\" rather than guessing). Compliance is always read from an explicit present/absent signal the model was trained on, never inferred from a lack of detection.",
+      "Upload a site photo and see, per person, whether a hard hat and safety vest are visible. A dedicated PPE detection model is used rather than a general object detector, since general detectors have no safety-vest class at all. Compliance is only ever read from an explicit present or absent signal the model was trained on — never inferred from something simply not being detected — so an unclear photo returns 'unclear' instead of a false pass. Low-resolution images weaken the result noticeably.",
     accent: "#ea580c",
     icon: HardHat,
     stat: "0",
@@ -711,7 +711,7 @@ const capabilities: Capability[] = [
     title: "ASL Fingerspelling Recognition",
     subtitle: "Client-Side · No API Cost",
     description:
-      "Hold up one hand fingerspelling an ASL letter and this recognizes it live from your webcam — MediaPipe hand landmarks feed a k-NN classifier trained on real photos, entirely client-side. Rescoped from a general \"sign language translator\" brainstorm to the real sub-problem a single-frame classifier can honestly do: individual letters, not whole signed words or ASL grammar (which needs sequence models over video, a fundamentally different problem). J and Z are excluded since both require motion a static frame can't capture, matching the same convention as the Sign Language MNIST benchmark. Measured held-out accuracy: 79% across 24 letters (chance is ~4%), evaluated on real photos never included in the shipped classifier — rotation-normalizing the hand was tried and found to hurt accuracy, so it was dropped.",
+      "Hold up one hand fingerspelling an ASL letter and it is recognised live from your webcam. MediaPipe hand landmarks feed a k-NN classifier, entirely client-side. This covers individual letters only, not signed words or ASL grammar — those need sequence models over video and are a genuinely different problem. J and Z are excluded because both require motion a single frame cannot capture, following the same convention as the Sign Language MNIST benchmark.",
     accent: "#0891b2",
     icon: Hand,
     stat: "0",
@@ -729,7 +729,7 @@ const capabilities: Capability[] = [
     title: "Movement Form Comparison",
     subtitle: "Client-Side · No API Cost",
     description:
-      "Upload your workout video and a reference video of the same movement, and this tracks body pose in both with MediaPipe's PoseLandmarker, computing 6 real joint angles (elbows, knees, hips) from 3D world-landmark coordinates — the geometrically correct choice for angle math, matching published MediaPipe joint-angle validation studies. Both clips are aligned to a shared 0-100% movement-phase axis so a 4-second clip is directly comparable to a 6-second one, then ranked by RMS angle deviation with the single biggest-gap moment called out per joint. Assumes one person per video and one full rep start-to-finish — a training-form aid, not a clinical assessment. Runs entirely in the browser; no video ever leaves the device.",
+      "Upload a clip of your own movement and a reference clip of the same exercise, and see where your form differs. Body pose is tracked in both, six joint angles (elbows, knees, hips) are computed from 3D landmarks, and the two clips are stretched onto a shared 0-100% movement-phase axis so a 4-second rep compares directly against a 6-second one. Joints are ranked by how far apart they drift, with the single worst moment called out for each. Assumes one person and one full rep per clip — a training aid, not a clinical assessment. Runs entirely in the browser; no video leaves your device.",
     accent: "#22c55e",
     icon: Dumbbell,
     stat: "0",
@@ -747,7 +747,7 @@ const capabilities: Capability[] = [
     title: "Adversarial Robustness Lab",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a photo and craft an adversarial attack against a pretrained classifier — subtle FGSM/PGD perturbations, a visible adversarial patch, or a black-box query-only attack with zero gradient access — untargeted or aimed at a specific ImageNet label. Try two inference-time defenses (JPEG recompression, randomized smoothing), an optional transferability check against a second model, and a third section demonstrating adversarial TRAINING as a defense on a small digit classifier — attacking a standard-trained vs. an adversarially-trained model with the same PGD attack and showing the robustness gap between them, measured live on the run you just performed rather than quoted from a previous benchmark. Reports honestly whether defenses actually recovered the correct label, and whether a targeted black-box attack even converges within a request-sized query budget (often it doesn't) — real limitations, not a broken demo.",
+      "Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.",
     accent: "#f43f5e",
     icon: ShieldAlert,
     stat: "0",
@@ -765,7 +765,7 @@ const capabilities: Capability[] = [
     title: "CAPTCHA Hardening Lab",
     subtitle: "VLM Read Attempt · Before/After",
     description:
-      "Upload a CAPTCHA-style image and a vision-language model attempts to read it — modern VLMs solve plain text CAPTCHAs far more easily than classic OCR ever could. A single intensity slider then stacks three classic, model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast/color reduction) and the model tries again, shown side by side. Deliberately non-gradient (no FGSM/PGD): the model here is a black-box hosted API, the same real constraint a CAPTCHA vendor faces against an unknown solver, so this reproduces genuine hardening technique rather than an attack tailored to one model. Only ever reads an image you upload — never contacts or automates a live CAPTCHA challenge on a real website.",
+      "Upload a CAPTCHA-style image and watch a vision-language model try to read it — modern VLMs handle plain text CAPTCHAs far more easily than classic OCR ever did. One intensity slider then stacks three model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast reduction) and the model tries again, side by side. Nothing gradient-based is used, because the solver here is a black box — the same constraint a real CAPTCHA vendor faces. It only ever reads an image you upload; it never contacts a live CAPTCHA on a real site.",
     accent: "#f59e0b",
     icon: Puzzle,
     stat: "2",
@@ -783,7 +783,7 @@ const capabilities: Capability[] = [
     title: "Binary Byte-Plot & Entropy Triage",
     subtitle: "Static Analysis · No Execution",
     description:
-      "Upload any file and it's converted into the same grayscale \"byte-plot\" image real malware-visualization research uses, alongside a sliding-window Shannon-entropy heatmap — sustained near-random entropy is a genuine, established sign of packed or encrypted content, the actual technique tools like PEiD/Detect It Easy rely on. If the file parses as a Windows executable, a hand-rolled PE header read also checks a classic packer tell: whether the entry point sits in the file's last section. Deliberately not a malware-family classifier — no viable pretrained model or accessible labeled dataset exists for that without gambling on an unreliable data source, so this ships the real technique the field falls back on for triage instead. Never executes the uploaded file; pure static byte analysis, capped at 5MB.",
+      "Upload any file and see its structure as a picture. The bytes are rendered as the grayscale byte-plot used in malware-visualisation research, next to a sliding-window entropy heatmap — sustained near-random entropy is an established sign of packed or encrypted content, the same signal tools like PEiD look for. Windows executables also get a PE header check for a classic packer tell. It won't name a malware family — no dependable pretrained model exists for that — and it never executes the file: static byte analysis only, up to 5MB.",
     accent: "#f43f5e",
     icon: Binary,
     stat: "0",
@@ -801,7 +801,7 @@ const capabilities: Capability[] = [
     title: "Face Deanonymization Risk Demo",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a target photo and a small gallery of other photos, and this runs the same face-embedding similarity search that Clearview-style re-identification systems rely on — ranking the gallery by how closely each face matches the target, with a real measured score, not a simulated one. A \"Protect & re-test\" step then cloaks the target using the Face Cloak tool's own technique and re-runs the identical search to show whether the match breaks. Explicitly does not search the internet or any real database — only compares photos supplied in the one request.",
+      "See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.",
     accent: "#f97316",
     icon: Radar,
     stat: "0",
@@ -819,7 +819,7 @@ const capabilities: Capability[] = [
     title: "Video-Call Keystroke Inference",
     subtitle: "Client-Side Only",
     description:
-      "Upload a short video of hands typing and this steps through it frame-by-frame with MediaPipe hand tracking, running a real tap-detection pass on fingertip motion to recover a keystroke-event timeline — timestamps, which hand, and likely word boundaries from timing gaps — the same hand-tracking side channel published attacks (USENIX Security '23 video-based keystroke inference) rely on. Deliberately does not attempt character-level text recovery: the real attack's language-model decoding stage needs per-target trained models this demo doesn't have, so it stops at the honest, measurable signal — WHEN keys were pressed, never WHAT was typed. Runs entirely in the browser; no video ever leaves the device.",
+      "Upload a short clip of someone typing and recover when the keys were pressed from hand motion alone. Frame-by-frame hand tracking feeds a tap detector on fingertip movement, producing a timeline of keystrokes, which hand, and likely word boundaries from the gaps — the same side channel behind published research on video keystroke inference. It stops at timing and does not attempt to recover what was typed: that needs per-target trained models this doesn't have. Runs in your browser; no video leaves your device.",
     accent: "#38bdf8",
     icon: Keyboard,
     stat: "0",
@@ -837,7 +837,7 @@ const capabilities: Capability[] = [
     title: "Browser Extension Permission Risk Analyzer",
     subtitle: "Local · No API Cost",
     description:
-      "Paste a Chrome/Edge extension's manifest.json and get it checked against a documented risk taxonomy: individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history…), broad host access (<all_urls>), and known dangerous combinations — e.g. broad host access + network interception + cookie access, which together enable session hijacking on any site. Static declared-permission analysis only, not a behavioral scan — a legitimate password manager can need the same broad permissions, so results are framed as \"worth a closer look,\" never a verdict on intent.",
+      "Paste a Chrome or Edge extension's manifest.json and see what it is allowed to do. Checks individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history), broad host access, and dangerous combinations — broad host access plus network interception plus cookies together enable session hijacking on any site. This reads declared permissions, not behaviour: a legitimate password manager needs much the same access, so findings are framed as worth a closer look, never a judgement of intent.",
     accent: "#eab308",
     icon: Blocks,
     stat: "0",
@@ -855,7 +855,7 @@ const capabilities: Capability[] = [
     title: "Email Header Authentication Checker",
     subtitle: "Live DNS · Zero ML",
     description:
-      "Paste raw email headers and get two honest signals: what the receiving mail server's own Authentication-Results already found (SPF/DKIM/DMARC verdicts, relayed not re-verified), plus independent live DNS lookups of the sending domain's real SPF/DMARC records and DKIM key status, with a From:-domain alignment check. Deliberately does not attempt cryptographic DKIM signature verification, which needs the full message body — disclosed openly rather than faked.",
+      "Paste raw email headers and see whether the sender checks out. You get two things: what the receiving mail server's own Authentication-Results already concluded about SPF, DKIM and DMARC (relayed, not re-verified), and independent live DNS lookups of the sending domain's real records, plus a From: alignment check. It does not cryptographically verify the DKIM signature — that needs the full message body — and says so rather than implying otherwise.",
     accent: "#0ea5e9",
     icon: MailCheck,
     stat: "0",
@@ -873,7 +873,7 @@ const capabilities: Capability[] = [
     title: "LLM Prompt Injection Detection Playground",
     subtitle: "Pattern + LLM Judge",
     description:
-      "Paste a prompt or a document an AI might be asked to read and see two independent detection signals side by side: a transparent, evadable-by-design pattern library (direct override, jailbreak roleplay, indirect injection, encoding tricks) and a second, independently-prompted LLM judge. Combines both into an overall risk badge rather than a single fabricated confidence score — no detector here is claimed to be 100% reliable.",
+      "Paste a prompt, or a document an AI might be asked to read, and see whether it tries to hijack the model. Two independent signals sit side by side: a transparent pattern library covering direct overrides, jailbreak roleplay, indirect injection and encoding tricks, and a separately-prompted LLM judge. They combine into an overall risk badge rather than one invented confidence number — no detector here is claimed to be reliable on its own.",
     accent: "#8b5cf6",
     icon: MessageSquareWarning,
     stat: "0",
@@ -891,7 +891,7 @@ const capabilities: Capability[] = [
     title: "AI-Generated Code Detector",
     subtitle: "Signals, Not A Verdict",
     description:
-      "Paste a code snippet and see documented stylometric signals (comment density, generic naming, docstring formality, exception-handling style, boilerplate phrasing) alongside an independent LLM opinion, side by side. Deliberately never outputs a probability or an \"AI-written\" verdict — no reliable general-purpose detector exists in published research, and shipping a specific confidence number here would repeat the exact overclaiming mistake this site rejected for fire-detection and signature-verification.",
+      "Paste a code snippet and see the stylometric signals people associate with AI authorship — comment density, generic naming, docstring formality, exception handling, boilerplate phrasing — alongside an independent LLM opinion, shown side by side. It deliberately never returns a probability or an 'AI-written' verdict, because no reliable general-purpose detector exists in the published research and a confidence number here would be invented.",
     accent: "#14b8a6",
     icon: FileCode2,
     stat: "0",
@@ -909,7 +909,7 @@ const capabilities: Capability[] = [
     title: "Face Cloak",
     subtitle: "Local · No API Cost",
     description:
-      "Upload a personal photo and add an imperceptible adversarial perturbation to the face region that pushes its face-embedding away from where a face-recognition model naturally places it — a simplified, honest version of the real Fawkes privacy technique used to counter unauthorized facial-recognition scrapers (e.g. Clearview AI). Reports the real measured cosine-similarity drop and discloses openly that this protects only the specific cloaked photo, not copies already scraped elsewhere.",
+      "Add a barely-visible perturbation to a photo so face-recognition models place it somewhere other than your real face. A simplified take on Fawkes, the privacy technique built to counter unauthorised facial-recognition scraping. You get the actual measured drop in embedding similarity, and an honest caveat: this protects the copy you cloak, not photos of you already scraped elsewhere.",
     accent: "#8b5cf6",
     icon: UserX,
     stat: "0",
@@ -927,7 +927,7 @@ const capabilities: Capability[] = [
     title: "Style Cloak",
     subtitle: "Local · No API Cost",
     description:
-      "Upload an image and add an imperceptible adversarial perturbation across the whole image that pushes its CLIP embedding away from where it naturally sits — a simplified, honest version of the real Glaze/Nightshade artist-protection technique used to counter unauthorized AI style-mimicry. Reports the real measured cosine-similarity drop, calibrated against a measured unrelated-image baseline, and discloses openly that this protects only the specific cloaked image, not copies already scraped elsewhere.",
+      "Add a barely-visible perturbation across an image so its CLIP embedding drifts away from where a model would naturally place it — a simplified take on the Glaze and Nightshade approach to countering AI style-mimicry. You get the actual measured similarity drop, calibrated against an unrelated-image baseline, plus the honest caveat: it protects the copy you cloak, not images already scraped elsewhere.",
     accent: "#ec4899",
     icon: Palette,
     stat: "0",
