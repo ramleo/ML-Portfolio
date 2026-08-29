@@ -1,0 +1,15 @@
+# Files already over the 400-line limit when this gate was added.
+#
+# Each line pins a file at its current size: it may shrink or hold, but
+# CI fails if it grows. This is a debt register, not a set of exemptions —
+# once a file drops to 400 lines or fewer, delete its line here so the
+# normal limit applies again.
+#
+# Regenerate with: scripts/check-file-length.sh --update
+# format: <max-lines> <path>
+403 src/app/tools/text-to-sql/QueryResultPanel.tsx
+403 src/app/tools/text-to-sql/UserGuideModal.tsx
+410 src/components/AutoMLSteps/Step4Results.tsx
+428 src/components/Chatbot.tsx
+943 src/data/capabilities.ts
+496 src/lib/preprocessing.ts
