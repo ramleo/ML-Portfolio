@@ -117,7 +117,9 @@ export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHer
           </div>
         </div>
 
-        <div className="flip-face back" style={{ borderColor: `${cap.accent}33` }}>
+        {/* No tinted border: the back face keeps the same neutral edge as the
+            front and as every other card on the site. */}
+        <div className="flip-face back">
           <div className="flip-back-body">
             <span className="badge" aria-hidden="true" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
               {cap.subtitle}

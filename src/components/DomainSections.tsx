@@ -129,7 +129,10 @@ export default function DomainSections() {
               <Link
                 key={d.slug}
                 href={`/tools/${d.slug}`}
-                className={`dom-card dom-${size}`}
+                className={`dom-card subtle-card dom-${size}`}
+                /* No --acc-glow: .subtle-card's radial is transparent unless a
+                   caller supplies one, so these get the surface without the
+                   hover glow. */
                 style={{ ["--dom" as string]: d.color, ["--dom-l" as string]: d.colorLight }}
               >
                 {/* The area's actual tool names, set small and faded, are the

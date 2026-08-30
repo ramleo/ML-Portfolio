@@ -100,7 +100,7 @@ function StageCard({ stage, i, inView }: { stage: Stage; i: number; inView: bool
       initial={{ opacity: 0, y: 24 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: 0.1 + i * 0.1, duration: 0.4 }}
-      className="arch-stage"
+      className="arch-stage subtle-card"
       style={{ ["--stage-accent" as string]: stage.accent }}
     >
       <div className="arch-stage-head">

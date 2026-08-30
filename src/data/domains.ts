@@ -32,6 +32,10 @@ export type Domain = {
    * Both values here are measured: every one clears 3:1 on its own ground.
    */
   colorLight: string;
+  /** Resting edge on the dark theme — the hue at half strength over the page. */
+  colorDim: string;
+  /** Resting edge on the light theme. */
+  colorDimLight: string;
 };
 
 const domains: Domain[] = [
@@ -41,6 +45,8 @@ const domains: Domain[] = [
     blurb: "Everything between a raw CSV and a trained, explained model — cleaning, feature work, tuning, comparison and drift.",
     color: "#34d399",
     colorLight: "#047857",
+    colorDim: "#1f715c",
+    colorDimLight: "#6eb09f",
   },
   {
     slug: "language-documents",
@@ -48,6 +54,8 @@ const domains: Domain[] = [
     blurb: "Reading and reasoning over text: questions answered from your own files, plain English turned into SQL.",
     color: "#6366f1",
     colorLight: "#4338ca",
+    colorDim: "#363a88",
+    colorDimLight: "#918ddf",
   },
   {
     slug: "computer-vision",
@@ -55,6 +63,8 @@ const domains: Domain[] = [
     blurb: "Tools that look at an image or a video — detection, depth, pose, re-identification and generation.",
     color: "#38bdf8",
     colorLight: "#0369a1",
+    colorDim: "#21668b",
+    colorDimLight: "#6ea8c8",
   },
   {
     slug: "security-trust",
@@ -62,6 +72,8 @@ const domains: Domain[] = [
     blurb: "Checking whether something can be trusted: files, links, emails, packages, models and the people behind them.",
     color: "#f43f5e",
     colorLight: "#be123c",
+    colorDim: "#7f273e",
+    colorDimLight: "#d47891",
   },
 ];
 
@@ -84,6 +96,8 @@ export function allDomains(): Domain[] {
       blurb: "",
       color: FALLBACK_COLOR,
       colorLight: FALLBACK_COLOR_LIGHT,
+      colorDim: FALLBACK_COLOR,
+      colorDimLight: FALLBACK_COLOR_LIGHT,
     }));
   return [...domains, ...extras];
 }

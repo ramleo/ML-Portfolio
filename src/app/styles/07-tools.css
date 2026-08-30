@@ -219,31 +219,16 @@
   display: grid; grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: 124px; gap: 0.75rem;
 }
+/* Surface comes from .subtle-card, the same class the three platform cards
+   use — one definition of what a card looks like on this site instead of three
+   near-copies that drift. Everything here is what a domain tile alone needs:
+   its bento size, the tool-name texture, and the caption at its foot. No
+   coloured edge and no tinted fill; the hue lives in the texture. */
 .dom-card {
-  position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 1.15rem 1.2rem; border-radius: var(--radius-card);
-  background: var(--bg-glass);
-  /* Outlined rather than edge-striped: an outline is one of the three ways a
-     surface is meant to read as a card, and putting the domain hue in the
-     outline carries the colour information the stripe used to, around the
-     whole shape instead of down one side. The tint alone tops out near
-     1.3:1 against the page, so the boundary does the work of making the tile
-     legible as a block.
-     The hue is used at full strength, not mixed into --border: that token
-     carries 7% alpha, and a mix with it composites back down to 1.3-3:1
-     against the page — the edge looked like a border and measured like
-     nothing. Undiluted, the four sit between 4.3:1 and 9.9:1 here. */
-  border-width: 1px; border-style: solid;
-  border-color: var(--dom);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 1.15rem 1.2rem; overflow: hidden;
   text-decoration: none; color: inherit;
-  transition: transform 0.18s ease, border-color 0.18s ease;
 }
-.dom-card::before {
-  content: ""; position: absolute; inset: 0; background: var(--dom);
-  opacity: 0.16; transition: opacity 0.18s ease;
-}
-.dom-card:hover, .dom-card:focus-visible { transform: translateY(-2px); border-color: var(--dom); }
-.dom-card:hover::before, .dom-card:focus-visible::before { opacity: 0.24; }
 .dom-card:focus-visible { outline: 2px solid var(--dom); outline-offset: 3px; }
 .dom-big { grid-column: span 2; grid-row: span 2; }
 .dom-mid { grid-column: span 2; }
@@ -254,8 +239,14 @@
    something anyone is meant to squint at. */
 .dom-mosaic {
   position: absolute; inset: 0; padding: 0.9rem 1rem; overflow: hidden;
-  font-size: 0.68rem; line-height: 1.7; color: var(--text3); opacity: 0.5;
+  font-size: 0.68rem; line-height: 1.7; color: var(--text3); opacity: 0.42;
   transition: opacity 0.18s ease; pointer-events: none;
+  /* Masked rather than covered: the caption used to sit on a gradient painted
+     in the page colour, which is a solid block once the tile itself is
+     transparent. Fading the texture's own alpha leaves the tile see-through
+     and still clears space under the name. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 88%);
 }
 .dom-mosaic i { font-style: normal; }
 .dom-mosaic i::after { content: " · "; opacity: 0.5; }
@@ -265,10 +256,7 @@
 
 .dom-cap {
   position: relative; display: flex; flex-direction: column; gap: 0.15rem;
-  margin: 2rem -1.2rem -1.15rem; padding: 2.25rem 1.2rem 1.15rem;
-  /* Fades to the page ground so the caption reads as a vignette at the foot of
-     the tile rather than a second panel stacked on it. */
-  background: linear-gradient(to top, var(--bg) 45%, transparent);
+  margin-top: auto;
 }
 .dom-name { font-size: 1.15rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
 .dom-big .dom-name { font-size: 1.7rem; }
@@ -286,6 +274,14 @@
 html.light .dom-card { border-color: var(--dom-l); }
 .dom-blurb { margin: 0.45rem 0 0; font-size: 0.8rem; line-height: 1.55; color: var(--text2); max-width: 40ch; }
 
+/* The domain heading takes focus on arrival so a keyboard or screen-reader
+   user lands on the content they asked for rather than the top of the chrome.
+   It is not an interactive control, though, and a focus ring drawn around a
+   heading on every page load reads as a bug — the ring belongs on things you
+   can operate. Announcement still happens; only the outline is suppressed. */
+.section-heading[tabindex="-1"]:focus,
+.section-heading[tabindex="-1"]:focus-visible { outline: none; }
+
 .dom-back {
   display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1.25rem;
   font-size: 0.78rem; font-weight: 500; color: var(--text3); text-decoration: none;
@@ -302,6 +298,6 @@ html.light .dom-card { border-color: var(--dom-l); }
 .cap-no-results { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 0.85rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .dom-card, .dom-card::before, .dom-mosaic { transition: none; }
+  .dom-card, .dom-mosaic { transition: none; }
   .dom-card:hover, .dom-card:focus-visible { transform: none; }
 }

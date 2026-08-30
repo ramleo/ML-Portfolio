@@ -29,16 +29,14 @@ html.light {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1rem;
 }
+/* Surface comes from .subtle-card, shared with the platform cards and the
+   domain tiles. The accent spine that used to run down the leading edge is
+   gone: a coloured bar on a card's edge is the most recognisable signature of
+   generated layout, and the stage's colour still reads from its kicker and its
+   bullets. */
 .arch-stage {
   position: relative;
-  background: var(--bg-glass);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-card);
   padding: 1.1rem 1.15rem 1.25rem;
-  backdrop-filter: blur(10px);
-  /* Accent reads as a spine on the leading edge rather than a full border, so
-     four coloured cards in a row don't compete with each other. */
-  border-left: 2px solid var(--stage-accent);
 }
 .arch-stage::after {
   content: "";
