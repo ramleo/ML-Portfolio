@@ -2638,6 +2638,8 @@ stages, even if their scene is a diagram rather than a journey.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 A live analytics dashboard for the AIRaML portfolio: page views, tool usage,
 query success rates, AI provider usage, geography, devices, and engagement —
@@ -2681,6 +2683,221 @@ all filterable by date range.
 - Panels hide themselves automatically when there is no matching data in the
   selected range.
 - The full visible User Guide is available on the page itself.
+
+## What problem it solves
+
+Every other tool in this book does something to data you give it. This one
+watches the site itself.
+
+The question it answers is not analytical, it is architectural: **how do you get
+an event from a visitor's browser onto a dashboard, live, without polling?**
+Nearly every analytics page in the world answers that with a timer — ask the
+server every five seconds whether anything happened. That works, and it is
+wasteful in a specific way: almost every request returns "nothing new", and the
+data you are looking at is on average two and a half seconds stale.
+
+This dashboard has no timer. A row is inserted into PostgreSQL and the database
+pushes it to the open browser. The number on screen changes because something
+happened, not because a clock ticked.
+
+## How it works, step by step
+
+**The write path — three hops:**
+
+1. A visitor opens a page or a tool. The browser posts a small JSON object to
+   `/api/track`.
+2. That route runs on the server, adds the visitor's country from the CDN's own
+   header, and inserts a row into the `events` table in Supabase PostgreSQL.
+3. PostgreSQL's replication stream notices the insert.
+
+**The read path — no request at all:**
+
+4. The dashboard, on load, opens a **WebSocket** to Supabase Realtime and
+   subscribes to `INSERT` on `public.events`.
+5. When a row lands, the database pushes it down that socket.
+6. The browser prepends it to the live feed and **updates every statistic
+   locally** without asking the server for anything.
+
+## The model or algorithm
+
+No model. The interesting parts are the transport and one piece of client-side
+state management.
+
+### Why this is not polling
+
+Polling means the client asks repeatedly. It is simple, it works everywhere, and
+it has two costs: a request per interval per open tab whether or not anything
+happened, and latency equal to half the interval on average.
+
+What replaces it here is **PostgreSQL's logical replication**. Postgres already
+writes every change to a write-ahead log so it can recover from a crash and feed
+replicas. Logical decoding turns that log into a stream of readable change
+events. Supabase Realtime reads that stream, matches each change against what
+open clients have subscribed to, and pushes matching rows down their WebSockets.
+
+The consequence worth stating: **the dashboard is driven by the database's own
+durability mechanism.** The event reaches the browser because it was committed,
+not because anything polled for it. Nothing extra is written to make it work.
+
+### The tracking endpoint runs server-side, for one specific reason
+
+The insert cannot happen from the browser, because the write needs the Supabase
+**service-role key** — a credential that bypasses row-level security. Shipping
+that to the client would let anyone write anything into the table.
+
+So `/api/track` is a server route. The browser posts to it with no credential at
+all; the route holds the key in a server-only environment variable and does the
+insert.
+
+Note the asymmetry, because it is the whole security design:
+
+| Direction | Credential | Why it is safe |
+|---|---|---|
+| **Write** | service-role key, server-only | never leaves the server |
+| **Read** | anon key, in the browser | read-only, and the table is public data |
+
+Two keys with two power levels, and the powerful one never crosses the network
+to a client.
+
+**The country comes from a header, not from the client.** `CF-IPCountry` or
+`x-vercel-ip-country`, set by the CDN. A browser-supplied country would be a
+value the visitor controls; an edge-supplied one is not.
+
+The endpoint also sets permissive CORS headers, with an `OPTIONS` handler, so
+events can be posted from the other deployed apps in this project rather than
+only from this site.
+
+### The optimistic dashboard update
+
+This is the part with the most engineering in it, and it is easy to miss.
+
+When a new event arrives, the dashboard does **not** re-fetch its statistics. It
+recomputes them in the browser from the single row that just arrived:
+
+- `today_count` increments
+- the current hour's bucket in `per_minute` increments, or is created
+- the event's path is found in `top_pages` and incremented, or appended — then
+  the list is re-sorted and re-trimmed to ten
+- `by_type` is updated the same way
+- the funnel counter for `page_view`, `tool_open` or `query_run` steps up
+- the feed keeps the newest **50** events, the chart the last **30** buckets
+
+Every one of those is an immutable update — a new array, a new object — because
+React needs a changed reference to re-render.
+
+There is also a guard that is the sort of thing that only shows up in use:
+
+```ts
+if (range !== "today") return;
+```
+
+If you are looking at last week, a live event still joins the feed but **must
+not** be added to the statistics, because it is not inside the range those
+statistics describe. Without that line, browsing a historical range would slowly
+corrupt its own totals with today's traffic. Live updates have to respect the
+filter the user is looking through.
+
+### The funnel
+
+Three event types in a deliberate order: `page_view` → `tool_open` →
+`query_run`. That is the drop-off worth measuring on this site — how many
+visitors arrive, how many open a tool, how many actually run something. Each
+step is a much stronger signal of interest than the one before it.
+
+## Why these choices
+
+**Why a WebSocket rather than polling.** Zero requests when nothing happens,
+and no staleness when something does. On a low-traffic site the difference in
+load is the whole point: polling costs the same whether traffic is zero or
+constant.
+
+**Why update statistics client-side instead of re-fetching.** A re-fetch per
+event turns a push architecture back into a request-per-event one, which is
+worse than polling under load. The dashboard already holds the aggregate; the
+new row is a delta.
+
+**Why Supabase rather than a self-managed Postgres.** Realtime, the WebSocket
+infrastructure, connection pooling and row-level security come as one managed
+piece. Building the same thing means running a logical-replication consumer and
+a WebSocket fan-out service — considerably more moving parts than this site
+justifies.
+
+**Why store `meta` as JSON.** Different event types carry different payloads —
+which tool, which model won, how many rows. A schema per type would need a
+migration each time a tool is added. A JSON column takes whatever a tool sends.
+The trade is that nothing validates its shape.
+
+## How to read the output
+
+- **The live feed is the newest 50 events.** It is a window, not a log.
+- **The funnel is the metric that means something.** Page views measure reach;
+  `query_run` measures whether anyone actually used the thing.
+- **Counts update optimistically.** What you see is the dashboard's arithmetic
+  on the events it has received since load, added to the totals it fetched at
+  load. Refreshing re-reads from the database.
+- **Country comes from the CDN's geo-IP header**, so a VPN reads as its exit
+  country and a missing header reads as blank.
+- **Nothing arriving is a real observation.** A quiet feed means a quiet site,
+  not a broken socket — the connection state is separate.
+- **Switch ranges and the statistics stop moving.** That is the range guard,
+  not a stall.
+
+## Limits
+
+- **Session identity is a client-generated id.** Cleared site data is a new
+  visitor; two browsers are two visitors.
+- **No bot filtering.** Crawlers count as page views.
+- **The `meta` column is unvalidated.** Whatever a tool sent is what is stored.
+- **Optimistic updates can drift** from the database — a dropped WebSocket
+  message is not reconciled until reload.
+- **`/api/track` has no authentication or rate limiting.** Anyone who finds the
+  endpoint can post events; the write is confined to one table with a fixed
+  shape, but the numbers are not tamper-proof.
+- **The service-role key bypasses row-level security**, so the route's
+  validation is the only thing standing between a request and the table.
+- **Only three event types** feed the funnel.
+- **Realtime is per-table `INSERT`.** No aggregation server-side; the browser
+  does the arithmetic.
+- **This is product analytics, not a data warehouse.** No sessionisation, no
+  retention cohorts, no attribution.
+
+## Likely interview questions
+
+**"How does the dashboard update without polling?"**
+Postgres already writes every change to its write-ahead log for durability.
+Logical decoding turns that log into a stream of change events; Supabase
+Realtime reads the stream and pushes matching rows to clients over WebSockets
+based on what they subscribed to. So the dashboard is driven by the database's
+own durability mechanism — the row reaches the browser because it was committed,
+not because anything asked.
+
+**"Why can't the browser insert directly into the database?"**
+Because the insert needs the service-role key, which bypasses row-level
+security. Any credential in client JavaScript is public. So the write goes
+through a server route that holds the key in a server-only environment variable,
+and the browser reads with the anon key, which is read-only. Two credentials
+with two power levels, and the powerful one never reaches a client.
+
+**"Why recompute the statistics in the browser instead of re-fetching?"**
+A re-fetch per event turns a push architecture back into request-per-event,
+which is worse than polling once traffic picks up. The client already holds the
+aggregate and the new row is a delta, so incrementing is both correct and free.
+The cost is that the client's numbers can drift from the database if a message
+is dropped, and a reload reconciles it.
+
+**"What's the subtle bug in live-updating a filtered dashboard?"**
+Applying a live event to statistics for a range it does not belong to. If
+someone is looking at last week and today's events keep incrementing those
+totals, the view quietly becomes wrong. There is an explicit guard — the event
+still joins the feed, but the statistics only update when the selected range is
+today. Any live view over a filtered dataset has this problem.
+
+**"What would you fix first?"**
+The tracking endpoint. It is unauthenticated and unrate-limited, so the numbers
+are not tamper-proof — I would add rate limiting by IP and a shared secret or
+signed payload from the known callers. After that, bot filtering, because
+crawler traffic inflates page views without touching the funnel and makes the
+conversion rate look worse than it is.
 
 <h1 class="bk-chapter" id="ch-11-shap-explainability"><span class="bk-chnum">Chapter 11</span>SHAP Explainability</h1>
 
@@ -5401,6 +5618,8 @@ the background level) while preserving every star.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload 2-6 photos of the same static scene, taken from slightly different
 positions while walking around it, and this tool runs a real
@@ -5470,6 +5689,255 @@ failure path directly.
 - **Not a forensic-grade tool.** This is an educational demonstration of
   the real technique, not something that should inform any actual
   investigation, measurement, or legal determination.
+
+## What problem it solves
+
+Two photographs of the same scene from different positions contain, between
+them, the third dimension. Not because either records depth — neither does — but
+because the *difference* between them does. A point that shifts a lot between
+the two shots is near; one that barely moves is far. Given enough matched points
+you can solve for where both cameras were and where every point is in space.
+
+That is **Structure-from-Motion**, and it is the technique behind photogrammetry,
+Google Earth's 3D buildings, and forensic scene reconstruction. This tool
+implements it — genuinely, not as a wrapper around a service. Upload two to six
+photographs of one static scene from different angles and get back an
+interactive 3D point cloud built from your images.
+
+It is also unusually clear about what it will not do, and the honesty is part of
+the design rather than a disclaimer bolted on. There is no bundle adjustment, no
+camera calibration and no dense mesh, so the output is approximately shaped and
+up to scale. It demonstrates the real technique; it is not a forensic
+instrument.
+
+## How it works, step by step
+
+1. **Find features in every photo.** SIFT keypoints and descriptors.
+2. **Match the first pair** with a brute-force matcher and Lowe's ratio test.
+3. **Estimate the relative pose** of camera 2 from camera 1, using the essential
+   matrix with RANSAC.
+4. **Triangulate** the matched points into 3D.
+5. **Filter by cheirality** — drop anything that came out behind either camera.
+6. **For each additional photo:** match it against what is already reconstructed,
+   solve for its position with PnP + RANSAC, then triangulate the new points it
+   brings.
+7. **Colour every point** by sampling the pixel it came from.
+8. **Optionally scale to real units** by naming two points and the real distance
+   between them.
+
+## The model or algorithm
+
+### SIFT — finding the same corner in two photographs
+
+Everything depends on matching a point in one image to the same physical point
+in another, taken from a different angle, distance and possibly light.
+
+**SIFT** — the Scale-Invariant Feature Transform — does this by finding points
+that are stable under exactly those changes. It searches for extrema across a
+scale pyramid, so a corner is found at whatever size it appears; it assigns each
+keypoint a dominant orientation and describes it *relative* to that, so rotation
+does not change the descriptor; and it describes the local patch as a set of
+gradient-orientation histograms, which are robust to brightness changes because
+gradients are.
+
+The result is a 128-number descriptor per keypoint that is roughly the same
+whether the photo was taken from two metres or four, upright or tilted, in
+sunlight or shade.
+
+**A licensing note that matters practically:** SIFT was patented until 2020 and
+lived in `opencv-contrib`. Since OpenCV 4.4 it is patent-free and in the main
+`cv2` module, which is why this runs on plain `opencv-python-headless` with no
+extra dependency.
+
+### Lowe's ratio test
+
+Matching descriptors by nearest neighbour alone produces a great many wrong
+matches, because repeated texture — brickwork, foliage, carpet — looks the same
+everywhere.
+
+The ratio test asks for each keypoint's **two** nearest neighbours and keeps the
+match only if:
+
+```
+best.distance < 0.75 × second_best.distance
+```
+
+The reasoning is that a genuinely distinctive match is much closer to its true
+partner than to anything else. If the two best candidates are similarly close,
+the descriptor is ambiguous — it matches lots of things — and the match is thrown
+away regardless of how good it looks in isolation.
+
+**This is the single most important filter in the pipeline.** Everything
+downstream assumes correspondences are mostly correct, and a scene with
+repetitive texture will fail here before it fails anywhere else. 0.75 is Lowe's
+own recommended value.
+
+### The essential matrix, and the first pair
+
+For a calibrated pair of cameras, every true correspondence satisfies
+
+```
+x₂ᵀ E x₁ = 0
+```
+
+`E` encodes the rotation and translation between the two views. It has five
+degrees of freedom, so five point correspondences determine it — which is why
+`findEssentialMat` runs inside **RANSAC**: repeatedly sample a minimal set,
+compute a candidate `E`, count how many correspondences it explains, and keep
+the best. Outliers surviving the ratio test are rejected here, with a threshold
+of 1.0 pixel and 0.999 confidence.
+
+`recoverPose` then decomposes `E` into a rotation and a translation. The
+translation comes out as a **unit vector** — direction only, no length. That is
+not a limitation of the implementation; it is a mathematical fact. Two images
+alone cannot tell you whether you photographed a real room from three metres or
+a dolls' house from thirty centimetres. **This is why the reconstruction is "up
+to scale" and why measurement needs an external reference.**
+
+### Triangulation and the cheirality check
+
+With both camera matrices known, each matched pair of rays is intersected to
+give a 3D point.
+
+Then a filter that is easy to skip and important: **cheirality** — keep only
+points with positive depth in *both* cameras. Decomposing an essential matrix
+yields four mathematically valid solutions, and only one puts the scene in front
+of both cameras rather than behind one of them. Points that land behind a camera
+are triangulation artefacts, not geometry, and they are removed.
+
+### Incremental registration with PnP
+
+Photos three onwards are added one at a time. For each, the tool matches its 2D
+keypoints against 3D points already reconstructed, which gives a set of
+**2D-to-3D correspondences** — and solving for a camera pose from those is the
+**Perspective-n-Point** problem. `solvePnPRansac` handles it, with RANSAC again
+rejecting bad correspondences.
+
+Once the new camera is placed, its matches against the previous view are
+triangulated, and the cloud grows.
+
+### Intrinsics, estimated rather than measured
+
+The camera matrix needs a focal length in pixels. There is no calibration step,
+so it is approximated:
+
+```python
+f = 1.2 * max(width, height)
+```
+
+with the principal point assumed to be the image centre. This is a standard
+heuristic for a roughly normal smartphone lens, and it is explicitly labelled in
+the code as an approximation rather than a measurement. A wrong focal length
+does not make the reconstruction fail — it makes it *systematically distorted*,
+which is the more insidious failure because it still looks like a result. Proper
+calibration means photographing a checkerboard and solving for the intrinsics
+and lens distortion.
+
+### Scale calibration
+
+Optionally, you name two points in the cloud and the real distance between them,
+and everything is scaled by that ratio. The code and the card both refuse to
+call the result a measurement — the shape is only approximately right, so a
+correct scale factor applied to an approximately-shaped cloud gives approximate
+distances everywhere.
+
+## Why these choices
+
+**Why sparse rather than dense.** A sparse cloud comes from matched keypoints —
+hundreds or thousands of points, computable in seconds on a CPU. Dense
+reconstruction estimates depth for *every* pixel via multi-view stereo, which is
+orders of magnitude more work and normally wants a GPU. Sparse SfM shows the
+technique honestly within the compute available.
+
+**Why no bundle adjustment, and what it costs.** Bundle adjustment is the global
+refinement step: jointly optimise every camera pose and every 3D point to
+minimise total reprojection error across all images. Without it, each
+incremental registration inherits the error of the ones before it and **drift
+accumulates** — the same failure mode as visual SLAM without loop closure. It is
+disclosed rather than hidden, and it is the main reason the tool is capped at
+six photos.
+
+**Why 2–6 photos.** Two is the minimum for any 3D information at all. Six is
+where accumulated drift makes further additions unhelpful without the global
+refinement that is not implemented.
+
+**Why zero API calls.** OpenCV and NumPy, on the project's own server. This is a
+classical computer-vision algorithm from the 1990s and 2000s — no learned model
+is involved anywhere.
+
+## How to read the output
+
+- **Point count is the health check.** A few hundred points means matching
+  mostly failed; several thousand means it worked.
+- **Colour comes from the source pixels**, so a recognisable cloud means the
+  geometry is roughly right.
+- **Drift shows as a curve** — a straight wall that bends across the later
+  photos is accumulated pose error, not a wall.
+- **Scattered points floating away from the structure** are surviving mismatches.
+- **The scale is arbitrary** unless you calibrate, and approximate even then.
+- **Best case is a textured, static, well-lit scene** photographed by walking
+  around it, with plenty of overlap between consecutive shots.
+
+## Limits
+
+- **No bundle adjustment and no loop closure** — pose error accumulates.
+- **No camera calibration.** Focal length is a heuristic, lens distortion is
+  ignored entirely.
+- **Sparse only.** Points, not surfaces; no mesh, no texture.
+- **2 to 6 photos.**
+- **The scene must be static.** Anything that moves between shots breaks the
+  correspondence assumption outright.
+- **Texture is required.** Blank walls, glass, water and repetitive patterns
+  give SIFT nothing stable to match.
+- **Photos need to overlap substantially** and differ enough in viewpoint —
+  too similar gives a degenerate baseline, too different fails matching.
+- **Not forensic-grade**, stated by the tool itself. Do not present a distance
+  from it as a measurement.
+
+## Likely interview questions
+
+**"How do you get 3D from 2D photographs?"**
+From parallax. The same physical point projects to different image positions in
+two views, and how much it shifts depends on how far away it is. Match enough
+points and you can solve for the relative pose of the two cameras — via the
+essential matrix — and then intersect the rays to get 3D positions. The
+constraint you cannot escape is scale: two images alone cannot distinguish a
+large scene far away from a small one close up, so the reconstruction is always
+up to scale unless something external gives you a real distance.
+
+**"What does Lowe's ratio test do, and why does it matter here?"**
+For each descriptor, find the two nearest neighbours and keep the match only if
+the best is less than 0.75 times the distance of the second. It rejects
+ambiguous matches — the ones that look similar to many things, which is exactly
+what repetitive texture produces. It matters because everything downstream
+assumes the correspondences are mostly correct; a scene of brickwork or foliage
+fails here first, and no amount of RANSAC downstream recovers from bad matches
+in bulk.
+
+**"Why RANSAC?"**
+Because even after the ratio test some matches are wrong, and least-squares
+fitting is not robust — one bad correspondence can distort the whole estimate.
+RANSAC samples a minimal set, fits a model, counts inliers, and repeats, keeping
+the model most correspondences agree with. It is used twice here: for the
+essential matrix on the first pair, and for PnP on every camera added after.
+
+**"What is bundle adjustment and what does not having it cost you?"**
+It is the global refinement: jointly optimise all camera poses and all 3D points
+to minimise total reprojection error. Without it, each camera is placed relative
+to what came before, so errors compound and the reconstruction drifts — a
+straight wall bends. It is the same problem as SLAM without loop closure. It is
+also why this tool caps at six photos, and I would rather state that than let
+someone assume it scales.
+
+**"Your reconstruction is 'up to scale'. Explain."**
+The translation recovered from an essential matrix is a unit vector — direction
+without magnitude. That is mathematics, not a bug: a room photographed from three
+metres and a dolls' house photographed from thirty centimetres produce identical
+images. To get real units you need something external — a known object in frame,
+a calibrated stereo rig, or the two-point distance calibration this tool offers.
+And even then the *shape* is only approximate, because the intrinsics were
+estimated from image dimensions rather than measured, so I would not call the
+result a measurement.
 
 <h1 class="bk-chapter" id="ch-19-depth-parallax"><span class="bk-chnum">Chapter 19</span>Depth Parallax</h1>
 
@@ -6241,6 +6709,8 @@ being worn by anyone.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a batch of photos, then describe in plain language what you're
 looking for — "the red backpack", "a dog on a beach", "a whiteboard with
@@ -6304,6 +6774,239 @@ photos and results only exist in your browser tab for that session.
 - This is search over a batch you upload in-session, not a persistent
   photo library — nothing is saved after you leave the page.
 
+## What problem it solves
+
+You have four hundred photos and you are looking for the one with the red
+backpack in it.
+
+Every conventional search is useless here. Filenames are `IMG_4821.jpg`. There
+are no tags, because nobody tags their own photos. Sorting by date only helps if
+you remember when. So you scroll, and you look at four hundred pictures.
+
+The reason this is hard is that the search term is *text* and the thing being
+searched is *pixels*, and those live in completely different representations.
+There is nothing in a JPEG that the string "red backpack" can be matched
+against.
+
+This tool bridges that gap. Type a description, or point at a photo you already
+have, and it ranks the batch by how well each image matches — with no captions,
+no tags and no training on your library.
+
+## How it works, step by step
+
+1. **Upload a batch** — up to 40 photos, 8 MB each.
+2. **Embed every photo** with CLIP, in one batched call.
+3. **Embed the query.** Either your text, or a reference photo.
+4. **Optionally subtract an exclusion** — "beach photos, not people".
+5. **Normalise everything and take the dot product**, which gives cosine
+   similarity between the query vector and each image vector.
+6. **Sort best-first** and return the ranking.
+
+The same embeddings also power duplicate detection, with no extra model and no
+query.
+
+## The model or algorithm
+
+### CLIP — one space for pictures and words
+
+`clip-ViT-B-32`, and the idea behind it is the whole chapter.
+
+CLIP was trained on hundreds of millions of image-and-caption pairs from the
+internet, with two encoders — one for images, one for text — and one objective:
+**put a picture and its true caption close together in a shared vector space,
+and push mismatched pairs apart.** That is contrastive learning; for a batch of
+N pairs, the correct pairing has to score higher than all N−1 wrong ones.
+
+The consequence is what makes this tool possible. After training, an image of a
+red backpack and the sentence "a red backpack" land near each other **in the
+same 512-dimensional space**, even though they came through entirely different
+encoders. Which means comparing text to an image is just a dot product.
+
+Before CLIP, the way to do this was to run a classifier over a fixed vocabulary
+and search the labels — which limits you to the classes someone chose in advance.
+CLIP has no label set. "A red backpack", "someone laughing", "a photo taken at
+golden hour" all work, because they are all just sentences to encode.
+
+### Cosine similarity, and why everything is normalised
+
+Similarity is the cosine of the angle between two vectors:
+
+```
+similarity = (a · b) / (|a| × |b|)
+```
+
+Normalising both to unit length first reduces that to a plain dot product, which
+is why the code divides by the norms and then does one matrix multiply:
+
+```python
+img_norms = image_embeds / norm(image_embeds, axis=1, keepdims=True)
+scores    = img_norms @ query_norm
+```
+
+**Angle rather than distance** is the right measure here because the *direction*
+of an embedding carries the meaning while its magnitude is largely an artefact —
+of image contrast, of sentence length. Two vectors pointing the same way are
+about the same thing whatever their length.
+
+The matrix multiply also means all 40 comparisons happen in one operation
+instead of a Python loop.
+
+### Text or image, same machinery
+
+A reference photo is encoded by the image encoder instead of the text encoder,
+and after that **the ranking code is identical** — by that point it is just a
+vector. That is the shared-space property paying off: "find more like this one"
+and "find a red backpack" are the same operation with a different first step.
+
+One necessary detail: when the reference photo is itself in the batch,
+`exclude_filename` removes it from its own results, so the trivial 100%
+self-match does not take the top slot.
+
+### The exclusion — steering, not filtering
+
+`exclude_query` lets you say "beach photos, but not people". The implementation
+is CLIP vector arithmetic — normalise both, subtract the exclusion direction
+from the query direction, then re-normalise:
+
+```
+query = unit(query) − unit(exclude)
+```
+
+This works because directions in CLIP space are semantic, so subtracting one
+concept's direction genuinely moves the query away from it.
+
+**The comment in the code is careful to say what this is not**, and the
+distinction is the interesting part: it **steers** rather than filters. A photo
+that matches both concepts strongly — "a red car" excluding "vehicles" — can rank
+low, because the subtraction weakens the *whole* query direction, not just the
+excluded part. When the two concepts overlap heavily, you have subtracted much
+of what you were asking for.
+
+A hard filter would need a second pass with a threshold on the exclusion score.
+Vector arithmetic is one extra encode and no extra pass, and it behaves well
+when the concepts are genuinely separate — which is the common case.
+
+### Duplicates come free
+
+Duplicate detection needs no new model and no query: *"does this batch contain
+near-identical photos"* is just *"are any two embeddings almost the same
+vector"*. The default threshold is **0.97**, inside the range normally used for
+near-duplicate detection with this model.
+
+This is worth noticing as a design pattern. The embeddings were computed for
+search; duplicate detection is a second question asked of the same numbers.
+
+**And it is near-duplicate, not exact-duplicate.** A file hash finds byte
+identical copies and nothing else. Embedding similarity finds the same photo
+resized, re-compressed, lightly cropped or colour-adjusted — which is what "I
+have this twice" usually means in a real library.
+
+### Stateless by design
+
+There is no database and no index. One request carries the photos *and* the
+query, and nothing survives it. The docstring is explicit that this is not a
+searchable corpus that outlives a request — it is a batch job.
+
+That is a real limitation for a photo library, where you would want to embed
+once and query many times. It is the right call for a stateless demo on
+ephemeral hosting, where anything written to disk disappears on restart anyway.
+
+## Why these choices
+
+**Why CLIP rather than captioning each photo and searching the text.** Captioning
+means a vision-model call per photo — slow, and expensive at 40 photos — and the
+caption is a lossy summary: whatever it did not mention is unsearchable. CLIP
+embeds the whole image once, and the query meets it directly.
+
+**Why the module owns its own model instance** even though the same CLIP model is
+loaded elsewhere in the app. The docstring says it: to keep the two features
+decoupled. The cost is memory; the benefit is that changing one feature's model
+cannot break the other.
+
+**Why 40 photos and 8 MB.** One request, CPU inference, free hosting.
+
+**Why one batched encode** rather than per-photo calls. Batching is where nearly
+all the throughput is on CPU inference.
+
+## How to read the output
+
+- **Scores are relative, not absolute.** Cosine similarity for CLIP typically
+  lands in a narrow band — 0.2 to 0.35 is a normal range for a good text match,
+  not a bad score. **Read the ranking, not the number.**
+- **The gap between first and second tells you more than either.** A clear
+  leader means a confident match; forty photos within 0.01 means the query
+  matched nothing in particular.
+- **Descriptive queries beat single words.** "A red backpack on a wooden floor"
+  gives CLIP more to align against than "backpack".
+- **Image queries are usually stronger than text** for "more like this", because
+  the reference contains far more detail than a sentence.
+- **An exclusion that removed everything** means the two concepts overlapped —
+  the subtraction took the query with it.
+- **`skipped`** counts photos dropped as invalid or oversized.
+
+## Limits
+
+- **40 photos per request, 8 MB each.**
+- **Stateless.** Re-uploading and re-embedding on every query; no index.
+- **CLIP's known weaknesses are yours.** It is poor at counting ("three cats"),
+  at reading text in images, at fine spatial relations ("the cup *left of* the
+  laptop"), and at distinguishing fine-grained categories it saw little of.
+- **Its training data is the internet**, with the biases that implies.
+- **Exclusion steers, it does not filter.**
+- **Scores are not calibrated.** There is no threshold above which a match is
+  "correct".
+- **No face recognition, no location, no date filtering** — this is visual
+  similarity only.
+- **Duplicate detection at 0.97 is a judgement call**; a genuinely similar pair
+  of different photos can cross it.
+
+## Likely interview questions
+
+**"How can you search images with text at all?"**
+CLIP trains an image encoder and a text encoder together, contrastively, so that
+a picture and its true caption end up close in one shared vector space while
+mismatched pairs are pushed apart. After training, "a red backpack" and a photo
+of one land near each other despite coming through different encoders — so the
+search is a dot product between a text vector and a set of image vectors. Before
+CLIP you would classify into a fixed label set and search the labels, which
+limits you to categories chosen in advance.
+
+**"Why cosine similarity rather than Euclidean distance?"**
+Because direction carries the meaning and magnitude is mostly an artefact — of
+image contrast, of sentence length. Two vectors pointing the same way are about
+the same thing regardless of length, and cosine ignores length by construction.
+Normalising both to unit vectors also turns the whole thing into one matrix
+multiply, so all 40 comparisons happen in a single operation.
+
+**"Your scores are all around 0.3. Is that bad?"**
+No — that is a normal range for CLIP text-image similarity, and the absolute
+value is not meaningful. What matters is the ranking and the gap: a clear leader
+means a confident match, while forty photos within 0.01 of each other means the
+query matched nothing in particular. I would not put a fixed threshold on it.
+
+**"How does the exclusion work, and when does it fail?"**
+Vector arithmetic: normalise the query and the exclusion, subtract the exclusion
+direction, re-normalise. It fails when the two concepts overlap heavily — "a red
+car" excluding "vehicles" subtracts most of what you asked for, because the
+subtraction weakens the whole query direction rather than just the excluded part.
+It steers rather than filters, and I would describe it that way to a user rather
+than implying it is a hard exclusion.
+
+**"You get duplicate detection for free. Explain."**
+Search already embeds every photo. "Are two photos near-duplicates" is "are two
+embeddings nearly the same vector", so it is a second question asked of numbers
+already computed — no extra model, no query. And it is better than a file hash
+for the actual problem: a hash finds byte-identical copies only, while embedding
+similarity catches the same photo resized, re-compressed or lightly cropped,
+which is what having something twice usually looks like.
+
+**"How would you make this work over 100,000 photos?"**
+Split embedding from querying. Embed once at upload time and store the vectors
+in a vector database — FAISS, or pgvector — then a query embeds one string and
+does an approximate nearest-neighbour search instead of a full scan. The current
+design re-embeds the whole batch per request, which is correct for a stateless
+demo of at most 40 photos and completely wrong at scale.
+
 <h1 class="bk-chapter" id="ch-25-plant-growth-quantification"><span class="bk-chnum">Chapter 25</span>Plant Growth Quantification</h1>
 
 > Track how a plant is actually growing. Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo of several plants to compare their sizes against each other. Foliage area is measured by an HSV green-hue threshold — no model, no API call. Several plants in one shot are separated automatically, and a before/after collage is split and charted as growth. It also reports a vegetation index (a yellowing signal independent of size) and a leaf count, so a decline can show up in the numbers before you can see it.
@@ -6322,6 +7025,8 @@ photos and results only exist in your browser tab for that session.
 | **Find it at** | `/tools/plant-growth` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Upload a series of plant photos and a local HSV green-hue threshold measures
@@ -6484,6 +7189,248 @@ rough "if nothing changes" projection, not a forecast.
   both exist to help with that.
 - All the core measurement (mask, growth %, greenness, leaf count) runs
   locally with no API cost; only species/health ID uses a paid AI call.
+
+## What problem it solves
+
+Somebody photographs a plant on the windowsill every week for three months. At
+the end they have forty pictures and the same question they started with: **is
+it actually growing, and how fast?**
+
+Eyeballing consecutive photos does not answer it. Week-to-week change is below
+the threshold of memory, and the first and last photos differ in light, angle
+and camera. What is needed is a number per photo that can be compared across the
+series.
+
+This tool produces one. It measures how much of each frame is foliage, tracks
+that across the series, and reports growth as a percentage change from the first
+frame — plus two secondary measures that catch things area alone misses.
+
+It runs entirely on the project's own server with OpenCV. No model call, no API
+cost.
+
+## How it works, step by step
+
+1. **Upload a series** — up to 30 frames.
+2. **Find the plants,** if auto-detect is on. The 601-class object detector
+   already in the app locates `Plant`, `Houseplant` and `Flowerpot` boxes, and
+   each is cropped with 15% padding before measuring.
+3. **If detection under-performs, fall back** to finding plants directly in the
+   tool's own green mask.
+4. **Build a leaf mask** for each frame or crop with an HSV threshold.
+5. **Measure three things** on that mask: area fraction, greenness, leaf count.
+6. **Compare across frames** and report growth relative to the first.
+7. **Return a magenta overlay** of the mask so you can see what was counted.
+
+## The model or algorithm
+
+### The leaf mask — HSV, not a segmentation model
+
+Convert to HSV and keep pixels inside:
+
+| Channel | Range | Why |
+|---|---|---|
+| **Hue** | 30 – 95 | the green band, yellow-green through to blue-green |
+| **Saturation** | ≥ 40 | rejects grey and washed-out pixels |
+| **Value** | ≥ 40 | rejects near-black shadow |
+
+**Why HSV rather than RGB** is the point worth being able to explain. In RGB,
+"green" is a relationship between three numbers that changes completely with
+brightness — a leaf in sun and the same leaf in shade have very different RGB
+values. HSV separates *what colour* (hue) from *how vivid* (saturation) and *how
+bright* (value). A leaf's hue is roughly constant across lighting; only its
+value moves. So a hue window plus loose floors on the other two channels is
+stable across the lighting variation a windowsill timelapse actually contains.
+
+**Why not a segmentation model.** The docstring is direct: green foliage
+occupies a narrow, predictable hue band, and this has to run on up to 30 frames
+per request cheaply. A U-Net would be more accurate on hard frames and would
+cost a model, a download and inference time per frame — for a measurement whose
+precision is limited by framing consistency anyway.
+
+### Why the number is relative, and never an area
+
+`area_fraction` is leaf pixels divided by total pixels of whatever region was
+measured. It is **only meaningful against other frames of the same series**,
+shot with consistent framing and distance.
+
+The reason is simple and worth saying out loud: a photo has no scale. Move the
+camera 20 cm closer and the plant occupies more pixels without having grown.
+This is the same limitation as the depth chapter's "relative, not metric", from
+the same cause — one image with no reference gives you proportion, not size.
+
+So growth is reported as **percentage change from the first frame**, never as
+square centimetres.
+
+### The two secondary metrics — and why area alone is not enough
+
+**Greenness index (NGRDI).** The mean of `(G − R) / (G + R)` over the masked
+pixels, roughly −1 to 1, higher meaning more vividly green.
+
+This exists because **a plant can stay exactly the same size while its foliage
+yellows.** Chlorosis, nitrogen deficiency, overwatering — all of them move
+colour before they move area, and an area-only measurement reports a healthy
+flat line through the whole decline. NGRDI is the RGB-only cousin of NDVI, the
+standard vegetation index in remote sensing; NDVI uses near-infrared, which a
+phone camera does not capture, so the red-green difference is the available
+proxy.
+
+**Leaf count.** Connected components on the mask.
+
+The interesting detail is what is *not* done: **no morphological closing.** The
+blob fallback (below) closes gaps deliberately, to merge one plant's leaves into
+a single box. Here the goal is the exact opposite — counting leaves *separately*
+— so only a light **opening** is applied, which removes single-pixel noise
+without merging adjacent leaves. The same mask, two operations, opposite intent.
+Getting that backwards would silently turn a leaf count into a plant count.
+
+### Detect, crop, then measure
+
+Without detection, two plants in one photo blend into one meaningless combined
+area fraction, and if one grows while the other dies the total says nothing.
+
+So the object detector runs first and each plant is cropped and measured
+separately. This is the same **crop-then-remeasure** pattern the app already
+uses for person → face and vehicle → number plate: a general detector finds the
+region, and a specialised measurement runs inside it.
+
+**The fallback matters more than it looks.** A general 601-class detector
+under-detects things it was not trained to see well — small seedlings, stylised
+illustrations — and sometimes returns one box where a person clearly sees three,
+or merges several plants into one. When that happens, the tool falls back to
+connected-component analysis on **its own green mask**, which only needs foliage
+to be green and spatially separate, not recognisable to a general-purpose
+detector. That fallback has *lower* requirements than the primary path, which is
+what makes it a real fallback rather than a second thing that fails the same way.
+
+### The collage problem
+
+One photo with two plants in it is genuinely ambiguous. It could be two plants
+coexisting now — in which case you want to compare their current sizes — or it
+could be a **before/after collage** of one plant, two photos stitched into one
+file, which is how plant-progress posts are usually shared.
+
+**Object detection cannot resolve this.** A bounding box tells you what is in
+it, never whether two boxes are the same subject at different times.
+
+So a second, independent check looks for a **seam**: a straight line where a
+sharp edge coincides with a colour and exposure jump. Two halves that came from
+different shots have different lighting and white balance, and a single
+continuous photograph does not have that discontinuity. When a confident seam is
+found, the image is split there and run through the ordinary two-frame growth
+path instead.
+
+The assumption is stated rather than hidden: **panel order is taken as
+left-to-right, top-to-bottom** — natural reading order — because there is no
+caption OCR to confirm which panel came first. It is a real assumption, not a
+guarantee.
+
+**The general principle here is worth keeping:** when one signal cannot
+distinguish two cases, find a second signal that is independent of the first.
+Detection answers "what"; the seam check answers "is this one photograph".
+
+### The magenta overlay
+
+The mask preview is drawn in magenta at 55% opacity, and the choice is
+deliberate: **no natural foliage, soil or pot colour is that hue.** Overlaying
+green-on-green would make it impossible to see what was counted, which defeats
+the purpose of showing the mask.
+
+## Why these choices
+
+**Why HSV thresholds over a learned model.** Cheap enough for 30 frames, no
+download, no inference cost, and the failure modes are predictable and
+explainable — you can look at the mask and see exactly why a pixel was included.
+
+**Why report percentage change.** It is the only claim the measurement supports.
+An absolute area would be a number the method cannot justify.
+
+**Why three metrics.** Area answers "bigger?", greenness answers "healthier?",
+leaf count answers "more leaves?" — and a plant can move in each independently.
+A stressed plant that keeps its size but yellows is invisible to area alone.
+
+**Why cap at 30 frames.** Detection plus three measurements per frame, on CPU,
+within one request.
+
+## How to read the output
+
+- **Check the magenta overlay first.** If it is covering the pot, the wall or a
+  green cushion, every number for that frame is wrong. This is the most useful
+  thing on the screen.
+- **Growth is percentage change from frame one**, not an area.
+- **Consistent framing is the whole basis of comparison.** Same distance, same
+  angle, same background. A series shot from varying distances measures your
+  camera position, not the plant.
+- **Falling greenness with flat area is the useful early warning** — yellowing
+  before any size change.
+- **Leaf count is noisy.** Overlapping leaves merge into one component and
+  separated highlights split one leaf into two. Read the trend, not the value.
+- **A collage split is an inference.** Check the panels were in the order you
+  meant.
+
+## Limits
+
+- **No real-world units, ever.** Proportion of frame only.
+- **Framing consistency is assumed** and not verified — the tool cannot tell
+  growth from a closer camera.
+- **Anything green is foliage.** A green pot, a green wall, moss on the soil,
+  a green mug in shot.
+- **Yellow, red, purple and variegated foliage falls outside the hue band** and
+  is largely invisible to the measurement.
+- **Flowers are not foliage** and are mostly excluded.
+- **Leaf count is a connected-component count**, not leaf detection.
+- **NGRDI is affected by lighting colour**, so a warm bulb and daylight are not
+  comparable.
+- **Collage panel order is assumed**, not read.
+- **30 frames per request.**
+- **This measures pixels, not biology.** There is no plant model — no species,
+  no growth stage, no nutrient inference.
+
+## Likely interview questions
+
+**"Why HSV instead of RGB for colour thresholding?"**
+Because RGB entangles colour with brightness — the same leaf in sun and shade has
+very different RGB values, so any threshold either misses shaded leaves or
+catches everything. HSV separates hue from saturation and value, and a leaf's
+hue stays roughly constant while its brightness varies. A hue window with loose
+floors on the other two channels is stable across the lighting variation a
+real timelapse has.
+
+**"Why not train a segmentation model?"**
+It would be more accurate on hard frames — variegated leaves, green backgrounds —
+and it would cost a model to train or download, inference per frame, and a
+harder failure mode to debug. The measurement's precision is capped by framing
+consistency anyway, which no model fixes. A hue threshold runs on 30 frames for
+free and you can look at the mask and see exactly why each pixel was included.
+For this precision requirement it is the right tool.
+
+**"You report growth as a percentage. Why not an actual area?"**
+Because a single photograph has no scale. Move the camera closer and the plant
+covers more pixels without growing. Reporting square centimetres would be a
+number the method cannot support. A percentage change between frames of the same
+series is exactly what the measurement justifies, with the assumption of
+consistent framing stated rather than buried.
+
+**"Why measure greenness as well as area?"**
+Because a plant can hold its size while it declines. Chlorosis and nitrogen
+deficiency change colour well before they change area, so an area-only
+measurement shows a healthy flat line through the whole thing. NGRDI —
+`(G−R)/(G+R)` over the leaf mask — is the RGB-only stand-in for NDVI, which needs
+near-infrared a phone camera does not capture.
+
+**"How do you tell two plants from a before/after collage?"**
+Detection cannot — a bounding box says what is inside it, never whether two boxes
+are the same subject at different times. So a second, independent check looks for
+a seam: a straight line where a sharp edge coincides with a colour and exposure
+jump, which is what you get when two different shots are stitched together and
+what a continuous photo does not have. That is the general move — when one signal
+cannot separate two cases, find a signal that is independent of the first.
+
+**"Your primary detector fails on seedlings. What then?"**
+It falls back to connected components on the tool's own green mask. The point is
+that the fallback has *lower* requirements than the primary path — it only needs
+foliage to be green and spatially separate, not recognisable to a 601-class
+detector. A fallback that fails in the same way as the thing it is backing up is
+not a fallback.
 
 <h1 class="bk-chapter" id="ch-26-pose-vj-visuals"><span class="bk-chnum">Chapter 26</span>Pose VJ Visuals</h1>
 
