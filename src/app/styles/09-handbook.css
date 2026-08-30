@@ -195,16 +195,16 @@ html.light .hb-body .bk-sec-qa     { --bk-tint: rgba(71, 85, 105, 0.045); --bk-r
    for a wide column and waste most of a phone screen, and tables need somewhere
    to scroll rather than pushing the page sideways. */
 @media (max-width: 640px) {
-  .hb-body { font-size: 1.05rem; line-height: 1.7; color: var(--text); }
+  .hb-body { font-size: 1.15rem; line-height: 1.72; color: var(--text); }
   .hb-body p { max-width: none; margin-bottom: 1rem; }
   .hb-body h1 { font-size: 1.55rem; margin: 3rem 0 0.9rem; }
   .hb-body h1.bk-chapter { margin: 3.25rem 0 1rem; }
   .hb-body .bk-partpage { margin-top: 3.5rem; }
   .hb-body .bk-partpage h2 { font-size: 1.6rem; }
-  .hb-body h2 { font-size: 1.28rem; margin: 2.25rem 0 0.7rem; }
-  .hb-body h3 { font-size: 1.05rem; margin: 1.75rem 0 0.35rem; }
+  .hb-body h2 { font-size: 1.35rem; margin: 2.25rem 0 0.7rem; }
+  .hb-body h3 { font-size: 1.12rem; margin: 1.75rem 0 0.35rem; }
   .hb-body .bk-sec { margin: 2rem 0 1.25rem; padding: 0.1rem 0.9rem 0.85rem; }
-  .hb-body blockquote { font-size: 1rem; }
-  .hb-body table { display: block; overflow-x: auto; font-size: 0.92rem; }
+  .hb-body blockquote { font-size: 1.08rem; }
+  .hb-body table { display: block; overflow-x: auto; font-size: 1rem; }
   .hb-body .bk-facts td:first-child { width: auto; }
 }

@@ -1,0 +1,60 @@
+/* The phone edition of the handbook's PDF.
+   Loaded by Paged.js *after* book.css, so it only has to state what differs.
+
+   The problem it solves is not type size. A4 is 210mm wide and a phone screen
+   is about 65mm, so an A4 page shown whole on a handset renders 10.5pt type at
+   roughly 3.5pt — unreadable without pinch-zooming, however large the point
+   size is set. The fix is the page, not the font. At 90 x 150mm a phone shows
+   the page at about 0.75 scale rather than 0.31, so 11pt type renders at an
+   effective 8.3pt — the size of a paperback, and readable without zooming.
+
+   That is the shape most e-book PDFs use, and it is why they read well on a
+   phone while a scanned A4 report does not. */
+
+@page {
+  size: 90mm 150mm;
+  /* Narrow margins: a phone is held close and has no gutter to allow for. */
+  margin: 7mm 6mm 10mm;
+  /* No running head — 8mm of a 160mm page is a large fraction to spend on a
+     line the reader already knows. The folio stays; it is how a contents
+     entry is found. */
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @top-center { content: none; }
+}
+@page left  { @top-left  { content: none; } }
+@page right { @top-right { content: none; } }
+
+/* Type is set larger than the A4 edition, not smaller: the page shrinks
+   faster than the reading distance does. */
+body { font-size: 11pt; line-height: 1.5; }
+/* Justification needs slack to avoid rivers, and a narrow column has none. */
+p { text-align: left; margin-bottom: 0.6em; }
+
+/* Display sizes were set against a 210mm page and are simply too large here. */
+.bk-titlepage h1 { font-size: 21pt; }
+.bk-titlepage h3 { font-size: 10.5pt; }
+.bk-titlepage p  { font-size: 8.5pt; }
+.bk-partpage h1  { font-size: 9pt; }
+.bk-partpage h2  { font-size: 17pt; }
+.bk-chapter      { font-size: 14pt; }
+.bk-appendix h1  { font-size: 14pt; }
+.bk-toc h1       { font-size: 15pt; }
+h2 { font-size: 11.5pt; }
+h3 { font-size: 10.5pt; }
+
+/* Contents rows: tighter, and the chapter indent halved so a long title does
+   not wrap on every line. */
+.bk-toc-part    { font-size: 10pt; }
+.bk-toc-chapter { font-size: 9pt; padding-left: 0.7em; }
+
+/* A table cannot be made narrower than its content, so it gets the smallest
+   size that stays legible and is allowed to break across pages — on a page
+   this short, keeping a five-row table whole would leave large gaps. */
+table { font-size: 8.5pt; break-inside: auto; page-break-inside: auto; }
+td, th { padding: 2pt 4pt; }
+code, pre { font-size: 8.5pt; }
+pre { overflow-wrap: break-word; white-space: pre-wrap; }
+
+/* The tinted blocks keep their colour and lose most of their padding. */
+.bk-sec { padding: 3pt 6pt; margin: 7pt 0 6pt -8pt; }

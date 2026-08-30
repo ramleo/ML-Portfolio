@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
+/** A4 for paper, a small page for a handset — see public/book-phone.css. */
+type Edition = "print" | "phone";
+
 /**
  * Taking the handbook away: as Markdown, or as a typeset PDF.
  *
@@ -20,6 +23,7 @@ import { createPortal } from "react-dom";
  */
 export default function HandbookActions({ markdown }: { markdown: string }) {
   const [state, setState] = useState<"idle" | "working">("idle");
+  const [edition, setEdition] = useState<Edition | null>(null);
   const [paginated, setPaginated] = useState(false);
 
   const downloadMarkdown = () => {
@@ -34,8 +38,9 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
     URL.revokeObjectURL(url);
   };
 
-  const makeBook = async () => {
+  const makeBook = async (which: Edition) => {
     setState("working");
+    setEdition(which);
     try {
       const source = document.querySelector(".hb-body");
       const target = document.getElementById("bk-pages");
@@ -56,7 +61,12 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
         });
       }
       const previewer = new window.PagedModule!.Previewer();
-      await previewer.preview(source.innerHTML, ["/book.css"], target);
+      // The phone edition is book.css plus a small override loaded after it,
+      // so the two cannot drift: everything except page size and the display
+      // sizes that depend on it is stated once.
+      const sheets =
+        which === "phone" ? ["/book.css", "/book-phone.css"] : ["/book.css"];
+      await previewer.preview(source.innerHTML, sheets, target);
       document.body.classList.add("bk-paginated");
       // One frame for the pages to lay out before the print dialog samples them.
       await new Promise((r) => requestAnimationFrame(() => r(null)));
@@ -84,11 +94,18 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
 
   return (
     <div className="hb-actions">
-      <button onClick={makeBook} disabled={state === "working"} className="hb-btn hb-btn-primary">
+      <button onClick={() => makeBook("print")} disabled={state === "working"} className="hb-btn hb-btn-primary">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        {state === "working" ? "Typesetting…" : "Download as PDF"}
+        {state === "working" && edition === "print" ? "Typesetting…" : "PDF for print (A4)"}
+      </button>
+      <button onClick={() => makeBook("phone")} disabled={state === "working"} className="hb-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <rect x="6" y="2" width="12" height="20" rx="2" />
+          <path d="M11 18h2" strokeLinecap="round" />
+        </svg>
+        {state === "working" && edition === "phone" ? "Typesetting…" : "PDF for phone"}
       </button>
       <button onClick={downloadMarkdown} className="hb-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
