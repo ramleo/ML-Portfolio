@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AslFingerspellingRunner from "./AslFingerspellingRunner";
 import AslFingerspellingUserGuideModal from "./AslFingerspellingUserGuideModal";
 import { ASL_FINGERSPELLING_GUIDE, ASL_FINGERSPELLING_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#0891b2";
 
@@ -24,7 +25,7 @@ const TOOL_SUMMARY =
 export default function AslFingerspellingRecognitionPage() {
   useToolTracking("asl-fingerspelling-recognition");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("asl-fingerspelling-recognition")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -48,7 +49,7 @@ export default function AslFingerspellingRecognitionPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("asl-fingerspelling-recognition")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

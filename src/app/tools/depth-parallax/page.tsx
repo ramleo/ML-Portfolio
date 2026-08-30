@@ -7,6 +7,7 @@ import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import DepthParallaxRunner from "./DepthParallaxRunner";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#3b82f6";
 
@@ -24,7 +25,7 @@ const TOOL_SUMMARY =
 export default function DepthParallaxPage() {
   useToolTracking("depth-parallax");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("depth-parallax")), [router]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -50,7 +51,7 @@ export default function DepthParallaxPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("depth-parallax")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

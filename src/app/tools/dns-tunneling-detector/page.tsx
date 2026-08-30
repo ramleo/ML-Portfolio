@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import DnsTunnelRunner from "./DnsTunnelRunner";
 import DnsTunnelUserGuideModal from "./DnsTunnelUserGuideModal";
 import { DNS_TUNNEL_GUIDE, DNS_TUNNEL_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#8b5cf6";
 
@@ -21,7 +22,7 @@ const TOOL_SUMMARY =
 export default function DnsTunnelingDetectorPage() {
   useToolTracking("dns-tunneling-detector");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("dns-tunneling-detector")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -45,7 +46,7 @@ export default function DnsTunnelingDetectorPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("dns-tunneling-detector")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

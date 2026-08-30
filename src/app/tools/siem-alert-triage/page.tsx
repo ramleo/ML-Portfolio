@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SiemTriageRunner from "./SiemTriageRunner";
 import SiemTriageUserGuideModal from "./SiemTriageUserGuideModal";
 import { SIEM_TRIAGE_GUIDE, SIEM_TRIAGE_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#0891b2";
 
@@ -21,7 +22,7 @@ const TOOL_SUMMARY =
 export default function SiemAlertTriagePage() {
   useToolTracking("siem-alert-triage");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("siem-alert-triage")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -45,7 +46,7 @@ export default function SiemAlertTriagePage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("siem-alert-triage")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

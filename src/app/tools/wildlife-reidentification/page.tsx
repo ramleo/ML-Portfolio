@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import WildlifeReidRunner from "./WildlifeReidRunner";
 import WildlifeReidUserGuideModal from "./WildlifeReidUserGuideModal";
 import { WILDLIFE_REID_GUIDE, WILDLIFE_REID_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#a16207";
 
@@ -22,7 +23,7 @@ const TOOL_SUMMARY =
 export default function WildlifeReidentificationPage() {
   useToolTracking("wildlife-reidentification");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("wildlife-reidentification")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -46,7 +47,7 @@ export default function WildlifeReidentificationPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("wildlife-reidentification")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

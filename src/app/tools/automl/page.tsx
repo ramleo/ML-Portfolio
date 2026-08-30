@@ -11,6 +11,7 @@ import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#22c55e";
 const AUTOML_STEP_KEYS: AutoMLStep[] = ["upload", "config", "training", "results"];
@@ -64,7 +65,7 @@ function AutoMLPageInner() {
     finally { setContextLoading(false); }
   }, [state]);
 
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("automl")), [router]);
 
   const ctxB64 = state.fsCsvB64 ?? state.feCsvB64 ?? state.preprocessedCsvB64 ?? state.csvB64;
   const stageLabel = state.fsCsvB64
@@ -93,7 +94,7 @@ function AutoMLPageInner() {
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 12L4 7l5-5" />
             </svg>
-            Home
+            {toolBackLabel("automl")}
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>

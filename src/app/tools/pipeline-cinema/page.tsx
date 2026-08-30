@@ -10,6 +10,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
 import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
+import { toolBackHref } from "@/lib/toolNav";
 
 function parseCsvB64(b64: string): string[] {
   try {
@@ -41,7 +42,7 @@ function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: s
 export default function PipelineCinemaPage() {
   useToolTracking("pipeline-cinema");
   const router = useRouter();
-  const handleHome = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleHome = useCallback(() => router.push(toolBackHref("pipeline-cinema")), [router]);
 
   // CSV / config state
   const [csvB64, setCsvB64] = useState<string | null>(null);

@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import RotoscopeTrackingRunner from "./RotoscopeTrackingRunner";
 import RotoscopeUserGuideModal from "./RotoscopeUserGuideModal";
 import { ROTOSCOPE_GUIDE, ROTOSCOPE_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#7c3aed";
 
@@ -21,7 +22,7 @@ const TOOL_SUMMARY =
 export default function TextPromptedVideoTrackingPage() {
   useToolTracking("text-prompted-video-tracking");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("text-prompted-video-tracking")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -45,7 +46,7 @@ export default function TextPromptedVideoTrackingPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("text-prompted-video-tracking")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

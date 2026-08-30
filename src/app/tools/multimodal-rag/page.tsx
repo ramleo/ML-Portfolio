@@ -10,6 +10,7 @@ import MmRagRunner from "./MmRagRunner";
 import MmRagUserGuideModal from "./MmRagUserGuideModal";
 import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
 import { MM_RAG_GUIDE, MM_RAG_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#a78bfa";
 const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source Serif Pro', Georgia, serif";
@@ -17,7 +18,7 @@ const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source 
 export default function MultimodalRagPage() {
   useToolTracking("multimodal-rag");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("multimodal-rag")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
 
@@ -42,7 +43,7 @@ export default function MultimodalRagPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("multimodal-rag")}
           </button>
 
           <div className="flex items-center gap-3 mb-6 flex-wrap">

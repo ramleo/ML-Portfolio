@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PackageScannerRunner from "./PackageScannerRunner";
 import PackageScannerUserGuideModal from "./PackageScannerUserGuideModal";
 import { PACKAGE_SCANNER_GUIDE, PACKAGE_SCANNER_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#f59e0b";
 
@@ -22,7 +23,7 @@ const TOOL_SUMMARY =
 export default function MaliciousPackageScannerPage() {
   useToolTracking("malicious-package-scanner");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("malicious-package-scanner")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -46,7 +47,7 @@ export default function MaliciousPackageScannerPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("malicious-package-scanner")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

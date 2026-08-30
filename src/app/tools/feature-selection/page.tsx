@@ -25,6 +25,7 @@ import FSPageHeader from "@/components/FSPanels/FSPageHeader";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import { buildTabs, TAB_CATEGORIES, type TabId } from "@/components/FSPanels/fsTabs";
+import { toolBackHref } from "@/lib/toolNav";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -195,7 +196,7 @@ function FeatureSelectionPageInner() {
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
 
-      <FSPageHeader accent={ACCENT} onHome={() => router.push("/#capabilities")} currentStep={runnerStep} />
+      <FSPageHeader accent={ACCENT} onHome={() => router.push(toolBackHref("feature-selection"))} currentStep={runnerStep} />
 
       <div style={{
         maxWidth: 960, margin: "0 auto",

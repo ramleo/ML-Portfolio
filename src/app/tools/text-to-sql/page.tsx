@@ -9,13 +9,14 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { PipelineProvider } from "@/context/PipelineContext";
 import TextToSqlRunner from "./TextToSqlRunner";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#6366f1";
 
 export default function TextToSqlPage() {
   useToolTracking("text-to-sql");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("text-to-sql")), [router]);
 
   return (
     <PipelineProvider>
@@ -37,7 +38,7 @@ export default function TextToSqlPage() {
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Home
+              {toolBackLabel("text-to-sql")}
             </button>
             <div className="flex items-center gap-3 mb-1">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${ACCENT}20` }}>

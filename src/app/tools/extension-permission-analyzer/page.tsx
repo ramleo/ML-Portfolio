@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import ExtensionAnalyzerRunner from "./ExtensionAnalyzerRunner";
 import ExtensionAnalyzerUserGuideModal from "./ExtensionAnalyzerUserGuideModal";
 import { EXTENSION_ANALYZER_GUIDE, EXTENSION_ANALYZER_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#eab308";
 
@@ -20,7 +21,7 @@ const TOOL_SUMMARY =
 export default function ExtensionPermissionAnalyzerPage() {
   useToolTracking("extension-permission-analyzer");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("extension-permission-analyzer")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -44,7 +45,7 @@ export default function ExtensionPermissionAnalyzerPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("extension-permission-analyzer")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

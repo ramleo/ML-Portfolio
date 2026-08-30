@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import FaceReidDemoRunner from "./FaceReidDemoRunner";
 import FaceReidUserGuideModal from "./FaceReidUserGuideModal";
 import { FACE_REID_GUIDE, FACE_REID_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#f97316";
 
@@ -20,7 +21,7 @@ const TOOL_SUMMARY =
 export default function FaceDeanonymizationDemoPage() {
   useToolTracking("face-deanonymization-demo");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("face-deanonymization-demo")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -44,7 +45,7 @@ export default function FaceDeanonymizationDemoPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("face-deanonymization-demo")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

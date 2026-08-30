@@ -10,6 +10,7 @@ import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ShapRunner from "./ShapRunner";
 import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#f59e0b";
 const SHAP_STEP_LABELS = ["Upload", "Configure", "Results"];
@@ -23,7 +24,7 @@ function ShapPageInner() {
   const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[] } | null>(null);
   const [runnerStep, setRunnerStep] = useState(1);
 
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("shap")), [router]);
 
   const handleReady = useCallback((trigger: (f: File) => void) => {
     triggerRef.current = trigger;
@@ -75,7 +76,7 @@ function ShapPageInner() {
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 12L4 7l5-5" />
             </svg>
-            Home
+            {toolBackLabel("shap")}
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>

@@ -9,13 +9,14 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { ANALYTICS_GUIDE, ANALYTICS_SUGGESTIONS } from "./userGuide";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#10b981";
 
 export default function RealtimeAnalyticsPage() {
   useToolTracking("realtime-analytics");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("realtime-analytics")), [router]);
 
   return (
     <PipelineProvider>
@@ -36,7 +37,7 @@ export default function RealtimeAnalyticsPage() {
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Home
+              {toolBackLabel("realtime-analytics")}
             </button>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"

@@ -6,13 +6,14 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 import PoseVjRunner from "./PoseVjRunner";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#d946ef";
 
 export default function PoseVjVisualsPage() {
   useToolTracking("pose-vj-visuals");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("pose-vj-visuals")), [router]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -28,7 +29,7 @@ export default function PoseVjVisualsPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("pose-vj-visuals")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

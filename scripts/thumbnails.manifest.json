@@ -1,0 +1,354 @@
+{
+ "adversarial-robustness-lab": {
+  "alt": "Vibrant abstract glitch art with colorful overlays and distorted silhouettes.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 10219028,
+  "url": "https://images.pexels.com/photos/10219028/pexels-photo-10219028.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "ai-code-detector": {
+  "alt": "Detailed view of Ruby on Rails code highlighting software development intricacies.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 374559,
+  "url": "https://images.pexels.com/photos/374559/pexels-photo-374559.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "asl-fingerspelling-recognition": {
+  "alt": "A close-up of a hand making an OK gesture, with a light background and soft lighting.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 1366997,
+  "url": "https://images.pexels.com/photos/1366997/pexels-photo-1366997.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "astrophotography-anomaly-detector": {
+  "alt": "area crop",
+  "domain": "Computer Vision",
+  "mode": "area-crop",
+  "pexels": 816622,
+  "url": "https://images.pexels.com/photos/816622/pexels-photo-816622.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+  "window": 1
+ },
+ "attack-surface-scanner": {
+  "alt": "Fiber optical device with similar bright connectors with blue cables made of rubber with plastic pigtails on edges",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 4280696,
+  "url": "https://images.pexels.com/photos/4280696/pexels-photo-4280696.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "automl": {
+  "alt": "Empty running track lane with 1500 meter marking, sunny day outdoors.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 401896,
+  "url": "https://images.pexels.com/photos/401896/pexels-photo-401896.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "captcha-hardening-lab": {
+  "alt": "A woman receives a robotic massage as a scientist monitors, showcasing modern technology.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 8439072,
+  "url": "https://images.pexels.com/photos/8439072/pexels-photo-8439072.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "contract-invoice-reconciliation": {
+  "alt": "A close-up image showing a hand holding a pen while signing a document.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 7054510,
+  "url": "https://images.pexels.com/photos/7054510/pexels-photo-7054510.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "crime-scene-reconstruction": {
+  "alt": "A forensic investigator in protective gear handles caution tape by a house in a wooded area.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 10481260,
+  "url": "https://images.pexels.com/photos/10481260/pexels-photo-10481260.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "depth-parallax": {
+  "alt": "Explore the serene beauty of mountainous peaks in black and white, captured in T\u00fcrkiye.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 25002816,
+  "url": "https://images.pexels.com/photos/25002816/pexels-photo-25002816.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "dns-tunneling-detector": {
+  "alt": "Detailed close-up of ethernet cables and network connections on a router, showcasing modern technology.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 159304,
+  "url": "https://images.pexels.com/photos/159304/network-cable-ethernet-computer-159304.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "document-intelligence": {
+  "alt": "Artistic close-up of stacked white paper sheets creating geometric shadows and patterns in soft light.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 20062955,
+  "url": "https://images.pexels.com/photos/20062955/pexels-photo-20062955.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "drift": {
+  "alt": "A stunning view of endless golden sand dunes shaped by the wind in a sunlit desert.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 19896999,
+  "url": "https://images.pexels.com/photos/19896999/pexels-photo-19896999.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "email-auth-checker": {
+  "alt": "A blank white envelope with red stripes on a vibrant red background, perfect for postal themes.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 7965294,
+  "url": "https://images.pexels.com/photos/7965294/pexels-photo-7965294.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "ensemble": {
+  "alt": "Group of skilled cellists focused during a classical concert performance.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 4513448,
+  "url": "https://images.pexels.com/photos/4513448/pexels-photo-4513448.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "extension-permission-analyzer": {
+  "alt": "Close-up of an unfinished wooden puzzle with a missing piece, highlighting problem-solving concepts.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 6275820,
+  "url": "https://images.pexels.com/photos/6275820/pexels-photo-6275820.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "face-cloak": {
+  "alt": "area crop",
+  "domain": "Security & Trust",
+  "mode": "area-crop",
+  "pexels": 4508751,
+  "url": "https://images.pexels.com/photos/4508751/pexels-photo-4508751.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+  "window": 0
+ },
+ "face-deanonymization-demo": {
+  "alt": "A blurry artistic photo of a shirtless man outdoors with a clear sky backdrop.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 16778160,
+  "url": "https://images.pexels.com/photos/16778160/pexels-photo-16778160.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "face-liveness": {
+  "alt": "A young woman lying down, posing with a retro camera, capturing an artistic essence.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 20570019,
+  "url": "https://images.pexels.com/photos/20570019/pexels-photo-20570019.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "featureeng": {
+  "alt": "Magnifying glass and colored pencils on financial trend graphs highlighting sales growth.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 7948055,
+  "url": "https://images.pexels.com/photos/7948055/pexels-photo-7948055.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "featureselect": {
+  "alt": "Close-up of an elderly scientist using paper filters in a chemistry experiment with glass apparatus.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 8450205,
+  "url": "https://images.pexels.com/photos/8450205/pexels-photo-8450205.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "gait-pattern-comparison": {
+  "alt": "Close-up of legs in black shoes walking on stone pavement with shadows.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 11692911,
+  "url": "https://images.pexels.com/photos/11692911/pexels-photo-11692911.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "keystroke-biometric-auth-risk": {
+  "alt": "Closeup of a hand with polka dot nails typing on a vintage keyboard, emphasizing retro technology.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 8885330,
+  "url": "https://images.pexels.com/photos/8885330/pexels-photo-8885330.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "malicious-package-scanner": {
+  "alt": "Laptop with code editor open on a rooftop, showcasing remote web development and modern work flexibility.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 37085303,
+  "url": "https://images.pexels.com/photos/37085303/pexels-photo-37085303.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "malware-image-triage": {
+  "alt": "Close-up of a man with glasses and binary code projection, symbolizing cyber security.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 5474025,
+  "url": "https://images.pexels.com/photos/5474025/pexels-photo-5474025.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "movement-form-comparison": {
+  "alt": "A man performing dynamic stretching exercises in a gym setting with fitness equipment in the background.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 6388452,
+  "url": "https://images.pexels.com/photos/6388452/pexels-photo-6388452.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "multimodal-rag": {
+  "alt": "Bookshelves in a library with a vintage tone in San Jos\u00e9, Costa Rica.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 35698025,
+  "url": "https://images.pexels.com/photos/35698025/pexels-photo-35698025.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "optuna": {
+  "alt": "A detailed close-up of an audio mixer with vibrant, glowing controls in a studio setting.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 10960357,
+  "url": "https://images.pexels.com/photos/10960357/pexels-photo-10960357.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "password-audit": {
+  "alt": "Close-up of a smartphone screen showing the Facebook login interface.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 267469,
+  "url": "https://images.pexels.com/photos/267469/pexels-photo-267469.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "phishing-email-classifier": {
+  "alt": "Person using a laptop to read an email indoors beside a potted plant.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 7821760,
+  "url": "https://images.pexels.com/photos/7821760/pexels-photo-7821760.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "photo-search": {
+  "alt": "From above faceless person in warm gray clothes looking through printed images in album while sitting on floor",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 7014491,
+  "url": "https://images.pexels.com/photos/7014491/pexels-photo-7014491.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "pipeline-builder": {
+  "alt": "Close-up of stainless steel machinery and pipes in an industrial setting, showcasing modern engineering.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 33514501,
+  "url": "https://images.pexels.com/photos/33514501/pexels-photo-33514501.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "pipeline-cinema": {
+  "alt": "Artistic shot of a vintage film reel with soft light creating a nostalgic atmosphere.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 34084909,
+  "url": "https://images.pexels.com/photos/34084909/pexels-photo-34084909.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "plant-growth": {
+  "alt": "Vibrant close-up of a young tomato seedling sprouting in the soil.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 1002703,
+  "url": "https://images.pexels.com/photos/1002703/pexels-photo-1002703.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "pose-vj-visuals": {
+  "alt": "Artistic silhouette of a woman opening stage curtains, surrounded by smoke and spotlight.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 5135107,
+  "url": "https://images.pexels.com/photos/5135107/pexels-photo-5135107.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "ppe-compliance-check": {
+  "alt": "Three colorful safety helmets stacked on a concrete surface with city skyline in background.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 4161604,
+  "url": "https://images.pexels.com/photos/4161604/pexels-photo-4161604.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "preprocessing": {
+  "alt": "Close-up of tax documents and calculator on wooden table, highlighting financial analysis.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 7821914,
+  "url": "https://images.pexels.com/photos/7821914/pexels-photo-7821914.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "prompt-injection-playground": {
+  "alt": "Close-up of a smartphone displaying an AI chat interface, ready for interaction.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 31466991,
+  "url": "https://images.pexels.com/photos/31466991/pexels-photo-31466991.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "qr-phishing-detector": {
+  "alt": "Smartphone with health passport and calendar for organized travel planning.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 8372666,
+  "url": "https://images.pexels.com/photos/8372666/pexels-photo-8372666.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "realtime-analytics": {
+  "alt": "Colorful data visualization of stock market trends with financial charts.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 38808473,
+  "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "shap": {
+  "alt": "A person closely examines postage stamps with a magnifying glass, revealing intricate details.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 6661031,
+  "url": "https://images.pexels.com/photos/6661031/pexels-photo-6661031.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "siem-alert-triage": {
+  "alt": "Modern security control room with a diverse team monitoring live surveillance feeds.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 30481728,
+  "url": "https://images.pexels.com/photos/30481728/pexels-photo-30481728.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "style-cloak": {
+  "alt": "A variety of paintbrushes in different sizes against a clean white background, perfect for artistic themes.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 1424544,
+  "url": "https://images.pexels.com/photos/1424544/pexels-photo-1424544.png?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "text-prompted-video-tracking": {
+  "alt": "A bustling city street with pedestrians and traffic on an overcast day.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 15886323,
+  "url": "https://images.pexels.com/photos/15886323/pexels-photo-15886323.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "text-to-image": {
+  "alt": "A mesmerizing abstract fluid art piece featuring vibrant blue, red, and yellow swirls in a dynamic composition.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 2832397,
+  "url": "https://images.pexels.com/photos/2832397/pexels-photo-2832397.png?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "text-to-sql": {
+  "alt": "High-tech server rack in a secure data center with network cables and hardware components.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 6466141,
+  "url": "https://images.pexels.com/photos/6466141/pexels-photo-6466141.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "tls-security-headers-scanner": {
+  "alt": "Close-up of romantic love padlocks hanging on a metal wire mesh fence by a river.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 10376534,
+  "url": "https://images.pexels.com/photos/10376534/pexels-photo-10376534.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "video-keystroke-inference": {
+  "alt": "A person having a video call on a laptop, indoors, showcasing digital communication.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 4031707,
+  "url": "https://images.pexels.com/photos/4031707/pexels-photo-4031707.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "wildlife-reidentification": {
+  "alt": "A herd of zebras standing on the dry, grassy savanna, demonstrating their striking black and white stripes in the wild.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 5819197,
+  "url": "https://images.pexels.com/photos/5819197/pexels-photo-5819197.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "yara-file-scanner": {
+  "alt": "Crop unrecognizable person selecting document in opened briefcase for documents placed on wooden table",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 4792285,
+  "url": "https://images.pexels.com/photos/4792285/pexels-photo-4792285.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ }
+}

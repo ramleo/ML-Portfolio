@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import VideoKeystrokeInferenceRunner from "./VideoKeystrokeInferenceRunner";
 import KeystrokeUserGuideModal from "./KeystrokeUserGuideModal";
 import { KEYSTROKE_GUIDE, KEYSTROKE_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#38bdf8";
 
@@ -20,7 +21,7 @@ const TOOL_SUMMARY =
 export default function VideoKeystrokeInferencePage() {
   useToolTracking("video-keystroke-inference");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("video-keystroke-inference")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -44,7 +45,7 @@ export default function VideoKeystrokeInferencePage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("video-keystroke-inference")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

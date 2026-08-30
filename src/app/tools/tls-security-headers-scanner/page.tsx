@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import TlsHeadersScanRunner from "./TlsHeadersScanRunner";
 import TlsHeadersScanUserGuideModal from "./TlsHeadersScanUserGuideModal";
 import { TLS_HEADERS_GUIDE, TLS_HEADERS_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#0ea5e9";
 
@@ -21,7 +22,7 @@ const TOOL_SUMMARY =
 export default function TlsSecurityHeadersScannerPage() {
   useToolTracking("tls-security-headers-scanner");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("tls-security-headers-scanner")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -45,7 +46,7 @@ export default function TlsSecurityHeadersScannerPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("tls-security-headers-scanner")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

@@ -10,6 +10,7 @@ import PhishingEmailRunner from "./PhishingEmailRunner";
 import PhishingEmailUserGuideModal from "./PhishingEmailUserGuideModal";
 import { PHISHING_EMAIL_GUIDE, PHISHING_EMAIL_SUGGESTIONS } from "./userGuide";
 import { MEASURED_HELD_OUT_ACCURACY } from "./emailBodyClassifier";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#e11d48";
 
@@ -23,7 +24,7 @@ const TOOL_SUMMARY =
 export default function PhishingEmailClassifierPage() {
   useToolTracking("phishing-email-classifier");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("phishing-email-classifier")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -47,7 +48,7 @@ export default function PhishingEmailClassifierPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("phishing-email-classifier")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">

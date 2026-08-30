@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import CaptchaHardeningRunner from "./CaptchaHardeningRunner";
 import CaptchaHardeningUserGuideModal from "./CaptchaHardeningUserGuideModal";
 import { CAPTCHA_HARDENING_GUIDE, CAPTCHA_HARDENING_SUGGESTIONS } from "./userGuide";
+import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
 const ACCENT = "#f59e0b";
 
@@ -20,7 +21,7 @@ const TOOL_SUMMARY =
 export default function CaptchaHardeningLabPage() {
   useToolTracking("captcha-hardening-lab");
   const router = useRouter();
-  const handleBack = useCallback(() => router.push("/#capabilities"), [router]);
+  const handleBack = useCallback(() => router.push(toolBackHref("captcha-hardening-lab")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
@@ -44,7 +45,7 @@ export default function CaptchaHardeningLabPage() {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Home
+            {toolBackLabel("captcha-hardening-lab")}
           </button>
 
           <div className="flex items-center gap-3 mb-6">
