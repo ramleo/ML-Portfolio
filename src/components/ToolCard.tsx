@@ -79,6 +79,21 @@ export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHer
     >
       <div className="flip-inner">
         <div className="flip-face front">
+          {/* Decorative, so aria-hidden: the card is already named by its title
+              button, and a screen reader gaining a second, wordless stop here
+              would just be noise. onError hides it rather than leaving a broken
+              image, so a missing file degrades to the pre-thumbnail card. */}
+          <img
+            className="flip-thumb"
+            src={`/thumbs/${cap.id}.webp`}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            width={480}
+            height={192}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
           <div className="flip-front-body">
             <div className="flip-front-head">
               <div className="glyph" style={{ background: `${cap.accent}14`, color: cap.accent }}>

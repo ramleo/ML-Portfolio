@@ -61,11 +61,14 @@
 .cap-cluster-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border2), transparent); }
 
 .cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; perspective: 1600px; }
+/* 148px + a 5:2 thumbnail at the card's own width. The card grew, but the
+   home page no longer carries fifty of them — that is what the domain pages
+   bought. */
 .flip-outer {
-  min-height: 148px; cursor: pointer; transition: min-height 0.3s cubic-bezier(0.23,1,0.32,1);
+  min-height: 244px; cursor: pointer; transition: min-height 0.3s cubic-bezier(0.23,1,0.32,1);
 }
 .flip-inner {
-  position: relative; width: 100%; height: 100%; min-height: 148px;
+  position: relative; width: 100%; height: 100%; min-height: 244px;
   transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), min-height 0.3s cubic-bezier(0.23,1,0.32,1);
 }
 
@@ -113,8 +116,12 @@
 /* Column, and vertically centred — on a pointer device the description and
    footer below are hidden, so this collapses back to the original single
    centred glyph+name row. */
+.flip-thumb {
+  display: block; width: 100%; aspect-ratio: 5 / 2; object-fit: cover;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
 .flip-front-body {
-  padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.6rem;
   flex: 1; justify-content: center; text-align: left; position: relative; z-index: 1;
 }
 .flip-front-head { display: flex; flex-direction: row; align-items: center; gap: 0.75rem; min-width: 0; }
