@@ -10390,6 +10390,8 @@ stay under these thresholds.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Paste the raw headers of an email (from "View Source" / "Show Original" in
 most mail clients). The tool gives you two honest signals: what the
@@ -10455,6 +10457,212 @@ claiming "phishing detected" outright.
 - A "Weak authentication" result means the sending domain isn't well
   protected against spoofing — it is not proof that a specific email is
   fraudulent.
+
+## What problem it solves
+
+Email has no built-in sender authentication. The `From:` header is a string the
+sender writes, and nothing in the original protocol checks it. Anyone can send a
+message that says it came from your bank.
+
+Three standards were bolted on afterwards to fix this — **SPF**, **DKIM** and
+**DMARC** — and together they work well. The catch is that they are configured by
+the *sending* domain, and a great many domains configure them incompletely or
+not at all. When someone forwards you a suspicious email, the question is not
+just "does this look phishy" but **"do the authentication results actually say
+this came from where it claims?"**
+
+This tool answers that from the headers alone. Paste them in and it reports what
+the receiving server already determined, and — independently — what the claimed
+sending domain has actually published in DNS.
+
+## How it works, step by step
+
+1. **Paste raw headers.** No message body needed.
+2. **Parse the `Authentication-Results` headers** — the receiving mail server's
+   own verdicts, stamped at delivery.
+3. **Extract the `From:` domain** and any `DKIM-Signature` headers.
+4. **Look up the real DNS records** for that domain, live: SPF, DMARC, and the
+   DKIM selector's public key if a signature named one.
+5. **Check alignment** between the From domain, the DKIM signing domain and the
+   SPF-checked domain.
+6. **Produce a warnings list** and one qualitative verdict.
+
+## The model or algorithm
+
+### The three standards, and what each actually does
+
+**SPF — Sender Policy Framework.** The domain publishes a DNS TXT record listing
+which servers are allowed to send mail for it. The receiving server compares the
+connecting IP against that list. It authenticates the **envelope sender**, which
+is not necessarily what you see in the `From:` line — and it breaks on
+forwarding, because the forwarder's IP is not on the original domain's list.
+
+**DKIM — DomainKeys Identified Mail.** The sending server signs parts of the
+message with a private key and puts the signature in a `DKIM-Signature` header.
+The public key lives in DNS under a *selector*. The receiver fetches it and
+verifies. Unlike SPF, DKIM survives forwarding, because the signature travels
+with the message.
+
+**DMARC** ties the two together and adds the missing piece: **alignment**. SPF
+and DKIM each authenticate *some* domain, and DMARC requires that domain to match
+the one in the visible `From:` header. It also publishes a **policy** — what a
+receiver should do when the check fails: `none`, `quarantine`, or `reject`.
+
+**Alignment is the concept worth understanding**, because it is where spoofing
+actually gets caught. A message can pass SPF perfectly — the attacker's own
+domain has a valid SPF record and they sent from their own server — while
+displaying `From: security@yourbank.com`. SPF passed, for `attacker.com`. Without
+alignment, "SPF: pass" is nearly meaningless as a statement about the sender you
+can see. This tool implements **relaxed alignment**: an organisational-domain
+match is enough, so `mail.example.com` aligns with `example.com`.
+
+### Two independent sources of evidence
+
+The design keeps these strictly apart, and the docstring is explicit about why.
+
+**What the receiving server found.** Most providers stamp an
+`Authentication-Results` header containing real `spf=`, `dkim=` and `dmarc=`
+verdicts, computed against the actual message at delivery time, with the sending
+IP and the full body available. The tool **parses and relays this — it does not
+re-verify it.** A message can pick up more than one such header as it passes
+through several hops, so all of them are parsed.
+
+**What the domain publishes now.** Live DNS lookups against the `From:` domain.
+This is genuinely informative even without a cryptographic check: a domain with
+**no SPF record**, **no DMARC record**, or a DMARC policy of **`p=none`** has
+weak spoofing protection as a matter of published fact, independently confirmable
+and nothing to do with this particular message.
+
+Keeping the two apart matters because they answer different questions —
+*"what happened to this message"* versus *"how well is this domain defended"* —
+and conflating them would let a weak domain configuration look like a verdict
+about the email in front of you.
+
+### What is deliberately not done
+
+**Cryptographic DKIM verification is not performed**, and the reason is
+structural rather than a shortcut: verifying a DKIM signature requires computing
+a hash over the **message body**, and a headers-only paste does not have one.
+
+The docstring's phrasing is the point: attempting it against headers alone would
+*"either silently do nothing or mislead"*. So it is disclosed in the API response
+and in the interface rather than quietly skipped — because a "DKIM: checked" that
+did nothing is worse than an honest gap.
+
+### The warnings
+
+Each names a specific published fact and its consequence:
+
+- **No `Authentication-Results` header** — could be a raw outbound message, a
+  server that does not stamp one, or headers trimmed on paste. Three innocent
+  explanations offered rather than an accusation.
+- **No DMARC record** — spoofed mail claiming this domain has no enforced policy
+  to be rejected against.
+- **`p=none`** — spoofing attempts are monitored and reported, not blocked. This
+  is the most common real-world gap: domains publish DMARC and never move past
+  monitoring mode.
+- **No SPF record.**
+- **SPF ending in `+all`** — explicitly allows *any* server to send as this
+  domain, which defeats the entire point of publishing SPF.
+- **Neither DKIM nor SPF aligns with the From domain** — described in the code
+  as *"a classic display-name-spoofing pattern"*, which is exactly what it is.
+
+The positive verdict requires **both** a DMARC policy of `quarantine` or `reject`
+**and** at least one alignment check passing. Publishing a strict policy is not
+enough on its own; this message has to actually satisfy it.
+
+## Why these choices
+
+**Why headers only.** It is what people can paste. Full message source is
+awkward to extract from most clients, and the headers carry the authentication
+evidence.
+
+**Why relay rather than re-verify the receiving server's results.** The receiver
+had the connecting IP, the envelope sender and the body. A tool given a pasted
+text block has none of those and cannot reproduce the check. Relaying a real
+verdict is honest; recomputing a fake one is not.
+
+**Why no fabricated legitimate/phishing verdict.** The docstring rules it out
+directly. These signals describe *authentication*, and authentication is not
+intent — a perfectly authenticated email from a domain the attacker registered
+this morning passes everything.
+
+**Why no SSRF guard here**, unlike the TLS scanner. This tool does DNS TXT
+lookups only and never opens a connection to a user-supplied host, so the risk
+does not arise. Worth knowing which of your endpoints have that property.
+
+## How to read the output
+
+- **Alignment is the field that matters.** SPF pass with no alignment is the
+  signature of display-name spoofing.
+- **`p=none` is extremely common** and means the domain is monitoring, not
+  enforcing. It is a finding about the domain, not about this message.
+- **`+all` in an SPF record is a serious misconfiguration** and unambiguous.
+- **A missing `Authentication-Results` header is usually innocent** — most often
+  headers trimmed on paste.
+- **Passing everything is not "safe".** It means the sender is who they claim to
+  be. A lookalike domain the attacker owns will pass every check here.
+- **The DNS checks describe the domain today**, not the moment the message was
+  sent. Records change.
+- **DKIM is not cryptographically verified**, and the response says so.
+
+## Limits
+
+- **No cryptographic DKIM verification** — no body available.
+- **SPF is not re-evaluated** — the connecting IP is not available from headers.
+- **Headers can be forged**, including `Authentication-Results`. If the receiving
+  server stamped it, it is trustworthy; a hand-pasted block might not be.
+- **DNS records are read now**, not as of delivery.
+- **Authentication is not legitimacy.** A newly registered lookalike domain with
+  correct SPF, DKIM and DMARC passes cleanly.
+- **No body analysis** — no link inspection, no attachment check, no content
+  classification.
+- **Relaxed alignment only.** DMARC's strict mode is not distinguished.
+- **Forwarding legitimately breaks SPF**, so a forwarded genuine message can
+  present exactly like a failure.
+
+## Likely interview questions
+
+**"Explain SPF, DKIM and DMARC and how they fit together."**
+SPF publishes which servers may send for a domain and is checked against the
+connecting IP — it authenticates the envelope sender and breaks on forwarding.
+DKIM signs the message with a private key whose public half is in DNS, so it
+survives forwarding. DMARC ties both to the visible `From:` domain through
+alignment, and publishes a policy — none, quarantine or reject — telling receivers
+what to do on failure. DMARC is the one that makes the other two meaningful,
+because without alignment they can both pass for a domain that is not the one the
+recipient sees.
+
+**"A message passes SPF but is still spoofed. How?"**
+Because SPF authenticates the envelope sender, not the `From:` header. An
+attacker sends from their own domain, with a valid SPF record and their own
+server, so SPF passes for `attacker.com` — while the `From:` line displays
+`security@yourbank.com`. SPF passed; it just passed for the wrong domain. That is
+precisely the gap DMARC alignment closes, and it is why alignment is the field to
+read.
+
+**"Why don't you verify the DKIM signature yourself?"**
+Because DKIM verification hashes the message **body**, and this tool takes
+headers only — there is no body to hash. I could have run something that looked
+like a check and silently did nothing, which is worse than not doing it, so it is
+disclosed in both the response and the interface. Instead the tool relays the
+receiving server's DKIM verdict, which was computed when the full message was
+available.
+
+**"What's the most common real-world misconfiguration?"**
+`p=none`. Domains publish DMARC, set it to monitoring mode to collect reports,
+and never move to quarantine or reject. It looks like DMARC is deployed and in
+practice nothing is enforced — spoofed mail is reported and delivered. After that,
+`+all` in an SPF record, which explicitly permits any server on the internet to
+send as the domain and defeats the entire point of publishing SPF.
+
+**"All checks pass. Is the email safe?"**
+No, and I would push back on the question. These checks establish that the sender
+is who they claim to be — they say nothing about intent. An attacker who
+registers a lookalike domain and configures SPF, DKIM and DMARC properly passes
+everything here, and that is a very common phishing pattern precisely because it
+survives authentication checks. Authentication is one signal; the domain's age,
+reputation and the content are others.
 
 <h1 class="bk-chapter" id="ch-38-face-cloak"><span class="bk-chnum">Chapter 38</span>Face Cloak</h1>
 
@@ -10889,6 +11097,8 @@ payload fetched at runtime from a URL that isn't hardcoded in the source).
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Type a password and it's scored two independent ways, both without ever
 sending the actual password anywhere: a real-time strength meter (runs
@@ -10949,6 +11159,206 @@ cleared with the **Clear** button and never persisted between visits. The
 only network request this tool ever makes is the 5-character hash-prefix
 lookup to \`api.pwnedpasswords.com\`, and only when you click the breach
 check button — never automatically, and never on every keystroke.
+
+## What problem it solves
+
+Password strength meters are mostly wrong. The familiar rule — eight characters,
+one uppercase, one number, one symbol — produces `P@ssw0rd1`, which satisfies
+every requirement and is one of the first passwords any attacker tries. Meanwhile
+`correct horse battery staple` fails the rules and is enormously stronger.
+
+The rules are wrong because they measure **composition**, and what matters is
+**guessability**. An attacker does not enumerate the character space; they work
+through leaked password lists, then dictionary words with predictable
+substitutions, then keyboard patterns, then dates. A password's real strength is
+how deep into that ordered search it sits.
+
+There is also a second question the rules cannot touch: **has this exact password
+already appeared in a breach?** A password can be structurally excellent and
+still be in a leaked dump, at which point its strength is irrelevant — it is on a
+list.
+
+This tool answers both, and it does the second one **without ever sending your
+password anywhere**.
+
+## How it works, step by step
+
+1. **Type a password.** It stays in the browser.
+2. **Score it with zxcvbn**, which estimates how many guesses it would take.
+3. **Optionally check it against breach data** using a **k-anonymity** lookup —
+   only the first five characters of a hash ever leave the machine.
+4. **Report** a score, an estimated crack time, specific warnings, and whether
+   the password appears in known breaches and how often.
+
+## The model or algorithm
+
+### zxcvbn — scoring by guessability
+
+Dropbox's estimator, and the idea is a genuine improvement on entropy rules. It
+tries to model **how an attacker would actually guess**, by decomposing the
+password into recognisable patterns and costing each one:
+
+- **Dictionary words** — English, common names, and importantly a list of the
+  most common passwords. A word's cost is its **rank**: `password` is guess
+  number one, an obscure word is far deeper in.
+- **`l33t` substitutions** — `@` for `a`, `0` for `o`. These are *unmasked* before
+  the dictionary lookup and add only a small multiplier, because everyone does
+  them and every cracking tool tries them.
+- **Keyboard patterns** — `qwerty`, `asdfgh`, and any adjacency walk, using a
+  real keyboard adjacency graph.
+- **Sequences and repeats** — `abcdef`, `123456`, `aaaa`.
+- **Dates** — recognised in many formats, and a small space because there are not
+  many plausible years.
+
+The estimator finds the **cheapest decomposition** of the whole password — the
+route an attacker would take — and multiplies the parts. So `P@ssw0rd1` decomposes
+into a top-ranked dictionary word, standard substitutions and a trailing digit,
+and costs almost nothing. Four uncommon words concatenated have no cheap
+decomposition at all.
+
+The output is a **score from 0 to 4** and a **crack-time estimate**, and it comes
+with **specific feedback** — "this is a top-10 common password", "predictable
+substitutions do not help much" — which a percentage bar cannot give.
+
+### The k-anonymity breach lookup — the interesting part
+
+Checking whether a password appears in a breach seems to require sending the
+password to whoever holds the breach data. That is obviously unacceptable.
+
+Have I Been Pwned's Pwned Passwords API solves it with **k-anonymity**:
+
+1. Hash the password with SHA-1 locally → 40 hex characters.
+2. Send **only the first 5 characters** to
+   `api.pwnedpasswords.com/range/{prefix}`.
+3. The server returns **every** hash suffix it holds beginning with that prefix —
+   typically several hundred to a few thousand.
+4. Search that list locally for your suffix.
+
+The server learns that someone was interested in one of roughly 800 hashes and
+cannot tell which — or whether yours was in the list at all, because the same
+response is returned either way. **The password never leaves the machine, and
+neither does its full hash.**
+
+That is the property worth being able to explain: the privacy comes from the
+*response being independent of the answer*, not from encryption or trust.
+
+**Why SHA-1, when SHA-1 is broken.** Because it is the API's contract, not a
+security choice, and the code says so explicitly. It is used as a lookup key over
+a public dataset, not to protect anything — a collision would let an attacker
+learn that one of two passwords they already know is in a public breach list,
+which is worth nothing. Being able to say *why* a deprecated primitive is
+acceptable in a specific context is more useful than reflexively objecting to it.
+
+**A count comes back too.** Not just "breached" but "seen 3,861 times", which is
+a much better signal — a password in a dump 20,000 times is in every cracking
+list in existence.
+
+### What the two checks each miss
+
+They are complementary, and neither is sufficient:
+
+- zxcvbn can score a password highly that has **already leaked**, because
+  strength says nothing about exposure.
+- The breach check passes any password not yet in a dump, including
+  `Summer2025!` if that exact string has not been dumped — which is not the same
+  as being unguessable.
+
+## Why these choices
+
+**Why zxcvbn rather than a composition rule.** Composition rules measure the
+wrong thing and actively push people toward predictable passwords, because
+`P@ssw0rd1` is the shortest path to satisfying them. Guessability is the property
+that matters and zxcvbn estimates it directly.
+
+**Why the browser.** A password typed into a web form that then posts it
+somewhere is exactly the pattern people should be taught not to trust. Everything
+runs client-side, and the only network request carries five characters of a hash.
+
+**Why show the crack-time estimate.** Not because the number is precise — see
+*Limits* — but because "centuries" and "three seconds" communicate to a
+non-specialist in a way a 0-to-4 score does not.
+
+**Why report the count, not just a boolean.** Frequency is the actionable part.
+
+## How to read the output
+
+- **Score 3 or 4 is the target.** Below 3 means zxcvbn found a cheap
+  decomposition.
+- **Read the warning and suggestions.** They name the *specific* weakness — a
+  dictionary word, a keyboard walk, a date — and that is more useful than the
+  score.
+- **Any breach count is disqualifying**, whatever the strength score. It is on a
+  list.
+- **Crack time is an order of magnitude, not a measurement.** It depends
+  entirely on assumptions about attacker hardware and whether the target used
+  slow hashing.
+- **"Not found in breaches" is not a pass.** It means this exact string has not
+  appeared in the datasets HIBP holds.
+- **A long passphrase of uncommon words usually beats a short complex string**,
+  and the tool will show you that directly.
+
+## Limits
+
+- **zxcvbn's dictionaries are English-centric.** A password built from words in
+  another language is scored as more random than it is.
+- **Crack-time estimates are assumption-dependent** — attacker hardware, the
+  hashing algorithm the target site used, whether it was salted.
+- **The breach check only covers HIBP's corpus.** Absence means "not in these
+  datasets".
+- **SHA-1 is used as an API contract.** Correct here, and not a general
+  endorsement.
+- **The prefix lookup leaks the prefix**, which is the whole design — k-anonymity
+  reduces the leak to one bucket, it does not eliminate it.
+- **No password-manager integration, no reuse detection across your accounts, no
+  storage.** One password at a time.
+- **Nothing here checks whether the *site* stores passwords properly**, which is
+  frequently the thing that actually fails.
+- **It requires you to type a real password into a browser**, which is a habit
+  worth being uneasy about even when the implementation is sound.
+
+## Likely interview questions
+
+**"Why are the usual password composition rules wrong?"**
+Because they measure the wrong property. Requiring an uppercase, a number and a
+symbol produces `P@ssw0rd1` — which satisfies every rule and is among the first
+things any cracking tool tries — while rejecting a four-word passphrase that is
+orders of magnitude stronger. Attackers do not enumerate the character space;
+they work through leaked lists, dictionaries with substitutions, keyboard
+patterns and dates. What matters is where a password sits in that ordered search,
+and composition rules do not measure that at all.
+
+**"How does zxcvbn work?"**
+It decomposes the password into recognisable patterns — dictionary words scored by
+rank, `l33t` substitutions unmasked and barely credited, keyboard adjacency
+walks, sequences, repeats, dates — and costs each one by how many guesses it would
+take. Then it finds the *cheapest* decomposition, which is the route an attacker
+would take, and multiplies. That is why `P@ssw0rd1` scores near zero: it has a
+very cheap decomposition even though it satisfies every composition rule.
+
+**"How do you check a password against a breach database without sending it?"**
+k-anonymity. Hash the password locally with SHA-1, send only the first five hex
+characters, and the server returns every suffix it holds under that prefix —
+several hundred to a few thousand. You search that list locally. The server
+learns you were interested in one of roughly 800 hashes and cannot tell which,
+and crucially cannot tell whether yours was present, because the response is
+identical either way. The privacy comes from the response being independent of
+the answer.
+
+**"SHA-1 is broken. Why use it?"**
+Because it is the API's contract, and here it is a lookup key over a public
+dataset rather than a security primitive. Nothing is being protected by its
+collision resistance — a collision would let an attacker learn that one of two
+passwords they already know appears in a public breach list, which is worth
+nothing. The question to ask about a deprecated primitive is what property you
+are relying on, not whether the name appears on a list.
+
+**"A password scores 4 out of 4 and appears in a breach. What do you tell the
+user?"**
+Change it, immediately, and the strength score is irrelevant. Strength estimates
+how hard it is to *guess*; a breach means it does not need to be guessed, because
+it is already on a list that every cracking tool loads first. The two checks
+measure different things and the breach result always wins — which is exactly why
+the tool does both rather than only scoring.
 
 <h1 class="bk-chapter" id="ch-44-phishing-email-body-classifier"><span class="bk-chnum">Chapter 44</span>Phishing Email Body Classifier</h1>
 
@@ -11335,6 +11745,8 @@ applies to face-recognition embeddings instead of style embeddings.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Type a domain and it's checked two real ways, the same audit style as
 Mozilla Observatory or SSL Labs' Server Test: a real TLS handshake against
@@ -11391,6 +11803,228 @@ application's own code, authentication, or data handling. Conversely, a
 expired or untrusted certificate is a real problem any browser would also
 flag), while a missing security header is a softer, defense-in-depth gap
 rather than proof of an active vulnerability.
+
+## What problem it solves
+
+Two things about a website can be checked from the outside, before anyone logs
+in, and both are commonly wrong:
+
+**Is the TLS certificate healthy?** Expired certificates are one of the most
+frequent outages there is, and they always expire at an inconvenient hour. A
+chain that does not verify, or a connection that negotiates a protocol version
+formally deprecated years ago, are quieter but worse.
+
+**Does the site send the security headers browsers rely on?** Six headers do the
+bulk of the work in stopping clickjacking, MIME sniffing, referrer leakage and a
+good deal of cross-site scripting. They cost one line of configuration each and
+are absent from a great many production sites, because nothing breaks when they
+are missing.
+
+This tool checks both. Give it a domain and it opens a real TLS connection,
+inspects the certificate, fetches the site over HTTPS and audits the response
+headers.
+
+## How it works, step by step
+
+1. **Normalise the host** — strip a scheme, a path, a port.
+2. **Resolve it, and refuse private addresses.** This is a security control, not
+   a convenience; see below.
+3. **Open a real TLS connection** and read the certificate and the negotiated
+   protocol version.
+4. **Fetch the site over HTTPS** and look for the six headers.
+5. **Build a warnings list**, then derive one qualitative verdict from it.
+
+## The model or algorithm
+
+No model. Two network checks, one refusal, and a verdict rule.
+
+### The SSRF guard — the most important code in the tool
+
+This endpoint takes a **user-supplied hostname** and makes the server open a TCP
+connection to it. That is textbook **Server-Side Request Forgery**: the attacker
+does not need network access themselves, they borrow the server's.
+
+Left unguarded, this endpoint would let anyone:
+
+- **port-scan the internal network** the server sits in, using connection
+  success or failure as the oracle;
+- **reach a cloud metadata endpoint** — `169.254.169.254` is the classic — which
+  on many providers hands out instance credentials to anything that asks;
+- **hit internal services** on `localhost` or a private range that were never
+  meant to be reachable from outside.
+
+So before any connection is made, the hostname is resolved and **every resolved
+address is checked against private, loopback, link-local and reserved ranges**,
+and the scan is refused if any match.
+
+Two details in that sentence carry the weight.
+
+**Check the resolved address, not the string.** Blocking the literal text
+`localhost` or `127.0.0.1` is trivially bypassed — an attacker controls DNS for a
+domain they own, and can point `scanner-test.example.com` at `127.0.0.1`. The
+name looks perfectly public; only the resolution reveals the target.
+
+**Check *every* address it resolves to.** A hostname can return several records,
+and a check that only inspects the first can be defeated by a multi-record
+response.
+
+The docstring also draws the right contrast with the sibling tool: the email
+authentication checker does DNS TXT lookups only and never opens a connection to
+a user-supplied host, so it does not carry this risk. **The guard exists here
+because this tool does something the other one does not.** Knowing which of your
+endpoints have that property is most of the work.
+
+The refusal message is written for the honest case too — a domain that does not
+resolve to a public address may simply be internal, unreachable, or not real, and
+the message says so rather than implying an accusation.
+
+### The certificate checks
+
+- **Expiry** — expired outright, or fewer than 30 days remaining, which is a
+  warning rather than a failure because it is the actionable window.
+- **Chain verification** — against `certifi`'s CA bundle. A failure here means
+  self-signed, an incomplete chain, or an untrusted issuer.
+- **Protocol version** — TLS 1.0, TLS 1.1 and SSLv3 are formally deprecated by
+  **RFC 8996**, and negotiating one is reported with the RFC cited.
+
+Citing the RFC is worth noticing: it turns "this looks old" into a checkable
+claim against a published standard.
+
+### The six headers
+
+| Header | What it stops |
+|---|---|
+| `Content-Security-Policy` | controls which sources can load scripts and styles — the strongest single defence against XSS |
+| `Strict-Transport-Security` | forces HTTPS on future visits, closing the downgrade window |
+| `X-Frame-Options` | stops your page being framed — clickjacking |
+| `X-Content-Type-Options` | stops the browser guessing a MIME type it was not given |
+| `Referrer-Policy` | stops full URLs, and anything in them, leaking to other sites |
+| `Permissions-Policy` | switches off camera, microphone, geolocation and similar |
+
+The check is **presence, not correctness** — see *Limits*.
+
+### The verdict rule
+
+Written as a priority chain rather than a score, and the ordering is the
+interesting part:
+
+```
+TLS connected but unverified or expired  →  "critical issues"
+could not connect, or could not fetch    →  "could not fully scan"
+two or more warnings                     →  "weak configuration"
+exactly one warning                      →  "mostly good, one issue"
+none                                     →  "strong"
+```
+
+The first branch has a comment explaining itself, and it is a genuinely good
+catch:
+
+> *A real TLS finding takes priority even if it also happens to block the header
+> fetch — an expired or untrusted certificate usually causes exactly that. This
+> is a genuine security issue, not merely "couldn't scan."*
+
+Without that ordering, an **expired certificate would be reported as "could not
+fully scan"**, because the expired certificate is what prevented the header
+fetch. The tool would downgrade its most serious possible finding into an
+inconclusive one. Distinguishing *"the scan failed"* from *"the scan succeeded and
+the answer is bad"* is exactly the distinction a scanner must not get wrong.
+
+**And the verdicts are qualitative, never a fabricated letter grade or
+percentage.** The docstring names this as the same pattern as the email
+authentication checker: a warnings list and an honest label, not a number nothing
+justifies.
+
+## Why these choices
+
+**Why a live check rather than a database.** Certificate expiry and header
+configuration are both current facts about a running server. A cached answer is
+wrong the moment either changes, and both change often.
+
+**Why presence-only header checking.** Parsing a Content-Security-Policy and
+judging whether it is *good* is a substantial piece of work with real
+disagreement about the answer. Presence is unambiguous, and absence is the
+common case worth reporting.
+
+**Why cite RFC 8996.** So the finding is verifiable rather than an opinion about
+what is old.
+
+**Why a warnings list feeding a verdict**, rather than a score. Each warning is a
+specific, actionable sentence; the verdict is a summary of them. A score of 63
+would tell you nothing about what to fix.
+
+## How to read the output
+
+- **Read the warnings, not the verdict.** Each one names a specific thing to
+  change; the verdict just counts them.
+- **"Critical issues" means a real TLS finding**, and it takes priority over the
+  header check having failed as a consequence.
+- **"Could not fully scan" is a genuine unknown**, not a pass.
+- **Missing headers are a list, and CSP is the one that matters most.** The
+  others are one-line fixes; a good CSP takes real work.
+- **A certificate expiring in under 30 days is a warning by design** — it is the
+  window in which you can still act calmly.
+- **Present is not correct.** A `Content-Security-Policy` of
+  `default-src *; script-src 'unsafe-inline'` counts as present here and protects
+  almost nothing.
+- **A blocked scan is not a finding about the site.** It usually means the domain
+  does not resolve publicly.
+
+## Limits
+
+- **Headers are checked for presence, not quality.** A permissive CSP passes.
+- **One request to the root URL.** Different paths can send different headers,
+  and no other page is checked.
+- **No cipher-suite analysis, no certificate-transparency check, no OCSP
+  stapling, no HSTS preload-list check** — all of which a full-scale scanner
+  does.
+- **The verdict is a warning count**, so two minor issues outrank one serious
+  one that happens to be alone.
+- **Public hosts only, by design.** You cannot scan your own internal estate
+  with it, and that is the SSRF guard working.
+- **A single point in time.** No monitoring, no expiry alerting — which is the
+  thing that would actually prevent the outage.
+- **Redirects and CDNs** mean you may be measuring the edge, not the origin.
+
+## Likely interview questions
+
+**"You take a hostname from a user and connect to it. What could go wrong?"**
+SSRF. The attacker gets the server to make requests on their behalf, so they can
+port-scan the internal network using connection success as an oracle, hit
+internal services that were never externally reachable, or reach the cloud
+metadata endpoint at 169.254.169.254 and get instance credentials. The mitigation
+is to resolve the hostname first and refuse if **any** resolved address is
+private, loopback, link-local or reserved.
+
+**"Why check the resolved IP rather than blocklisting `localhost`?"**
+Because DNS is controlled by whoever owns the domain. An attacker points
+`something.example.com` at `127.0.0.1` and a string blocklist sees a perfectly
+ordinary public hostname. Only the resolution reveals the target. And you have to
+check every address a name resolves to, not just the first, or a multi-record
+response defeats it.
+
+**"An expired certificate stops you fetching the headers. What does your tool
+report?"**
+"Critical issues", not "could not fully scan" — and that ordering is deliberate.
+The expired certificate is the reason the header fetch failed, so a naive
+implementation reports an inconclusive result for its most serious possible
+finding. A scanner has to distinguish "I could not check" from "I checked and the
+answer is bad", and when the failure to check *is* the finding, the finding wins.
+
+**"Which of the six headers matters most, and why?"**
+Content-Security-Policy, by a distance. The others each close one specific hole
+and are a single line of configuration; CSP controls which sources can execute
+script at all, which is the strongest single defence against cross-site
+scripting. It is also the hardest to deploy, because a real policy has to
+enumerate everything your site legitimately loads — which is why it is the one
+most often missing.
+
+**"Presence-only checking seems weak. Would you improve it?"**
+Yes, and I would be clear that it is the tool's main limitation. A CSP of
+`default-src *` with `unsafe-inline` passes this check and protects almost
+nothing. Parsing and grading a policy is a real piece of work with genuine
+disagreement about what counts as good, so presence is a defensible first pass —
+but the honest next step is at least flagging the known-useless patterns rather
+than counting the header as present.
 
 <h1 class="bk-chapter" id="ch-49-video-call-keystroke-inference"><span class="bk-chnum">Chapter 49</span>Video-Call Keystroke Inference</h1>
 
@@ -11493,6 +12127,8 @@ over the keyboard.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload any file and it's scanned with the real, open-source **YARA**
 pattern-matching engine — the actual industry-standard tool antivirus
@@ -11553,6 +12189,219 @@ learning the syntax.
   pattern that rule looks for — it's evidence for a human to weigh, the
   same way a real analyst reads YARA hits, not an automatic malicious/safe
   determination.
+
+## What problem it solves
+
+An analyst has a suspicious file. Not a known virus with a published signature —
+something new, or something they only suspect. The question is not "does an
+antivirus recognise this?" but *"does this file contain the specific thing I am
+looking for?"*
+
+That is what **YARA** exists for. It is a pattern-matching language for files —
+often described as "grep for malware researchers", though it is considerably more
+than grep. An analyst writes a rule describing a pattern, runs it against files,
+and iterates. It is the standard way threat intelligence is written down and
+shared: a YARA rule is a portable, executable description of what a family of
+malware looks like.
+
+This tool runs the real YARA engine, in two modes. Scan a file against a
+built-in rule set, or — the more important half — **write your own rule and run
+it**.
+
+## How it works, step by step
+
+1. **Upload a file**, up to 5 MB.
+2. **Choose a rule source** — the built-in set, or your own rule text.
+3. **Compile the rules.** A syntax error in a custom rule is reported as a
+   compile error, which is exactly the feedback loop rule-writing needs.
+4. **Match against the file's bytes in memory**, with a 5-second timeout.
+5. **Return every matching rule**, its description, and where in the file the
+   strings hit.
+
+## The model or algorithm
+
+### What YARA actually is
+
+A rule has three parts:
+
+```
+rule Suspicious_PowerShell_EncodedCommand {
+    meta:       description = "..."
+    strings:    $a = "-EncodedCommand" nocase
+                $b = "FromBase64String" nocase
+    condition:  $a and $b
+}
+```
+
+- **`meta`** — documentation, carried through to the result.
+- **`strings`** — the patterns to look for: text, hex byte sequences, or regular
+  expressions, with modifiers like `nocase`, `wide` (UTF-16) and `ascii`.
+- **`condition`** — a boolean expression over which strings matched, and over
+  file properties like size and entropy.
+
+The condition is what raises YARA above plain string search. `$a and $b`,
+`2 of them`, `$mz at 0`, `filesize > 256 and math.entropy(0, filesize) > 7.5` —
+you are describing *co-occurrence and structure*, not just presence.
+
+### The built-in rules, and why each one is written the way it is
+
+Six rules, and each demonstrates a different YARA idea:
+
+**EICAR test file.** The industry-standard harmless string every scanner is
+expected to detect. It is here so you can prove the scanner works without going
+near real malware.
+
+**PowerShell encoded command.** `-EncodedCommand` together with
+`FromBase64String`. Neither is suspicious alone — both are legitimate PowerShell
+— but **co-occurrence** is the classic living-off-the-land pattern: run a
+base64-blob so the command line does not reveal what it does.
+
+**Generic PHP webshell.** Several patterns with a threshold condition rather than
+a single match, because any one of them appears in ordinary code.
+
+**Office macro auto-execution.** The `AutoOpen`/`Document_Open` family — macros
+that run on open rather than on request.
+
+**Embedded PE in a non-executable.** Looks for `MZ` *and* the string
+`"This program cannot be run in DOS mode"` **anywhere in the file, not just at
+offset 0**. That is the point: an executable at offset 0 is a normal `.exe`, and
+the same marker buried inside a document is a Windows binary smuggled into
+another file type.
+
+**High overall entropy.** Uses YARA's `math` module:
+`filesize > 256 and math.entropy(0, filesize) > 7.5`.
+
+Entropy measures how unpredictable the bytes are, in bits per byte, with 8 as
+the theoretical maximum. Encrypted or compressed data is near-random and scores
+close to 8; English text scores around 4.5. Packed and crypted malware therefore
+shows high entropy — and so does **any zip file or JPEG**. The rule's own
+description says so, and calls itself *informational, not a verdict on its own*,
+which is exactly the right framing for a signal with that false-positive profile.
+
+### Why the rules are self-authored, and disclosed as such
+
+The docstring is explicit: the built-in set is a **small, self-authored
+educational set** covering well-documented indicator classes, and deliberately
+**not** a pulled third-party threat-intelligence feed — because that feed's
+licensing was not verified for this project.
+
+The tool then calls that the same "curated, disclosed as not exhaustive" pattern
+used by the QR Phishing Detector's brand list and the Malicious Package
+Scanner's typosquat list. A short honest list is more useful than a long one of
+uncertain provenance, provided you say which you have.
+
+### The custom-rule endpoint is the real feature
+
+The docstring names it: *"YARA's real-world purpose is letting an analyst write
+and iterate on a detection rule, not just run a fixed scanner."*
+
+A fixed scanner answers "is this one of the things I already know about?" — which
+is what antivirus does, better. YARA answers "does this match the pattern *I*
+just described?", and the value is in the loop: write a rule, run it, see what it
+catches and what it misses, refine. Shipping only the built-in set would be
+demonstrating the wrong half.
+
+### The safety properties
+
+Three, and each is deliberate:
+
+- **The file is never executed.** YARA reads bytes; it does not run anything.
+- **The file is never written to disk.** Bytes stay in memory, so there is
+  nothing to accidentally leave behind or accidentally open.
+- **Matching has a 5-second timeout** — YARA's own `timeout` parameter, not a
+  wrapper. This guards against a pathological custom rule, such as a regular
+  expression with catastrophic backtracking, hanging the request. Since the rule
+  source is **user input**, that is a genuine untrusted-input path and needs a
+  real bound.
+
+Plus size caps: 5 MB for the file, 20 KB for the rule source — *"a hand-written
+YARA rule is never this large"*.
+
+## Why these choices
+
+**Why the real YARA engine.** `yara-python` installs as a prebuilt manylinux
+wheel with no `libyara` compile step, which is what makes it deployable here.
+Reimplementing a subset would produce something that looks like YARA and behaves
+differently — and the rules people already have would not run on it.
+
+**Why in-memory only.** A malware-analysis tool that writes uploads to disk has
+created a place where a malicious file now lives. Not writing it is simpler and
+strictly safer.
+
+**Why 5 MB.** Consistent with the byte-plot triage tool, and enough for the
+document and script files this is aimed at.
+
+## How to read the output
+
+- **A match is a pattern hit, not a verdict.** Every rule here describes
+  something *suspicious in context*, and several are outright dual-use.
+- **Read the rule description.** It is carried through from the `meta` block and
+  usually says what would make the match innocent.
+- **High entropy on a zip or a JPEG is expected**, and the rule says so itself.
+- **The Python reverse-shell rule fires on pentesting tools and on teaching
+  material**, because they contain the same three tokens. Its description says
+  so.
+- **String offsets tell you where to look**, which is often more useful than the
+  fact of the match.
+- **Nothing matched means nothing matched.** Six rules is not coverage.
+- **A compile error is normal when writing rules.** That is the loop working.
+
+## Limits
+
+- **Six built-in rules.** Self-authored, educational, explicitly not exhaustive.
+- **No threat-intelligence feed**, by choice, on licensing grounds.
+- **YARA is static pattern matching.** It does not run the file, so packed,
+  encrypted or heavily obfuscated content hides its contents from every string
+  rule — which is why the entropy rule exists as a weak proxy.
+- **Signatures are inherently retrospective.** A rule describes something
+  somebody already understood.
+- **5 MB file, 20 KB rule, 5-second match.**
+- **No archive extraction.** A zip is scanned as a zip, not as its contents.
+- **Custom rules run server-side**, so the timeout and the size cap are the
+  protection.
+- **Not an antivirus.** No behavioural analysis, no sandbox, no reputation.
+
+## Likely interview questions
+
+**"What is YARA and when would you use it over an antivirus?"**
+YARA is a pattern-matching language for describing families of files —
+strings plus a boolean condition over them and over file properties. You use it
+when you are hunting rather than blocking: an antivirus answers "is this a known
+bad thing", and YARA answers "does this match the pattern I just described",
+which is what you need when investigating something new or checking an estate for
+a specific indicator. It is also how threat intelligence is shared, because a
+rule is portable and executable.
+
+**"Why is `-EncodedCommand` alone not a rule?"**
+Because it is legitimate PowerShell and fires constantly. The rule requires it
+*together with* `FromBase64String`, and the co-occurrence is what carries the
+signal — running a base64 blob so the command line does not reveal the command.
+That is the general principle in detection engineering: individual indicators are
+usually dual-use, and the rule's value is in the condition, not the strings.
+
+**"Explain the entropy rule and its weakness."**
+Entropy is bits per byte, maximum 8, measuring how unpredictable the bytes are.
+Encrypted and compressed data approaches 8; English text is around 4.5. Packed
+malware is high-entropy — and so is every zip file and JPEG, which is the
+weakness. The rule's own description calls itself informational rather than a
+verdict, which is the right framing. It is useful as one signal among several,
+never alone.
+
+**"You let users upload a rule and run it server-side. What's the risk?"**
+It is untrusted input reaching a compiler and a matching engine. The two real
+risks are a rule that fails to compile — handled, and surfaced as feedback since
+that is the rule-writing loop — and a rule that compiles but runs pathologically,
+such as a regex with catastrophic backtracking. That is bounded by YARA's own
+`timeout` parameter at 5 seconds, plus a 20 KB cap on the rule source. The file
+itself is never executed and never written to disk.
+
+**"Why write your own rules instead of importing a public rule set?"**
+Because I could not verify the licensing of the feeds for this project, and I
+would rather ship six rules I can explain than a thousand of uncertain
+provenance. It is the same choice made for the typosquat list and the brand list
+elsewhere in this app: a short curated set, disclosed as not exhaustive, is more
+honest than an impressive list nobody has checked. And the built-in set is the
+demonstration — the custom-rule endpoint is the actual tool.
 
 </div>
 
