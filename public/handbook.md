@@ -22,54 +22,56 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 # Contents
 
-- <a class="bk-toc-part" href="#part-1">Part 1 · ML Pipeline</a>
-- <a class="bk-toc-chapter" href="#ch-1-automl-pipeline">1. AutoML Pipeline</a>
-- <a class="bk-toc-chapter" href="#ch-2-data-preprocessing">2. Data Preprocessing</a>
-- <a class="bk-toc-chapter" href="#ch-3-feature-engineering">3. Feature Engineering</a>
-- <a class="bk-toc-chapter" href="#ch-4-optuna-tuning">4. Optuna Tuning</a>
-- <a class="bk-toc-chapter" href="#ch-5-real-time-analytics">5. Real-Time Analytics</a>
-- <a class="bk-toc-chapter" href="#ch-6-shap-explainability">6. SHAP Explainability</a>
-- <a class="bk-toc-part" href="#part-2">Part 2 · Language & Documents</a>
-- <a class="bk-toc-chapter" href="#ch-7-contract-invoice-reconciliation-assistan">7. Contract/Invoice Reconciliation Assistant</a>
-- <a class="bk-toc-chapter" href="#ch-8-document-intelligence">8. Document Intelligence</a>
-- <a class="bk-toc-chapter" href="#ch-9-multimodal-rag">9. Multimodal RAG</a>
-- <a class="bk-toc-chapter" href="#ch-10-text-to-sql-agent">10. Text-to-SQL Agent</a>
-- <a class="bk-toc-part" href="#part-3">Part 3 · Computer Vision</a>
-- <a class="bk-toc-chapter" href="#ch-11-asl-fingerspelling-recognition">11. ASL Fingerspelling Recognition</a>
-- <a class="bk-toc-chapter" href="#ch-12-astrophotography-anomaly-detector">12. Astrophotography Anomaly Detector</a>
-- <a class="bk-toc-chapter" href="#ch-13-crime-scene-reconstruction">13. Crime Scene Reconstruction</a>
-- <a class="bk-toc-chapter" href="#ch-14-gait-pattern-comparison">14. Gait Pattern Comparison</a>
-- <a class="bk-toc-chapter" href="#ch-15-movement-form-comparison">15. Movement Form Comparison</a>
-- <a class="bk-toc-chapter" href="#ch-16-ppe-compliance-check">16. PPE Compliance Check</a>
-- <a class="bk-toc-chapter" href="#ch-17-photo-library-visual-search">17. Photo Library Visual Search</a>
-- <a class="bk-toc-chapter" href="#ch-18-plant-growth-quantification">18. Plant Growth Quantification</a>
-- <a class="bk-toc-chapter" href="#ch-19-text-prompted-video-object-tracking">19. Text-Prompted Video Object Tracking</a>
-- <a class="bk-toc-chapter" href="#ch-20-wildlife-re-identification">20. Wildlife Re-Identification</a>
-- <a class="bk-toc-part" href="#part-4">Part 4 · Security & Trust</a>
-- <a class="bk-toc-chapter" href="#ch-21-ai-generated-code-detector">21. AI-Generated Code Detector</a>
-- <a class="bk-toc-chapter" href="#ch-22-adversarial-robustness-lab">22. Adversarial Robustness Lab</a>
-- <a class="bk-toc-chapter" href="#ch-23-attack-surface-exposed-path-scanner">23. Attack-Surface / Exposed-Path Scanner</a>
-- <a class="bk-toc-chapter" href="#ch-24-binary-byte-plot-entropy-triage">24. Binary Byte-Plot & Entropy Triage</a>
-- <a class="bk-toc-chapter" href="#ch-25-browser-extension-permission-risk-analyz">25. Browser Extension Permission Risk Analyzer</a>
-- <a class="bk-toc-chapter" href="#ch-26-captcha-hardening-lab">26. CAPTCHA Hardening Lab</a>
-- <a class="bk-toc-chapter" href="#ch-27-dns-tunneling-exfiltration-detector">27. DNS Tunneling / Exfiltration Detector</a>
-- <a class="bk-toc-chapter" href="#ch-28-email-header-authentication-checker">28. Email Header Authentication Checker</a>
-- <a class="bk-toc-chapter" href="#ch-29-face-cloak">29. Face Cloak</a>
-- <a class="bk-toc-chapter" href="#ch-30-face-deanonymization-risk-demo">30. Face Deanonymization Risk Demo</a>
-- <a class="bk-toc-chapter" href="#ch-31-keystroke-biometric-auth-risk-demo">31. Keystroke Biometric Auth-Risk Demo</a>
-- <a class="bk-toc-chapter" href="#ch-32-llm-prompt-injection-detection-playgroun">32. LLM Prompt Injection Detection Playground</a>
-- <a class="bk-toc-chapter" href="#ch-33-malicious-package-scanner">33. Malicious Package Scanner</a>
-- <a class="bk-toc-chapter" href="#ch-34-password-strength-breach-checker">34. Password Strength & Breach Checker</a>
-- <a class="bk-toc-chapter" href="#ch-35-phishing-email-body-classifier">35. Phishing Email Body Classifier</a>
-- <a class="bk-toc-chapter" href="#ch-36-qr-phishing-detector">36. QR Phishing Detector</a>
-- <a class="bk-toc-chapter" href="#ch-37-siem-alert-triage-agent">37. SIEM Alert Triage Agent</a>
-- <a class="bk-toc-chapter" href="#ch-38-style-cloak">38. Style Cloak</a>
-- <a class="bk-toc-chapter" href="#ch-39-tls-security-headers-scanner">39. TLS / Security-Headers Scanner</a>
-- <a class="bk-toc-chapter" href="#ch-40-video-call-keystroke-inference">40. Video-Call Keystroke Inference</a>
-- <a class="bk-toc-chapter" href="#ch-41-yara-file-scanner">41. YARA File Scanner</a>
+- <a class="bk-toc-part bk-part-1" href="#part-1">Part 1 · ML Pipeline</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-1-automl-pipeline">1. AutoML Pipeline</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-2-data-preprocessing">2. Data Preprocessing</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-3-feature-engineering">3. Feature Engineering</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-4-optuna-tuning">4. Optuna Tuning</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-5-real-time-analytics">5. Real-Time Analytics</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-6-shap-explainability">6. SHAP Explainability</a>
+- <a class="bk-toc-part bk-part-2" href="#part-2">Part 2 · Language & Documents</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-7-contract-invoice-reconciliation-assistan">7. Contract/Invoice Reconciliation Assistant</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-8-document-intelligence">8. Document Intelligence</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-9-multimodal-rag">9. Multimodal RAG</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-10-text-to-sql-agent">10. Text-to-SQL Agent</a>
+- <a class="bk-toc-part bk-part-3" href="#part-3">Part 3 · Computer Vision</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-11-asl-fingerspelling-recognition">11. ASL Fingerspelling Recognition</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-12-astrophotography-anomaly-detector">12. Astrophotography Anomaly Detector</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-13-crime-scene-reconstruction">13. Crime Scene Reconstruction</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-14-gait-pattern-comparison">14. Gait Pattern Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-15-movement-form-comparison">15. Movement Form Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-16-ppe-compliance-check">16. PPE Compliance Check</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-17-photo-library-visual-search">17. Photo Library Visual Search</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-18-plant-growth-quantification">18. Plant Growth Quantification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-19-text-prompted-video-object-tracking">19. Text-Prompted Video Object Tracking</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-20-wildlife-re-identification">20. Wildlife Re-Identification</a>
+- <a class="bk-toc-part bk-part-4" href="#part-4">Part 4 · Security & Trust</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-21-ai-generated-code-detector">21. AI-Generated Code Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-22-adversarial-robustness-lab">22. Adversarial Robustness Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-23-attack-surface-exposed-path-scanner">23. Attack-Surface / Exposed-Path Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-24-binary-byte-plot-entropy-triage">24. Binary Byte-Plot & Entropy Triage</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-25-browser-extension-permission-risk-analyz">25. Browser Extension Permission Risk Analyzer</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-26-captcha-hardening-lab">26. CAPTCHA Hardening Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-27-dns-tunneling-exfiltration-detector">27. DNS Tunneling / Exfiltration Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-28-email-header-authentication-checker">28. Email Header Authentication Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-29-face-cloak">29. Face Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-30-face-deanonymization-risk-demo">30. Face Deanonymization Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-31-keystroke-biometric-auth-risk-demo">31. Keystroke Biometric Auth-Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-32-llm-prompt-injection-detection-playgroun">32. LLM Prompt Injection Detection Playground</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-33-malicious-package-scanner">33. Malicious Package Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-34-password-strength-breach-checker">34. Password Strength & Breach Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-35-phishing-email-body-classifier">35. Phishing Email Body Classifier</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-36-qr-phishing-detector">36. QR Phishing Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-37-siem-alert-triage-agent">37. SIEM Alert Triage Agent</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-38-style-cloak">38. Style Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-39-tls-security-headers-scanner">39. TLS / Security-Headers Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-40-video-call-keystroke-inference">40. Video-Call Keystroke Inference</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-41-yara-file-scanner">41. YARA File Scanner</a>
 - <a class="bk-toc-part" href="#appendix">Appendix · Every tool</a>
 
 </nav>
+
+<div class="bk-part bk-part-1">
 
 <div class="bk-partpage" id="part-1">
 
@@ -89,6 +91,8 @@ Everything between a raw CSV and a trained, explained model — cleaning, featur
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | 4-Model Competition |
@@ -97,6 +101,8 @@ Everything between a raw CSV and a trained, explained model — cleaning, featur
 | **Models** | 4 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/automl` |
+
+</div>
 
 ## What problem it solves
 
@@ -368,6 +374,8 @@ someone else's benchmark.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Clean Before You Train |
@@ -376,6 +384,8 @@ someone else's benchmark.
 | **Steps** | 5 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/preprocessing` |
+
+</div>
 
 ## What problem it solves
 
@@ -446,8 +456,7 @@ There are three pieces of real machinery here. The rest is bookkeeping.
 
 Eight strategies for numbers — mean, median, KNN, MICE, forward fill, backward
 fill, constant zero, drop the row — and five for text: most frequent, forward
-fill, backward fill, constant `"Unknown"`, drop the row. (The tool's card says
-"4 categorical"; there are five in the code.)
+fill, backward fill, constant `"Unknown"`, drop the row.
 
 Mean and median are one line each. The two that are worth explaining:
 
@@ -538,10 +547,10 @@ includes the 0/1 dummy columns.
 
 **Skew correction** applies `log1p(x)` — that is `log(1 + x)`, which is defined
 at zero where plain `log` is not — but only to columns whose skew exceeds 1 *and*
-whose minimum is at least 0. Note that the card for this tool mentions
-Yeo-Johnson; that transform exists in this app, but in the pipeline builder's
-clean stage and the backend feature-engineering transformer, not in this
-browser-side tool. The tool applies log1p.
+whose minimum is at least 0. Yeo-Johnson, a stronger transform that also
+handles negative values, exists in this app — in the pipeline builder's clean
+stage and in the backend feature-engineering transformer — but not in this
+browser-side tool.
 
 ## Why these choices
 
@@ -660,6 +669,8 @@ that is how the AutoML tool in this app is built.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | No-Code Transforms |
@@ -668,6 +679,8 @@ that is how the AutoML tool in this app is built.
 | **Transforms** | 10+ |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/feature-engineering` |
+
+</div>
 
 ## What problem it solves
 
@@ -945,6 +958,8 @@ it will not fall out of the tooling by itself.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Post-Winner Hyperparameter Search |
@@ -953,6 +968,8 @@ it will not fall out of the tooling by itself.
 | **Max Trials** | 30 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/optuna` |
+
+</div>
 
 ## What problem it solves
 
@@ -1225,6 +1242,8 @@ configuration be abandoned after two folds instead of five.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live Event Dashboard |
@@ -1233,6 +1252,8 @@ configuration be abandoned after two folds instead of five.
 | **Live Events** | ∞ |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/realtime-analytics` |
+
+</div>
 
 ### What this tool does
 A live analytics dashboard for the AIRaML portfolio: page views, tool usage,
@@ -1284,6 +1305,8 @@ all filterable by date range.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Per-Prediction Feature Impact |
@@ -1292,6 +1315,8 @@ all filterable by date range.
 | **Chart Per Prediction** | 1 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/shap` |
+
+</div>
 
 ## What problem it solves
 
@@ -1540,6 +1565,10 @@ regulation asks for. It is not a causal claim about the customer. And be careful
 with the units — a log-odds waterfall is not something to put in front of a
 member of the public without translating it first.
 
+</div>
+
+<div class="bk-part bk-part-2">
+
 <div class="bk-partpage" id="part-2">
 
 # Part 2
@@ -1558,6 +1587,8 @@ Reading and reasoning over text: questions answered from your own files, plain E
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Discrepancy Report Across Documents |
@@ -1566,6 +1597,8 @@ Reading and reasoning over text: questions answered from your own files, plain E
 | **Doc Roles** | 2 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/contract-invoice-reconciliation` |
+
+</div>
 
 Upload a contract, then one or more invoices. This tool compares them and flags
 places where an invoice states a different amount, date, or term than the
@@ -1621,6 +1654,8 @@ those are the most likely genuine discrepancies.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | AI-Powered Document Data Extraction |
@@ -1629,6 +1664,8 @@ those are the most likely genuine discrepancies.
 | **Document Types** | 8 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/document-intelligence` |
+
+</div>
 
 ### What this tool does
 Upload a document (invoice, receipt, contract, resume/CV, medical report, bank
@@ -1754,6 +1791,8 @@ values from raw AI output.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Tables & Figures as Citable Knowledge |
@@ -1762,6 +1801,8 @@ values from raw AI output.
 | **Chunk Types** | 3 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/multimodal-rag` |
+
+</div>
 
 ### What this tool does
 Upload a PDF that mixes prose, tables, and charts/figures — a quarterly
@@ -2643,6 +2684,8 @@ place to keep anything you need later.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Natural Language → Database Queries |
@@ -2651,6 +2694,8 @@ place to keep anything you need later.
 | **LLM Providers** | 3 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/text-to-sql` |
+
+</div>
 
 ### What this tool does
 Ask questions about a database in plain English. The AI generates SQL, executes
@@ -2712,6 +2757,10 @@ Gemini, Cohere) so the tool keeps working if one provider is rate-limited.
 ### Keyboard shortcuts
 Cmd+Enter: run query · Cmd+K: focus question input · Esc: close modals.
 
+</div>
+
+<div class="bk-part bk-part-3">
+
 <div class="bk-partpage" id="part-3">
 
 # Part 3
@@ -2730,6 +2779,8 @@ Tools that look at an image or a video — detection, depth, pose, re-identifica
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Client-Side · No API Cost |
@@ -2738,6 +2789,8 @@ Tools that look at an image or a video — detection, depth, pose, re-identifica
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/asl-fingerspelling-recognition` |
+
+</div>
 
 ### What this tool does
 Hold up one hand fingerspelling a letter of the American Sign Language
@@ -2811,6 +2864,8 @@ example of why every technique choice here was tested, not assumed.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Frame Differencing + Hough Transform |
@@ -2819,6 +2874,8 @@ example of why every technique choice here was tested, not assumed.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/astrophotography-anomaly-detector` |
+
+</div>
 
 ### What this tool does
 Upload 5-30 photos from one fixed-tripod night-sky session, in order, and
@@ -2900,6 +2957,8 @@ the background level) while preserving every star.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Sparse SfM |
@@ -2908,6 +2967,8 @@ the background level) while preserving every star.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/crime-scene-reconstruction` |
+
+</div>
 
 ### What this tool does
 Upload 2-6 photos of the same static scene, taken from slightly different
@@ -2985,6 +3046,8 @@ failure path directly.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Client-Side · No API Cost |
@@ -2993,6 +3056,8 @@ failure path directly.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/gait-pattern-comparison` |
+
+</div>
 
 ### What this tool does
 Upload two side-view videos of someone walking. This tracks body pose
@@ -3064,6 +3129,8 @@ reports "not enough consistent strides detected" instead of guessing.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Client-Side · No API Cost |
@@ -3072,6 +3139,8 @@ reports "not enough consistent strides detected" instead of guessing.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/movement-form-comparison` |
+
+</div>
 
 ### What this tool does
 Upload your video of an exercise and a reference video of the same
@@ -3137,6 +3206,8 @@ alignment needed despite the clips' different lengths.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | YOLOv8n PPE |
@@ -3145,6 +3216,8 @@ alignment needed despite the clips' different lengths.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/ppe-compliance-check` |
+
+</div>
 
 ### What this tool does
 Upload a photo and this detects each person in it, then checks whether a
@@ -3210,6 +3283,8 @@ being worn by anyone.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | CLIP · No API Cost |
@@ -3218,6 +3293,8 @@ being worn by anyone.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/photo-search` |
+
+</div>
 
 ### What this tool does
 Upload a batch of photos, then describe in plain language what you're
@@ -3288,6 +3365,8 @@ photos and results only exist in your browser tab for that session.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -3296,6 +3375,8 @@ photos and results only exist in your browser tab for that session.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/plant-growth` |
+
+</div>
 
 ### What this tool does
 Upload a series of plant photos and a local HSV green-hue threshold measures
@@ -3465,6 +3546,8 @@ rough "if nothing changes" projection, not a forecast.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Grounded-SAM |
@@ -3473,6 +3556,8 @@ rough "if nothing changes" projection, not a forecast.
 | **API Call** | 1 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/text-prompted-video-tracking` |
+
+</div>
 
 ### What this tool does
 Upload a short video and type a description of an object in it (e.g. "the
@@ -3554,6 +3639,8 @@ every frame of a zoom.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | MegaDescriptor |
@@ -3562,6 +3649,8 @@ every frame of a zoom.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/wildlife-reidentification` |
+
+</div>
 
 ### What this tool does
 Upload a new sighting photo and a small gallery of past sighting photos
@@ -3625,6 +3714,10 @@ crop to itself scored **1.00, correctly labeled "same."**
   detector can't find the animal in a photo (too small, too low-res, an
   unusual angle), no comparison is possible for that photo.
 
+</div>
+
+<div class="bk-part bk-part-4">
+
 <div class="bk-partpage" id="part-4">
 
 # Part 4
@@ -3643,6 +3736,8 @@ Checking whether something can be trusted: files, links, emails, packages, model
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Signals, Not A Verdict |
@@ -3651,6 +3746,8 @@ Checking whether something can be trusted: files, links, emails, packages, model
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/ai-code-detector` |
+
+</div>
 
 ### What this tool does
 Paste a code snippet and see two independent, low-confidence signals side by
@@ -3721,6 +3818,8 @@ itself just another style, not a determination of authorship either way.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -3729,6 +3828,8 @@ itself just another style, not a determination of authorship either way.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/adversarial-robustness-lab` |
+
+</div>
 
 ### What this tool does
 Upload a photo and this tool crafts an **adversarial attack** — a tiny,
@@ -3950,6 +4051,8 @@ Nothing is stored: your photo and the results only exist for this one run.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live Recon · Zero ML |
@@ -3958,6 +4061,8 @@ Nothing is stored: your photo and the results only exist for this one run.
 | **Passive Checks** | 4 |
 | **Where it runs** | On the server, with a live external check |
 | **Find it at** | `/tools/attack-surface-scanner` |
+
+</div>
 
 ### What this tool does
 Type a domain and four real, entirely passive checks run against it —
@@ -4018,6 +4123,8 @@ verdict.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Static Analysis · No Execution |
@@ -4026,6 +4133,8 @@ verdict.
 | **Files Executed** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/malware-image-triage` |
+
+</div>
 
 ### What this tool does
 Upload any file (capped at the first 5MB). The tool converts the raw bytes
@@ -4096,6 +4205,8 @@ visible structure, and the entropy heatmap renders almost entirely red
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4104,6 +4215,8 @@ visible structure, and the entropy heatmap renders almost entirely red
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/extension-permission-analyzer` |
+
+</div>
 
 ### What this tool does
 Paste the contents of a Chrome/Edge extension's \`manifest.json\`. The tool
@@ -4175,6 +4288,8 @@ access.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | VLM Read Attempt · Before/After |
@@ -4183,6 +4298,8 @@ access.
 | **VLM Read Attempts** | 2 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/captcha-hardening-lab` |
+
+</div>
 
 ### What this tool does
 Upload a CAPTCHA-style image you already have, and a vision-language model
@@ -4249,6 +4366,8 @@ of you.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4257,6 +4376,8 @@ of you.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/dns-tunneling-detector` |
+
+</div>
 
 ### What this tool does
 DNS tunneling abuses the DNS protocol to smuggle data in or out of a network
@@ -4328,6 +4449,8 @@ stay under these thresholds.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live DNS · Zero ML |
@@ -4336,6 +4459,8 @@ stay under these thresholds.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/email-auth-checker` |
+
+</div>
 
 ### What this tool does
 Paste the raw headers of an email (from "View Source" / "Show Original" in
@@ -4409,6 +4534,8 @@ claiming "phishing detected" outright.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4417,6 +4544,8 @@ claiming "phishing detected" outright.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/face-cloak` |
+
+</div>
 
 ### What this tool does
 Upload a personal photo and this tool adds an **adversarial perturbation**
@@ -4492,6 +4621,8 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4500,6 +4631,8 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/face-deanonymization-demo` |
+
+</div>
 
 ### What this tool does
 Upload a target photo (the kind of photo someone might post publicly) and a
@@ -4569,6 +4702,8 @@ similarity score moved.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live Biometric Demo · Zero ML |
@@ -4577,6 +4712,8 @@ similarity score moved.
 | **Timing Signals** | 2 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/keystroke-biometric-auth-risk` |
+
+</div>
 
 ### What this tool does
 Type a short fixed phrase 3 times to enroll a personal typing-rhythm
@@ -4643,6 +4780,8 @@ problem), not a heuristic invented for this demo.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Pattern + LLM Judge |
@@ -4651,6 +4790,8 @@ problem), not a heuristic invented for this demo.
 | **API Calls** | 0 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/prompt-injection-playground` |
+
+</div>
 
 ### What this tool does
 Paste any text — a prompt, or a document/web page an AI might be asked to
@@ -4720,6 +4861,8 @@ alarms on any trigger word.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4728,6 +4871,8 @@ alarms on any trigger word.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/malicious-package-scanner` |
+
+</div>
 
 ### What this tool does
 Real supply-chain attacks against npm/PyPI use a small set of well-known
@@ -4803,6 +4948,8 @@ payload fetched at runtime from a URL that isn't hardcoded in the source).
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4811,6 +4958,8 @@ payload fetched at runtime from a URL that isn't hardcoded in the source).
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/password-audit` |
+
+</div>
 
 ### What this tool does
 Type a password and it's scored two independent ways, both without ever
@@ -4879,6 +5028,8 @@ check button — never automatically, and never on every keystroke.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4887,6 +5038,8 @@ check button — never automatically, and never on every keystroke.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/phishing-email-classifier` |
+
+</div>
 
 ### What this tool does
 This site's other phishing/security tools check a link's URL structure
@@ -4948,6 +5101,8 @@ among several, not a guarantee.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -4956,6 +5111,8 @@ among several, not a guarantee.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/qr-phishing-detector` |
+
+</div>
 
 ### What this tool does
 Upload a photo or screenshot containing a QR code, and the tool decodes it
@@ -5066,6 +5223,8 @@ source you trust.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Grouping + LLM Judge |
@@ -5074,6 +5233,8 @@ source you trust.
 | **Analysis Layers** | 2 |
 | **Where it runs** | On the server |
 | **Find it at** | `/tools/siem-alert-triage` |
+
+</div>
 
 ### What this tool does
 Security teams get flooded with far more raw alerts than a human can
@@ -5141,6 +5302,8 @@ useful even without a priority opinion layered on top.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Local · No API Cost |
@@ -5149,6 +5312,8 @@ useful even without a priority opinion layered on top.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/style-cloak` |
+
+</div>
 
 ### What this tool does
 Upload an image — artwork, a photo, anything you've made — and this tool
@@ -5229,6 +5394,8 @@ applies to face-recognition embeddings instead of style embeddings.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live TLS + Headers · Zero ML |
@@ -5237,6 +5404,8 @@ applies to face-recognition embeddings instead of style embeddings.
 | **Headers Checked** | 6 |
 | **Where it runs** | On the server, with a live external check |
 | **Find it at** | `/tools/tls-security-headers-scanner` |
+
+</div>
 
 ### What this tool does
 Type a domain and it's checked two real ways, the same audit style as
@@ -5301,6 +5470,8 @@ rather than proof of an active vulnerability.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Client-Side Only |
@@ -5309,6 +5480,8 @@ rather than proof of an active vulnerability.
 | **API Calls** | 0 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/video-keystroke-inference` |
+
+</div>
 
 ### What this tool does
 Upload a short video (60 seconds max) of hands typing — your own recorded
@@ -5379,6 +5552,8 @@ over the keyboard.
 
 ## At a glance
 
+<div class="bk-facts">
+
 | | |
 |---|---|
 | **Also called** | Live Engine · Real YARA |
@@ -5387,6 +5562,8 @@ over the keyboard.
 | **Built-in Rules** | 7 |
 | **Where it runs** | On the server, with a live external check |
 | **Find it at** | `/tools/yara-file-scanner` |
+
+</div>
 
 ### What this tool does
 Upload any file and it's scanned with the real, open-source **YARA**
@@ -5448,6 +5625,8 @@ learning the syntax.
   pattern that rule looks for — it's evidence for a human to weigh, the
   same way a real analyst reads YARA hits, not an automatic malicious/safe
   determination.
+
+</div>
 
 <div class="bk-appendix" id="appendix">
 

@@ -67,8 +67,7 @@ There are three pieces of real machinery here. The rest is bookkeeping.
 
 Eight strategies for numbers — mean, median, KNN, MICE, forward fill, backward
 fill, constant zero, drop the row — and five for text: most frequent, forward
-fill, backward fill, constant `"Unknown"`, drop the row. (The tool's card says
-"4 categorical"; there are five in the code.)
+fill, backward fill, constant `"Unknown"`, drop the row.
 
 Mean and median are one line each. The two that are worth explaining:
 
@@ -159,10 +158,10 @@ includes the 0/1 dummy columns.
 
 **Skew correction** applies `log1p(x)` — that is `log(1 + x)`, which is defined
 at zero where plain `log` is not — but only to columns whose skew exceeds 1 *and*
-whose minimum is at least 0. Note that the card for this tool mentions
-Yeo-Johnson; that transform exists in this app, but in the pipeline builder's
-clean stage and the backend feature-engineering transformer, not in this
-browser-side tool. The tool applies log1p.
+whose minimum is at least 0. Yeo-Johnson, a stronger transform that also
+handles negative values, exists in this app — in the pipeline builder's clean
+stage and in the backend feature-engineering transformer — but not in this
+browser-side tool.
 
 ## Why these choices
 

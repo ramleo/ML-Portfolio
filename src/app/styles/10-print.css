@@ -14,6 +14,9 @@
    have to own their colours outright. */
 body.bk-paginated { background: #fff !important; color: #1a1a1a !important; }
 body.bk-paginated #bk-pages a { color: #1a1a1a !important; }
+/* …except the contents page's part rows, which carry their part's colour.
+   The rule above is !important, so the exception has to be too. */
+body.bk-paginated #bk-pages a.bk-toc-part { color: var(--hue) !important; }
 
 /* :not(.bk-toc) matters — the book's contents page is itself a <nav>, and a
    blanket "hide nav" rule printed two blank leaves where the contents should

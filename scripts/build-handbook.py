@@ -241,6 +241,13 @@ def main():
         part += 1
         pslug = f"part-{part}"
         toc_add(("part", f"Part {part} · {d['name']}", pslug))
+        # One wrapper per part, carrying that area's colour as a custom
+        # property. Chapters are flat siblings in Markdown, so a heading
+        # cannot pass a colour down to the prose beneath it — the part has
+        # to own it. Paged.js already breaks a multi-page wrapper correctly;
+        # the appendix has been one since the first edition.
+        body.append(f'<div class="bk-part bk-part-{part}">')
+        body.append("")
         body.append(f'<div class="bk-partpage" id="{pslug}">')
         body.append("")
         body.append(f"# Part {part}")
@@ -266,6 +273,8 @@ def main():
             body.append("")
             body.append("## At a glance")
             body.append("")
+            body.append('<div class="bk-facts">')
+            body.append("")
             body.append("| | |")
             body.append("|---|---|")
             body.append(f"| **Also called** | {c['subtitle']} |")
@@ -275,6 +284,8 @@ def main():
                 body.append(f"| **{c['statLabel'] or 'Figure'}** | {c['stat']} |")
             body.append(f"| **Where it runs** | {where_it_runs(c)} |")
             body.append(f"| **Find it at** | `{c['internalLink'] or '/tools/' + c['id']}` |")
+            body.append("")
+            body.append("</div>")
             body.append("")
             guide, deep = read_guide(c["id"]), read_deep(c["id"])
             if guide:
@@ -289,14 +300,20 @@ def main():
             if deep:
                 body.append(deep)
                 body.append("")
+        body.append("</div>")
+        body.append("")
 
     # ── Contents, written after the body so chapter numbers are settled ──
     add('<nav class="bk-toc" id="contents">')
     add("")
     add("# Contents")
     add("")
+    part_of = 0
     for kind, label, anchor in toc:
-        add(f'- <a class="bk-toc-{kind}" href="#{anchor}">{label}</a>')
+        if kind == "part":
+            part_of += 1
+        add(f'- <a class="bk-toc-{kind} bk-part-{part_of}" '
+            f'href="#{anchor}">{label}</a>')
     add(f'- <a class="bk-toc-part" href="#appendix">Appendix · Every tool</a>')
     add("")
     add("</nav>")

@@ -22,7 +22,26 @@
 
 .hb-body { font-size: 0.95rem; line-height: 1.75; color: var(--text2); }
 .hb-body > :first-child { margin-top: 0; }
-.hb-body h1 { display: none; }        /* the page already has its own heading */
+/* The book's own title page duplicates the page heading above it; everything
+   else that is an h1 — 4 part pages, 41 chapters, the contents and the
+   appendix — is the reader's only way of telling where they are. Hiding all
+   of them ran 41 chapters together as one wall of text. */
+.hb-body .bk-titlepage { display: none; }
+.hb-body h1 { font-family: var(--type-display); font-size: 1.9rem; font-weight: 700;
+  color: var(--text); letter-spacing: -0.02em; margin: 4.5rem 0 1rem; }
+.hb-body h1.bk-chapter {
+  margin: 5rem 0 1.25rem; padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--hb-hue);
+}
+.bk-chnum { display: block; font-family: var(--type-data); font-size: 0.7rem;
+  font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--hb-hue); margin-bottom: 0.45rem; }
+.hb-body .bk-partpage { margin: 5.5rem 0 0; padding: 1.75rem 0 0.25rem;
+  border-top: 3px solid var(--hb-hue); }
+.hb-body .bk-partpage h1 { font-size: 0.72rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--hb-hue); margin: 0 0 0.35rem;
+  font-family: var(--type-data); font-weight: 700; }
+.hb-body .bk-partpage h2 { font-size: 2rem; margin: 0 0 0.6rem; }
 .hb-body h2 {
   font-family: var(--type-display); font-size: 1.5rem; font-weight: 700;
   color: var(--text); margin: 3rem 0 0.85rem; letter-spacing: -0.015em;
@@ -32,14 +51,18 @@
   margin: 2.25rem 0 0.35rem; letter-spacing: -0.005em;
 }
 .hb-body p { margin: 0 0 0.9rem; max-width: 70ch; }
-/* Italics appear in exactly one place — the one-line label under each tool
-   title — so they are styled as an eyebrow rather than as emphasis. Anything
-   that needs to read as a sentence uses a blockquote instead. */
-.hb-body em { color: var(--text3); font-style: normal; font-size: 0.85rem;
-  text-transform: uppercase; letter-spacing: 0.07em; }
+/* Italics were once styled as an uppercase eyebrow, on the assumption they
+   appeared in exactly one place. The written chapters use emphasis 233 times,
+   so that rule turned ordinary sentences into shouting. Italics are italics. */
+.hb-body em { font-style: italic; color: inherit; }
 .hb-body blockquote {
-  margin: 0 0 1.4rem; padding: 0.7rem 1rem; border-left: 2px solid var(--border2);
-  color: var(--text3); font-size: 0.85rem;
+  margin: 0 0 1.6rem; padding: 0.75rem 1.1rem; border-left: 3px solid var(--hb-hue);
+  color: var(--text3); font-size: 0.9rem; font-style: italic;
+  /* No colour wash behind it: this build rewrote a color-mix() unpredictably
+     once before, and a tint that lands wrong is worse than no tint. The
+     coloured rule alone carries the part. */
+  background: var(--bg-glass);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 .hb-body blockquote p { margin: 0; }
 /* Same reason as book.css: Tailwind's reset removes list markers. */
@@ -59,10 +82,48 @@
   width: 100%; max-width: 42rem; border-collapse: collapse;
   margin: 0 0 1.4rem; font-size: 0.85rem;
 }
-.hb-body thead { display: none; }
+/* The facts table has no header — its left column is the label. Every other
+   table in the book does have one, and hiding all of them removed it from 49
+   tables to spare one. */
+.bk-facts thead { display: none; }
+.hb-body th {
+  text-align: left; padding: 0.42rem 0.7rem; color: var(--text);
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; border-bottom: 2px solid var(--hb-hue);
+}
 .hb-body td {
   padding: 0.42rem 0.7rem; border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
-.hb-body td:first-child { width: 8.5rem; color: var(--text3); font-weight: 600; }
+.bk-facts td:first-child { width: 8.5rem; color: var(--text3); font-weight: 600; }
 .hb-body tr:last-child td { border-bottom: 0; }
+
+
+/* ── One colour per part ───────────────────────────────────────────────────
+   Not decoration picked at random: the book's four parts are the site's four
+   areas, and each already owns a colour in src/data/domains.ts. Reusing them
+   means a reader who knows the site already knows what green or rose means,
+   and the two cannot drift apart by accident. Bright values for the dark
+   theme, darkened ones for the light theme, the same pairs domains.ts holds. */
+.hb-body { --hb-hue: var(--text3); }
+.hb-body .bk-part-1, .bk-toc-part.bk-part-1 { --hb-hue: #34d399; }
+.hb-body .bk-part-2, .bk-toc-part.bk-part-2 { --hb-hue: #818cf8; }
+.hb-body .bk-part-3, .bk-toc-part.bk-part-3 { --hb-hue: #38bdf8; }
+.hb-body .bk-part-4, .bk-toc-part.bk-part-4 { --hb-hue: #fb7185; }
+html.light .hb-body .bk-part-1 { --hb-hue: #047857; }
+html.light .hb-body .bk-part-2 { --hb-hue: #4338ca; }
+html.light .hb-body .bk-part-3 { --hb-hue: #0369a1; }
+html.light .hb-body .bk-part-4 { --hb-hue: #be123c; }
+
+/* Contents: the part rows carry their colour, the chapters under them stay
+   quiet so the four groups read as four groups at a glance. */
+.hb-body .bk-toc ul { list-style: none; padding-left: 0; }
+.hb-body .bk-toc a { text-decoration: none; color: var(--text2); }
+.hb-body .bk-toc a:hover { color: var(--text); text-decoration: underline; }
+.hb-body a.bk-toc-part {
+  display: block; margin: 1.5rem 0 0.5rem; font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--hb-hue);
+}
+.hb-body a.bk-toc-part:hover { color: var(--hb-hue); }
+.hb-body a.bk-toc-chapter { display: block; padding-left: 1.1rem; font-size: 0.9rem; }

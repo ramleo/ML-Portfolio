@@ -24,7 +24,14 @@
                            font-family: Georgia, serif; letter-spacing: .04em; } }
 
 html, body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-  color: #1a1a1a; background: #fff; }
+  color: #1a1a1a; background: #fff;
+  /* Print engines drop backgrounds and gradients by default. The coloured
+     rules are borders and survive, but the title page's four bands are a
+     gradient — without this the book prints a blank strip where they were. */
+  print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  /* Front matter and the appendix sit outside any part, so they need a
+     colour of their own rather than an unresolved variable. */
+  --hue: #52525b; }
 body { margin: 0; font-size: 10.5pt; line-height: 1.55; }
 /* The host page's colours would otherwise inherit into every cloned element. */
 .pagedjs_page, .pagedjs_page a { color: #1a1a1a; }
@@ -42,6 +49,12 @@ p + p { text-indent: 1.2em; margin-top: -0.35em; }
 .bk-titlepage h3 { font-size: 12pt; font-weight: 400; font-style: italic; color: #555;
   margin: 0 0 2em; max-width: 26em; }
 .bk-titlepage p { font-size: 9.5pt; color: #777; text-align: left; text-indent: 0; }
+/* Four bands, one per part, in the order they appear in the book. */
+.bk-titlepage h1::after {
+  content: ""; display: block; width: 62mm; height: 4pt; margin-top: .35em;
+  background: linear-gradient(to right,
+    #047857 0 25%, #4338ca 25% 50%, #0369a1 50% 75%, #be123c 75% 100%);
+}
 
 .bk-colophon { break-after: page; page-break-after: always; }
 .bk-colophon h2 { font-size: 13pt; font-weight: 400; font-variant: small-caps;
@@ -67,30 +80,50 @@ p + p { text-indent: 1.2em; margin-top: -0.35em; }
 .bk-toc a > span, .bk-toc a::before { background: #fff; }
 .bk-toc-part { font-variant: small-caps; letter-spacing: .05em; font-size: 11pt;
   margin-top: 1.1em; }
+a.bk-toc-part { color: var(--hue); font-weight: 700; }
 .bk-toc-chapter { font-size: 10pt; padding-left: 1.4em; }
+
+/* ── One colour per part ──────────────────────────────────────────────────
+   The four parts are the site's four areas, and each already owns a colour
+   in src/data/domains.ts. These are that file's darkened values, the ones
+   meant for a light ground — which is what paper is. Colour is used on
+   structure only (rules, numbers, table headings); body text stays black,
+   because a page of coloured prose is harder to read, not livelier. */
+.bk-part-1 { --hue: #047857; }   /* ML Pipeline */
+.bk-part-2 { --hue: #4338ca; }   /* Language & Documents */
+.bk-part-3 { --hue: #0369a1; }   /* Computer Vision */
+.bk-part-4 { --hue: #be123c; }   /* Security */
+.bk-appendix { --hue: #52525b; }
 
 /* ── Parts and chapters ── */
 .bk-partpage { break-before: page; page-break-before: always; break-after: page;
   page-break-after: always; padding-top: 30vh; }
 .bk-partpage h1 { font-size: 11pt; font-variant: small-caps; letter-spacing: .18em;
-  color: #888; font-weight: 400; margin: 0 0 .3em; }
-.bk-partpage h2 { font-size: 26pt; font-weight: 400; margin: 0 0 .8em; }
+  color: var(--hue); font-weight: 700; margin: 0 0 .3em; }
+.bk-partpage h2 { font-size: 26pt; font-weight: 400; margin: 0 0 .5em;
+  padding-bottom: .35em; border-bottom: 3pt solid var(--hue); }
 
 h1.bk-chapter {
   break-before: page; page-break-before: always;
   string-set: chapter content();
   font-size: 19pt; font-weight: 400; line-height: 1.2; margin: 0 0 1.2em;
-  padding-top: 6vh;
+  padding-top: 6vh; padding-bottom: .3em;
+  border-bottom: 1.5pt solid var(--hue);
 }
 .bk-chnum { display: block; font-size: 9pt; font-variant: small-caps;
-  letter-spacing: .16em; color: #999; margin-bottom: .5em; }
+  letter-spacing: .16em; color: var(--hue); font-weight: 700; margin-bottom: .5em; }
 
 h2 { font-size: 12.5pt; font-weight: 700; margin: 1.6em 0 .5em;
-     break-after: avoid; page-break-after: avoid; }
+     break-after: avoid; page-break-after: avoid;
+     border-left: 3pt solid var(--hue); padding-left: .5em; margin-left: -.8em; }
+/* The section-heading bar is for headings inside a chapter. The part page and
+   the front matter set their own treatment and would otherwise carry both. */
+.bk-partpage h2, .bk-titlepage h2, .bk-colophon h2, .bk-toc h2 {
+  border-left: 0; padding-left: 0; margin-left: 0; }
 h3 { font-size: 11pt; font-weight: 700; margin: 1.2em 0 .35em;
      break-after: avoid; page-break-after: avoid; }
 
-blockquote { margin: 0 0 1.4em; padding-left: 1em; border-left: 2px solid #ddd;
+blockquote { margin: 0 0 1.4em; padding-left: 1em; border-left: 3pt solid var(--hue);
   font-style: italic; color: #444; }
 blockquote p { text-align: left; text-indent: 0; }
 
@@ -112,8 +145,12 @@ code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt;
 
 table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: 9.5pt;
   break-inside: avoid; page-break-inside: avoid; }
-th { text-align: left; font-variant: small-caps; letter-spacing: .05em; color: #666;
-  border-bottom: 1px solid #999; padding: 4pt 6pt; }
+th { text-align: left; font-variant: small-caps; letter-spacing: .05em;
+  color: var(--hue); font-weight: 700;
+  border-bottom: 1.5pt solid var(--hue); padding: 4pt 6pt; }
+/* The facts table's header row is deliberately empty — its left column is the
+   label. It still earns the coloured rule that sits above every table. */
+.bk-facts th { padding: 0 0 2pt; }
 td { padding: 3.5pt 6pt; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
 td:first-child { width: 30%; color: #444; }
 
