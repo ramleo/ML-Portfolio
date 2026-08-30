@@ -43,35 +43,39 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 - <a class="bk-toc-chapter bk-part-3" href="#ch-16-asl-fingerspelling-recognition">16. ASL Fingerspelling Recognition</a>
 - <a class="bk-toc-chapter bk-part-3" href="#ch-17-astrophotography-anomaly-detector">17. Astrophotography Anomaly Detector</a>
 - <a class="bk-toc-chapter bk-part-3" href="#ch-18-crime-scene-reconstruction">18. Crime Scene Reconstruction</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-19-gait-pattern-comparison">19. Gait Pattern Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-20-movement-form-comparison">20. Movement Form Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-21-ppe-compliance-check">21. PPE Compliance Check</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-22-photo-library-visual-search">22. Photo Library Visual Search</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-23-plant-growth-quantification">23. Plant Growth Quantification</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-24-text-prompted-video-object-tracking">24. Text-Prompted Video Object Tracking</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-25-wildlife-re-identification">25. Wildlife Re-Identification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-19-depth-parallax">19. Depth Parallax</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-20-face-liveness-detector">20. Face Liveness Detector</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-21-gait-pattern-comparison">21. Gait Pattern Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-22-movement-form-comparison">22. Movement Form Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-23-ppe-compliance-check">23. PPE Compliance Check</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-24-photo-library-visual-search">24. Photo Library Visual Search</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-25-plant-growth-quantification">25. Plant Growth Quantification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-26-pose-vj-visuals">26. Pose VJ Visuals</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-27-text-prompted-video-object-tracking">27. Text-Prompted Video Object Tracking</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-28-text-to-image-generator">28. Text-to-Image Generator</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-29-wildlife-re-identification">29. Wildlife Re-Identification</a>
 - <a class="bk-toc-part bk-part-4" href="#part-4">Part 4 · Security & Trust</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-26-ai-generated-code-detector">26. AI-Generated Code Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-27-adversarial-robustness-lab">27. Adversarial Robustness Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-28-attack-surface-exposed-path-scanner">28. Attack-Surface / Exposed-Path Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-29-binary-byte-plot-entropy-triage">29. Binary Byte-Plot & Entropy Triage</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-30-browser-extension-permission-risk-analyz">30. Browser Extension Permission Risk Analyzer</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-31-captcha-hardening-lab">31. CAPTCHA Hardening Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-32-dns-tunneling-exfiltration-detector">32. DNS Tunneling / Exfiltration Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-33-email-header-authentication-checker">33. Email Header Authentication Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-34-face-cloak">34. Face Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-35-face-deanonymization-risk-demo">35. Face Deanonymization Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-36-keystroke-biometric-auth-risk-demo">36. Keystroke Biometric Auth-Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-37-llm-prompt-injection-detection-playgroun">37. LLM Prompt Injection Detection Playground</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-38-malicious-package-scanner">38. Malicious Package Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-39-password-strength-breach-checker">39. Password Strength & Breach Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-40-phishing-email-body-classifier">40. Phishing Email Body Classifier</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-41-qr-phishing-detector">41. QR Phishing Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-42-siem-alert-triage-agent">42. SIEM Alert Triage Agent</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-43-style-cloak">43. Style Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-44-tls-security-headers-scanner">44. TLS / Security-Headers Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-45-video-call-keystroke-inference">45. Video-Call Keystroke Inference</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-46-yara-file-scanner">46. YARA File Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-30-ai-generated-code-detector">30. AI-Generated Code Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-31-adversarial-robustness-lab">31. Adversarial Robustness Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-32-attack-surface-exposed-path-scanner">32. Attack-Surface / Exposed-Path Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-33-binary-byte-plot-entropy-triage">33. Binary Byte-Plot & Entropy Triage</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-34-browser-extension-permission-risk-analyz">34. Browser Extension Permission Risk Analyzer</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-35-captcha-hardening-lab">35. CAPTCHA Hardening Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-36-dns-tunneling-exfiltration-detector">36. DNS Tunneling / Exfiltration Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-37-email-header-authentication-checker">37. Email Header Authentication Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-38-face-cloak">38. Face Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-39-face-deanonymization-risk-demo">39. Face Deanonymization Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-40-keystroke-biometric-auth-risk-demo">40. Keystroke Biometric Auth-Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-41-llm-prompt-injection-detection-playgroun">41. LLM Prompt Injection Detection Playground</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-42-malicious-package-scanner">42. Malicious Package Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-43-password-strength-breach-checker">43. Password Strength & Breach Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-44-phishing-email-body-classifier">44. Phishing Email Body Classifier</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-45-qr-phishing-detector">45. QR Phishing Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-46-siem-alert-triage-agent">46. SIEM Alert Triage Agent</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-47-style-cloak">47. Style Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-48-tls-security-headers-scanner">48. TLS / Security-Headers Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-49-video-call-keystroke-inference">49. Video-Call Keystroke Inference</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-50-yara-file-scanner">50. YARA File Scanner</a>
 - <a class="bk-toc-part" href="#appendix">Appendix · Every tool</a>
 
 </nav>
@@ -4148,7 +4152,7 @@ Cmd+Enter: run query · Cmd+K: focus question input · Esc: close modals.
 
 Tools that look at an image or a video — detection, depth, pose, re-identification and generation.
 
-10 of this area's 14 tools have a chapter here. All of them are listed in the appendix.
+14 of this area's 14 tools have a chapter here. All of them are listed in the appendix.
 
 </div>
 
@@ -4419,7 +4423,521 @@ failure path directly.
   the real technique, not something that should inform any actual
   investigation, measurement, or legal determination.
 
-<h1 class="bk-chapter" id="ch-19-gait-pattern-comparison"><span class="bk-chnum">Chapter 19</span>Gait Pattern Comparison</h1>
+<h1 class="bk-chapter" id="ch-19-depth-parallax"><span class="bk-chnum">Chapter 19</span>Depth Parallax</h1>
+
+> Upload one photo and get a per-pixel depth map, then watch it become a parallax diorama — near objects shift more than far ones as you move your pointer. The model runs on this project's own server rather than any third-party AI provider — your photo is sent there to build the depth map, processed in memory and not stored.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | One Photo, Instant 3D |
+| **Model or method** | Depth-Anything-V2-Small (ONNX) |
+| **What you give it** | Single photo |
+| **Model Size** | 37MB |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/depth-parallax` |
+
+</div>
+
+## What problem it solves
+
+A photograph is flat. It records where light landed on a sensor and throws away
+how far each thing was.
+
+Recovering that distance from **one** picture is a genuinely hard problem,
+because it is ambiguous: a small object close up and a large object far away
+project to exactly the same pixels. Two eyes solve it by comparing views. One
+camera cannot, and has to *infer* depth from everything else in the image —
+occlusion, perspective, texture getting finer with distance, familiar object
+sizes, shading, haze.
+
+This tool does that inference and then does something with the answer. Upload
+one photo, get a per-pixel depth map, and then use it five ways: a parallax
+diorama that shifts as you move the pointer, the raw depth map, a portrait-mode
+background blur, an AR occlusion demo, and a draggable 3D relief.
+
+## How it works, step by step
+
+1. **Upload one photo.**
+2. **The server estimates depth.** The image is capped at 1,024 px on the long
+   side, resized so its short side is about 518 px in multiples of 14,
+   normalised with ImageNet statistics, and pushed through the model.
+3. **The output is normalised per image** to 0–255 and written back out as a
+   greyscale PNG at the original photo's size. Brighter means nearer.
+4. **The browser takes over.** From here everything is WebGL on your own
+   machine, with the photo as one texture and the depth map as another.
+
+Five views, all driven by that one depth map:
+
+| View | What it does |
+|---|---|
+| **Parallax** | shifts each pixel by an amount proportional to its depth, following your pointer |
+| **Depth map** | the raw greyscale output |
+| **Bokeh** | pick a point to keep sharp; everything blurs by how far its depth is from that point |
+| **AR occlusion** | places an object *into* the scene so nearer things correctly hide it |
+| **3D relief** | builds real geometry from the depth map and lets you move a camera around it |
+
+## The model or algorithm
+
+### Depth-Anything-V2-Small
+
+37 MB, quantised ONNX, built on a DINOv2 backbone. From
+`onnx-community/depth-anything-v2-small-ONNX`.
+
+**Two things about it are worth being precise on.**
+
+**It is relative depth, not metric.** The model makes no claim about real-world
+units. It gives correct *ordering* within a single image — this is nearer than
+that — and nothing more. There is no scale to recover, which is why the output
+is normalised per image with no attempt to preserve a value across photos. For
+driving a parallax effect that is exactly enough and nothing is lost. For
+measuring a room it would be useless.
+
+**The licence was checked at the checkpoint level.** The docstring records that
+the upstream `DepthAnything/Depth-Anything-V2` repository licenses the **Small**
+checkpoint as Apache-2.0, while Base, Large and Giant are CC-BY-NC-4.0. Only
+Small is used. That distinction is inside one repository, under one model
+family — exactly the kind of thing a licence badge does not tell you.
+
+It was also verified by hand before adoption: real inference on a real photo of
+a car, confirming the map cleanly separated foreground from background with a
+smooth gradient rather than noise.
+
+### Why 518 and multiples of 14
+
+DINOv2 is a vision transformer, and a transformer cuts its input into fixed
+patches — 14×14 pixels here. An input whose dimensions are not multiples of 14
+does not tile cleanly. So the resize targets a short side of about 518, then
+rounds both dimensions to the nearest multiple of 14. Those numbers are copied
+from the model's own `preprocessor_config.json` rather than guessed, which is
+the same discipline as the liveness chapter's crop: **preprocessing must match
+training, exactly.**
+
+The 1,024 px cap on the input is a compute decision — a 37 MB model on CPU
+against a full-resolution phone photo is slow, and the extra pixels do not
+improve a depth map that will be resized back down anyway.
+
+### The parallax shader
+
+This is the most interesting piece of the tool, and it is nine lines:
+
+```glsl
+float depth = texture2D(uDepth, vUv).r;      // 0..1, higher = nearer
+vec2 shift = depth * uMaxShift * vec2(uPointer.x * 2.0,
+                                      uPointer.y * 2.0 * 0.6);
+gl_FragColor = texture2D(uImage, clamp(vUv - shift, 0.0, 1.0));
+```
+
+Read it backwards and the trick is clear: for each output pixel, look up its
+depth, then sample the source image from a position **offset by that depth**.
+Near pixels (depth near 1) pull from far away; distant pixels (depth near 0)
+barely move. That difference in movement *is* parallax — the thing your eyes use
+to judge distance when you move your head.
+
+Two constants encode judgement:
+
+- `MAX_SHIFT_UV = 0.045` — the maximum displacement is 4.5% of the image. Small
+  on purpose: pushing it further reveals that there is nothing behind the
+  foreground to show, and the illusion breaks into smearing.
+- The vertical shift is scaled by **0.6**. Horizontal head movement is what
+  produces parallax in real life; damping the vertical axis keeps the effect
+  feeling like looking round something rather than like the picture wobbling.
+
+**The bug this design fixes.** The depth map used to compute displacement is
+blurred by 3 px first, and the comment explains why. A real object edge — a bike
+frame against the sky — is a genuine hard depth jump. But the shader is
+sampling a *displacement field*, and at a hard edge two neighbouring screen
+pixels pull from very different source positions, which shows up as streaky
+tearing right along the edge as soon as the shift is non-zero. Blurring the
+depth copy softens the field without touching the displayed image. It is a good
+illustration of a general point: a discontinuity that is correct in the data can
+still be wrong in the thing you compute from it.
+
+### Bokeh
+
+A 9-tap blur whose radius is driven by how far a pixel's depth is from the depth
+you clicked:
+
+```
+blur ∝ |depth(pixel) − depth(focus point)|
+```
+
+That is the same idea as a real lens: a physical aperture has one plane in
+focus, and everything in front of or behind it lands on the sensor as a disc
+rather than a point. The code is honest that it is an approximation — a fixed
+nine-tap box-ish blur, not a true circle of confusion — but the *shape* of the
+effect is right, and unlike a real lens you can move the focal plane after the
+photo was taken.
+
+### 3D relief
+
+The other four views are screen-space tricks. This one builds actual geometry: a
+mesh where each vertex's height comes from the depth map, textured with the
+photo, viewed through a real camera matrix. Dragging moves the camera sideways
+rather than rotating the picture, so near things move more than far things for
+the correct reason rather than by simulation.
+
+Two details in the mesh builder matter. The depth grid is **smoothed** over a
+5-cell radius, for the same reason the parallax depth is blurred — a spike in
+the height field is a spike in the geometry. And the outer 14 cells are
+**feathered**, so the mesh does not end in a hard cliff at the image border.
+
+The camera range is deliberately limited, and the reason given is the honest
+one: **a single photo only ever saw its camera-facing surface.** Move far
+enough round and you are looking at the back of a shape that has no back.
+
+## Why these choices
+
+**Why run the model server-side and everything else in the browser.** The 37 MB
+model would be a slow download and a slow CPU inference in a tab. But once the
+depth map exists it is just a texture, and every effect built on it is a shader
+running at 60 frames a second on the viewer's GPU. One request, then no
+round-trips. The card discloses the split plainly: the photo goes to this
+project's own server, not a third-party AI provider, is processed in memory and
+not stored.
+
+**Why five views instead of one.** A depth map on its own is a grey picture that
+means nothing to most people. Parallax makes it *felt*, bokeh makes it
+*familiar* — everyone has used portrait mode — occlusion makes it *useful*, and
+the relief makes it *literal*. Together they answer "what is depth estimation
+for?" better than any one of them.
+
+**Why the effect is deliberately understated.** The single most common way this
+kind of demo fails is being pushed too far. `MAX_SHIFT_UV = 0.045` and the
+limited relief camera range are both the same decision: stay inside what one
+photograph can actually support.
+
+## How to read the output
+
+- **Brighter is nearer.** The absolute values mean nothing across photos.
+- **Look at the edges in the depth map.** Clean silhouettes mean the model
+  understood the scene; a foreground object bleeding into the background is
+  where every downstream effect will look wrong.
+- **Parallax works best on a photo with real depth separation** — a subject with
+  distinct background. A flat wall or a landscape at infinity produces almost no
+  shift, correctly.
+- **Streaking at the edge of the frame is expected.** Shifting reveals pixels
+  that the photograph does not contain, and the shader clamps to the edge rather
+  than inventing them.
+- **In bokeh, click the thing you want sharp.** The focal plane is where you
+  clicked, in depth, not in position — so anything at the same distance stays
+  sharp too, exactly like a real lens.
+- **In the relief, small camera movements read best.** Push it and the missing
+  back faces show.
+
+## Limits
+
+- **Relative depth, not metric.** No distances, no measurements, nothing
+  comparable between photos.
+- **A single photo has no hidden surfaces.** Parallax, occlusion and relief are
+  all limited by there being nothing behind the foreground. This is the hard
+  ceiling on all of it.
+- **Monocular depth is inference, not measurement.** It fails in the ways human
+  intuition fails: reflections, glass, mirrors, a poster of a landscape on a
+  wall, unfamiliar object scales.
+- **Input capped at 1,024 px**, so fine detail in a large photo is lost before
+  the model sees it.
+- **The depth map is blurred and smoothed before use**, so genuinely thin
+  structures — railings, hair, wires — soften.
+- **Bokeh is a nine-tap approximation**, not a lens simulation. No bokeh shape,
+  no highlight blooming.
+- **WebGL is required** for four of the five views, and the tool detects and
+  reports failure rather than showing a blank canvas.
+- **CPU inference on free hosting**, so the first request after the server has
+  been asleep is slow.
+
+## Likely interview questions
+
+**"How can a single image give you depth at all? Isn't it ambiguous?"**
+Fundamentally, yes — a small near object and a large far one project identically,
+so there is no geometric solution. Monocular depth models get around it by
+learning priors from enormous amounts of data: occlusion order, perspective
+convergence, texture gradients, typical object sizes, shading, haze. It is the
+same set of cues a person uses looking at a photograph with one eye closed. That
+is also why the output is relative rather than metric — the cues fix ordering,
+not scale.
+
+**"What's the difference between relative and metric depth, and why does it
+matter?"**
+Relative depth gives correct ordering within one image; metric gives actual
+distances. For a parallax effect, ordering is all you need, so relative is
+sufficient and the model is honest about not claiming more. For robotics,
+measurement or reconstruction you need metric depth, which requires either a
+calibrated camera, stereo, a known-size reference in frame, or a depth sensor.
+
+**"Explain your parallax shader."**
+For each output pixel, read its depth from the depth texture, multiply by the
+pointer offset and a maximum shift, and sample the source image from the offset
+position instead of the original one. Near pixels move more than far ones, which
+is exactly parallax. The one non-obvious part is that the depth map used for the
+displacement is blurred by three pixels — at a hard depth edge, adjacent screen
+pixels would otherwise pull from wildly different source positions and produce
+visible tearing along every silhouette.
+
+**"Why blur the depth map if the edges are correct?"**
+Because it is not being displayed, it is being used as a *displacement field*.
+A discontinuity that is correct as data becomes a discontinuity in where
+neighbouring pixels sample from, and that reads as tearing. The displayed image
+is untouched; only the copy driving the maths is softened. It is a good example
+of a value being right for one purpose and wrong for another.
+
+**"Why did you use the Small checkpoint?"**
+Partly size — 37 MB runs on CPU on free hosting where Large would not. But
+mainly licensing: in that repository the Small checkpoint is Apache-2.0 while
+Base, Large and Giant are CC-BY-NC-4.0, so the larger ones cannot be used in
+anything commercial. That distinction lives inside one repo under one model
+family, so I checked the LICENSE directly rather than trusting the badge — the
+same habit that caught a weights-versus-code licence mismatch elsewhere in this
+project.
+
+<h1 class="bk-chapter" id="ch-20-face-liveness-detector"><span class="bk-chnum">Chapter 20</span>Face Liveness Detector</h1>
+
+> Show your face to the camera, or upload a photo, and see whether it reads as a genuinely present face or a spoof — a printed photo or a screen replay. The same category of check that gates face-unlock and identity verification. The model runs on this project's own server rather than any third-party AI provider — your photo is sent there for the check, processed in memory and not stored.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Real vs. Spoofed |
+| **Model or method** | MiniFASNetV2-SE (ONNX) |
+| **What you give it** | Webcam or photo |
+| **Model Size** | 600KB |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/face-liveness` |
+
+</div>
+
+## What problem it solves
+
+Face recognition answers *"who is this?"*. It does not answer *"is there
+actually a person here?"* — and a recogniser will happily identify a printed
+photograph of you, or your face played back on a phone screen, as you.
+
+That gap is called a **presentation attack**, and closing it is what liveness
+detection does. It is the check sitting behind face-unlock on a phone and behind
+the selfie step in identity verification: before asking whose face this is, ask
+whether it is a face being presented live or a picture of one.
+
+This tool runs that check. Show your face to the camera or upload a photo, and
+it reports whether the image reads as a live face or a spoof.
+
+## How it works, step by step
+
+1. **Capture.** The browser takes **four frames, 250 ms apart** — roughly a
+   second of video — or you upload a single photo.
+2. **Find the face.** Each frame goes to the server, which runs the object
+   detector already used elsewhere in the app and keeps the highest-confidence
+   `Human face` box. If there is no face, it stops and says so rather than
+   guessing.
+3. **Crop, generously.** The box is expanded by **1.5×** around its centre and
+   made square, with reflection padding where the expansion runs off the edge of
+   the image.
+4. **Letterbox to 128×128.** Resize preserving aspect ratio — Lanczos when
+   scaling up, area averaging when scaling down — then pad to a square, again by
+   reflection. Scale to [0, 1] and transpose to channels-first.
+5. **Classify.** One ONNX forward pass returns two numbers, a *real* logit and a
+   *spoof* logit.
+6. **Score.** `sigmoid(real − spoof)` gives one number from 0 to 1. **No verdict
+   is decided here.**
+7. **Average, then decide.** The browser averages the four frames' scores and
+   only then commits: above 0.65 *"Looks live"*, below 0.35 *"Looks spoofed"*,
+   and in between **"Uncertain"**.
+
+## The model or algorithm
+
+### The classifier
+
+**MiniFASNetV2-SE** — 600 KB, quantised ONNX, 128×128 RGB in, a binary
+real/spoof classifier out. It comes from `minivision-ai/Silent-Face-Anti-
+Spoofing` (Apache-2.0, 2020) by way of the community ONNX port
+`facenox/face-antispoof-onnx` (Apache-2.0, 2025).
+
+"Silent" is the key word. There are two families of liveness detection:
+
+- **Active** — the system tells you to blink, turn your head, follow a dot.
+  Reliable, and it makes every login a small performance.
+- **Passive, or "silent"** — a single still image is enough, with no
+  cooperation asked for. Much better to use, and much harder to do.
+
+This is the passive kind. With one still frame there is no motion to analyse, so
+the model has to work from what a re-presentation does to the *texture* of an
+image: the moiré pattern of a screen's pixel grid, the flatness of a print, the
+specular reflection off glass or paper, the loss of fine skin detail through one
+extra capture cycle. Those artefacts are what a small CNN can learn — and it is
+why the model needs so little resolution to work at all.
+
+**The licence was checked, not assumed.** The docstring records that the LICENSE
+file in both repositories was read directly before adopting the model, because
+the weights and the code can be licensed differently — as the project learned
+elsewhere, where permissively-licensed detector code shipped weights carrying a
+separate AGPL claim. Here the weights ship under the same Apache-2.0 as the code
+in both repos.
+
+### Why the crop is expanded and reflection-padded
+
+Both are copied deliberately from the ONNX port's own preprocessing, and both
+matter more than they look.
+
+The **1.5× expansion** exists because a tight face box throws away exactly the
+evidence the model was trained on. The give-away of a spoof is often just
+outside the face — the edge of a phone held in a hand, the border of a sheet of
+paper, the background out of focus in a way a real scene would not be. A tight
+crop cuts the frame out of the picture of the frame.
+
+**Reflection padding** rather than black or grey fill is the standard choice for
+a texture model. A hard black border is itself a strong, artificial edge, and a
+CNN looking for texture artefacts will happily key on it. Mirroring the
+neighbouring pixels produces a continuation with the same statistics as the
+image, so the padding contributes nothing the model can mistake for signal.
+
+The important general principle: **preprocessing must match what the model was
+trained on, exactly.** A different crop ratio or a different padding mode is not
+a minor deviation — it shifts the input distribution and quietly degrades a model
+that still looks like it is working.
+
+### Why the server returns a score and not a verdict
+
+This is the design decision that carries the tool, and it came from a real
+observation recorded in the code: **a live webcam face scored "spoofed" at 52%
+under dim, low-contrast lighting** — a near coin flip, on the correct answer's
+wrong side.
+
+The model's confidence collapses toward 0.5 under exactly the conditions a
+laptop webcam produces. So the endpoint deliberately does not return
+`{real: false, confidence: 0.52}`. It returns the raw signed score, and lets the
+caller decide with more information than one frame provides.
+
+The client then does two things with it:
+
+- **Averages four frames.** Independent noise partly cancels; a single frame
+  that lands on the wrong side of 0.5 gets outvoted by three that do not. It is
+  the same variance argument as the Ensemble chapter, applied to one model over
+  time instead of several models at once.
+- **Refuses to decide in the middle.** With `UNCERTAIN_MARGIN = 0.15`, anything
+  between 0.35 and 0.65 is reported as **Uncertain**. Not a failure state — the
+  honest answer when the evidence is a coin flip.
+
+`real_score` is `None` when no face was confidently detected. The tool never
+guesses on an image with nothing to check.
+
+### Reusing the detector
+
+Locating the face reuses `detect_objects` — the same OIV7 detector that powers
+"Detect faces" elsewhere in the app, filtered to the `Human face` class. No
+second face-detection model was added: one download, one warm session, one thing
+to keep licensed and updated.
+
+## Why these choices
+
+**Why four frames at 250 ms.** One second is short enough not to feel like a
+wait and long enough for the webcam's auto-exposure to settle and for the
+subject to move slightly. Four averages away a good deal of frame noise; more
+would make the tool feel slow for diminishing returns.
+
+**Why an uncertain band at all.** Because a binary verdict from a model whose
+score is 0.52 is a lie told confidently. In a security context, "I don't know" is
+a usable answer — it routes to a second factor. A wrong "real" does not.
+
+**Why 600 KB.** It runs on CPU, on free hosting, with no GPU and no cold-start
+download worth mentioning. A large model would be more accurate on paper and
+unusable here.
+
+**Why the image is sent to the server rather than checked in the browser.** The
+detector and the ONNX runtime live server-side. The tool discloses this plainly
+on the card: the photo is sent to this project's own server, not a third-party
+AI provider, processed in memory and not stored.
+
+## How to read the output
+
+- **The percentage is "real-leaning", averaged over four frames.** It is not a
+  probability that you are a real person; it is where the model's signed score
+  landed.
+- **"Uncertain" is the expected answer in bad light.** Move to a window, or use
+  a brighter room, and try again. It is not a failure of the check.
+- **A verdict on an uploaded photo is weaker than one from the camera**, because
+  the four frames are then four copies of the same image and averaging cancels
+  nothing.
+- **A printed photo and a screen replay are different attacks** and this model
+  is much more comfortable with one than the other. A phone-screen replay
+  behaves very differently to these models than a flat print.
+- **No face found means no verdict**, not "spoof".
+
+## Limits
+
+The module's own docstring is unusually direct about this, and it should be
+repeated rather than softened.
+
+- **Cross-dataset generalisation in this field is genuinely poor.** The academic
+  literature is consistent: a naive CNN trained on one spoof dataset and tested
+  on another scores close to a coin flip — around 45–48% error. Even
+  sophisticated cross-domain methods only reach roughly 20–30% error, still far
+  worse than same-dataset performance.
+- **The quoted 98.2% accuracy and 0.9984 AUC are CelebA-Spoof numbers** — the
+  dataset the model was trained and tested on. They have not been independently
+  verified here beyond confirming the pipeline works end to end and that a real
+  face crop scores clearly real with a strong logit margin. **Do not quote them
+  as this tool's accuracy.**
+- **It has never been tested against this codebase's own camera, lighting and
+  spoof conditions.** Expect it to work in controlled conditions and be
+  genuinely unreliable at the edges.
+- **Low light collapses the score toward 0.5** — the observed failure, and the
+  reason the uncertain band exists.
+- **Only the largest face is checked.** One face per image.
+- **Four frames over one second is not motion analysis.** A video replay that is
+  static for a second is not distinguished by temporal reasoning; each frame is
+  judged alone.
+- **No defence against a 3D mask, a deepfake video feed, or an injected camera
+  stream.** This detects re-presentation artefacts, not synthesis.
+- **This is a demonstration, not a security control.** For anything that
+  matters, passive liveness is one signal among several — device attestation,
+  active challenges, document checks.
+
+## Likely interview questions
+
+**"What is a presentation attack and why doesn't face recognition stop it?"**
+Holding up a photo, a phone screen, or a mask in front of the camera. Recognition
+answers "whose face is this?" — and a photo of me is still, correctly, my face.
+Liveness answers the prior question, "is a real face being presented?", and it
+has to be a separate check because the recogniser is doing its job correctly
+when it is fooled.
+
+**"Passive or active liveness — which would you build?"**
+Both, layered. Passive is far better to use, because nothing is asked of the
+person, and it is the harder problem — a single still frame gives you texture
+artefacts and nothing else. Active is much more robust but adds friction to
+every login. In practice: passive first, and escalate to an active challenge
+when the passive score lands in the uncertain band, which is exactly what the
+uncertain band in this tool would route to.
+
+**"Your model reports 98% accuracy. Would you deploy it on that?"**
+No, and this is the part I would raise unprompted. That number is on CelebA-
+Spoof, the dataset it was trained on. Liveness detection is notorious for poor
+cross-dataset generalisation — a model trained on one attack dataset and tested
+on another can score close to chance, and even good cross-domain methods land
+around 20–30% error. Before deploying I would need numbers on *my* cameras, *my*
+lighting and *my* attack types, and I would expect them to be much worse.
+
+**"Why does your API return a score instead of a verdict?"**
+Because during testing a genuinely live face scored 52% "spoof" in poor light —
+the model's confidence collapses toward 0.5 under exactly the conditions a
+webcam produces. A single frame near 0.5 is not enough to commit to. Returning
+the raw signed score lets the client average several frames and apply its own
+threshold, and it lets the interface say "uncertain" rather than pick a side of
+a coin flip. Deciding at the wrong layer would have thrown that information away.
+
+**"Why expand the crop by 1.5× instead of using the face box?"**
+Two reasons. The model was trained on crops shaped that way, so anything else
+shifts the input distribution. And the evidence of a spoof is often outside the
+face — the edge of a phone, the border of a sheet of paper, the way the
+background is lit. A tight crop removes the picture of the picture, which is the
+most reliable tell there is.
+
+<h1 class="bk-chapter" id="ch-21-gait-pattern-comparison"><span class="bk-chnum">Chapter 21</span>Gait Pattern Comparison</h1>
 
 > Upload two side-view walking videos and compare how the two people move. Body pose is tracked per frame, individual stride cycles are found from knee-angle peaks, and each video's strides are averaged into one walking signature before the two are compared. This is not identification: a monocular, uncalibrated view can show that two clips walk similarly, never that they are the same person. Runs entirely in the browser; no video leaves your device.
 
@@ -4502,7 +5020,7 @@ reports "not enough consistent strides detected" instead of guessing.
 - **Assumes one person per video.** Multiple people in frame will confuse
   pose tracking.
 
-<h1 class="bk-chapter" id="ch-20-movement-form-comparison"><span class="bk-chnum">Chapter 20</span>Movement Form Comparison</h1>
+<h1 class="bk-chapter" id="ch-22-movement-form-comparison"><span class="bk-chnum">Chapter 22</span>Movement Form Comparison</h1>
 
 > Upload a clip of your own movement and a reference clip of the same exercise, and see where your form differs. Body pose is tracked in both, six joint angles (elbows, knees, hips) are computed from 3D landmarks, and the two clips are stretched onto a shared 0-100% movement-phase axis so a 4-second rep compares directly against a 6-second one. Joints are ranked by how far apart they drift, with the single worst moment called out for each. Assumes one person and one full rep per clip — a training aid, not a clinical assessment. Runs entirely in the browser; no video leaves your device.
 
@@ -4579,7 +5097,7 @@ alignment needed despite the clips' different lengths.
   baggy clothing, or an unusual camera angle can degrade MediaPipe's
   landmark detection, which propagates into the angle measurements.
 
-<h1 class="bk-chapter" id="ch-21-ppe-compliance-check"><span class="bk-chnum">Chapter 21</span>PPE Compliance Check</h1>
+<h1 class="bk-chapter" id="ch-23-ppe-compliance-check"><span class="bk-chnum">Chapter 23</span>PPE Compliance Check</h1>
 
 > Upload a site photo and see, per person, whether a hard hat and safety vest are visible. A dedicated PPE detection model is used rather than a general object detector, since general detectors have no safety-vest class at all. Compliance is only ever read from an explicit present or absent signal the model was trained on — never inferred from something simply not being detected — so an unclear photo returns 'unclear' instead of a false pass. Low-resolution images weaken the result noticeably.
 
@@ -4656,7 +5174,7 @@ being worn by anyone.
   even for genuinely-worn PPE (seen directly in testing: a top-down
   camera angle scored a real, clearly-worn vest at only 39% confidence).
 
-<h1 class="bk-chapter" id="ch-22-photo-library-visual-search"><span class="bk-chnum">Chapter 22</span>Photo Library Visual Search</h1>
+<h1 class="bk-chapter" id="ch-24-photo-library-visual-search"><span class="bk-chnum">Chapter 24</span>Photo Library Visual Search</h1>
 
 > Upload a batch of photos and describe what you are looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP puts the images and your words in the same embedding space, so nothing needs tagging or captioning first. Nothing is stored between searches.
 
@@ -4738,7 +5256,7 @@ photos and results only exist in your browser tab for that session.
 - This is search over a batch you upload in-session, not a persistent
   photo library — nothing is saved after you leave the page.
 
-<h1 class="bk-chapter" id="ch-23-plant-growth-quantification"><span class="bk-chnum">Chapter 23</span>Plant Growth Quantification</h1>
+<h1 class="bk-chapter" id="ch-25-plant-growth-quantification"><span class="bk-chnum">Chapter 25</span>Plant Growth Quantification</h1>
 
 > Track how a plant is actually growing. Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo of several plants to compare their sizes against each other. Foliage area is measured by an HSV green-hue threshold — no model, no API call. Several plants in one shot are separated automatically, and a before/after collage is split and charted as growth. It also reports a vegetation index (a yellowing signal independent of size) and a leaf count, so a decline can show up in the numbers before you can see it.
 
@@ -4919,7 +5437,256 @@ rough "if nothing changes" projection, not a forecast.
 - All the core measurement (mask, growth %, greenness, leaf count) runs
   locally with no API cost; only species/health ID uses a paid AI call.
 
-<h1 class="bk-chapter" id="ch-24-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 24</span>Text-Prompted Video Object Tracking</h1>
+<h1 class="bk-chapter" id="ch-26-pose-vj-visuals"><span class="bk-chnum">Chapter 26</span>Pose VJ Visuals</h1>
+
+> Turn on your camera and drive a live generative particle visual with your hand movements. Hand landmarks are tracked in your browser by MediaPipe, so no video frame leaves your device. Switch the microphone on as well and particle size and density react to live volume — raw loudness, not beat or genre detection.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Client-Side · No API Cost |
+| **Model or method** | MediaPipe HandLandmarker (client-side WASM) |
+| **What you give it** | Webcam + optional microphone |
+| **Backend Calls** | 0 |
+| **Where it runs** | In your browser — the file never leaves your machine |
+| **Find it at** | `/tools/pose-vj-visuals` |
+
+</div>
+
+## What problem it solves
+
+Nothing, in the sense the rest of this book means it. There is no dataset, no
+score, no verdict, no file to download.
+
+It is here for a different reason. Every other Computer Vision tool in this app
+uses a model to *decide* something — is this real, how far away is that, what
+object is this. This one uses a model as an **instrument**. Your hands move,
+MediaPipe reports where they are sixty times a second, and coloured particles
+stream off your fingertips and fade. Turn on the microphone and they swell with
+the volume in the room.
+
+It is the demonstration that computer vision does not only classify. And it is
+the tool with the cleanest technical claim in the whole app: **zero backend
+calls**. No video frame ever leaves your machine.
+
+## How it works, step by step
+
+1. **Turn the camera on.** The browser asks permission; the video element is
+   local.
+2. **The hand model loads.** MediaPipe's `HandLandmarker` fetches its WASM
+   runtime and an ~8 MB model file from Google's CDN on first use — lazily, not
+   bundled, so no one who never opens this page pays for the download.
+3. **A frame loop starts.** On every `requestAnimationFrame`, the current video
+   frame is passed to `detectForVideo`, which returns up to **two hands**, each
+   as **21 landmarks** in normalised 0–1 coordinates.
+4. **Particles spawn from six of those landmarks** — the wrist and the five
+   fingertips. Each keeps its position from the previous frame, so the movement
+   between frames gives a velocity.
+5. **Particles live their own life.** They inherit some of your hand's velocity
+   plus a random kick, drift, slow down, shrink and fade over roughly 40–80
+   frames.
+6. **Optionally, turn the microphone on.** A separate opt-in. Volume then drives
+   how many particles spawn and how large they start.
+
+## The model or algorithm
+
+### MediaPipe HandLandmarker
+
+Google's hand-tracking model, running as WASM plus WebGL in the browser. It
+returns 21 points per hand — four joints per finger plus the wrist — in
+normalised image coordinates, and it handles up to two hands here.
+
+Landmark detection of this kind is normally a two-stage pipeline: a palm
+detector finds hands in the frame, then a landmark model runs on each cropped
+hand. In `VIDEO` running mode it also tracks between frames rather than
+re-detecting from scratch every time, which is what makes it fast enough to run
+at animation frame rate on a laptop.
+
+The important property for this tool is that it is **small and local**. There is
+no server round trip, which means no latency budget, no cost per frame, and —
+the part that matters most for a webcam tool — **no privacy question to answer.**
+The card's "0 backend calls" is a literal claim about the code.
+
+### The particle system
+
+The physics is deliberately simple, and each piece produces a visible effect.
+
+**Velocity is inherited, not invented.** A landmark's velocity is its change in
+position since the last frame, damped to 0.4. Particles spawn with half of that
+plus a random component. So a slow hand produces a gentle drift and a fast swipe
+throws a streak — the visual reads as a response to *you*, rather than as an
+animation that happens to be near your hand.
+
+**Spawn count reacts to both inputs:**
+
+```
+spawnCount = round((1 + speed × 0.3 + amplitude × 6) × density)
+```
+
+The baseline of 1 means a completely still hand still emits, so the visual never
+dies while you are in frame. Speed adds a little; amplitude adds a lot — a
+weighting of 6 against 0.3, which is what makes the sound the dominant driver
+once the microphone is on.
+
+**Drag, not gravity.** Each frame, `vx *= 0.96` and `vy *= 0.96`. Particles
+decelerate smoothly to a stop instead of falling, which reads as smoke or light
+rather than as physical debris.
+
+**Everything fades together.** With `t = 1 − life/maxLife`, the same value drives
+both alpha and radius, so a particle shrinks as it dims and never disappears
+abruptly.
+
+**The trail is the trick.** The canvas is never cleared. Instead each frame
+paints a translucent dark rectangle over the whole thing:
+
+```js
+ctx.fillStyle = "rgba(8, 8, 14, 0.18)";
+ctx.fillRect(0, 0, width, height);
+```
+
+Every previous frame therefore survives at 82% opacity, then 67%, then 55% —
+motion leaves a decaying trail rather than a series of discrete blips. It is the
+oldest trick in creative coding and the single line that makes the difference
+between this looking alive and looking like scattered dots.
+
+**Stale points are dropped.** Any tracked landmark not seen this frame is
+deleted, so a hand leaving and re-entering the frame does not compute a velocity
+against its position from ten seconds ago and fire a burst across the screen.
+Small detail; without it the tool would misfire every time you took your hand
+out of shot.
+
+**The x-axis is mirrored** (`x = (1 − p.x) × width`) so the visual matches a
+mirror, which is what a webcam view should do.
+
+### The audio path
+
+Web Audio's `AnalyserNode` with `fftSize = 256`, reading the **time-domain**
+waveform rather than the frequency spectrum, and computing RMS:
+
+```
+amplitude = min(1, √(mean of ((sample − 128)/128)²) × 4)
+```
+
+RMS is the right measure for perceived loudness — it accounts for the whole
+waveform rather than the peak, so a single click does not register the same as a
+sustained note. The ×4 is a gain factor, because normal room audio through a
+laptop microphone produces RMS values well under 0.25 and would otherwise never
+reach the top of the range.
+
+**It is loudness, and nothing more.** No beat detection, no onset detection, no
+frequency analysis, no genre. The tool and its card both say so. The waveform
+data is read but the spectrum is not — a beat detector would need the FFT
+magnitudes, an energy history and a threshold above a running average, and none
+of that is here.
+
+## Why these choices
+
+**Why the mic is a separate opt-in.** A microphone permission prompt is a bigger
+ask than a camera one, and plenty of people will want the visual without it. Two
+prompts, each for a thing you actually asked for.
+
+**Why the render loop reads from a ref, not from props.** This is the one piece
+of React reasoning worth stating. The animation loop is set up once and runs at
+60 fps; hand landmarks and amplitude update at the same rate. Passing them as
+dependencies would tear down and rebuild the loop sixty times a second. Instead
+the latest values are written into a ref on every render and the loop reads that
+ref — so it stays alive and always sees current data. Same pattern, and same
+reason, as the pause flag in Pipeline Cinema.
+
+**Why the model loads lazily from a CDN.** 8 MB in the bundle would slow the
+whole site for every visitor, and almost none of them will open this page.
+
+**Why hands rather than full-body pose.** Hands are expressive, they are what is
+in frame when you are sitting at a laptop, and 21 landmarks per hand gives far
+more control than the handful of upper-body points a pose model would resolve at
+that distance. *That is my reading of the choice; the code records the model,
+not the argument for it.*
+
+**Why 2D canvas rather than WebGL.** At a few thousand particles the difference
+does not show, and 2D canvas keeps the code short enough to read.
+
+## How to read the output
+
+There is no output to read, which is the point. But some things are worth
+knowing:
+
+- **A still hand still emits.** That is the baseline of 1 in the spawn formula,
+  not a stuck loop.
+- **Fast movement produces streaks**, because particles inherit your velocity.
+- **With the mic on, the visual reacts to loudness only.** It will respond to
+  music, clapping, a passing lorry and you talking, and it does not know which
+  is which.
+- **Two hands maximum.** A third in frame is not tracked.
+- **Poor light degrades tracking**, and particles will stutter or stop — that is
+  the model losing the hand, not the visual failing.
+- **A load error means the CDN could not be reached.** The model is fetched at
+  runtime, so this needs a connection the first time.
+
+## Limits
+
+- **Two hands, and hands only.** No body, no face, no objects.
+- **Loudness, not music.** No beat, tempo, onset or frequency response.
+- **Requires the model download** from Google's CDN on first use — the tool is
+  client-side once loaded, not offline-capable from cold.
+- **Tracking quality is the ceiling.** Bad light, motion blur, a hand partly out
+  of frame, or a busy background all cost landmarks, and the visual follows.
+- **No recording or export.** Nothing is saved; it exists while you watch it.
+- **One visual style.** Hue and density are adjustable; the particle behaviour
+  is not.
+- **Fixed at 60 fps via `requestAnimationFrame`** — a slower machine drops
+  frames and the motion coarsens.
+- **The mic is read but barely used.** One number out of a whole spectrum.
+
+## Likely interview questions
+
+**"What is this for?"**
+It is a demonstration that a vision model can be an instrument rather than a
+classifier. It also proves a specific engineering claim that matters for the
+rest of the app's camera tools: the model runs entirely in the browser, so no
+video frame is ever transmitted. That is a much stronger privacy statement than
+a policy, because it is a property of where the code runs.
+
+**"Why run the model client-side? What did you give up?"**
+Privacy, latency and cost — no frames transmitted, no round trip in a 60 fps
+loop, no per-frame server bill. What you give up is model size and control: you
+are limited to what will run in WASM in a tab, and to whatever Google ships at
+that CDN, with no ability to fine-tune it. For real-time interaction that trade
+is obviously right; for a heavy model like the depth estimator in the previous
+chapter it is obviously wrong, which is why that one runs server-side.
+
+**"How does the trail effect work?"**
+The canvas is never cleared. Each frame paints a translucent dark rectangle over
+the whole thing — about 18% opacity — so earlier frames survive, fading
+geometrically. It costs one `fillRect` per frame and turns a scatter of dots
+into motion with a history.
+
+**"Why is the animation loop reading from a ref?"**
+Because it runs at 60 fps and its inputs change at 60 fps. If the landmarks and
+amplitude were effect dependencies, the loop would be cancelled and recreated
+every frame, which is both wasteful and a source of dropped frames. Writing the
+latest values into a ref on each render lets the loop stay alive and still read
+current data. The general rule: state for what React should render, refs for
+what an imperative loop needs to read.
+
+**"You call it audio-reactive. Is it?"**
+It reacts to volume, and I would be careful not to oversell it — the card says
+so too. It computes RMS amplitude from the time-domain waveform and uses that to
+drive particle count and size. It has no idea where the beat is. Real beat
+detection needs the frequency spectrum, an energy history per band, and onset
+detection against a running average — the `AnalyserNode` could give me the FFT
+for it, and I simply did not build that.
+
+**"Why do you delete tracked points for hands you can no longer see?"**
+Because velocity is the difference between this frame's position and the last
+one's. If a hand leaves the frame and comes back somewhere else, a stale
+previous position produces an enormous fake velocity and fires a burst of
+particles across the screen. Dropping unseen landmarks each frame means a
+returning hand starts from zero velocity, which is correct.
+
+<h1 class="bk-chapter" id="ch-27-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 27</span>Text-Prompted Video Object Tracking</h1>
 
 > Upload a short clip, type what to follow — 'the red backpack' — and get that object masked through the rest of the video. Grounding DINO locates it in the first frame, then SAM2 tracks it forward using its video memory. The result is a downscaled, reduced-framerate preview rather than a full-resolution export.
 
@@ -5012,7 +5779,244 @@ every frame of a zoom.
   a real, published limitation of video segmentation models, not unique
   to this tool.
 
-<h1 class="bk-chapter" id="ch-25-wildlife-re-identification"><span class="bk-chnum">Chapter 25</span>Wildlife Re-Identification</h1>
+<h1 class="bk-chapter" id="ch-28-text-to-image-generator"><span class="bk-chnum">Chapter 28</span>Text-to-Image Generator</h1>
+
+> Type a description and get an image back — no input photo needed, just a prompt. This one runs on Gemini's paid image model, so a small daily generation budget applies to keep the API cost predictable.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Describe It, Generate It |
+| **Model or method** | Gemini (gemini-3.1-flash-lite-image) |
+| **What you give it** | Text prompt |
+| **Prompt In** | 1 |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/text-to-image` |
+
+</div>
+
+## What problem it solves
+
+Every other Computer Vision tool in this book takes a picture and tells you
+something about it. This one goes the other way: you type a sentence and it
+gives you a picture that did not exist.
+
+That inversion is why it is here. It is the app's only **generative** vision
+tool, and it is also the only one that costs real money per use — which turns
+out to be the more interesting engineering problem, and the one worth being able
+to talk about.
+
+## How it works, step by step
+
+1. **Type a prompt.** Up to 2,000 characters.
+2. **Optionally shape it.** Pick a style, an aspect ratio, and a negative prompt
+   — things to keep out of the picture, up to 500 characters.
+3. **Optionally have the prompt written for you.** *Enhance* sends your short
+   phrase to a text model and gets back a fuller description.
+4. **Or start from a picture instead of a phrase.** *Describe image* sends an
+   image you upload to a vision model, which returns a prompt describing it —
+   useful for matching a style you can see but cannot name.
+5. **Generate.** The server checks its daily budget, assembles the final prompt,
+   makes one call to Gemini's image model, and returns the image bytes with
+   their real MIME type.
+6. **Keep or continue.** The last six images are kept in your browser. Any of
+   them can be sharpened, edited by a further instruction, or compared side by
+   side against another generation.
+
+## The model or algorithm
+
+The image model is `gemini-3.1-flash-lite-image`, called over Google's
+Generative Language API. This tool does not train, fine-tune or run a diffusion
+model of its own — it is a client. So the engineering worth explaining is what
+sits either side of that call.
+
+### The prompt is assembled on the server, from a fixed vocabulary
+
+Style and aspect ratio are **not** free text. The client sends a key —
+`watercolor`, `landscape` — and the server looks it up in a fixed table and
+appends a known-good phrase:
+
+```python
+_STYLES = {
+  "photorealistic": "in a photorealistic photographic style",
+  "watercolor":     "in a soft watercolor painting style",
+  "anime":          "in a vibrant anime/manga art style",
+  ...
+}
+```
+
+The reason is stated in the code: a client can only ever pick a key, never
+inject arbitrary text into that part of the prompt. Building the final string
+server-side is the same instinct as never trusting a client-supplied SQL
+fragment — the user's own prompt is theirs to write, but the scaffolding around
+it is not.
+
+### The budget — the real engineering here
+
+Each image costs roughly four cents. A text box that generates one is an
+invitation to press the button forty times in a row, and nobody doing that
+intends to run up a bill.
+
+So every call passes through `check_and_record_call`, which keeps a per-day
+counter and refuses once the cap is hit. There are **three separate pools**, and
+the separation is the interesting part:
+
+| Pool | Cap/day | Used by |
+|---|---|---|
+| `shared` | 40 | sharpen and AI-fill — both **edit an image you already have** |
+| `text2img` | 15 | this tool |
+| `species_id` | 30 | the plant identifier |
+
+Text-to-image gets its own smaller pool deliberately. The reasoning recorded in
+the code: a free-text generator invites casual re-rolling with no reuse value
+per call, and if it shared the editing pool, an afternoon of experimenting would
+exhaust the budget and leave sharpen and AI-fill dead for everyone else for the
+rest of the day. **Separate pools mean one tool's failure mode cannot starve
+another's.**
+
+The module is candid about where it came from: it was built after repeated
+live-testing across one debugging session ran the billing account down toward
+its limit — each individual call reasonable, never totalled up. It is also
+candid about its limit: the counter is in memory, so a restart resets it. The
+argument for accepting that is precise — the failure mode being guarded against
+is a *same-day burst*, and a restart resetting the count does not enable one.
+
+### Two live findings recorded in the code
+
+Both are the kind of thing you only learn by making the call, and both are
+written down where the next person will find them.
+
+**The response is JPEG, not PNG.** Every other caller of this model in the
+codebase attaches an input image and gets PNG back. A text-only request returns
+`mimeType: "image/jpeg"`. So the endpoint returns the response's *actual* MIME
+type rather than assuming — and the edit path re-encodes to PNG before sending
+the image to sharpen or AI-fill, because those endpoints expect PNG.
+
+**Seeds do not work, and were removed.** Passing `generationConfig.seed` is
+accepted without error, so it looks like it works. Two calls with the identical
+prompt and seed 42 returned genuinely different images — different SHA-256,
+different byte lengths, 546,436 against 539,208. The code carries an explicit
+instruction not to re-add the field without new evidence. This is the honest
+version of a negative result: the API accepted the parameter and did not honour
+it, and only a byte-level comparison of two responses would have caught it.
+
+### Enhance and Describe run on a different, free path
+
+Both are plain text or vision completions, not the billed image model, so
+neither touches the budget. They use the same provider cascade as the rest of
+the app — Mistral, then Gemini, then Cohere, each with its own server key,
+taking the first that answers. If every provider is unavailable, *Enhance*
+returns your original prompt with `ok: false` rather than an error, so a flaky
+free tier can never block you from generating with what you already typed.
+
+### No content pre-check, deliberately
+
+There is no safety filter in front of the model, and the code says why: the
+sharpen and AI-fill endpoints already pass arbitrary user text to the same model
+with no filtering, a safety refusal already lands in the existing "no image
+part" error path, and a custom pre-check would itself be a second billed call —
+working directly against the cost discipline the budget exists to enforce.
+
+## Why these choices
+
+**Why a separate, smaller pool.** Answered above, and it generalises: when two
+features share a limited resource, the one with the cheaper failure mode should
+not be able to consume the other's share.
+
+**Why the enhance cascade degrades to the original prompt.** A helper that fails
+loudly and blocks the main action is worse than one that quietly does nothing.
+
+**Why history is capped at six.** The images are base64 strings in
+`localStorage`, which has roughly a 5 MB quota. Six is what fits with room to
+spare, and the write is wrapped so that exceeding the quota loses the history
+entry rather than breaking the tool.
+
+**Why history is populated after mount, not during render.** Reading
+`localStorage` during the first render caused a genuine hydration mismatch — the
+server has no `localStorage`, so its HTML and the browser's first render
+disagreed. The state starts empty to match the server, and fills in afterwards.
+
+**Why grid variations are not each saved to history.** They would fill the small
+budget with near-duplicates of one prompt.
+
+## How to read the output
+
+- **A budget message is not an error.** *"Daily text-to-image budget reached (15
+  calls) — resets at UTC midnight"* means the cap did its job. It is a project-
+  wide cap, not a per-user one.
+- **The image is JPEG.** If you are chaining it into something that expects PNG,
+  convert first — which is what the built-in edit buttons do for you.
+- **The same prompt twice gives different images.** That is the model, not a
+  bug, and there is no seed that will fix it. Generate variations and pick.
+- **Negative prompts are advisory.** They are appended as text, not enforced as
+  a constraint. The model usually respects them and sometimes does not.
+- **Style and aspect ratio are prompt text too** — the aspect ratio asks the
+  model to *compose* for 16:9, it does not set the output dimensions.
+- **`ok: false` from Enhance** means every text provider was unavailable and you
+  are looking at your original prompt.
+
+## Limits
+
+- **A hard daily cap of 15 generations** across everyone using the site.
+- **No reproducibility.** No working seed, so an image you liked cannot be
+  regenerated — save it.
+- **The aspect ratio is a request, not a setting.**
+- **No image dimensions, quality or step controls.** Those belong to a diffusion
+  model you host yourself; this is one API call.
+- **No content filtering in front of the model.** Refusals come back from the
+  provider as a failed call.
+- **History is per-browser, capped at six**, and lost if site data is cleared.
+- **The budget counter is in memory** and resets when the Space restarts.
+- **You are renting a model, not owning one.** If Google deprecates
+  `gemini-3.1-flash-lite-image` or changes its pricing, this tool changes with
+  it. That is the trade for not hosting a GPU.
+
+## Likely interview questions
+
+**"You built a feature that costs money per call. How did you stop it running
+away?"**
+A daily cap enforced server-side before the call, and — the part I would
+emphasise — **three separate budget pools** rather than one. The generator gets
+its own smaller pool because free-text generation invites casual re-rolling with
+no reuse value, and sharing a pool would let an afternoon of experimenting kill
+the editing features for everyone else. It was built after a real incident where
+live-testing during one debugging session ran the billing account down; each
+call was individually reasonable and nobody totalled them up.
+
+**"Your budget counter is in memory. Isn't that broken?"**
+It is a known gap and I would rather state it than hide it: a restart resets the
+count, so a determined attacker could exceed the cap by waiting one out. But the
+failure mode it was built for is a same-day burst — a hundred rapid calls in one
+session — and a restart does not enable that. A durable counter needs a database
+this deployment does not have. It is an accepted trade with a stated reason, not
+an oversight.
+
+**"How did you find out the seed parameter didn't work?"**
+By checking rather than trusting. The API accepted `generationConfig.seed`
+without an error, which is exactly what a working parameter looks like. Two
+calls with the same prompt and seed came back with different SHA-256 hashes and
+different byte lengths. The feature was removed and the finding written into the
+module docstring with the numbers, so nobody re-adds it on the assumption that
+an accepted parameter is an honoured one.
+
+**"Why not run Stable Diffusion yourself instead of paying per image?"**
+Because it needs a GPU, and this whole app runs on free-tier CPU hosting. Self-
+hosting buys reproducible seeds, no per-call cost, full control of resolution
+and steps, and no dependency on someone else's deprecation schedule — at the
+cost of a machine that costs more per month idle than this API costs per year at
+15 images a day. Given the traffic, renting is the right call; at scale the
+maths flips.
+
+**"Why is the style a key rather than free text?"**
+So the client can never inject arbitrary text into the prompt the server sends.
+The user's own description is theirs, but the scaffolding around it — style,
+aspect ratio — is assembled server-side from a fixed table. Same instinct as not
+letting a client supply a fragment of a SQL query.
+
+<h1 class="bk-chapter" id="ch-29-wildlife-re-identification"><span class="bk-chnum">Chapter 29</span>Wildlife Re-Identification</h1>
 
 > Upload a new sighting and a gallery of past ones and see which individual animal it most likely matches. The animal is cropped out of each photo, then compared using MegaDescriptor, a foundation model built specifically for individual animal re-identification rather than a general-purpose vision embedding. Treat it as a ranking aid, not an identification system — the same/uncertain/different bands are not calibrated against a benchmark. MegaDescriptor is CC-BY-NC-4.0, so non-commercial use only.
 
@@ -5109,7 +6113,7 @@ Checking whether something can be trusted: files, links, emails, packages, model
 
 </div>
 
-<h1 class="bk-chapter" id="ch-26-ai-generated-code-detector"><span class="bk-chnum">Chapter 26</span>AI-Generated Code Detector</h1>
+<h1 class="bk-chapter" id="ch-30-ai-generated-code-detector"><span class="bk-chnum">Chapter 30</span>AI-Generated Code Detector</h1>
 
 > Paste a code snippet and see the stylometric signals people associate with AI authorship — comment density, generic naming, docstring formality, exception handling, boilerplate phrasing — alongside an independent LLM opinion, shown side by side. It deliberately never returns a probability or an 'AI-written' verdict, because no reliable general-purpose detector exists in the published research and a confidence number here would be invented.
 
@@ -5191,7 +6195,7 @@ itself just another style, not a determination of authorship either way.
   (job interviews, academic integrity, code review) — using it that way
   would be exactly the overclaiming this tool is built to avoid.
 
-<h1 class="bk-chapter" id="ch-27-adversarial-robustness-lab"><span class="bk-chnum">Chapter 27</span>Adversarial Robustness Lab</h1>
+<h1 class="bk-chapter" id="ch-31-adversarial-robustness-lab"><span class="bk-chnum">Chapter 31</span>Adversarial Robustness Lab</h1>
 
 > Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.
 
@@ -5424,7 +6428,7 @@ Nothing is stored: your photo and the results only exist for this one run.
   (see the Adversarial training section above) — no manual cropping or
   thresholding needed on your end.
 
-<h1 class="bk-chapter" id="ch-28-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 28</span>Attack-Surface / Exposed-Path Scanner</h1>
+<h1 class="bk-chapter" id="ch-32-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 32</span>Attack-Surface / Exposed-Path Scanner</h1>
 
 > Enter a domain and see what it exposes to the open internet. Four passive checks run live: sensitive paths like .git/HEAD and .env (only flagged when the response really is that file, not merely a 200), Apache/nginx directory listings, CMS fingerprinting from the standard generator tag, and a short common-port connect check. It refuses to touch private, loopback or internal addresses, and reports real findings for you to weigh rather than a made-up risk score.
 
@@ -5496,7 +6500,7 @@ either — plenty of legitimate servers run SSH or a database port openly
 by design; it's evidence worth reviewing in context, not an automatic
 verdict.
 
-<h1 class="bk-chapter" id="ch-29-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 29</span>Binary Byte-Plot & Entropy Triage</h1>
+<h1 class="bk-chapter" id="ch-33-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 33</span>Binary Byte-Plot & Entropy Triage</h1>
 
 > Upload any file and see its structure as a picture. The bytes are rendered as the grayscale byte-plot used in malware-visualisation research, next to a sliding-window entropy heatmap — sustained near-random entropy is an established sign of packed or encrypted content, the same signal tools like PEiD look for. Windows executables also get a PE header check for a classic packer tell. It won't name a malware family — no dependable pretrained model exists for that — and it never executes the file: static byte analysis only, up to 5MB.
 
@@ -5578,7 +6582,7 @@ visible structure, and the entropy heatmap renders almost entirely red
 - Never executes, opens, or interprets the uploaded file's actual code —
   only reads its raw bytes.
 
-<h1 class="bk-chapter" id="ch-30-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 30</span>Browser Extension Permission Risk Analyzer</h1>
+<h1 class="bk-chapter" id="ch-34-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 34</span>Browser Extension Permission Risk Analyzer</h1>
 
 > Paste a Chrome or Edge extension's manifest.json and see what it is allowed to do. Checks individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history), broad host access, and dangerous combinations — broad host access plus network interception plus cookies together enable session hijacking on any site. This reads declared permissions, not behaviour: a legitimate password manager needs much the same access, so findings are framed as worth a closer look, never a judgement of intent.
 
@@ -5661,7 +6665,7 @@ access.
   array) and V3 (\`host_permissions\` as a separate field) formats.
 - Entirely client-side — nothing you paste is sent anywhere.
 
-<h1 class="bk-chapter" id="ch-31-captcha-hardening-lab"><span class="bk-chnum">Chapter 31</span>CAPTCHA Hardening Lab</h1>
+<h1 class="bk-chapter" id="ch-35-captcha-hardening-lab"><span class="bk-chnum">Chapter 35</span>CAPTCHA Hardening Lab</h1>
 
 > Upload a CAPTCHA-style image and watch a vision-language model try to read it — modern VLMs handle plain text CAPTCHAs far more easily than classic OCR ever did. One intensity slider then stacks three model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast reduction) and the model tries again, side by side. Nothing gradient-based is used, because the solver here is a black box — the same constraint a real CAPTCHA vendor faces. It only ever reads an image you upload; it never contacts a live CAPTCHA on a real site.
 
@@ -5739,7 +6743,7 @@ of you.
 - Never submits to, or interacts with, a live CAPTCHA challenge on any
   real website — upload-only, one image per request.
 
-<h1 class="bk-chapter" id="ch-32-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 32</span>DNS Tunneling / Exfiltration Detector</h1>
+<h1 class="bk-chapter" id="ch-36-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 36</span>DNS Tunneling / Exfiltration Detector</h1>
 
 > Paste a DNS query log, or check a single hostname, and spot possible tunnelling or exfiltration. Uses the published heuristics real tools rely on for this (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy and query volume per parent domain. A domain is only flagged when several signals agree, so ordinary long CDN-style subdomains don't trip it. Pure heuristics, no model, fully client-side.
 
@@ -5822,7 +6826,7 @@ it isn't proof no tunneling is happening, and a genuinely sophisticated
 tunnel could pace its queries or use lower-entropy encoding specifically to
 stay under these thresholds.
 
-<h1 class="bk-chapter" id="ch-33-email-header-authentication-checker"><span class="bk-chnum">Chapter 33</span>Email Header Authentication Checker</h1>
+<h1 class="bk-chapter" id="ch-37-email-header-authentication-checker"><span class="bk-chnum">Chapter 37</span>Email Header Authentication Checker</h1>
 
 > Paste raw email headers and see whether the sender checks out. You get two things: what the receiving mail server's own Authentication-Results already concluded about SPF, DKIM and DMARC (relayed, not re-verified), and independent live DNS lookups of the sending domain's real records, plus a From: alignment check. It does not cryptographically verify the DKIM signature — that needs the full message body — and says so rather than implying otherwise.
 
@@ -5907,7 +6911,7 @@ claiming "phishing detected" outright.
   protected against spoofing — it is not proof that a specific email is
   fraudulent.
 
-<h1 class="bk-chapter" id="ch-34-face-cloak"><span class="bk-chnum">Chapter 34</span>Face Cloak</h1>
+<h1 class="bk-chapter" id="ch-38-face-cloak"><span class="bk-chnum">Chapter 38</span>Face Cloak</h1>
 
 > Add a barely-visible perturbation to a photo so face-recognition models place it somewhere other than your real face. A simplified take on Fawkes, the privacy technique built to counter unauthorised facial-recognition scraping. You get the actual measured drop in embedding similarity, and an honest caveat: this protects the copy you cloak, not photos of you already scraped elsewhere.
 
@@ -5994,7 +6998,7 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 - Nothing is stored: your photo and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-35-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 35</span>Face Deanonymization Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-39-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 39</span>Face Deanonymization Risk Demo</h1>
 
 > See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.
 
@@ -6075,7 +7079,7 @@ similarity score moved.
   of the target photo in this session — it cannot retroactively protect
   copies of the same photo already posted or scraped elsewhere.
 
-<h1 class="bk-chapter" id="ch-36-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 36</span>Keystroke Biometric Auth-Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-40-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 40</span>Keystroke Biometric Auth-Risk Demo</h1>
 
 > Type a short phrase three times to enrol a keystroke-timing profile, then type it once more and see how closely the rhythm matches. Scoring uses scaled Manhattan distance over dwell and flight times, a published approach for keystroke-dynamics anomaly detection. Try typing normally, then deliberately faster or hunt-and-peck, and watch the score move. A concept demo rather than a calibrated authenticator — and entirely client-side, with no server call.
 
@@ -6153,7 +7157,7 @@ problem), not a heuristic invented for this demo.
   patch the timing — corrected typos have a different rhythm than a
   clean run and would distort the profile.
 
-<h1 class="bk-chapter" id="ch-37-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 37</span>LLM Prompt Injection Detection Playground</h1>
+<h1 class="bk-chapter" id="ch-41-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 41</span>LLM Prompt Injection Detection Playground</h1>
 
 > Paste a prompt, or a document an AI might be asked to read, and see whether it tries to hijack the model. Two independent signals sit side by side: a transparent pattern library covering direct overrides, jailbreak roleplay, indirect injection and encoding tricks, and a separately-prompted LLM judge. They combine into an overall risk badge rather than one invented confidence number — no detector here is claimed to be reliable on its own.
 
@@ -6234,7 +7238,7 @@ alarms on any trigger word.
 - Treat this as a second opinion for learning and testing, not a security
   boundary you'd deploy as-is in front of a production system.
 
-<h1 class="bk-chapter" id="ch-38-malicious-package-scanner"><span class="bk-chnum">Chapter 38</span>Malicious Package Scanner</h1>
+<h1 class="bk-chapter" id="ch-42-malicious-package-scanner"><span class="bk-chnum">Chapter 42</span>Malicious Package Scanner</h1>
 
 > Paste a package.json, requirements.txt or a source file and see what a supply-chain reviewer would flag. Checks for npm install-script hooks, dependency names that typosquat well-known packages, dynamic execution calls (eval, exec, subprocess), obfuscated high-entropy strings, embedded URLs, hardcoded secrets, SQL built by string interpolation, and unsafe deserialization. It matches attacker techniques rather than known signatures, which is what lets it flag packages nobody has seen before. Every hit is real evidence to judge, never a safe/malicious verdict. Runs fully in your browser.
 
@@ -6321,7 +7325,7 @@ well-known package names, and cannot detect more sophisticated evasion
 (code that's obfuscated below the entropy threshold, or a malicious
 payload fetched at runtime from a URL that isn't hardcoded in the source).
 
-<h1 class="bk-chapter" id="ch-39-password-strength-breach-checker"><span class="bk-chnum">Chapter 39</span>Password Strength & Breach Checker</h1>
+<h1 class="bk-chapter" id="ch-43-password-strength-breach-checker"><span class="bk-chnum">Chapter 43</span>Password Strength & Breach Checker</h1>
 
 > Check how strong a password really is. Scored in your browser by zxcvbn, the pattern-matching algorithm behind many real password meters — dictionaries, keyboard walks, dates, repeats — rather than naive character-class counting. You can also check it against Have I Been Pwned using k-anonymity: only the first five characters of its SHA-1 hash ever leave your machine, never the password itself. Nothing is stored.
 
@@ -6401,7 +7405,7 @@ only network request this tool ever makes is the 5-character hash-prefix
 lookup to \`api.pwnedpasswords.com\`, and only when you click the breach
 check button — never automatically, and never on every keystroke.
 
-<h1 class="bk-chapter" id="ch-40-phishing-email-body-classifier"><span class="bk-chnum">Chapter 40</span>Phishing Email Body Classifier</h1>
+<h1 class="bk-chapter" id="ch-44-phishing-email-body-classifier"><span class="bk-chnum">Chapter 44</span>Phishing Email Body Classifier</h1>
 
 > Paste an email's body text and see whether the writing itself reads like phishing — urgency, generic greetings, manipulative phrasing. A Multinomial Naive Bayes classifier trained on real phishing and legitimate mail shows you the exact words driving its score, next to a separate, transparent list of rule-based flags. Two signals shown side by side, never blended into one black-box number. Runs fully client-side — nothing you paste leaves your browser.
 
@@ -6474,7 +7478,7 @@ check like this one. Treat a "likely phishing" result as a real reason to
 scrutinize the email further, and a "likely safe" result as one signal
 among several, not a guarantee.
 
-<h1 class="bk-chapter" id="ch-41-qr-phishing-detector"><span class="bk-chnum">Chapter 41</span>QR Phishing Detector</h1>
+<h1 class="bk-chapter" id="ch-45-qr-phishing-detector"><span class="bk-chnum">Chapter 45</span>QR Phishing Detector</h1>
 
 > Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.
 
@@ -6596,7 +7600,7 @@ source you trust.
   for that link — it's never treated as suspicious on its own, only used
   when a real registration date is available.
 
-<h1 class="bk-chapter" id="ch-42-siem-alert-triage-agent"><span class="bk-chnum">Chapter 42</span>SIEM Alert Triage Agent</h1>
+<h1 class="bk-chapter" id="ch-46-siem-alert-triage-agent"><span class="bk-chnum">Chapter 46</span>SIEM Alert Triage Agent</h1>
 
 > Paste raw alert lines and get them grouped and prioritised. Near-identical alerts are deduplicated by template in your browser first, so only the grouped summary — never your raw log — is sent on to an LLM for a priority, a one-line reason and a suggested next step per group. Advisory only: every suggestion is written for you to act on, never phrased as something already done.
 
@@ -6675,7 +7679,7 @@ correlation across sessions). If the judge is temporarily unavailable, the
 grouping data is still shown on its own — the deduplication itself is
 useful even without a priority opinion layered on top.
 
-<h1 class="bk-chapter" id="ch-43-style-cloak"><span class="bk-chnum">Chapter 43</span>Style Cloak</h1>
+<h1 class="bk-chapter" id="ch-47-style-cloak"><span class="bk-chnum">Chapter 47</span>Style Cloak</h1>
 
 > Add a barely-visible perturbation across an image so its CLIP embedding drifts away from where a model would naturally place it — a simplified take on the Glaze and Nightshade approach to countering AI style-mimicry. You get the actual measured similarity drop, calibrated against an unrelated-image baseline, plus the honest caveat: it protects the copy you cloak, not images already scraped elsewhere.
 
@@ -6767,7 +7771,7 @@ applies to face-recognition embeddings instead of style embeddings.
 - Nothing is stored: your image and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-44-tls-security-headers-scanner"><span class="bk-chnum">Chapter 44</span>TLS / Security-Headers Scanner</h1>
+<h1 class="bk-chapter" id="ch-48-tls-security-headers-scanner"><span class="bk-chnum">Chapter 48</span>TLS / Security-Headers Scanner</h1>
 
 > Enter a domain and check its TLS and security headers the way Mozilla Observatory does. A real handshake verifies the certificate chain, expiry and protocol version, flagging deprecated SSLv3 and TLS 1.0/1.1, and a live request checks the six standard security headers. It refuses to connect to private, loopback or internal addresses, and gives a qualitative verdict with the actual warnings behind it rather than a numeric score.
 
@@ -6843,7 +7847,7 @@ expired or untrusted certificate is a real problem any browser would also
 flag), while a missing security header is a softer, defense-in-depth gap
 rather than proof of an active vulnerability.
 
-<h1 class="bk-chapter" id="ch-45-video-call-keystroke-inference"><span class="bk-chnum">Chapter 45</span>Video-Call Keystroke Inference</h1>
+<h1 class="bk-chapter" id="ch-49-video-call-keystroke-inference"><span class="bk-chnum">Chapter 49</span>Video-Call Keystroke Inference</h1>
 
 > Upload a short clip of someone typing and recover when the keys were pressed from hand motion alone. Frame-by-frame hand tracking feeds a tap detector on fingertip movement, producing a timeline of keystrokes, which hand, and likely word boundaries from the gaps — the same side channel behind published research on video keystroke inference. It stops at timing and does not attempt to recover what was typed: that needs per-target trained models this doesn't have. Runs in your browser; no video leaves your device.
 
@@ -6925,7 +7929,7 @@ over the keyboard.
 - 60-second clip cap, entirely client-side (MediaPipe WASM) — nothing is
   sent to any server.
 
-<h1 class="bk-chapter" id="ch-46-yara-file-scanner"><span class="bk-chnum">Chapter 46</span>YARA File Scanner</h1>
+<h1 class="bk-chapter" id="ch-50-yara-file-scanner"><span class="bk-chnum">Chapter 50</span>YARA File Scanner</h1>
 
 > Scan a file with real YARA — the same pattern-matching engine antivirus and threat-intel teams use to write and share detection rules. Run it against a small built-in rule set (EICAR, PowerShell LOLBin encoding, webshell and macro patterns, embedded-PE smuggling, an entropy rule), or write your own rule and test it, which is what YARA actually exists for. Your file is never executed, and every hit shows the matched string and offset rather than a bare verdict.
 
@@ -7057,17 +8061,17 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **ASL Fingerspelling Recognition** *(ch. 16)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
 | **Astrophotography Anomaly Detector** *(ch. 17)* | Frame Differencing + Hough Transform | On the server |
 | **Crime Scene Reconstruction** *(ch. 18)* | Sparse SfM | On the server |
-| **Depth Parallax** | One Photo, Instant 3D | On the server |
-| **Face Liveness Detector** | Real vs. Spoofed | On the server |
-| **Gait Pattern Comparison** *(ch. 19)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Movement Form Comparison** *(ch. 20)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **PPE Compliance Check** *(ch. 21)* | YOLOv8n PPE | On the server |
-| **Photo Library Visual Search** *(ch. 22)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
-| **Plant Growth Quantification** *(ch. 23)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Pose VJ Visuals** | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Text-Prompted Video Object Tracking** *(ch. 24)* | Grounded-SAM | On the server |
-| **Text-to-Image Generator** | Describe It, Generate It | On the server |
-| **Wildlife Re-Identification** *(ch. 25)* | MegaDescriptor | On the server |
+| **Depth Parallax** *(ch. 19)* | One Photo, Instant 3D | On the server |
+| **Face Liveness Detector** *(ch. 20)* | Real vs. Spoofed | On the server |
+| **Gait Pattern Comparison** *(ch. 21)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Movement Form Comparison** *(ch. 22)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **PPE Compliance Check** *(ch. 23)* | YOLOv8n PPE | On the server |
+| **Photo Library Visual Search** *(ch. 24)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
+| **Plant Growth Quantification** *(ch. 25)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Pose VJ Visuals** *(ch. 26)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Text-Prompted Video Object Tracking** *(ch. 27)* | Grounded-SAM | On the server |
+| **Text-to-Image Generator** *(ch. 28)* | Describe It, Generate It | On the server |
+| **Wildlife Re-Identification** *(ch. 29)* | MegaDescriptor | On the server |
 
 </div>
 
@@ -7077,27 +8081,27 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **AI-Generated Code Detector** *(ch. 26)* | Signals, Not A Verdict | On the server |
-| **Adversarial Robustness Lab** *(ch. 27)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Attack-Surface / Exposed-Path Scanner** *(ch. 28)* | Live Recon · Zero ML | On the server, with a live external check |
-| **Binary Byte-Plot & Entropy Triage** *(ch. 29)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
-| **Browser Extension Permission Risk Analyzer** *(ch. 30)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **CAPTCHA Hardening Lab** *(ch. 31)* | VLM Read Attempt · Before/After | On the server |
-| **DNS Tunneling / Exfiltration Detector** *(ch. 32)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Email Header Authentication Checker** *(ch. 33)* | Live DNS · Zero ML | On the server |
-| **Face Cloak** *(ch. 34)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Face Deanonymization Risk Demo** *(ch. 35)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Keystroke Biometric Auth-Risk Demo** *(ch. 36)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
-| **LLM Prompt Injection Detection Playground** *(ch. 37)* | Pattern + LLM Judge | On the server |
-| **Malicious Package Scanner** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Password Strength & Breach Checker** *(ch. 39)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Phishing Email Body Classifier** *(ch. 40)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **QR Phishing Detector** *(ch. 41)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **SIEM Alert Triage Agent** *(ch. 42)* | Grouping + LLM Judge | On the server |
-| **Style Cloak** *(ch. 43)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **TLS / Security-Headers Scanner** *(ch. 44)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
-| **Video-Call Keystroke Inference** *(ch. 45)* | Client-Side Only | In your browser — the file never leaves your machine |
-| **YARA File Scanner** *(ch. 46)* | Live Engine · Real YARA | On the server, with a live external check |
+| **AI-Generated Code Detector** *(ch. 30)* | Signals, Not A Verdict | On the server |
+| **Adversarial Robustness Lab** *(ch. 31)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Attack-Surface / Exposed-Path Scanner** *(ch. 32)* | Live Recon · Zero ML | On the server, with a live external check |
+| **Binary Byte-Plot & Entropy Triage** *(ch. 33)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
+| **Browser Extension Permission Risk Analyzer** *(ch. 34)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **CAPTCHA Hardening Lab** *(ch. 35)* | VLM Read Attempt · Before/After | On the server |
+| **DNS Tunneling / Exfiltration Detector** *(ch. 36)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Email Header Authentication Checker** *(ch. 37)* | Live DNS · Zero ML | On the server |
+| **Face Cloak** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Face Deanonymization Risk Demo** *(ch. 39)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Keystroke Biometric Auth-Risk Demo** *(ch. 40)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
+| **LLM Prompt Injection Detection Playground** *(ch. 41)* | Pattern + LLM Judge | On the server |
+| **Malicious Package Scanner** *(ch. 42)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Password Strength & Breach Checker** *(ch. 43)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Phishing Email Body Classifier** *(ch. 44)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **QR Phishing Detector** *(ch. 45)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **SIEM Alert Triage Agent** *(ch. 46)* | Grouping + LLM Judge | On the server |
+| **Style Cloak** *(ch. 47)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **TLS / Security-Headers Scanner** *(ch. 48)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
+| **Video-Call Keystroke Inference** *(ch. 49)* | Client-Side Only | In your browser — the file never leaves your machine |
+| **YARA File Scanner** *(ch. 50)* | Live Engine · Real YARA | On the server, with a live external check |
 
 </div>
 
