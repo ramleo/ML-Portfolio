@@ -127,3 +127,16 @@ html.light .hb-body .bk-part-4 { --hb-hue: #be123c; }
 }
 .hb-body a.bk-toc-part:hover { color: var(--hb-hue); }
 .hb-body a.bk-toc-chapter { display: block; padding-left: 1.1rem; font-size: 0.9rem; }
+
+/* Screen equivalents of the print colour, for the parts of the page that had
+   stayed grey: the appendix's area tables, fenced code, and rules. */
+.hb-body .bk-appendix h1, .hb-body .bk-appendix h3 { color: var(--hb-hue); }
+.hb-body .bk-appendix h3 { border-left: 3px solid var(--hb-hue);
+  padding-left: 0.55rem; margin-left: -0.75rem; }
+.hb-body pre { border-left: 3px solid var(--hb-hue); padding: 0.7rem 0.9rem;
+  margin: 0 0 1.1rem; background: var(--bg-glass); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  overflow-x: auto; }
+.hb-body pre code { background: none; border: 0; padding: 0; color: var(--text); }
+.hb-body hr { border-top: 2px solid var(--hb-hue); opacity: 0.35; }
+.hb-body a.bk-toc-chapter { border-left: 2px solid var(--hb-hue);
+  padding-left: 0.9rem; margin-left: 0.2rem; }

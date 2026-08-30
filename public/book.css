@@ -23,6 +23,21 @@
 @page right { @top-right { content: string(chapter);      font-size: 8pt; color: #888;
                            font-family: Georgia, serif; letter-spacing: .04em; } }
 
+/* A margin box cannot read a custom property — @page rules sit outside the
+   document tree, so var(--hue) resolves to nothing there. Naming a page per
+   part is the way to colour a folio: the wrapper claims the name, and the
+   @page rule of that name styles its margin boxes. */
+/* `.bk-part.bk-part-N`, not `.bk-part-N` alone: the appendix's four area
+   tables and the contents rows carry the colour class too, and a named page
+   forces a break wherever the name changes — which would cut the appendix
+   into four. Only the part wrappers claim a page name. */
+.bk-part.bk-part-1 { page: pt1; } .bk-part.bk-part-2 { page: pt2; }
+.bk-part.bk-part-3 { page: pt3; } .bk-part.bk-part-4 { page: pt4; }
+@page pt1 { @bottom-center { color: #047857; } @top-right { color: #047857; } }
+@page pt2 { @bottom-center { color: #4338ca; } @top-right { color: #4338ca; } }
+@page pt3 { @bottom-center { color: #0369a1; } @top-right { color: #0369a1; } }
+@page pt4 { @bottom-center { color: #be123c; } @top-right { color: #be123c; } }
+
 html, body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
   color: #1a1a1a; background: #fff;
   /* Print engines drop backgrounds and gradients by default. The coloured
@@ -58,7 +73,8 @@ p + p { text-indent: 1.2em; margin-top: -0.35em; }
 
 .bk-colophon { break-after: page; page-break-after: always; }
 .bk-colophon h2 { font-size: 13pt; font-weight: 400; font-variant: small-caps;
-  letter-spacing: .06em; margin: 0 0 .8em; }
+  letter-spacing: .06em; margin: 0 0 .8em; color: #047857;
+  border-bottom: 1.5pt solid #047857; padding-bottom: .3em; }
 
 /* ── Contents ── */
 .bk-toc { break-after: page; page-break-after: always; }
@@ -82,6 +98,10 @@ p + p { text-indent: 1.2em; margin-top: -0.35em; }
   margin-top: 1.1em; }
 a.bk-toc-part { color: var(--hue); font-weight: 700; }
 .bk-toc-chapter { font-size: 10pt; padding-left: 1.4em; }
+/* The chapter rows stay quiet, but a coloured tick in the left margin groups
+   them under their part without competing with the part heading itself. */
+a.bk-toc-chapter { border-left: 2pt solid var(--hue); padding-left: 1.2em;
+  margin-left: .2em; }
 
 /* ── One colour per part ──────────────────────────────────────────────────
    The four parts are the site's four areas, and each already owns a colour
@@ -96,8 +116,10 @@ a.bk-toc-part { color: var(--hue); font-weight: 700; }
 .bk-appendix { --hue: #52525b; }
 
 /* ── Parts and chapters ── */
-.bk-partpage { break-before: page; page-break-before: always; break-after: page;
-  page-break-after: always; padding-top: 30vh; }
+/* No break-before here. Switching to this part's named page already starts a
+   new sheet, and asking for a second break left a blank leaf in front of every
+   part title — four of them. break-after stays, so chapter 1 starts fresh. */
+.bk-partpage { break-after: page; page-break-after: always; padding-top: 30vh; }
 .bk-partpage h1 { font-size: 11pt; font-variant: small-caps; letter-spacing: .18em;
   color: var(--hue); font-weight: 700; margin: 0 0 .3em; }
 .bk-partpage h2 { font-size: 26pt; font-weight: 400; margin: 0 0 .5em;
@@ -141,7 +163,12 @@ body ol { list-style: decimal; }
 li { margin: .18em 0; }
 
 code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt;
-  background: #f4f4f4; padding: 0 .25em; border-radius: 2px; }
+  background: #f6f7f8; padding: 0 .25em; border-radius: 2px;
+  color: var(--hue); }
+/* A fenced block is a figure, not a phrase — it gets the rule, not the tint. */
+pre { border-left: 3pt solid var(--hue); padding: .5em .7em; margin: 0 0 1em;
+  background: #f6f7f8; break-inside: avoid; page-break-inside: avoid; }
+pre code { background: none; color: #1a1a1a; padding: 0; }
 
 table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: 9.5pt;
   break-inside: avoid; page-break-inside: avoid; }
@@ -154,8 +181,11 @@ th { text-align: left; font-variant: small-caps; letter-spacing: .05em;
 td { padding: 3.5pt 6pt; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
 td:first-child { width: 30%; color: #444; }
 
-hr { border: 0; border-top: 1px solid #ddd; margin: 1.6em 0; }
+hr { border: 0; border-top: 1.5pt solid var(--hue); opacity: .45; margin: 1.6em 0; }
 
 .bk-appendix { break-before: page; page-break-before: always; }
-.bk-appendix h1 { font-size: 19pt; font-weight: 400; string-set: chapter content(); }
+.bk-appendix h1 { font-size: 19pt; font-weight: 400; string-set: chapter content();
+  padding-bottom: .3em; border-bottom: 1.5pt solid var(--hue); }
+.bk-appendix h3 { color: var(--hue); border-left: 3pt solid var(--hue);
+  padding-left: .5em; margin-left: -.8em; }
 .bk-appendix td:first-child { width: 34%; }

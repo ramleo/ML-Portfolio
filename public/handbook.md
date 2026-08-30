@@ -5636,6 +5636,8 @@ learning the syntax.
 
 All 50 tools, in area order, with the facts each card shows. Tools with a chapter are marked.
 
+<div class="bk-part-1">
+
 ### ML Pipeline
 
 | Tool | What it does | Runs |
@@ -5652,6 +5654,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **Real-Time Analytics** *(ch. 5)* | Live Event Dashboard | On the server |
 | **SHAP Explainability** *(ch. 6)* | Per-Prediction Feature Impact | On the server |
 
+</div>
+
+<div class="bk-part-2">
+
 ### Language & Documents
 
 | Tool | What it does | Runs |
@@ -5660,6 +5666,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **Document Intelligence** *(ch. 8)* | AI-Powered Document Data Extraction | On the server |
 | **Multimodal RAG** *(ch. 9)* | Tables & Figures as Citable Knowledge | On the server |
 | **Text-to-SQL Agent** *(ch. 10)* | Natural Language → Database Queries | On the server |
+
+</div>
+
+<div class="bk-part-3">
 
 ### Computer Vision
 
@@ -5679,6 +5689,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **Text-Prompted Video Object Tracking** *(ch. 19)* | Grounded-SAM | On the server |
 | **Text-to-Image Generator** | Describe It, Generate It | On the server |
 | **Wildlife Re-Identification** *(ch. 20)* | MegaDescriptor | On the server |
+
+</div>
+
+<div class="bk-part-4">
 
 ### Security & Trust
 
@@ -5705,6 +5719,8 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **TLS / Security-Headers Scanner** *(ch. 39)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
 | **Video-Call Keystroke Inference** *(ch. 40)* | Client-Side Only | In your browser — the file never leaves your machine |
 | **YARA File Scanner** *(ch. 41)* | Live Engine · Real YARA | On the server, with a live external check |
+
+</div>
 
 ### Platforms
 

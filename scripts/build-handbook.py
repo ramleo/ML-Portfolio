@@ -233,12 +233,14 @@ def main():
 
     body = []
     part = 0
+    part_no: dict = {}          # area name -> its part number, for the appendix
     for d in detailed:
         mine = sorted([c for c in caps if c["domain"] == d["name"]], key=lambda x: x["title"])
         documented = [c for c in mine if has_chapter(c)]
         if not documented:
             continue
         part += 1
+        part_no[d["name"]] = part
         pslug = f"part-{part}"
         toc_add(("part", f"Part {part} · {d['name']}", pslug))
         # One wrapper per part, carrying that area's colour as a custom
@@ -335,6 +337,8 @@ def main():
         mine = sorted([c for c in caps if c["domain"] == d["name"]], key=lambda x: x["title"])
         if not mine:
             continue
+        add(f'<div class="bk-part-{part_no.get(d["name"], 0)}">')
+        add("")
         add(f"### {d['name']}")
         add("")
         add("| Tool | What it does | Runs |")
@@ -342,6 +346,8 @@ def main():
         for c in mine:
             ch = f" *(ch. {by_chapter[c['title']]})*" if c["title"] in by_chapter else ""
             add(f"| **{c['title']}**{ch} | {c['subtitle']} | {where_it_runs(c)} |")
+        add("")
+        add("</div>")
         add("")
     add("### Platforms")
     add("")
