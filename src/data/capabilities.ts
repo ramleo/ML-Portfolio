@@ -79,7 +79,7 @@ const capabilities: Capability[] = [
       "Clean a messy CSV before you train on it. Deduplicate rows, fill missing values with 8 numeric strategies (mean, median, KNN, MICE, forward or backward fill, a constant, or drop the row) or 5 categorical ones, strip outliers with the 1.5 × IQR rule, and correct skew with a log transform. It all runs in your browser. Download the cleaned file, or send it straight through to AutoML.",
     accent: "#377f8a",
     icon: Sparkles,
-    stat: "5",
+    stat: "4",
     statLabel: "Steps",
     model: "SimpleImputer · KNN · MICE",
     input: "Any CSV",

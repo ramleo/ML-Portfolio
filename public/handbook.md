@@ -381,7 +381,7 @@ someone else's benchmark.
 | **Also called** | Clean Before You Train |
 | **Model or method** | SimpleImputer · KNN · MICE |
 | **What you give it** | Any CSV |
-| **Steps** | 5 |
+| **Steps** | 4 |
 | **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/preprocessing` |
 
