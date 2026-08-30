@@ -94,7 +94,17 @@ blockquote { margin: 0 0 1.4em; padding-left: 1em; border-left: 2px solid #ddd;
   font-style: italic; color: #444; }
 blockquote p { text-align: left; text-indent: 0; }
 
+/* Tailwind's reset emits `ol,ul,menu{list-style:none}`, which strips the
+   markers off every list in the book. A numbered list of pipeline steps
+   without its numbers is not a style choice, it loses the order the text
+   is describing — so the markers are put back explicitly. The contents
+   page keeps its own `list-style: none` above; a class beats an element. */
 ul, ol { margin: 0 0 .9em; padding-left: 1.4em; }
+/* `body ul` rather than `ul`: a bare element selector only ties with
+   Tailwind's reset and would win on load order alone, which is not
+   something this file controls — Paged.js decides when it is injected. */
+body ul { list-style: disc; }
+body ol { list-style: decimal; }
 li { margin: .18em 0; }
 
 code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt;

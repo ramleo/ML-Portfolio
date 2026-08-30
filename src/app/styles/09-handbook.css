@@ -42,7 +42,10 @@
   color: var(--text3); font-size: 0.85rem;
 }
 .hb-body blockquote p { margin: 0; }
-.hb-body ul { margin: 0 0 1.1rem; padding-left: 1.15rem; }
+/* Same reason as book.css: Tailwind's reset removes list markers. */
+.hb-body ul, .hb-body ol { margin: 0 0 1.1rem; padding-left: 1.35rem; }
+.hb-body ul { list-style: disc; }
+.hb-body ol { list-style: decimal; }
 .hb-body li { margin: 0.2rem 0; }
 .hb-body hr { border: 0; border-top: 1px solid var(--border); margin: 3.25rem 0 0; }
 .hb-body code {

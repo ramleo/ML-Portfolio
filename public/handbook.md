@@ -364,7 +364,7 @@ someone else's benchmark.
 
 <h1 class="bk-chapter" id="ch-2-data-preprocessing"><span class="bk-chnum">Chapter 2</span>Data Preprocessing</h1>
 
-> Clean a messy CSV before you train on it. Deduplicate rows, fill missing values with 8+ numeric strategies (mean, median, KNN, MICE) or 4 categorical ones, strip outliers by IQR, Z-score or Winsorize, and correct skew with a Yeo-Johnson transform. Download the cleaned file, or send it straight through to AutoML.
+> Clean a messy CSV before you train on it. Deduplicate rows, fill missing values with 8 numeric strategies (mean, median, KNN, MICE, forward or backward fill, a constant, or drop the row) or 5 categorical ones, strip outliers with the 1.5 × IQR rule, and correct skew with a log transform. It all runs in your browser. Download the cleaned file, or send it straight through to AutoML.
 
 ## At a glance
 
@@ -656,7 +656,7 @@ that is how the AutoML tool in this app is built.
 
 <h1 class="bk-chapter" id="ch-3-feature-engineering"><span class="bk-chnum">Chapter 3</span>Feature Engineering</h1>
 
-> Build new features out of your columns without writing code. Per-column transforms (log1p, sqrt, Yeo-Johnson, percentile rank, outlier and missing flags) plus binning, polynomial and interaction terms, date extraction and cyclical sin/cos encoding. Everything is fit on training data only, so nothing leaks in from your test set.
+> Build new features out of your columns without writing code. Per-column transforms (log1p, sqrt, z-score, min-max, percentile rank, winsorising, outlier and missing flags) plus binning, polynomial and interaction terms, ratios, lags and rolling windows, date extraction and cyclical sin/cos encoding. It all runs in your browser, and the CSV it writes uses whole-file statistics — the transformer that ships inside a trained pipeline is the one that fits on training data only.
 
 ## At a glance
 
