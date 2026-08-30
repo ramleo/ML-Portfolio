@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProjectsSection from "@/components/ProjectsSection";
-import MLCapabilities from "@/components/MLCapabilities";
+import DomainSections from "@/components/DomainSections";
 import ArchitectureDiagram from "@/components/ArchitectureDiagram";
 import PipelineShowcase from "@/components/PipelineShowcase";
 import NewsSection from "@/components/NewsSection";
@@ -25,7 +25,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <ProjectsSection />
-      <MLCapabilities />
+      <DomainSections />
       {/* After the work itself: you've seen what there is to use, here's how
           the system behind it fits together. */}
       <ArchitectureDiagram />

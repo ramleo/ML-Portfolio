@@ -135,3 +135,18 @@
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.01em;
   }
 }
+
+/* Bento tiles collapse to two columns, then one. The 2x2 tile keeps its
+   row span only while there are four columns to be asymmetric within —
+   below that the ranking is carried by order alone. */
+@media (max-width: 900px) {
+  .dom-grid { grid-template-columns: repeat(2, 1fr); }
+  .dom-big { grid-column: span 2; grid-row: span 1; min-height: 200px; }
+  .dom-mid { grid-column: span 2; }
+  .dom-sm { grid-column: span 1; }
+}
+@media (max-width: 560px) {
+  .dom-grid { grid-template-columns: 1fr; grid-auto-rows: minmax(124px, auto); }
+  .dom-big, .dom-mid, .dom-sm { grid-column: span 1; }
+  .dom-big .dom-name { font-size: 1.35rem; }
+}

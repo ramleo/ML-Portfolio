@@ -23,6 +23,15 @@ import { ML_UNIFIED_API } from "@/config/urls";
  *
  * The front-only elements are rendered always and hidden by CSS on desktop, so
  * there is no first-render/JS-width mismatch to get wrong.
+ *
+ * One consequence of two faces: both are in the accessibility tree even though
+ * only one is ever visible, so every card used to be announced twice and the
+ * whole grid's controls sat on a face a keyboard user could not see. The model
+ * now is one card, two focus stops — the title button on the front (the
+ * primary action) and the GitHub link on the back (the only thing that isn't a
+ * duplicate). Everything else on the back repeats the front verbatim and is
+ * marked aria-hidden with tabIndex -1, which keeps it clickable by mouse
+ * without announcing or focusing it a second time.
  */
 export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHere?: () => void }) {
   const router = useRouter();
@@ -76,7 +85,18 @@ export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHer
                 <cap.icon size={17} strokeWidth={2} />
               </div>
               <div className="txt">
-                <h3>{cap.title}</h3>
+                {/* The card's keyboard entry point. The wrapper div keeps its
+                    click handler as a convenience for mouse users, so this
+                    stops propagation rather than letting both fire — on an
+                    external tool that would open two tabs. */}
+                <h3>
+                  <button
+                    className="flip-title-btn"
+                    onClick={(e) => { e.stopPropagation(); handleNavigate(); }}
+                  >
+                    {cap.title}
+                  </button>
+                </h3>
                 <span className="sub">{cap.subtitle}</span>
               </div>
             </div>
@@ -99,35 +119,37 @@ export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHer
 
         <div className="flip-face back" style={{ borderColor: `${cap.accent}33` }}>
           <div className="flip-back-body">
-            <span className="badge" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
+            <span className="badge" aria-hidden="true" style={{ background: `${cap.accent}22`, color: cap.accent, border: `1px solid ${cap.accent}44` }}>
               {cap.subtitle}
             </span>
-            <h3>{cap.title}</h3>
-            <p ref={descRef} className={`desc${expanded ? " expanded" : ""}`}>{cap.description}</p>
+            <h3 aria-hidden="true">{cap.title}</h3>
+            <p ref={descRef} aria-hidden="true" className={`desc${expanded ? " expanded" : ""}`}>{cap.description}</p>
             {needsToggle && (
               <button
                 className="see-more-btn"
+                aria-hidden="true"
+                tabIndex={-1}
                 style={{ color: cap.accent }}
                 onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
               >
                 {expanded ? "See less" : "See more"}
               </button>
             )}
-            <div className="stat-row">
+            <div className="stat-row" aria-hidden="true">
               <span className="stat" style={{ color: cap.accent }}>{cap.stat}</span>
               <span className="stat-label">{cap.statLabel}</span>
             </div>
-            <div className="tags">
+            <div className="tags" aria-hidden="true">
               {cap.tags.slice(0, 2).map((t) => <span key={t} className="tag">{t}</span>)}
             </div>
             <div className="back-actions" onClick={(e) => e.stopPropagation()}>
-              <button onClick={handleNavigate} className="try-btn" style={{ background: cap.accent }}>
+              <button onClick={handleNavigate} className="try-btn" aria-hidden="true" tabIndex={-1} style={{ background: cap.accent }}>
                 {opensHere ? "Try it" : "Launch App"}
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <a href={cap.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="gh-btn">
+              <a href={cap.github} target="_blank" rel="noopener noreferrer" aria-label={`Source code for ${cap.title} on GitHub`} className="gh-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
                 </svg>
