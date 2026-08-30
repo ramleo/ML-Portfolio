@@ -11291,6 +11291,8 @@ reasons this tool stopped at evidence.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Paste the contents of a Chrome/Edge extension's \`manifest.json\`. The tool
 parses its declared permissions, host access, and content-script injection
@@ -11354,6 +11356,269 @@ access.
 - Supports both Manifest V2 (URL patterns inside the single \`permissions\`
   array) and V3 (\`host_permissions\` as a separate field) formats.
 - Entirely client-side — nothing you paste is sent anywhere.
+
+## What problem it solves
+
+A browser extension is the most privileged software most people install
+casually. It sits inside the browser, past every network boundary, past TLS,
+inside the authenticated session. An extension with the right permissions can
+read your email as you read it, take your session cookies, watch every request
+you make, and change any page before you see it.
+
+Chrome does show a permission dialog at install time. It has two problems.
+Nobody reads it, and even read carefully it says things like "Read and change
+all your data on the websites you visit" — technically accurate and almost
+content-free. It also lists permissions **individually**, which is exactly the
+wrong granularity: the danger is usually in the combination.
+
+This tool takes a `manifest.json` — the file every extension ships, obtainable
+from any unpacked extension or GitHub repository — and explains what the
+declared permissions actually allow. Each permission gets a risk level and a
+sentence about the concrete capability it grants, broad host access is flagged
+separately, and a set of rules looks specifically for **dangerous
+combinations**.
+
+Everything runs in the browser on pasted text. No upload, no network call, no
+store lookup.
+
+## How it works, step by step
+
+1. **Paste a `manifest.json`.**
+2. **Parse it**, with a clear message if it is not valid JSON or not an object.
+3. **Classify each declared permission** against a documented risk taxonomy.
+4. **Detect broad host access** across the three separate places it can hide.
+5. **Evaluate the combination rules.**
+6. **Report** every finding with its reasoning, sorted worst first, plus a
+   single overall level.
+
+## The model or algorithm
+
+### The permission taxonomy
+
+Twenty-three commonly seen permissions, each with a level and an explanation of
+the capability rather than a restatement of the name. The classification
+reflects Chrome's own permission-warning tiers and independent extension
+security research, notably the Duo Labs studies — not an invented scale.
+
+The **high** tier is worth reading in full, because each entry is there for a
+specific reason:
+
+| Permission | What it actually allows |
+|---|---|
+| `debugger` | Full Chrome DevTools Protocol access to any attached tab — read or modify anything on the page, intercept all traffic, execute arbitrary code in page context |
+| `nativeMessaging` | Exchange messages with a native application on the machine — **escapes the browser sandbox entirely** |
+| `webRequestBlocking` | Synchronously intercept, block or rewrite every network request the browser makes |
+| `proxy` | Redirect all browser traffic through an arbitrary proxy server |
+| `cookies` | Read and write cookies for any site it has host permission for, **including session and auth cookies** |
+| `history` | Read the entire browsing history |
+
+Two distinctions in the taxonomy are more instructive than the list itself.
+
+**`webRequest` versus `webRequestBlocking`.** Observation is medium; the
+ability to block and rewrite is high. Read-only visibility into traffic is bad;
+the power to modify responses before the page sees them is a different
+category.
+
+**`clipboardRead` versus `clipboardWrite`.** Reading is medium, writing is low.
+The clipboard frequently holds a password or a 2FA code that was copied seconds
+ago. Writing is not harmless — clipboard-hijacking scams that swap a
+cryptocurrency address are real — but it is a smaller exposure.
+
+**`declarativeNetRequest` is low while `webRequestBlocking` is high**, and that
+gap is the entire security argument for Manifest V3. Declarative rules are
+declared statically up front and evaluated by the browser; the extension never
+sees the request and cannot write a rule at runtime from data it scraped off a
+page. Same broad purpose, far less capability.
+
+**`activeTab` is low by design.** It grants access to one tab, only after the
+user clicks the extension. It is the model everything else should aspire to, and
+an extension using it instead of `<all_urls>` is telling you something good
+about its authors.
+
+An unrecognised permission is reported as **unclassified**, not flagged. The
+alternative — treating anything unknown as suspicious — would bury the real
+findings under noise from every ordinary permission not on the list.
+
+### Broad host access, and the three places it hides
+
+This gets its own detection path because a manifest can request access to every
+site in three separate keys, and checking only the obvious one misses the
+others:
+
+- `host_permissions` — the Manifest V3 home for it.
+- `permissions` — where Manifest V2 put host patterns, still seen in the wild.
+- `content_scripts[].matches` — a content script's own match patterns, which
+  grant page access independently of anything in either list above.
+
+All three are collected and tested against a broad-pattern check. The literals
+`<all_urls>`, `*://*/*`, `http://*/*` and `https://*/*` are obvious. Less
+obvious, and caught by a regular expression, is the **wildcard second-level
+domain** — `*://*.com/*`, or `http://*.co.uk/*`. That is not narrow access. It
+is every commercial site on the internet, written in a way that looks specific
+at a glance.
+
+### Combination rules
+
+This is the part the browser's own dialog does not do, and it is the tool's
+main contribution.
+
+The framing matters: **broad host access alone is often legitimate, and a
+sensitive permission alone is often legitimate.** A password manager genuinely
+needs `<all_urls>` and `cookies`. An ad blocker genuinely needs to see every
+request. Flagging either in isolation produces a warning on almost every useful
+extension, which trains people to ignore warnings.
+
+What is worth flagging is the specific pairing that unlocks a capability
+neither permission provides alone:
+
+| Combination | Risk | The capability it unlocks |
+|---|---|---|
+| Broad hosts + webRequest(Blocking) + cookies | high | Intercept traffic *and* read/write cookies on every site — enough to hijack sessions anywhere the user goes |
+| Broad hosts + script injection | high | Run arbitrary JavaScript in any page — effectively full control of every site's content |
+| `nativeMessaging` + `downloads` | high | Pass data to a native application *and* read/write downloaded files — a plausible exfiltration or local-tampering path |
+| Broad hosts + `clipboardRead` | medium | Read the clipboard while present on every site |
+| `debugger` | high | Listed as a rule of one, because it is already full remote control of any attached tab and needs no partner |
+
+Script injection is tested as either a non-empty `content_scripts` array **or**
+the `scripting` permission, because Manifest V2 and V3 express the same
+capability differently and an extension can use either.
+
+### The overall level
+
+The maximum across all findings — permissions and combinations alike. Not an
+average, not a count.
+
+A single `debugger` permission in an otherwise clean manifest is a critical
+finding, and averaging would dilute it into "mostly fine". For a risk summary,
+the maximum is the only defensible aggregate: what matters is the worst thing
+present, not the general tenor.
+
+## Why these choices
+
+**Why static manifest analysis and not the extension's code?** Because the
+manifest is a **declaration of capability**, and capability is the thing worth
+reasoning about. Code review of a minified, obfuscated bundle is a much larger
+job and can be defeated by remote code loading — but an extension cannot
+exercise a permission it never declared. The manifest is the honest upper bound
+on what the extension can ever do, however its code changes.
+
+**Why explain rather than score?** A number invites a threshold and nothing
+else. The purpose here is for someone to read "can read and write session
+cookies on every site you visit" and decide whether their note-taking extension
+should be able to do that. The reasoning is the product; the level is just
+sorting.
+
+**Why fully client-side?** No good reason to send it anywhere. It is pasted
+text and a lookup table, and keeping it local means it works offline and stores
+nothing.
+
+**Why include `optional_permissions`?** Because optional means "requested
+later", not "not requested". An extension that can prompt for `debugger`
+after installation can obtain `debugger`, and a review that ignores the
+optional list misses the whole point of that mechanism.
+
+**Why exclude host patterns from the permission list?** Entries containing
+`://` or equal to `<all_urls>` are filtered out of the permission classification
+because they are handled by the dedicated host-access path. Without that filter
+they would appear twice — once as an unclassified permission and once as broad
+host access.
+
+## How to read the output
+
+**Start with the combinations, not the permission list.** The list tells you
+what was asked for; the combinations tell you what those requests add up to.
+
+**Then apply the only test that matters: does this extension need this to do
+its stated job?** A password manager with `<all_urls>` and `cookies` is
+expected. A colour-picker with the same pair is not, and the tool cannot tell
+the difference because it has no idea what the extension claims to do. That
+judgement is yours and it is the whole point of showing the reasoning.
+
+**A "low" overall level is not an endorsement.** It means nothing in the
+declared set matched a documented high-risk pattern. The extension can still
+exfiltrate everything it legitimately touches, and can still be sold to a new
+owner tomorrow.
+
+**Unclassified permissions are worth a look.** Not flagged, but not vetted
+either.
+
+## Limits
+
+- **The manifest is a declaration, not behaviour.** It bounds what an extension
+  *can* do. What it *does* with those permissions requires code review, and a
+  benign-looking extension can be updated into a malicious one without changing
+  a single permission — which is precisely how several real extension
+  compromises played out.
+- **Chrome and Edge only.** Firefox's WebExtensions manifest overlaps heavily
+  but is not identical, and Safari's model differs more.
+- **The taxonomy is not exhaustive.** Twenty-three permissions; anything else
+  is reported as unclassified, and a genuinely dangerous new permission would
+  be missed until the list is updated.
+- **The combination rules are a fixed, hand-written list.** Real dangerous
+  pairings outside those five exist.
+- **No remote-code-loading detection.** An extension with modest permissions
+  that fetches and evaluates code from a server is a well-known pattern and is
+  not visible in the manifest.
+- **No context about the extension's purpose**, which is the input a real
+  judgement needs most.
+- **No supply-chain signal** — nothing about the publisher, ownership changes,
+  update history or reputation, all of which matter as much as the manifest.
+
+## Likely interview questions
+
+**"Why analyse combinations instead of individual permissions?"**
+Because individual permissions are usually justifiable and the danger is
+emergent. A password manager legitimately needs broad host access and cookie
+access; an ad blocker legitimately needs to see every request. Flagging either
+alone produces a warning on nearly every useful extension, and a warning that
+always fires is ignored. Broad hosts *plus* request interception *plus* cookies
+is different in kind — that specific set is enough to hijack a session on any
+site the user visits, and it is worth interrupting someone for.
+
+**"What is the difference between `webRequest` and `declarativeNetRequest`, and
+why does it matter?"**
+`webRequest` with blocking lets the extension's own code see and modify every
+request synchronously — full visibility and full control, with the logic
+running in the extension. `declarativeNetRequest` has the extension declare
+static rules up front which the browser evaluates itself; the extension never
+sees the request and cannot generate rules at runtime from data it scraped.
+That shift is the central security argument for Manifest V3: same broad
+functionality for content blocking, dramatically less capability and less
+visibility into user traffic. It is also why the transition was contested — the
+constraint that improves security also limits what sophisticated blockers can
+do.
+
+**"Someone requests `*://*.com/*`. Is that narrow access?"**
+No, and it is designed to look like it is. That pattern matches every `.com`
+domain, which is most of the commercial web. The tool has a specific regular
+expression for wildcard second-level domains because reading the pattern
+casually gives entirely the wrong impression — it looks like a scoped request
+and is nearly equivalent to `<all_urls>`.
+
+**"Your tool says low risk. Is the extension safe?"**
+No, and the output is worded to avoid implying it. Low means nothing in the
+declared permissions matched a documented high-risk pattern. It says nothing
+about what the code does with the permissions it has, nothing about a future
+update, and nothing about the publisher. The most common real-world extension
+compromise is a popular, modestly-permissioned extension being sold or having
+its developer account phished, then shipping a malicious update to an existing
+install base — none of which a manifest can reveal.
+
+**"Why the maximum rather than an average or a weighted score?"**
+Because risk is not additive. An extension with one critical permission and
+twenty harmless ones is critical, and averaging would report it as mild. There
+is also no principled weighting available — the weights would be invented, and
+inventing numbers to produce a more sophisticated-looking output is worse than
+reporting the worst finding plainly.
+
+**"How would you extend this?"**
+Three directions, in order of value. Diff two manifests to show what a version
+bump changed, since permission creep across updates is where a lot of real risk
+appears. Cross-reference the store listing so the tool knows what the extension
+claims to do — the need-versus-request judgement is currently entirely on the
+reader. And static analysis of the bundle for remote-code-loading patterns,
+because that is the main way a low-permission extension does something the
+manifest cannot predict.
 
 <h1 class="bk-chapter" id="ch-35-captcha-hardening-lab"><span class="bk-chnum">Chapter 35</span>CAPTCHA Hardening Lab</h1>
 
@@ -12292,6 +12557,8 @@ reputation and the content are others.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a personal photo and this tool adds an **adversarial perturbation**
 to the face region — invisible to your eye — specifically designed to push
@@ -12360,6 +12627,263 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 - Nothing is stored: your photo and the cloaked result only exist for
   this one run.
 
+## What problem it solves
+
+Facial recognition at scale does not work by storing photographs. It works by
+converting each face into a **vector** — a list of numbers positioned so that
+two photographs of the same person land close together and two different people
+land far apart. Identification is then a nearest-neighbour lookup in that space.
+
+Companies like Clearview AI built their databases by scraping public photos
+from the open web. Nobody consented, nobody was notified, and once a photo is
+scraped the vector derived from it exists independently of the photo.
+
+**Face cloaking** is the countermeasure, from Shan et al.'s Fawkes (SAND Lab,
+University of Chicago, 2020). The insight is that the same adversarial
+perturbation that fools an image classifier can be aimed at an embedding model
+instead. Add a small, near-invisible change to the face region of a photo and
+the vector it produces lands somewhere else entirely — so a recognition system
+that scrapes the cloaked photo learns or matches the wrong point in the space.
+The photo still looks like you. The vector does not.
+
+This tool implements that. Upload a photo, and it returns a visually similar
+version whose face embedding has been pushed far from where it started, with
+the measured cosine similarity between the two so you can see how far.
+
+It is the defensive counterpart to this book's Adversarial Robustness Lab —
+the same mathematics, aimed at protecting someone rather than breaking a model.
+
+## How it works, step by step
+
+1. **Upload a photo.** Capped at 8 MB and scanned by the shared file gate.
+2. **Locate the face** using the 601-class object detector already in this
+   project, taking the highest-confidence `Human face` box.
+3. **Expand the box by 1.6×** so the crop includes context, which is what the
+   embedding model expects.
+4. **Compute the original embedding** — one 512-dimensional L2-normalised
+   vector — and freeze it as the reference.
+5. **Run 40 gradient-ascent steps** that maximise the distance from that
+   reference, ε-bounded per pixel and masked to the face region only.
+6. **Measure cosine similarity** between the original and cloaked embeddings.
+7. **Return the cloaked photo**, the similarity, and a protection level.
+
+## The model or algorithm
+
+### The embedding model, and why this one
+
+**InceptionResnetV1** from `facenet-pytorch`, pretrained on VGGFace2. About
+112 MB, producing a 512-dimensional L2-normalised embedding.
+
+The licence was the deciding factor. After this project's earlier friction over
+an AGPL-licensed detector, the MIT licence here was **confirmed by reading the
+LICENSE file directly** rather than trusting a badge on a page. That habit is
+worth keeping: licence metadata on model hubs is frequently wrong, and the
+consequences land on whoever ships the code.
+
+Face detection reuses the existing OIV7 detector rather than adding a dedicated
+face model — the same pattern the liveness tool uses. One fewer model to
+download, one fewer dependency to license.
+
+### The attack loop
+
+Structurally this is PGD, the iterative attack from the Adversarial Robustness
+Lab, with three modifications.
+
+```
+orig_embed = embed(x)                      # computed once, held fixed
+α = ε / 8
+
+repeat 40 times:
+    d    = ‖ embed(x_adv) − orig_embed ‖²   # squared L2 distance
+    g    = ∇ₓ d                             # gradient w.r.t. the pixels
+    x_adv ← x_adv + α · sign(g)             # ASCEND — increase the distance
+    x_adv ← clip(x_adv, x − ε, x + ε)       # stay inside the ε-ball
+    x_adv ← clamp(x_adv, 0, 1)              # stay a valid image
+    x_adv ← x·(1−mask) + x_adv·mask         # face region only
+```
+
+**The objective is embedding distance, not classification loss.** There is no
+label and no classifier — the loss is simply how far the current vector has
+moved from where it started, and the gradient says which pixels move it fastest.
+
+**The reference is frozen before the loop.** If the target were recomputed each
+step the optimisation would chase its own tail; fixing it once means every step
+pushes away from the true starting point.
+
+**The mask is reapplied at the end of every step.** The projection and clamp
+operate on the whole tensor, so without the final line the perturbation would
+leak outside the face box. Reapplying the mask each iteration — rather than
+once at the end — keeps the gradient in subsequent steps honest about what it
+is actually allowed to change.
+
+Step size is ε/8 with 40 steps, so the loop has five times the budget it needs
+to reach the ball's edge in any direction. That headroom is what lets it find a
+good point inside the ball rather than just a corner.
+
+### Measuring the result
+
+Cosine similarity between the original and cloaked embeddings, which for
+L2-normalised vectors is just their dot product, ranging from +1 (identical
+direction) through 0 (orthogonal) to −1 (opposite).
+
+| Similarity | Label |
+|---|---|
+| below 0.3 | **strong** |
+| 0.3 – 0.5 | **moderate** |
+| above 0.5 | **weak** |
+
+Those cut-offs come from the published face-verification convention that above
+roughly 0.5–0.7 reads as "same person" and below roughly 0.3 reads as
+"different person" for this class of model. They are a **common heuristic
+range, not a certified per-model threshold**, and the response says so.
+
+**Measured on a real photo:** 40 steps at ε = 0.05 took about one second and
+dropped cosine similarity from 1.0 to **−0.58**. Not merely far away —
+pointing in nearly the opposite direction.
+
+## Why these choices
+
+**Why repulsion instead of targeting a decoy?** This is the honest simplification
+against the real paper, and it is disclosed rather than glossed.
+
+Fawkes is **targeted**: it pushes the embedding toward a specific real decoy
+identity, creating a feature-space collision with someone who actually exists.
+The authors' own follow-up work found that gives stronger and more durable
+protection than pure repulsion, because it lands the vector in a region the
+model considers plausible — a legitimate part of face space, occupied by a real
+person — rather than in some empty region that a retrained model might learn to
+recognise as "cloaked".
+
+Doing that requires a bundled dataset of real identities to select a decoy
+from. This tool ships no such dataset, so it uses the simpler repulsion
+variant: still effective, measurably so, but weaker than the published method.
+
+**Why 1.6× crop expansion?** Face embedding models are trained on crops that
+include forehead, chin and some background. A pixel-tight box is out of
+distribution and produces a worse embedding — which would make the cloaking
+look more effective than it is, since you would be measuring the distance from
+a bad starting point.
+
+**Why perturb only the face?** Two reasons. It is where the signal is, so the
+budget is spent efficiently. And it keeps the rest of the photo pixel-identical,
+so the visible change is confined to the region where a small perturbation is
+least noticeable against skin texture.
+
+**Why does the box need pixel coordinates rather than an actual crop?** Because
+the gradient has to flow back to the original full-resolution tensor. The crop
+is taken by slicing a differentiable tensor and resizing with bilinear
+interpolation, so `autograd` can trace the whole path from the 512-dimensional
+embedding back to the individual pixels of the source image. Cropping to a new
+image object would sever that path.
+
+**Why load the model lazily?** Most sessions never open this tool, and 112 MB
+of weights should not be downloaded on the chance that someone might.
+
+## How to read the output
+
+**Cosine similarity is the number that matters.** It answers: how far did the
+face embedding move? Near 1.0 means the cloak failed. Near 0 means the vector
+is orthogonal to where it started. Negative means it points the other way.
+
+**Compare the two images.** At ε = 0.05 the change is usually visible as faint
+texture on close inspection and invisible at normal viewing size. If you can
+see it clearly, ε is too high for the purpose.
+
+**A "strong" label means strong against this model, today.** It is a measured
+disruption of one specific embedding model, not a guarantee against any system
+you have not tested.
+
+The Face Deanonymization Demo elsewhere in this book completes the
+demonstration: it runs an actual similarity search, cloaks the target, and
+re-runs the same search. Measured live, the same-person similarity fell from
+0.99 to −0.77 and the verdict flipped from "same" to "different" — the
+countermeasure defeating the identification it had just performed.
+
+## Limits
+
+Four of these are in the module's own docstring, because they are the honest
+frame for the whole tool.
+
+- **It protects this photo going forward, and nothing else.** Copies already
+  scraped and trained on are unaffected. If your face is already in a database,
+  cloaking a new photo does not remove it.
+- **It is an arms race, not a fix.** Published follow-up research on Fawkes
+  found protection degrades against recognition models retrained *after* the
+  cloaking method becomes public. Defenders publish, attackers adapt.
+- **No re-identification benchmark is run.** There is no bundled dataset of the
+  same and different people, so no true false-match or false-non-match rate is
+  measured. The similarity drop is real and measured; it is not a certified
+  guarantee.
+- **It is measured against one embedding model.** Transfer to a different
+  architecture is plausible but untested here, and the transfer results in the
+  Adversarial Robustness Lab suggest it is far from automatic.
+- **Repulsion, not targeting** — weaker than the published technique.
+- **One face per photo.** The highest-confidence detection is cloaked; others
+  are left alone.
+- **Re-encoding may weaken it.** Any platform that recompresses uploads is
+  performing something close to the JPEG defence from the Adversarial
+  Robustness Lab, which partially destroys perturbations.
+- **The thresholds are heuristic**, not calibrated for this model.
+
+## Likely interview questions
+
+**"How is cloaking different from blurring a face?"**
+Blurring destroys the image for humans as well as machines — you can no longer
+share the photo as a photo. Cloaking leaves it looking normal to people and
+changes only the vector a recognition model computes. The trade is that
+blurring is unconditional and cloaking is model-dependent and reversible in
+principle by an adaptive attacker.
+
+**"Walk me through the optimisation."**
+Compute the face embedding once and freeze it. Then iteratively compute the
+squared L2 distance between the current perturbed embedding and that frozen
+reference, take the gradient with respect to the input pixels, and step in the
+direction of its sign to *increase* the distance. After each step, project back
+into the ε-ball around the original, clamp to valid pixel values, and reapply
+the face mask. It is PGD with an embedding-distance objective instead of a
+classification loss, and ascending instead of descending.
+
+**"Why cosine similarity rather than Euclidean distance?"**
+The embeddings are L2-normalised, so they all lie on the unit sphere and only
+direction carries information — Euclidean distance and cosine similarity are
+then monotonically related and measure the same thing. Cosine is the convention
+in the face-verification literature, which means the published same/different
+thresholds are directly usable rather than needing conversion.
+
+**"Your similarity went negative. What does that mean?"**
+The cloaked embedding points in roughly the opposite direction from the
+original on the unit sphere. For a verification system that thresholds
+similarity, that is comprehensively past "different person" — but it is worth
+being clear that negative similarity is not inherently better than zero. What
+matters is being on the wrong side of the decision threshold; the extra
+distance is spare margin, not proportionally more protection.
+
+**"Is this legal, and is it ethical?"**
+It is a defensive privacy tool applied to your own photographs, in the same
+category as a VPN or ad blocker. The technique was developed by academic
+researchers explicitly to counter non-consensual scraping, and published. The
+uncomfortable symmetry is that the same mathematics powers the attack demo
+elsewhere in this book — an adversarial perturbation is neutral, and what
+distinguishes the two tools is whose model is being disrupted and whether the
+person in the photo agreed to be in the database.
+
+**"Why is targeted cloaking stronger than repulsion?"**
+Because of where each one lands the vector. Repulsion pushes to somewhere far
+away, which may be an empty region of face space that a retrained model can
+learn to identify as "this is a cloaked photo" — the perturbation becomes its
+own signature. Targeting lands the vector on a real identity's position, a
+legitimately occupied region that cannot be flagged as anomalous without also
+flagging that real person. The cost is needing a dataset of real identities to
+draw the decoy from, which is why this tool does not do it.
+
+**"If it degrades once the method is public, is it worth deploying?"**
+It is worth deploying with correct expectations. It raises the cost and
+imposes a retraining burden on the scraper, which has value, and it protects
+against systems that exist now. What it must not be sold as is permanent
+protection, because that would encourage people to share photos they would
+otherwise withhold — which is the failure mode where a privacy tool makes
+things worse than doing nothing.
+
 <h1 class="bk-chapter" id="ch-39-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 39</span>Face Deanonymization Risk Demo</h1>
 
 > See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.
@@ -12378,6 +12902,8 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 | **Find it at** | `/tools/face-deanonymization-demo` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Upload a target photo (the kind of photo someone might post publicly) and a
@@ -12440,6 +12966,249 @@ similarity score moved.
 - Cloaking (the "Protect" step) only affects the *specific uploaded copy*
   of the target photo in this session — it cannot retroactively protect
   copies of the same photo already posted or scraped elsewhere.
+
+## What problem it solves
+
+Most people's mental model of facial recognition is a police database: a
+curated list of known individuals, deliberately assembled. That model makes it
+feel distant and bounded.
+
+The reality is closer to a search engine. A face becomes a vector, every vector
+goes into an index, and identification is a nearest-neighbour lookup. There is
+no list of known individuals — there is a photo, and everything the crawler
+ever collected, and a similarity ranking. Scale is the only ingredient that
+changes.
+
+This tool makes that mechanism concrete without touching anyone's real data.
+You supply a target photo and up to ten gallery photos. It embeds every
+detected face with the same model, ranks the gallery by cosine similarity to
+the target, and shows the scores. That is the whole of the algorithm behind
+Clearview-style re-identification — the difference between this demo and the
+real thing is entirely the size of the gallery.
+
+Then it lets you break it. One button cloaks the target using the Face Cloak
+tool's existing endpoint and re-runs the identical search, so you can watch a
+99% match collapse.
+
+**Scope, stated plainly:** it does not search the internet, any database, or
+any stored index. It compares only the photos you upload in that one request,
+and nothing is retained.
+
+## How it works, step by step
+
+1. **Upload a target photo and one to ten gallery photos.**
+2. **For each photo**, detect the face, take the highest-confidence detection,
+   expand the box by 1.6×.
+3. **Embed each face** into a 512-dimensional L2-normalised vector.
+4. **Compute cosine similarity** between the target's vector and each gallery
+   vector.
+5. **Rank the gallery** and label each result same, uncertain or different.
+6. **Optionally: "Protect and re-test."** The target is sent to Face Cloak's
+   endpoint, and the same search is run again against the same gallery.
+
+## The model or algorithm
+
+### One embedding model, imported not duplicated
+
+The face embedding is InceptionResnetV1 on VGGFace2 — described in full in the
+Face Cloak chapter, since that tool owns it.
+
+What is worth noting is the structure. This module imports `_ensure_loaded`,
+`_face_crop_box`, `_embed`, `_FACE_LABELS` and both similarity thresholds
+**directly from `mm_face_cloak`**. It adds no face-embedding code of its own
+and shares the single loaded model instance.
+
+That is deliberate and it matters for the demonstration's credibility. If the
+attack tool and the defence tool each had their own copy of the embedding
+pipeline, any measured difference between them could be an artefact of a
+divergence in crop margins or normalisation. Sharing the exact code means the
+"protect and re-test" result is a genuine before-and-after on one pipeline,
+not a comparison of two implementations. It also means the 112 MB of weights
+are loaded once regardless of which tool the visitor opens first.
+
+The same thresholds are reused, mapped to a three-way verdict:
+
+| Cosine similarity | Verdict |
+|---|---|
+| ≥ 0.5 | **same** |
+| 0.3 – 0.5 | **uncertain** |
+| < 0.3 | **different** |
+
+The middle band is the important one. A two-way classifier would force every
+comparison into a confident answer; the uncertain band is where a real system
+should defer to a human, and its existence in the output is part of what the
+tool is teaching.
+
+### The search
+
+For L2-normalised vectors, cosine similarity is the dot product, and the whole
+search is:
+
+```
+similarity[i] = target_embedding · gallery_embedding[i]
+```
+
+Sort descending, take the top. Ten photos or ten billion, the operation is
+identical — at scale it becomes an approximate nearest-neighbour index like
+FAISS or HNSW, but the mathematics does not change. That equivalence is the
+point of the demo.
+
+Photos where no face is detected are returned marked `found_face: false` rather
+than dropped. A missing photo in the results would look like a failed upload; a
+photo explicitly marked as having no detectable face tells you the detector, not
+the matcher, is what declined.
+
+### Verified results
+
+Two distinct real people, tested against the deployed service:
+
+| Comparison | Similarity | Verdict |
+|---|---|---|
+| Same person, different photos | **0.99** | same |
+| Different person | **0.46** | uncertain |
+| Same person, after cloaking the target | **−0.77** | different |
+
+Three things are worth pulling out of that table.
+
+**The same-person match at 0.99 is the demonstration working.** Two different
+photographs, ranked as the same individual by a general-purpose model with no
+training on either person.
+
+**The different-person score of 0.46 landed in "uncertain", not "different".**
+That is the honest result and it was kept. 0.46 is under the same-person
+threshold, so the system did not make a false match — but it is well inside the
+grey band, and with a larger gallery a score like that would be a plausible
+false positive. This is precisely what makes deployment at scale dangerous: the
+base rate. Against ten photos, 0.46 is noise. Against ten million, a threshold
+that produces even rare scores in that range produces a steady stream of wrong
+people.
+
+**Cloaking moved 0.99 to −0.77 and flipped the verdict.** The countermeasure
+defeating the identification the same tool had just performed, measured on the
+same pipeline in the same session.
+
+## Why these choices
+
+**Why require the user to supply the gallery?** Because the alternative is
+building a face database, which is the thing this tool exists to criticise. The
+mechanism demonstrates perfectly well on ten photos. Bundling a corpus of real
+people's faces to make the demo more impressive would mean doing the harm in
+order to illustrate it.
+
+**Why cap the gallery at ten?** Each photo needs a detection pass and an
+embedding pass, and the request has to complete. Ten is enough to show ranking
+behaviour and small enough to stay within a request budget on a CPU-only host.
+
+**Why show every score rather than only the best match?** Because the
+distribution is the lesson. A single "match found" tells you nothing about how
+close the runners-up were. Seeing that the correct person scored 0.99 and
+someone else scored 0.46 tells you where the decision boundary sits and how
+much margin it has — which is exactly what a vendor's accuracy claim hides.
+
+**Why build the attack demo at all, when the defence already existed?** Because
+the defence could not previously demonstrate anything. Face Cloak measured the
+cloaked photo against the photo's *own* original embedding — a real number, but
+a self-comparison. It never showed an actual identification succeeding, so it
+could never show one being prevented. This tool supplies the missing half, and
+the two together make a complete argument.
+
+**Why is the cloaking button a call to the existing endpoint rather than new
+code?** So the defence being demonstrated is the shipped one, unmodified. A
+re-implementation tuned for the demo would prove nothing about the tool people
+actually use.
+
+## How to read the output
+
+**Read the gap, not the top score.** A best match of 0.9 with the runner-up at
+0.4 is a confident identification. A best match of 0.55 with the runner-up at
+0.52 is a coin flip that happened to rank one way, and at scale it is how the
+wrong person gets arrested.
+
+**"Uncertain" is the honest answer, not a failure.** The band exists because
+the model genuinely does not distinguish those cases reliably.
+
+**A "different" verdict is not proof of a different person.** Bad lighting, a
+sharp angle, occlusion, age difference or low resolution all push the
+similarity down for the same individual. The false-negative direction is at
+least as common as the false-positive one.
+
+**After cloaking, compare all the numbers, not just the verdict.** If the
+target's similarity to everyone in the gallery dropped, the cloak moved the
+vector; if the ranking merely shuffled, it did not move it far enough.
+
+## Limits
+
+- **No internet search and no database.** Only the photos in the request.
+- **Ten gallery photos.** Real systems index billions, and every property that
+  makes those systems dangerous — base rates, near-duplicate collisions,
+  demographic error skew — needs scale to appear.
+- **No accuracy measurement.** The numbers here come from a handful of real
+  photos. There is no false-match or false-non-match rate, because measuring
+  one requires a labelled multi-identity corpus this project does not have.
+- **Known demographic bias.** Published evaluations, including NIST's FRVT,
+  have repeatedly found face-recognition error rates that differ substantially
+  across demographic groups. Nothing here measures or corrects for that, and
+  the demo's small scale conceals it entirely.
+- **One face per photo** — the highest-confidence detection.
+- **The detector gates everything.** A face the object detector misses is
+  simply absent from the search, which is a different failure from a low score.
+- **The thresholds are heuristic**, inherited from Face Cloak and not
+  calibrated for this model.
+
+## Likely interview questions
+
+**"How does large-scale face search actually work?"**
+Every face is converted by a neural network into a fixed-length embedding —
+512 dimensions here — trained so that the same person's photos land close
+together and different people land apart. Identification is then a
+nearest-neighbour query in that space, using an approximate index such as FAISS
+or HNSW for speed. There is no per-person model and no enrolment step: adding a
+new identity means adding a vector.
+
+**"You got 0.46 between two different people. Is that a problem?"**
+On its own, no — it stayed under the same-person threshold, so it did not
+produce a false match. As a signal about deployment at scale, yes. It sits in
+the uncertain band, and the false-positive rate that matters depends on the
+base rate. A threshold that yields a 0.46 for an unrelated pair means that in a
+gallery of millions, some unrelated pair will exceed 0.5 by chance. That is why
+large-scale identification needs a far stricter threshold than verification
+does, and why the same model is sound for unlocking your own phone and unsound
+for picking a suspect out of a city.
+
+**"What is the difference between verification and identification?"**
+Verification is one-to-one: does this face match this claimed identity? The
+base rate is favourable and the failure mode is a locked-out user.
+Identification is one-to-many: who is this, out of everyone in the index? Every
+extra entry is another chance to exceed the threshold, so the false-positive
+rate compounds with gallery size and the failure mode is accusing a stranger.
+Vendor accuracy figures are frequently quoted from verification benchmarks and
+then applied to identification deployments, which is not a valid transfer.
+
+**"Why import the private helpers from the other module instead of writing your
+own?"**
+Because the whole value of the tool is the before-and-after comparison, and
+that comparison is only meaningful if both sides run the identical pipeline. A
+separate implementation could differ in crop margin, resize interpolation or
+normalisation, and any of those would show up as a similarity change that had
+nothing to do with the cloak. It also shares one loaded model instance instead
+of two copies of 112 MB in memory.
+
+**"Isn't building this irresponsible?"**
+The mechanism is published, the models are freely downloadable, and the
+commercial systems already exist at scale. Nothing here lowers the barrier for
+someone intent on building one. What it does is make the mechanism legible to
+people who are subject to it, and pair it with a working countermeasure in the
+same interface. The constraints are what keep that defensible: user-supplied
+photos only, no stored index, no internet lookup, nothing retained.
+
+**"How would you defend against this if you ran a platform?"**
+On the platform side: strip metadata, rate-limit and detect bulk scraping,
+serve resized images, and treat automated harvesting as an abuse category with
+teeth. On the individual side, cloaking of the kind in the paired tool here,
+with the caveat that it only protects photos not already collected. And
+realistically, the durable answer is legal rather than technical — Illinois's
+BIPA and the GDPR's special-category rules for biometric data have changed
+commercial behaviour more than any perturbation has.
 
 <h1 class="bk-chapter" id="ch-40-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 40</span>Keystroke Biometric Auth-Risk Demo</h1>
 
@@ -14648,6 +15417,8 @@ group in isolation, which is one useful step and not the whole job.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload an image — artwork, a photo, anything you've made — and this tool
 adds an **adversarial perturbation** across the whole image, invisible
@@ -14720,6 +15491,257 @@ applies to face-recognition embeddings instead of style embeddings.
   isolate.
 - Nothing is stored: your image and the cloaked result only exist for
   this one run.
+
+## What problem it solves
+
+An illustrator with a recognisable style posts their portfolio online. Someone
+scrapes it, fine-tunes an image model on a few dozen pieces, and can now
+generate unlimited work in that style on demand. The artist's name becomes a
+prompt keyword. Nothing was copied in the sense copyright law understands —
+what was taken is the *style*, which copyright does not protect.
+
+**Style cloaking** is the countermeasure, from the Glaze and Nightshade work by
+Shan et al. (SAND Lab, University of Chicago, 2023). Style-mimicry pipelines do
+not learn from pixels directly; they learn from an image encoder's
+representation of the image. If you perturb the picture so that its
+*embedding* moves somewhere else while the picture still looks the same to a
+person, a model trained on the cloaked version learns a distorted account of
+the style.
+
+This is the artist-facing sibling of Face Cloak in this book. Both take the
+adversarial perturbation from the Adversarial Robustness Lab and aim it at
+protecting somebody rather than breaking a classifier. The difference is which
+embedding space is targeted: face identity there, visual style here.
+
+Upload an image, get back a version that looks the same and embeds somewhere
+else, with the measured similarity between the two.
+
+## How it works, step by step
+
+1. **Upload an image.** No face detection, no region selection — the whole
+   image is the subject.
+2. **Compute its CLIP image embedding** — 512 dimensions, L2-normalised — and
+   freeze it as the reference.
+3. **Run 40 gradient-ascent steps** that *minimise* cosine similarity to that
+   reference, ε-bounded per pixel across the entire image.
+4. **Measure cosine similarity** between the original and cloaked embeddings.
+5. **Return the cloaked image**, the similarity, and a protection level
+   calibrated against a real baseline.
+
+## The model or algorithm
+
+### Why CLIP
+
+**`openai/clip-vit-base-patch32`** via `transformers`, MIT licensed, about
+600 MB, producing a 512-dimensional L2-normalised embedding.
+
+Two reasons. Style-transfer and fine-tuning pipelines commonly use CLIP or a
+CLIP-adjacent encoder to represent an image's visual character — it is the
+closest thing to a standard for "what does this picture look like" as opposed
+to "what objects are in it". And this project already depends on
+`transformers` with a CLIP model elsewhere, so nothing new enters the
+dependency tree.
+
+### The attack loop
+
+Structurally identical to Face Cloak's, with two differences that matter.
+
+```
+orig_embed = embed(x)                      # computed once, held fixed
+α = ε / 8
+
+repeat 40 times:
+    s = cos_sim( embed(x_adv), orig_embed )
+    g = ∇ₓ s
+    x_adv ← x_adv − α · sign(g)             # DESCEND — reduce similarity
+    x_adv ← clip(x_adv, x − ε, x + ε)
+    x_adv ← clamp(x_adv, 0, 1)
+```
+
+**No mask.** Face Cloak confines its perturbation to the expanded face crop,
+because a face photograph has one small region the target model cares about.
+An artwork has no such region — style is a property of brushwork, palette,
+composition and edge quality distributed across the whole picture. There is no
+sub-region to isolate, so the perturbation covers everything.
+
+**The objective is cosine similarity directly, minimised**, rather than
+squared L2 distance maximised. On the unit sphere these are equivalent up to a
+monotone transform, so the choice is presentational: the quantity being
+optimised is the same one reported in the result, which makes the loop's
+progress directly interpretable.
+
+Everything else carries over — a frozen reference computed once, a step size of
+ε/8 with 40 steps to give the optimiser headroom inside the ball, the ε-ball
+projection, and the clamp to a valid image.
+
+### The thresholds, and why they are not Face Cloak's
+
+This is the part of the tool most worth understanding, and it came from
+measurement rather than from copying.
+
+Before choosing thresholds, the CLIP cosine similarity was measured **between
+two completely unrelated images** — different shapes, different colours,
+different composition. The result: **0.65 to 0.77**.
+
+That is startlingly high next to face-embedding space, where two different
+people land around 0.3 to 0.5. The reason is what each space is trained to do.
+A face embedding is trained specifically to separate identities, so unrelated
+inputs are pushed apart aggressively. CLIP is trained to align images with text
+descriptions across an enormous, general distribution — so all natural images
+share a large amount of generic visual and scene structure, and even unrelated
+ones sit fairly close together. **A high CLIP similarity between two images
+does not mean they look alike.**
+
+Copying Face Cloak's thresholds would therefore have been badly wrong: a
+cloaked image sitting at 0.6 would have been labelled "weakly protected", when
+0.6 is already *below* the floor for two random unrelated images.
+
+Calibrated against the measured baseline instead:
+
+| Similarity | Label |
+|---|---|
+| below 0.5 | **strong** |
+| 0.5 – 0.75 | **moderate** |
+| above 0.75 | **weak** |
+
+The "weak" boundary sits at the top of the unrelated-image range: above 0.75,
+the cloaked image is still more similar to its original than two random images
+are to each other, so essentially nothing has been achieved.
+
+**Measured on a real cloaking run:** ε = 0.06, 40 steps, one to two seconds,
+and cosine similarity dropped from 1.0 to **−0.36**. Well below the
+unrelated-image baseline — the cloaked image now reads to CLIP as *more*
+different from its own original than two random unrelated pictures typically
+are from each other.
+
+The general lesson is worth stating outside this tool: **an embedding
+similarity number is meaningless without knowing that space's baseline.** The
+only way to know it is to measure the similarity of things you know to be
+unrelated, in that space, with that model.
+
+## Why these choices
+
+**Why repulsion instead of targeting a decoy style?** The same honest
+simplification as Face Cloak, disclosed rather than glossed. Glaze is
+**targeted** — it pushes toward a different, chosen art style's region of
+feature space, so a model trained on the cloaked work learns a coherent but
+wrong style. Nightshade goes further, poisoning the association between a
+concept and its rendering, so the damage propagates beyond the individual
+image. Both are more sophisticated and more durable than plain repulsion, and
+both need a bundled dataset of style targets to draw from. This tool ships no
+such dataset, so it uses the simpler variant: measurably effective, weaker than
+the published technique.
+
+**Why a higher default ε than Face Cloak?** 0.06 here against 0.05 there, with
+a ceiling of 0.12 against 0.1. Two reasons pull the same way. The perturbation
+must survive whatever the image goes through before it is scraped, and it is
+spread across the whole picture rather than concentrated on a face — so more
+budget is needed for equivalent effect. And artwork hides perturbation better
+than skin does: texture, brushwork and varied colour give the noise somewhere
+to sit, whereas a smooth cheek shows it immediately.
+
+**Why L2-normalise the embedding after the model?** So that cosine similarity
+is the dot product and the reported number is directly comparable to the
+measured unrelated-image baseline. Comparing an unnormalised similarity to a
+normalised baseline would be a category error.
+
+**Why lazy-load?** 600 MB of weights, and most sessions never open this tool.
+
+## How to read the output
+
+**Read the number against the baseline, not against 1.0.** Two unrelated images
+sit at 0.65–0.77 in this space. That is the reference point. A cloaked image at
+0.6 has moved past "as different as a random other picture"; at 0.85 it has
+barely moved at all despite the drop from 1.0 looking substantial.
+
+**Compare the images side by side at full size.** The perturbation is spread
+over the whole picture, so it is more visible in smooth areas — a flat sky, a
+plain background — than in detailed ones. If it is obtrusive, lower ε and
+accept a weaker cloak.
+
+**"Strong" means strong against CLIP.** A style-mimicry pipeline built on a
+different encoder is not what was measured, and nothing here demonstrates
+transfer.
+
+## Limits
+
+The first three are in the module's own docstring, because they frame the tool
+honestly.
+
+- **It protects this image going forward, and nothing else.** Copies already
+  scraped and trained on are untouched.
+- **It is an ongoing arms race.** The Glaze research is explicitly framed that
+  way — mimicry models can be trained to be robust against cloaking methods
+  once those methods are public. This is not a permanent fix.
+- **No style-mimicry benchmark is run.** There is no fine-tuning or
+  style-transfer pipeline here to test against. The similarity drop is a real,
+  measured signal **against the CLIP encoder itself**, not a guarantee against a
+  system that may use a different encoder entirely.
+- **Repulsion, not targeting** — weaker than Glaze, and it does nothing of what
+  Nightshade does.
+- **Whole-image perturbation is more visible** than a face-only one, especially
+  in flat regions.
+- **Re-encoding may weaken it.** Any platform that recompresses uploads is
+  doing something like the JPEG defence from the Adversarial Robustness Lab.
+- **Resizing may weaken it too.** The embedding is computed at CLIP's input
+  resolution, so a perturbation optimised at the source resolution is resampled
+  by any pipeline that scales the image differently.
+- **One encoder, one measurement.** No transfer to other CLIP variants or to
+  non-CLIP encoders has been tested.
+
+## Likely interview questions
+
+**"Why does style cloaking need a different threshold from face cloaking, when
+both use cosine similarity on normalised embeddings?"**
+Because the spaces have completely different baselines. A face encoder is
+trained specifically to separate identities, so two different people land
+around 0.3–0.5. CLIP is trained to align images with text over a general
+distribution, so all natural images share substantial generic structure and two
+unrelated pictures measure 0.65–0.77. Reusing the face thresholds would call a
+well-cloaked image "weak" when it was already further away than a random
+unrelated image. The measurement of the unrelated baseline had to come first.
+
+**"How do you know 0.65–0.77 is the right baseline?"**
+It was measured, not assumed — CLIP embeddings of images deliberately chosen to
+share nothing in shape, colour or composition. That is the general procedure I
+would use for any embedding space before quoting a threshold in it: establish
+what "unrelated" scores, in that space, with that model, and only then decide
+what a meaningful separation is.
+
+**"Why perturb the whole image here but only the face crop in the other tool?"**
+Because of where the target model's signal lives. Face recognition reads one
+localised region, so confining the perturbation there spends the budget where
+it counts and leaves the rest of the photo untouched. Style is distributed —
+brushwork, palette, edge quality, composition — with no sub-region that carries
+it. There is nothing to mask to.
+
+**"Why is Glaze's targeted approach better than repulsion?"**
+Repulsion pushes the embedding somewhere far away, which may be an implausible
+region of the space that a retrained model can learn to recognise as
+"cloaked" — the perturbation becomes its own detectable signature. Targeting
+lands it in a region occupied by a real, different art style, which is
+plausible and cannot be flagged as anomalous without also flagging genuine
+work in that style. Nightshade goes further again by poisoning concept-to-image
+associations, so the effect is not confined to the cloaked image.
+
+**"Does this actually stop anyone training on the artwork?"**
+Not by itself, and it would be wrong to claim so. What is measured is that the
+CLIP embedding moves a long way — a real result against that encoder. Whether a
+particular fine-tuning pipeline is degraded depends on its encoder, its
+preprocessing, how many cloaked versus uncloaked images it has, and whether it
+was trained to resist known cloaking. None of that is tested here, and saying
+otherwise would encourage artists to post work they would otherwise hold back —
+which is the failure mode where a protection tool leaves people worse off.
+
+**"What would make this a real defence?"**
+Targeted rather than repulsive cloaking against a decoy style; validation
+against an actual fine-tuning run to show measured style degradation rather
+than an embedding-distance proxy; robustness testing against recompression,
+resizing and denoising, since those are what a scraper's pipeline does anyway;
+and transfer testing across several encoders, because an attacker will not use
+the one you optimised against. Beyond the technical, the durable answers are
+non-technical — licence terms, robots and opt-out signals with actual
+enforcement, and legal frameworks that recognise style-mimicry as a harm.
 
 <h1 class="bk-chapter" id="ch-48-tls-security-headers-scanner"><span class="bk-chnum">Chapter 48</span>TLS / Security-Headers Scanner</h1>
 
@@ -15040,6 +16062,8 @@ than counting the header as present.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a short video (60 seconds max) of hands typing — your own recorded
 webcam clip or video-call footage. The tool tracks fingertip motion
@@ -15102,6 +16126,283 @@ over the keyboard.
   occluded or fast-panning footage will under-detect events.
 - 60-second clip cap, entirely client-side (MediaPipe WASM) — nothing is
   sent to any server.
+
+## What problem it solves
+
+On a video call, people watch the other person's face. They rarely think about
+what else is in frame — and on a laptop, what is in frame is very often the
+hands.
+
+In 2023 a USENIX Security paper by Yang et al. demonstrated that this is a real
+side channel: from webcam video of someone typing, an attacker can recover what
+they typed. Not by reading the keyboard, which is usually not visible at all,
+but by watching the **hands** and inferring which keys the finger motion is
+consistent with. The published pipeline reports over 90% per-key accuracy.
+
+That is a genuinely uncomfortable result. It means a screen-shared meeting, a
+recorded call, or a video posted publicly can leak a password typed while the
+camera was on.
+
+This tool builds the **first stage** of that attack and stops there, on purpose.
+Upload a video of someone typing, and it recovers a real keystroke timeline —
+when each press happened, which hand made it, where the word boundaries fall,
+and how fast the typing was. It does not recover characters, and the interface
+says so prominently.
+
+## How it works, step by step
+
+1. **Upload a video** of hands typing. Everything runs in the browser; no
+   backend, nothing uploaded anywhere.
+2. **Step through the video frame by frame** at 20 samples per second, seeking
+   to each timestamp rather than playing.
+3. **Track both hands** with MediaPipe's HandLandmarker, recording the position
+   of all five fingertips per hand.
+4. **Detect taps** in each fingertip's vertical motion.
+5. **Merge near-simultaneous detections** across fingers into single
+   keystrokes.
+6. **Segment into words** from the gaps between keystrokes.
+7. **Report the timeline** with WPM and a rhythm-consistency figure.
+
+## The model or algorithm
+
+### Tracking
+
+MediaPipe's HandLandmarker gives 21 landmarks per hand with a left/right
+handedness label, configured for two hands. Only the five fingertip landmarks
+— thumb, index, middle, ring, pinky — are kept, producing up to ten independent
+time series of `(t, x, y)` with coordinates normalised to the frame.
+
+Sampling is at 20 Hz. That is chosen against the physics rather than the
+video's frame rate: a key press-and-release cycle takes roughly 100–150 ms, so
+20 samples per second puts two to three samples inside each press. Fewer would
+miss presses entirely; many more would multiply the cost without resolving
+anything new.
+
+The video is **seeked** to each timestamp and awaited, not played. Playback
+would tie analysis speed to real time and would drop frames under load. Seeking
+is slower per frame but deterministic, and determinism matters for a
+measurement.
+
+### Detecting a tap
+
+This is the real work, and it was written and verified before any video code
+existed.
+
+A keypress is a **downward finger motion followed by a return**. In normalised
+image coordinates the origin is top-left, so *down* is *increasing y*. A press
+therefore appears as a **local maximum in y, bracketed by lower values on both
+sides.**
+
+The bracketing is the whole point. A hand drifting toward the camera, or
+settling into position, produces monotonically increasing y with no return — no
+bracketing valley, correctly ignored. Only the press-and-release shape counts,
+which is the same signal the published attacks key off.
+
+Four mechanisms make that robust:
+
+**A 3-sample moving average** first. Enough to knock down per-frame landmark
+jitter, short enough not to smear out a genuine single-frame press dip.
+
+**A local-maximum radius of 2 samples** on each side, rather than comparing
+against the immediate neighbours only. A real peak sampled at 20 Hz can be flat
+across two or three samples.
+
+**A valley walk** for amplitude. This replaced the original implementation and
+is the bug worth recording. The first version measured amplitude by comparing
+the peak against its single immediate neighbours — which returns **zero** for
+any peak whose top is flat across more than one sample, because the neighbour
+has the same value. Flat-topped peaks are common at this sampling rate, so real
+presses were silently scoring zero amplitude and being discarded.
+
+The fix walks outward from the peak in each direction while y is
+non-increasing, and returns the lowest value reached before the signal turns
+back upward — the true flanking valley:
+
+```
+amplitude = min( peak.y − leftValley,  peak.y − rightValley )
+```
+
+Taking the `min` of the two sides means a press is only counted if it is
+bracketed on *both* sides. A single downward step at the end of a series does
+not qualify.
+
+Amplitude below 0.012 in normalised units is treated as tracking noise, not a
+press.
+
+**A refractory period** of 80 ms per finger. No finger presses two keys 80 ms
+apart, so anything closer is the same event detected twice — which also cleanly
+resolves ties across a flat peak top.
+
+### From taps to keystrokes
+
+Ten fingers are tracked independently, but a hand presses one key at a time.
+When several fingers dip together — as they do, because pressing with the index
+finger moves the whole hand — that is one physical event. Detections within
+60 ms of each other are collapsed, keeping the earliest of the cluster.
+
+### Word segmentation
+
+No character identity is involved. The only signal is timing.
+
+```
+median_gap = median of all inter-keystroke intervals
+boundary   = any gap > 2.2 × median_gap
+```
+
+Using the typist's **own median** rather than a fixed threshold is what makes
+this work across different people and speeds — a fast typist's word boundary
+may be shorter than a slow typist's ordinary keystroke interval. The 2.2
+multiplier is a judgement, not a fitted value.
+
+### The two summary numbers
+
+**Words per minute** uses the standard typing convention that five keystrokes
+constitute one word, regardless of actual word lengths.
+
+**Rhythm consistency** is `1 − (stddev / mean)` of the intervals, clamped to
+[0,1] — the complement of the coefficient of variation. 1 means a metronomic
+rhythm, 0 means erratic. It is a shape descriptor of the timeline, not a
+biometric claim; the Keystroke Biometric Auth-Risk tool elsewhere in this book
+is where timing is actually used for identification, and it needs per-key dwell
+and flight from real key events rather than inferred taps.
+
+## Why these choices
+
+**Why stop at the timeline instead of recovering characters?** Because the
+character-recovery stage of the published attack is not reproducible here, and
+faking it would be worse than omitting it.
+
+Yang et al.'s pipeline needs a self-supervised CNN trained on the target's own
+setup, plus an HMM with a language model to resolve the many-keys-per-finger
+ambiguity. Both stages require per-target training data — video of *that*
+person at *that* camera angle on *that* keyboard. Without it there is no
+mapping from finger position to key, and any character output would be
+fabrication dressed as inference.
+
+The scope was confirmed explicitly before building rather than discovered
+partway through, and the interface states the boundary rather than implying a
+capability the tool does not have.
+
+**Why frame-by-frame rather than real time?** Determinism, and honesty about
+the threat model. A real attacker works from a recording, offline, with as much
+compute as they like. Real-time processing would be a harder engineering
+problem that makes the attack look *less* practical than it is.
+
+**Why fully client-side?** The input is video of someone typing, quite possibly
+a password. Uploading that to a server to demonstrate a privacy risk would be
+absurd. It also means the tool works with no backend and no API cost.
+
+**Why track all five fingertips rather than just the index?** Because touch
+typists use all of them, and it is not known in advance which finger presses a
+given key. Tracking all ten and merging afterwards is more robust than guessing
+— and the merge step is what makes the redundancy harmless.
+
+### Verified on real video
+
+Tested on a downloaded stock video of two hands typing on a laptop: **26
+keystroke events**, correctly alternating between hands, **about 34 WPM**, and
+**4 word segments**. Plausible on every axis, with a clean MediaPipe teardown
+and no console errors.
+
+The signal-processing layer was verified separately and first, against
+synthetic data with injected taps at known timestamps — which is how the
+flat-peak amplitude bug was found, before any video was involved.
+
+## How to read the output
+
+**The timeline is the result.** Each entry is a detected press with its
+timestamp and which hand made it. Alternating hands across a sequence is a
+strong sign the detection is tracking real typing rather than noise.
+
+**Word segments are approximate.** A long pause to think looks identical to a
+space. Someone typing a long word without pause produces one segment covering
+several words.
+
+**WPM is derived from the keystroke count**, so it inherits every miss and
+every false positive. Treat it as an estimate of typing rate, not a measurement.
+
+**What is absent is the point.** There is no text output. If you wanted to know
+*what* was typed, the honest answer is that this stage cannot tell you, and the
+stage that could needs training data specific to the person you are watching.
+
+## Limits
+
+- **No character recovery.** By design, and the reason is a missing trained
+  model, not a missing feature.
+- **Both hands must be visible.** A hand off-frame contributes nothing, and its
+  keystrokes are simply absent.
+- **Camera angle matters enormously.** The detector reads vertical motion in
+  image coordinates, so a near-side-on view flattens the press signal into
+  almost nothing.
+- **Fast typing exceeds the sampling rate.** Above roughly 10 keystrokes per
+  second, presses fall inside the 80 ms refractory window and merge.
+- **The thresholds are judgement calls** — 0.012 amplitude, 60 ms merge, 80 ms
+  refractory, 2.2× median for boundaries — tuned on synthetic data and one real
+  video, not fitted on a labelled corpus.
+- **No accuracy figure.** Measuring one needs video with a ground-truth
+  keystroke log recorded alongside, which this project does not have.
+- **Modifier keys, held keys, backspaces and mouse movement** are all
+  indistinguishable from ordinary presses or missed entirely.
+
+## Likely interview questions
+
+**"How can you detect a keypress from video without seeing the keyboard?"**
+You are not detecting the key, you are detecting the finger. A press is a
+characteristic vertical motion — down, then back up — which in image
+coordinates is a local maximum in y bracketed by lower values on both sides.
+That shape distinguishes a real press from a hand drifting or settling, which
+has no return. The keyboard never needs to be visible; the hand is the sensor.
+
+**"You had a bug in the peak detection. What was it?"**
+Amplitude was measured against the peak's immediate neighbours. At 20 Hz a real
+press often produces a flat top spanning two or three samples, so the immediate
+neighbour has the same value and the computed amplitude is zero — real presses
+were being thrown away as noise. The fix walks outward from the peak while the
+signal is non-increasing and takes the lowest value before it turns back up,
+which finds the true flanking valley regardless of how wide the plateau is. It
+was caught on synthetic data with known injected taps, before any video code
+existed.
+
+**"Why take the minimum of the two valley depths rather than the average?"**
+Because it enforces the bracketing requirement. Averaging lets a deep valley on
+one side compensate for no valley at all on the other, which is exactly the
+monotonic-drift case the detector needs to reject. Taking the minimum means the
+press must be bracketed on both sides to count.
+
+**"Why segment words by the typist's own median gap rather than a fixed
+threshold?"**
+Because typing speeds differ by a large factor between people. A fixed
+threshold of, say, 300 ms would treat every gap as a word boundary for a slow
+typist and none for a fast one. Normalising against the person's own median
+makes the rule scale-free, and the same trick shows up in other tools in this
+book — it is the general fix whenever a threshold has to work across subjects
+with very different baselines.
+
+**"What would it take to actually recover the text?"**
+A model mapping fingertip position to key, which is where the difficulty lives:
+each finger covers several keys, so position alone is ambiguous. The published
+attack resolves it with a self-supervised CNN trained on the target's own
+setup, then an HMM with a language model over the sequence to pick the most
+probable text consistent with the ambiguous per-key distributions. The language
+model does a lot of the work — it turns a noisy per-key guess into readable
+text. All of it needs per-target training data, which is why this tool stops at
+the timeline.
+
+**"What is the practical defence?"**
+Keep hands out of frame — a higher camera angle, or an external keyboard placed
+below the visible area. Do not type passwords while a camera is live, and use a
+password manager so you rarely need to. On the platform side, a
+hands-detected-in-frame warning during screen sharing is entirely feasible, and
+so is blurring the lower portion of the frame by default. The attack needs a
+clear view of a press-and-release from a favourable angle, and every one of
+those is removable.
+
+**"Was building this responsible?"**
+The full attack is published and peer-reviewed; the capability exists whether or
+not this exists. What is here is the stage that demonstrates the risk without
+supplying a capability — a keystroke timeline is not somebody's password. The
+character-recovery stage was deliberately not built, and the reason is stated in
+the interface rather than left as an implied "coming soon".
 
 <h1 class="bk-chapter" id="ch-50-yara-file-scanner"><span class="bk-chnum">Chapter 50</span>YARA File Scanner</h1>
 
