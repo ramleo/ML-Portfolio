@@ -9677,6 +9677,8 @@ Checking whether something can be trusted: files, links, emails, packages, model
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Paste a code snippet and see two independent, low-confidence signals side by
 side: a **stylometric heuristic layer** (instant, client-side, checks for
@@ -9740,6 +9742,242 @@ itself just another style, not a determination of authorship either way.
   (job interviews, academic integrity, code review) — using it that way
   would be exactly the overclaiming this tool is built to avoid.
 
+## What problem it solves
+
+A university wants to know whether a submission was written by a student. A
+hiring manager wants to know whether a take-home was written by the candidate.
+A maintainer wants to know whether a pull request from a stranger was typed or
+generated.
+
+All three want the same thing: a number that says *this is 87% AI*. That number
+does not exist. **No peer-reviewed benchmark validates a reliable
+general-purpose detector for AI-written code**, and the reason is structural
+rather than a gap waiting to be filled by a better model:
+
+- A careful human writes clean, uniformly named, thoroughly documented code.
+  That is what good practice looks like, and it is also what generated code
+  looks like.
+- A language model can be asked for messy code, and will produce it — with
+  inconsistent naming, a stray debug print, a TODO left in.
+- Every formatter and linter in common use erases exactly the surface
+  irregularities a detector would want to measure. Code that has been through
+  Black or Prettier has had its handwriting removed.
+
+So the honest tool is not a classifier. This one **never outputs a probability
+and never says "AI-written"**. It shows the stylistic signals it found, states
+next to each one why that signal is weak, and leaves the judgement with the
+person reading it.
+
+That refusal is the design. A confident detector here would be a tool for
+accusing people wrongly.
+
+## How it works, step by step
+
+1. **Paste a snippet.** Python, JavaScript or TypeScript.
+2. **Seven stylometric checks run in the browser.** No network call, nothing
+   leaves the page.
+3. **Each check that fires produces a signal card** with what was measured and
+   a written caveat about why it proves little.
+4. **A count becomes a qualitative label** — several / a few / no notable
+   signals.
+5. **Optionally, ask a second opinion.** One button sends the snippet to a
+   language model whose instructions push it towards "inconclusive".
+6. **The two layers are shown side by side, never merged** into a single score.
+
+## The model or algorithm
+
+### Layer one — stylometry, in the browser
+
+Stylometry is the statistical study of writing style, the technique used in
+authorship attribution for centuries. Applied to prose with a large sample and
+a closed set of candidate authors, it works. Applied to a forty-line snippet
+with an open set of authors, it does not — and the implementation is built to
+say so.
+
+Seven checks, each with a threshold chosen to be conservative:
+
+| Signal | Fires when | Why it is weak |
+|---|---|---|
+| High comment density | over 30% of non-blank lines are comments | a well-documented human function looks identical |
+| Generic naming | 3+ uses of `result`, `data`, `temp`, `value`, `output`… | short human scripts use these constantly |
+| Uniform naming convention | 8+ identifiers, zero `snake_case`/`camelCase` mixing | every linter produces this |
+| Formal docstring | a Google or NumPy `Args:`/`Returns:` block, or JSDoc `@param` | mandated by many real style guides |
+| Broad exception handling | a catch-all `except:` or a `catch` that only logs | defensive programming is a human habit |
+| Boilerplate phrasing | "This function…", "Here's…", "Step 3:" in a comment | tutorial authors write this way |
+| No mess, uniform spacing | no TODO/FIXME/debug print/commented-out code **and** identical blank-line gaps between every function | a fresh, tidy script looks the same |
+
+Two details in that table carry most of the weight.
+
+**The last signal requires two conditions at once.** Absence of mess alone
+proves nothing — a fifteen-line utility has had no time to accumulate any. The
+check pairs it with *mechanically identical* blank-line gaps between every
+function definition, computed by collecting the gap sizes and testing whether
+the set of distinct values has size one. Tidiness plus metronomic rhythm is a
+slightly stronger tell than either.
+
+**The naming-convention check needs a minimum sample.** With three identifiers,
+consistency is meaningless; the floor of eight is there so the signal cannot
+fire on a snippet too small to have a convention.
+
+The count maps to a label with no arithmetic in between:
+
+```
+3 or more signals  →  "Several AI-style signals"
+1 or 2             →  "A few AI-style signals"
+0                  →  "No notable AI-style signals"
+```
+
+Three thresholds, three words. There is deliberately no weighting, no
+calibration, and no percentage — because any of those would imply a validation
+exercise that was never performed and could not honestly be performed.
+
+### Layer two — an independent language-model opinion
+
+The second layer runs on the backend, because it needs an API key. Its system
+prompt is the interesting part, and it is written to argue *against* the answer
+a user wants:
+
+> There is no reliable, published way to determine with confidence whether code
+> was written by an AI or a human… Only answer "ai_leaning" or "human_leaning"
+> if there is a genuinely distinctive tell (e.g. an artifact of an LLM chat
+> response leaking into the code, like a trailing "Let me know if…" comment).
+> Otherwise answer "inconclusive" — **this is the expected, correct answer for
+> most ordinary code and is not a failure to decide.**
+
+That last clause exists because models are agreeable. Asked "is this AI?", a
+model will find reasons to say yes. The prompt has to state explicitly that
+abstaining is success, or the layer becomes a machine for confirming whatever
+the person already suspected.
+
+The reply is required to be a JSON object with `assessment`, `confidence` and a
+one-sentence `explanation`. Parsing is best-effort — a regular expression pulls
+the first `{...}` out of the response, because models wrap JSON in prose or a
+markdown fence often enough that strict parsing would fail on correct answers.
+A missing `assessment` field returns nothing rather than a fabricated default.
+
+The route is rate-limited and metered against a daily call budget, since it
+runs on the project's own API key rather than the visitor's.
+
+## Why these choices
+
+**Why no confidence score, when every commercial detector has one?** Because a
+score invites a decision, and the decision this tool would be used for is
+accusing a person of dishonesty. Published AI-text detectors have documented
+false-positive rates that fall disproportionately on non-native English
+writers; the code equivalent would fall on anyone who follows a strict style
+guide. A tool that cannot be validated should not present output that looks
+validated.
+
+**Why run stylometry client-side?** Two reasons. Privacy — the snippet may be
+proprietary, and the heuristics need no server. And transparency: the checks
+are plain functions in a file anyone can read, which matters for a tool whose
+entire claim is that it is not a black box.
+
+**Why keep the two layers separate rather than combining them?** They fail in
+different ways. The heuristics are deterministic and evadable by anyone who
+reads them. The judge is non-deterministic and can be influenced by the code it
+is reading. Averaging them would produce a number that hides both failure
+modes. Shown side by side, disagreement is visible — and disagreement is
+information.
+
+**Why is the strongest real signal not a style measurement at all?** The one
+tell the judge is told to look for is a **chat artifact**: text that belongs to
+a conversation with an assistant, pasted into a file by accident. "Let me know
+if you'd like me to add tests!" in a trailing comment is not a stylistic
+tendency, it is a provenance leak. Live testing confirmed the split — given a
+tidy AI-style snippet the judge correctly stayed inconclusive; given the same
+snippet with a chat artifact appended it flipped to `ai_leaning` at high
+confidence.
+
+## How to read the output
+
+Read the **evidence**, not the label.
+
+"Several signals" means several conservative thresholds were crossed. On a
+well-documented, linted, freshly written human module, all of them can cross at
+once. That is a known and expected outcome, not a bug.
+
+"No notable signals" means nothing crossed. Generated code that has been edited,
+reformatted, or simply asked to be terse will land here.
+
+In other words the tool is neither sensitive nor specific, and it says so. It is
+useful for one thing: giving a person a structured place to start looking, with
+the reasons why each observation is thin printed alongside it.
+
+The judge's `inconclusive` is not an error message. It is the answer for
+almost all real code, and a judge that rarely says it would be broken.
+
+## Limits
+
+- **No validated accuracy figure exists**, because no honest one could be
+  produced without a labelled corpus of human and AI code matched for language,
+  domain, developer experience and formatter — and any such corpus would be
+  stale within months.
+- **Trivially evadable in both directions.** The checks are published; adding a
+  TODO and one inconsistent name defeats them.
+- **Language coverage is narrow** — the comment and docstring patterns assume
+  Python, JavaScript or TypeScript.
+- **Short snippets are hopeless.** Under roughly twenty lines there is not
+  enough text for any check to mean anything, and several cannot fire at all.
+- **The judge is a language model**, so it is non-deterministic and can be
+  influenced by the content it reads.
+- **This must not be used as evidence against a person.** The interface, the
+  documentation and the backend docstring all say so.
+
+## Likely interview questions
+
+**"Build me a detector for AI-written code."**
+The first answer is that a reliable general-purpose one is not currently
+possible, and I would say that before writing anything. What is possible is a
+transparency tool: measurable stylistic signals, each shown with its own
+caveat, plus a second independent opinion, and no fused score. If the
+requirement is genuinely a verdict, the honest engineering answer is provenance
+rather than detection — commit history, keystroke or editor telemetry, an
+interview about the code — because those observe the writing rather than
+guessing from the artefact.
+
+**"Why is a false positive worse than a false negative here?"**
+Because of what each one costs. A false negative means generated code passes
+unnoticed, which is the status quo. A false positive means a person is accused
+of dishonesty on the basis of a number a machine produced, and the burden of
+disproving it falls on them. When the error costs are that asymmetric, the
+system should be built to abstain, which is exactly what the "inconclusive"
+default and the missing probability are for.
+
+**"Which of your signals is strongest, and why is it still weak?"**
+The combined "no mess plus mechanically uniform spacing" one, because it
+requires two independent conditions rather than one. It is still weak because a
+formatter produces uniform spacing mechanically and a new file has had no
+opportunity to accumulate mess — so the signal fires on any freshly written,
+auto-formatted human module, which is a large fraction of all new code.
+
+**"You used an LLM as one of the layers. How do you stop it agreeing with the
+user?"**
+By writing the system prompt against the grain: it states outright that no
+reliable method exists, gives one concrete example of what a real tell looks
+like, and — the important line — says that "inconclusive" is the expected
+correct answer for most code and not a failure to decide. Without that last
+sentence the model treats abstention as unhelpfulness and finds a reason to
+pick a side.
+
+**"How would you validate this if you had to?"**
+I would need a corpus where provenance is known rather than assumed: code with
+a full commit history and editor telemetry for the human half, and generated
+code for the other, matched on language, task and formatter — then report
+precision and recall per language with confidence intervals, and re-measure
+whenever a major model or a formatter default changes. I would expect the
+result to be close to chance on formatted code, and I would publish that
+number. The absence of any such published result is the reason this tool
+reports evidence instead of a verdict.
+
+**"Stylometry works for prose. Why not for code?"**
+Sample size and normalisation. Authorship attribution on prose uses thousands
+of words, function-word frequencies, and a closed candidate set. Code snippets
+are short, the vocabulary is largely fixed by the language and its libraries,
+the candidate set is open, and — decisively — automatic formatters normalise
+away whitespace, quoting and layout, which is where much of the individual
+signal in written text lives.
+
 <h1 class="bk-chapter" id="ch-31-adversarial-robustness-lab"><span class="bk-chnum">Chapter 31</span>Adversarial Robustness Lab</h1>
 
 > Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.
@@ -9758,6 +9996,8 @@ itself just another style, not a determination of authorship either way.
 | **Find it at** | `/tools/adversarial-robustness-lab` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Upload a photo and this tool crafts an **adversarial attack** — a tiny,
@@ -9972,6 +10212,389 @@ Nothing is stored: your photo and the results only exist for this one run.
 - An uploaded digit photo is capped at 8MB and preprocessed automatically
   (see the Adversarial training section above) — no manual cropping or
   thresholding needed on your end.
+
+## What problem it solves
+
+A neural network that classifies photographs with 90% accuracy can be made to
+misclassify almost any one of them by changing the pixels in a way a person
+cannot see. This is not a rare corner case or a bug in one model. It is a
+property of high-dimensional decision boundaries that has survived a decade of
+attempts to fix it.
+
+That matters directly for the rest of this book. Several tools here — the
+liveness check, the tampering detector, the object detectors — rest on a
+classifier's output. If a classifier can be steered by an engineered
+perturbation, then any decision built on top of it inherits that weakness. This
+lab exists to make the failure visible, and then to show, honestly, how far the
+available defences actually get you.
+
+It runs four attacks and three defences against a real pretrained model, and
+reports what happens rather than what should happen. Several of the results
+recorded here are negative.
+
+## How it works, step by step
+
+1. **Upload a photo.** It is resized to 224×224 and classified by MobileNetV2,
+   pretrained on ImageNet's 1,000 categories.
+2. **Choose an attack** — FGSM, PGD, an adversarial patch, or the query-only
+   black-box attack — and a strength, ε.
+3. **Choose untargeted or targeted.** Untargeted means "make it wrong".
+   Targeted means "make it say *this specific label*".
+4. **The attack runs** and produces a modified image.
+5. **Both images are classified**, and **Grad-CAM heatmaps** show where the
+   model was looking before and after.
+6. **Optionally check transferability** — does the same modified image also
+   fool ResNet18, a model the attack never touched?
+7. **Run a defence** — JPEG recompression or randomised smoothing — on the
+   attacked image and see whether the correct label comes back.
+8. **Separately, the adversarial-training panel** compares two small digit
+   classifiers, one trained normally and one trained on attacks.
+
+## The model or algorithm
+
+### Why the model is off-the-shelf
+
+The target is torchvision's **MobileNetV2**, ImageNet-pretrained, roughly 14 MB.
+It is deliberately not any model used elsewhere in this project — the point is a
+general property of neural classifiers, not an attack on this application. It
+also has to be a real PyTorch model rather than the ONNX exports used by the
+other vision tools here, because three of the four attacks need **gradients**,
+and ONNX runtime only does forward passes.
+
+### Attack 1 — FGSM, the one-step attack
+
+The **Fast Gradient Sign Method** (Goodfellow et al., 2014) is the foundational
+attack and is one line of mathematics:
+
+```
+x_adv = x + ε · sign( ∇ₓ  L(model(x), y_true) )
+```
+
+Training computes the gradient of the loss with respect to the *weights* and
+steps them downhill. FGSM computes the gradient with respect to the **pixels**
+and steps them uphill — the same machinery, aimed the other way. Taking only
+the `sign` means every pixel moves by exactly ε, which spends the entire budget
+in the L∞ sense while keeping any single pixel's change imperceptible.
+
+Targeted FGSM is the same expression with the sign flipped and the target label
+substituted: descend the loss towards the label you want instead of ascending
+away from the one that is correct.
+
+### Attack 2 — PGD, the iterative attack
+
+**Projected Gradient Descent** (Madry et al., 2018) is FGSM done properly:
+several small steps instead of one large one, with a projection back inside the
+allowed region after each step.
+
+```
+for each of 10 steps:
+    x_adv ← x_adv + α · sign(∇ₓ L)          with α = ε/4
+    x_adv ← clip(x_adv, x − ε, x + ε)       project onto the ε-ball
+    x_adv ← clamp(x_adv, 0, 1)              stay a valid image
+```
+
+The projection is what makes it correct rather than merely iterative. Without
+it the perturbation grows without bound and stops being imperceptible; with it,
+the attack explores the ε-ball's interior instead of only its corner. PGD is
+generally regarded as the strongest first-order attack and is the standard
+against which defences are measured.
+
+Two clamps, not one: the ε-ball keeps the perturbation small, and the [0,1]
+clamp keeps the result a displayable image. An adversarial example with a pixel
+value of 1.3 is not an image.
+
+### Attack 3 — the adversarial patch
+
+A different family entirely. Instead of a tiny change everywhere, this
+optimises a **single visible square** — a sticker — with no ε constraint at all
+inside that square. The rest of the image is untouched. This is the attack
+family that can, in principle, be printed and stuck on a physical object.
+
+A mask selects a centred square covering a chosen fraction of the image; the
+patch pixels are then optimised by the same sign-of-gradient step used by PGD,
+free to take any value in [0,1]. The loop **early-stops the moment the goal is
+met**, so the reported step count is a real measure of how much optimisation
+that particular run needed rather than a fixed budget.
+
+Testing found a sharp asymmetry worth stating plainly:
+
+| Goal | Result |
+|---|---|
+| Untargeted | fools the classifier almost immediately — often within 1–2 steps, sometimes because a patch of this size is already a large blunt perturbation before optimisation contributes anything |
+| Targeted, 10% patch | failed to reach the chosen label at all within the step budget |
+| Targeted, 25% patch | reached it in under 40 steps |
+
+This is the single-image, single-position version. Brown et al.'s original
+**universal** patch is trained across many images, positions, scales and
+rotations using expectation-over-transformation so that it works anywhere on
+any photo — a substantially larger job, and the tool does not claim to do it.
+
+### Attack 4 — the black-box attack, with no gradients at all
+
+The first three attacks assume you can differentiate through the model, which
+means having the weights. The realistic threat model usually does not: you have
+an HTTP endpoint that returns scores.
+
+This implements a simplified **SimBA** (Guo et al., 2019). Visit random,
+never-repeated `(channel, row, column)` coordinates. At each one, try nudging
+that single value by +ε, then by −ε, and keep whichever direction moves the
+target class's softmax score the right way. If neither helps, leave it and move
+on.
+
+Because each coordinate is touched at most once, the maximum per-pixel change
+is bounded by ε automatically — the algorithm gets its ε-ball for free, with no
+projection step.
+
+The measured results are the reason this attack is in the tool:
+
+| Goal | Queries | Wall time | Outcome |
+|---|---|---|---|
+| Untargeted | 348 | ~5.5 s | succeeded |
+| Targeted | 3,000 | ~46 s | **failed** |
+| Targeted, larger step | 6,000 | ~94 s | **still failed** |
+
+Query-only attacks are dramatically more expensive than white-box ones, and a
+request-sized query budget is often simply not enough for a targeted goal. That
+is a genuine property of the threat model, reported as observed rather than
+tuned away.
+
+One caveat is stated in the code: this assumes **score-based** access, meaning
+the API returns a probability. Many hosted classifiers do. A true label-only
+black box, where you see nothing but the top-1 string, is harder still and
+needs far more queries.
+
+### Grad-CAM — showing *why*, not just *what*
+
+A changed label alone is unconvincing; it looks like a number moved. Grad-CAM
+takes the last convolutional block's activations, weights each channel by its
+gradient towards the predicted class's logit, and produces a heatmap of the
+regions that actually drove *that specific prediction*.
+
+Computed for both the original and the attacked image and shown side by side,
+it makes the attack legible: the model's attention shifts off the object and
+onto background texture that now carries the engineered signal.
+
+### Defence 1 — JPEG recompression
+
+Encode the attacked image as lossy JPEG and decode it back. JPEG's quantisation
+discards high-frequency detail, and an adversarial perturbation is largely
+high-frequency, so some of the attack is destroyed while the image content
+survives.
+
+Two outcomes are reported separately, and the distinction is the honest part:
+
+- **`recovered`** — the defended prediction exactly matches the original
+  correct label. The strict, ideal outcome.
+- **`disrupted`** — the defended prediction merely differs from the
+  attacker's chosen wrong label. Weaker, but evidence the defence did
+  something.
+
+Testing across several ε and quality combinations found it more often achieves
+*disruption* than *recovery*, works better against PGD than against
+single-step FGSM, and struggles when the model's original confidence was
+unremarkable to begin with. That matches the mixed findings in the
+adversarial-ML literature on input-preprocessing defences, and it is reported
+rather than filtered down to the favourable settings.
+
+### Defence 2 — randomised smoothing
+
+Instead of one prediction, classify 25 independently Gaussian-noised copies of
+the image and take a majority vote. The intuition: the perturbation is a small,
+precisely-aimed direction in pixel space, and large random noise knocks most
+samples off that direction, so the vote drifts back towards the image's true
+neighbourhood.
+
+The sigma sweep run during development is the most useful thing in this
+section:
+
+| σ | Effect on a strong PGD attack (ε = 0.08) |
+|---|---|
+| 0.15 | barely disrupted anything — 96% of votes stayed on the attacker's label |
+| **0.25** | *sometimes* recovered the correct label, but with vote confidence around 0.3–0.4 — a bare plurality that changed between runs on identical input |
+| 0.35+ | started destroying real image content, landing on labels unrelated to either the original or the attack |
+
+The shipped default is 0.25, and its instability is surfaced directly as
+`vote_confidence` rather than hidden behind a single point prediction. Too
+little noise and the attack survives; too much and you have destroyed the
+image. The usable window is narrow and depends on the attack strength you did
+not know in advance.
+
+This is the **empirical** vote only. Cohen et al.'s certified-radius guarantee
+needs thousands of samples plus a concentration bound, and the tool explicitly
+does not claim it.
+
+### Defence 3 — adversarial training
+
+The other two defences are tricks bolted onto a finished model. Adversarial
+training (Madry et al., 2018) changes how the model is built: generate attacks
+during training and train on them, so the decision boundary is pushed away from
+the directions attacks actually use.
+
+This cannot be demonstrated on MobileNetV2 — real adversarial training needs
+many epochs over a labelled dataset, which is not happening per-request on a
+CPU-only host. So the panel uses two small CNNs (about 110K parameters each)
+trained once offline on MNIST and shipped as static checkpoints of roughly
+427 KB. Same architecture, same data, same three epochs; the only difference is
+the training procedure.
+
+| | Clean accuracy | Accuracy under PGD |
+|---|---|---|
+| Standard training | **98.62%** | **1.09%** |
+| Adversarial training | 96.98% | **84.30%** |
+
+That table is the whole argument. The standard model is essentially destroyed
+by an attack it never saw. The adversarially-trained model gives up about 1.6
+points of clean accuracy and keeps 84% under the same attack.
+
+Both models are attacked **independently and white-box**, each using its own
+gradients, because the optimal perturbation differs per model and sharing one
+would be an unfair, weaker test of the defended model.
+
+## Why these choices
+
+**Why show FGSM when PGD is strictly better?** Because the comparison is the
+lesson. FGSM is one step and PGD is ten, and the difference shows up everywhere
+— in success rate, in how much of the ε budget is actually used, and most
+strikingly in transferability.
+
+**The transferability finding.** With `check_transfer` enabled, the same
+attacked image is handed to ResNet18, a different architecture that the attack
+never had gradient access to. Across ε from 0.02 to 0.08 on a real photo:
+FGSM's perturbation **did not transfer at any tested ε** — ResNet18 kept its
+correct prediction every time, even though FGSM fooled MobileNetV2 every time.
+PGD's perturbation **transferred at every tested ε**. It moved ResNet18's
+prediction, though never to the same wrong label MobileNetV2 landed on.
+
+This is a single-image, single-model-pair observation, and it is reported that
+way rather than as a general law. But the direction is intuitive: a one-step
+attack finds a perturbation specific to one model's local gradient, while an
+iterative attack pushes further into a region where several models are wrong
+together.
+
+**Why is targeted always the harder mode?** Untargeted needs the prediction to
+land anywhere in 999 wrong classes. Targeted needs it in one specific class.
+Same ε budget, vastly smaller target — which is why targeted mode fails within
+budget for the patch at 10% and for the black-box attack entirely.
+
+**Why present three defences that all partially fail?** Because that is the
+state of the field, and a lab that showed only a defence that works would be
+teaching the wrong thing. The two input-preprocessing defences are cheap and
+unreliable. Adversarial training genuinely works and costs clean accuracy,
+training time, and generality. There is no free option, and the honest ordering
+is: adversarial training if you can afford it, input preprocessing as
+defence-in-depth, and never a claim of robustness without measuring it under
+attack.
+
+## How to read the output
+
+Compare the two labels first, then the two Grad-CAM heatmaps. If the label
+changed but the attention map is unchanged, the model was near a boundary
+already; if the attention moved off the object, the attack redirected it.
+
+For the patch attack, read the step count — it is a real measure of difficulty
+for that image, since the loop early-stops on success.
+
+For the black-box attack, read the query count. That number is the attack's
+real-world cost against a rate-limited API, and it is the reason gradient
+access matters so much.
+
+For randomised smoothing, read `vote_confidence`, not the label. A correct
+label at 0.35 vote confidence is a coin flip that happened to land well, and
+re-running on the identical input can give a different answer.
+
+For the defences generally, `disrupted` without `recovered` means the defence
+broke the attack without restoring the truth. That is a real outcome and
+usually the common one.
+
+## Limits
+
+- **One model, one dataset per demo.** The main lab is MobileNetV2 on ImageNet
+  photos; the adversarial-training panel is a tiny CNN on MNIST digits. MNIST
+  robustness results notoriously do not generalise upward.
+- **The adversarially-trained model was only tested against PGD** at the ε
+  range offered here. Robustness against attacks it was not trained on — a
+  different ε, a transferred attack, a black-box attack — can be much weaker.
+- **The patch is not universal.** It is optimised for one image at one
+  position, and physical printing, angle and lighting are not modelled.
+- **The black-box attack assumes score access.** Label-only is harder.
+- **Randomised smoothing here is empirical**, with no certified radius.
+- **Uploaded photos of handwritten digits are out-of-distribution** for the
+  MNIST models. Preprocessing mirrors MNIST conventions — greyscale, auto-invert,
+  crop to ink, centre, resize to 28×28 — but a photographed digit can be
+  misclassified before any attack, which is why the preprocessed image and the
+  clean prediction are both shown.
+- **Every number quoted in this chapter came from a specific run** on a
+  specific image. They demonstrate behaviour; they are not benchmarks.
+
+## Likely interview questions
+
+**"Explain FGSM in one sentence."**
+Take the gradient of the loss with respect to the input pixels rather than the
+weights, step every pixel by ε in the direction of that gradient's sign, and
+you have moved the image across the decision boundary while changing each pixel
+by an amount too small to see.
+
+**"Why does PGD beat FGSM?"**
+FGSM takes one linear step, which assumes the loss surface is locally linear
+over the whole ε-ball — it usually is not. PGD takes several smaller steps and
+projects back onto the ball after each, so it follows the curvature and finds a
+better point inside the same budget. Empirically it also produces perturbations
+that transfer to other models, which the single step does not.
+
+**"What is the difference between a targeted and an untargeted attack, and why
+does it matter operationally?"**
+Untargeted only requires the model to be wrong; targeted requires a specific
+wrong answer. Targeted is much harder for the same budget, which is why some
+attacks in this lab succeed untargeted and fail targeted outright. It matters
+operationally because most real harms are targeted — making a stop sign read as
+a speed limit, or making malware classify as benign — so untargeted success
+rates overstate the attacker's real capability.
+
+**"Your defence recovered the correct label. Is the model safe now?"**
+No, for two reasons. First, the defence was measured against the attack it was
+shown; an attacker who knows the defence is present can attack the composed
+system — differentiate through the JPEG approximation, or optimise against the
+noise distribution. That is **adaptive attack** evaluation, and the field's
+history is a long list of defences that looked strong until someone ran one.
+Second, in this lab the recovery is unstable: the smoothing vote sits near 0.35
+and flips between runs on identical input.
+
+**"What does adversarial training cost?"**
+Clean accuracy, training compute, and generality. Here, 1.6 points of clean
+accuracy for 83 points of robust accuracy against the trained-for attack — a
+good trade at this scale. Training cost is the real bill: each batch needs a
+full PGD attack generated against the current weights, so an epoch costs
+roughly the number of attack steps times a normal epoch. And the robustness is
+specific to the attack type and ε range it was trained on.
+
+**"How would you attack a model you have no access to?"**
+Either transfer or query. Transfer: train or obtain a substitute model on
+similar data, attack it with something iterative like PGD, and hope the
+perturbation carries — this lab's transfer result shows PGD carrying where FGSM
+did not. Query: a score-based method like SimBA, which needed 348 queries for
+an untargeted success here and failed targeted at 6,000. That query count is
+also the defence — rate limiting, returning coarse or top-1-only scores, and
+detecting the near-duplicate query patterns these attacks produce all raise the
+cost sharply.
+
+**"Why do adversarial examples exist at all?"**
+The framing I find most useful is Ilyas et al.'s: they are not bugs but
+**non-robust features**. Models learn genuinely predictive patterns that happen
+to be imperceptible to humans and brittle under small perturbation. The model
+is not malfunctioning — it is using signal that is real in the training
+distribution and trivially manipulable. That also explains transferability:
+different models trained on the same data learn overlapping non-robust
+features, so a perturbation that exploits one often exploits another.
+
+**"Where does this matter in a product?"**
+Anywhere a classifier's output triggers a consequence without a human in the
+loop — content moderation, fraud scoring, biometric liveness, automated
+inspection. The engineering response is not to expect a robust model. It is to
+assume the classifier can be steered and to design the surrounding system
+accordingly: rate limits and query-pattern monitoring to make black-box attacks
+expensive, multiple independent signals so no single model is decisive,
+human review for consequential outcomes, and measuring accuracy under attack
+rather than only on the clean test set.
 
 <h1 class="bk-chapter" id="ch-32-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 32</span>Attack-Surface / Exposed-Path Scanner</h1>
 
@@ -10277,6 +10900,8 @@ less and have it be true.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload any file (capped at the first 5MB). The tool converts the raw bytes
 into the same grayscale "byte-plot" image real malware-visualization
@@ -10339,6 +10964,313 @@ visible structure, and the entropy heatmap renders almost entirely red
   exhaustive.
 - Never executes, opens, or interprets the uploaded file's actual code —
   only reads its raw bytes.
+
+## What problem it solves
+
+An analyst is handed a binary and has to decide, in the first minute, whether
+it is worth an hour. Not "is this malware" — that takes real work — but "does
+this look like something that has been deliberately obscured?"
+
+Two cheap static signals answer most of that, and neither requires running the
+file:
+
+- **What does it look like?** Raw bytes laid out as a greyscale image produce
+  visibly distinct textures. Code, text, padding and compressed data each have
+  their own appearance, and a person recognises the difference immediately.
+- **How random is it?** Compressed or encrypted data is statistically close to
+  noise. Ordinary code and text are not. A binary that is mostly noise has been
+  packed, and packing is what you do when you want a signature scanner to find
+  nothing.
+
+This tool computes both, plus one structural check on Windows executables, and
+shows the evidence. **It never runs the file.** Every operation is a bounded
+read of raw bytes — no unpacking, no execution, no sandbox needed because
+nothing is executed.
+
+### What it deliberately is not
+
+The original idea was a malware *family* classifier — a CNN over the Malimg
+dataset, the standard benchmark for the byte-plot-as-image approach. That was
+researched before any code was written and abandoned for concrete reasons: no
+suitable pretrained model is available off the shelf, and the Malimg dataset
+itself is reachable only through a Kaggle account or an unreliable bulk mirror.
+Building a headline feature on either is not something to do quietly.
+
+So the tool ships the technique the field actually uses when there is no
+labelled dataset and no trained classifier available: **visualisation and
+entropy, presented as evidence for a human**. It produces no verdict on whether
+a file is malicious.
+
+## How it works, step by step
+
+1. **Upload a file.** Any bytes. The first 5 MB are analysed.
+2. **Byte plot** — bytes are reshaped into a greyscale image, one pixel per
+   byte.
+3. **Entropy profile** — Shannon entropy is measured in a sliding window across
+   the whole file and rendered as a colour strip aligned to file position.
+4. **Packing likelihood** — the profile is reduced to a score and a
+   low/medium/high label.
+5. **PE header check** — if the file is a Windows executable, the section table
+   is parsed and one classic packer tell is checked.
+6. **Everything is returned as evidence**, with no malicious/benign call.
+
+## The model or algorithm
+
+### Byte plots (Nataraj et al., 2011)
+
+Read the file as unsigned bytes, each one a grey level from 0 to 255, and
+reshape into a rectangle. The row width is not arbitrary — it comes from
+Nataraj's own file-size table:
+
+| File size | Row width |
+|---|---|
+| ≤ 10 KB | 32 |
+| ≤ 30 KB | 64 |
+| ≤ 60 KB | 128 |
+| ≤ 100 KB | 256 |
+| ≤ 200 KB | 384 |
+| ≤ 500 KB | 512 |
+| ≤ 1 MB | 768 |
+| larger | 1024 |
+
+The width matters because structure in a binary is periodic — tables, aligned
+records, repeated instruction patterns — and a width that happens to align with
+that period turns the periodicity into visible vertical banding. A poorly
+chosen width scrambles it into noise. The published table keeps the aspect
+ratio interpretable across sizes.
+
+What you learn to see:
+
+- **Fine-grained speckle with faint vertical structure** — machine code.
+- **Long uniform black bands** — zero padding, or a section reserved but not
+  filled.
+- **Regular light stippling** — ASCII text or string tables, since printable
+  characters cluster in a narrow byte range.
+- **Featureless high-frequency noise** — compressed or encrypted data.
+
+The tool draws the picture. It does not interpret it, and it does not classify
+what is shown.
+
+### Sliding-window Shannon entropy
+
+Entropy over a chunk of bytes:
+
+```
+H = − Σ p(b) · log₂ p(b)          over the 256 possible byte values
+```
+
+The unit is bits per byte, and the maximum is 8 — reached only when all 256
+values are equally likely. English text sits around 4 to 4.5. Compiled x86 code
+is typically 6 to 6.5. Compressed or encrypted data lands around 7.9.
+
+The window is 1024 bytes with a stride of 512, so windows overlap by half. The
+overlap is there so that a boundary between a low-entropy and a high-entropy
+region is not smeared across a single window and missed.
+
+**The window size was the subject of a real bug.**
+
+The first implementation used 256-byte windows. Testing it against genuinely
+random bytes from `os.urandom` produced a maximum entropy of about **7.26 bits
+per byte**, mean 7.17, across twenty samples — well under the 7.5 threshold
+that was supposed to mean "essentially random". The threshold could never fire,
+even on perfectly encrypted content.
+
+The cause is not a bug in the code but a property of the estimator. **Shannon
+entropy computed from counts is biased downward on small samples.** With 256
+bytes spread across 256 possible values, many values simply do not appear by
+chance; those zero counts drop out of the sum, and the estimate reads lower
+than the true entropy of the source. The bias shrinks as the sample grows.
+
+At 1024 bytes, real random data reliably measures **7.78 to 7.84**, and the 7.5
+threshold discriminates properly. The window size was widened, and the
+verification numbers are recorded in the source so nobody quietly narrows it
+again.
+
+This is a general lesson about entropy on binaries: **a threshold is only
+meaningful relative to the window size it was measured at.** Quoting "entropy
+above 7.5 means packed" without stating the window is meaningless.
+
+### The packing score
+
+The profile is reduced to a single number in [0,1]:
+
+```
+score = 0.6 · clamp( (mean_entropy − 6.0) / 2.0 )  +  0.4 · fraction_of_windows_above_7.5
+```
+
+Two terms, deliberately measuring different things. The first is the overall
+level, rescaled so that 6.0 bits per byte maps to zero and 8.0 maps to one —
+because 6.0 is roughly where ordinary compiled code sits, so anything below it
+should contribute nothing. The second is how much of the file is in the
+near-random band, which catches the common case of a small low-entropy
+unpacking stub followed by a large encrypted payload: the mean stays moderate
+while the fraction is high.
+
+Thresholds at 0.33 and 0.66 give low, medium, high. The weights are a
+judgement, not a fit to data, and there is no calibration set behind them —
+which is exactly why the score is shown alongside the entropy strip rather than
+instead of it.
+
+### The PE header check
+
+If the file is a Windows executable, one structural tell is worth checking, and
+it is done with Python's `struct` alone — no `pefile` dependency for what is a
+few dozen bytes of parsing.
+
+The walk is: `MZ` magic → `e_lfanew` offset at 0x3C → `PE\0\0` signature →
+COFF header for the section count → optional header for the entry point
+address and its own size → section table.
+
+The question asked is: **does the entry point fall inside the last section?**
+
+A normal compiler places the entry point in an early code section, typically
+`.text`. A packer works by compressing the original program into data and
+appending a new final section containing the unpacking stub, then rewriting the
+entry point to the stub. So the entry point landing in the final section is a
+real, long-standing packer signature — one of the checks tools like PEiD and
+Detect It Easy have always performed.
+
+Every parse step is bounds-checked, and the whole thing is wrapped so that
+`struct.error`, `IndexError` and `UnicodeDecodeError` all return "not a PE"
+rather than propagating. That is not defensive padding: **the input is
+untrusted and deliberately malformed input is the normal case here.** A parser
+in this position that can be crashed by a truncated header is a bug, not an
+inconvenience.
+
+## Why these choices
+
+**Why no classifier?** Because an honest one was not available. Without the
+dataset there is no training, and without training there is no accuracy figure
+— and a malicious/benign verdict with no measured accuracy is worse than no
+verdict at all, because someone will act on it.
+
+**Why an image at all, if nothing classifies it?** Because the human reading
+the screen is the classifier. Byte plots work as a triage aid precisely because
+texture differences are obvious to the eye and awkward to specify in code. The
+technique's original value in the Nataraj paper was that malware from the same
+family looks alike; the value here is narrower and still real — you can see at
+a glance where the structured regions end and the noise begins.
+
+**Why put the entropy strip beside the byte plot?** They are two views of the
+same axis. A dark uniform band in the plot should read blue in the strip
+(padding); a noisy region should read red. Where the two disagree, something is
+worth a closer look.
+
+**Why is the YARA scan advisory rather than blocking?** Every upload passes
+through the project's shared file gate. In most tools a YARA match rejects the
+file. Here it cannot: analysing suspicious-looking files is the entire purpose,
+so a match is logged as a security event for the operator's visibility and the
+analysis proceeds.
+
+**Why cap at 5 MB?** Real malware samples are typically small, the entropy
+profile is dominated by the first megabytes anyway, and an unbounded byte plot
+of a 500 MB file is neither computable in a request nor readable. Truncation is
+reported in the response rather than performed silently.
+
+## How to read the output
+
+**The colour strip is positional.** Left is the start of the file, right is the
+end, and colour runs blue (low entropy) through yellow to red (near random).
+The shape tells the story:
+
+- **Mostly blue, red at one end** — a normal file with an appended compressed
+  or encrypted blob.
+- **Blue prologue, then red for the rest** — the classic packer layout: a small
+  stub followed by the packed payload.
+- **Uniformly red** — the whole file is compressed. Perfectly normal for a ZIP,
+  a JPEG, or a PNG, and completely unremarkable.
+- **Mostly mid-range with structure** — ordinary code and data.
+
+**High entropy is not suspicious on its own.** Every compressed archive and
+every media file scores high. Entropy is suspicious when it appears where it
+should not — inside the code section of an executable, in a document, in a
+region a normal file format would not compress.
+
+**The PE check is one bit.** Entry point in the last section is a real tell,
+but legitimate installers and some protection systems do it too. Combine it
+with a high entropy score before treating it as anything.
+
+**No output here means a file is safe.** Verified during testing: a plain text
+file scored low with 0% of windows above threshold, and a file of random bytes
+scored high with 94% and a uniformly red strip. Both are correct, and neither
+is a malware verdict.
+
+## Limits
+
+- **No malicious/benign classification and no family attribution.** By design,
+  for lack of an honestly-obtainable trained model.
+- **High entropy has many innocent causes** — every archive and media format.
+  On its own it means "compressed", not "malicious".
+- **Low entropy proves nothing.** Plenty of malware is not packed at all, and a
+  simple script is entirely readable.
+- **PE only** for the structural check. ELF, Mach-O and everything else get the
+  byte plot and entropy alone.
+- **The packing score's weights and thresholds are judgement calls**, not
+  values fitted to a labelled corpus.
+- **Only the first 5 MB** is examined; a payload beyond that is invisible.
+- **Static analysis only.** Anything that reveals itself at run time —
+  network behaviour, dropped files, injected processes — is out of reach, and
+  that is the trade for the tool being completely safe to use.
+- **Entropy thresholds are window-size dependent.** The numbers here are
+  specific to the 1024-byte window.
+
+## Likely interview questions
+
+**"What is Shannon entropy on a binary actually telling you?"**
+How uniformly the 256 possible byte values are distributed in a region,
+expressed in bits per byte with a maximum of 8. It is a compressibility
+measure: 7.9 means the data has almost no redundancy left, which happens when
+it has already been compressed or encrypted. Text sits near 4.5, compiled code
+around 6 to 6.5. It says nothing about intent — only about how much structure
+remains.
+
+**"Your entropy threshold never fired. What was wrong?"**
+The window was too small. Entropy estimated from counts is biased downward on
+small samples, because with 256 bytes across 256 possible values many values
+are absent by chance and drop out of the sum. Real random data measured only
+7.17 on average at a 256-byte window, so a 7.5 threshold was unreachable.
+Widening to 1024 bytes brought random data to 7.78–7.84 and made the threshold
+meaningful. The general point is that an entropy threshold is only defined
+relative to its window size.
+
+**"Why a sliding window instead of one number for the file?"**
+Because location is the signal. A packed executable is a small low-entropy stub
+followed by a large high-entropy payload; averaged over the file that looks
+unremarkable. The profile shows *where* the randomness starts, which is both
+the tell and the thing an analyst needs in order to know where to look next.
+
+**"Why is the entry point being in the last section suspicious?"**
+Compilers put the entry point in an early code section. A packer compresses the
+original program into data, appends a new final section holding the unpacking
+stub, and rewrites the entry point to point at that stub — so execution begins
+in the last section. It is one of the oldest packer heuristics, and it is one
+bit of evidence rather than a verdict, since some legitimate installers and
+protectors do the same.
+
+**"Is it safe to analyse malware this way?"**
+Yes, because nothing is executed and nothing is parsed with a library that
+could be exploited by a crafted file. It is a bounded read of bytes, a
+histogram, and a hand-written header walk with every field length-checked and
+every parse failure caught. The whole reason for hand-rolling the PE parsing
+rather than pulling in a dependency is that the attack surface is a few dozen
+lines I can read, on input that is deliberately hostile.
+
+**"Where does this fit in a real triage pipeline?"**
+At the very front, as the cheap filter. It costs milliseconds, needs no
+sandbox, and tells you which samples are obfuscated enough to be worth the
+expensive stages — signature scanning, static disassembly, then dynamic
+analysis in an isolated environment. Its job is to rank a queue, not to make a
+decision, which is why the output is evidence and a score rather than a verdict.
+
+**"How would you turn this into a real classifier?"**
+Take the byte plot, extract texture descriptors — GIST features in the original
+Nataraj work, or a small CNN — and train on a labelled family corpus like
+Malimg. Reported accuracy on that benchmark is high, but it comes with two
+serious caveats I would state up front: the classes are families rather than
+malicious-versus-benign, so it answers a different question; and it is trivially
+evadable, since an author who knows the visual signature can pad or reorder
+sections to change the texture without changing behaviour. That is one of the
+reasons this tool stopped at evidence.
 
 <h1 class="bk-chapter" id="ch-34-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 34</span>Browser Extension Permission Risk Analyzer</h1>
 
@@ -10442,6 +11374,8 @@ access.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a CAPTCHA-style image you already have, and a vision-language model
 (VLM) attempts to read it. Then a hardening slider stacks three classic,
@@ -10500,6 +11434,241 @@ of you.
   adversarial attack.
 - Never submits to, or interacts with, a live CAPTCHA challenge on any
   real website — upload-only, one image per request.
+
+## What problem it solves
+
+A CAPTCHA is a test that is supposed to be easy for a person and hard for a
+machine. Text CAPTCHAs worked for years because optical character recognition
+was brittle: distort the glyphs, overlap them, add a wavy line, and OCR fell
+apart while people read straight through it.
+
+Vision-language models have removed that gap. A model that can describe a
+photograph in a paragraph can also read six wobbly characters, and it does so
+without any of OCR's dependence on clean segmentation. The classic text CAPTCHA
+is, for practical purposes, over — which is why the large providers moved years
+ago to behavioural signals and risk scoring rather than a puzzle.
+
+This lab lets you see that for yourself, and then ask the follow-up question:
+**how much distortion does it take before the model stops being able to read
+it, and is any human still able to at that point?**
+
+You upload a CAPTCHA image. A vision-language model reads it. One slider adds
+increasing amounts of classic distortion. The same model reads the hardened
+version. Both answers appear side by side, and if you tell the tool what the
+image actually says, each attempt gets a correct/incorrect mark.
+
+Scope, stated the same way as everywhere else in this book: it operates only on
+an image you upload. There is no scraping, no automation against a live
+reCAPTCHA or hCaptcha challenge, and no bulk solving. One image in, one
+read-attempt out.
+
+## How it works, step by step
+
+1. **Upload a CAPTCHA image.**
+2. **The reader model attempts the original**, returning the characters it
+   sees.
+3. **Three perturbations are applied** at an intensity you set from 0 to 100.
+4. **The same model attempts the hardened image.**
+5. **Both answers are returned** with the hardened image itself, so you can
+   look at what the model was given.
+6. **Optionally supply the ground truth**, and each attempt is marked correct
+   or incorrect by a whitespace-insensitive, case-insensitive comparison.
+
+## The model or algorithm
+
+### The reader
+
+The reader is a hosted vision-language model, reached through the same
+provider-cascade helper the document tools in this book use. That choice
+matters for the design of everything else.
+
+### Why the hardening is deliberately not gradient-based
+
+The Adversarial Robustness Lab elsewhere in this book attacks a local
+torchvision classifier using FGSM and PGD — real gradients through weights the
+tool has in memory. None of that is available here. The reader is behind
+somebody else's API: no weights, no gradients, and the provider may change the
+model under you without notice.
+
+That constraint is not a limitation of the demo. It **is the real situation**.
+A CAPTCHA vendor does not know, and cannot control, which solver will be
+pointed at their challenge — a person, a commercial solving service, an OCR
+pipeline, or whichever multimodal model shipped last week. A perturbation
+tailored to one specific model's gradients would be worthless against the next
+one.
+
+So real CAPTCHA hardening has always used **model-agnostic** distortions:
+noise, occlusion, warping, colour and contrast manipulation. This tool
+reproduces exactly that, under one scalar intensity.
+
+### The three perturbations
+
+All three scale from a single `t = intensity / 100`, applied in a deliberate
+order.
+
+**1. Contrast and colour reduction, first.** Contrast is scaled by `1 − 0.5t`
+and saturation by `1 − 0.4t`. At full intensity, contrast is halved and colour
+is heavily muted. This goes first because it is a whole-image tone shift, and
+applying it after the other steps would attenuate them too. It mirrors what
+real CAPTCHA backgrounds do — muddying the text into the background instead of
+attacking the glyphs directly.
+
+**2. A sinusoidal occlusion wave.** Two sine curves are drawn across the middle
+of the image, half a period out of phase with each other, one dark and one
+light:
+
+```
+y(x) = h/2 + amplitude · sin( 4π · x/w  +  phase )
+amplitude = 2 + 10t
+thickness = 1 + 3t
+```
+
+The dark-and-light pair is the point. A single dark line is easy to remove —
+threshold it out. Two lines of opposite polarity mean that whichever background
+the text sits on, one of them contrasts against it, so no single thresholding
+step clears both.
+
+**3. Gaussian pixel noise, last.** Independent noise with `σ = 45t` per
+channel, added on top and clipped to the valid range. It goes last so that the
+noise sits over the drawn lines too, rather than being smoothed by later
+operations.
+
+### Parsing the reader's reply
+
+One implementation detail caused a real bug and is worth recording.
+
+The prompt asks for `{"text": "..."}` rather than a bare string, because the
+first provider in the cascade **forces `response_format=json_object`
+regardless of prompt wording**. Asking for plain text gets JSON back anyway.
+The first live test looked like a failure: the model clearly read the CAPTCHA
+correctly both times, yet the ground-truth comparison marked both attempts
+wrong — because the answer being compared was a JSON blob, not the characters.
+
+The fix was to request a defined shape and parse it with the same helper the
+rest of the codebase uses, with a fallback to the raw string if the expected
+key is missing. String-matching a response that may or may not be raw text
+depending on which provider answered is not a workable contract.
+
+The correctness comparison itself is intentionally forgiving in one direction
+only — it lowercases and strips all whitespace, so `Ab 3 xY` matches `ab3xy`,
+but it does not do fuzzy or edit-distance matching. A near miss is a miss.
+
+## Why these choices
+
+**Why one slider instead of separate controls per perturbation?** Because the
+question the tool exists to answer is "how much hardening", not "which
+hardening". A single monotonic axis makes the comparison legible and makes
+repeated runs comparable.
+
+**Why show the hardened image back to the user?** So the human half of the test
+can be evaluated at the same time. A CAPTCHA that the model cannot read and a
+person cannot read either has not been hardened, it has been broken. Seeing the
+image is the only way to judge that, and it is the whole reason the tool
+returns it.
+
+**Why no score, only two answers?** With one image there is no statistical
+claim to make. Two raw answers plus an optional correctness mark is exactly as
+much as one sample supports.
+
+### The finding, reported as it happened
+
+During live verification, the reader **read a synthetic test CAPTCHA correctly
+even at maximum hardening intensity.** Large clear characters, and 100 on the
+slider did not stop it.
+
+That is not a favourable result for the tool, and it was kept rather than
+tuned away — partly because the tool's framing already asks the right question
+("how much hardening does it take", not "does this one attempt succeed"), and
+partly because it is the honest headline. A modern vision-language model reads
+through classic CAPTCHA distortion at intensities well past where a person
+starts struggling. The perturbations that used to defeat OCR were exploiting
+segmentation, and these models do not segment.
+
+## How to read the output
+
+Read the two answers, then look at the hardened image.
+
+- **Both correct** — hardening at this intensity did nothing to the machine.
+  Check whether the image is still comfortable for you to read; if it is, the
+  test has no discriminating power at all here.
+- **Original correct, hardened wrong** — you have found an intensity that
+  degrades the model. Now the real question: can you still read it? If not,
+  the distortion is failing both parties equally.
+- **Both wrong** — either the image is genuinely hard, or the reader is a poor
+  fit for this style of CAPTCHA. One sample cannot distinguish those.
+
+The result applies to this image, at this intensity, with this reader, on this
+run. Noise is random, so repeating the same request will not give the identical
+answer.
+
+## Limits
+
+- **One image, one attempt per side.** This is a demonstration, not a
+  benchmark. Nothing here supports a statement about CAPTCHAs in general.
+- **The reader is a hosted model** and can change without notice, so results
+  are not reproducible across time in the way a pinned local model would be.
+- **No human baseline is measured.** The tool shows you the hardened image and
+  leaves the human-readability judgement to you, which is subjective and
+  uncontrolled.
+- **Text CAPTCHAs only.** Image-grid challenges, puzzle-slider challenges and
+  behavioural risk scoring are entirely outside the scope.
+- **The perturbations are the classic set**, not the state of the art in
+  adversarial typography, and are applied at a fixed structure — the wave is
+  always horizontal and centred, so an attacker who knew that could target it.
+- **The noise is random per run.** Identical requests give different images and
+  can give different answers.
+
+## Likely interview questions
+
+**"Why can a vision-language model read a CAPTCHA that defeated OCR?"**
+Classic OCR is a pipeline: binarise, segment into characters, classify each
+one. Every CAPTCHA distortion targeted the segmentation stage — overlap the
+glyphs and the pipeline cannot cut them apart, so everything downstream fails.
+A vision-language model has no segmentation stage. It processes the whole image
+into patch embeddings and produces text, so the attack surface that CAPTCHAs
+were designed against no longer exists in the solver.
+
+**"Why not use FGSM here, like the adversarial lab does?"**
+No gradient access. The reader is a hosted API — I can send an image and read a
+string, nothing more. Even if I could attack it, a perturbation optimised
+against one model's gradients would not survive the provider swapping models,
+and a real CAPTCHA has to hold up against every solver simultaneously. Model-
+agnostic distortion is the only thing that generalises, which is why real
+CAPTCHA hardening has always looked like this.
+
+**"Your tool shows the model reading through maximum hardening. Doesn't that
+mean the tool failed?"**
+It means the technique failed, which is the finding. The tool's job is to
+measure how much hardening it takes; the answer on that image was "more than
+this slider goes". Reporting that is more useful than picking an image and an
+intensity where the demo looks impressive. It is also the correct conclusion
+about text CAPTCHAs generally, and it lines up with the industry having moved
+away from them.
+
+**"So how should a real service stop bots today?"**
+Not with a puzzle. The direction the major providers took is risk scoring from
+behaviour and context — mouse and touch dynamics, timing, device and network
+reputation, account history — with a challenge shown only to sessions that
+already look suspicious. Beyond that: rate limiting, proof-of-work to make bulk
+requests cost something, and cryptographic attestation like Privacy Pass, which
+proves "a real user was verified once" without re-testing every time. The
+useful reframing is that you are not trying to prove humanity, you are trying
+to make automated abuse expensive per unit.
+
+**"Why draw two occlusion lines instead of one?"**
+Polarity. A single dark line over dark text is nearly invisible, and a single
+dark line over light text is trivially removed with a threshold. Drawing a dark
+line and a light line half a period apart means whatever the local background
+is, one of them contrasts against it, so no single global thresholding step
+clears both.
+
+**"Is building this ethical?"**
+The line I would draw is between a tool that studies a defence and a tool that
+defeats one at scale. This takes one uploaded image, reads it once, and shows
+what happens under distortion — no live-site automation, no batch solving, no
+integration with any real challenge. That is the same posture as the rest of
+the security tools in this book, and the finding it produces is useful to
+defenders: text CAPTCHAs no longer work, and here is the evidence.
 
 <h1 class="bk-chapter" id="ch-36-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 36</span>DNS Tunneling / Exfiltration Detector</h1>
 
@@ -11291,6 +12460,8 @@ similarity score moved.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Type a short fixed phrase 3 times to enroll a personal typing-rhythm
 profile, built from real key-press timing captured by your browser — no
@@ -11349,6 +12520,265 @@ problem), not a heuristic invented for this demo.
 - Backspace during a timed attempt discards it rather than trying to
   patch the timing — corrected typos have a different rhythm than a
   clean run and would distort the profile.
+
+## What problem it solves
+
+A password proves you know a secret. It says nothing about who is typing it.
+Anyone holding the string is indistinguishable from its owner.
+
+**Keystroke dynamics** is the idea that the *rhythm* of typing is itself
+identifying — that the way a particular person types a particular phrase is
+consistent enough across repetitions, and different enough between people, to
+work as a second factor. It is one of the few biometrics that needs no extra
+hardware: a keyboard and a millisecond clock are the whole sensor.
+
+This tool makes that concrete. You enrol by typing one short phrase three
+times, and it builds a timing profile from those repetitions. Then you type the
+phrase again and it scores how far the new attempt sits from the enrolled
+rhythm. Type naturally and the score is low. Deliberately change your
+rhythm — slow down, use one finger, pause mid-phrase — and it rises.
+
+The point is to show both halves honestly: the signal is real, and it is also
+fragile. Keystroke dynamics is a plausible *risk signal* to combine with other
+evidence. It is not a replacement for a password, and this demo is built to
+make that obvious rather than to sell the idea.
+
+Everything runs in the browser. No profile is stored, nothing is transmitted.
+
+## How it works, step by step
+
+1. **Type the phrase `the quick fox` three times.** Each repetition is
+   captured as raw `keydown`/`keyup` events with a high-resolution timestamp.
+2. **Each repetition becomes two feature vectors** — dwell times and flight
+   times.
+3. **The three repetitions are averaged** into an enrolment profile: a mean and
+   a standard deviation per feature.
+4. **Type the phrase once more.** The same features are extracted.
+5. **Score the attempt** against the profile with a scaled Manhattan distance.
+6. **Report a band** — low, medium or high — with the raw number alongside it.
+
+## The model or algorithm
+
+### The two features
+
+Every keypress produces two events with timestamps from `performance.now()`, a
+monotonic clock with sub-millisecond resolution. From a sequence of them, two
+classic features:
+
+**Dwell time** — how long one key is held down.
+
+```
+dwell[i] = keyup[i].t − keydown[i].t
+```
+
+**Flight time** — the gap between releasing one key and pressing the next.
+
+```
+flight[i] = keydown[i+1].t − keyup[i].t
+```
+
+Flight time **can be negative**, and the code treats that as normal rather than
+clamping it. A fast typist presses the next key before releasing the current
+one; the overlap is real and is itself characteristic of how fluent someone is
+with a given phrase. Discarding the sign would throw away signal.
+
+For a thirteen-character phrase this gives thirteen dwell values and twelve
+flight values — twenty-five numbers describing one typing performance.
+
+### The classifier — scaled Manhattan distance
+
+The scoring is not invented here. It comes from **Killourhy and Maxion's CMU
+keystroke-dynamics benchmark**, which evaluated fourteen published anomaly
+detectors on the same dataset. Scaled Manhattan distance was among the
+best-performing, at roughly a **0.09 equal error rate** — around nine per cent
+of attempts misclassified at the threshold where false accepts and false
+rejects balance.
+
+The formula is deliberately simple:
+
+```
+score = (1/n) · Σ |attempt[i] − mean[i]| / std[i]
+```
+
+For each feature, take the absolute deviation from the enrolled mean, divide by
+that feature's own standard deviation, sum across all features, and average.
+
+The division is what makes it work. Some parts of a phrase are stable for a
+given person — a two-letter combination typed thousands of times has a tight
+distribution. Other parts vary wildly. An unscaled distance would let the noisy
+features dominate. Scaling by each feature's own standard deviation converts
+every term into "how many of *this feature's* typical deviations away is this",
+so a 40 ms miss on a rock-steady feature counts more than a 40 ms miss on a
+loose one.
+
+The result is interpretable without a lookup table: **the score is the average
+number of standard deviations of error per feature.** A score of 1.0 means the
+attempt is typically one standard deviation off across the board.
+
+### The standard-deviation floor
+
+One line matters more than its length suggests:
+
+```
+std = max(sqrt(variance), 5)   // 5 ms floor
+```
+
+Without it, a feature that happened to come out nearly identical across three
+enrolment repetitions gets a standard deviation near zero, and division by it
+sends that single term — and the whole score — to infinity. The floor of 5 ms
+encodes a real fact: human timing does not repeat to the millisecond, so a
+near-zero measured spread is a sampling artefact of having only three samples,
+not evidence of superhuman consistency.
+
+### The bands
+
+```
+score < 1.2   →  low     (consistent with the enrolled profile)
+1.2 – 2.5     →  medium  (some deviation)
+score ≥ 2.5   →  high    (substantially different rhythm)
+```
+
+These were calibrated during unit verification against synthetic attempts with
+known properties — a near-identical retype scores well under 1.0, and an
+attempt with every dwell time doubled scores well above 2.5. They are
+demonstration thresholds tuned on this phrase and this enrolment size, not
+values transferred from a published benchmark, and the interface says so.
+
+## Why these choices
+
+**Why three enrolment repetitions?** It is the minimum that gives a standard
+deviation at all — with two you get a spread, but a meaningless one; with one
+you get nothing to divide by. Real deployments use far more, typically dozens,
+and their accuracy reflects it. Three is chosen so a visitor will actually
+finish enrolling, and the small sample size is disclosed as a limitation rather
+than hidden behind the score.
+
+**Why a fixed phrase rather than free text?** Because the features are
+*positional*. `dwell[4]` means "how long the fifth key was held", which is only
+comparable across attempts if the fifth key is the same key. Free-text
+keystroke dynamics is a genuinely different and harder problem, using digraph
+and trigraph statistics aggregated over a long session rather than a fixed
+vector. Fixed-phrase is the tractable version and the one the CMU benchmark
+measures.
+
+**Why does a backspace void the attempt?** Correcting a typo destroys the
+timing of the surrounding keys — the pause to notice the error, the reach for
+backspace, the retype — and none of that belongs in the profile. The choice is
+between silently corrupting the data and restarting the repetition. Restarting
+is honest; the input clears and a mismatch indicator flashes.
+
+**Why is scoring done in the browser with nothing stored?** A typing profile is
+biometric data. Storing it would create exactly the liability the tool is
+meant to let people reason about, for a demonstration that needs no
+persistence.
+
+### A real bug worth keeping
+
+The finalisation logic has a comment longer than the code it explains, because
+the obvious implementation was wrong in a way that took live testing to find.
+
+The natural place to detect "the phrase is complete" is the `onChange` handler,
+which fires when the input's value reaches the target string. But the browser
+fires the native `input` event **before** the `keyup` for the very key that
+completed the phrase. Finalising there captures a buffer that is one `keyup`
+short — and worse, that orphaned `keyup` then lands at the head of the *next*
+attempt's buffer, shifting every dwell pairing by one index and producing
+nonsensical negative dwell times throughout the following repetition.
+
+The fix: `onChange` only sets a "ready to finalise" flag. The actual
+finalisation happens in `onKeyUp`, and only once the buffer's `keydown` and
+`keyup` counts are balanced again. The lesson generalises past this tool — when
+pairing events from two different streams, the completion condition belongs on
+whichever stream finishes last, not on whichever one is convenient to observe.
+
+## How to read the output
+
+The score is the average number of standard deviations of deviation per
+feature, so it is directly interpretable. Roughly 1 means "about as far off as
+this person's own repetitions were from each other". Roughly 3 means "three
+times that far", which is a different rhythm.
+
+A **low** band on your own second attempt is the expected result and shows the
+signal exists. A **high** band when you deliberately type differently shows the
+signal is discriminative. Both together are the demonstration.
+
+What the tool cannot show you, because it never sees a second person, is the
+error rate that actually matters: how often *someone else* typing the same
+phrase would score low. That is the false-accept rate, it requires an impostor
+population, and it is where the published ~9% equal error rate comes from
+rather than from anything measured here.
+
+## Limits
+
+- **Three enrolment repetitions is far too few** for real use. The standard
+  deviations are crude, which is exactly why the 5 ms floor is needed.
+- **No impostor testing.** The demo scores you against yourself. It cannot
+  measure false accepts.
+- **Fixed phrase only.** Free-text keystroke dynamics is a different technique.
+- **Hardware and context change the rhythm.** A different keyboard, a laptop
+  versus a mechanical board, a phone, being tired, being cold, or holding a cup
+  of coffee will all raise the score for the genuine user. This is the central
+  practical problem with the whole biometric.
+- **`performance.now()` resolution is deliberately reduced** in browsers as a
+  Spectre mitigation, typically coarsened to around 100 microseconds and
+  sometimes jittered. Fine for tens-of-milliseconds features, but it means the
+  clock is not as precise as its type suggests.
+- **Timing can be replayed.** Unlike a fingerprint, the feature vector is a
+  list of numbers; anything that can inject synthetic key events with recorded
+  timings can reproduce it exactly.
+- **Not an authentication system.** It is a risk signal, and the thresholds are
+  demonstration values.
+
+## Likely interview questions
+
+**"What are dwell and flight time, and why both?"**
+Dwell is how long a key is held; flight is the gap between releasing one key
+and pressing the next. They capture different things — dwell is largely motor
+habit per key, flight is about transitions between keys and how well-practised
+a particular sequence is. Flight can legitimately be negative when a fast
+typist overlaps presses, and that overlap is informative, so the sign is kept.
+
+**"Why scaled Manhattan rather than Euclidean or Mahalanobis?"**
+Manhattan is more robust to a single wild feature than Euclidean, which squares
+deviations and so lets one hesitation dominate the whole score. Full
+Mahalanobis would be the principled choice since it accounts for correlations
+between features, but it needs a covariance matrix estimated from far more
+samples than three repetitions provide — with n=3 and 25 features the matrix is
+hopelessly singular. Scaled Manhattan is the diagonal approximation: per-feature
+normalisation without the off-diagonal terms. The CMU benchmark found it among
+the best performers in practice, which is why it is used here.
+
+**"Your standard deviation could be zero. What happens?"**
+The score goes to infinity, which is why there is a 5 ms floor. It is not just a
+numerical guard — it encodes a fact about the domain. A measured spread of zero
+across three samples means the sample is too small, not that the person is
+perfectly consistent, so the floor substitutes a plausible minimum human
+variability.
+
+**"How would you deploy this for real?"**
+Never as a primary factor. As a risk signal feeding a step-up decision: a
+password plus a low keystroke score proceeds normally, a password plus a high
+score triggers a second factor rather than a rejection. It needs continuous
+re-enrolment so the profile tracks the user's drift over time and across
+devices, a per-user rather than global threshold, and an explicit fallback path
+for the days when someone's typing is legitimately different — otherwise you
+lock out your own users for having a cold.
+
+**"What is an equal error rate and why quote it?"**
+It is the operating point where the false-accept rate equals the false-reject
+rate, which gives a single number to compare detectors without picking a
+threshold first. Around 0.09 for this technique means roughly nine per cent
+error at that balance point — usable as one signal among several, nowhere near
+good enough alone. Quoting it is also how you make clear that a demo which only
+ever tests one person has not measured the number that matters.
+
+**"Is keystroke timing personal data?"**
+Yes. It is behavioural biometric data, it identifies a person, and under GDPR
+biometric data used for identification is a special category with a higher bar
+for processing. That is a substantive reason this tool computes everything in
+the browser and stores nothing — and a reason any real deployment needs a
+retention policy, a legal basis, and a non-biometric alternative for people who
+decline.
 
 <h1 class="bk-chapter" id="ch-41-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 41</span>LLM Prompt Injection Detection Playground</h1>
 
