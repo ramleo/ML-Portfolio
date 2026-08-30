@@ -24,49 +24,52 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 - <a class="bk-toc-part bk-part-1" href="#part-1">Part 1 · ML Pipeline</a>
 - <a class="bk-toc-chapter bk-part-1" href="#ch-1-automl-pipeline">1. AutoML Pipeline</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-2-data-preprocessing">2. Data Preprocessing</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-3-feature-engineering">3. Feature Engineering</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-4-optuna-tuning">4. Optuna Tuning</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-5-real-time-analytics">5. Real-Time Analytics</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-6-shap-explainability">6. SHAP Explainability</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-2-data-drift-detection">2. Data Drift Detection</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-3-data-preprocessing">3. Data Preprocessing</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-4-ensemble-methods">4. Ensemble Methods</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-5-feature-engineering">5. Feature Engineering</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-6-feature-selection">6. Feature Selection</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-7-optuna-tuning">7. Optuna Tuning</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-8-real-time-analytics">8. Real-Time Analytics</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-9-shap-explainability">9. SHAP Explainability</a>
 - <a class="bk-toc-part bk-part-2" href="#part-2">Part 2 · Language & Documents</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-7-contract-invoice-reconciliation-assistan">7. Contract/Invoice Reconciliation Assistant</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-8-document-intelligence">8. Document Intelligence</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-9-multimodal-rag">9. Multimodal RAG</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-10-text-to-sql-agent">10. Text-to-SQL Agent</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-10-contract-invoice-reconciliation-assistan">10. Contract/Invoice Reconciliation Assistant</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-11-document-intelligence">11. Document Intelligence</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-12-multimodal-rag">12. Multimodal RAG</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-13-text-to-sql-agent">13. Text-to-SQL Agent</a>
 - <a class="bk-toc-part bk-part-3" href="#part-3">Part 3 · Computer Vision</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-11-asl-fingerspelling-recognition">11. ASL Fingerspelling Recognition</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-12-astrophotography-anomaly-detector">12. Astrophotography Anomaly Detector</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-13-crime-scene-reconstruction">13. Crime Scene Reconstruction</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-14-gait-pattern-comparison">14. Gait Pattern Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-15-movement-form-comparison">15. Movement Form Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-16-ppe-compliance-check">16. PPE Compliance Check</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-17-photo-library-visual-search">17. Photo Library Visual Search</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-18-plant-growth-quantification">18. Plant Growth Quantification</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-19-text-prompted-video-object-tracking">19. Text-Prompted Video Object Tracking</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-20-wildlife-re-identification">20. Wildlife Re-Identification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-14-asl-fingerspelling-recognition">14. ASL Fingerspelling Recognition</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-15-astrophotography-anomaly-detector">15. Astrophotography Anomaly Detector</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-16-crime-scene-reconstruction">16. Crime Scene Reconstruction</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-17-gait-pattern-comparison">17. Gait Pattern Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-18-movement-form-comparison">18. Movement Form Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-19-ppe-compliance-check">19. PPE Compliance Check</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-20-photo-library-visual-search">20. Photo Library Visual Search</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-21-plant-growth-quantification">21. Plant Growth Quantification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-22-text-prompted-video-object-tracking">22. Text-Prompted Video Object Tracking</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-23-wildlife-re-identification">23. Wildlife Re-Identification</a>
 - <a class="bk-toc-part bk-part-4" href="#part-4">Part 4 · Security & Trust</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-21-ai-generated-code-detector">21. AI-Generated Code Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-22-adversarial-robustness-lab">22. Adversarial Robustness Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-23-attack-surface-exposed-path-scanner">23. Attack-Surface / Exposed-Path Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-24-binary-byte-plot-entropy-triage">24. Binary Byte-Plot & Entropy Triage</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-25-browser-extension-permission-risk-analyz">25. Browser Extension Permission Risk Analyzer</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-26-captcha-hardening-lab">26. CAPTCHA Hardening Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-27-dns-tunneling-exfiltration-detector">27. DNS Tunneling / Exfiltration Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-28-email-header-authentication-checker">28. Email Header Authentication Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-29-face-cloak">29. Face Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-30-face-deanonymization-risk-demo">30. Face Deanonymization Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-31-keystroke-biometric-auth-risk-demo">31. Keystroke Biometric Auth-Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-32-llm-prompt-injection-detection-playgroun">32. LLM Prompt Injection Detection Playground</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-33-malicious-package-scanner">33. Malicious Package Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-34-password-strength-breach-checker">34. Password Strength & Breach Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-35-phishing-email-body-classifier">35. Phishing Email Body Classifier</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-36-qr-phishing-detector">36. QR Phishing Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-37-siem-alert-triage-agent">37. SIEM Alert Triage Agent</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-38-style-cloak">38. Style Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-39-tls-security-headers-scanner">39. TLS / Security-Headers Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-40-video-call-keystroke-inference">40. Video-Call Keystroke Inference</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-41-yara-file-scanner">41. YARA File Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-24-ai-generated-code-detector">24. AI-Generated Code Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-25-adversarial-robustness-lab">25. Adversarial Robustness Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-26-attack-surface-exposed-path-scanner">26. Attack-Surface / Exposed-Path Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-27-binary-byte-plot-entropy-triage">27. Binary Byte-Plot & Entropy Triage</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-28-browser-extension-permission-risk-analyz">28. Browser Extension Permission Risk Analyzer</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-29-captcha-hardening-lab">29. CAPTCHA Hardening Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-30-dns-tunneling-exfiltration-detector">30. DNS Tunneling / Exfiltration Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-31-email-header-authentication-checker">31. Email Header Authentication Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-32-face-cloak">32. Face Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-33-face-deanonymization-risk-demo">33. Face Deanonymization Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-34-keystroke-biometric-auth-risk-demo">34. Keystroke Biometric Auth-Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-35-llm-prompt-injection-detection-playgroun">35. LLM Prompt Injection Detection Playground</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-36-malicious-package-scanner">36. Malicious Package Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-37-password-strength-breach-checker">37. Password Strength & Breach Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-38-phishing-email-body-classifier">38. Phishing Email Body Classifier</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-39-qr-phishing-detector">39. QR Phishing Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-40-siem-alert-triage-agent">40. SIEM Alert Triage Agent</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-41-style-cloak">41. Style Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-42-tls-security-headers-scanner">42. TLS / Security-Headers Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-43-video-call-keystroke-inference">43. Video-Call Keystroke Inference</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-44-yara-file-scanner">44. YARA File Scanner</a>
 - <a class="bk-toc-part" href="#appendix">Appendix · Every tool</a>
 
 </nav>
@@ -81,7 +84,7 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 Everything between a raw CSV and a trained, explained model — cleaning, feature work, tuning, comparison and drift.
 
-6 of this area's 11 tools have a chapter here. All of them are listed in the appendix.
+9 of this area's 11 tools have a chapter here. All of them are listed in the appendix.
 
 </div>
 
@@ -368,7 +371,311 @@ favours Random Forest. The competition costs one run and answers the question
 for the dataset actually in front of you, instead of importing a prior from
 someone else's benchmark.
 
-<h1 class="bk-chapter" id="ch-2-data-preprocessing"><span class="bk-chnum">Chapter 2</span>Data Preprocessing</h1>
+<h1 class="bk-chapter" id="ch-2-data-drift-detection"><span class="bk-chnum">Chapter 2</span>Data Drift Detection</h1>
+
+> Check whether live data has drifted away from what your model was trained on. Upload a new production batch and compare it against the training baseline: PSI, KS test and distribution histograms for numeric columns, category frequency shifts for categoricals. A trend sparkline tracks the drift score across successive batches.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Monitor Production Data |
+| **Model or method** | Statistical tests |
+| **What you give it** | Trained model + batch CSV |
+| **+ KS Test** | PSI |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/drift` |
+
+</div>
+
+## What problem it solves
+
+A model is trained once and used for years. The world it was trained on does not
+stay still.
+
+Prices inflate. A marketing campaign brings in a different kind of customer. A
+sensor is recalibrated. An upstream team changes a field from "UK" to "GB". None
+of these throws an error — the model keeps returning confident predictions, and
+they keep getting quietly worse. By the time anyone notices the business metric
+sagging, it has been wrong for months.
+
+The trap is that **you usually cannot measure accuracy in production**, because
+the true answer arrives late or never. You predicted a customer would churn; you
+find out in ninety days. You predicted fraud; you only learn about the fraud you
+caught.
+
+So instead of watching the model's accuracy, this tool watches its **input**. If
+the data arriving today no longer looks like the data the model was trained on,
+the model is being asked questions outside its experience — and that is
+detectable immediately, with no labels at all.
+
+## How it works, step by step
+
+1. **Pick a trained model.** Drift is measured against a specific model's
+   baseline, so the model has to exist first.
+2. **Upload a batch** — a CSV of the rows the model has been seeing. Optionally
+   label it (*"Week 3"*, *"After the pricing change"*).
+3. **Choose the reference.** By default a batch is compared with the **previous
+   batch**, so you see week-on-week movement. Tick *compare to training* and it
+   is compared with the model's original baseline instead.
+4. **Every field is tested,** numeric and categorical, by the methods below.
+5. **A score is produced per field, and one overall.** The overall score is the
+   **maximum** across fields, not the average — see *Why these choices*.
+6. **The batch is saved as a version.** Uploading the identical file twice is
+   detected by SHA-256 hash and does not create a duplicate version.
+7. **A trend line** accumulates across successive batches, which is the view
+   that actually matters: one number is noise, a rising line is a story.
+
+## The model or algorithm
+
+### Where the baseline comes from — read this first
+
+This is the most important thing to understand about the tool, and the thing an
+interviewer would find fastest.
+
+The training data is **not** kept. What the baseline holds is two numbers per
+numeric column — a mean and a standard deviation — recovered from inside the
+fitted pipeline itself:
+
+- first choice, the `StandardScaler`'s `mean_` and `scale_`, which are exactly
+  the training mean and standard deviation;
+- failing that, the `SimpleImputer`'s `statistics_` for the mean, with the
+  standard deviation estimated from the schema's recorded range as
+  `(max − min) / 6` — the assumption that the observed range spans about six
+  standard deviations;
+- failing that, the schema range's midpoint.
+
+For categorical fields the baseline is `cat_freq`, a genuine record of how often
+each category appeared in training, saved when the model was built. If it is
+missing, the reference falls back to a **uniform** distribution over the known
+options, which is a much weaker assumption and is labelled as such in the output.
+
+**The consequence.** Every numeric test below compares the batch against a
+**normal distribution with the training mean and standard deviation** — not
+against the training data. If a training feature was skewed, bimodal or
+long-tailed, the reference is wrong in a specific way, and the tool will report
+drift for a batch that is in fact perfectly typical. *The code does not record
+why it was built this way; my reading is that it is the price of not storing the
+training set — the model artefact is all there is, and two numbers can be
+recovered from it.* It is a real limitation and worth stating plainly rather
+than discovering in a review.
+
+### PSI — Population Stability Index
+
+The industry standard for drift, borrowed from credit risk. Cut the feature into
+ten bins, compare the share of rows in each bin now against the share then:
+
+```
+PSI = Σ (actual% − expected%) × ln(actual% / expected%)
+```
+
+Read it as a symmetric distance between two histograms. Each term is positive
+whichever way the shift goes — if a bin gains rows both factors are positive, if
+it loses them both are negative — so nothing cancels out.
+
+The bins run from `mean − 3σ` to `mean + 3σ` in ten equal steps, batch values are
+clipped into that range, and the expected share of each bin comes from the normal
+CDF. Empty bins are floored at 1e-6, because `ln(0)` is undefined and one empty
+bin would otherwise take the whole score to infinity.
+
+The thresholds are the conventional ones, and being able to quote them is worth
+something:
+
+| PSI | Meaning |
+|---|---|
+| **< 0.10** | no meaningful shift |
+| **0.10 – 0.25** | moderate shift — worth investigating |
+| **> 0.25** | significant shift — act |
+
+For categorical fields the same formula runs over category proportions directly,
+with no binning needed.
+
+### The KS test
+
+The Kolmogorov–Smirnov statistic is the largest vertical gap between two
+cumulative distributions:
+
+```
+KS = max | CDF_batch(x) − CDF_reference(x) |
+```
+
+0 means identical, 1 means completely separated. Its appeal is that it makes no
+assumption about the *shape* of the distributions — it is a genuinely
+non-parametric test.
+
+Except here it cannot be, for the reason above: there is no reference sample to
+compare against, so the code **draws 2,000 points from a normal distribution**
+with the baseline mean and standard deviation (seeded 42) and compares the batch
+against those. So the test is really asking *"is this batch normal, with the
+training mean and standard deviation?"* — a stricter and different question than
+*"does this batch look like training?"*
+
+The p-value uses the asymptotic Kolmogorov formula with the usual small-sample
+correction:
+
+```
+n_eff  = √(n₁n₂ / (n₁+n₂))
+t      = (n_eff + 0.12 + 0.11/n_eff) × KS
+p      = 2 · exp(−2t²)
+```
+
+A small p-value means a gap this large would be unlikely by chance. The KS test
+runs only on uploaded batches with at least 5 values.
+
+### The drift score
+
+Alongside PSI, each numeric field gets a simpler score — how far the batch mean
+has moved, in standard deviations, capped at three:
+
+```
+drift_score = min(1, |batch_mean − ref_mean| / (3 × ref_std))
+```
+
+So 1.0 means the mean has moved three standard deviations or more. Levels are
+**low below 0.35, medium to 0.65, high above**.
+
+For categorical fields it is the mean absolute change in category proportions,
+with tighter thresholds — **0.15 and 0.30** — because a 15-point swing in a
+category's share is already a lot.
+
+**PSI and the drift score answer different questions,** which is why both are
+shown. The drift score only sees the *mean*. A distribution that splits into two
+groups either side of the old mean has not moved its average at all and scores
+near zero — while PSI, which compares the whole shape, will catch it.
+
+### What else is computed
+
+- **Histograms** — 12 bins, the batch's actual shares against the reference's
+  expected shares, scaled to a shared maximum so the two overlay honestly.
+- **Percentiles** — the batch's 5th, 25th, 50th, 75th and 95th, against the
+  reference's equivalents computed from the normal (`z = ±1.6449, ±0.6745, 0`).
+- **Null rate** — the share of rows missing this field. Often the first symptom
+  of an upstream break, and it needs no statistics at all.
+- **A correlation matrix** across the batch's numeric columns, when there are at
+  least two with 5+ values. Relationships between features can break even when
+  every individual feature looks unchanged.
+
+## Why these choices
+
+**Why the overall score is the maximum, not the mean.** Averaging hides the
+thing you are looking for. One badly broken column among forty healthy ones
+averages to nothing; the maximum makes it the headline. The cost is that the
+overall number tells you the worst case and nothing about how widespread the
+problem is, so the per-field table is where the actual reading happens.
+
+**Why compare to the previous batch by default.** Drift is usually gradual, and
+each week looks fine against last week while the year looks nothing like
+training. Comparing consecutively catches sudden breaks — a deployment, a schema
+change — which is the more urgent kind. The *compare to training* switch exists
+for the slow kind, and both views are needed.
+
+**Why high-cardinality categoricals are skipped.** Above 20 options a field is
+reported with a drift score of zero and a `high_cardinality` flag. With hundreds
+of rare categories, per-category proportions in a small batch are mostly
+sampling noise, and PSI would report drift constantly. The tool reports the
+number of distinct values seen instead. **This is an honest gap, not a
+solution** — a user ID or a postcode column simply is not monitored.
+
+**Why versions are hashed.** Uploading the same file twice is easy, and it would
+otherwise create a fake data point on the trend line showing zero drift.
+
+**Why nothing needs labels.** That is the entire point. Input drift is
+detectable the moment data arrives, months before the ground truth that would
+let you measure accuracy directly.
+
+## How to read the output
+
+- **Start with the trend, not today's number.** A single batch has no context. A
+  line climbing over five batches is the finding.
+- **PSI over 0.25 on a feature the model relies on** is the alarm worth acting
+  on. Cross-reference against SHAP or the feature-importance chart — drift in a
+  column the model barely uses matters much less than drift in its top feature.
+- **Check the null rate first.** It is the cheapest signal and the most likely
+  to indicate a broken pipeline rather than a changed world.
+- **Read the histogram overlay, not only the score.** It tells you *how* the
+  distribution moved — shifted, spread, or split — which points at the cause.
+  A clean shift suggests a units or calibration change; a new second peak
+  suggests a new population.
+- **`baseline: "schema"`** in the response means the pipeline had no usable
+  scaler statistics and the reference is the midpoint of the schema range.
+  Treat those numbers as very weak.
+- **`cat_baseline: "uniform"`** means the training frequencies were missing and
+  every category is being assumed equally likely. Almost every real column will
+  look drifted against that.
+- **Drift is not decay.** It says the input changed. Whether the model got worse
+  is a separate question that needs labels. A robust model can ride out real
+  drift; a fragile one degrades on very little.
+
+## Limits
+
+- **The reference is a Gaussian, not the training data.** Two numbers per
+  column, assumed normal. Skewed or multi-modal features will be misjudged in
+  both directions.
+- **The KS test compares against synthetic normal samples**, which makes a
+  non-parametric test parametric in practice.
+- **No target drift and no concept drift.** This watches inputs only. If the
+  *relationship* between inputs and outcome changes while the inputs look
+  identical — the classic concept drift — nothing here will see it.
+- **High-cardinality categoricals are not monitored at all.**
+- **No multivariate drift detection.** Every feature is tested alone. Two
+  features whose individual distributions are unchanged but whose joint
+  relationship has inverted will pass. The correlation matrix is a partial
+  answer and is not scored.
+- **The overall score is a maximum**, so it says nothing about breadth.
+- **Thresholds are fixed** — 0.35/0.65 numeric, 0.15/0.30 categorical, PSI
+  0.10/0.25 — and are not tuned to your data or your batch size. A small batch
+  will trip them on noise alone.
+- **No alerting.** You have to come and look.
+- **History and versions are written to local JSON files**, and the hosting this
+  runs on has an ephemeral disk — a restart can take the trend line with it.
+
+## Likely interview questions
+
+**"How do you know a model is degrading if you have no labels?"**
+You usually cannot measure it directly, so you monitor its inputs as a proxy. If
+the incoming distribution has moved away from what the model was trained on, the
+model is extrapolating, and that is measurable the day the data arrives. It is
+an early warning, not proof of decay — but with a ninety-day label delay it is
+the only signal available.
+
+**"What is PSI, and what counts as bad?"**
+A symmetric measure of how far a distribution has moved: bin both, and sum
+`(actual − expected) × ln(actual / expected)` over the bins. Under 0.1 is stable,
+0.1 to 0.25 warrants investigation, above 0.25 is a significant shift. It comes
+from credit risk, where those thresholds are conventional.
+
+**"Data drift versus concept drift?"**
+Data drift is `P(X)` changing — the inputs look different. Concept drift is
+`P(y|X)` changing — the same inputs now imply a different answer, which is what
+happened to spending-pattern models in early 2020. Data drift is detectable
+without labels; concept drift is not, which is why it is the more dangerous of
+the two. This tool detects the first kind only, and I would say so unprompted.
+
+**"PSI says 0.4 on a feature. What do you do?"**
+Not retrain first. Find out whether it is real. Check the null rate and the
+histogram shape — a clean shift usually means a units or encoding change
+upstream, a new second peak usually means a genuinely new population, and a
+distribution that suddenly went uniform usually means a broken join. Then check
+whether the model actually uses that feature, via SHAP or importance. Retraining
+on data that drifted because of a bug just bakes the bug in.
+
+**"Why the maximum across features rather than the average?"**
+Because the average hides exactly what you are looking for — one catastrophic
+column among forty healthy ones disappears into the mean. The maximum surfaces
+it. The trade-off is that the headline number then tells you the worst case and
+nothing about how many columns are affected, so the per-field table has to be
+read alongside it.
+
+**"What would you add?"**
+Three things, in order. Store real training quantiles rather than a mean and
+standard deviation, so the reference stops being a Gaussian assumption. Add
+prediction drift — the distribution of the model's own outputs — which is nearly
+free and catches things input monitoring misses. And add alerting, because a
+monitoring tool nobody visits is not monitoring.
+
+<h1 class="bk-chapter" id="ch-3-data-preprocessing"><span class="bk-chnum">Chapter 3</span>Data Preprocessing</h1>
 
 > Clean a messy CSV before you train on it. Deduplicate rows, fill missing values with 8 numeric strategies (mean, median, KNN, MICE, forward or backward fill, a constant, or drop the row) or 5 categorical ones, strip outliers with the 1.5 × IQR rule, and correct skew with a log transform. It all runs in your browser. Download the cleaned file, or send it straight through to AutoML.
 
@@ -663,7 +970,286 @@ and for producing a cleaned dataset to look at. For a deployed model the
 cleaning has to live inside the pipeline so it refits on each training fold, and
 that is how the AutoML tool in this app is built.
 
-<h1 class="bk-chapter" id="ch-3-feature-engineering"><span class="bk-chnum">Chapter 3</span>Feature Engineering</h1>
+<h1 class="bk-chapter" id="ch-4-ensemble-methods"><span class="bk-chnum">Chapter 4</span>Ensemble Methods</h1>
+
+> Combine the strongest models instead of betting on one. Voting (VotingClassifier / VotingRegressor) or stacking with a meta-learner on top of the AutoML winners, which typically reduces variance and generalises better than any single model on its own.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Combine Top-N Models |
+| **Model or method** | Voting · Stacking |
+| **What you give it** | AutoML winners |
+| **Strategies** | 2 |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/ensemble` |
+
+</div>
+
+## What problem it solves
+
+AutoML picks a winner. But look at the leaderboard it produces and you will
+usually see the top three models within a percentage point of each other — and
+each one wrong about *different rows*. Betting everything on the model that
+happened to score highest throws away the fact that the others knew things it
+did not.
+
+An ensemble keeps all of them and combines their answers. The reason it works is
+not that averaging is magic; it is that independent errors partly cancel. If
+three models each get 10% of rows wrong but disagree about *which* rows, a
+majority vote is wrong only where two of the three fail together — which happens
+far less often than 10%.
+
+This chapter covers both halves of that idea as they exist in this app, because
+they live in two different places, and it is worth being exact about which does
+what.
+
+## How it works, step by step
+
+### On the Ensemble Methods page
+
+The page at `/tools/ensemble` runs a **competition and a diversity check**. You
+upload a CSV, pick a target, and tick **at least three** algorithms — the form
+refuses fewer, because a two-model spread tells you nothing. It then calls the
+same `/train` endpoint the AutoML tool uses, with tuning off, and shows:
+
+- the **winner** and its cross-validation score
+- the **spread** — how close the top models are to each other, as a percentage
+- a **leaderboard** with each algorithm's score and its **stability**, which is
+  how consistent that model was across the five folds
+- the winner's full test metrics
+
+What this page does **not** do is build the combined model. It tells you whether
+combining is worth doing: if the spread is wide, one model is genuinely better
+and an ensemble will mostly drag it down toward the others; if the spread is
+narrow and the stabilities differ, you have several comparable but differently-
+behaved models, which is exactly the situation an ensemble is for.
+
+### Where the combining actually happens
+
+The voting and stacking maths is a **stage in the Pipeline Builder**, served by
+`POST /pipeline/ensemble`. You add the Ensemble stage to a pipeline — it unlocks
+only after AutoML has run, along with Optuna and SHAP — choose *voting* or
+*stacking*, and it returns the ensemble's score alongside each individual
+model's, so you can see whether the combination actually beat its parts.
+
+The steps inside that endpoint:
+
+1. Decode the CSV, split off the target, and sample down to 15,000 rows if the
+   file is larger.
+2. Fit the preprocessing **once**, up front, and reuse the transformed matrix
+   for every model. (See *Why these choices* — this is a deliberate deviation.)
+3. Score each chosen model on its own with 5-fold **out-of-fold predictions**,
+   and record it. A model that throws is logged, scored −999 and excluded rather
+   than taking the whole run down.
+4. Combine, by voting or by stacking.
+5. Return the ensemble score and every individual score.
+
+## The model or algorithm
+
+### Out-of-fold predictions — the idea both methods rest on
+
+Everything here is built on `cross_val_predict`. Split the data into 5 folds;
+for each fold, train on the other four and predict this one. Every row ends up
+with a prediction from a model that **never saw that row in training**.
+
+This matters more for ensembles than for anything else in the app. If you
+trained a model on all the data and then combined its predictions, those
+predictions would be partly memory, and any combination built on top of them
+would be fitting to memory rather than to skill. Out-of-fold predictions are the
+only honest raw material for an ensemble.
+
+### Voting
+
+**For regression** — take each model's out-of-fold prediction and average them:
+
+```
+prediction = mean(model₁, model₂, …, modelₙ)
+```
+
+**For classification** — the code prefers **soft voting**: collect every model's
+predicted class *probabilities*, average them across models, and take the class
+with the highest mean probability.
+
+```
+ens_preds = argmax( mean over models of predict_proba )
+```
+
+If any model cannot produce probabilities, it falls back to **hard voting** —
+each model casts one vote for its predicted class, and the most common wins,
+implemented as a `bincount().argmax()` per row.
+
+Soft voting is the better default when it is available, and the reason is worth
+being able to say: hard voting throws away confidence. Three models predicting
+class A at 0.51, 0.52, 0.53 outvote two predicting class B at 0.99 — even though
+the two are nearly certain and the three are nearly coin-flips. Soft voting
+averages 0.52 against 0.99 and picks B.
+
+### Stacking
+
+Voting weights every model equally. Stacking **learns** the weights.
+
+- **Level 0.** Each base model is trained on 4 folds and predicts the fifth,
+  and those out-of-fold predictions are written into a matrix with one column
+  per model. That matrix is the new dataset: *n* rows, one feature per base
+  model.
+- **Level 1.** A second model — the **meta-learner** — is trained on that
+  matrix to predict the original target. Here it is `LogisticRegression`
+  (`max_iter=500`) for classification and `Ridge` for regression, and it is
+  itself scored by 3-fold cross-validation so the reported number is not the
+  meta-model grading its own training data.
+
+The meta-learner can learn things a vote cannot: that model B is reliable except
+when model C disagrees, or that model A should carry three times the weight of
+the others.
+
+**Why the meta-learner is deliberately simple.** A linear model on top of five
+strong non-linear models is the standard recipe. The base models have already
+done the hard work of extracting structure; the meta-learner's only job is to
+decide how much to trust each of them. Something complex at level 1 would start
+fitting the noise in the level-0 predictions, and since those predictions are
+highly correlated with each other and with the target, it would overfit fast.
+
+### Where the gain comes from
+
+The textbook decomposition is that a model's error breaks into **bias**
+(systematically wrong) and **variance** (sensitive to the particular training
+sample). Averaging several models trained differently mostly attacks variance —
+the individual quirks partly cancel while the shared signal survives.
+
+That leads to the one rule worth remembering: **an ensemble helps in proportion
+to how much its members disagree.** Five copies of the same model average to
+that model. Five genuinely different learners — a tree ensemble, a boosted
+model, a linear model, a distance-based one — have errors that overlap less, and
+that is where the gain is. It is also why the page reports the spread and the
+per-fold stability rather than only the winner.
+
+## Why these choices
+
+**Why the preprocessing is fitted once, outside the models.** The comment in the
+code is explicit: *"manual voting/stacking avoids sklearn VotingClassifier
+type-check issues with XGB/LGB."* `VotingClassifier` runs `is_classifier()` on
+its estimators, and that check fails for some XGBoost and LightGBM builds — the
+same class of problem that forced a manual ROC-AUC path in the Optuna tuner.
+Building the vote by hand sidesteps it.
+
+The cost is real and should be stated: fitting the preprocessing on the whole
+matrix before cross-validating means the scaler and encoder have seen every
+fold. The fold split is honest for the *models*; it is not honest for the
+*preprocessing*. On a standard scaler over a decently sized dataset the effect
+is small, but it is a genuine deviation from the strict pipeline discipline the
+AutoML tool follows, and it exists for a compatibility reason rather than a
+statistical one.
+
+**Why a failing model is excluded rather than fatal.** One algorithm that cannot
+fit this data should cost one entry on the leaderboard, not the run. It is
+scored −999 so it sorts last and is visibly excluded rather than silently
+missing.
+
+**Why at least three models.** With two, "the models agree" and "the models
+disagree" are the same observation and there is nothing to average that is not
+just a midpoint.
+
+**Why 15,000 rows.** Every model is fitted five times for its own score, and
+stacking fits each of them five times again to build the meta-features. On free
+hosting that is the ceiling that keeps the request from timing out.
+
+## How to read the output
+
+- **Compare the ensemble score against the best individual score.** That single
+  comparison is the whole result. Both are returned together for exactly this
+  reason. If the ensemble does not beat its best member, do not ship it — you
+  have paid *n* times the inference cost for nothing.
+- **A narrow spread is the green light.** Top models within a percent of each
+  other, with different stability profiles, is the ensemble's best case.
+- **A wide spread is a warning.** If one model is clearly ahead, averaging pulls
+  it toward the weaker ones. Consider stacking instead, which can learn to
+  mostly ignore them, or just ship the winner.
+- **Stability is fold-to-fold consistency.** A model scoring 0.81 with high
+  stability is more trustworthy than one scoring 0.83 that swings between 0.71
+  and 0.94 — and the swinging one may still be a useful ensemble member,
+  because it is clearly making different mistakes.
+- **A `−999` score** means that model failed to fit and was excluded. Check the
+  server log rather than reading it as a bad score.
+- **Remember what the score is.** These are cross-validation numbers, not a
+  held-out test. The ensemble's number carries the same mild optimism as any
+  other cross-validated figure.
+
+## Limits
+
+- **The page and the combining are separate.** `/tools/ensemble` runs the
+  competition and reports diversity; the actual voting or stacking runs as a
+  Pipeline Builder stage. The card's mention of `VotingClassifier` and
+  `VotingRegressor` describes the concept — the implementation is hand-rolled,
+  for the compatibility reason above.
+- **Preprocessing is fitted outside the folds** in the ensemble endpoint.
+- **Voting is unweighted.** Every model counts the same, however bad. A weighted
+  vote is the obvious next step and is not implemented; stacking is the escape
+  hatch, since the meta-learner effectively learns the weights.
+- **One stacking layer only.** No multi-level stacking, and the meta-learner is
+  fixed — Logistic Regression or Ridge, not configurable.
+- **The models must already be chosen.** Nothing here searches for a
+  *diverse* set; it combines whatever you ticked. Two boosted tree models will
+  make a poor pair no matter how good each is.
+- **Cost.** An ensemble of five models is five models to serve, five to
+  monitor, five to keep from drifting. A one-point gain rarely pays for that.
+- **Capped at 15,000 rows.**
+- **No calibration.** Soft voting averages raw `predict_proba` outputs, and
+  different model families are confident in different ways — a tree ensemble's
+  0.9 and a logistic regression's 0.9 do not mean the same thing. Calibrating
+  each model first would make the average more principled.
+
+## Likely interview questions
+
+**"Why does an ensemble work?"**
+Because the members make different mistakes. Error splits into bias and
+variance, and averaging several differently-trained models mostly cancels the
+variance while the shared signal survives. The condition is diversity — five
+copies of one model average to that model, so the whole thing rests on the
+members disagreeing.
+
+**"Bagging, boosting, stacking — distinguish them."**
+Bagging trains the same kind of model on bootstrap samples in parallel and
+averages, attacking variance; Random Forest is bagging with extra feature
+randomness. Boosting trains models in sequence, each one fitting what the last
+got wrong, attacking bias; XGBoost, LightGBM and CatBoost are all boosting.
+Stacking trains *different* model types in parallel and learns a second model to
+combine them. Note that this tool ensembles models that are already ensembles —
+a vote over Random Forest, XGBoost and CatBoost is bagging and boosting stacked
+under a vote.
+
+**"Soft or hard voting?"**
+Soft, when every model can give calibrated probabilities, because hard voting
+discards confidence — three models at 0.51 outvote two at 0.99, which is the
+wrong answer. Hard voting is the fallback when a model only produces labels.
+This implementation tries soft first and falls back on exception, which is the
+right order.
+
+**"What's the danger with stacking?"**
+Leakage at level 0. If the base models predict rows they were trained on, the
+meta-features are partly memorised and the meta-learner learns to trust whoever
+memorised hardest — a score that collapses in production. The fix is
+out-of-fold predictions, which is what `cross_val_predict` gives you here, and
+scoring the meta-learner by its own cross-validation on top.
+
+**"Your ensemble scores 0.847 and your best single model 0.844. Ship it?"**
+No. That gap is inside the fold-to-fold noise, and you would be paying five
+times the inference cost, five deployments and five drift monitors for it. I
+would ship the single model. I would only ensemble for a gain that is both
+larger than the fold spread and worth the operational weight — and in latency-
+sensitive systems, often not even then.
+
+**"How would you improve this implementation?"**
+Three things. Put the preprocessing inside the folds, so the ensemble score is
+as clean as AutoML's. Add weighted voting, so a weak member cannot drag the
+average as hard as a strong one. And calibrate each model's probabilities before
+soft voting, because averaging uncalibrated confidences from different model
+families is comparing numbers that do not mean the same thing.
+
+<h1 class="bk-chapter" id="ch-5-feature-engineering"><span class="bk-chnum">Chapter 5</span>Feature Engineering</h1>
 
 > Build new features out of your columns without writing code. Per-column transforms (log1p, sqrt, z-score, min-max, percentile rank, winsorising, outlier and missing flags) plus binning, polynomial and interaction terms, ratios, lags and rolling windows, date extraction and cyclical sin/cos encoding. It all runs in your browser, and the CSV it writes uses whole-file statistics — the transformer that ships inside a trained pipeline is the one that fits on training data only.
 
@@ -952,7 +1538,337 @@ records. Do value-based transforms after, because they need a value to transform
 That ordering is a real decision and the pipeline has to encode it explicitly —
 it will not fall out of the tooling by itself.
 
-<h1 class="bk-chapter" id="ch-4-optuna-tuning"><span class="bk-chnum">Chapter 4</span>Optuna Tuning</h1>
+<h1 class="bk-chapter" id="ch-6-feature-selection"><span class="bk-chnum">Chapter 6</span>Feature Selection</h1>
+
+> Cut a dataset down to the columns that actually carry signal. Four methods — variance threshold, correlation filter (drops anything above 0.9), recursive feature elimination with a Random Forest, and SelectKBest on mutual information — prune redundant columns before training, with a configurable top-K cutoff.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Keep Only What Matters |
+| **Model or method** | RFE · SelectKBest · Variance |
+| **What you give it** | Any CSV |
+| **Methods** | 4 |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/feature-selection` |
+
+</div>
+
+## What problem it solves
+
+Feature Engineering makes columns. This tool takes them away.
+
+That sounds like undoing the work, and it is exactly the point. More columns is
+not more information. Past a certain width a model has enough freedom to fit
+noise, every extra column dilutes the ones that matter, training slows down, and
+the model becomes impossible to explain to anyone. Two columns that say the same
+thing are worse than one, because the credit for the signal gets split between
+them and neither looks important.
+
+Deciding what to cut is normally a morning of correlation matrices and
+`SelectKBest` calls. This tool runs twelve selection methods over your CSV,
+shows what each one would drop and **why**, and writes out the narrowed file.
+
+Like the preprocessing and feature-engineering tools, it runs entirely in your
+browser. Every statistic below — variance, correlation, mutual information,
+the Lasso path, the trees — is computed in TypeScript on your own machine.
+
+## How it works, step by step
+
+The twelve methods are not alternatives you pick between. They are a **funnel**,
+and they run in a fixed order, each one seeing only the columns that survived
+the ones before it. Every method has its own on/off switch and its own
+threshold, so you decide how many gates the data passes through.
+
+| # | Gate | What it removes |
+|---|---|---|
+| 1 | **Variance threshold** | columns whose variance is below your cutoff — a column that barely changes cannot explain a target that does |
+| 2 | **Correlation filter** | of any pair correlating above the threshold, the one with the weaker link to the target |
+| 3 | **Top-K** | everything outside the K best by association score |
+| 4 | **SelectKBest** | as above, but scored by F-regression, ANOVA F, or the association score |
+| 5 | **Kendall's τ** | the weakest by rank correlation |
+| 6 | **Chi-squared** | the weakest by a contingency-table χ² |
+| 7 | **RFE** | eliminated one at a time, weakest first, until K remain |
+| 8 | **Lasso** | those the L1 penalty drives to zero |
+| 9 | **Ridge** | those with the smallest L2 weights |
+| 10 | **Tree importance** | those the trees never split on |
+| 11 | **Forward selection** | everything not picked by a greedy forward pass |
+| 12 | **Exhaustive search** | everything not in the best-scoring subset |
+
+Then the tool lists every column with the exact reason it was dropped — *"low
+variance"*, *"high corr"*, *"RFE r3"*, *"Lasso=0"* — and offers the narrowed CSV.
+Alongside the funnel it can also run four **projection** methods: PCA, UMAP,
+Factor Analysis and LDA. Those do not select columns, they build new ones; more
+on the difference below.
+
+## The model or algorithm
+
+### The association score — and an important honesty note
+
+Almost every gate ranks columns by a single score the interface calls **mutual
+information**. Here is what it actually computes:
+
+```
+score = −0.5 × log(1 − r²)
+```
+
+where `r` is the Pearson correlation with the target.
+
+That formula is real: it is the exact mutual information between two variables
+**if you assume they are jointly Gaussian**. It is also the reason the number
+behaves the way it does — it goes to zero when `r` is zero and to infinity as
+`|r|` approaches one.
+
+But it inherits Pearson's blind spot completely. True mutual information detects
+*any* dependence, including a U-shape or a threshold effect. This score detects
+**only linear dependence**. A feature that is a perfect parabola of the target
+scores zero here, and a genuine mutual-information estimator would score it very
+high. *The code does not say why this approximation was chosen; my reading is
+that a real MI estimator needs binning or a nearest-neighbour method, both far
+slower in a browser and both needing parameters of their own.* Either way, read
+the score as "linear association", not as mutual information.
+
+When no target column is chosen, the score falls back to the column's variance.
+
+### The filter methods
+
+**Variance threshold.** Compute each column's variance, drop what falls below
+the cutoff. A constant column has variance zero and is pure dead weight. Note
+this is scale-dependent — a column measured in millimetres has a thousand times
+the variance of the same column in metres — so it is only meaningful on data
+that has been standardised, or with a cutoff you have chosen for that column's
+units.
+
+**Correlation filter.** For every pair of surviving columns, if `|r|` is at or
+above your threshold, one of them goes. The choice of which is the useful part:
+the tool keeps whichever has the **stronger association with the target** and
+drops the other, rather than dropping arbitrarily or by column order.
+
+**F-regression.** The F statistic for a linear fit, `r²(n−2)/(1−r²)`, which is
+what scikit-learn's `f_regression` computes. It is a monotonic function of `r²`,
+so it ranks identically to correlation — what it adds is a scale that accounts
+for sample size.
+
+**ANOVA F (`f_classif`).** For a categorical target: group the feature's values
+by class, then compare the variance *between* the group means with the variance
+*within* the groups. A big ratio means the classes separate along this feature.
+This is the right test when the target is categorical and the feature is
+continuous, and it is genuinely different from correlation.
+
+**Kendall's τ.** A *rank* correlation. Take every pair of rows and ask whether
+the feature and the target move the same way; τ is (concordant − discordant)
+pairs over the total. Because it only uses order, it catches any monotonic
+relationship, not just a straight-line one, and it is unbothered by outliers.
+The cost is that it compares every pair, which is O(n²) — the implementation
+caps it at the first **500 rows** for that reason.
+
+**Chi-squared.** Cuts the feature into four bins at its quartiles, cross-tabulates
+those bins against the target's classes, and sums `(observed − expected)² /
+expected` over the table. Large means the feature's distribution changes with
+the class. Worth knowing that this differs from scikit-learn's `chi2`, which
+requires non-negative features and does not bin — the binning here is what lets
+it accept a continuous feature at all, and it costs some resolution.
+
+### The embedded methods
+
+**Lasso.** Linear regression with an L1 penalty on the coefficients. The
+distinctive property of L1 is that it drives weak coefficients to **exactly
+zero** rather than merely small, so it selects as it fits. The implementation is
+coordinate descent with soft thresholding — cycle through the coefficients, and
+for each one compute what it would be with the others held fixed, then pull it
+toward zero by `alpha` and clip it there if it crosses:
+
+```
+w[j] = ρ > α  ?  ρ − α
+     : ρ < −α ?  ρ + α
+     :           0
+```
+
+Up to 200 sweeps, stopping when nothing moves by more than 1e-6. Columns are
+standardised first, because an L1 penalty applied to raw units would punish
+whichever column happened to be measured in small numbers. Capped at 500 rows.
+
+**Ridge.** The same idea with an L2 penalty, which shrinks coefficients toward
+zero without ever reaching it — so Ridge ranks rather than selects, and the tool
+takes the top K by weight. Ridge handles correlated features more gracefully
+than Lasso, which tends to pick one of a correlated pair arbitrarily and zero
+the other.
+
+**Tree importance.** Build `nTrees` estimators on bootstrap samples, each seeing
+a random `√p` subset of the features, and total up the impurity reduction each
+feature achieves. Gini for a categorical target, variance for a continuous one.
+
+**Be precise about what these "trees" are.** Each one is a **single split** — a
+decision stump. The code picks the best split point among twenty candidates for
+each feature in the subset, keeps the best feature, and adds its gain. There is
+no recursion and no depth. So this measures *how good each feature is on its
+own, at its single best cut point*, averaged over many random feature subsets.
+That is a reasonable and fast importance signal, and it is not what a real
+random forest's importance measures, which includes splits made deep inside a
+tree conditional on splits above them.
+
+**RFE.** Recursive feature elimination normally means: fit a model, drop the
+weakest feature, refit, repeat. This implementation does not refit a model.
+Each round it scores every remaining feature as
+
+```
+score = association × (1 − 0.35 × mean |correlation| with the others still in)
+```
+
+and drops the lowest, until K remain. So it is a greedy redundancy-aware
+elimination rather than model-based RFE — the penalty term is what makes it
+recursive in spirit, because removing a feature changes the average correlation
+seen by everything left. Useful, but a different thing from the name.
+
+**Forward selection.** Start empty. Repeatedly add whichever remaining feature
+maximises the same trade-off — association, discounted by how correlated it is
+with what you have already picked (0.2 here rather than 0.35) — until you have K.
+Greedy: it never reconsiders an earlier pick.
+
+**Exhaustive search.** Score every possible subset of size K and keep the best,
+where a subset's score is its mean association minus 0.3 × its mean pairwise
+correlation. This is the only method that can find a set of features that work
+well *together* but look mediocre individually. It is also combinatorial, so
+**above 15 candidate columns it silently falls back to forward selection.**
+
+### The projection methods
+
+These do not choose columns. They build new ones out of combinations of the old.
+
+- **PCA** finds the directions of greatest variance and re-expresses the data
+  along them, each component uncorrelated with the rest. Optionally uses the
+  **Kaiser criterion** — keep the components with eigenvalue above 1, meaning
+  those explaining more variance than a single original column would.
+- **Factor Analysis** looks similar but assumes a different model: that observed
+  columns are noisy measurements of a few hidden factors. PCA explains total
+  variance; FA explains *shared* variance and leaves per-column noise out.
+- **LDA** is the supervised one — it finds the directions that best separate the
+  target's classes, rather than the directions of most variance.
+- **UMAP** is non-linear, for visualising structure in two dimensions. Distances
+  in a UMAP plot are not meaningful in the way PCA distances are.
+
+The trade-off with all four is the same: you may keep more of the information in
+fewer columns, and you lose the ability to say what any column means.
+
+## Why these choices
+
+**Why a funnel rather than a menu.** Selection methods disagree, and the
+disagreement is informative. Running them in sequence means each one works on a
+cleaner set than the last — the correlation filter has already removed the
+duplicate before Lasso has to arbitrarily pick one of a correlated pair. The
+cost is order-dependence: turning the same methods on in a different order would
+give a different answer, and the order is fixed.
+
+**Why every method shows its reason.** A tool that says "we cut 30 columns" is
+not usable — you cannot defend the model afterwards. A tool that says
+*`age_squared`: high corr* and *`user_id`: low tree imp* lets you overrule it.
+
+**Why several are capped at 500 or 1,000 rows.** Kendall's τ is O(n²) in pairs,
+Lasso and Ridge sweep every coefficient over every row 200 times, and this all
+happens on the main thread of a browser. The caps are the difference between an
+answer and a frozen tab. The sample is taken by even stride rather than at
+random, which is reproducible and would be wrong on a file sorted by the target.
+
+**Why the correlation filter breaks ties with the target.** Dropping by column
+order is common and arbitrary. Keeping the one that predicts better costs one
+extra lookup and is the decision you would have made by hand.
+
+## How to read the output
+
+- **The reason list is the output.** Everything else is a summary of it. Read
+  the reasons before the counts.
+- **A column dropped by only one gate is a soft call.** One dropped by four is
+  not.
+- **Kept count versus dropped count** tells you whether your thresholds are
+  doing anything. Dropping 2 of 60 means the gates are open too wide; keeping 3
+  of 60 means you have almost certainly thrown away signal.
+- **Scores are normalised to the best column in each method,** so the top
+  feature always reads 1.00. They are comparable within a method and not across
+  methods.
+- **An `RFE r1` label means it went first** — the weakest of all. `r12` means it
+  survived eleven rounds.
+- **Retrain and compare.** The number that matters is whether the model got
+  worse. If the score holds with a third of the columns, the cut was free.
+
+## Limits
+
+- **The association score is linear.** A non-linear relationship is invisible to
+  it, and to almost every gate that uses it. This is the single most important
+  limitation in the tool.
+- **Only numeric columns are candidates.** Categorical columns pass through
+  untouched — they are never scored and never dropped, so a useless text column
+  survives everything.
+- **The order is fixed.** Gates apply in the listed sequence, and the result
+  depends on it.
+- **Everything is fit on the whole file.** As with the other browser tools, if
+  you split this narrowed CSV for training afterwards, the selection has already
+  seen your test rows. Feature selection performed on all the data before a split
+  is a well-known way to produce an optimistic score — the honest version runs
+  inside the cross-validation loop.
+- **"Trees" are stumps, "RFE" does not refit, "mutual information" is a
+  Gaussian approximation.** All three are reasonable fast versions. None is the
+  textbook algorithm the name implies.
+- **Exhaustive search stops being exhaustive above 15 columns** and quietly
+  becomes forward selection.
+- **Sampling caps** mean Lasso, Ridge, Kendall and the trees see at most 500 or
+  1,000 rows.
+- **No stability check.** Selection on a resample can give a different answer,
+  and the tool runs once.
+
+## Likely interview questions
+
+**"Why remove features at all? Won't the model just ignore the useless ones?"**
+A tree will mostly ignore them, but not for free — every useless column is a
+candidate at every split, so it costs training time and adds a chance of a
+spurious split, which is worse on small data. A linear or distance-based model
+does not ignore them at all. And beyond accuracy there is inference cost, the
+number of fields a production system has to collect and validate, and whether a
+human can read the explanation.
+
+**"Filter, wrapper, embedded — what's the difference?"**
+A filter scores each feature against the target with a statistic and never
+trains a model: variance, correlation, ANOVA F, χ². Cheap and model-agnostic. A
+wrapper trains a model on subsets and uses its score to choose: RFE, forward
+selection, exhaustive search. Expensive and tailored to that model. Embedded
+methods select as part of fitting: Lasso's L1 penalty is the classic. This tool
+has all three families, which is why the funnel has twelve stages.
+
+**"Why does Lasso zero coefficients when Ridge doesn't?"**
+The shape of the penalty. The L1 constraint region is a diamond with corners on
+the axes, and the corners are where a coefficient is exactly zero — an ellipse of
+constant error is likely to first touch it at a corner. The L2 region is a
+circle with no corners, so the optimum lands with all coefficients small but
+non-zero. That is why Lasso selects and Ridge only shrinks.
+
+**"Two features correlate at 0.95. Which do you drop?"**
+By default the one with the weaker link to the target, which is what this tool
+does. But I would check first whether they are actually the same measurement
+twice or two different things that happen to move together in this sample —
+because if it is the latter, the correlation may not hold in production, and
+dropping one loses real information. I would also check which is cheaper or more
+reliable to collect.
+
+**"Is feature selection before cross-validation a problem?"**
+Yes, and it is the classic mistake. If you select features using the whole
+dataset and then cross-validate, the selection has already seen the validation
+folds, and the reported score is optimistic — sometimes dramatically so on wide,
+short data, where you can get a respectable score selecting from pure noise. The
+correct version puts selection inside the fold. This tool operates on a whole
+file, so I would treat its output as exploration and, for a model I intended to
+deploy, put the same steps in a pipeline.
+
+**"What does PCA cost you?"**
+Interpretability, mostly. A principal component is a weighted mix of every
+original column, so "component 3 is important" tells a stakeholder nothing.
+It also assumes the interesting structure lies along high-variance directions,
+which is not always true — a low-variance feature can be the one that separates
+your classes, and unsupervised PCA will happily discard it. LDA exists precisely
+because of that.
+
+<h1 class="bk-chapter" id="ch-7-optuna-tuning"><span class="bk-chnum">Chapter 7</span>Optuna Tuning</h1>
 
 > Squeeze more out of the model AutoML picked. A TPE sampler runs up to 30 trials searching for better hyperparameters. It runs after model selection rather than before, so tuning can never inflate the score that won the competition in the first place.
 
@@ -1236,7 +2152,7 @@ single number, so there is nothing to prune against. Making it real would mean
 scoring fold by fold and reporting after each, which would let a clearly bad
 configuration be abandoned after two folds instead of five.
 
-<h1 class="bk-chapter" id="ch-5-real-time-analytics"><span class="bk-chnum">Chapter 5</span>Real-Time Analytics</h1>
+<h1 class="bk-chapter" id="ch-8-real-time-analytics"><span class="bk-chnum">Chapter 8</span>Real-Time Analytics</h1>
 
 > Watch traffic to this site arrive as it happens. Page views and tool opens flow from the browser into PostgreSQL through a FastAPI ingestion endpoint, and Supabase Realtime pushes each new row straight to the dashboard — no polling, no refresh button.
 
@@ -1299,7 +2215,7 @@ all filterable by date range.
   selected range.
 - The full visible User Guide is available on the page itself.
 
-<h1 class="bk-chapter" id="ch-6-shap-explainability"><span class="bk-chnum">Chapter 6</span>SHAP Explainability</h1>
+<h1 class="bk-chapter" id="ch-9-shap-explainability"><span class="bk-chnum">Chapter 9</span>SHAP Explainability</h1>
 
 > See why a model made a particular prediction, not just what it predicted. Every result comes with a SHAP bar chart showing which features pushed it and by how much. Engineered columns are grouped back to the original feature they came from, so you read source influence rather than transform noise.
 
@@ -1581,7 +2497,7 @@ Reading and reasoning over text: questions answered from your own files, plain E
 
 </div>
 
-<h1 class="bk-chapter" id="ch-7-contract-invoice-reconciliation-assistan"><span class="bk-chnum">Chapter 7</span>Contract/Invoice Reconciliation Assistant</h1>
+<h1 class="bk-chapter" id="ch-10-contract-invoice-reconciliation-assistan"><span class="bk-chnum">Chapter 10</span>Contract/Invoice Reconciliation Assistant</h1>
 
 > Upload a contract, then the invoices billed against it, and see where they disagree. Mismatched amounts, dates and terms are flagged with both source passages side by side and an explanation of the conflict. Invoices are only ever checked against the contract, never against each other — they are supposed to differ.
 
@@ -1648,7 +2564,7 @@ those are the most likely genuine discrepancies.
   tool is built to surface a report for you to review, not to decide anything on
   its own.
 
-<h1 class="bk-chapter" id="ch-8-document-intelligence"><span class="bk-chnum">Chapter 8</span>Document Intelligence</h1>
+<h1 class="bk-chapter" id="ch-11-document-intelligence"><span class="bk-chnum">Chapter 11</span>Document Intelligence</h1>
 
 > Upload an invoice, contract, resume, medical report or bank statement and get its fields back as structured data. The document type is identified automatically, each field is extracted with a confidence score, and a box is drawn on the page showing exactly where the value was found.
 
@@ -1785,7 +2701,7 @@ values from raw AI output.
 - If all AI providers are temporarily unavailable, an amber warning appears —
   wait a few minutes and try again.
 
-<h1 class="bk-chapter" id="ch-9-multimodal-rag"><span class="bk-chnum">Chapter 9</span>Multimodal RAG</h1>
+<h1 class="bk-chapter" id="ch-12-multimodal-rag"><span class="bk-chnum">Chapter 12</span>Multimodal RAG</h1>
 
 > Ask questions about a PDF and get answers cited back to the page they came from — including answers that live in a table or a chart rather than a paragraph. Tables are read as structured data and figures get an AI-written caption, so a number buried in a bar chart is still findable.
 
@@ -2678,7 +3594,7 @@ everything — every upload, its chunks, and any "shared" copy — with no way
 to recover it. Treat this as a scratch space for trying the tool, not a
 place to keep anything you need later.
 
-<h1 class="bk-chapter" id="ch-10-text-to-sql-agent"><span class="bk-chnum">Chapter 10</span>Text-to-SQL Agent</h1>
+<h1 class="bk-chapter" id="ch-13-text-to-sql-agent"><span class="bk-chnum">Chapter 13</span>Text-to-SQL Agent</h1>
 
 > Ask a question in plain English and get SQL you can actually run. The agent writes the query, executes it against a real database, explains what came back, and retries itself if the query errors. Bring your own SQLite file or a PostgreSQL connection, or try it on the Chinook demo database.
 
@@ -2773,7 +3689,7 @@ Tools that look at an image or a video — detection, depth, pose, re-identifica
 
 </div>
 
-<h1 class="bk-chapter" id="ch-11-asl-fingerspelling-recognition"><span class="bk-chnum">Chapter 11</span>ASL Fingerspelling Recognition</h1>
+<h1 class="bk-chapter" id="ch-14-asl-fingerspelling-recognition"><span class="bk-chnum">Chapter 14</span>ASL Fingerspelling Recognition</h1>
 
 > Hold up one hand fingerspelling an ASL letter and it is recognised live from your webcam. MediaPipe hand landmarks feed a k-NN classifier, entirely client-side. This covers individual letters only, not signed words or ASL grammar — those need sequence models over video and are a genuinely different problem. J and Z are excluded because both require motion a single frame cannot capture, following the same convention as the Sign Language MNIST benchmark.
 
@@ -2858,7 +3774,7 @@ example of why every technique choice here was tested, not assumed.
 - **Runs entirely in your browser.** No video frame is ever sent to a
   server.
 
-<h1 class="bk-chapter" id="ch-12-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 12</span>Astrophotography Anomaly Detector</h1>
+<h1 class="bk-chapter" id="ch-15-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 15</span>Astrophotography Anomaly Detector</h1>
 
 > Upload 5-30 frames from one fixed-tripod night session and find the meteor and satellite streaks in them. Time-adjacent frames are differenced and a Hough transform picks out the trails; a drifting star leaves a paired positive/negative streak that cancels, while a real transient leaves a one-sided one. You also get a median-stacked clean image with those transients removed. It will not tell you which is a meteor and which is a satellite — that proved unreliable to call from a single session, so every hit is labelled as possibly either. Classical OpenCV throughout; no neural network, no GPU.
 
@@ -2951,7 +3867,7 @@ the background level) while preserving every star.
 - **Not validated on a real photo session** — only against synthetic
   ground-truth data with known injected anomalies, disclosed above.
 
-<h1 class="bk-chapter" id="ch-13-crime-scene-reconstruction"><span class="bk-chnum">Chapter 13</span>Crime Scene Reconstruction</h1>
+<h1 class="bk-chapter" id="ch-16-crime-scene-reconstruction"><span class="bk-chnum">Chapter 16</span>Crime Scene Reconstruction</h1>
 
 > Upload 2-6 photos of the same static scene from different angles and get an interactive 3D point cloud built from them. This is real Structure-from-Motion — SIFT feature matching, essential-matrix pose estimation, then incremental camera registration and triangulation — the same technique behind COLMAP-style photogrammetry. What it will not do is measure: there is no bundle adjustment, no camera calibration and no dense mesh, so treat the result as a demonstration rather than a forensic-grade tool.
 
@@ -3040,7 +3956,7 @@ failure path directly.
   the real technique, not something that should inform any actual
   investigation, measurement, or legal determination.
 
-<h1 class="bk-chapter" id="ch-14-gait-pattern-comparison"><span class="bk-chnum">Chapter 14</span>Gait Pattern Comparison</h1>
+<h1 class="bk-chapter" id="ch-17-gait-pattern-comparison"><span class="bk-chnum">Chapter 17</span>Gait Pattern Comparison</h1>
 
 > Upload two side-view walking videos and compare how the two people move. Body pose is tracked per frame, individual stride cycles are found from knee-angle peaks, and each video's strides are averaged into one walking signature before the two are compared. This is not identification: a monocular, uncalibrated view can show that two clips walk similarly, never that they are the same person. Runs entirely in the browser; no video leaves your device.
 
@@ -3123,7 +4039,7 @@ reports "not enough consistent strides detected" instead of guessing.
 - **Assumes one person per video.** Multiple people in frame will confuse
   pose tracking.
 
-<h1 class="bk-chapter" id="ch-15-movement-form-comparison"><span class="bk-chnum">Chapter 15</span>Movement Form Comparison</h1>
+<h1 class="bk-chapter" id="ch-18-movement-form-comparison"><span class="bk-chnum">Chapter 18</span>Movement Form Comparison</h1>
 
 > Upload a clip of your own movement and a reference clip of the same exercise, and see where your form differs. Body pose is tracked in both, six joint angles (elbows, knees, hips) are computed from 3D landmarks, and the two clips are stretched onto a shared 0-100% movement-phase axis so a 4-second rep compares directly against a 6-second one. Joints are ranked by how far apart they drift, with the single worst moment called out for each. Assumes one person and one full rep per clip — a training aid, not a clinical assessment. Runs entirely in the browser; no video leaves your device.
 
@@ -3200,7 +4116,7 @@ alignment needed despite the clips' different lengths.
   baggy clothing, or an unusual camera angle can degrade MediaPipe's
   landmark detection, which propagates into the angle measurements.
 
-<h1 class="bk-chapter" id="ch-16-ppe-compliance-check"><span class="bk-chnum">Chapter 16</span>PPE Compliance Check</h1>
+<h1 class="bk-chapter" id="ch-19-ppe-compliance-check"><span class="bk-chnum">Chapter 19</span>PPE Compliance Check</h1>
 
 > Upload a site photo and see, per person, whether a hard hat and safety vest are visible. A dedicated PPE detection model is used rather than a general object detector, since general detectors have no safety-vest class at all. Compliance is only ever read from an explicit present or absent signal the model was trained on — never inferred from something simply not being detected — so an unclear photo returns 'unclear' instead of a false pass. Low-resolution images weaken the result noticeably.
 
@@ -3277,7 +4193,7 @@ being worn by anyone.
   even for genuinely-worn PPE (seen directly in testing: a top-down
   camera angle scored a real, clearly-worn vest at only 39% confidence).
 
-<h1 class="bk-chapter" id="ch-17-photo-library-visual-search"><span class="bk-chnum">Chapter 17</span>Photo Library Visual Search</h1>
+<h1 class="bk-chapter" id="ch-20-photo-library-visual-search"><span class="bk-chnum">Chapter 20</span>Photo Library Visual Search</h1>
 
 > Upload a batch of photos and describe what you are looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP puts the images and your words in the same embedding space, so nothing needs tagging or captioning first. Nothing is stored between searches.
 
@@ -3359,7 +4275,7 @@ photos and results only exist in your browser tab for that session.
 - This is search over a batch you upload in-session, not a persistent
   photo library — nothing is saved after you leave the page.
 
-<h1 class="bk-chapter" id="ch-18-plant-growth-quantification"><span class="bk-chnum">Chapter 18</span>Plant Growth Quantification</h1>
+<h1 class="bk-chapter" id="ch-21-plant-growth-quantification"><span class="bk-chnum">Chapter 21</span>Plant Growth Quantification</h1>
 
 > Track how a plant is actually growing. Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo of several plants to compare their sizes against each other. Foliage area is measured by an HSV green-hue threshold — no model, no API call. Several plants in one shot are separated automatically, and a before/after collage is split and charted as growth. It also reports a vegetation index (a yellowing signal independent of size) and a leaf count, so a decline can show up in the numbers before you can see it.
 
@@ -3540,7 +4456,7 @@ rough "if nothing changes" projection, not a forecast.
 - All the core measurement (mask, growth %, greenness, leaf count) runs
   locally with no API cost; only species/health ID uses a paid AI call.
 
-<h1 class="bk-chapter" id="ch-19-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 19</span>Text-Prompted Video Object Tracking</h1>
+<h1 class="bk-chapter" id="ch-22-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 22</span>Text-Prompted Video Object Tracking</h1>
 
 > Upload a short clip, type what to follow — 'the red backpack' — and get that object masked through the rest of the video. Grounding DINO locates it in the first frame, then SAM2 tracks it forward using its video memory. The result is a downscaled, reduced-framerate preview rather than a full-resolution export.
 
@@ -3633,7 +4549,7 @@ every frame of a zoom.
   a real, published limitation of video segmentation models, not unique
   to this tool.
 
-<h1 class="bk-chapter" id="ch-20-wildlife-re-identification"><span class="bk-chnum">Chapter 20</span>Wildlife Re-Identification</h1>
+<h1 class="bk-chapter" id="ch-23-wildlife-re-identification"><span class="bk-chnum">Chapter 23</span>Wildlife Re-Identification</h1>
 
 > Upload a new sighting and a gallery of past ones and see which individual animal it most likely matches. The animal is cropped out of each photo, then compared using MegaDescriptor, a foundation model built specifically for individual animal re-identification rather than a general-purpose vision embedding. Treat it as a ranking aid, not an identification system — the same/uncertain/different bands are not calibrated against a benchmark. MegaDescriptor is CC-BY-NC-4.0, so non-commercial use only.
 
@@ -3730,7 +4646,7 @@ Checking whether something can be trusted: files, links, emails, packages, model
 
 </div>
 
-<h1 class="bk-chapter" id="ch-21-ai-generated-code-detector"><span class="bk-chnum">Chapter 21</span>AI-Generated Code Detector</h1>
+<h1 class="bk-chapter" id="ch-24-ai-generated-code-detector"><span class="bk-chnum">Chapter 24</span>AI-Generated Code Detector</h1>
 
 > Paste a code snippet and see the stylometric signals people associate with AI authorship — comment density, generic naming, docstring formality, exception handling, boilerplate phrasing — alongside an independent LLM opinion, shown side by side. It deliberately never returns a probability or an 'AI-written' verdict, because no reliable general-purpose detector exists in the published research and a confidence number here would be invented.
 
@@ -3812,7 +4728,7 @@ itself just another style, not a determination of authorship either way.
   (job interviews, academic integrity, code review) — using it that way
   would be exactly the overclaiming this tool is built to avoid.
 
-<h1 class="bk-chapter" id="ch-22-adversarial-robustness-lab"><span class="bk-chnum">Chapter 22</span>Adversarial Robustness Lab</h1>
+<h1 class="bk-chapter" id="ch-25-adversarial-robustness-lab"><span class="bk-chnum">Chapter 25</span>Adversarial Robustness Lab</h1>
 
 > Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.
 
@@ -4045,7 +4961,7 @@ Nothing is stored: your photo and the results only exist for this one run.
   (see the Adversarial training section above) — no manual cropping or
   thresholding needed on your end.
 
-<h1 class="bk-chapter" id="ch-23-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 23</span>Attack-Surface / Exposed-Path Scanner</h1>
+<h1 class="bk-chapter" id="ch-26-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 26</span>Attack-Surface / Exposed-Path Scanner</h1>
 
 > Enter a domain and see what it exposes to the open internet. Four passive checks run live: sensitive paths like .git/HEAD and .env (only flagged when the response really is that file, not merely a 200), Apache/nginx directory listings, CMS fingerprinting from the standard generator tag, and a short common-port connect check. It refuses to touch private, loopback or internal addresses, and reports real findings for you to weigh rather than a made-up risk score.
 
@@ -4117,7 +5033,7 @@ either — plenty of legitimate servers run SSH or a database port openly
 by design; it's evidence worth reviewing in context, not an automatic
 verdict.
 
-<h1 class="bk-chapter" id="ch-24-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 24</span>Binary Byte-Plot & Entropy Triage</h1>
+<h1 class="bk-chapter" id="ch-27-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 27</span>Binary Byte-Plot & Entropy Triage</h1>
 
 > Upload any file and see its structure as a picture. The bytes are rendered as the grayscale byte-plot used in malware-visualisation research, next to a sliding-window entropy heatmap — sustained near-random entropy is an established sign of packed or encrypted content, the same signal tools like PEiD look for. Windows executables also get a PE header check for a classic packer tell. It won't name a malware family — no dependable pretrained model exists for that — and it never executes the file: static byte analysis only, up to 5MB.
 
@@ -4199,7 +5115,7 @@ visible structure, and the entropy heatmap renders almost entirely red
 - Never executes, opens, or interprets the uploaded file's actual code —
   only reads its raw bytes.
 
-<h1 class="bk-chapter" id="ch-25-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 25</span>Browser Extension Permission Risk Analyzer</h1>
+<h1 class="bk-chapter" id="ch-28-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 28</span>Browser Extension Permission Risk Analyzer</h1>
 
 > Paste a Chrome or Edge extension's manifest.json and see what it is allowed to do. Checks individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history), broad host access, and dangerous combinations — broad host access plus network interception plus cookies together enable session hijacking on any site. This reads declared permissions, not behaviour: a legitimate password manager needs much the same access, so findings are framed as worth a closer look, never a judgement of intent.
 
@@ -4282,7 +5198,7 @@ access.
   array) and V3 (\`host_permissions\` as a separate field) formats.
 - Entirely client-side — nothing you paste is sent anywhere.
 
-<h1 class="bk-chapter" id="ch-26-captcha-hardening-lab"><span class="bk-chnum">Chapter 26</span>CAPTCHA Hardening Lab</h1>
+<h1 class="bk-chapter" id="ch-29-captcha-hardening-lab"><span class="bk-chnum">Chapter 29</span>CAPTCHA Hardening Lab</h1>
 
 > Upload a CAPTCHA-style image and watch a vision-language model try to read it — modern VLMs handle plain text CAPTCHAs far more easily than classic OCR ever did. One intensity slider then stacks three model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast reduction) and the model tries again, side by side. Nothing gradient-based is used, because the solver here is a black box — the same constraint a real CAPTCHA vendor faces. It only ever reads an image you upload; it never contacts a live CAPTCHA on a real site.
 
@@ -4360,7 +5276,7 @@ of you.
 - Never submits to, or interacts with, a live CAPTCHA challenge on any
   real website — upload-only, one image per request.
 
-<h1 class="bk-chapter" id="ch-27-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 27</span>DNS Tunneling / Exfiltration Detector</h1>
+<h1 class="bk-chapter" id="ch-30-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 30</span>DNS Tunneling / Exfiltration Detector</h1>
 
 > Paste a DNS query log, or check a single hostname, and spot possible tunnelling or exfiltration. Uses the published heuristics real tools rely on for this (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy and query volume per parent domain. A domain is only flagged when several signals agree, so ordinary long CDN-style subdomains don't trip it. Pure heuristics, no model, fully client-side.
 
@@ -4443,7 +5359,7 @@ it isn't proof no tunneling is happening, and a genuinely sophisticated
 tunnel could pace its queries or use lower-entropy encoding specifically to
 stay under these thresholds.
 
-<h1 class="bk-chapter" id="ch-28-email-header-authentication-checker"><span class="bk-chnum">Chapter 28</span>Email Header Authentication Checker</h1>
+<h1 class="bk-chapter" id="ch-31-email-header-authentication-checker"><span class="bk-chnum">Chapter 31</span>Email Header Authentication Checker</h1>
 
 > Paste raw email headers and see whether the sender checks out. You get two things: what the receiving mail server's own Authentication-Results already concluded about SPF, DKIM and DMARC (relayed, not re-verified), and independent live DNS lookups of the sending domain's real records, plus a From: alignment check. It does not cryptographically verify the DKIM signature — that needs the full message body — and says so rather than implying otherwise.
 
@@ -4528,7 +5444,7 @@ claiming "phishing detected" outright.
   protected against spoofing — it is not proof that a specific email is
   fraudulent.
 
-<h1 class="bk-chapter" id="ch-29-face-cloak"><span class="bk-chnum">Chapter 29</span>Face Cloak</h1>
+<h1 class="bk-chapter" id="ch-32-face-cloak"><span class="bk-chnum">Chapter 32</span>Face Cloak</h1>
 
 > Add a barely-visible perturbation to a photo so face-recognition models place it somewhere other than your real face. A simplified take on Fawkes, the privacy technique built to counter unauthorised facial-recognition scraping. You get the actual measured drop in embedding similarity, and an honest caveat: this protects the copy you cloak, not photos of you already scraped elsewhere.
 
@@ -4615,7 +5531,7 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 - Nothing is stored: your photo and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-30-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 30</span>Face Deanonymization Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-33-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 33</span>Face Deanonymization Risk Demo</h1>
 
 > See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.
 
@@ -4696,7 +5612,7 @@ similarity score moved.
   of the target photo in this session — it cannot retroactively protect
   copies of the same photo already posted or scraped elsewhere.
 
-<h1 class="bk-chapter" id="ch-31-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 31</span>Keystroke Biometric Auth-Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-34-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 34</span>Keystroke Biometric Auth-Risk Demo</h1>
 
 > Type a short phrase three times to enrol a keystroke-timing profile, then type it once more and see how closely the rhythm matches. Scoring uses scaled Manhattan distance over dwell and flight times, a published approach for keystroke-dynamics anomaly detection. Try typing normally, then deliberately faster or hunt-and-peck, and watch the score move. A concept demo rather than a calibrated authenticator — and entirely client-side, with no server call.
 
@@ -4774,7 +5690,7 @@ problem), not a heuristic invented for this demo.
   patch the timing — corrected typos have a different rhythm than a
   clean run and would distort the profile.
 
-<h1 class="bk-chapter" id="ch-32-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 32</span>LLM Prompt Injection Detection Playground</h1>
+<h1 class="bk-chapter" id="ch-35-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 35</span>LLM Prompt Injection Detection Playground</h1>
 
 > Paste a prompt, or a document an AI might be asked to read, and see whether it tries to hijack the model. Two independent signals sit side by side: a transparent pattern library covering direct overrides, jailbreak roleplay, indirect injection and encoding tricks, and a separately-prompted LLM judge. They combine into an overall risk badge rather than one invented confidence number — no detector here is claimed to be reliable on its own.
 
@@ -4855,7 +5771,7 @@ alarms on any trigger word.
 - Treat this as a second opinion for learning and testing, not a security
   boundary you'd deploy as-is in front of a production system.
 
-<h1 class="bk-chapter" id="ch-33-malicious-package-scanner"><span class="bk-chnum">Chapter 33</span>Malicious Package Scanner</h1>
+<h1 class="bk-chapter" id="ch-36-malicious-package-scanner"><span class="bk-chnum">Chapter 36</span>Malicious Package Scanner</h1>
 
 > Paste a package.json, requirements.txt or a source file and see what a supply-chain reviewer would flag. Checks for npm install-script hooks, dependency names that typosquat well-known packages, dynamic execution calls (eval, exec, subprocess), obfuscated high-entropy strings, embedded URLs, hardcoded secrets, SQL built by string interpolation, and unsafe deserialization. It matches attacker techniques rather than known signatures, which is what lets it flag packages nobody has seen before. Every hit is real evidence to judge, never a safe/malicious verdict. Runs fully in your browser.
 
@@ -4942,7 +5858,7 @@ well-known package names, and cannot detect more sophisticated evasion
 (code that's obfuscated below the entropy threshold, or a malicious
 payload fetched at runtime from a URL that isn't hardcoded in the source).
 
-<h1 class="bk-chapter" id="ch-34-password-strength-breach-checker"><span class="bk-chnum">Chapter 34</span>Password Strength & Breach Checker</h1>
+<h1 class="bk-chapter" id="ch-37-password-strength-breach-checker"><span class="bk-chnum">Chapter 37</span>Password Strength & Breach Checker</h1>
 
 > Check how strong a password really is. Scored in your browser by zxcvbn, the pattern-matching algorithm behind many real password meters — dictionaries, keyboard walks, dates, repeats — rather than naive character-class counting. You can also check it against Have I Been Pwned using k-anonymity: only the first five characters of its SHA-1 hash ever leave your machine, never the password itself. Nothing is stored.
 
@@ -5022,7 +5938,7 @@ only network request this tool ever makes is the 5-character hash-prefix
 lookup to \`api.pwnedpasswords.com\`, and only when you click the breach
 check button — never automatically, and never on every keystroke.
 
-<h1 class="bk-chapter" id="ch-35-phishing-email-body-classifier"><span class="bk-chnum">Chapter 35</span>Phishing Email Body Classifier</h1>
+<h1 class="bk-chapter" id="ch-38-phishing-email-body-classifier"><span class="bk-chnum">Chapter 38</span>Phishing Email Body Classifier</h1>
 
 > Paste an email's body text and see whether the writing itself reads like phishing — urgency, generic greetings, manipulative phrasing. A Multinomial Naive Bayes classifier trained on real phishing and legitimate mail shows you the exact words driving its score, next to a separate, transparent list of rule-based flags. Two signals shown side by side, never blended into one black-box number. Runs fully client-side — nothing you paste leaves your browser.
 
@@ -5095,7 +6011,7 @@ check like this one. Treat a "likely phishing" result as a real reason to
 scrutinize the email further, and a "likely safe" result as one signal
 among several, not a guarantee.
 
-<h1 class="bk-chapter" id="ch-36-qr-phishing-detector"><span class="bk-chnum">Chapter 36</span>QR Phishing Detector</h1>
+<h1 class="bk-chapter" id="ch-39-qr-phishing-detector"><span class="bk-chnum">Chapter 39</span>QR Phishing Detector</h1>
 
 > Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.
 
@@ -5217,7 +6133,7 @@ source you trust.
   for that link — it's never treated as suspicious on its own, only used
   when a real registration date is available.
 
-<h1 class="bk-chapter" id="ch-37-siem-alert-triage-agent"><span class="bk-chnum">Chapter 37</span>SIEM Alert Triage Agent</h1>
+<h1 class="bk-chapter" id="ch-40-siem-alert-triage-agent"><span class="bk-chnum">Chapter 40</span>SIEM Alert Triage Agent</h1>
 
 > Paste raw alert lines and get them grouped and prioritised. Near-identical alerts are deduplicated by template in your browser first, so only the grouped summary — never your raw log — is sent on to an LLM for a priority, a one-line reason and a suggested next step per group. Advisory only: every suggestion is written for you to act on, never phrased as something already done.
 
@@ -5296,7 +6212,7 @@ correlation across sessions). If the judge is temporarily unavailable, the
 grouping data is still shown on its own — the deduplication itself is
 useful even without a priority opinion layered on top.
 
-<h1 class="bk-chapter" id="ch-38-style-cloak"><span class="bk-chnum">Chapter 38</span>Style Cloak</h1>
+<h1 class="bk-chapter" id="ch-41-style-cloak"><span class="bk-chnum">Chapter 41</span>Style Cloak</h1>
 
 > Add a barely-visible perturbation across an image so its CLIP embedding drifts away from where a model would naturally place it — a simplified take on the Glaze and Nightshade approach to countering AI style-mimicry. You get the actual measured similarity drop, calibrated against an unrelated-image baseline, plus the honest caveat: it protects the copy you cloak, not images already scraped elsewhere.
 
@@ -5388,7 +6304,7 @@ applies to face-recognition embeddings instead of style embeddings.
 - Nothing is stored: your image and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-39-tls-security-headers-scanner"><span class="bk-chnum">Chapter 39</span>TLS / Security-Headers Scanner</h1>
+<h1 class="bk-chapter" id="ch-42-tls-security-headers-scanner"><span class="bk-chnum">Chapter 42</span>TLS / Security-Headers Scanner</h1>
 
 > Enter a domain and check its TLS and security headers the way Mozilla Observatory does. A real handshake verifies the certificate chain, expiry and protocol version, flagging deprecated SSLv3 and TLS 1.0/1.1, and a live request checks the six standard security headers. It refuses to connect to private, loopback or internal addresses, and gives a qualitative verdict with the actual warnings behind it rather than a numeric score.
 
@@ -5464,7 +6380,7 @@ expired or untrusted certificate is a real problem any browser would also
 flag), while a missing security header is a softer, defense-in-depth gap
 rather than proof of an active vulnerability.
 
-<h1 class="bk-chapter" id="ch-40-video-call-keystroke-inference"><span class="bk-chnum">Chapter 40</span>Video-Call Keystroke Inference</h1>
+<h1 class="bk-chapter" id="ch-43-video-call-keystroke-inference"><span class="bk-chnum">Chapter 43</span>Video-Call Keystroke Inference</h1>
 
 > Upload a short clip of someone typing and recover when the keys were pressed from hand motion alone. Frame-by-frame hand tracking feeds a tap detector on fingertip movement, producing a timeline of keystrokes, which hand, and likely word boundaries from the gaps — the same side channel behind published research on video keystroke inference. It stops at timing and does not attempt to recover what was typed: that needs per-target trained models this doesn't have. Runs in your browser; no video leaves your device.
 
@@ -5546,7 +6462,7 @@ over the keyboard.
 - 60-second clip cap, entirely client-side (MediaPipe WASM) — nothing is
   sent to any server.
 
-<h1 class="bk-chapter" id="ch-41-yara-file-scanner"><span class="bk-chnum">Chapter 41</span>YARA File Scanner</h1>
+<h1 class="bk-chapter" id="ch-44-yara-file-scanner"><span class="bk-chnum">Chapter 44</span>YARA File Scanner</h1>
 
 > Scan a file with real YARA — the same pattern-matching engine antivirus and threat-intel teams use to write and share detection rules. Run it against a small built-in rule set (EICAR, PowerShell LOLBin encoding, webshell and macro patterns, embedded-PE smuggling, an entropy rule), or write your own rule and test it, which is what YARA actually exists for. Your file is never executed, and every hit shows the matched string and offset rather than a bare verdict.
 
@@ -5643,16 +6559,16 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | Tool | What it does | Runs |
 |---|---|---|
 | **AutoML Pipeline** *(ch. 1)* | 4-Model Competition | On the server |
-| **Data Drift Detection** | Monitor Production Data | On the server |
-| **Data Preprocessing** *(ch. 2)* | Clean Before You Train | In your browser — the file never leaves your machine |
-| **Ensemble Methods** | Combine Top-N Models | On the server |
-| **Feature Engineering** *(ch. 3)* | No-Code Transforms | In your browser — the file never leaves your machine |
-| **Feature Selection** | Keep Only What Matters | On the server |
-| **Optuna Tuning** *(ch. 4)* | Post-Winner Hyperparameter Search | On the server |
+| **Data Drift Detection** *(ch. 2)* | Monitor Production Data | On the server |
+| **Data Preprocessing** *(ch. 3)* | Clean Before You Train | In your browser — the file never leaves your machine |
+| **Ensemble Methods** *(ch. 4)* | Combine Top-N Models | On the server |
+| **Feature Engineering** *(ch. 5)* | No-Code Transforms | In your browser — the file never leaves your machine |
+| **Feature Selection** *(ch. 6)* | Keep Only What Matters | On the server |
+| **Optuna Tuning** *(ch. 7)* | Post-Winner Hyperparameter Search | On the server |
 | **Pipeline Builder** | End-to-End ML Canvas | On the server |
 | **Pipeline Cinema** | Animated ML Showcase | On the server |
-| **Real-Time Analytics** *(ch. 5)* | Live Event Dashboard | On the server |
-| **SHAP Explainability** *(ch. 6)* | Per-Prediction Feature Impact | On the server |
+| **Real-Time Analytics** *(ch. 8)* | Live Event Dashboard | On the server |
+| **SHAP Explainability** *(ch. 9)* | Per-Prediction Feature Impact | On the server |
 
 </div>
 
@@ -5662,10 +6578,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **Contract/Invoice Reconciliation Assistant** *(ch. 7)* | Discrepancy Report Across Documents | On the server |
-| **Document Intelligence** *(ch. 8)* | AI-Powered Document Data Extraction | On the server |
-| **Multimodal RAG** *(ch. 9)* | Tables & Figures as Citable Knowledge | On the server |
-| **Text-to-SQL Agent** *(ch. 10)* | Natural Language → Database Queries | On the server |
+| **Contract/Invoice Reconciliation Assistant** *(ch. 10)* | Discrepancy Report Across Documents | On the server |
+| **Document Intelligence** *(ch. 11)* | AI-Powered Document Data Extraction | On the server |
+| **Multimodal RAG** *(ch. 12)* | Tables & Figures as Citable Knowledge | On the server |
+| **Text-to-SQL Agent** *(ch. 13)* | Natural Language → Database Queries | On the server |
 
 </div>
 
@@ -5675,20 +6591,20 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **ASL Fingerspelling Recognition** *(ch. 11)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Astrophotography Anomaly Detector** *(ch. 12)* | Frame Differencing + Hough Transform | On the server |
-| **Crime Scene Reconstruction** *(ch. 13)* | Sparse SfM | On the server |
+| **ASL Fingerspelling Recognition** *(ch. 14)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Astrophotography Anomaly Detector** *(ch. 15)* | Frame Differencing + Hough Transform | On the server |
+| **Crime Scene Reconstruction** *(ch. 16)* | Sparse SfM | On the server |
 | **Depth Parallax** | One Photo, Instant 3D | On the server |
 | **Face Liveness Detector** | Real vs. Spoofed | On the server |
-| **Gait Pattern Comparison** *(ch. 14)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Movement Form Comparison** *(ch. 15)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **PPE Compliance Check** *(ch. 16)* | YOLOv8n PPE | On the server |
-| **Photo Library Visual Search** *(ch. 17)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
-| **Plant Growth Quantification** *(ch. 18)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Gait Pattern Comparison** *(ch. 17)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Movement Form Comparison** *(ch. 18)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **PPE Compliance Check** *(ch. 19)* | YOLOv8n PPE | On the server |
+| **Photo Library Visual Search** *(ch. 20)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
+| **Plant Growth Quantification** *(ch. 21)* | Local · No API Cost | In your browser — the file never leaves your machine |
 | **Pose VJ Visuals** | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Text-Prompted Video Object Tracking** *(ch. 19)* | Grounded-SAM | On the server |
+| **Text-Prompted Video Object Tracking** *(ch. 22)* | Grounded-SAM | On the server |
 | **Text-to-Image Generator** | Describe It, Generate It | On the server |
-| **Wildlife Re-Identification** *(ch. 20)* | MegaDescriptor | On the server |
+| **Wildlife Re-Identification** *(ch. 23)* | MegaDescriptor | On the server |
 
 </div>
 
@@ -5698,27 +6614,27 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **AI-Generated Code Detector** *(ch. 21)* | Signals, Not A Verdict | On the server |
-| **Adversarial Robustness Lab** *(ch. 22)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Attack-Surface / Exposed-Path Scanner** *(ch. 23)* | Live Recon · Zero ML | On the server, with a live external check |
-| **Binary Byte-Plot & Entropy Triage** *(ch. 24)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
-| **Browser Extension Permission Risk Analyzer** *(ch. 25)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **CAPTCHA Hardening Lab** *(ch. 26)* | VLM Read Attempt · Before/After | On the server |
-| **DNS Tunneling / Exfiltration Detector** *(ch. 27)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Email Header Authentication Checker** *(ch. 28)* | Live DNS · Zero ML | On the server |
-| **Face Cloak** *(ch. 29)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Face Deanonymization Risk Demo** *(ch. 30)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Keystroke Biometric Auth-Risk Demo** *(ch. 31)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
-| **LLM Prompt Injection Detection Playground** *(ch. 32)* | Pattern + LLM Judge | On the server |
-| **Malicious Package Scanner** *(ch. 33)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Password Strength & Breach Checker** *(ch. 34)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Phishing Email Body Classifier** *(ch. 35)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **QR Phishing Detector** *(ch. 36)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **SIEM Alert Triage Agent** *(ch. 37)* | Grouping + LLM Judge | On the server |
-| **Style Cloak** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **TLS / Security-Headers Scanner** *(ch. 39)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
-| **Video-Call Keystroke Inference** *(ch. 40)* | Client-Side Only | In your browser — the file never leaves your machine |
-| **YARA File Scanner** *(ch. 41)* | Live Engine · Real YARA | On the server, with a live external check |
+| **AI-Generated Code Detector** *(ch. 24)* | Signals, Not A Verdict | On the server |
+| **Adversarial Robustness Lab** *(ch. 25)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Attack-Surface / Exposed-Path Scanner** *(ch. 26)* | Live Recon · Zero ML | On the server, with a live external check |
+| **Binary Byte-Plot & Entropy Triage** *(ch. 27)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
+| **Browser Extension Permission Risk Analyzer** *(ch. 28)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **CAPTCHA Hardening Lab** *(ch. 29)* | VLM Read Attempt · Before/After | On the server |
+| **DNS Tunneling / Exfiltration Detector** *(ch. 30)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Email Header Authentication Checker** *(ch. 31)* | Live DNS · Zero ML | On the server |
+| **Face Cloak** *(ch. 32)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Face Deanonymization Risk Demo** *(ch. 33)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Keystroke Biometric Auth-Risk Demo** *(ch. 34)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
+| **LLM Prompt Injection Detection Playground** *(ch. 35)* | Pattern + LLM Judge | On the server |
+| **Malicious Package Scanner** *(ch. 36)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Password Strength & Breach Checker** *(ch. 37)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Phishing Email Body Classifier** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **QR Phishing Detector** *(ch. 39)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **SIEM Alert Triage Agent** *(ch. 40)* | Grouping + LLM Judge | On the server |
+| **Style Cloak** *(ch. 41)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **TLS / Security-Headers Scanner** *(ch. 42)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
+| **Video-Call Keystroke Inference** *(ch. 43)* | Client-Side Only | In your browser — the file never leaves your machine |
+| **YARA File Scanner** *(ch. 44)* | Live Engine · Real YARA | On the server, with a live external check |
 
 </div>
 
