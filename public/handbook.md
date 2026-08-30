@@ -374,7 +374,7 @@ someone else's benchmark.
 | **Model or method** | SimpleImputer · KNN · MICE |
 | **What you give it** | Any CSV |
 | **Steps** | 5 |
-| **Where it runs** | On the server |
+| **Where it runs** | In your browser — the file never leaves your machine |
 | **Find it at** | `/tools/preprocessing` |
 
 ## What problem it solves
@@ -666,8 +666,8 @@ that is how the AutoML tool in this app is built.
 | **Model or method** | scikit-learn · pandas |
 | **What you give it** | Any CSV |
 | **Transforms** | 10+ |
-| **Where it runs** | On the server |
-| **Find it at** | `/tools/featureeng` |
+| **Where it runs** | In your browser — the file never leaves your machine |
+| **Find it at** | `/tools/feature-engineering` |
 
 ## What problem it solves
 
@@ -5463,9 +5463,9 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 |---|---|---|
 | **AutoML Pipeline** *(ch. 1)* | 4-Model Competition | On the server |
 | **Data Drift Detection** | Monitor Production Data | On the server |
-| **Data Preprocessing** *(ch. 2)* | Clean Before You Train | On the server |
+| **Data Preprocessing** *(ch. 2)* | Clean Before You Train | In your browser — the file never leaves your machine |
 | **Ensemble Methods** | Combine Top-N Models | On the server |
-| **Feature Engineering** *(ch. 3)* | No-Code Transforms | On the server |
+| **Feature Engineering** *(ch. 3)* | No-Code Transforms | In your browser — the file never leaves your machine |
 | **Feature Selection** | Keep Only What Matters | On the server |
 | **Optuna Tuning** *(ch. 4)* | Post-Winner Hyperparameter Search | On the server |
 | **Pipeline Builder** | End-to-End ML Canvas | On the server |

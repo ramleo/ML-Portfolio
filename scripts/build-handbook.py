@@ -53,6 +53,10 @@ def read_capabilities():
             "input": field(block, "input"), "stat": field(block, "stat"),
             "statLabel": field(block, "statLabel"),
             "tags": re.findall(r'"([^"]+)"', tg.group(1)) if tg else [],
+            # Two cards carry an id that is not their route — featureeng lives
+            # at /tools/feature-engineering — so the printed address has to
+            # come from the link the site itself uses, not from the id.
+            "internalLink": field(block, "internalLink"),
         })
     return out
 
@@ -270,7 +274,7 @@ def main():
             if c["stat"]:
                 body.append(f"| **{c['statLabel'] or 'Figure'}** | {c['stat']} |")
             body.append(f"| **Where it runs** | {where_it_runs(c)} |")
-            body.append(f"| **Find it at** | `/tools/{c['id']}` |")
+            body.append(f"| **Find it at** | `{c['internalLink'] or '/tools/' + c['id']}` |")
             body.append("")
             guide, deep = read_guide(c["id"]), read_deep(c["id"])
             if guide:
