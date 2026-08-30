@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
@@ -49,11 +50,16 @@ export default function HandbookPage() {
             </div>
             <HandbookActions markdown={markdown} />
           </div>
+          {/* Paged.js renders the typeset pages into this container when the
+              reader asks for the PDF; empty until then. */}
+          <div id="bk-pages" />
           <article className="hb-body">
             {/* remark-gfm, because each tool's facts are a pipe table and plain
                 CommonMark has no tables — without it they render as literal
                 rows of pipe characters. */}
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+              {markdown}
+            </ReactMarkdown>
           </article>
         </main>
         <Footer />

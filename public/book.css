@@ -1,0 +1,114 @@
+/* Paged-media stylesheet for the handbook's PDF.
+   Loaded by Paged.js, which lays the document into real page boxes — that is
+   what makes page numbers, running heads and a contents page with page numbers
+   possible at all. A browser printing a normal web page cannot do any of them,
+   because it paginates after the CSS has had its say. */
+
+@page {
+  size: A4;
+  margin: 22mm 20mm 20mm;
+
+  @bottom-center {
+    content: counter(page);
+    font-family: Georgia, "Iowan Old Style", serif;
+    font-size: 9pt;
+    color: #666;
+  }
+}
+/* A book's first page carries no folio or running head. */
+@page :first { @bottom-center { content: none; } @top-center { content: none; } }
+
+@page left  { @top-left  { content: "The AIRaML Handbook"; font-size: 8pt; color: #888;
+                           font-family: Georgia, serif; letter-spacing: .04em; } }
+@page right { @top-right { content: string(chapter);      font-size: 8pt; color: #888;
+                           font-family: Georgia, serif; letter-spacing: .04em; } }
+
+html, body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  color: #1a1a1a; background: #fff; }
+body { margin: 0; font-size: 10.5pt; line-height: 1.55; }
+/* The host page's colours would otherwise inherit into every cloned element. */
+.pagedjs_page, .pagedjs_page a { color: #1a1a1a; }
+.pagedjs_page em, .pagedjs_page blockquote { color: #444; }
+
+p { margin: 0 0 0.65em; orphans: 3; widows: 3; text-align: justify;
+    hyphens: auto; -webkit-hyphens: auto; }
+p + p { text-indent: 1.2em; margin-top: -0.35em; }
+
+/* ── Title page ── */
+.bk-titlepage { break-after: page; page-break-after: always;
+  height: 82vh; display: flex; flex-direction: column; justify-content: center; }
+.bk-titlepage h1 { font-size: 34pt; line-height: 1.1; margin: 0 0 .4em; font-weight: 400;
+  letter-spacing: -0.01em; }
+.bk-titlepage h3 { font-size: 12pt; font-weight: 400; font-style: italic; color: #555;
+  margin: 0 0 2em; max-width: 26em; }
+.bk-titlepage p { font-size: 9.5pt; color: #777; text-align: left; text-indent: 0; }
+
+.bk-colophon { break-after: page; page-break-after: always; }
+.bk-colophon h2 { font-size: 13pt; font-weight: 400; font-variant: small-caps;
+  letter-spacing: .06em; margin: 0 0 .8em; }
+
+/* ── Contents ── */
+.bk-toc { break-after: page; page-break-after: always; }
+.bk-toc h1 { font-size: 20pt; font-weight: 400; font-variant: small-caps;
+  letter-spacing: .08em; margin: 0 0 1.2em; }
+.bk-toc ul { list-style: none; margin: 0; padding: 0; }
+.bk-toc li { margin: 0; }
+.bk-toc a { text-decoration: none; color: #1a1a1a; display: block;
+  /* Leader dots between the title and its folio, the way a printed contents
+     page does it. */
+  background-image: radial-gradient(circle, #bbb 0.5px, transparent 0.6px);
+  background-position: bottom 3px left; background-size: 5px 5px;
+  background-repeat: repeat-x; }
+.bk-toc a::after {
+  /* The whole reason for Paged.js: the real printed page a link lands on. */
+  content: target-counter(attr(href), page);
+  float: right; background: #fff; padding-left: .4em; font-size: 9.5pt; color: #444;
+}
+.bk-toc a > span, .bk-toc a::before { background: #fff; }
+.bk-toc-part { font-variant: small-caps; letter-spacing: .05em; font-size: 11pt;
+  margin-top: 1.1em; }
+.bk-toc-chapter { font-size: 10pt; padding-left: 1.4em; }
+
+/* ── Parts and chapters ── */
+.bk-partpage { break-before: page; page-break-before: always; break-after: page;
+  page-break-after: always; padding-top: 30vh; }
+.bk-partpage h1 { font-size: 11pt; font-variant: small-caps; letter-spacing: .18em;
+  color: #888; font-weight: 400; margin: 0 0 .3em; }
+.bk-partpage h2 { font-size: 26pt; font-weight: 400; margin: 0 0 .8em; }
+
+h1.bk-chapter {
+  break-before: page; page-break-before: always;
+  string-set: chapter content();
+  font-size: 19pt; font-weight: 400; line-height: 1.2; margin: 0 0 1.2em;
+  padding-top: 6vh;
+}
+.bk-chnum { display: block; font-size: 9pt; font-variant: small-caps;
+  letter-spacing: .16em; color: #999; margin-bottom: .5em; }
+
+h2 { font-size: 12.5pt; font-weight: 700; margin: 1.6em 0 .5em;
+     break-after: avoid; page-break-after: avoid; }
+h3 { font-size: 11pt; font-weight: 700; margin: 1.2em 0 .35em;
+     break-after: avoid; page-break-after: avoid; }
+
+blockquote { margin: 0 0 1.4em; padding-left: 1em; border-left: 2px solid #ddd;
+  font-style: italic; color: #444; }
+blockquote p { text-align: left; text-indent: 0; }
+
+ul, ol { margin: 0 0 .9em; padding-left: 1.4em; }
+li { margin: .18em 0; }
+
+code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt;
+  background: #f4f4f4; padding: 0 .25em; border-radius: 2px; }
+
+table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: 9.5pt;
+  break-inside: avoid; page-break-inside: avoid; }
+th { text-align: left; font-variant: small-caps; letter-spacing: .05em; color: #666;
+  border-bottom: 1px solid #999; padding: 4pt 6pt; }
+td { padding: 3.5pt 6pt; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+td:first-child { width: 30%; color: #444; }
+
+hr { border: 0; border-top: 1px solid #ddd; margin: 1.6em 0; }
+
+.bk-appendix { break-before: page; page-break-before: always; }
+.bk-appendix h1 { font-size: 19pt; font-weight: 400; string-set: chapter content(); }
+.bk-appendix td:first-child { width: 34%; }

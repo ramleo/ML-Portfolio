@@ -1,19 +1,26 @@
 "use client";
 
+import { useState } from "react";
+
 /**
- * The two ways to take the handbook away with you.
+ * Taking the handbook away: as Markdown, or as a typeset PDF.
  *
- * PDF is the browser's own print-to-PDF rather than a bundled generator. The
- * requirement was that the PDF keep the formatting of the original, and the
- * browser's print engine renders the same DOM with the same CSS, so headings,
- * tables and page breaks come out as designed. The JavaScript alternatives
- * either rasterise the page into a blurry image or re-implement the layout and
- * lose it; both would also add a few hundred KB to every visit for something
- * most readers never use. The print stylesheet in globals does the formatting
- * work — see 09-print.css.
+ * The PDF is not the browser printing this web page. A browser paginates after
+ * the CSS has finished, so it can tell you nothing about which page a chapter
+ * landed on — which rules out the one thing a book's contents page must do.
+ * Paged.js lays the document into real page boxes first, so `target-counter`
+ * can resolve a folio for every contents entry, `@page` can carry running heads
+ * and page numbers, and chapters can be made to start on a fresh page. Printing
+ * that gives a PDF that reads as a book.
+ *
+ * It is loaded on demand rather than on every visit: the library and the
+ * pagination pass are only worth their cost to the reader who actually asks for
+ * the PDF, and most never will.
  */
 export default function HandbookActions({ markdown }: { markdown: string }) {
-  const download = () => {
+  const [state, setState] = useState<"idle" | "working">("idle");
+
+  const downloadMarkdown = () => {
     const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -25,16 +32,47 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
     URL.revokeObjectURL(url);
   };
 
+  const makeBook = async () => {
+    setState("working");
+    try {
+      const source = document.querySelector(".hb-body");
+      const target = document.getElementById("bk-pages");
+      if (!source || !target) return;
+      target.innerHTML = "";
+      // The prebuilt bundle, loaded as a plain script. Importing pagedjs
+      // through the bundler throws "s.call is not a function" from its own
+      // handler registration once Next has processed the ESM build; the UMD
+      // build has no such problem. scripts/copy-pagedjs.mjs puts it here at
+      // build time so it always matches the installed version.
+      if (!window.PagedModule) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "/vendor/paged.min.js";
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("could not load the typesetter"));
+          document.head.appendChild(s);
+        });
+      }
+      const previewer = new window.PagedModule!.Previewer();
+      await previewer.preview(source.innerHTML, ["/book.css"], target);
+      document.body.classList.add("bk-paginated");
+      // One frame for the pages to lay out before the print dialog samples them.
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      window.print();
+    } finally {
+      setState("idle");
+    }
+  };
+
   return (
     <div className="hb-actions">
-      <button onClick={() => window.print()} className="hb-btn hb-btn-primary">
+      <button onClick={makeBook} disabled={state === "working"} className="hb-btn hb-btn-primary">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6 14h12v8H6z" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Save as PDF
+        {state === "working" ? "Typesetting…" : "Download as PDF"}
       </button>
-      <button onClick={download} className="hb-btn">
+      <button onClick={downloadMarkdown} className="hb-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

@@ -5,6 +5,25 @@
 
    Aims: ink on white regardless of the reader's theme, no site chrome, and
    no entry split across a page break. */
+/* Once Paged.js has run, the typeset pages are the document. The flowing web
+   copy and the site chrome are hidden so the PDF contains the book and nothing
+   else; book.css, which Paged.js loads itself, does the typography. */
+/* Paged.js clones the content out of .hb-body, so the site's own text colours
+   no longer match it — but `body { color: var(--text) }` still inherits down,
+   which on this site means near-white text on a white page. The typeset pages
+   have to own their colours outright. */
+body.bk-paginated { background: #fff !important; color: #1a1a1a !important; }
+body.bk-paginated #bk-pages a { color: #1a1a1a !important; }
+
+/* :not(.bk-toc) matters — the book's contents page is itself a <nav>, and a
+   blanket "hide nav" rule printed two blank leaves where the contents should
+   have been. */
+body.bk-paginated nav:not(.bk-toc),
+body.bk-paginated footer,
+body.bk-paginated .hb-head,
+body.bk-paginated .hb-body { display: none !important; }
+body.bk-paginated #bk-pages { display: block !important; }
+
 @media print {
   @page { margin: 18mm 16mm; }
 
@@ -12,8 +31,9 @@
     background: #fff !important; color: #111 !important;
   }
   /* Site furniture that means nothing on paper. */
-  nav, footer, .hb-actions, .particle-grid, canvas,
+  nav:not(.bk-toc), footer, .hb-actions, .particle-grid, canvas,
   .constellation-bg, .chatbot-launcher { display: none !important; }
+  body.bk-paginated .hb-body { display: none !important; }
 
   .section, .hb-page { max-width: none !important; padding: 0 !important; }
   .hb-head { display: block !important; margin-bottom: 1.5rem !important; }
