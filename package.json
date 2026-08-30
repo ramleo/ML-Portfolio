@@ -21,7 +21,7 @@
     "@zxcvbn-ts/language-en": "^4.1.1",
     "framer-motion": "^12.40.0",
     "gifenc": "^1.0.3",
-    "lucide-react": "^1.26.0",
+    "lucide-react": "^1.34.0",
     "next": "16.2.7",
     "pagedjs": "^0.4.3",
     "react": "19.2.4",
