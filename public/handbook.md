@@ -12045,6 +12045,8 @@ the tool does both rather than only scoring.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 This site's other phishing/security tools check a link's URL structure
 (QR Phishing Detector), a domain's SPF/DKIM/DMARC records (Email Auth
@@ -12099,6 +12101,235 @@ check like this one. Treat a "likely phishing" result as a real reason to
 scrutinize the email further, and a "likely safe" result as one signal
 among several, not a guarantee.
 
+## What problem it solves
+
+Phishing works because it looks ordinary. A message that says your account will
+be suspended unless you confirm your details is indistinguishable, at a glance,
+from a message a bank might genuinely send — and the person reading it is busy.
+
+The Email Header Authentication chapter covers one half of the defence: proving
+who sent it. This is the other half — **what does the text itself look like?**
+
+The two are complementary. Authentication catches a spoofed sender and passes a
+lookalike domain the attacker registered legitimately. Content analysis catches
+the language of a scam regardless of who sent it, and passes a well-written
+attack.
+
+This tool classifies the **body text**, gives a probability, and — the part that
+matters most — shows **which words drove the decision**.
+
+It runs entirely in the browser. The model ships as a JSON file.
+
+## The model or algorithm
+
+### Multinomial Naive Bayes
+
+A trained model, and one worth being able to derive rather than just name.
+
+Bayes' theorem, applied to classification:
+
+```
+P(phishing | words) ∝ P(words | phishing) × P(phishing)
+```
+
+The **naive** assumption is that words are conditionally independent given the
+class. That is obviously false — "account" and "suspended" co-occur far more
+often than chance — but it makes `P(words | class)` factor into a product of
+per-word probabilities, which is what makes the model trainable from modest data
+and computable in a browser.
+
+Working in log space turns the product into a sum, and the score becomes:
+
+```
+score(class) = log P(class) + Σ over words  count(w) × log P(w | class)
+```
+
+Which is a **dot product between a bag-of-words vector and a per-class weight
+vector**. That is the whole classifier: two dot products, compare, done.
+
+The implementation reproduces scikit-learn's `MultinomialNB.predict_log_proba()`
+exactly, and a softmax over the two log-scores turns them into a displayable
+0–1 probability.
+
+### The tokenizer must match the training script exactly
+
+The file leads with a warning that deserves repeating, because it describes a bug
+class that produces **no error at all**:
+
+> *Must exactly mirror the Python training script's tokenizer and stopword list —
+> any mismatch here silently degrades the shipped model's real measured accuracy
+> without any error being raised.*
+
+A model trained in Python and served in TypeScript has its feature extraction
+implemented **twice**. If the two disagree — a different stopword list, different
+punctuation handling, a different minimum token length — the vectors at inference
+time are not the vectors the weights were fitted on. Accuracy quietly drops and
+every test still passes, because nothing is broken in a way software can detect.
+
+So the TypeScript is written to match Python step for step, with the
+correspondence documented:
+
+- lowercase;
+- strip exactly Python's `string.punctuation`, **with no replacement**, so
+  `don't` becomes `dont` — concatenating across the removed character, as
+  `str.translate` does;
+- **digits are deliberately left alone**, because they act as natural boundaries
+  for the `[a-z]+` match, exactly as Python's regex does on a
+  punctuation-stripped but digit-preserving string;
+- keep tokens longer than two characters that are not stopwords.
+
+That level of care about a tokenizer looks fussy and is the difference between a
+model that performs as measured and one that quietly does not. **Training-serving
+skew is one of the most common and least visible failures in deployed machine
+learning**, and the fix is exactly this: define the transformation once,
+precisely, and verify both implementations agree.
+
+### The measured accuracy
+
+```
+90.95% on a held-out set of 2,795 emails
+```
+
+Both numbers ship in the model JSON and are exported as constants, so the
+interface quotes the measured figure rather than a remembered one. Vocabulary:
+3,000 words.
+
+### Explainability, for free
+
+This is where Naive Bayes earns its place over something stronger.
+
+For each word in the message, the tool computes:
+
+```
+delta = (log P(word | phishing) − log P(word | safe)) × count
+```
+
+That is **exactly how much that word moved the decision**, in the units the
+decision is made in. Sort by absolute value, take the top eight, and you have a
+faithful explanation — not an approximation of one.
+
+Compare with the SHAP chapter, where explaining a gradient-boosted model requires
+a separate algorithm, a separate library and a chapter of its own. Here the
+model's structure *is* the explanation, because the score is a sum of independent
+per-word contributions. **For a tool whose job is to teach someone what phishing
+looks like, that is worth more than a few points of accuracy.**
+
+### The rule-based signals, kept separate
+
+Alongside the model, two curated lists:
+
+**Urgency phrases** — *"act now"*, *"your account will be suspended"*, *"verify
+immediately"*, *"final notice"*, *"unauthorized access detected"*.
+
+**Generic greetings** — *"dear customer"*, *"dear valued customer"*, *"dear
+account holder"*. A real bank knows your name; a bulk campaign does not.
+
+These are **reported as signals, not folded into the score**. The framing is
+named in the code as the same "signals not verdict" pattern as the QR detector's
+brand list, and both lists are disclosed as small and non-exhaustive.
+
+Keeping them separate is right: the model's probability stays a statement about
+the model, and the rules stay human-readable observations a reader can judge for
+themselves. Blending them would make the number harder to interpret and the rules
+harder to disagree with.
+
+## Why these choices
+
+**Why Naive Bayes rather than a transformer.** Three reasons, in order of
+importance for this tool. It is fully explainable, and explanation is the
+product. It fits in a JSON file and runs instantly in a browser, so nothing is
+uploaded. And on bag-of-words spam classification it is a genuinely strong
+baseline — this is the task Naive Bayes was made famous by.
+
+**Why the browser.** Emails are private. A phishing checker that requires you to
+paste a suspicious email to a server has asked you to do the thing the tool is
+meant to make you cautious about.
+
+**Why 3,000 words.** Enough coverage to be accurate, small enough to ship as JSON
+and keep the dot product trivial.
+
+## How to read the output
+
+- **Read the top words before the verdict.** They are the actual reasoning, and
+  they tell you whether the model latched onto something meaningful or onto a
+  quirk of its training data.
+- **The probability is Naive Bayes' probability**, and NB is famously
+  overconfident — the independence assumption multiplies correlated evidence as
+  if it were independent, pushing scores toward 0 and 1. Read it as a ranking,
+  not a calibrated likelihood.
+- **Urgency phrases and generic greetings are separate findings.** A legitimate
+  message can contain both.
+- **A 91% accurate classifier is wrong about one email in eleven.**
+- **Short messages are unreliable** — a handful of tokens is very little
+  evidence.
+- **The model saw a particular corpus.** Phishing in a style unlike its training
+  data will be missed.
+
+## Limits
+
+- **90.95% held-out accuracy** — measured, stated, and not production-grade for
+  automatic filtering.
+- **Body text only.** No headers, no links, no attachments, no sender reputation.
+  Real filters weight all of those heavily.
+- **Bag of words.** Order and structure are discarded, so *"we will never ask you
+  to verify your account"* and *"verify your account"* look similar.
+- **The independence assumption is false**, which is why the probabilities are
+  overconfident.
+- **Vocabulary is fixed at 3,000 words**; anything outside it contributes
+  nothing.
+- **English only.**
+- **Trained on one corpus**, with whatever era and style bias that carries.
+- **Curated phrase lists**, disclosed as non-exhaustive.
+- **Trivially evadable if you know the model** — the top words are shown, so an
+  attacker could avoid them. That is an acceptable trade for a teaching tool and
+  would not be for a filter.
+
+## Likely interview questions
+
+**"How does Naive Bayes work?"**
+Bayes' theorem with a conditional-independence assumption between features. That
+assumption lets `P(words | class)` factor into a product of per-word
+probabilities, and in log space the product becomes a sum — so the score is the
+class log-prior plus, for each word, its count times the log probability of that
+word given the class. Two dot products, one per class, and you compare them. The
+independence assumption is false for language, which is exactly why it is called
+naive, and it works well anyway.
+
+**"If the assumption is false, why does it work?"**
+Because classification only needs the *ranking* of the two scores to be right,
+not the probabilities. Correlated words cause the same evidence to be counted
+several times, which inflates the magnitude of the winning score — but usually in
+the direction it was already going. So the decision is often correct while the
+probability is badly overconfident. That is why I would present the number as a
+ranking rather than a calibrated likelihood.
+
+**"You trained in Python and serve in TypeScript. What's the risk?"**
+Training-serving skew. The feature extraction exists twice, and if the two
+disagree in any detail — stopwords, punctuation handling, minimum token length —
+the vectors at inference time are not the ones the weights were fitted on.
+Accuracy degrades and **nothing raises an error**, which is what makes it
+dangerous. The tokenizer here is written to mirror the Python step for step, down
+to stripping punctuation with no replacement so `don't` becomes `dont`, and
+leaving digits alone so they act as token boundaries the same way.
+
+**"Why not a transformer? You'd get better accuracy."**
+Probably several points better, and I would lose the thing the tool is for. The
+explanation here is exact rather than approximate: the score is a sum of
+independent per-word contributions, so "this word moved the decision by this
+much" is arithmetic, not an attribution method. It also ships as a JSON file and
+runs in the browser, so no one has to upload a private email. For a tool whose
+job is to teach someone what phishing text looks like, explainability and privacy
+beat a few points.
+
+**"Your model shows the user which words triggered it. Doesn't that help
+attackers?"**
+Yes, and it is a deliberate trade. Showing the top words makes the tool
+evadable — write a phishing email avoiding them and it scores lower. That is
+unacceptable in a production filter and correct here, because this exists to
+teach a person what to look for, not to block mail at a gateway. A real filter
+would keep its features private and lean on headers, link reputation and sender
+history, none of which are visible to the person writing the email.
+
 <h1 class="bk-chapter" id="ch-45-qr-phishing-detector"><span class="bk-chnum">Chapter 45</span>QR Phishing Detector</h1>
 
 > Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.
@@ -12117,6 +12348,8 @@ among several, not a guarantee.
 | **Find it at** | `/tools/qr-phishing-detector` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Upload a photo or screenshot containing a QR code, and the tool decodes it
@@ -12221,6 +12454,225 @@ source you trust.
   for that link — it's never treated as suspicious on its own, only used
   when a real registration date is available.
 
+## What problem it solves
+
+A QR code is a URL you cannot read.
+
+That is the entire attack. Every other phishing link can be inspected — hover
+over it, look at the status bar, read the domain. A QR code is a black-and-white
+square, and the only way to see where it goes is to go there. People scan codes
+on parking meters, restaurant tables, posters and invoices without any
+opportunity to be suspicious, and the practice has its own name now:
+**quishing**.
+
+The attack is also cheap. Print a sticker with your own QR code and put it over
+the real one on a parking machine. Nothing about the physical world reveals the
+substitution.
+
+This tool decodes the code and analyses the destination **without visiting it**.
+
+## How it works, step by step
+
+1. **Upload an image**, or paste a URL directly.
+2. **Decode any QR codes** in it with OpenCV's built-in detector.
+3. **Work out what the payload actually is** — a URL, Wi-Fi credentials, a
+   contact card, a phone number, plain text.
+4. **If it is a URL, run seven structural checks** locally.
+5. **Optionally enrich** with Google Safe Browsing and an RDAP domain-age lookup.
+6. **Report signals with a risk level** — never a verdict.
+
+**The destination is never fetched.** Only the text of the URL is analysed, and
+the reputation check is a hash-prefix lookup rather than a page load. So scanning
+a link here cannot itself visit the destination or trigger a payload — which is a
+property a tool of this kind absolutely must have.
+
+## The model or algorithm
+
+### The seven structural checks
+
+All local, all instant, no key required:
+
+**IP-literal host.** `http://192.168.1.1/login` — a legitimate service has a
+domain name.
+
+**Punycode.** Any label beginning `xn--`. This is the encoding that lets
+non-ASCII characters appear in domain names, and it is how **homograph attacks**
+work: Cyrillic «а» renders identically to Latin "a" in most fonts, so
+`аpple.com` and `apple.com` are visually indistinguishable and are different
+domains. Flagging the encoding catches the whole class without needing to reason
+about which glyphs look alike.
+
+**The `@` trick.** In `https://apple.com@evil.com/login`, everything before the
+`@` is credentials, and the browser goes to **`evil.com`**. The part a human
+reads as the destination is the part that is ignored. Rare in the wild now, and
+still worth flagging because it is so completely invisible to a casual reader.
+
+**URL shorteners.** Not malicious, but they hide the destination — which in a
+context where you already cannot see the URL means two layers of concealment.
+
+**Suspicious TLDs.** Some top-level domains are cheap or free and are
+disproportionately used for throwaway phishing infrastructure.
+
+**Plain HTTP.** No transport security, and increasingly unusual for anything
+legitimate.
+
+**Typosquatting**, by Levenshtein distance against a curated list of
+frequently-impersonated brand domains — the same edit-distance technique as the
+Malicious Package Scanner, applied to domains rather than package names. A domain
+one or two edits from `paypal.com`, while not being it, is the signal.
+
+The brand list is **small, curated and disclosed**: a typosquat of a brand not on
+the list will not be caught by that specific check, though punycode or a
+suspicious TLD may still catch it. This is the honest-list pattern that recurs
+across the security tools in this book.
+
+### Two external checks
+
+**Google Safe Browsing** — is this URL already known to be malicious? A
+reputation lookup against Google's database, and the strongest single signal
+available when it fires. Its weakness is coverage: new phishing infrastructure
+takes hours or days to appear, and a fresh campaign is invisible to it.
+
+**RDAP domain age** — WHOIS's modern public successor. Phishing domains are
+typically registered days before use and abandoned after, so **a domain
+registered a week ago is a strong signal** in a way that is hard to fake: an
+attacker cannot make their domain older.
+
+The two complement each other precisely. Safe Browsing knows about *yesterday's*
+campaigns; domain age catches *today's*, because whatever else is unknown about a
+brand-new domain, its age is a fact.
+
+RDAP coverage is not universal — some TLDs and registries do not expose it — so
+the check is documented as best-effort, and a missing answer is reported as
+missing rather than as "old".
+
+### Non-URL payloads are not ignored
+
+A QR code does not have to contain a URL. It can hold Wi-Fi credentials, a
+contact card, a phone number, an SMS, an email, a geographic location or plain
+text.
+
+Rather than reporting "nothing to check", the tool identifies the payload type
+and says what it is. **Wi-Fi codes get an explicit caution**, and the reason is
+good: scanning one **auto-joins the network**. A malicious Wi-Fi QR code on a
+café table joins your phone to the attacker's access point, and no URL was ever
+involved.
+
+That is a genuinely different attack surface, and a URL-only scanner would
+silently pass it as harmless.
+
+### Signals, not a verdict
+
+The docstring names this explicitly, and ties it to the same pattern used by the
+tampering detector and the signature-verification tools:
+
+> *When detection is heuristic rather than ground truth, surface what was found
+> and let a human weigh it, rather than claim "safe" or "malicious" outright.*
+
+Risk is reported as **high / medium / low** based on which signals fired, with
+every signal written out in a sentence.
+
+The reason this matters for a URL scanner in particular: a **false "safe"** is
+much more dangerous than a false "suspicious". Someone who is told a link is safe
+proceeds without caution, and the tool has actively made things worse than if it
+had said nothing. Reporting findings keeps the judgement with the person.
+
+## Why these choices
+
+**Why never fetch the URL.** Fetching means the server visits an attacker-chosen
+destination — SSRF, in exactly the shape the TLS and attack-surface chapters
+describe — and it means the payload gets a request from a real client, which can
+be enough to trigger it or to confirm the code is being scanned. Text analysis
+plus a hash-prefix reputation lookup gets most of the value with none of that.
+
+**Why OpenCV's detector.** Already a dependency, so no `pyzbar`/`libzbar` native
+library to install and keep working in a slim image.
+
+**Why flag punycode rather than compare glyphs.** Building a homograph
+confusable-character table is a large piece of work with an endless tail. The
+*encoding* is a single reliable indicator of the whole class, and legitimate
+punycode domains are rare enough that the false-positive cost is small.
+
+**Why edit distance for typosquats.** Same argument as the package scanner: small
+distance means plausible misreading, and proximity to a *popular* brand means
+someone would actually be fooled.
+
+## How to read the output
+
+- **Read the signals, not the level.** Each one says exactly what was found.
+- **Any punycode is worth stopping for.** Legitimate uses exist; on a QR code
+  from a sticker, treat it as hostile until shown otherwise.
+- **A Safe Browsing hit is close to conclusive.** No hit is not.
+- **A domain registered days ago, for a brand that has existed for decades, is
+  the strongest heuristic here.**
+- **"Low" means these checks found nothing**, not that the destination is safe. A
+  brand-new, unshortened, HTTPS, plausibly-named domain passes everything.
+- **A Wi-Fi payload is a different question entirely** — joining a network, not
+  visiting a page.
+- **A missing RDAP answer means the registry did not answer**, not that the
+  domain is old.
+
+## Limits
+
+- **Curated brand list**, disclosed as non-exhaustive.
+- **No page content analysis**, by design — nothing is fetched.
+- **No redirect following**, so a shortener's destination is unknown; the
+  shortener itself is the flag.
+- **Safe Browsing lags new campaigns** by hours or days.
+- **RDAP coverage is patchy** across TLDs.
+- **QR decoding can fail** on damaged, low-contrast, angled or very small codes.
+- **Structural signals are evadable.** A patient attacker registers a plausible
+  domain on a normal TLD, waits a month, uses HTTPS, and passes everything.
+- **Signals, not a verdict**, and deliberately so.
+
+## Likely interview questions
+
+**"Why are QR codes a phishing problem specifically?"**
+Because a QR code is a URL you cannot read. Every other link can be inspected
+before clicking; a QR code is opaque until you have already gone there. It also
+lives in the physical world, where a sticker over a parking meter's real code
+costs nothing and nothing about the surroundings reveals the substitution. The
+usual defence — look at the domain — is unavailable at exactly the moment it is
+needed.
+
+**"Why not fetch the URL and check the page?"**
+Two reasons. It is SSRF — the server would be making requests to an
+attacker-chosen destination, which can be used to reach internal services or
+scan a private network. And it gives the payload a real request from a real
+client, which can be enough to trigger it or simply to confirm that the code is
+being scanned. Analysing the URL text plus a hash-prefix reputation lookup gets
+most of the value with none of that exposure.
+
+**"What is a homograph attack and how do you detect it?"**
+Using characters from other scripts that render identically to Latin ones —
+Cyrillic «а» for Latin "a" — so `аpple.com` looks exactly like `apple.com` and is
+a different domain. Those domains are encoded in punycode, so every label starts
+`xn--`. Flagging the encoding catches the entire class in one check. Building a
+confusable-glyph table instead is a large job with a long tail, and legitimate
+punycode is rare enough that the false-positive cost of the simple check is low.
+
+**"Domain age seems like a weak signal. Is it?"**
+It is one of the strongest available, because it is hard to fake. Phishing
+domains are typically registered days before a campaign and abandoned after, and
+an attacker cannot make their domain older — they would have to have registered it
+a year ago and left it idle. It also complements Safe Browsing precisely: Safe
+Browsing knows about yesterday's campaigns and misses today's, while age catches
+the new ones exactly when reputation has nothing.
+
+**"Why report signals instead of safe or malicious?"**
+Because the asymmetry matters. A false "suspicious" costs someone thirty seconds
+of caution; a false "safe" makes them proceed *without* caution, which is worse
+than if the tool had said nothing at all. The detection here is heuristic rather
+than ground truth, so the honest output is what was found, in sentences, with the
+judgement left where it belongs.
+
+**"A QR code contains Wi-Fi credentials, not a URL. What do you do?"**
+Identify it and warn, rather than pass it as nothing to check. Scanning a Wi-Fi
+QR code **joins the network** — so a malicious one on a café table puts a phone
+onto the attacker's access point, with no URL involved anywhere. It is a
+completely different attack surface, and a URL-only scanner reporting "no
+findings" would be actively misleading.
+
 <h1 class="bk-chapter" id="ch-46-siem-alert-triage-agent"><span class="bk-chnum">Chapter 46</span>SIEM Alert Triage Agent</h1>
 
 > Paste raw alert lines and get them grouped and prioritised. Near-identical alerts are deduplicated by template in your browser first, so only the grouped summary — never your raw log — is sent on to an LLM for a priority, a one-line reason and a suggested next step per group. Advisory only: every suggestion is written for you to act on, never phrased as something already done.
@@ -12239,6 +12691,8 @@ source you trust.
 | **Find it at** | `/tools/siem-alert-triage` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Security teams get flooded with far more raw alerts than a human can
@@ -12299,6 +12753,229 @@ knowledge of your specific environment's baseline, no historical
 correlation across sessions). If the judge is temporarily unavailable, the
 grouping data is still shown on its own — the deduplication itself is
 useful even without a priority opinion layered on top.
+
+## What problem it solves
+
+A security operations centre receives tens of thousands of alerts a day. A human
+analyst can meaningfully triage perhaps a hundred.
+
+That gap has a name — **alert fatigue** — and it is the defining operational
+problem of the field. It is not that the alerts are wrong. It is that ten
+thousand of them are the *same alert*, differing only by an IP address, and the
+one that matters is somewhere in the middle. Analysts stop reading, and the
+famous breaches are frequently ones where the alert fired and nobody looked.
+
+The fix is not a better detector. It is **collapsing repetition** so a human
+triages the *pattern* once rather than every instance of it.
+
+This tool does that in two stages: deduplicate by structure in the browser, then
+ask a language model to prioritise the handful of groups that remain.
+
+## How it works, step by step
+
+1. **Paste an alert log**, one alert per line.
+2. **Normalise each line into a template** — variable parts replaced by
+   placeholders.
+3. **Group identical templates**, counting members and collecting the distinct
+   IP addresses involved.
+4. **Keep at most 20 groups**, largest first.
+5. **Send the groups** — template, count, one real example, the IPs — to a model.
+6. **Get back a priority, a reason and a suggested action per group.**
+
+## The model or algorithm
+
+### Log template extraction
+
+The grouping is the substantive part, and it happens entirely client-side.
+
+Two alerts like:
+
+```
+Failed login for admin0 from 192.168.1.44 (attempt 3)
+Failed login for admin7 from 10.0.0.19 (attempt 12)
+```
+
+are the *same event type*. What differs is the variable content. Normalising it
+away:
+
+```
+failed login for admin# from <IP> (attempt #)
+```
+
+collapses both — and the other 9,998 like them — into one group with a count.
+
+The transformation is three substitutions, and the second one carries a comment
+worth reading:
+
+- **IPv4 addresses → `<IP>`**, done first.
+- **Any digit run → `#`.** The comment explains why there is deliberately **no
+  word-boundary requirement**: a digit run inside an alphanumeric token —
+  `admin0`, `server7` — has no `\b` before it, because the preceding letter is
+  also a word character. A blanket replacement handles both `attempt 3` and
+  `admin0` correctly, and it is safe precisely *because* IPs were stripped in the
+  previous step.
+- **Whitespace collapsed, lowercased.**
+
+That ordering matters: replace digits first and an IP becomes `#.#.#.#`, losing
+the information that it was an address at all.
+
+**This is a simplified version of a real technique**, and the code says so. SIEM
+correlation engines use published log-template algorithms — **Drain**, which
+builds a fixed-depth parse tree over log tokens, and **IPLoM**, which partitions
+iteratively by token count and position. This is a heuristic normalisation, not
+an implementation of either, disclosed as such rather than borrowing their names.
+
+The IPs are collected per group rather than discarded, which keeps the detail
+that matters: *"one alert, seen 4,000 times, from a single IP"* and *"one alert,
+seen 4,000 times, from 3,800 distinct IPs"* are completely different incidents.
+
+### Why 20 groups
+
+Two reasons at once. A human can look at twenty things; and the model receives
+twenty short items instead of ten thousand lines, which keeps the request inside
+a sane context and a predictable cost. Ordering by count means the twenty you get
+are the twenty largest.
+
+### The model's role, deliberately narrow
+
+The model is not the detector and not the deduplicator. It sees an
+already-condensed list and adds **a second, independent opinion** about
+prioritisation.
+
+The system prompt is the interesting artefact:
+
+- It is told **exactly what it is looking at** — a deduplicated group, with a
+  count, one real example line and the IPs — rather than raw alerts.
+- It must return a **fixed JSON array, one object per input group, in the same
+  order**, so results line up with the groups without any matching logic.
+- Priority comes from a **closed set**: `critical`, `high`, `medium`, `low`,
+  `noise`. Including `noise` matters — the correct answer for most groups is that
+  they are not worth attention, and a scale without a bottom rung forces
+  everything to look like something.
+- And the constraint the whole design rests on:
+
+> *"You are advisory only — you do not take any action yourself, and must never
+> phrase a suggestion as something already done (say 'investigate the source IP',
+> never 'blocked the IP')."*
+
+**That is there because there is no firewall, Active Directory or EDR integration
+behind this tool.** A model asked to suggest remediation will naturally write
+*"blocked the offending IP"*, and an analyst reading that reasonably assumes the
+IP is blocked. It is not. The prompt forbids the phrasing that would create that
+belief.
+
+It is a good example of a prompt constraint that exists for a **safety** reason
+rather than a quality one: the danger is not a bad suggestion, it is a
+well-phrased false statement about the world.
+
+### Cost and abuse controls
+
+The judge runs on a **fixed server-side key** — the same pattern as the AI code
+detector and the prompt-injection checker — with rate limiting and a daily budget
+cap. Input fields are length-capped: 300 characters for a template, a bounded
+example, at most 100 IPs per group.
+
+## Why these choices
+
+**Why deduplicate before the model, not with it.** A model asked to group ten
+thousand lines would cost a fortune, be slow, be non-deterministic, and be worse
+at it than three regular expressions. Template extraction is exact, instant and
+free. **Use the model for judgement, not for work a deterministic transformation
+does better.** The 10,000-to-20 reduction happens before a single token is spent.
+
+**Why client-side grouping.** Security logs contain internal hostnames, usernames
+and network structure. Only the condensed groups are transmitted, so the raw log
+never leaves the machine.
+
+**Why send one real example line.** The template alone is lossy — `failed login
+for admin# from <IP>` does not convey severity. One real line gives the model
+concrete detail without sending the other 9,999.
+
+**Why a closed priority set.** Free-text severity is unsortable and inconsistent.
+Five levels including an explicit `noise` are comparable across groups.
+
+## How to read the output
+
+- **The counts are the finding.** A group of 4,000 is noise or an incident; a
+  group of 2 that looks like credential theft is where to start.
+- **Read `unique_ips` against the count.** Many alerts from one IP is a
+  misconfiguration or a single actor. The same count from thousands of IPs is
+  distributed and different.
+- **`noise` is a real and common verdict**, and getting it is useful — it is
+  permission to stop looking.
+- **Suggested actions are suggestions.** Nothing was done, and the prompt exists
+  to keep the wording honest about that.
+- **The model saw a template, a count, one example and some IPs.** It did not see
+  your network, your asset criticality, or what is normal for you.
+- **Twenty groups is a cap.** A long tail exists below it, and rare events are
+  exactly what a count-ordered list buries.
+
+## Limits
+
+- **Grouping is heuristic** — IPs and digit runs only. IPv6, hostnames, GUIDs,
+  usernames and file paths are not normalised, so alerts differing by those do
+  not collapse.
+- **Not Drain or IPLoM**, and disclosed as such.
+- **20 groups**, ordered by count, so the tail is cut.
+- **No correlation across alert types.** Real SIEM value is in linking a failed
+  login to a later privilege escalation on the same host; this triages each
+  group in isolation.
+- **No timestamps.** Rate and burst are among the strongest triage signals and
+  are not used.
+- **No environment context** — no asset criticality, no baseline, no knowledge of
+  which server matters.
+- **The model can be wrong**, and its confidence reads the same either way.
+- **Advisory only.** No integrations, nothing is acted on.
+- **A pasted log, once.** Not a live pipeline.
+
+## Likely interview questions
+
+**"What is alert fatigue and how do you actually address it?"**
+Too many alerts for a human to triage, so analysts stop reading — which is how
+breaches happen where the alert did fire. The fix is not a better detector, it is
+reducing what a human has to look at. Deduplication by log template is the
+highest-leverage step: ten thousand near-identical lines differing only by an IP
+become one group with a count of ten thousand, and the analyst triages the
+pattern once. That is a reduction of three orders of magnitude before any
+cleverness is applied.
+
+**"How does log template extraction work?"**
+Replace the variable parts with placeholders so structurally identical lines
+collapse. Here that is IPv4 addresses to `<IP>` first, then any digit run to `#`,
+then whitespace and case normalised. The order matters — replace digits first and
+an IP becomes `#.#.#.#` and you have lost that it was an address. The published
+algorithms, Drain and IPLoM, do this more robustly with parse trees and iterative
+partitioning; this is a heuristic version and says so.
+
+**"Why not just give the whole log to the model?"**
+Cost, latency, determinism and quality. Ten thousand lines is an enormous number
+of tokens, it is slow, the grouping would differ between runs, and a model is
+worse at exact deduplication than three regular expressions. The right division
+is deterministic work done deterministically and judgement given to the model —
+so the log is reduced to twenty groups before a single token is spent.
+
+**"Your prompt forbids the model from saying 'blocked the IP'. Why does that
+matter?"**
+Because there is no firewall integration behind this tool. A model asked to
+suggest remediation naturally writes in the past tense — "blocked the offending
+IP" — and an analyst reading that reasonably concludes the IP is blocked. It is
+not. The risk is not a bad suggestion, it is a well-phrased false statement about
+the state of the world, and the fix is a prompt constraint on the phrasing rather
+than on the content.
+
+**"Why include `noise` as a priority level?"**
+Because for most groups it is the correct answer, and a scale without a bottom
+rung forces everything to look like something. An analyst's most valuable output
+is often "this is not worth your time", and a tool that cannot say so just
+relocates the fatigue from raw alerts to triaged ones.
+
+**"What's the biggest thing missing?"**
+Timestamps, and therefore correlation. Rate and burst are among the strongest
+triage signals available — four failed logins over a week and four in one second
+are completely different — and neither is visible here. Beyond that, the real
+value of a SIEM is linking events across types on the same host over time: a
+failed login, then a success, then a privilege escalation. This triages each
+group in isolation, which is one useful step and not the whole job.
 
 <h1 class="bk-chapter" id="ch-47-style-cloak"><span class="bk-chnum">Chapter 47</span>Style Cloak</h1>
 
