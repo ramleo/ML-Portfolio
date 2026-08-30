@@ -38,18 +38,34 @@
 @page pt3 { @bottom-center { color: #0369a1; } @top-right { color: #0369a1; } }
 @page pt4 { @bottom-center { color: #be123c; } @top-right { color: #be123c; } }
 
-html, body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+/* Scoped to the page boxes, never to html/body.
+
+   Paged.js injects this stylesheet into the live document, so an unscoped
+   `html, body { background: #fff }` repaints the whole site: the reader's dark
+   theme is replaced the moment they ask for a PDF, the handbook's own
+   near-white body text lands on a white ground and vanishes, and it stays that
+   way after they leave the book view because the stylesheet is never removed.
+   The typeset pages are what has to be ink on white. The site behind them is
+   not part of the PDF and should keep whatever theme the reader chose. */
+.pagedjs_page {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
   color: #1a1a1a; background: #fff;
+  font-size: 10.5pt; line-height: 1.55;
   /* Print engines drop backgrounds and gradients by default. The coloured
      rules are borders and survive, but the title page's four bands are a
      gradient — without this the book prints a blank strip where they were. */
   print-color-adjust: exact; -webkit-print-color-adjust: exact;
   /* Front matter and the appendix sit outside any part, so they need a
      colour of their own rather than an unresolved variable. */
-  --hue: #52525b; }
-body { margin: 0; font-size: 10.5pt; line-height: 1.55; }
+  --hue: #52525b;
+}
 /* The host page's colours would otherwise inherit into every cloned element. */
-.pagedjs_page, .pagedjs_page a { color: #1a1a1a; }
+.pagedjs_page a { color: #1a1a1a; }
+/* No html/body rule here, not even inside @media print: Paged.js is itself a
+   print-media processor and hoists print rules out of their query, applying
+   them to the live document the moment it loads this file. src/app/styles/
+   10-print.css owns the sheet-level colours instead — it is a normal
+   stylesheet the browser evaluates only when actually printing. */
 .pagedjs_page em, .pagedjs_page blockquote { color: #444; }
 
 p { margin: 0 0 0.65em; orphans: 3; widows: 3; text-align: justify;
@@ -82,18 +98,33 @@ p + p { text-indent: 1.2em; margin-top: -0.35em; }
   letter-spacing: .08em; margin: 0 0 1.2em; }
 .bk-toc ul { list-style: none; margin: 0; padding: 0; }
 .bk-toc li { margin: 0; }
-.bk-toc a { text-decoration: none; color: #1a1a1a; display: block;
-  /* Leader dots between the title and its folio, the way a printed contents
-     page does it. */
+/* A contents row is a flex line: title, a leader that absorbs the slack, then
+   the folio hard against the right margin.
+
+   It was a float before, and floats are the wrong tool here. A right float
+   that does not fit on its line does not stay put — it drops, and consecutive
+   ones stack against each other. On a wide page that is invisible; on the
+   phone edition's 78mm column it put two folios on one row, left another with
+   none, and staircased the whole column. Flex cannot do that: `margin-left:
+   auto` on the folio pins it to the right edge whatever the title's length. */
+.bk-toc a { text-decoration: none; color: #1a1a1a;
+  display: flex; align-items: baseline; }
+.bk-toc a::before {
+  /* The leader dots, as their own flex item so they occupy exactly the gap
+     between the title and its folio — `order` puts it after the title text,
+     which is an anonymous flex item at order 0. */
+  content: ""; order: 1; flex: 1 1 auto; min-width: 1.2em;
+  align-self: flex-end; height: 3px; margin: 0 .35em 0 .3em;
   background-image: radial-gradient(circle, #bbb 0.5px, transparent 0.6px);
-  background-position: bottom 3px left; background-size: 5px 5px;
-  background-repeat: repeat-x; }
+  background-position: bottom left; background-size: 5px 5px;
+  background-repeat: repeat-x;
+}
 .bk-toc a::after {
   /* The whole reason for Paged.js: the real printed page a link lands on. */
   content: target-counter(attr(href), page);
-  float: right; background: #fff; padding-left: .4em; font-size: 9.5pt; color: #444;
+  order: 2; flex: 0 0 auto; font-size: 9.5pt; color: #444;
+  font-variant-numeric: tabular-nums;
 }
-.bk-toc a > span, .bk-toc a::before { background: #fff; }
 .bk-toc-part { font-variant: small-caps; letter-spacing: .05em; font-size: 11pt;
   margin-top: 1.1em; }
 a.bk-toc-part { color: var(--hue); font-weight: 700; }
