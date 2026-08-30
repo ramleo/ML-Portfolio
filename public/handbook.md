@@ -9992,6 +9992,8 @@ Nothing is stored: your photo and the results only exist for this one run.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Type a domain and four real, entirely passive checks run against it —
 the same kind of misconfiguration checks a real recon phase (or a
@@ -10044,6 +10046,217 @@ misconfiguration classes. An open port isn't automatically a problem
 either — plenty of legitimate servers run SSH or a database port openly
 by design; it's evidence worth reviewing in context, not an automatic
 verdict.
+
+## What problem it solves
+
+Most sites are not compromised through a clever exploit. They are compromised
+because something was left where anyone could reach it.
+
+A `.git` directory deployed to production, so the entire source history —
+including the credentials someone committed and later removed — can be
+reconstructed by anyone who asks for it. A `.env` file served as static content,
+containing the database password. A directory with autoindex on, listing every
+uploaded file. A database port open to the internet because a firewall rule was
+never applied.
+
+None of these requires an attacker to break anything. They require an attacker to
+**look**, which is the first thing any of them does. This tool looks in the same
+places, so you find them first.
+
+Everything it does is **passive**: GET and HEAD requests, and plain TCP connects.
+No exploitation, no fuzzing, no interaction beyond what a browser does.
+
+## How it works, step by step
+
+1. **Resolve the host and refuse private addresses** — the same SSRF guard as the
+   TLS scanner, from the same shared module, because this tool opens sockets to a
+   user-supplied host and has the identical risk profile.
+2. **Request each sensitive path** and check whether the response *content*
+   actually looks like the real file.
+3. **Request common directories** and look for an autoindex page.
+4. **Fetch the homepage** and read the `<meta name="generator">` tag, if there is
+   one.
+5. **Attempt a TCP connect** to eight common service ports, concurrently.
+6. **Return a findings list** — never a score.
+
+## The model or algorithm
+
+### Content matching, not status codes — the key idea
+
+The obvious way to check for an exposed `.env` is to request it and see if the
+status is 200. That approach is close to useless, and the reason is the most
+transferable thing in this chapter.
+
+**Very many sites return 200 for every path**, serving a custom error page or a
+single-page application's `index.html` for anything unmatched. A status-code
+check against such a site reports every sensitive path as exposed, and the tool
+is immediately worthless.
+
+So each path is paired with a **content pattern that only the real file would
+match**:
+
+| Path | Pattern | Why it identifies the real file |
+|---|---|---|
+| `/.git/HEAD` | `ref:\s*refs/` | Git's HEAD file always begins with a ref pointer |
+| `/.git/config` | `\[core\]` | every Git config has a `[core]` section |
+| `/.env` | `^[A-Za-z_]\w*\s*=` (multiline) | dotenv's `KEY=value` line structure |
+| `/.DS_Store` | `Bud1` | the real macOS DS_Store **magic bytes** |
+| `/backup.zip` | `^PK` | the real ZIP **magic bytes** |
+| `/.aws/credentials` | `\[default\]` or `aws_access_key_id` | the AWS credentials file format |
+| `/.svn/entries` | `^\d+$` | Subversion's numeric first line |
+
+Two of these use **magic bytes** — the file-format signature at the start of the
+file — which is as close to unambiguous as this gets. An HTML error page does not
+begin with `PK`.
+
+The general principle: **verify the thing you are claiming to have found, not a
+proxy for it.** A 200 status is a proxy. The file's own content is the thing.
+
+### Directory listing
+
+Apache and nginx autoindex pages have a consistent tell: `<title>Index of
+/…</title>`. A handful of commonly-exposed directories are checked for it.
+
+Autoindex matters because it turns "an attacker must guess filenames" into "an
+attacker is handed the list" — which is often the difference between a
+misconfiguration and a breach.
+
+### CMS fingerprinting, and its deliberate restraint
+
+Only the standard `<meta name="generator">` tag is read. The docstring is
+explicit: it **never guesses a CMS or version that is not actually declared.**
+
+That restraint is the point. Real fingerprinting infers a platform and version
+from asset paths, header quirks, cookie names and response timing — and infers
+wrongly a fair amount of the time. A tool that reports "WordPress 5.8, known
+CVEs" from a guess sends someone chasing a vulnerability in software they do not
+run. Reading a tag the site chose to publish is a fact; everything else here would
+be an inference presented as one.
+
+### Port scanning, and the concurrency fix
+
+Eight ports, each a plain TCP connect with a 2-second timeout: FTP, SSH, Telnet,
+SMTP, MySQL, PostgreSQL, Redis, MongoDB.
+
+Three of those are the ones that matter most — **MySQL, PostgreSQL, Redis and
+MongoDB should never be reachable from the internet**, and Redis and MongoDB
+historically shipped with no authentication by default, which is how a great many
+databases were found and ransomed.
+
+**No banner grab and no protocol interaction.** The tool learns whether a
+connection is accepted and nothing more. That keeps it passive: connecting is
+what any client does; speaking the protocol is interaction.
+
+There is a good performance note in the code. Sequential checks would take up to
+`2s × 8` because a **firewall that silently drops** a probe, rather than actively
+refusing it, makes you wait the whole timeout. Measured at roughly **18 seconds**
+for this check alone against a real host. Running them in a thread pool makes it
+one timeout instead of eight.
+
+That detail is also a small lesson in network behaviour: a closed port refuses
+immediately, a *filtered* port says nothing at all, and the difference is entirely
+in how long you wait.
+
+### The SSRF guard, shared
+
+Same module as the TLS scanner — resolve first, refuse any private, loopback,
+link-local or reserved address. The comment notes the identical risk profile,
+which is the right way to think about it: the guard belongs to the *capability*
+of opening a socket to user-supplied input, not to a particular tool.
+
+Here it is arguably even more important, because this endpoint **is a port
+scanner**. Unguarded, it would let anyone scan the internal network the server
+sits in.
+
+## Why these choices
+
+**Why passive only.** Passive checks are the ones you can legally and ethically
+run against a host — they are what a browser or a search engine already does.
+Anything active is unauthorised testing, and a demo tool has no business doing
+it.
+
+**Why a findings list and no score.** Same pattern as the TLS and email tools.
+Each finding is a specific thing to fix; a score of 71 tells you nothing and
+invites arguing with the number rather than fixing the problem.
+
+**Why so few paths.** The list is the high-value, low-false-positive set. A
+thousand-path wordlist is what a dedicated tool does, and it turns a passive
+check into something that looks like an attack in the target's logs.
+
+## How to read the output
+
+- **An exposed `.git` is the most serious finding here.** The whole repository
+  history is reconstructable — including secrets that were committed and later
+  removed, which are still in the history.
+- **An exposed `.env` is the fastest to exploit.** It is credentials, in plain
+  text.
+- **An open database port is a finding even if authentication is on.** It should
+  not be reachable at all.
+- **A closed port is not proof.** The tool distinguishes accepted from
+  not-accepted, and a filtered port simply times out.
+- **A generator tag is a fact, not a vulnerability** — it tells an attacker what
+  to research.
+- **No findings means these specific checks found nothing.** Seven paths, four
+  directories and eight ports is a small surface.
+
+## Limits
+
+- **Seven paths, four directories, eight ports.** Deliberately narrow.
+- **Passive only** — no exploitation, no fuzzing, no authentication testing.
+- **Root domain only.** No subdomain enumeration, and subdomains are where
+  forgotten infrastructure usually lives.
+- **CMS detection reads a declared tag** and nothing else, so a site that removes
+  it is invisible to this check.
+- **No version-to-CVE mapping.**
+- **Ports are checked on one resolved IP.** Behind a CDN you are scanning the
+  edge, not the origin — and finding nothing is then expected regardless.
+- **Public hosts only**, by design.
+- **A point-in-time check.** The value of this class of tool is running it
+  continuously; this runs once.
+
+## Likely interview questions
+
+**"Why check the response content instead of the status code?"**
+Because a very large share of sites return 200 for every path — a custom error
+page, or a single-page app's index.html for anything unmatched. A status-code
+check against one of those reports every sensitive path as exposed and the tool
+is worthless. So each path has a content pattern only the real file matches:
+Git's HEAD begins `ref: refs/`, a DS_Store starts with the magic bytes `Bud1`, a
+zip with `PK`. Verify the thing you are claiming to have found, not a proxy for
+it.
+
+**"Why is an exposed `.git` directory so bad?"**
+Because it is not one file, it is the entire repository. With `.git` served as
+static content an attacker can reconstruct the full source and its complete
+history — which means every secret that was ever committed, including the ones
+someone noticed and removed in a later commit. The removal does not delete it
+from history. It is one of the highest-value findings in web recon and it is
+purely a deployment mistake.
+
+**"You're port scanning from your server. What's the risk?"**
+SSRF, and here it is acute because the tool literally is a port scanner. Without
+a guard, anyone could point it at `localhost` or a private range and scan the
+internal network the server sits in, or reach a cloud metadata endpoint. The
+mitigation is shared with the TLS scanner: resolve the hostname first and refuse
+if any resolved address is private, loopback, link-local or reserved — checking
+the resolution rather than the string, because whoever owns a domain controls
+where it points.
+
+**"Your port scan took 18 seconds. What was wrong?"**
+Sequential checks against a host with a firewall that *drops* rather than
+*refuses*. A closed port refuses immediately, but a filtered one says nothing, so
+you wait the full 2-second timeout — eight times over. Running the connects
+concurrently in a thread pool makes it one timeout total. It is also the
+practical difference between "closed" and "filtered" in a scan result: it is
+entirely a matter of how long you waited.
+
+**"Why won't you fingerprint the CMS properly?"**
+Because proper fingerprinting is inference — asset paths, header quirks, cookie
+names, timing — and it is wrong often enough to matter. Reporting "WordPress 5.8
+with known CVEs" from a guess sends someone chasing a vulnerability in software
+they do not run, which wastes their time and damages trust in the tool. Reading
+the `generator` tag the site chose to publish is a fact. I would rather report
+less and have it be true.
 
 <h1 class="bk-chapter" id="ch-33-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 33</span>Binary Byte-Plot & Entropy Triage</h1>
 
@@ -10307,6 +10520,8 @@ of you.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 DNS tunneling abuses the DNS protocol to smuggle data in or out of a network
 past firewalls that trust DNS traffic by default (MITRE ATT&CK T1071.004).
@@ -10370,6 +10585,231 @@ A "not flagged" result means these particular heuristics didn't trigger —
 it isn't proof no tunneling is happening, and a genuinely sophisticated
 tunnel could pace its queries or use lower-entropy encoding specifically to
 stay under these thresholds.
+
+## What problem it solves
+
+A network can block almost every outbound protocol and still leak data, because
+one thing is essentially never blocked: **DNS**.
+
+DNS has to work. Block it and nothing resolves. So on a locked-down network —
+corporate, hotel, airport captive portal — DNS queries usually reach the outside
+world even when HTTP does not. Attackers use that as a covert channel.
+
+The technique is simple. Encode the data you want to exfiltrate into the
+*subdomain* of a domain you control:
+
+```
+ZXhmaWx0cmF0ZWQtZGF0YS1jaHVuay0x.tunnel.attacker.com
+```
+
+Your resolver dutifully forwards that query to the attacker's authoritative
+nameserver, which reads the payload out of the name it was asked about and
+answers with data of its own in the response. A file leaves the network one
+hostname at a time, and every query looks like ordinary DNS.
+
+This tool detects that pattern in a DNS log.
+
+## How it works, step by step
+
+**Single host mode** — paste one hostname and see its statistics.
+
+**Log mode** — paste a DNS query log, one hostname per line:
+
+1. **Split each hostname** into a parent domain and a subdomain.
+2. **Group by parent domain**, collecting the set of unique subdomains and the
+   query count.
+3. **Compute three signals** per parent: subdomain length, Shannon entropy, and
+   how many distinct subdomains were seen.
+4. **Flag a parent only when the signals agree.**
+5. **Sort flagged domains first**, then by entropy.
+
+## The model or algorithm
+
+### Shannon entropy — the core measurement
+
+Entropy measures how unpredictable a string's characters are, in bits per
+character:
+
+```
+H = − Σ p(c) · log₂ p(c)
+```
+
+For each distinct character, take its frequency, multiply by the log of that
+frequency, sum, negate. A string using few characters predictably scores low; one
+using many characters evenly scores high.
+
+The reason it works here is the difference between how humans and machines
+produce names:
+
+| String | Roughly |
+|---|---|
+| `www`, `mail`, `api`, `login` | **under 3** bits/char |
+| English words generally | ~3–3.5 |
+| base64 or hex encoded data | **4.5–6** |
+
+Human-chosen subdomains are short, pronounceable, and reuse letters. Encoded data
+uses the full alphabet uniformly, because that is what encoding does. The
+threshold is **4.0 bits/char**, comfortably above ordinary hostnames and below
+encoded payloads.
+
+### Why three signals and not one
+
+This is the design decision the file leads with, and it is the right instinct.
+
+**Length alone** (threshold 50 characters) flags CDN cache-busting names, S3
+bucket hostnames, and the long machine-generated subdomains that cloud services
+produce constantly.
+
+**Entropy alone** flags the same things — a random-looking bucket name has high
+entropy because it *is* random, just legitimately so.
+
+**Volume alone** flags any busy CDN.
+
+Each of these is a real property of tunnelling and a common property of ordinary
+traffic. So the flag requires:
+
+```javascript
+flagged = matchedSignals.length >= 2 && avgEntropy > ENTROPY_THRESHOLD
+```
+
+**At least two of three, and high entropy is mandatory.** Entropy is the
+load-bearing signal — a long subdomain that is not high-entropy is just a long
+name — and requiring a second signal alongside it is what suppresses the
+false positives that make single-heuristic detectors unusable.
+
+### Why grouping by parent domain matters
+
+A tunnel is not one strange hostname. It is **many** strange hostnames under
+**one** parent, because each query carries one chunk of the payload and the
+attacker owns exactly one domain.
+
+That gives the third signal: **5 or more unique subdomains under one parent**.
+And it changes what a "detection" is — the output is a suspicious *domain*, which
+is something you can block, rather than a list of individual queries.
+
+It is also why the aggregate uses **average** entropy rather than the maximum.
+One high-entropy subdomain under a parent is unremarkable; a parent whose
+subdomains are *consistently* high-entropy is a channel.
+
+### The public-suffix problem
+
+Splitting `sub.example.co.uk` into parent and subdomain requires knowing that
+`co.uk` is a public suffix, not a domain. Naive splitting on the last two labels
+gives `co.uk` as the parent, which is wrong.
+
+The correct answer is Mozilla's Public Suffix List, which has thousands of
+entries and changes. The tool ships **a small curated set** — `co.uk`, `com.au`,
+`co.jp` and a dozen more — and discloses it as the same *"not exhaustive,
+disclosed"* pattern used by the QR Phishing Detector's brand list and the YARA
+scanner's rule set.
+
+The reasoning given is proportionate: a full PSL parse is a large new dependency
+for a heuristic tool where an occasional missed edge case — an unusual ccTLD —
+does not change the verdict logic. Worth noticing that the failure mode is
+*specific*: an unusual multi-part TLD splits wrongly and its statistics are
+computed over the wrong string, rather than the tool failing generally.
+
+### Runs in the browser
+
+DNS logs are sensitive — they reveal every site an organisation's machines
+visited. Nothing is uploaded.
+
+## Why these choices
+
+**Why heuristics rather than a trained classifier.** The signals are
+well-published and directly interpretable, and every flag comes with the reason
+it fired: *"long subdomain (63 chars), high average entropy (4.7 bits/char), 42
+unique subdomains under one parent"*. A classifier would give a probability an
+analyst cannot act on. Detection engineering values explainability highly,
+because a flag has to survive a human asking why.
+
+**Why these specific thresholds.** 50 characters is a published rule of thumb for
+tunnelling payloads, and 4.0 bits/char sits between ordinary hostnames and
+encoded data. Both are stated as heuristics.
+
+**Why 5 unique subdomains.** Low enough to catch a small exfiltration, high
+enough that ordinary multi-subdomain use does not trip the repetition signal on
+its own — and it can only contribute to a flag alongside high entropy anyway.
+
+## How to read the output
+
+- **Read the matched signals, not the flag.** They say precisely why, and that is
+  what you act on.
+- **Flagged domains are candidates for blocking**, which is the practical outcome
+  — you block the parent, not the queries.
+- **CDNs and cloud storage are the usual false positives.** Long random
+  subdomains under one busy parent is exactly what they look like.
+- **A single weird hostname is not a tunnel.** Volume under one parent is what
+  makes it a channel.
+- **Unflagged domains are still sorted by entropy**, so the near-misses are
+  visible below the line — often more interesting than the flags.
+- **DNS-over-HTTPS will not appear in this log at all**, which is worth
+  remembering before concluding a network is clean.
+
+## Limits
+
+- **Heuristics, not detection.** A patient attacker who keeps subdomains short,
+  low-entropy and infrequent — a slow tunnel using dictionary-word encoding —
+  passes everything here.
+- **Fixed thresholds** with no adaptation to the network's own baseline.
+- **The public-suffix list is curated and small.**
+- **No timing analysis.** Tunnelling has a characteristic query *rhythm*, and
+  inter-arrival timing is one of the strongest available signals. This tool does
+  not use it, because a pasted hostname list has no timestamps.
+- **No record-type analysis.** TXT and NULL records carry far more data per
+  response than A records and are a strong indicator; not examined.
+- **No response inspection** — only queries.
+- **Legitimate high-entropy DNS exists** and will be flagged: some antivirus and
+  reputation services genuinely encode lookups into subdomains.
+- **Offline analysis of a pasted log.** Not a live monitor and not an alerting
+  system.
+
+## Likely interview questions
+
+**"How does DNS exfiltration work, and why DNS?"**
+Because DNS is almost never blocked — block it and nothing resolves — so on a
+locked-down network the queries still reach the outside. The attacker encodes
+data into the subdomain of a domain they control, the victim's resolver forwards
+it to their authoritative nameserver, and they read the payload out of the name
+they were asked about. Data can come back in the response, usually TXT records.
+Every packet looks like ordinary DNS.
+
+**"What is Shannon entropy and why does it detect this?"**
+Bits per character — how unpredictable the characters are. `−Σ p·log₂p` over the
+character frequencies. It works because humans and machines name things
+differently: `mail` and `login` are short, pronounceable and reuse letters, so
+they score under 3, while base64 or hex uses the alphabet uniformly and scores
+4.5 to 6. Encoded data cannot help looking random, and that is the tell.
+
+**"Why require multiple signals?"**
+Because each one alone is a real property of ordinary traffic. Long subdomains
+are CDN cache-busting and S3 bucket names. High entropy is any randomly generated
+hostname. High volume is any busy CDN. Requiring at least two, with high entropy
+mandatory, is what makes the flag usable — a single-heuristic detector on a real
+network produces so many false positives that people switch it off, which is
+worse than not having it.
+
+**"Why group by parent domain?"**
+Because a tunnel is many queries under one domain, not one odd hostname — the
+attacker owns one domain and each query carries a chunk of the payload. Grouping
+gives you the repetition signal, lets you use *average* entropy so a single odd
+subdomain does not dominate, and makes the output actionable: you get a domain
+you can block rather than a list of individual queries.
+
+**"How would an attacker evade this?"**
+Keep subdomains short, use a dictionary-word encoding so entropy stays near
+English, spread queries over many parent domains, and go slowly. That defeats all
+three signals. Which is why the real answer is not better thresholds but
+different signals — timing regularity, query-to-response size ratios, record-type
+distribution, and comparison against the network's own historical baseline rather
+than a fixed number.
+
+**"What's the single biggest thing missing here?"**
+Timing. Tunnelled DNS has a characteristic rhythm because it is a data channel
+rather than a human browsing, and inter-arrival analysis is one of the strongest
+signals available. It is absent because the input is a pasted hostname list with
+no timestamps — which is a limitation of the input format, and I would say that
+rather than imply the signal set is complete.
 
 <h1 class="bk-chapter" id="ch-37-email-header-authentication-checker"><span class="bk-chnum">Chapter 37</span>Email Header Authentication Checker</h1>
 
@@ -11010,6 +11450,8 @@ alarms on any trigger word.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Real supply-chain attacks against npm/PyPI use a small set of well-known
 techniques over and over: a malicious install script that runs
@@ -11077,6 +11519,230 @@ only sees what's pasted, checks a curated (not exhaustive) list of
 well-known package names, and cannot detect more sophisticated evasion
 (code that's obfuscated below the entropy threshold, or a malicious
 payload fetched at runtime from a URL that isn't hardcoded in the source).
+
+## What problem it solves
+
+A modern application depends on hundreds of packages it never reads. `npm
+install` on a typical project pulls in a thousand or more transitive
+dependencies, each one arbitrary code from a stranger, each one running with your
+permissions.
+
+That is the **software supply chain**, and it is the most productive attack
+surface there is. The known incidents are not theoretical — `event-stream`,
+`ua-parser-js`, `colors`, `node-ipc` — and the pattern repeats: the package
+itself is fine, the maintainer's account is compromised or the maintainer turns,
+and a malicious version publishes to a package that a million projects already
+trust.
+
+Signature-based scanning cannot catch a new one, because there is no signature
+until someone has been hit. This tool takes the other approach: **look for the
+techniques**, not the specimens.
+
+Everything runs in the browser on pasted text. No network, no upload, no
+registry lookup.
+
+## How it works, step by step
+
+1. **Paste a `package.json`, a `setup.py`, or source code.**
+2. **Check dependency names** against a curated list of well-known packages,
+   flagging near-misses.
+3. **Check install-time lifecycle hooks** — `preinstall`, `install`,
+   `postinstall`.
+4. **Scan the source for suspicious API calls**, hardcoded secret formats,
+   unsafe deserialisation and encoded blobs.
+5. **Report each finding** with its line and what makes it suspicious.
+
+## The model or algorithm
+
+The approach follows the published static-analysis style used by open-source
+tools like Datadog's **GuardDog** — pattern-matching attacker *techniques* rather
+than comparing against known-malware signatures. That is precisely why it can
+catch a package nobody has seen before.
+
+### Typosquatting, via Levenshtein distance
+
+An attacker publishes `reqeusts` and waits for someone to mistype `requests`.
+Install-time code runs, and the package may even re-export the real library so
+nothing appears broken.
+
+Detection is edit distance — the minimum number of single-character insertions,
+deletions or substitutions to turn one string into another, computed with the
+standard dynamic-programming table:
+
+| Pair | Distance |
+|---|---|
+| `reqeusts` → `requests` | 2 (a transposition) |
+| `loadash` → `lodash` | 1 |
+| `crossenv` → `cross-env` | 1 |
+
+A **distance of 1 or 2 from a well-known name, while not being that name**, is
+the signal. Small distance means plausible typo; being on the list means somebody
+would actually make that typo.
+
+**The reference list is curated and disclosed** — the popular npm and PyPI
+packages — with the explicit caveat in the code that *a typosquat of a name not
+on this list will not be flagged by this check*. Same honest-list pattern as the
+QR detector's brands, the YARA rule set, and the DNS tool's public suffixes.
+
+### Install-time lifecycle hooks — the highest-value check
+
+`preinstall`, `install` and `postinstall` in a `package.json` run **automatically
+when the package is installed**. Not when you import it. Not when you call it.
+The moment `npm install` completes.
+
+That is what makes them the classic malicious-package vector, and why they
+deserve their own check:
+
+- Code executes before anyone has read a line of the package.
+- It runs in CI, on developer laptops, and in Docker builds.
+- It has the environment — which means `.npmrc` tokens, AWS credentials, SSH
+  keys, environment variables.
+
+Plenty of legitimate packages use install hooks to compile native extensions, so
+it is not a verdict. But it converts "this is a dependency" into "this is code
+that will run on my machine today", which changes what needs reading.
+
+### Suspicious API patterns
+
+Grouped by what an attacker needs, which is the useful way to read them:
+
+**Dynamic execution** — `eval(`, `new Function(`, Python's `exec(`. Turning a
+string into code at runtime is how an obfuscated payload is unpacked, and it is
+rare in honest library code.
+
+**Command execution** — `child_process.exec`, `subprocess.run`, `os.system`. A
+library that needs a shell is a library doing something beyond its stated job.
+
+**Unsafe deserialisation** — `pickle.loads`, `marshal.loads`, and
+`yaml.load(` **without** `SafeLoader`. Python's pickle executes arbitrary code
+during deserialisation by design, and `yaml.load` without a safe loader can
+instantiate arbitrary objects.
+
+The `yaml.load` rule is worth pointing at as a piece of detection design: it
+carries a `requireAbsent` condition, so the pattern only fires if `SafeLoader` is
+**not** present. Checking for the *absence of the mitigation* rather than the
+presence of the call is what keeps it from firing on every correct use.
+
+### Hardcoded secret formats
+
+Credentials have recognisable shapes, and that makes them findable:
+
+| Credential | Shape |
+|---|---|
+| AWS access key | `AKIA` + 16 uppercase alphanumerics |
+| GitHub token | `ghp_`/`gho_` + 36 characters, or `github_pat_…` |
+| Slack token | `xoxb-`, `xoxp-`, `xoxa-`… |
+| Private key | `-----BEGIN … PRIVATE KEY-----` |
+
+These are structural formats, not guesses, which is why they can be matched with
+confidence. In a package, a hardcoded credential is either an accident worth
+knowing about or an exfiltration destination.
+
+### Encoded blobs
+
+Long base64 or hex strings — the standard way to hide a payload from a reader,
+usually paired with an `eval` or `exec` a few lines away. High entropy in
+source code is not normal and is worth surfacing.
+
+## Why these choices
+
+**Why techniques rather than signatures.** A signature database only contains
+packages someone has already been attacked by. Attacker techniques change far
+more slowly than payloads, so a technique-based scanner catches the *next* one.
+The cost is false positives, which is why every finding is shown with its line
+and its reason rather than as a verdict.
+
+**Why in the browser.** A `package.json` is not especially sensitive, but source
+code often is, and there is no reason for it to leave the machine when the whole
+analysis is regular expressions over text.
+
+**Why no registry lookup.** No network means no rate limits, no dependency on a
+registry being up, and nothing revealed about what you are inspecting. It also
+means no package age, download count or maintainer history — genuinely useful
+signals that are unavailable offline, and that is the trade.
+
+**Why disclose the list is partial.** Because a scanner that implies completeness
+is worse than one that states its scope. A user who knows the reference list is
+curated will check an unusual dependency by hand; one who believes it is
+exhaustive will not.
+
+## How to read the output
+
+- **Install hooks are the thing to read first.** They are the difference between
+  code you might run and code that *will* run.
+- **Every finding is dual-use.** `eval` appears in real libraries; `child_process`
+  is legitimate in build tools. The question is always whether *this* package has
+  a reason.
+- **Look at the combination.** A postinstall hook plus base64 plus `eval` plus an
+  outbound request is not four findings, it is one attack.
+- **A typosquat flag is high-signal.** Distance 1 from a hugely popular package
+  is rarely innocent — but check the direction, since a legitimate fork can look
+  the same.
+- **Nothing found means nothing matched.** Obfuscation defeats pattern matching
+  by design.
+- **Line numbers are the point.** Go and read the line.
+
+## Limits
+
+- **Static analysis only.** No execution, no sandbox, no behavioural
+  observation.
+- **Obfuscation beats it.** String concatenation, character-code arrays and
+  encoding all evade regular expressions — and a package doing that is itself a
+  signal, which this tool does not currently score.
+- **The known-package list is curated**, so typosquats of anything else are
+  invisible to that check.
+- **What you paste is what is scanned.** It does not walk a dependency tree, and
+  the real risk is usually transitive — the package you audited is fine and its
+  fourteenth-level dependency is not.
+- **No registry metadata** — no package age, no download counts, no maintainer
+  change history, no version diffing. Comparing a new version against the
+  previous one is one of the strongest available signals and needs the network.
+- **npm and PyPI shapes only.**
+- **False positives are expected**, by design; the alternative is missing novel
+  attacks.
+
+## Likely interview questions
+
+**"Why heuristics instead of a malware database?"**
+Because a database only contains what has already been used against someone. In
+supply-chain attacks the package is usually trusted right up until the malicious
+version publishes, so there is no signature at the moment it matters. Attacker
+*techniques* — install hooks, dynamic execution, encoded payloads, credential
+exfiltration — change far more slowly than payloads, so matching those can catch
+the first victim's case. The cost is false positives, and that is the right trade
+for a tool that shows you lines to read rather than issuing a verdict.
+
+**"Why are install hooks singled out?"**
+Because they run automatically on `npm install`, before anyone has read the
+package or imported it — in CI, on laptops, inside Docker builds — with full access
+to the environment, which is where the `.npmrc` token, the AWS credentials and
+the SSH keys live. Every other suspicious pattern requires the code to be called;
+an install hook does not. Legitimate packages use them to compile native
+extensions, so it is not a verdict, but it changes what you need to read before
+installing.
+
+**"How does the typosquat detection work?"**
+Levenshtein distance — the minimum number of single-character edits between two
+strings — against a curated list of very popular package names. Distance 1 or 2
+while not being an exact match is the flag: `reqeusts` is two edits from
+`requests`, `loadash` is one from `lodash`. Small distance means it is a
+plausible typo, and being near a *popular* name means somebody will actually make
+it.
+
+**"Your `yaml.load` rule has a `requireAbsent` condition. Why?"**
+Because `yaml.load` is only dangerous without a safe loader — with `SafeLoader` it
+is the correct call. Flagging every occurrence would fire on all the correct uses
+and train people to ignore the finding. Checking for the *absence of the
+mitigation* rather than the presence of the call is what makes the rule
+precise, and it is the same instinct as requiring co-occurrence in the YARA rules.
+
+**"What's the biggest gap?"**
+Transitive dependencies. This scans what you paste, and the real risk is almost
+always four levels down in a tree you never look at — the package you audited is
+fine and its dependency's dependency is not. Closing that needs a lockfile walk
+and registry metadata: package age, download counts, maintainer changes, and
+diffing a new version against the previous one, which is one of the strongest
+signals available and needs the network this tool deliberately does not use.
 
 <h1 class="bk-chapter" id="ch-43-password-strength-breach-checker"><span class="bk-chnum">Chapter 43</span>Password Strength & Breach Checker</h1>
 
