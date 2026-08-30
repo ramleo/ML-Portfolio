@@ -5440,6 +5440,8 @@ Tools that look at an image or a video — detection, depth, pose, re-identifica
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Hold up one hand fingerspelling a letter of the American Sign Language
 alphabet, and this recognizes it live from your webcam — MediaPipe hand
@@ -5505,6 +5507,212 @@ example of why every technique choice here was tested, not assumed.
   but this hasn't been confirmed on a real camera yet.
 - **Runs entirely in your browser.** No video frame is ever sent to a
   server.
+
+## What problem it solves
+
+American Sign Language has a manual alphabet — a hand shape per letter — used for
+spelling names, technical terms and anything without an established sign.
+Recognising those shapes from a camera is the entry point to sign-language
+interfaces, and it is a genuinely hard vision problem: the hand is small,
+self-occluding, and moves.
+
+This tool recognises fingerspelled letters from your webcam, in your browser,
+with no server call and no neural network of its own.
+
+It is also the tool in this book with the most honest headline number attached
+to it, and that is the most interesting thing about it.
+
+## How it works, step by step
+
+1. **Track the hand** with MediaPipe, which returns 21 landmarks in 3D.
+2. **Normalise them** — translate to the wrist, scale by hand size.
+3. **Compare against 1,845 stored prototype vectors**, each labelled with a
+   letter.
+4. **Take the single nearest one** and report its letter with the distance.
+
+That is the whole classifier. No training at runtime, no model file beyond the
+hand tracker, no server.
+
+## The model or algorithm
+
+### Normalisation — and the one that was deliberately not applied
+
+The raw landmarks depend on where the hand is in frame and how far from the
+camera. Two things fix that:
+
+**Translate to the wrist.** Every landmark becomes relative to landmark 0, so
+position in the frame stops mattering.
+
+**Scale by hand size.** Divide by the wrist-to-middle-finger-knuckle distance —
+landmark 0 to landmark 9. That is a rigid part of the hand, so it is a stable
+ruler regardless of which letter is being formed. A hand near the camera and the
+same hand across the room now produce the same vector.
+
+The result is 21 points × 3 coordinates = a 63-dimensional vector.
+
+**Rotation was tested and rejected.** This is the finding worth remembering:
+
+> Rotation-normalising **hurt** held-out accuracy — **75.5% down to 67.8%**.
+
+The reason, recorded in the code, is that **hand orientation itself carries real
+signal for some letters** rather than being noise to remove. In ASL, some letters
+differ largely by orientation; normalise it away and you have deleted the feature
+that separates them.
+
+The general lesson is a good one: invariance is not free. Every invariance you
+build in throws away information, and it is only an improvement if the
+information was noise. That has to be *measured*, not assumed — and the obvious
+normalisation was the wrong call here.
+
+### k-nearest neighbour, with k = 1
+
+The classifier stores 1,845 example vectors and classifies by finding the closest
+one in Euclidean distance. No training, no weights, no loss function — the data
+*is* the model.
+
+**k = 1 was chosen by testing**, not by default:
+
+| k | Held-out accuracy |
+|---|---|
+| **1** | **75.5%** |
+| 3 | 70.7% |
+| 5, 7, 9, 15 | declining further |
+
+That is the opposite of the usual expectation — larger k normally smooths noise
+and helps. The code explains why it does not here: with little data per class and
+many visually close letters, a vote across more neighbours pulls in examples from
+confusable classes. If the two nearest neighbours of an `M` are an `M` and an
+`N`, k=3 can outvote the correct answer. A single closest match generalises
+better when the classes are crowded together.
+
+### The measured accuracy
+
+```
+248 / 314 = 79.0%   on genuine unseen photos
+24 classes, chance = 4.2%
+```
+
+Several things about that number are worth pointing at.
+
+**It is measured on a held-out set**, on photographs never included in the
+shipped prototypes. That is the only kind of accuracy figure worth quoting, and
+it is the difference between this and a model card.
+
+**Chance is quoted alongside it.** 79% against a 4.2% baseline is the honest
+framing; 79% on its own could mean anything.
+
+**24 classes, not 26.** J and Z are excluded because they involve *motion* — they
+are not static hand shapes at all, so a single-frame classifier cannot represent
+them.
+
+**It is not 100%, and the tool says so.** Fingerspelling recognition from a
+single frame with a nearest-neighbour classifier over ~77 examples per class is
+exactly a 79% problem. The number is in the code as a constant, exported, and
+disclosed in the interface.
+
+### Why this is a reasonable approach and not a shortcut
+
+k-NN over normalised landmarks looks primitive next to a trained network, and for
+this problem it is well matched:
+
+- **The hard part is already done.** MediaPipe's hand tracker is the heavy model,
+  and it has already turned pixels into a clean, low-dimensional geometric
+  description. Classifying 63 numbers is a much easier problem than classifying
+  an image.
+- **No training infrastructure.** Adding a letter means adding examples.
+- **Fully interpretable.** A misclassification is a specific nearest neighbour
+  you can look at.
+- **It runs in a browser**, instantly, with the prototypes shipped as JSON.
+
+## Why these choices
+
+**Why landmarks rather than pixels.** A CNN on hand images has to learn to ignore
+skin tone, sleeve colour, lighting and background before it can start on shape.
+Landmarks are already invariant to all of that. Using a strong upstream model to
+produce a clean representation, then a simple classifier on top, is a good
+general pattern — and it is why the whole thing fits in a browser.
+
+**Why the browser.** Webcam video of a person, and a tool whose users may rely on
+sign language, is exactly the case where "nothing is uploaded" is worth more than
+a privacy policy.
+
+**Why prototypes in JSON rather than a trained model.** The whole classifier is
+data, so it version-controls as data, and the accuracy number can be recomputed
+by re-running the held-out set against it.
+
+## How to read the output
+
+- **79% means roughly one letter in five is wrong.** Expect to correct it.
+- **The distance is the confidence.** A large distance to the nearest prototype
+  means nothing in the set looked like your hand — a hold that is not quite any
+  letter, or a tracking failure.
+- **Confusions are systematic, not random.** Visually close letters — the closed-
+  fist family especially — swap for each other. Knowing which cluster a letter
+  is in tells you what its likely error is.
+- **J and Z are absent** because they are movements, not shapes.
+- **Hold the shape still and let the tracking settle.** Motion blur degrades the
+  landmarks before the classifier sees them.
+- **Match the prototypes' viewpoint.** They were collected from a particular
+  camera angle, and a very different one is out of distribution.
+
+## Limits
+
+- **79% on held-out data.** Stated, measured, and not rounded up.
+- **24 letters.** No J, no Z, no numbers, no words.
+- **Static shapes only.** Real fingerspelling flows between letters; this reads
+  one frame at a time with no transition model.
+- **No sequence modelling and no language model.** A spelling correction pass
+  over the letter stream would fix a lot of the 21%, and there is none.
+- **k-NN scales linearly.** 1,845 comparisons per frame is fine; ten times that
+  would not be.
+- **The prototype set is small** — around 77 examples per class — and reflects the
+  hands, lighting and camera angle it was collected from.
+- **One hand.**
+- **Tracking quality is the floor.** Bad light or a partly out-of-frame hand
+  produces bad landmarks and the classifier faithfully classifies them.
+
+## Likely interview questions
+
+**"Why k-NN and not a neural network?"**
+Because the hard part is already solved upstream. MediaPipe has turned the image
+into 21 clean 3D landmarks, so the remaining problem is classifying a
+63-dimensional geometric vector, not an image — and for that, with a small
+dataset, nearest-neighbour is competitive and needs no training infrastructure.
+It also runs in a browser instantly and every mistake is inspectable: you can
+look at the specific prototype that won. A network would likely beat 79%, and it
+would need training, a model file and a much less transparent failure mode.
+
+**"You normalised for position and scale but not rotation. Why?"**
+Because I tested it and it made things worse — held-out accuracy dropped from
+75.5% to 67.8%. Hand orientation carries real signal for some ASL letters rather
+than being noise, so normalising it away deletes the feature that separates them.
+The general point is that every invariance throws information away, and whether
+that is an improvement depends on whether the information was noise. It has to be
+measured.
+
+**"Why is k=1 better than k=3?"**
+It is the opposite of the usual expectation, and it is a consequence of the data.
+With few examples per class and many visually close letters, a vote across more
+neighbours pulls in examples from confusable classes — if the two nearest
+neighbours of an M are an M and an N, k=3 can outvote the right answer. Measured:
+75.5% at k=1, 70.7% at k=3, declining further above that.
+
+**"Your accuracy is 79%. Is that good?"**
+Against a 4.2% chance baseline on 24 classes, it is real signal — and I would
+quote both numbers together, because 79% alone is meaningless without the
+baseline. It is not production quality for a communication tool, and the interface
+says so. The biggest available improvement is not a better classifier: it is
+sequence modelling and a language model over the letter stream, since most errors
+are systematic confusions between visually close letters that a dictionary would
+resolve.
+
+**"How would you get it to 95%?"**
+More data first — the prototype set is around 77 examples per class from one
+camera angle and one set of hands, so broadening that is the highest-value move.
+Then temporal smoothing, since a letter held for half a second gives fifteen
+frames to vote across rather than one. Then a language model over the output,
+which fixes exactly the confusable-cluster errors that dominate the remaining
+21%. A bigger classifier is further down that list than people expect.
 
 <h1 class="bk-chapter" id="ch-17-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 17</span>Astrophotography Anomaly Detector</h1>
 
@@ -7014,6 +7222,8 @@ justify sending it anywhere.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload your video of an exercise and a reference video of the same
 exercise, and this tracks body pose in both with MediaPipe, computes 6
@@ -7072,6 +7282,218 @@ alignment needed despite the clips' different lengths.
   baggy clothing, or an unusual camera angle can degrade MediaPipe's
   landmark detection, which propagates into the angle measurements.
 
+## What problem it solves
+
+You are doing a squat. Are your knees tracking correctly? Is your hip hinge deep
+enough? Is one elbow flaring on the press?
+
+Form feedback normally requires a coach standing next to you, or a video you
+watch back and cannot really judge — because the errors that matter are ten or
+fifteen degrees, and nobody sees ten degrees by eye in a moving body.
+
+This tool compares your movement against a reference clip, joint by joint, and
+tells you **which joint deviates most and at what point in the movement**. Not
+"your form is 82% correct" — a specific joint and a specific moment.
+
+Like the gait tool, it runs entirely in your browser. No video leaves the
+machine.
+
+## How it works, step by step
+
+1. **Upload two clips** — yours and a reference performance of the same movement.
+2. **Extract pose** from every frame of each, in the browser.
+3. **Compute six joint angles per frame:** both elbows, both knees, both hips.
+4. **Resample each series to 50 points**, so the two clips align by phase rather
+   than by time.
+5. **Compare point by point**, per joint, with RMS difference in degrees.
+6. **Rank the joints worst-first**, and record where in the movement each was
+   worst.
+
+## The model or algorithm
+
+### The six angles, and how an angle is computed
+
+Each is the angle at a middle joint, formed by the two segments meeting there:
+
+| Angle | Landmark triple | Anatomically |
+|---|---|---|
+| Elbow (L/R) | shoulder → elbow → wrist | arm bend |
+| Knee (L/R) | hip → knee → ankle | leg bend |
+| Hip (L/R) | shoulder → hip → knee | trunk-to-thigh angle |
+
+Computed as the angle between two vectors from the middle point:
+
+```
+cos θ = (v₁ · v₂) / (|v₁| |v₂|)
+```
+
+with the cosine clamped to [−1, 1] before the arccos, because floating-point
+error can push a dot product a hair outside the valid range and `acos` returns
+`NaN` for it. A small guard that prevents a whole series turning into nothing.
+
+### 3D world landmarks, not 2D image coordinates
+
+This is the choice the code singles out, and it is the right one to be able to
+defend.
+
+MediaPipe returns two things: **normalised 2D image coordinates** (where the
+joint appears in the frame) and **3D world landmarks** (an estimated metric
+position relative to the hips).
+
+Computing an angle from 2D image coordinates measures the angle **as projected
+onto the camera plane** — which changes when the person rotates, moves closer, or
+the camera is at a different height. An elbow at a genuine 90° reads as
+something else entirely when the arm points toward the lens.
+
+3D world landmarks are camera-distance-invariant and metric, so the angle
+computed from them is the actual joint angle. The comment calls it *"the
+geometrically correct choice for joint-angle math"*, and it matches the published
+MediaPipe approach.
+
+**This is the difference between measuring the movement and measuring the
+filming.**
+
+### Phase normalisation
+
+The same mechanism as the Gait chapter, for the same reason. Two people perform
+the same movement at different speeds; the same person varies rep to rep. Time is
+not a comparable axis.
+
+Each series is resampled to a fixed **50 points**, so the x-axis becomes
+*percentage of the movement* — 0 is the start, 49 is the end. After that,
+point-for-point comparison is meaningful regardless of tempo.
+
+### RMS, and the worst-phase index
+
+For each joint:
+
+```
+RMS = √( mean over the 50 points of (user[i] − reference[i])² )
+```
+
+But the RMS alone would say only *how much* you differ. The comparison also
+records:
+
+- **`worstPhaseIndex`** — which of the 50 points had the largest single
+  deviation
+- **`worstDiff`** — how large it was
+
+That converts "your right knee is 14° off" into **"your right knee is 22° off at
+about 60% through the movement"** — which is the bottom of a squat, and is
+actionable in a way an average is not.
+
+### Ranking worst-first
+
+The joints come back **sorted by RMS descending**, so the first thing you see is
+the joint that most needs attention.
+
+That sounds cosmetic and is not. Six joints presented in anatomical order require
+the reader to scan and compare. Sorted by deviation, the answer to "what should I
+fix?" is the first row. A tool that surfaces the most important finding first is
+doing part of the interpretation for you.
+
+## Why these choices
+
+**Why angles rather than positions.** An angle is invariant to where you are in
+frame, how far from the camera, and how tall you are. Landmark positions vary
+with all three, and a comparison built on them would report differences that are
+entirely about the recording. Same argument as the Gait chapter.
+
+**Why six joints.** Elbows, knees and hips cover the major compound movements —
+squats, presses, hinges, lunges — with the joints whose angles a pose estimator
+resolves reliably. Wrists and ankles are noisier and matter less for form in most
+lifts; spine angle needs landmarks a single camera does not give confidently.
+
+**Why left and right separately.** Because asymmetry is one of the most useful
+findings available. A comparison that averaged the sides would hide the thing you
+most want to know.
+
+**Why the browser.** Video of yourself exercising is personal, and the whole
+computation is cheap enough client-side that there is nothing to gain by sending
+it anywhere.
+
+## How to read the output
+
+- **Start at the top of the list.** It is sorted by deviation, so the first joint
+  is the one to work on.
+- **Use the worst-phase index, not just the RMS.** "22° off at 60% through" tells
+  you *when* it goes wrong, which is what makes it fixable. 60% of a squat is the
+  bottom; 20% of a press is the initial drive.
+- **Compare left against right in your own clip** — a large left-right gap is a
+  finding on its own and does not need the reference.
+- **Film both clips the same way.** Same angle, same distance, same framing. This
+  is the biggest confound.
+- **The reference has to be the same movement.** Comparing your squat to
+  someone's deadlift produces numbers that mean nothing.
+- **Small differences are not errors.** Body proportions differ, and two people
+  with different limb lengths performing an identical-quality squat will not
+  produce identical angle curves.
+
+## Limits
+
+- **No thresholds and no verdict.** It reports degrees; it does not say what
+  counts as bad form. Unlike the Gait tool it does not even offer a heuristic
+  band — the reader interprets.
+- **A reference clip is required**, and the result is only as good as it is.
+- **Six joints.** No spine, no shoulder rotation, no ankle dorsiflexion, no foot
+  position — several of which matter a great deal for form.
+- **Single camera.** Movement toward or away from the lens is the least
+  reliably estimated, and 3D world landmarks are an *estimate* of depth, not a
+  measurement.
+- **Body proportion differences** appear as deviation, and nothing normalises for
+  them.
+- **Whole-clip phase normalisation.** A clip containing three reps is normalised
+  as one 0–100% movement, so the clips need to contain comparable content —
+  ideally one rep each.
+- **Pose quality is the floor.** Loose clothing, poor light, occlusion by
+  equipment.
+- **Not coaching.** It measures the difference between two videos. It has no
+  model of correct form, no injury awareness, and no idea what you are trying to
+  do.
+
+## Likely interview questions
+
+**"Why use 3D world landmarks instead of the 2D image coordinates?"**
+Because an angle computed from 2D coordinates is the angle *projected onto the
+camera plane*, which changes when the person rotates or moves relative to the
+lens. An elbow genuinely at 90° reads as something else when the arm points
+toward the camera. World landmarks are metric and camera-distance-invariant, so
+the angle you compute is the actual joint angle. It is the difference between
+measuring the movement and measuring the filming.
+
+**"How do you compare two clips at different speeds?"**
+Phase normalisation. Resample each joint's angle series to a fixed 50 points so
+the axis becomes percentage of the movement rather than time. A two-second rep
+and a three-second rep then line up point for point. It is the same technique as
+clinical gait analysis and it is what makes the comparison possible at all.
+
+**"Why report the worst phase index and not just the average deviation?"**
+Because the average is not actionable. "Your right knee is 14° off" gives you
+nothing to change. "Your right knee is 22° off at 60% through the movement"
+points at the bottom of the squat, which is a specific thing to work on. The
+average tells you there is a problem; the phase index tells you where it is.
+
+**"Why sort the joints by deviation?"**
+So the answer to "what should I fix?" is the first row. Six joints in anatomical
+order make the reader do the comparison themselves; sorted worst-first, the tool
+has done part of the interpretation. It is a small decision that changes whether
+the output is usable at a glance.
+
+**"Why no verdict — no 'good form' or 'bad form'?"**
+Because I have no calibrated basis for one. Correct form depends on the movement,
+the person's proportions, their mobility and their goal, and I have no labelled
+dataset that maps a degree deviation to a form judgement. The Gait tool at least
+offers a heuristic band and says clearly it is uncalibrated; here I would rather
+report degrees and a location and let the reader — or their coach — interpret,
+than attach a confident label to a number I cannot justify.
+
+**"What's the biggest source of error?"**
+Filming inconsistency, by a distance. Different camera angle or distance between
+the two clips produces deviation the tool cannot distinguish from a difference in
+movement. After that, body proportion differences between you and the reference —
+two people performing an identically good squat with different limb lengths will
+not produce identical curves, and nothing here normalises for that.
+
 <h1 class="bk-chapter" id="ch-23-ppe-compliance-check"><span class="bk-chnum">Chapter 23</span>PPE Compliance Check</h1>
 
 > Upload a site photo and see, per person, whether a hard hat and safety vest are visible. A dedicated PPE detection model is used rather than a general object detector, since general detectors have no safety-vest class at all. Compliance is only ever read from an explicit present or absent signal the model was trained on — never inferred from something simply not being detected — so an unclear photo returns 'unclear' instead of a false pass. Low-resolution images weaken the result noticeably.
@@ -7090,6 +7512,8 @@ alignment needed despite the clips' different lengths.
 | **Find it at** | `/tools/ppe-compliance-check` |
 
 </div>
+
+## Using the tool
 
 ### What this tool does
 Upload a photo and this detects each person in it, then checks whether a
@@ -7148,6 +7572,223 @@ being worn by anyone.
   same as any object detector — an unusual angle can lower confidence
   even for genuinely-worn PPE (seen directly in testing: a top-down
   camera angle scored a real, clearly-worn vest at only 39% confidence).
+
+## What problem it solves
+
+On a construction site, hard hats and high-visibility vests are the difference
+between a near miss and an injury. Checking that people are wearing them is a
+supervisor walking around and looking — which happens when a supervisor is
+walking around and looking.
+
+Automating it from a site camera is a natural fit, and it is also the kind of
+problem where a careless implementation is worse than none. A system that
+reports "compliant" because it failed to see anything is not a safety system; it
+is a false reassurance with a logo on it.
+
+This tool checks a photograph for hard hats and safety vests, attributes each
+item to a specific person, and — importantly — **distinguishes "not wearing one"
+from "cannot tell"**.
+
+## How it works, step by step
+
+1. **Upload a site photograph.**
+2. **Run one detection pass** with a PPE-specific YOLOv8 model.
+3. **Decode the raw output** and suppress overlapping boxes.
+4. **Attribute items to people** by spatial region — hard hats to heads, vests to
+   torsos.
+5. **Report per person:** hard hat present, missing, or unclear; vest present,
+   missing, or unclear.
+
+## The model or algorithm
+
+### Why an existing detector could not be reused
+
+Nearly every other vision feature in this app reuses the 601-class OIV7
+detector. This one could not, and the docstring records that the check was made
+rather than assumed: OIV7 has a generic **`Helmet`** class and **no safety-vest
+class of any kind**, verified directly against the class list.
+
+So a dedicated model was genuinely necessary — `Hansung-Cho/yolov8-ppe-detection`,
+a YOLOv8n fine-tune with **MIT-licensed weights**.
+
+### The positive/negative class design — the important part
+
+The model does not have a `Hardhat` class that either fires or does not. It has
+**both** classes explicitly:
+
+```
+Hardhat  /  NO-Hardhat
+Safety Vest  /  NO-Safety Vest
+Mask  /  NO-Mask
+```
+
+plus Person, Safety Cone, machinery and vehicle.
+
+This matters more than anything else in the tool. With only a positive class, a
+missing hard hat and a **missed detection** produce the same evidence — nothing.
+The system cannot tell "this person has no hard hat" from "the model did not see
+the hard hat", and reporting non-compliance on the absence of a detection is how
+you generate false alarms; reporting compliance on it is how you generate a
+dangerous silence.
+
+With an explicit `NO-Hardhat` class, the model states which case it is in. So:
+
+> **Compliance is read from whichever explicit signal fired — never inferred
+> from the absence of a positive detection.**
+
+And when neither fires, the answer is **`unclear`**, not a guess.
+
+### The failure that produced that rule
+
+The docstring records it plainly. An initial test on a very low-resolution photo
+gave a weak result. Rather than accept it as the model's quality, it was
+investigated and found to be a **resolution confound** — re-testing on three
+higher-resolution real photographs gave confident results: Hardhat 0.72–0.88,
+Safety Vest 0.39–0.69.
+
+And one more check worth noting: the model **correctly avoided claiming "worn"
+PPE on a photograph of gear lying on the ground.** Detecting a hard hat and
+concluding someone is wearing it is exactly the mistake a naive detect-and-report
+pipeline makes, and it is why attribution to a person exists at all.
+
+### Attributing items to people
+
+Detection gives boxes with no relationships. A photo with three workers and two
+hard hats needs to know *whose*.
+
+The heuristic is spatial and deliberately simple:
+
+| Item | Region of the person's box | Rule |
+|---|---|---|
+| Hardhat / NO-Hardhat | top **40%** — the head | item's centre inside that band |
+| Safety Vest / NO-Safety Vest | **20% to 100%** — the torso down | same |
+
+Each item is consumed once, so two people cannot both be credited with the same
+hard hat, and where several candidates fit, the highest-confidence one wins.
+
+**And it is disclosed as a simplification, not presented as tracking:** there is
+no per-person tracking and no pose estimation, so a crowded photograph with
+overlapping people can attribute an item to the wrong person. Proper attribution
+would use pose keypoints — put the hard hat on the person whose *head keypoint*
+it covers — which is considerably more machinery than a bounding-box heuristic.
+
+### Non-maximum suppression
+
+Raw YOLO output contains many overlapping boxes for one object. NMS keeps the
+highest-confidence box and discards anything overlapping it by more than the IoU
+threshold — **0.45** here. Without it a single hard hat becomes six detections
+and the attribution logic gets six candidates for one head.
+
+### The licence and architecture note
+
+This is a good illustration of a recurring problem in this project. The **weights
+are MIT**, which is permissive. But running them the normal way — through
+`ultralytics.YOLO` — requires the **AGPL-3.0 `ultralytics` package**, which this
+project does not otherwise depend on.
+
+The resolution is the same one the OIV7 detector uses: export to ONNX once,
+locally, with a dev-only `ultralytics` install that never enters
+`requirements*.txt`, and serve the `.onnx` through `onnxruntime`, already a
+dependency.
+
+And the export was **verified rather than trusted**: the ONNX output was checked
+to match the tested `.pt` output on the same three real photographs before the
+file was committed. A conversion step is a place where behaviour silently
+changes, and checking it against the thing you already tested is the cheap way to
+catch that.
+
+## Why these choices
+
+**Why a three-state output instead of a boolean.** Because the honest states are
+three. Present, missing, and unable-to-tell are genuinely different, and
+collapsing the third into either of the first two is how a safety tool becomes
+untrustworthy — in one direction it cries wolf, in the other it reassures you
+about someone it never saw.
+
+**Why hands-on testing before building.** The same discipline recorded elsewhere
+in this project after a fire-detection model was rejected on testing. A model
+card's numbers are measured on the author's benchmark, not your photographs.
+
+**Why ONNX rather than the ultralytics runtime.** Licence containment, and one
+fewer heavy dependency. The pattern — export once locally, ship the artefact,
+serve it through a runtime you already have — is reused across the app.
+
+**Why a spatial heuristic rather than pose.** A pose model per person is another
+model, more inference time and more failure modes, for a demonstration tool. The
+cost is misattribution in crowded frames, which is stated rather than hidden.
+
+## How to read the output
+
+- **`unclear` is not `missing`.** It means neither the positive nor the negative
+  class fired for that person, so the photo does not support a verdict. It is
+  the most important state in the output.
+- **Resolution is the biggest lever.** The recorded failure was a low-resolution
+  confound, not a model weakness. A distant or small figure will read `unclear`.
+- **Check the attribution in crowded photos.** Overlapping people are exactly the
+  case the heuristic can get wrong.
+- **Vest confidence runs lower than hard hat** — 0.39–0.69 against 0.72–0.88 in
+  the recorded test. Vests vary far more in colour, cut and how much is visible.
+- **PPE lying on the ground should not be reported as worn.** It was tested for.
+  If you see it happen, the attribution has failed.
+- **A person the model did not detect gets no row at all.**
+
+## Limits
+
+- **Two items in practice** — hard hat and vest. The model also has mask classes.
+- **No pose estimation and no tracking.** Attribution is a box-region heuristic
+  and can misattribute in crowds.
+- **Single frame.** No temporal smoothing, so a one-frame miss is a miss.
+- **Resolution-sensitive.** Small or distant figures produce `unclear`.
+- **Occlusion breaks it** — a worker seen from behind machinery may have no
+  visible torso to judge.
+- **Not a compliance system.** It reports what one photograph shows. It has no
+  record, no identity, no audit trail, and no notion of which PPE this site
+  actually requires.
+- **The model's training distribution is someone else's site.** Unusual PPE
+  colours or styles may not be recognised.
+
+## Likely interview questions
+
+**"Why does the model have NO-Hardhat as a class? Isn't that redundant?"**
+It is the most important design decision in the tool. With only a positive class,
+"not wearing a hard hat" and "the model missed the hard hat" produce identical
+evidence — nothing — and you cannot tell them apart. Reporting non-compliance on
+an absent detection generates false alarms; reporting compliance on it generates
+a dangerous silence. An explicit negative class means the model states which case
+it is in, and when neither fires the answer is `unclear` rather than a guess.
+
+**"How do you know which person a hard hat belongs to?"**
+A spatial heuristic: hard hats are matched to the top 40% of a person's box,
+vests to the torso band from 20% down, by centre-point containment, with each
+item consumed once so two people cannot share one hat. It is a simplification and
+I would say so — overlapping people in a crowded frame can be misattributed. The
+proper version uses pose keypoints and assigns the hat to whoever's head keypoint
+it covers, which is another model and more failure modes than a demonstration
+needs.
+
+**"You tested it and got a weak result. Why didn't you reject the model?"**
+Because I investigated the weak result instead of accepting it. It turned out to
+be a resolution confound — the test photo was very low resolution — not a model
+problem. Re-testing on three higher-resolution real photos gave confident
+detections, and it also correctly declined to claim PPE was *worn* when the gear
+was lying on the ground. Rejecting a model on one bad test is as much a mistake
+as adopting one on a good model card.
+
+**"The weights are MIT but the runtime is AGPL. How did you handle that?"**
+Exported to ONNX once, locally, with a dev-only `ultralytics` install that never
+entered the requirements file, and served the `.onnx` through `onnxruntime` which
+was already a dependency. Then verified the ONNX output matched the `.pt` output
+on the same three photos before committing the file — a conversion is a place
+where behaviour can silently change, and checking it against the thing you
+already tested is cheap.
+
+**"Would you deploy this on a real site?"**
+Not as a compliance system. It reads one photograph and has no identity, no
+record, no audit trail, and no knowledge of what PPE that site requires. As a
+supervisor's aid — flagging frames worth a human look — it is useful, provided
+`unclear` is surfaced as prominently as `missing`. For anything with consequences
+I would add pose-based attribution, temporal smoothing across frames, and a
+minimum resolution gate that refuses rather than guesses.
 
 <h1 class="bk-chapter" id="ch-24-photo-library-visual-search"><span class="bk-chnum">Chapter 24</span>Photo Library Visual Search</h1>
 
