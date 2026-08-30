@@ -140,3 +140,71 @@ html.light .hb-body .bk-part-4 { --hb-hue: #be123c; }
 .hb-body hr { border-top: 2px solid var(--hb-hue); opacity: 0.35; }
 .hb-body a.bk-toc-chapter { border-left: 2px solid var(--hb-hue);
   padding-left: 0.9rem; margin-left: 0.2rem; }
+
+/* ── The two sections a reader looks up ────────────────────────────────────
+   Every chapter closes with what the tool cannot do, then how to talk about
+   it — the two people scroll to rather than read through. The generator wraps
+   each in a .bk-sec so it can have a ground of its own.
+
+   Warm for the caveats, cool grey for the questions: the pair is the same in
+   all fifty chapters, so it reads as furniture and never competes with the
+   part colour on the chapter title above. Both tints are far below the
+   strength at which a block starts to shout — the point is findability, not
+   emphasis.
+
+   Literal rgba, not color-mix(): this build rewrote a color-mix() wrongly once
+   before, and a tint that lands wrong is worse than no tint. */
+.hb-body .bk-sec {
+  margin: 2.75rem 0 1.6rem;
+  padding: 0.1rem 1.2rem 1rem;
+  border-left: 3px solid var(--bk-rail);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--bk-tint);
+}
+.hb-body .bk-sec h2 { margin-top: 1.5rem; }
+.hb-body .bk-sec > :last-child { margin-bottom: 0; }
+.hb-body .bk-sec-limits { --bk-tint: rgba(245, 158, 11, 0.055); --bk-rail: #b45309; }
+.hb-body .bk-sec-qa     { --bk-tint: rgba(148, 163, 184, 0.075); --bk-rail: #64748b; }
+html.light .hb-body .bk-sec-limits { --bk-tint: rgba(180, 83, 9, 0.05);  --bk-rail: #d19a3e; }
+html.light .hb-body .bk-sec-qa     { --bk-tint: rgba(71, 85, 105, 0.045); --bk-rail: #a8b3c2; }
+
+/* Header rows were the one part of a table still reading as plain grey. */
+.hb-body th { background: rgba(148, 163, 184, 0.07); }
+
+/* ── Leaving the typeset view ──────────────────────────────────────────────
+   Paginating hides the navbar, the footer and the page's own heading, so once
+   the PDF has been generated there is nothing left on screen that can take the
+   reader back — the browser's back button was the only way out. This button is
+   portalled to <body> so the rule that hides .hb-head cannot hide it too. */
+.bk-exit {
+  position: fixed; top: 1rem; right: 1rem; z-index: 60;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.5rem 0.95rem; border-radius: 9999px; cursor: pointer;
+  font-family: inherit; font-size: 0.78rem; font-weight: 600;
+  color: #1a1a1a; background: #fff; border: 1px solid #d4d4d8;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+.bk-exit:hover { border-color: #a1a1aa; }
+.bk-exit:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+
+/* ── Phones ────────────────────────────────────────────────────────────────
+   The body was set once, at 0.95rem in the muted secondary colour, and a phone
+   got exactly what a desktop got. Small and low-contrast together is what made
+   it tiring to read on a handset, so both change here: full-strength text at a
+   size meant for a screen held at arm's length. The heading gaps were tuned
+   for a wide column and waste most of a phone screen, and tables need somewhere
+   to scroll rather than pushing the page sideways. */
+@media (max-width: 640px) {
+  .hb-body { font-size: 1.05rem; line-height: 1.7; color: var(--text); }
+  .hb-body p { max-width: none; margin-bottom: 1rem; }
+  .hb-body h1 { font-size: 1.55rem; margin: 3rem 0 0.9rem; }
+  .hb-body h1.bk-chapter { margin: 3.25rem 0 1rem; }
+  .hb-body .bk-partpage { margin-top: 3.5rem; }
+  .hb-body .bk-partpage h2 { font-size: 1.6rem; }
+  .hb-body h2 { font-size: 1.28rem; margin: 2.25rem 0 0.7rem; }
+  .hb-body h3 { font-size: 1.05rem; margin: 1.75rem 0 0.35rem; }
+  .hb-body .bk-sec { margin: 2rem 0 1.25rem; padding: 0.1rem 0.9rem 0.85rem; }
+  .hb-body blockquote { font-size: 1rem; }
+  .hb-body table { display: block; overflow-x: auto; font-size: 0.92rem; }
+  .hb-body .bk-facts td:first-child { width: auto; }
+}

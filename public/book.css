@@ -189,3 +189,16 @@ hr { border: 0; border-top: 1.5pt solid var(--hue); opacity: .45; margin: 1.6em 
 .bk-appendix h3 { color: var(--hue); border-left: 3pt solid var(--hue);
   padding-left: .5em; margin-left: -.8em; }
 .bk-appendix td:first-child { width: 34%; }
+
+/* ── The two sections a reader looks up ────────────────────────────────────
+   Marked in the typeset book the same way they are on the page, but with the
+   rule only: a tinted ground is worth its cost on a screen and not on paper,
+   where a home printer turns a pale wash into a grey box. The rule is enough
+   to find a section while thumbing through. */
+.bk-sec {
+  border-left: 1.5pt solid #b45309;
+  padding-left: 9pt;
+  margin: 10pt 0 8pt -11pt;
+}
+.bk-sec-qa { border-left-color: #94a3b8; }
+.bk-sec > :first-child { margin-top: 0; }

@@ -34,7 +34,7 @@ body.bk-paginated #bk-pages { display: block !important; }
     background: #fff !important; color: #111 !important;
   }
   /* Site furniture that means nothing on paper. */
-  nav:not(.bk-toc), footer, .hb-actions, .particle-grid, canvas,
+  nav:not(.bk-toc), footer, .hb-actions, .bk-exit, .particle-grid, canvas,
   .constellation-bg, .chatbot-launcher { display: none !important; }
   body.bk-paginated .hb-body { display: none !important; }
 
@@ -61,6 +61,15 @@ body.bk-paginated #bk-pages { display: block !important; }
     padding: 4pt 8pt; margin-bottom: 10pt;
   }
   .hb-body p { max-width: none; orphans: 3; widows: 3; }
+  /* The looked-up sections keep their rule and lose their tint. A pale wash
+     is free on a screen and costs ink on paper, and a home printer renders
+     it as a dirty grey box rather than the colour it is on screen. */
+  .hb-body .bk-sec {
+    background: none !important; border-radius: 0;
+    padding: 0 0 0 8pt; margin: 14pt 0 8pt;
+    border-left: 2px solid #b45309 !important;
+  }
+  .hb-body .bk-sec-qa { border-left-color: #94a3b8 !important; }
   .hb-body hr { border-top: 1px solid #ddd; margin: 18pt 0 0; }
   .hb-body code {
     background: #f3f3f3 !important; border-color: #ddd !important;

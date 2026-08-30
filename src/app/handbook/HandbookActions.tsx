@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Taking the handbook away: as Markdown, or as a typeset PDF.
@@ -19,6 +20,7 @@ import { useState } from "react";
  */
 export default function HandbookActions({ markdown }: { markdown: string }) {
   const [state, setState] = useState<"idle" | "working">("idle");
+  const [paginated, setPaginated] = useState(false);
 
   const downloadMarkdown = () => {
     const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
@@ -59,9 +61,25 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
       // One frame for the pages to lay out before the print dialog samples them.
       await new Promise((r) => requestAnimationFrame(() => r(null)));
       window.print();
+      setPaginated(true);
     } finally {
       setState("idle");
     }
+  };
+
+  /**
+   * Pagination hides the navbar, the footer and this page's own heading, so
+   * without a way back the reader is stranded on the typeset pages and has to
+   * use the browser's back button. Dropping the class restores the page, and
+   * emptying the container means the next PDF is typeset fresh rather than
+   * appended to the last one.
+   */
+  const leaveBook = () => {
+    document.body.classList.remove("bk-paginated");
+    const target = document.getElementById("bk-pages");
+    if (target) target.innerHTML = "";
+    setPaginated(false);
+    window.scrollTo({ top: 0 });
   };
 
   return (
@@ -78,6 +96,19 @@ export default function HandbookActions({ markdown }: { markdown: string }) {
         </svg>
         Download Markdown
       </button>
+      {/* Portalled to <body>: this button's own ancestor, .hb-head, is one of
+          the elements the pagination rules hide, so rendering it in place
+          would hide it exactly when it is needed. */}
+      {paginated &&
+        createPortal(
+          <button onClick={leaveBook} className="bk-exit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back to the handbook
+          </button>,
+          document.body
+        )}
     </div>
   );
 }

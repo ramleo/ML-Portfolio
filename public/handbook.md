@@ -307,6 +307,9 @@ you never see how much of the result is seed luck.
   wrong. A model can hold a respectable F1 while failing completely on the one
   class you actually care about.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Selection and evaluation share the data.** Twelve models are compared by
@@ -329,6 +332,12 @@ you never see how much of the result is seed luck.
   column, the default is wrong and the whole run is meaningless. Change it.
 - **Any leaked column wins.** Nothing in the tool detects that
   `days_until_cancellation` should not be a feature for predicting cancellation.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -376,6 +385,9 @@ linear models; many categorical columns favours CatBoost; small and noisy often
 favours Random Forest. The competition costs one run and answers the question
 for the dataset actually in front of you, instead of importing a prior from
 someone else's benchmark.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-2-data-drift-detection"><span class="bk-chnum">Chapter 2</span>Data Drift Detection</h1>
 
@@ -614,6 +626,9 @@ let you measure accuracy directly.
   is a separate question that needs labels. A robust model can ride out real
   drift; a fragile one degrades on very little.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **The reference is a Gaussian, not the training data.** Two numbers per
@@ -636,6 +651,12 @@ let you measure accuracy directly.
 - **No alerting.** You have to come and look.
 - **History and versions are written to local JSON files**, and the hosting this
   runs on has an ephemeral disk — a restart can take the trend line with it.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -680,6 +701,9 @@ standard deviation, so the reference stops being a Gaussian assumption. Add
 prediction drift — the distribution of the model's own outputs — which is nearly
 free and catches things input monitoring misses. And add alerting, because a
 monitoring tool nobody visits is not monitoring.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-3-data-preprocessing"><span class="bk-chnum">Chapter 3</span>Data Preprocessing</h1>
 
@@ -904,6 +928,9 @@ option, *Custom*, exists for everyone else.
 - **The quality score after** is only useful as a direction of travel; it is a
   hand-made formula, not a measurement.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Statistics are computed over the whole file, and there is no train/test
@@ -930,6 +957,12 @@ option, *Custom*, exists for everyone else.
 - **The quality score is not calibrated against anything.**
 - **Browser memory is the file-size ceiling**, and there is no streaming or
   chunking in the transform path.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -975,6 +1008,9 @@ seen the test rows, so the evaluation is optimistic. It is fine for exploration
 and for producing a cleaned dataset to look at. For a deployed model the
 cleaning has to live inside the pipeline so it refits on each training fold, and
 that is how the AutoML tool in this app is built.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-4-ensemble-methods"><span class="bk-chnum">Chapter 4</span>Ensemble Methods</h1>
 
@@ -1184,6 +1220,9 @@ hosting that is the ceiling that keeps the request from timing out.
   held-out test. The ensemble's number carries the same mild optimism as any
   other cross-validated figure.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **The page and the combining are separate.** `/tools/ensemble` runs the
@@ -1207,6 +1246,12 @@ hosting that is the ceiling that keeps the request from timing out.
   different model families are confident in different ways — a tree ensemble's
   0.9 and a logistic regression's 0.9 do not mean the same thing. Calibrating
   each model first would make the average more principled.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -1254,6 +1299,9 @@ as clean as AutoML's. Add weighted voting, so a weak member cannot drag the
 average as hard as a strong one. And calibrate each model's probabilities before
 soft voting, because averaging uncalibrated confidences from different model
 families is comparing numbers that do not mean the same thing.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-5-feature-engineering"><span class="bk-chnum">Chapter 5</span>Feature Engineering</h1>
 
@@ -1477,6 +1525,9 @@ believe, they need to be built inside the pipeline.
   score does not move, the features are not carrying signal, however clever they
   look.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Whole-file statistics in the browser path** — the leakage point above.
@@ -1496,6 +1547,12 @@ believe, they need to be built inside the pipeline.
 - **Everything is in memory** — the file-size ceiling is the browser's.
 - **The AI suggestion step is a suggestion.** It has seen the column names and
   profile, not the target, so it cannot know what is predictive.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -1543,6 +1600,9 @@ Add the missing-flag before, because imputation destroys the information it
 records. Do value-based transforms after, because they need a value to transform.
 That ordering is a real decision and the pipeline has to encode it explicitly —
 it will not fall out of the tooling by itself.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-6-feature-selection"><span class="bk-chnum">Chapter 6</span>Feature Selection</h1>
 
@@ -1799,6 +1859,9 @@ extra lookup and is the decision you would have made by hand.
 - **Retrain and compare.** The number that matters is whether the model got
   worse. If the score holds with a third of the columns, the cut was free.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **The association score is linear.** A non-linear relationship is invisible to
@@ -1823,6 +1886,12 @@ extra lookup and is the decision you would have made by hand.
   1,000 rows.
 - **No stability check.** Selection on a resample can give a different answer,
   and the tool runs once.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -1873,6 +1942,9 @@ It also assumes the interesting structure lies along high-variance directions,
 which is not always true — a low-variance feature can be the one that separates
 your classes, and unsupervised PCA will happily discard it. LDA exists precisely
 because of that.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-7-optuna-tuning"><span class="bk-chnum">Chapter 7</span>Optuna Tuning</h1>
 
@@ -2083,6 +2155,9 @@ secondary number noisier than the primary one, which is the right priority.
   is the maximum — means the range was too narrow and the true optimum is
   outside it.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Optimistic by construction.** The best of N cross-validation scores is a
@@ -2104,6 +2179,12 @@ secondary number noisier than the primary one, which is the right priority.
   seed.
 - **The ranges are hand-written and fixed.** They cannot adapt to dataset size,
   and a dataset whose optimum lies outside them will never reach it.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -2157,6 +2238,9 @@ check `should_prune()`; this objective runs one `cross_val_score` and returns a
 single number, so there is nothing to prune against. Making it real would mean
 scoring fold by fold and reporting after each, which would let a clearly bad
 configuration be abandoned after two folds instead of five.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-8-pipeline-builder"><span class="bk-chnum">Chapter 8</span>Pipeline Builder</h1>
 
@@ -2357,6 +2441,9 @@ you it exists and what it needs. A hidden one teaches nothing.
   statement of what the canvas actually built, and the place a mistake in your
   configuration becomes obvious.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Only AutoML onward is leak-safe.** The first three stages compute their
@@ -2378,6 +2465,12 @@ you it exists and what it needs. A hidden one teaches nothing.
   actually ran.
 - **No scheduling and no persistence of the run.** This builds a pipeline; it
   does not operate one.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -2420,6 +2513,9 @@ Because a pickled model is opaque and version-fragile, and nobody can review it.
 Code can be read in a pull request, kept in version control, adapted, and run
 where the model actually has to live. The canvas is for deciding what the
 pipeline should be; the export is how that decision leaves the tool.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-9-pipeline-cinema"><span class="bk-chnum">Chapter 9</span>Pipeline Cinema</h1>
 
@@ -2571,6 +2667,9 @@ not the machine.
 - **Click a finished stage to revisit it.** The run does not have to be restarted
   to look again.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Four stages only.** No Optuna, SHAP or ensembling.
@@ -2587,6 +2686,12 @@ not the machine.
   model lives only in the backend's memory under its own id.
 - **It teaches this app's pipeline**, which is one reasonable pipeline, not the
   only one.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -2618,6 +2723,9 @@ teaching tool rather than a fixed demonstration. Show a small before-and-after
 sample of actual rows, not just the column names, since seeing a blank cell get
 filled is more convincing than being told it was. And add the three missing
 stages, even if their scene is a diagram rather than a journey.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-10-real-time-analytics"><span class="bk-chnum">Chapter 10</span>Real-Time Analytics</h1>
 
@@ -2842,6 +2950,9 @@ The trade is that nothing validates its shape.
 - **Switch ranges and the statistics stop moving.** That is the range guard,
   not a stall.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Session identity is a client-generated id.** Cleared site data is a new
@@ -2860,6 +2971,12 @@ The trade is that nothing validates its shape.
   does the arithmetic.
 - **This is product analytics, not a data warehouse.** No sessionisation, no
   retention cohorts, no attribution.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -2898,6 +3015,9 @@ are not tamper-proof — I would add rate limiting by IP and a shared secret or
 signed payload from the known callers. After that, bot filtering, because
 crawler traffic inflates page views without touching the funnel and makes the
 conversion rate look worse than it is.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-11-shap-explainability"><span class="bk-chnum">Chapter 11</span>SHAP Explainability</h1>
 
@@ -3090,6 +3210,9 @@ importance**, not per-prediction Shapley values, and its own label says
 in this chapter is served by the `/shap/{model_id}` endpoint and appears in the
 prediction interface of the ML platform, attached to a specific predicted row.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Correlated features split the credit.** If height and weight both predict
@@ -3114,6 +3237,12 @@ prediction interface of the ML platform, attached to a specific predicted row.
 - **The background is the training distribution.** Explain a row far outside it
   and the coalitions being averaged over are combinations that never occur in
   reality.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -3164,6 +3293,9 @@ It is a faithful account of *the model's* reasoning, which is usually what
 regulation asks for. It is not a causal claim about the customer. And be careful
 with the units — a log-odds waterfall is not something to put in front of a
 member of the public without translating it first.
+
+</div>
+
 
 </div>
 
@@ -3422,6 +3554,9 @@ is also a daily call cap on top.
 - **The tool finds mismatches, not omissions.** An invoice for work that was
   never in the contract at all has no similar contract chunk to pair with.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **At most six judged pairs per run,** whatever the document size. This is the
@@ -3438,6 +3573,12 @@ is also a daily call cap on top.
 - **No arithmetic.** It does not total line items or recompute a balance — that
   is the Document Intelligence tool's job. This compares statements.
 - **A review aid, not a control.** The output is for a person to check.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -3481,6 +3622,9 @@ one of those as a finding, and a tool that reports mostly noise gets ignored.
 Restricting the pairing to contract-against-invoice is what makes the report
 worth reading, and it was a real fix to a real false-positive problem, not a
 simplification.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-13-document-intelligence"><span class="bk-chnum">Chapter 13</span>Document Intelligence</h1>
 
@@ -3811,6 +3955,9 @@ line-item extraction depends on.
 - **The type descriptions are the tie-breaker.** If an invoice was read as a
   receipt, the useful question is whether it has a due date and payment terms.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Eight types.** Anything else is forced into the nearest one.
@@ -3829,6 +3976,12 @@ line-item extraction depends on.
 - **The cache is in memory**, so it is lost on restart.
 - **Everything is sent to a third-party model.** Invoices and medical reports are
   sensitive, and the trade is disclosed rather than avoided.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -3869,6 +4022,9 @@ the same document is never paid for twice. Tier by complexity, so a clean
 one-page invoice does not get the treatment a forty-page scanned contract needs.
 And read the text layer directly when the PDF has one, since OCR is the
 expensive path and most PDFs never need it.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-14-multimodal-rag"><span class="bk-chnum">Chapter 14</span>Multimodal RAG</h1>
 
@@ -4985,6 +5141,9 @@ meaningful.
 - **A web-search citation** means the grader decided your document did not cover
   the question.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Retrieval quality is the ceiling.** If the right chunk is not retrieved, no
@@ -5001,6 +5160,12 @@ meaningful.
   classification costs money or quality, not an answer.
 - **CRAG's web results are unvetted.**
 - **Multi-hop reasoning is limited** to what decomposition catches.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -5048,6 +5213,9 @@ complex route, the grader to `good`, the rewriter to the original query — and 
 list weights are a tilt rather than a filter, with unlisted labels defaulting to
 1.0 rather than zero. A misclassification should never blind the pipeline to a
 retrieval channel or stop an answer being produced.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-15-text-to-sql-agent"><span class="bk-chnum">Chapter 15</span>Text-to-SQL Agent</h1>
 
@@ -5339,6 +5507,9 @@ SQL can often still tell whether a query mentions the right tables.
   wrong, the explanation will confidently describe the wrong answer — which is
   exactly why the SQL is shown.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **It cannot know your business.** If "active user" means something specific,
@@ -5359,6 +5530,12 @@ SQL can often still tell whether a query mentions the right tables.
   relevant subset.
 - **Free-tier providers rate-limit**, so behaviour varies with which one
   answered.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -5404,6 +5581,9 @@ Free tiers rate-limit, and a demo that dies on a 429 is a demo nobody sees. They
 sit behind one interface, so a 429 falls through to the next and the swap is
 logged. It also means no single vendor's outage or pricing change takes the
 feature down.
+
+</div>
+
 
 </div>
 
@@ -5655,6 +5835,9 @@ by re-running the held-out set against it.
 - **Match the prototypes' viewpoint.** They were collected from a particular
   camera angle, and a very different one is out of distribution.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **79% on held-out data.** Stated, measured, and not rounded up.
@@ -5670,6 +5853,12 @@ by re-running the held-out set against it.
 - **One hand.**
 - **Tracking quality is the floor.** Bad light or a partly out-of-frame hand
   produces bad landmarks and the classifier faithfully classifies them.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -5713,6 +5902,9 @@ Then temporal smoothing, since a letter held for half a second gives fifteen
 frames to vote across rather than one. Then a language model over the output,
 which fixes exactly the confusable-cluster errors that dominate the remaining
 21%. A bigger classifier is further down that list than people expect.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-17-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 17</span>Astrophotography Anomaly Detector</h1>
 
@@ -5966,6 +6158,9 @@ classifier, and the obvious geometric feature was tested and failed.
   monopoles.
 - **Frame order matters.** The sequence is compared as uploaded.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Static tripod assumed.** No registration, no plate solving. A bumped tripod
@@ -5982,6 +6177,12 @@ classifier, and the obvious geometric feature was tested and failed.
   star trail is already a line in each frame.
 - **Frames are downscaled** before processing, so the finest trails are lost
   before detection runs.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -6031,6 +6232,9 @@ data, and works on any sky. A CNN would need a labelled meteor dataset that does
 not really exist and would learn an approximate version of a rule I can state in
 one sentence. Reaching for a model when a physical invariant is available is
 usually the wrong instinct.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-18-crime-scene-reconstruction"><span class="bk-chnum">Chapter 18</span>Crime Scene Reconstruction</h1>
 
@@ -6311,6 +6515,9 @@ is involved anywhere.
 - **Best case is a textured, static, well-lit scene** photographed by walking
   around it, with plenty of overlap between consecutive shots.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No bundle adjustment and no loop closure** — pose error accumulates.
@@ -6326,6 +6533,12 @@ is involved anywhere.
   too similar gives a degenerate baseline, too different fails matching.
 - **Not forensic-grade**, stated by the tool itself. Do not present a distance
   from it as a measurement.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -6371,6 +6584,9 @@ a calibrated stereo rig, or the two-point distance calibration this tool offers.
 And even then the *shape* is only approximate, because the intrinsics were
 estimated from image dimensions rather than measured, so I would not call the
 result a measurement.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-19-depth-parallax"><span class="bk-chnum">Chapter 19</span>Depth Parallax</h1>
 
@@ -6577,6 +6793,9 @@ photograph can actually support.
 - **In the relief, small camera movements read best.** Push it and the missing
   back faces show.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Relative depth, not metric.** No distances, no measurements, nothing
@@ -6597,6 +6816,12 @@ photograph can actually support.
   reports failure rather than showing a blank canvas.
 - **CPU inference on free hosting**, so the first request after the server has
   been asleep is slow.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -6641,6 +6866,9 @@ anything commercial. That distinction lives inside one repo under one model
 family, so I checked the LICENSE directly rather than trusting the badge — the
 same habit that caught a weights-versus-code licence mismatch elsewhere in this
 project.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-20-face-liveness-detector"><span class="bk-chnum">Chapter 20</span>Face Liveness Detector</h1>
 
@@ -6816,6 +7044,9 @@ AI provider, processed in memory and not stored.
   behaves very differently to these models than a flat print.
 - **No face found means no verdict**, not "spoof".
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 The module's own docstring is unusually direct about this, and it should be
@@ -6845,6 +7076,12 @@ repeated rather than softened.
 - **This is a demonstration, not a security control.** For anything that
   matters, passive liveness is one signal among several — device attestation,
   active challenges, document checks.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -6885,6 +7122,9 @@ shifts the input distribution. And the evidence of a spoof is often outside the
 face — the edge of a phone, the border of a sheet of paper, the way the
 background is lit. A tight crop removes the picture of the picture, which is the
 most reliable tell there is.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-21-gait-pattern-comparison"><span class="bk-chnum">Chapter 21</span>Gait Pattern Comparison</h1>
 
@@ -7142,6 +7382,9 @@ than a confident wrong number.
   the clip was too short, not side-on, or the walk was not continuous.
 - **The thresholds are a heuristic.** Treat 9° and 11° as the same finding.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **The thresholds are uncalibrated.** Stated in the code and in the interface.
@@ -7156,6 +7399,12 @@ than a confident wrong number.
 - **Not a diagnostic tool.** It measures the difference between two videos. It
   has no model of pathology, no norms, and no population reference.
 - **Needs continuous walking** — at least two or three clean strides.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -7202,6 +7451,9 @@ is uploaded, which is a guarantee about where the code runs rather than a promis
 about what a server does with the data. It also costs nothing to serve, and pose
 estimation is fast enough client-side that there is no accuracy sacrifice to
 justify sending it anywhere.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-22-movement-form-comparison"><span class="bk-chnum">Chapter 22</span>Movement Form Comparison</h1>
 
@@ -7429,6 +7681,9 @@ it anywhere.
   with different limb lengths performing an identical-quality squat will not
   produce identical angle curves.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No thresholds and no verdict.** It reports degrees; it does not say what
@@ -7450,6 +7705,12 @@ it anywhere.
 - **Not coaching.** It measures the difference between two videos. It has no
   model of correct form, no injury awareness, and no idea what you are trying to
   do.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -7493,6 +7754,9 @@ the two clips produces deviation the tool cannot distinguish from a difference i
 movement. After that, body proportion differences between you and the reference —
 two people performing an identically good squat with different limb lengths will
 not produce identical curves, and nothing here normalises for that.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-23-ppe-compliance-check"><span class="bk-chnum">Chapter 23</span>PPE Compliance Check</h1>
 
@@ -7732,6 +7996,9 @@ cost is misattribution in crowded frames, which is stated rather than hidden.
   If you see it happen, the attribution has failed.
 - **A person the model did not detect gets no row at all.**
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Two items in practice** — hard hat and vest. The model also has mask classes.
@@ -7746,6 +8013,12 @@ cost is misattribution in crowded frames, which is stated rather than hidden.
   actually requires.
 - **The model's training distribution is someone else's site.** Unusual PPE
   colours or styles may not be recognised.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -7789,6 +8062,9 @@ supervisor's aid — flagging frames worth a human look — it is useful, provid
 `unclear` is surfaced as prominently as `missing`. For anything with consequences
 I would add pose-based attribution, temporal smoothing across frames, and a
 minimum resolution gate that refuses rather than guesses.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-24-photo-library-visual-search"><span class="bk-chnum">Chapter 24</span>Photo Library Visual Search</h1>
 
@@ -8044,6 +8320,9 @@ all the throughput is on CPU inference.
   the subtraction took the query with it.
 - **`skipped`** counts photos dropped as invalid or oversized.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **40 photos per request, 8 MB each.**
@@ -8059,6 +8338,12 @@ all the throughput is on CPU inference.
   similarity only.
 - **Duplicate detection at 0.97 is a judgement call**; a genuinely similar pair
   of different photos can cross it.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -8106,6 +8391,9 @@ in a vector database — FAISS, or pgvector — then a query embeds one string a
 does an approximate nearest-neighbour search instead of a full scan. The current
 design re-embeds the whole batch per request, which is correct for a stateless
 demo of at most 40 photos and completely wrong at scale.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-25-plant-growth-quantification"><span class="bk-chnum">Chapter 25</span>Plant Growth Quantification</h1>
 
@@ -8467,6 +8755,9 @@ within one request.
 - **A collage split is an inference.** Check the panels were in the order you
   meant.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No real-world units, ever.** Proportion of frame only.
@@ -8484,6 +8775,12 @@ within one request.
 - **30 frames per request.**
 - **This measures pixels, not biology.** There is no plant model — no species,
   no growth stage, no nutrient inference.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -8531,6 +8828,9 @@ that the fallback has *lower* requirements than the primary path — it only nee
 foliage to be green and spatially separate, not recognisable to a 601-class
 detector. A fallback that fails in the same way as the thing it is backing up is
 not a fallback.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-26-pose-vj-visuals"><span class="bk-chnum">Chapter 26</span>Pose VJ Visuals</h1>
 
@@ -8720,6 +9020,9 @@ knowing:
 - **A load error means the CDN could not be reached.** The model is fetched at
   runtime, so this needs a connection the first time.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Two hands, and hands only.** No body, no face, no objects.
@@ -8734,6 +9037,12 @@ knowing:
 - **Fixed at 60 fps via `requestAnimationFrame`** — a slower machine drops
   frames and the motion coarsens.
 - **The mic is read but barely used.** One number out of a whole spectrum.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -8780,6 +9089,9 @@ one's. If a hand leaves the frame and comes back somewhere else, a stale
 previous position produces an enormous fake velocity and fires a burst of
 particles across the screen. Dropping unseen landmarks each frame means a
 returning hand starts from zero velocity, which is correct.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-27-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 27</span>Text-Prompted Video Object Tracking</h1>
 
@@ -9035,6 +9347,9 @@ a deliberate omission rather than a limitation discovered later.
 - **480 px means fine detail is gone** before anything ran. Thin structures —
   hair, fingers, wires — will not be captured cleanly.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **6 seconds, 4 fps, 20 frames, 480 px.** All CPU-latency ceilings.
@@ -9050,6 +9365,12 @@ a deliberate omission rather than a limitation discovered later.
   larger checkpoints would give.
 - **Open-vocabulary is not unlimited vocabulary.** Grounding DINO handles common
   objects and attributes well and gets steadily worse with abstraction.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -9097,6 +9418,9 @@ the 6-second, 4 fps, 480-pixel limits mostly disappear. Then re-detect
 periodically rather than only on frame one, so a lost object can be recovered;
 support multiple objects; and encode a real video file rather than returning a
 frame strip.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-28-text-to-image-generator"><span class="bk-chnum">Chapter 28</span>Text-to-Image Generator</h1>
 
@@ -9277,6 +9601,9 @@ budget with near-duplicates of one prompt.
 - **`ok: false` from Enhance** means every text provider was unavailable and you
   are looking at your original prompt.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **A hard daily cap of 15 generations** across everyone using the site.
@@ -9292,6 +9619,12 @@ budget with near-duplicates of one prompt.
 - **You are renting a model, not owning one.** If Google deprecates
   `gemini-3.1-flash-lite-image` or changes its pricing, this tool changes with
   it. That is the trade for not hosting a GPU.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -9334,6 +9667,9 @@ So the client can never inject arbitrary text into the prompt the server sends.
 The user's own description is theirs, but the scaffolding around it — style,
 aspect ratio — is assembled server-side from a fixed table. Same instinct as not
 letting a client supply a fragment of a SQL query.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-29-wildlife-re-identification"><span class="bk-chnum">Chapter 29</span>Wildlife Re-Identification</h1>
 
@@ -9580,6 +9916,9 @@ docstring says so, along with the plainest statement of scope in the tool:
   thing, or clipped the animal, the embedding describes something else.
 - **No animal detected means no comparison**, not "different".
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Not a validated identification system.** Published wildlife re-ID benchmarks
@@ -9598,6 +9937,12 @@ docstring says so, along with the plainest statement of scope in the tool:
 - **CC-BY-NC-4.0.** Non-commercial use only.
 - **Detection is the first failure point.** An animal the OIV7 detector does not
   recognise never reaches the embedding.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -9641,6 +9986,9 @@ are in these four hundred sightings", which is the actual ecological question.
 Add pose normalisation and multi-crop averaging per sighting to cut the variance,
 and calibrate the thresholds against a labelled subset from the same cameras,
 because the right threshold depends on the species and the camera placement.
+
+</div>
+
 
 </div>
 
@@ -9907,6 +10255,9 @@ the reasons why each observation is thin printed alongside it.
 The judge's `inconclusive` is not an error message. It is the answer for
 almost all real code, and a judge that rarely says it would be broken.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No validated accuracy figure exists**, because no honest one could be
@@ -9923,6 +10274,12 @@ almost all real code, and a judge that rarely says it would be broken.
   influenced by the content it reads.
 - **This must not be used as evidence against a person.** The interface, the
   documentation and the backend docstring all say so.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -9977,6 +10334,9 @@ are short, the vocabulary is largely fixed by the language and its libraries,
 the candidate set is open, and — decisively — automatic formatters normalise
 away whitespace, quoting and layout, which is where much of the individual
 signal in written text lives.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-31-adversarial-robustness-lab"><span class="bk-chnum">Chapter 31</span>Adversarial Robustness Lab</h1>
 
@@ -10506,6 +10866,9 @@ For the defences generally, `disrupted` without `recovered` means the defence
 broke the attack without restoring the truth. That is a real outcome and
 usually the common one.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **One model, one dataset per demo.** The main lab is MobileNetV2 on ImageNet
@@ -10525,6 +10888,12 @@ usually the common one.
   clean prediction are both shown.
 - **Every number quoted in this chapter came from a specific run** on a
   specific image. They demonstrate behaviour; they are not benchmarks.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -10595,6 +10964,9 @@ accordingly: rate limits and query-pattern monitoring to make black-box attacks
 expensive, multiple independent signals so no single model is decisive,
 human review for consequential outcomes, and measuring accuracy under attack
 rather than only on the clean test set.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-32-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 32</span>Attack-Surface / Exposed-Path Scanner</h1>
 
@@ -10822,6 +11194,9 @@ check into something that looks like an attack in the target's logs.
 - **No findings means these specific checks found nothing.** Seven paths, four
   directories and eight ports is a small surface.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Seven paths, four directories, eight ports.** Deliberately narrow.
@@ -10836,6 +11211,12 @@ check into something that looks like an attack in the target's logs.
 - **Public hosts only**, by design.
 - **A point-in-time check.** The value of this class of tool is running it
   continuously; this runs once.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -10880,6 +11261,9 @@ with known CVEs" from a guess sends someone chasing a vulnerability in software
 they do not run, which wastes their time and damages trust in the tool. Reading
 the `generator` tag the site chose to publish is a fact. I would rather report
 less and have it be true.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-33-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 33</span>Binary Byte-Plot & Entropy Triage</h1>
 
@@ -11195,6 +11579,9 @@ file scored low with 0% of windows above threshold, and a file of random bytes
 scored high with 94% and a uniformly red strip. Both are correct, and neither
 is a malware verdict.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No malicious/benign classification and no family attribution.** By design,
@@ -11213,6 +11600,12 @@ is a malware verdict.
   that is the trade for the tool being completely safe to use.
 - **Entropy thresholds are window-size dependent.** The numbers here are
   specific to the 1024-byte window.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -11271,6 +11664,9 @@ malicious-versus-benign, so it answers a different question; and it is trivially
 evadable, since an author who knows the visual signature can pad or reorder
 sections to change the texture without changing behaviour. That is one of the
 reasons this tool stopped at evidence.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-34-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 34</span>Browser Extension Permission Risk Analyzer</h1>
 
@@ -11542,6 +11938,9 @@ owner tomorrow.
 **Unclassified permissions are worth a look.** Not flagged, but not vetted
 either.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **The manifest is a declaration, not behaviour.** It bounds what an extension
@@ -11563,6 +11962,12 @@ either.
   judgement needs most.
 - **No supply-chain signal** — nothing about the publisher, ownership changes,
   update history or reputation, all of which matter as much as the manifest.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -11619,6 +12024,9 @@ claims to do — the need-versus-request judgement is currently entirely on the
 reader. And static analysis of the bundle for remote-code-loading patterns,
 because that is the main way a low-permission extension does something the
 manifest cannot predict.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-35-captcha-hardening-lab"><span class="bk-chnum">Chapter 35</span>CAPTCHA Hardening Lab</h1>
 
@@ -11866,6 +12274,9 @@ The result applies to this image, at this intensity, with this reader, on this
 run. Noise is random, so repeating the same request will not give the identical
 answer.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **One image, one attempt per side.** This is a demonstration, not a
@@ -11882,6 +12293,12 @@ answer.
   always horizontal and centred, so an attacker who knew that could target it.
 - **The noise is random per run.** Identical requests give different images and
   can give different answers.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -11934,6 +12351,9 @@ what happens under distortion — no live-site automation, no batch solving, no
 integration with any real challenge. That is the same posture as the rest of
 the security tools in this book, and the finding it produces is useful to
 defenders: text CAPTCHAs no longer work, and here is the evidence.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-36-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 36</span>DNS Tunneling / Exfiltration Detector</h1>
 
@@ -12180,6 +12600,9 @@ its own — and it can only contribute to a flag alongside high entropy anyway.
 - **DNS-over-HTTPS will not appear in this log at all**, which is worth
   remembering before concluding a network is clean.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Heuristics, not detection.** A patient attacker who keeps subdomains short,
@@ -12197,6 +12620,12 @@ its own — and it can only contribute to a flag alongside high entropy anyway.
   reputation services genuinely encode lookups into subdomains.
 - **Offline analysis of a pasted log.** Not a live monitor and not an alerting
   system.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -12244,6 +12673,9 @@ rather than a human browsing, and inter-arrival analysis is one of the strongest
 signals available. It is absent because the input is a pasted hostname list with
 no timestamps — which is a limitation of the input format, and I would say that
 rather than imply the signal set is complete.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-37-email-header-authentication-checker"><span class="bk-chnum">Chapter 37</span>Email Header Authentication Checker</h1>
 
@@ -12480,6 +12912,9 @@ does not arise. Worth knowing which of your endpoints have that property.
   sent. Records change.
 - **DKIM is not cryptographically verified**, and the response says so.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No cryptographic DKIM verification** — no body available.
@@ -12494,6 +12929,12 @@ does not arise. Worth knowing which of your endpoints have that property.
 - **Relaxed alignment only.** DMARC's strict mode is not distinguished.
 - **Forwarding legitimately breaks SPF**, so a forwarded genuine message can
   present exactly like a failure.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -12537,6 +12978,9 @@ registers a lookalike domain and configures SPF, DKIM and DMARC properly passes
 everything here, and that is a very common phishing pattern precisely because it
 survives authentication checks. Authentication is one signal; the domain's age,
 reputation and the content are others.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-38-face-cloak"><span class="bk-chnum">Chapter 38</span>Face Cloak</h1>
 
@@ -12799,6 +13243,9 @@ re-runs the same search. Measured live, the same-person similarity fell from
 0.99 to −0.77 and the verdict flipped from "same" to "different" — the
 countermeasure defeating the identification it had just performed.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 Four of these are in the module's own docstring, because they are the honest
@@ -12824,6 +13271,12 @@ frame for the whole tool.
   performing something close to the JPEG defence from the Adversarial
   Robustness Lab, which partially destroys perturbations.
 - **The thresholds are heuristic**, not calibrated for this model.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -12883,6 +13336,9 @@ against systems that exist now. What it must not be sold as is permanent
 protection, because that would encourage people to share photos they would
 otherwise withhold — which is the failure mode where a privacy tool makes
 things worse than doing nothing.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-39-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 39</span>Face Deanonymization Risk Demo</h1>
 
@@ -13136,6 +13592,9 @@ least as common as the false-positive one.
 target's similarity to everyone in the gallery dropped, the cloak moved the
 vector; if the ranking merely shuffled, it did not move it far enough.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No internet search and no database.** Only the photos in the request.
@@ -13154,6 +13613,12 @@ vector; if the ranking merely shuffled, it did not move it far enough.
   simply absent from the search, which is a different failure from a low score.
 - **The thresholds are heuristic**, inherited from Face Cloak and not
   calibrated for this model.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -13209,6 +13674,9 @@ with the caveat that it only protects photos not already collected. And
 realistically, the durable answer is legal rather than technical — Illinois's
 BIPA and the GDPR's special-category rules for biometric data have changed
 commercial behaviour more than any perturbation has.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-40-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 40</span>Keystroke Biometric Auth-Risk Demo</h1>
 
@@ -13477,6 +13945,9 @@ phrase would score low. That is the false-accept rate, it requires an impostor
 population, and it is where the published ~9% equal error rate comes from
 rather than from anything measured here.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Three enrolment repetitions is far too few** for real use. The standard
@@ -13497,6 +13968,12 @@ rather than from anything measured here.
   timings can reproduce it exactly.
 - **Not an authentication system.** It is a risk signal, and the thresholds are
   demonstration values.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -13548,6 +14025,9 @@ for processing. That is a substantive reason this tool computes everything in
 the browser and stores nothing — and a reason any real deployment needs a
 retention policy, a legal basis, and a non-biometric alternative for people who
 decline.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-41-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 41</span>LLM Prompt Injection Detection Playground</h1>
 
@@ -13794,6 +14274,9 @@ the actual harm.
 - **Try to beat it.** That is what a playground is for, and succeeding teaches
   you more about the problem than a clean pass does.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No detector is reliable**, stated first in the module docstring rather than
@@ -13808,6 +14291,12 @@ the actual harm.
   does not make the downstream application safe.
 - **No context.** Whether text is an injection depends on where it ends up, and
   the tool sees only the text.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -13851,6 +14340,9 @@ than about the text. A well-crafted injection is *expected* to score LOW, since
 the pattern layer is evadable by paraphrase and the judge can be targeted. Anyone
 reading LOW as a safety guarantee has misread the tool, which is why the
 disclosure is in the docstring, the interface and the verdict string itself.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-42-malicious-package-scanner"><span class="bk-chnum">Chapter 42</span>Malicious Package Scanner</h1>
 
@@ -14103,6 +14595,9 @@ exhaustive will not.
   by design.
 - **Line numbers are the point.** Go and read the line.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Static analysis only.** No execution, no sandbox, no behavioural
@@ -14121,6 +14616,12 @@ exhaustive will not.
 - **npm and PyPI shapes only.**
 - **False positives are expected**, by design; the alternative is missing novel
   attacks.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -14164,6 +14665,9 @@ fine and its dependency's dependency is not. Closing that needs a lockfile walk
 and registry metadata: package age, download counts, maintainer changes, and
 diffing a new version against the previous one, which is one of the strongest
 signals available and needs the network this tool deliberately does not use.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-43-password-strength-breach-checker"><span class="bk-chnum">Chapter 43</span>Password Strength & Breach Checker</h1>
 
@@ -14384,6 +14888,9 @@ non-specialist in a way a 0-to-4 score does not.
 - **A long passphrase of uncommon words usually beats a short complex string**,
   and the tool will show you that directly.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **zxcvbn's dictionaries are English-centric.** A password built from words in
@@ -14402,6 +14909,12 @@ non-specialist in a way a 0-to-4 score does not.
   frequently the thing that actually fails.
 - **It requires you to type a real password into a browser**, which is a habit
   worth being uneasy about even when the implementation is sound.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -14446,6 +14959,9 @@ how hard it is to *guess*; a breach means it does not need to be guessed, becaus
 it is already on a list that every cracking tool loads first. The two checks
 measure different things and the breach result always wins — which is exactly why
 the tool does both rather than only scoring.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-44-phishing-email-body-classifier"><span class="bk-chnum">Chapter 44</span>Phishing Email Body Classifier</h1>
 
@@ -14686,6 +15202,9 @@ and keep the dot product trivial.
 - **The model saw a particular corpus.** Phishing in a style unlike its training
   data will be missed.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **90.95% held-out accuracy** — measured, stated, and not production-grade for
@@ -14704,6 +15223,12 @@ and keep the dot product trivial.
 - **Trivially evadable if you know the model** — the top words are shown, so an
   attacker could avoid them. That is an acceptable trade for a teaching tool and
   would not be for a filter.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -14750,6 +15275,9 @@ unacceptable in a production filter and correct here, because this exists to
 teach a person what to look for, not to block mail at a gateway. A real filter
 would keep its features private and lean on headers, link reputation and sender
 history, none of which are visible to the person writing the email.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-45-qr-phishing-detector"><span class="bk-chnum">Chapter 45</span>QR Phishing Detector</h1>
 
@@ -15033,6 +15561,9 @@ someone would actually be fooled.
 - **A missing RDAP answer means the registry did not answer**, not that the
   domain is old.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Curated brand list**, disclosed as non-exhaustive.
@@ -15045,6 +15576,12 @@ someone would actually be fooled.
 - **Structural signals are evadable.** A patient attacker registers a plausible
   domain on a normal TLD, waits a month, uses HTTPS, and passes everything.
 - **Signals, not a verdict**, and deliberately so.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -15093,6 +15630,9 @@ QR code **joins the network** — so a malicious one on a café table puts a pho
 onto the attacker's access point, with no URL involved anywhere. It is a
 completely different attack surface, and a URL-only scanner reporting "no
 findings" would be actively misleading.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-46-siem-alert-triage-agent"><span class="bk-chnum">Chapter 46</span>SIEM Alert Triage Agent</h1>
 
@@ -15331,6 +15871,9 @@ Five levels including an explicit `noise` are comparable across groups.
 - **Twenty groups is a cap.** A long tail exists below it, and rare events are
   exactly what a count-ordered list buries.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Grouping is heuristic** — IPs and digit runs only. IPv6, hostnames, GUIDs,
@@ -15348,6 +15891,12 @@ Five levels including an explicit `noise` are comparable across groups.
 - **The model can be wrong**, and its confidence reads the same either way.
 - **Advisory only.** No integrations, nothing is acted on.
 - **A pasted log, once.** Not a live pipeline.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -15397,6 +15946,9 @@ are completely different — and neither is visible here. Beyond that, the real
 value of a SIEM is linking events across types on the same host over time: a
 failed login, then a success, then a privilege escalation. This triages each
 group in isolation, which is one useful step and not the whole job.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-47-style-cloak"><span class="bk-chnum">Chapter 47</span>Style Cloak</h1>
 
@@ -15663,6 +16215,9 @@ accept a weaker cloak.
 different encoder is not what was measured, and nothing here demonstrates
 transfer.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 The first three are in the module's own docstring, because they frame the tool
@@ -15688,6 +16243,12 @@ honestly.
   by any pipeline that scales the image differently.
 - **One encoder, one measurement.** No transfer to other CLIP variants or to
   non-CLIP encoders has been tested.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -15742,6 +16303,9 @@ and transfer testing across several encoders, because an attacker will not use
 the one you optimised against. Beyond the technical, the durable answers are
 non-technical — licence terms, robots and opt-out signals with actual
 enforcement, and legal frameworks that recognise style-mimicry as a harm.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-48-tls-security-headers-scanner"><span class="bk-chnum">Chapter 48</span>TLS / Security-Headers Scanner</h1>
 
@@ -15986,6 +16550,9 @@ would tell you nothing about what to fix.
 - **A blocked scan is not a finding about the site.** It usually means the domain
   does not resolve publicly.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Headers are checked for presence, not quality.** A permissive CSP passes.
@@ -16001,6 +16568,12 @@ would tell you nothing about what to fix.
 - **A single point in time.** No monitoring, no expiry alerting — which is the
   thing that would actually prevent the outage.
 - **Redirects and CDNs** mean you may be measuring the edge, not the origin.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -16042,6 +16615,9 @@ nothing. Parsing and grading a policy is a real piece of work with genuine
 disagreement about what counts as good, so presence is a defensible first pass —
 but the honest next step is at least flagging the known-useless patterns rather
 than counting the header as present.
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-49-video-call-keystroke-inference"><span class="bk-chnum">Chapter 49</span>Video-Call Keystroke Inference</h1>
 
@@ -16325,6 +16901,9 @@ every false positive. Treat it as an estimate of typing rate, not a measurement.
 *what* was typed, the honest answer is that this stage cannot tell you, and the
 stage that could needs training data specific to the person you are watching.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **No character recovery.** By design, and the reason is a missing trained
@@ -16343,6 +16922,12 @@ stage that could needs training data specific to the person you are watching.
   keystroke log recorded alongside, which this project does not have.
 - **Modifier keys, held keys, backspaces and mouse movement** are all
   indistinguishable from ordinary presses or missed entirely.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -16403,6 +16988,9 @@ not this exists. What is here is the stage that demonstrates the risk without
 supplying a capability — a keystroke timeline is not somebody's password. The
 character-recovery stage was deliberately not built, and the reason is stated in
 the interface rather than left as an implied "coming soon".
+
+</div>
+
 
 <h1 class="bk-chapter" id="ch-50-yara-file-scanner"><span class="bk-chnum">Chapter 50</span>YARA File Scanner</h1>
 
@@ -16642,6 +17230,9 @@ document and script files this is aimed at.
 - **Nothing matched means nothing matched.** Six rules is not coverage.
 - **A compile error is normal when writing rules.** That is the loop working.
 
+
+<div class="bk-sec bk-sec-limits">
+
 ## Limits
 
 - **Six built-in rules.** Self-authored, educational, explicitly not exhaustive.
@@ -16656,6 +17247,12 @@ document and script files this is aimed at.
 - **Custom rules run server-side**, so the timeout and the size cap are the
   protection.
 - **Not an antivirus.** No behavioural analysis, no sandbox, no reputation.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
 
 ## Likely interview questions
 
@@ -16698,6 +17295,9 @@ provenance. It is the same choice made for the typosquat list and the brand list
 elsewhere in this app: a short curated set, disclosed as not exhaustive, is more
 honest than an impressive list nobody has checked. And the built-in set is the
 demonstration — the custom-rule endpoint is the actual tool.
+
+</div>
+
 
 </div>
 
