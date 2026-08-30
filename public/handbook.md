@@ -5525,6 +5525,8 @@ example of why every technique choice here was tested, not assumed.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload 5-30 photos from one fixed-tripod night-sky session, in order, and
 this detects meteor and satellite streaks using the real technique
@@ -5598,6 +5600,229 @@ the background level) while preserving every star.
   position.
 - **Not validated on a real photo session** — only against synthetic
   ground-truth data with known injected anomalies, disclosed above.
+
+## What problem it solves
+
+A night of astrophotography is a few hundred long exposures of the same patch of
+sky. Somewhere in them there may be a meteor, or a satellite trail, or an
+aircraft. Finding them means opening every frame and looking.
+
+The obvious automation — find bright streaks — does not work, and the reason is
+the whole problem. On a fixed tripod with no tracking mount, **every star moves
+between frames**, because the Earth is rotating. Each star leaves a short trail.
+A detector that flags streaks flags every star in the frame.
+
+So the real question is not *"is there a line here?"* but *"is this line
+something that was not there a moment ago?"* This tool answers that with a
+physical distinction that is simple, exact, and needs no neural network at all.
+
+## How it works, step by step
+
+1. **Upload a sequence** of frames from one fixed-tripod session, in order.
+2. **Difference each adjacent pair** — frame B minus frame A, keeping the sign.
+3. **Find candidate lines** in each difference image with a Hough transform.
+4. **Deduplicate** the near-identical segments Hough returns for one real line.
+5. **Test each line for polarity** — the key step.
+6. **Link a streak across consecutive pairs** so one real event is counted once.
+7. **Crop and annotate** each surviving anomaly.
+8. **Median-stack** the whole sequence into one clean image.
+
+## The model or algorithm
+
+### The dipole/monopole discriminator
+
+This is the idea the tool is built on, and it is worth stating precisely.
+
+Subtract frame A from frame B and **keep the sign** — not the absolute
+difference:
+
+**A star that moved** (sky rotation, no tracking) is present in both frames, in
+slightly different places. In the signed difference it appears as a **dipole**:
+positive where it moved *to*, negative where it moved *from*. Bright and dark,
+side by side.
+
+**A meteor or satellite trail** is in one frame and not the other. It has nowhere
+to have moved from. In the signed difference it is a **monopole**: one-sided,
+positive with no matching negative.
+
+That single distinction separates the thing you want from the thing that fills
+the frame, and it is a fact about the physics rather than a learned pattern.
+
+**The absolute difference destroys it.** `|B − A|` makes the dipole's dark half
+positive, and the star becomes two bright blobs — indistinguishable from a real
+streak. Keeping the sign is the entire trick.
+
+### Measuring the polarity
+
+For each candidate line, the code walks along it and samples a band of pixels on
+**both sides**, using the line's perpendicular normal, out to a few pixels either
+way. It sums the positive difference values and the negative ones separately.
+
+- A **dipole** has substantial totals on both sides — a moved star.
+- A **monopole** has one large total and a near-zero opposite — a real anomaly.
+
+That ratio is the streak's `monopole_strength`, and it is what the detection
+threshold is applied to.
+
+### The Hough transform
+
+Hough line detection re-poses the problem: instead of searching the image for
+lines, every edge pixel votes in a parameter space of all possible lines
+(`rho`, `theta`), and lines that many pixels agree on accumulate peaks. Its
+strength is that it finds a line even when it is **broken** — a faint meteor
+sampled as a dotted trail still votes coherently — which is exactly the case
+here.
+
+Its known weakness is returning several near-identical segments for one real
+line, so a deduplication pass merges anything within 15 pixels and 8 degrees.
+
+### Linking across pairs, and why one event produces two detections
+
+A subtle consequence of differencing that is easy to get wrong.
+
+A meteor visible in frame 2 only appears **twice** in the difference sequence:
+positive in the (1→2) difference, when it arrives, and negative in the (2→3)
+difference, when it disappears. One real event, two detections.
+
+So streaks are forward-linked across consecutive pairs by angle and position —
+within 8 degrees and a bounded distance — and merged into a single anomaly. Without
+this the tool would double-count every meteor.
+
+### The classification the tool refuses to make
+
+It reports "possible meteor or satellite" and never picks. The reason recorded in
+the code is a real negative result, and it is the most interesting thing in the
+module:
+
+> *A satellite's frame-to-frame position shift is almost entirely **along its own
+> line direction** — real orbital motion projected onto the sky — which is
+> geometrically near-indistinguishable from "the same flash, stationary" using
+> position drift alone. Tested against synthetic ground truth and found
+> unreliable: a moving satellite streak and a stationary flash both produce
+> near-zero measured drift.*
+
+The obvious feature — how far did it move — does not separate the two classes,
+because movement along a line looks like no movement when all you can measure is
+the line's position. Real classification needs multi-frame trajectory and
+velocity modelling. The tool says "possible" rather than inventing a confident
+label, and the code names that as the same discipline applied elsewhere in the
+project.
+
+**"No anomalies found" is also given its honest meaning:** nothing crossed the
+threshold, not that nothing happened. A faint meteor falls below it.
+
+### Median stacking
+
+Alongside detection, the sequence is stacked by taking the **median** of each
+pixel across all frames.
+
+Median rather than mean, for a specific reason: a mean includes every transient —
+a meteor, a satellite, a plane, a cosmic-ray hit — as a faint ghost. The median
+takes the middle value at each pixel, so anything appearing in a minority of
+frames is discarded entirely while the constant background survives and its
+random noise is suppressed. It is the standard robust estimator, and here the
+transients it rejects are exactly what the detector is separately looking for.
+
+## Why these choices
+
+**Why classical CV and no neural network.** The discriminating feature is
+*physical* — a moved object leaves a signed dipole, a new object does not. That
+is exact, needs no training data, and generalises to any sky. A CNN would need a
+labelled dataset of meteors that does not exist, and would learn a fuzzy version
+of a rule that can be stated in one sentence.
+
+**Why no plate solving.** DeepSkyStacker and Siril register frames against
+detected star fields before stacking, which corrects for sky rotation properly.
+This tool assumes a static tripod and compares frames as uploaded, which is
+disclosed rather than implied. Plate solving is a substantial piece of
+astronomy-specific machinery, and without it the dipole signature is actually the
+*mechanism* — the very rotation that registration would remove is what makes
+stars distinguishable from transients.
+
+**Why report "possible".** Covered above: no ground truth to validate a
+classifier, and the obvious geometric feature was tested and failed.
+
+## How to read the output
+
+- **Each anomaly comes with a crop.** Look at it. A satellite trail is long,
+  straight and uniform; a meteor usually brightens and fades along its length;
+  an aircraft often shows regular gaps from strobes.
+- **"Possible meteor or satellite" is the honest label.** It is not hedging — the
+  distinction genuinely cannot be made from this data.
+- **Nothing found means nothing crossed the threshold.**
+- **Check the stack for what the detector missed.** A transient sitting in the
+  median-stacked image is bright enough to have survived the median, which is
+  unusual and worth looking at.
+- **A field full of detections means the tripod moved.** If the camera shifted
+  between frames, every star becomes a large dipole and some will read as
+  monopoles.
+- **Frame order matters.** The sequence is compared as uploaded.
+
+## Limits
+
+- **Static tripod assumed.** No registration, no plate solving. A bumped tripod
+  invalidates the run.
+- **No meteor-versus-satellite verdict**, for the reason tested and recorded
+  above.
+- **Faint transients below the threshold are missed silently.**
+- **Aircraft, birds, insects and cosmic-ray hits all produce monopoles too.**
+  Anything present in one frame and not the next looks the same.
+- **Sequences are processed in upload order** with no timestamp checking.
+- **A cloud edge drifting through frame** produces large signed differences that
+  are not point-like but can still generate Hough lines.
+- **Long exposures with heavy star trailing** blur the dipole signature, since a
+  star trail is already a line in each frame.
+- **Frames are downscaled** before processing, so the finest trails are lost
+  before detection runs.
+
+## Likely interview questions
+
+**"Every star moves between frames. How do you avoid flagging all of them?"**
+By keeping the *sign* of the difference. A star that moved is in both frames, so
+it leaves a dipole — positive where it moved to, negative where it moved from. A
+meteor is in one frame only, so it leaves a monopole with no opposite-sign
+counterpart. Measuring the positive and negative sums in a band either side of
+each candidate line separates them exactly. If you take the absolute difference
+instead, the dipole's dark half becomes bright and every star looks like a
+streak.
+
+**"Why a Hough transform rather than an edge detector?"**
+Because Hough finds lines that are broken. Every edge pixel votes in a parameter
+space of possible lines and coherent lines accumulate peaks, so a faint meteor
+that appears as a dotted trail still registers as one line. Its cost is returning
+several near-identical segments per real line, which is why there is a
+deduplication pass at 15 pixels and 8 degrees.
+
+**"Why won't it say whether it's a meteor or a satellite?"**
+Because I tested the obvious feature and it failed. A satellite's frame-to-frame
+shift is almost entirely *along* its own line — orbital motion projected onto the
+sky — which is geometrically near-indistinguishable from a stationary flash when
+all you can measure is the line's position. Against synthetic ground truth both
+produced near-zero measured drift. Doing it properly needs multi-frame trajectory
+and velocity modelling. Labelling it confidently would be overclaiming, so it
+says "possible".
+
+**"Why does one meteor produce two detections?"**
+Because differencing is pairwise. A meteor in frame 2 appears positive in the
+1→2 difference when it arrives and negative in the 2→3 difference when it goes.
+One event, two signals. Streaks are forward-linked across consecutive pairs by
+angle and position and merged, otherwise every meteor is counted twice.
+
+**"Why median stacking rather than averaging?"**
+Because the mean includes every transient as a faint ghost — the meteor you are
+trying to isolate ends up smeared into the background image. The median takes the
+middle value per pixel, so anything present in a minority of frames is discarded
+outright while the constant sky survives and its random noise is suppressed. It
+is the robust estimator, and here the outliers it rejects are precisely the
+events the detector is looking for.
+
+**"Why no neural network?"**
+Because the discriminating feature is physical rather than statistical. "A moved
+object leaves a signed dipole, a new object does not" is exact, needs no training
+data, and works on any sky. A CNN would need a labelled meteor dataset that does
+not really exist and would learn an approximate version of a rule I can state in
+one sentence. Reaching for a model when a physical invariant is available is
+usually the wrong instinct.
 
 <h1 class="bk-chapter" id="ch-18-crime-scene-reconstruction"><span class="bk-chnum">Chapter 18</span>Crime Scene Reconstruction</h1>
 
@@ -6472,6 +6697,8 @@ most reliable tell there is.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload two side-view videos of someone walking. This tracks body pose
 frame-by-frame with MediaPipe (the same technique behind this site's
@@ -6535,6 +6762,238 @@ reports "not enough consistent strides detected" instead of guessing.
   to produce a signature rather than guessing from insufficient data.
 - **Assumes one person per video.** Multiple people in frame will confuse
   pose tracking.
+
+## What problem it solves
+
+How someone walks is remarkably individual — and remarkably consistent for that
+person over time. Physiotherapists use that: a patient's walk before an injury
+and after six weeks of rehabilitation is the measurement that says whether the
+rehabilitation worked. Sports scientists use it to spot an asymmetry that will
+become an injury. Neurologists use it because gait changes early in several
+conditions.
+
+The obstacle is that "does this walk look different?" is a judgement made by eye,
+by someone experienced, from a video. It is subjective, hard to communicate, and
+impossible to compare across months except by watching two clips one after the
+other.
+
+This tool turns two videos of someone walking into two **numerical gait
+signatures** and reports where and by how much they differ — per joint, in
+degrees.
+
+It runs entirely in your browser. No video is uploaded.
+
+## How it works, step by step
+
+1. **Upload two clips** of walking, ideally from the side.
+2. **Extract pose** from every frame — body landmarks, in the browser.
+3. **Compute four joint angles per frame:** left and right knee, left and right
+   ankle.
+4. **Smooth** each angle series with a three-point moving average.
+5. **Find the strides** by detecting peaks in the knee angle.
+6. **Resample each stride to 50 points** so strides of different durations
+   become comparable.
+7. **Average the strides** into one representative curve per joint — the
+   signature.
+8. **Compare the two signatures** with root-mean-square difference per joint.
+
+## The model or algorithm
+
+### The gait cycle, and why it is the right unit
+
+Walking is periodic. One **gait cycle** runs from one event on a leg to the next
+occurrence of the same event — heel strike to heel strike. Everything about the
+walk repeats inside that cycle, so a cycle is the natural unit: comparing raw
+time series would mostly measure that one clip is longer than the other.
+
+**Knee angle is the channel used to find cycle boundaries**, and the reason is
+in the code's own comment: the knee reaches near-full extension once per stride,
+so consecutive peaks bracket exactly one cycle. It is the cleanest periodic
+signal a pose estimator produces from a walk.
+
+### Peak detection by prominence, not by height
+
+A naive peak detector finds every local maximum, and a jittery pose stream has
+hundreds. Two filters make it robust:
+
+**Prominence ≥ 8°.** A peak's prominence is how far it rises above the higher of
+the two valleys either side of it. Height alone is the wrong test — a small
+wobble on top of a high plateau is a tall local maximum and not a real peak.
+Prominence asks "how far would you have to descend before you could climb to
+somewhere higher", which is the question that separates a stride from a tremor.
+
+**Minimum cycle 0.4 seconds.** Faster than any real walking stride, so it acts
+purely as a guard against jitter double-counting one peak as two.
+
+### Phase normalisation — the key idea
+
+Two people walk at different speeds; the same person walks at different speeds on
+different days. A stride lasting 1.1 seconds and one lasting 0.9 cannot be
+compared sample by sample.
+
+So each detected cycle is **resampled to a fixed 50 points**, converting the
+x-axis from *time* to **percentage of the gait cycle**. 0 is the start of the
+stride, 49 is the end, whatever the duration. This is the standard convention in
+clinical gait analysis, and after it every stride is directly comparable to every
+other.
+
+Then the strides are **averaged across cycles**, which is the second important
+step: one stride contains a person's walk plus that stride's noise. Averaging
+several keeps what is consistent and cancels what is not — the same variance
+argument as the multi-frame averaging in the Face Liveness chapter.
+
+**At least 2 cycles are required.** With fewer, the tool refuses to produce a
+signature and says why, rather than returning an average of one thing.
+
+### Picking the reference leg
+
+Cycle boundaries are taken from **whichever knee produced more detected cycles**.
+The comment gives the practical reason: one leg's tracking is often cleaner than
+the other depending on which side faces the camera. The far leg is partly
+occluded by the near one for much of the stride, so its landmarks are noisier.
+Choosing the better channel is a small thing that avoids a whole class of
+failures.
+
+### Comparison — RMS difference in degrees
+
+For each joint, the two averaged curves are compared point by point:
+
+```
+RMS = √( mean over the 50 phase points of (a[i] − b[i])² )
+```
+
+**Root mean square rather than mean absolute difference** because squaring
+penalises large deviations disproportionately — a curve that matches well for
+most of the stride and diverges badly at toe-off is a meaningful difference, and
+RMS surfaces it where a mean would dilute it.
+
+The output is **in degrees**, which is the property that makes it usable: "the
+left knee differs by 14° RMS through the stride" is a sentence a
+physiotherapist can act on, unlike a similarity score between 0 and 1.
+
+### The thresholds, and their honest status
+
+```
+similar                    < 10°
+some differences      10 – 20°
+substantially different  > 20°
+```
+
+The code's comment is unusually direct about these:
+
+> *"Thresholds are a reasonable-looking heuristic against typical gait
+> knee/ankle angle ranges (~0–70° through a stride), NOT calibrated against any
+> labeled human gait dataset — disclosed in the UI."*
+
+That is the right way to ship a threshold you have not validated: pick it from a
+defensible reference — 10° against a 70° range is roughly 14% of the signal — and
+say clearly that it is a heuristic, in the interface, not only in a comment.
+
+### Cadence
+
+Mean cycle duration converted to steps per minute — `60 / mean_cycle_duration`.
+A simple, comparable number that captures walking speed independently of the
+shape of the curves, and it is often the first thing that changes.
+
+## Why these choices
+
+**Why joint angles rather than landmark positions.** An angle is invariant to
+where the person is in frame, how far from the camera they are, and how tall they
+are. Raw landmark coordinates change with all three, so any comparison based on
+them would measure the filming, not the walk. The angle at the knee is the same
+number whether the person is close or far, left or right of frame.
+
+**Why the browser.** Video of a person walking is personal, and medical or
+rehabilitation footage more so. Client-side processing means it is never
+transmitted — a stronger guarantee than a privacy policy, because it is a
+property of where the code runs.
+
+**Why only knees and ankles.** They carry the clearest periodic signal in a
+side-view walk. Hips are informative and much noisier from a single camera; arms
+vary with what someone is carrying.
+
+**Why refuse below two cycles** rather than return something. A signature
+averaged over one stride is that stride, noise included, presented as if it were
+a stable pattern. Refusing with an explanation of what to film is more useful
+than a confident wrong number.
+
+## How to read the output
+
+- **Read the per-joint numbers, not just the overall label.** An overall 12°
+  that is 4° in three joints and 30° in the left knee is a specific finding; the
+  average hides it.
+- **A left-right asymmetry within one clip is often the interesting result** —
+  compare the left knee curve against the right in the same video, not only
+  across videos.
+- **Filming consistency is the biggest confound.** Same camera position, same
+  angle, same distance, ideally the same clothing. A change in filming produces a
+  difference the tool cannot distinguish from a change in the walk.
+- **Cadence changes alone** can explain curve differences: a faster walk has
+  genuinely different joint kinematics.
+- **A refusal is information.** "Not enough consistent strides" usually means
+  the clip was too short, not side-on, or the walk was not continuous.
+- **The thresholds are a heuristic.** Treat 9° and 11° as the same finding.
+
+## Limits
+
+- **The thresholds are uncalibrated.** Stated in the code and in the interface.
+- **Single camera, single plane.** A side view captures flexion and extension.
+  Rotation and side-to-side movement are largely invisible.
+- **Pose estimation is the noise floor.** Loose clothing, poor light, and the
+  far leg being occluded all degrade the landmarks before any analysis runs.
+- **Four joints only.**
+- **Two clips at a time.** No history, no trend across a rehabilitation
+  programme.
+- **Filming differences are indistinguishable from gait differences.**
+- **Not a diagnostic tool.** It measures the difference between two videos. It
+  has no model of pathology, no norms, and no population reference.
+- **Needs continuous walking** — at least two or three clean strides.
+
+## Likely interview questions
+
+**"Why compare angles instead of landmark positions?"**
+Because angles are invariant to the things that vary between two recordings —
+distance from the camera, position in frame, the subject's height. Landmark
+coordinates change with all of those, so a comparison built on them would mostly
+measure the filming. The angle at the knee is the same number whether the person
+is two metres away or five.
+
+**"Two clips are different lengths and different walking speeds. How do you
+compare them?"**
+Phase normalisation. Detect the gait cycles, then resample each one to a fixed 50
+points so the x-axis becomes percentage of the stride rather than time. After
+that a 1.1-second stride and a 0.9-second stride are directly comparable point
+by point. It is the standard convention in clinical gait analysis, and it is the
+step that makes the whole comparison possible.
+
+**"How do you detect a stride reliably from a noisy pose stream?"**
+Peaks in the knee angle, filtered two ways. Prominence of at least 8°, because
+height alone counts every wobble on a plateau as a peak while prominence asks how
+far you would have to descend before climbing higher — which is the question that
+separates a stride from jitter. And a minimum cycle of 0.4 seconds, faster than
+any real stride, purely to stop one peak being counted twice.
+
+**"Why RMS rather than mean absolute difference?"**
+Because squaring penalises large deviations disproportionately. A pair of curves
+that match well through most of the stride and diverge sharply at toe-off is a
+real, clinically meaningful difference, and RMS surfaces it where a mean would
+average it away. It also keeps the output in degrees, which is what makes the
+number actionable.
+
+**"Your thresholds aren't validated. Isn't that a problem?"**
+It is a limitation, and the right response is to disclose it rather than hide it
+— which the code and the interface both do. They are picked against a defensible
+reference: knee and ankle angles span roughly 0–70° through a stride, so 10° is
+about 14% of the signal. To validate them properly I would need a labelled gait
+dataset with clinical ground truth, and without one I would rather ship a stated
+heuristic than an implied certainty.
+
+**"Why run it in the browser?"**
+Because gait video is personal, and rehabilitation footage especially so. Nothing
+is uploaded, which is a guarantee about where the code runs rather than a promise
+about what a server does with the data. It also costs nothing to serve, and pose
+estimation is fast enough client-side that there is no accuracy sacrifice to
+justify sending it anywhere.
 
 <h1 class="bk-chapter" id="ch-22-movement-form-comparison"><span class="bk-chnum">Chapter 22</span>Movement Form Comparison</h1>
 
@@ -7700,6 +8159,8 @@ returning hand starts from zero velocity, which is correct.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a short video and type a description of an object in it (e.g. "the
 red backpack"). The tool finds that object in the first frame and tracks +
@@ -7773,6 +8234,228 @@ every frame of a zoom.
   can drift or lose an object through heavy occlusion or fast motion —
   a real, published limitation of video segmentation models, not unique
   to this tool.
+
+## What problem it solves
+
+**Rotoscoping** is the film-industry term for cutting an object out of every
+frame of a shot — tracing the outline of a person, a car, a ball, frame by frame,
+so it can be recoloured, removed, or composited onto something else. Done by
+hand it is one of the most tedious jobs in post-production: a few seconds of
+footage is hundreds of individual outlines.
+
+Automating it has always run into two separate problems. You have to find the
+right object — and "the right object" is defined by a person, in words, not by a
+class from a fixed list. And then you have to follow it through occlusion,
+motion blur, rotation and lighting change without losing it.
+
+This tool does both. Type *"the red backpack"*, upload a clip, and get every
+frame back with that object masked — an object nobody trained a detector for.
+
+## How it works, step by step
+
+1. **Upload a short clip** and type what to track.
+2. **Sample frames** — the first 6 seconds at 4 fps, at most 20 frames, resized
+   to a 480-pixel long edge.
+3. **Find the object once**, on the first frame, from your text.
+4. **Convert that box into a precise mask** and hand it to a video tracker as a
+   starting prompt.
+5. **Propagate through the remaining frames** using the tracker's own memory of
+   what the object looks like.
+6. **Return the frames** with the mask drawn on, as a preview strip.
+
+## The model or algorithm
+
+### Grounded-SAM — two models, each doing the thing it is good at
+
+Neither half can do this alone, and the split is the design.
+
+**Grounding DINO** (IDEA Research, Apache-2.0) is an **open-vocabulary
+detector**. A conventional detector is trained on a fixed class list — 80 for
+COCO, 601 for the detector used elsewhere in this app — and can only find those.
+Grounding DINO instead takes a *text phrase* and finds the region matching it, by
+fusing text features with image features inside the detector so language
+conditions the detection rather than merely labelling it afterwards. That is what
+lets "the red backpack" work when no class called *red backpack* exists.
+
+**SAM 2** (Meta, Apache-2.0) is a **promptable segmentation and tracking model**.
+Given a prompt on one frame — a box, a point, a mask — it produces a precise mask,
+and its video mode carries a **memory of the object across frames**, so the mask
+follows it without being re-detected.
+
+So the division of labour is: **detect once with language, then track with
+memory.** Grounding DINO runs on frame one only. SAM 2 does everything after.
+
+**Why not detect on every frame.** Per-frame detection has no notion of identity
+— two people in shot means the box can jump between them, and a frame where the
+detector misses gives you a hole. Tracking with memory keeps the same object
+because the model knows what it has been following.
+
+### SAM 2's memory, in one paragraph
+
+SAM 2 keeps a memory bank of features from frames it has already processed. Each
+new frame attends to that memory, so the mask is conditioned not only on the
+current pixels but on how the object has looked so far. That is what carries it
+through partial occlusion and motion blur: when the current frame is ambiguous,
+the memory is not.
+
+### The two thresholds
+
+```
+_BOX_THRESHOLD  = 0.35   # confidence that a box is an object at all
+_TEXT_THRESHOLD = 0.25   # confidence that the box matches the phrase
+```
+
+Two separate gates because Grounding DINO makes two separate judgements — *is
+there an object here* and *does it match these words*. The text threshold is
+lower, because text-image matching scores are naturally less confident than
+objectness scores; holding both to the same bar would reject correct matches.
+
+### Everything else is a CPU-latency decision
+
+| Constant | Value | Why |
+|---|---|---|
+| `_MAX_DURATION_S` | 6.0 | anything longer will not finish in a request |
+| `_TARGET_FPS` | 4.0 | enough to see motion, a fraction of the frames |
+| `_MAX_FRAMES` | 20 | hard ceiling regardless of the two above |
+| `_MAX_DIM` | 480 | segmentation cost scales with pixels |
+
+The model chosen is `sam2.1-hiera-tiny`, the smallest of the family, on
+`device="cpu"`. All of it is disclosed in the module docstring as latency, not
+hidden as a design preference.
+
+## Why these choices
+
+### The model that was rejected, and why that is the interesting part
+
+This was originally scoped around **SAM 3**. The research was done before any
+code was written, and it found a real blocker: SAM 3's checkpoints are **gated
+behind a Meta access request under a non-standard custom licence, with no clean
+pip package.**
+
+So Grounded-SAM was used instead — Grounding DINO plus SAM 2, both Apache-2.0 and
+both ungated. The chapter should say plainly that this is the better engineering
+outcome and not a compromise: an ungated permissive licence means the tool can
+actually be deployed and its dependencies can be reproduced by anyone.
+
+**Checking the licence and the availability before writing the code** is the
+habit that also caught the Ultralytics weights problem and the Depth-Anything
+checkpoint split elsewhere in this project.
+
+### The one that was rejected for hardware
+
+3D Gaussian Splatting was considered for a related feature and rejected because
+it needs a CUDA rasteriser driven through thousands of optimisation steps.
+Grounding DINO and SAM 2 are **inference-only forward passes** with no
+per-scene optimisation, so they genuinely run on this Space's CPU — slowly, but
+they run. That distinction — *forward pass* versus *optimisation loop* — is the
+one that decides what is possible without a GPU.
+
+### The dependency conflict, and how it was resolved
+
+Worth telling because it is the kind of thing that quietly breaks a deployment.
+
+Grounding DINO's PyPI package `groundingdino-py` declares an unpinned,
+**non-headless** `opencv-python` dependency. This project uses
+`opencv-python-headless`, and the two collide — worse, in a slim Docker image
+non-headless OpenCV typically fails to import at all, because `libGL.so.1` is not
+installed.
+
+The resolution was verification rather than assumption: Grounding DINO's actual
+inference path (`load_model`, `predict`) only makes `cv2.imread` and
+`cv2.cvtColor`-level calls, all of which headless OpenCV provides. So the package
+is installed with `--no-deps` and its real transitive dependencies are pinned
+explicitly, deliberately excluding `opencv-python`.
+
+The general lesson: a declared dependency is a claim about what a package needs.
+Checking what it *actually calls* can turn an impossible install into a working
+one.
+
+### Why a frame strip rather than a video file
+
+Re-encoding video server-side means a codec, a temporary file and a lot of CPU.
+The response is a bounded number of JPEG frames with the mask drawn on — enough
+to see whether the tracking worked, which is what the tool is for. Disclosed as
+a deliberate omission rather than a limitation discovered later.
+
+## How to read the output
+
+- **Check frame one first.** If Grounding DINO found the wrong object there,
+  every subsequent frame tracks the wrong thing perfectly. Failures here are
+  almost always detection failures, not tracking failures.
+- **Watch for the mask drifting** onto the background across the strip — that is
+  the tracker losing the object, usually after an occlusion.
+- **Be specific in the prompt.** "The red backpack" beats "backpack" when there
+  is more than one; "the person on the left" is the kind of phrasing
+  open-vocabulary detection handles well.
+- **4 fps means motion looks stepped.** That is the sampling rate, not the
+  tracking.
+- **Warnings tell you what was trimmed** — a clip longer than 6 seconds says so
+  explicitly.
+- **480 px means fine detail is gone** before anything ran. Thin structures —
+  hair, fingers, wires — will not be captured cleanly.
+
+## Limits
+
+- **6 seconds, 4 fps, 20 frames, 480 px.** All CPU-latency ceilings.
+- **No exported video.** A preview strip only.
+- **One object.** The first frame's best match is tracked; no multi-object
+  support.
+- **Detection happens once.** An object that is not visible in frame one cannot
+  be found later.
+- **Full occlusion usually loses it.** SAM 2's memory tolerates partial
+  occlusion; a complete disappearance and reappearance often does not recover.
+- **Slow.** A two-minute timeout on the client side is there for a reason.
+- **`hiera-tiny` is the smallest SAM 2**, so masks are less precise than the
+  larger checkpoints would give.
+- **Open-vocabulary is not unlimited vocabulary.** Grounding DINO handles common
+  objects and attributes well and gets steadily worse with abstraction.
+
+## Likely interview questions
+
+**"Why two models instead of one?"**
+Because they solve different problems. Grounding DINO is open-vocabulary
+detection — it takes a text phrase and finds the matching region, which is what
+makes an arbitrary description work when no class for it exists. SAM 2 is
+promptable segmentation with video memory — given a prompt on one frame it
+produces a precise mask and follows the object through the rest. Detect once with
+language, then track with memory.
+
+**"Why not run the detector on every frame?"**
+Because detection has no notion of identity. With two similar objects in shot the
+box can jump between them, and any frame the detector misses leaves a hole. A
+tracker with memory keeps following the same object because it knows what it has
+been looking at — which is exactly what carries it through motion blur and
+partial occlusion.
+
+**"What is open-vocabulary detection?"**
+A detector that takes a text query instead of choosing from a fixed class list.
+Conventional detectors are trained on a closed set — 80 COCO classes, say — and
+cannot find anything else. Grounding DINO fuses text features into the detection
+process, so language conditions where it looks rather than just labelling what it
+found. That is the whole reason "the red backpack" is a valid query here.
+
+**"You wanted SAM 3 and used SAM 2. What happened?"**
+The checkpoints are gated behind a Meta access request under a non-standard
+custom licence with no clean pip package, and I found that out before writing
+code rather than after. Grounded-SAM — Grounding DINO plus SAM 2 — is both
+Apache-2.0 and ungated, so it can actually be deployed and its dependencies can
+be reproduced. I would call that the better outcome, not a fallback.
+
+**"How did you get a package with a conflicting dependency to install?"**
+`groundingdino-py` declares non-headless `opencv-python`, which collides with
+this project's headless build and typically fails to import in a slim image at
+all, because `libGL.so.1` is missing. Rather than assume it needed the full
+build, I checked what its inference path actually calls — `cv2.imread`,
+`cv2.cvtColor`, nothing more — all of which headless provides. So it installs with
+`--no-deps` and its real transitive dependencies are pinned explicitly. A
+declared dependency is a claim; what the code calls is the fact.
+
+**"How would you make this production-ready?"**
+A GPU first — every one of the caps here is a CPU-latency decision, and on a GPU
+the 6-second, 4 fps, 480-pixel limits mostly disappear. Then re-detect
+periodically rather than only on frame one, so a lost object can be recovered;
+support multiple objects; and encode a real video file rather than returning a
+frame strip.
 
 <h1 class="bk-chapter" id="ch-28-text-to-image-generator"><span class="bk-chnum">Chapter 28</span>Text-to-Image Generator</h1>
 
@@ -8030,6 +8713,8 @@ letting a client supply a fragment of a SQL query.
 
 </div>
 
+## Using the tool
+
 ### What this tool does
 Upload a new sighting photo and a small gallery of past sighting photos
 of the same species, and this crops the animal out of each photo, embeds
@@ -8091,6 +8776,230 @@ crop to itself scored **1.00, correctly labeled "same."**
 - **Detection quality gates everything.** If the underlying object
   detector can't find the animal in a photo (too small, too low-res, an
   unusual angle), no comparison is possible for that photo.
+
+## What problem it solves
+
+A camera trap fires four hundred times over a month. Standard species
+classification tells you: fox, fox, badger, fox, fox. Useful, and it does not
+answer the question ecologists actually ask.
+
+**Is that the same fox?**
+
+That distinction is everything downstream. Population estimates depend on
+counting *individuals*, not sightings. Territory and range depend on recognising
+the same animal at two locations. Survival rates depend on knowing whether an
+animal seen in March is the one seen in September. A hundred sightings of one
+fox and a hundred sightings of a hundred foxes produce identical species counts
+and completely different ecology.
+
+The traditional answer is physical tagging — collars, ear tags, microchips —
+which means capturing the animal. This tool asks whether a photograph is enough.
+
+## How it works, step by step
+
+1. **Upload two photographs** of an animal.
+2. **Find the animal** in each, using the 601-class detector already in the app,
+   filtered to a set of animal labels.
+3. **Crop with 1.4× expansion** around the box — not a tight crop.
+4. **Embed each crop** with MegaDescriptor into a vector.
+5. **Compare with cosine similarity.**
+6. **Return a verdict** — same, uncertain, or different — with the number.
+
+## The model or algorithm
+
+### MegaDescriptor, and why not a general embedding
+
+The tool was originally scoped around DINOv3 — a strong general-purpose vision
+embedding. The research done before writing code found something better suited:
+**MegaDescriptor** (`BVRA/MegaDescriptor-T-224`), from the WildlifeDatasets
+toolkit. It is the first foundation model built specifically for **individual
+animal re-identification**, and it is published as outperforming generic
+embeddings including CLIP and DINOv2 on exactly this task.
+
+The distinction that makes it the right model is worth being precise about,
+because it is the conceptual core of the chapter.
+
+A general embedding is trained so that **similar images** land near each other.
+For animals that means it learns *species* — every fox near every other fox,
+because foxes look alike. That is the correct behaviour for its objective and
+exactly wrong here, since it makes two different foxes score as a match.
+
+A re-identification embedding is trained on the opposite objective: **the same
+individual, across different photographs, must land closer together than two
+different individuals of the same species.** It has to learn what distinguishes
+one fox from another — coat pattern, scars, ear notches, facial markings — while
+ignoring pose, lighting and background.
+
+**Same-species discrimination is a harder problem than species classification**,
+and it needs a model trained for it.
+
+It loads through `timm`, already a project dependency, so no new package was
+needed.
+
+### The verification that was actually done
+
+The docstring records real measured numbers rather than a claim that the
+technique is sound:
+
+| Comparison | Cosine similarity |
+|---|---|
+| the same cat at two different resolutions | **0.992** |
+| two different goldfish, side by side in one photo | **0.656** |
+| cat versus goldfish | **0.090** |
+
+Those three numbers are doing real work. The first shows resolution invariance.
+The second is the one that matters most — two individuals *of the same species*
+separating clearly, which is precisely what a general embedding would fail. The
+third confirms the scale is behaving sensibly at the far end.
+
+That is the difference between "MegaDescriptor is a re-ID model" and "this
+pipeline produces discriminative signal on this hardware".
+
+### The thresholds, and their honest status
+
+```
+≥ 0.85   likely the same individual
+0.75 – 0.85   uncertain
+< 0.75   likely different
+```
+
+The code is explicit that these are **informed by one real test, not calibrated
+against a multi-individual validation set** — because none was available in this
+environment.
+
+The **uncertain band is the important part of that design.** With thresholds you
+cannot validate, a two-way verdict forces a guess on every borderline case. A
+three-way output lets the system decline, and declining is the correct answer
+when the evidence is between the two anchors you actually measured. It is the
+same reasoning as the Face Liveness chapter's uncertain band, arrived at from the
+same cause: a threshold you cannot calibrate should not be made to carry a binary
+decision.
+
+### Why the crop is expanded by 1.4×
+
+A tight bounding box is the wrong input, and the code says so: **re-ID embeddings
+expect body context, not a tight crop.**
+
+What identifies an individual is often the *pattern across the body* — the
+distribution of markings, the proportions, the shape of the whole animal. A tight
+crop can clip the tail, the ear tips, the flank, and those are exactly the
+regions that differ between individuals of one species. The same reasoning
+appears in the Face Liveness chapter for a different reason, and the shared rule
+is: **match the crop geometry the model was trained on, and prefer context over
+tightness when the signal is distributed.**
+
+### Detect first, then embed
+
+Embedding a whole photograph would mix the animal with grass, sky and a fence
+post, and two photographs of the same fox in different places would differ
+mostly in background. Detecting and cropping first means the embedding describes
+the animal.
+
+This is the same **crop-then-remeasure** pattern the app uses for person → face,
+vehicle → number plate, and plant → foliage. A general detector locates the
+region; a specialised model works inside it.
+
+The animal label set is drawn from the detector's existing OIV7 classes — Animal,
+Mammal, Bird, Cat, Dog, Fox, Deer, Badger-adjacent carnivores, down to Goldfish
+and Butterfly — so nothing new was trained.
+
+## Why these choices
+
+**Why re-ID rather than fine-tuning a classifier per animal.** A classifier needs
+a class per individual and retraining every time a new animal appears — hopeless
+for wildlife, where the population is unknown and changing. An embedding needs no
+retraining: a new individual is a new vector, and identification is a nearest-
+neighbour lookup.
+
+**The licence trade, stated plainly.** MegaDescriptor is **CC-BY-NC-4.0** —
+non-commercial. That is a fit for a non-commercial educational portfolio and
+would not be for a product. The code names it as comparable to the AGPL-3.0
+trade-off already accepted for the YOLO detector. Checking and recording the
+licence before adopting is the same habit that split Depth-Anything's Small
+checkpoint from its non-commercial siblings.
+
+**What is deliberately not done.** Real re-ID pipelines use pose normalisation
+and multi-crop averaging; this uses a single crop and a single embedding. The
+docstring says so, along with the plainest statement of scope in the tool:
+*"Does this look like the same individual," not proof.*
+
+## How to read the output
+
+- **Read the similarity number, not only the verdict.** 0.86 and 0.84 are the
+  same evidence with different labels.
+- **"Uncertain" is a real answer.** It means the score fell between the two
+  anchors that were actually measured.
+- **Same species is the meaningful test.** Two different animals of *different*
+  species scoring low proves nothing — the goldfish-versus-cat number is 0.09.
+  The comparison that tells you the tool is working is two individuals of the
+  same species.
+- **Photograph the same aspect.** Two photographs of one animal from opposite
+  sides may show entirely different markings.
+- **A poor crop invalidates the comparison.** If the detector found the wrong
+  thing, or clipped the animal, the embedding describes something else.
+- **No animal detected means no comparison**, not "different".
+
+## Limits
+
+- **Not a validated identification system.** Published wildlife re-ID benchmarks
+  report real error rates even with MegaDescriptor, and this skips the pose
+  normalisation and multi-crop averaging those pipelines use.
+- **Thresholds come from one test.** No multi-individual validation set was
+  available.
+- **No camera-trap dataset was available** to test against, which is the actual
+  deployment condition.
+- **Two images at a time.** No population database, no clustering, no
+  "which of these forty sightings are the same animal".
+- **Species with little individual variation** — many birds, most fish — are
+  intrinsically much harder than a spotted or scarred mammal.
+- **Pose, lighting and occlusion all degrade it**, and nothing here normalises
+  for them.
+- **CC-BY-NC-4.0.** Non-commercial use only.
+- **Detection is the first failure point.** An animal the OIV7 detector does not
+  recognise never reaches the embedding.
+
+## Likely interview questions
+
+**"Why not use CLIP or DINOv2?"**
+Because they are trained so that *similar images* land near each other, and for
+animals that means they learn species — every fox near every other fox. That is
+correct for their objective and exactly wrong here, since it makes two different
+foxes score as a match. A re-ID model is trained on the opposite objective: the
+same individual across photographs must be closer than two individuals of the
+same species, so it has to learn coat pattern, scars and markings while ignoring
+pose and background. MegaDescriptor is published as beating both on this task.
+
+**"How do you know it works?"**
+Measured numbers rather than a claim about the technique. The same cat at two
+resolutions scored 0.992; two different goldfish side by side in one photo scored
+0.656; cat against goldfish scored 0.090. The middle number is the one that
+matters — two individuals of the same species separating cleanly is exactly what
+a general embedding would fail, and it is the evidence the pipeline produces real
+discriminative signal on this hardware.
+
+**"Your thresholds aren't calibrated. What did you do about it?"**
+Added an uncertain band and disclosed the status. With thresholds informed by one
+test rather than a validation set, a two-way verdict forces a guess on every
+borderline case. A three-way output lets the system decline, and declining is the
+right answer when the score sits between the anchors I actually measured. To
+calibrate them properly I would need a labelled multi-individual dataset — ideally
+real camera-trap footage — which was not available.
+
+**"Why expand the crop instead of using the tight box?"**
+Because what identifies an individual is often distributed across the whole body
+— the pattern of markings, the proportions, the shape — and a tight box clips
+exactly the regions that differ between individuals of one species. Re-ID
+embeddings are trained on crops with body context, so a tight crop is also the
+wrong input distribution. Prefer context over tightness when the signal is
+distributed.
+
+**"How would you scale this to a real camera-trap survey?"**
+Embed every detection once and store the vectors, then cluster them rather than
+comparing pairs — that turns "are these two the same" into "how many individuals
+are in these four hundred sightings", which is the actual ecological question.
+Add pose normalisation and multi-crop averaging per sighting to cut the variance,
+and calibrate the thresholds against a labelled subset from the same cameras,
+because the right threshold depends on the species and the camera placement.
 
 </div>
 
