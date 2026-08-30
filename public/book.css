@@ -197,8 +197,15 @@ hr { border: 0; border-top: 1.5pt solid var(--hue); opacity: .45; margin: 1.6em 
    to find a section while thumbing through. */
 .bk-sec {
   border-left: 1.5pt solid #b45309;
-  padding-left: 9pt;
+  padding: 4pt 9pt 4pt 9pt;
   margin: 10pt 0 8pt -11pt;
+  background: #fdf5ea;
+  /* A background is dropped by default when a page is printed. The handbook
+     is read on a screen at least as often as it is put on paper, and without
+     this the tint is simply absent from the PDF. */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
-.bk-sec-qa { border-left-color: #94a3b8; }
+.bk-sec-qa { border-left-color: #94a3b8; background: #f2f5f8; }
 .bk-sec > :first-child { margin-top: 0; }
+.bk-sec > :last-child { margin-bottom: 0; }

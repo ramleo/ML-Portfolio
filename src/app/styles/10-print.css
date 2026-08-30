@@ -65,11 +65,14 @@ body.bk-paginated #bk-pages { display: block !important; }
      is free on a screen and costs ink on paper, and a home printer renders
      it as a dirty grey box rather than the colour it is on screen. */
   .hb-body .bk-sec {
-    background: none !important; border-radius: 0;
-    padding: 0 0 0 8pt; margin: 14pt 0 8pt;
+    background: #fdf5ea !important; border-radius: 0;
+    padding: 4pt 8pt; margin: 14pt 0 8pt;
     border-left: 2px solid #b45309 !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .hb-body .bk-sec-qa { border-left-color: #94a3b8 !important; }
+  .hb-body .bk-sec-qa {
+    background: #f2f5f8 !important; border-left-color: #94a3b8 !important;
+  }
   .hb-body hr { border-top: 1px solid #ddd; margin: 18pt 0 0; }
   .hb-body code {
     background: #f3f3f3 !important; border-color: #ddd !important;
