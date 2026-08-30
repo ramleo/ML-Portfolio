@@ -1,0 +1,65 @@
+/* ── Handbook ─────────────────────────────────────────────────────────────
+   Long-form reading, which the rest of the site does not do anywhere else:
+   one column, a measure that stays near 70 characters, and headings that
+   separate fifty-odd entries without shouting. */
+.hb-page { max-width: 62rem; }
+.hb-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2.25rem;
+}
+.hb-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.hb-btn {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.5rem 0.9rem; border-radius: 9999px; cursor: pointer;
+  font-size: 0.78rem; font-weight: 600; font-family: inherit;
+  background: transparent; color: var(--text2); border: 1px solid var(--border2);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.hb-btn:hover { color: var(--text); border-color: var(--text3); }
+.hb-btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hb-btn-primary:hover { color: #fff; filter: brightness(1.08); border-color: var(--accent); }
+.hb-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hb-body { font-size: 0.95rem; line-height: 1.75; color: var(--text2); }
+.hb-body > :first-child { margin-top: 0; }
+.hb-body h1 { display: none; }        /* the page already has its own heading */
+.hb-body h2 {
+  font-family: var(--type-display); font-size: 1.5rem; font-weight: 700;
+  color: var(--text); margin: 3rem 0 0.85rem; letter-spacing: -0.015em;
+}
+.hb-body h3 {
+  font-size: 1.05rem; font-weight: 650; color: var(--text);
+  margin: 2.25rem 0 0.35rem; letter-spacing: -0.005em;
+}
+.hb-body p { margin: 0 0 0.9rem; max-width: 70ch; }
+/* Italics appear in exactly one place — the one-line label under each tool
+   title — so they are styled as an eyebrow rather than as emphasis. Anything
+   that needs to read as a sentence uses a blockquote instead. */
+.hb-body em { color: var(--text3); font-style: normal; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.07em; }
+.hb-body blockquote {
+  margin: 0 0 1.4rem; padding: 0.7rem 1rem; border-left: 2px solid var(--border2);
+  color: var(--text3); font-size: 0.85rem;
+}
+.hb-body blockquote p { margin: 0; }
+.hb-body ul { margin: 0 0 1.1rem; padding-left: 1.15rem; }
+.hb-body li { margin: 0.2rem 0; }
+.hb-body hr { border: 0; border-top: 1px solid var(--border); margin: 3.25rem 0 0; }
+.hb-body code {
+  font-family: var(--type-data); font-size: 0.82em; padding: 0.1rem 0.35rem;
+  border-radius: 4px; background: var(--bg-glass); border: 1px solid var(--border);
+  color: var(--text);
+}
+/* Each entry's facts are a two-column table with no header row — the left
+   column is the label, so a header would just repeat itself fifty times. */
+.hb-body table {
+  width: 100%; max-width: 42rem; border-collapse: collapse;
+  margin: 0 0 1.4rem; font-size: 0.85rem;
+}
+.hb-body thead { display: none; }
+.hb-body td {
+  padding: 0.42rem 0.7rem; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.hb-body td:first-child { width: 8.5rem; color: var(--text3); font-weight: 600; }
+.hb-body tr:last-child td { border-bottom: 0; }

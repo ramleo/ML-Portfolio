@@ -21,7 +21,9 @@
  *   05  architecture — stage accent tokens + the request-path diagram
  *   06  animations   — hero background + keyframes
  *   07  tools        — toolkit search bar, domain clusters, flip cards
- *   08  responsive   — every media query, last so it wins
+ *   08  responsive   — every screen media query
+ *   09  handbook     — the long-form reference page
+ *   10  print        — what the handbook's PDF looks like, last of all
  *
  * One rule keeps that list honest: an override that has to beat a rule defined
  * above it goes in 08. Phone rules used to sit in two blocks either side of the
@@ -47,3 +49,5 @@
 @import "./styles/06-animations.css";
 @import "./styles/07-tools.css";
 @import "./styles/08-responsive.css";
+@import "./styles/09-handbook.css";
+@import "./styles/10-print.css";

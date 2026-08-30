@@ -1,0 +1,61 @@
+/* ── Print ────────────────────────────────────────────────────────────────
+   The handbook's "Save as PDF" is the browser's own print engine, so this is
+   the formatting the PDF gets. Loaded last so it wins over the screen rules
+   without needing !important on every line.
+
+   Aims: ink on white regardless of the reader's theme, no site chrome, and
+   no entry split across a page break. */
+@media print {
+  @page { margin: 18mm 16mm; }
+
+  html, body {
+    background: #fff !important; color: #111 !important;
+  }
+  /* Site furniture that means nothing on paper. */
+  nav, footer, .hb-actions, .particle-grid, canvas,
+  .constellation-bg, .chatbot-launcher { display: none !important; }
+
+  .section, .hb-page { max-width: none !important; padding: 0 !important; }
+  .hb-head { display: block !important; margin-bottom: 1.5rem !important; }
+  .section-label { color: #666 !important; }
+  .section-heading, .heading-accent {
+    color: #111 !important; font-size: 22pt !important;
+  }
+
+  .hb-body { color: #222 !important; font-size: 10.5pt; line-height: 1.55; }
+  .hb-body h2 {
+    color: #111 !important; font-size: 15pt; margin: 20pt 0 6pt;
+    border-bottom: 1px solid #ccc; padding-bottom: 3pt;
+    break-after: avoid; page-break-after: avoid;
+  }
+  .hb-body h3 {
+    color: #111 !important; font-size: 11.5pt; margin: 14pt 0 2pt;
+    break-after: avoid; page-break-after: avoid;
+  }
+  .hb-body em { color: #666 !important; }
+  .hb-body blockquote {
+    border-left-color: #ccc !important; color: #555 !important;
+    padding: 4pt 8pt; margin-bottom: 10pt;
+  }
+  .hb-body p { max-width: none; orphans: 3; widows: 3; }
+  .hb-body hr { border-top: 1px solid #ddd; margin: 18pt 0 0; }
+  .hb-body code {
+    background: #f3f3f3 !important; border-color: #ddd !important;
+    color: #111 !important;
+  }
+  /* A tool's facts should not be orphaned from its heading, and a five-row
+     table splitting across pages is the main thing that made early drafts
+     read as a dump rather than a reference. */
+  .hb-body table {
+    break-inside: avoid; page-break-inside: avoid;
+    max-width: none; margin-bottom: 10pt;
+  }
+  .hb-body td { border-bottom: 1px solid #e3e3e3 !important; padding: 3pt 6pt; }
+  .hb-body td:first-child { color: #555 !important; width: 26%; }
+
+  /* A link's target is invisible on paper unless it is written out. Internal
+     paths are already printed in the tables, so only external ones expand. */
+  .hb-body a[href^="http"]::after {
+    content: " (" attr(href) ")"; font-size: 8.5pt; color: #666;
+  }
+}

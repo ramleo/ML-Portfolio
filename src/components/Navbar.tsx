@@ -26,6 +26,7 @@ const NAV_LINKS = [
   { label: "Tools",        href: "/#capabilities" },
   { label: "Platforms",    href: "/#projects" },
   { label: "How it works", href: "/#architecture" },
+  { label: "Handbook",     href: "/handbook" },
   { label: "Docs",         href: "/docs" },
   { label: "About",        href: "/about" },
 ];

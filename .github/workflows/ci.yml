@@ -31,6 +31,24 @@ jobs:
       - name: Check file lengths
         run: ./scripts/check-file-length.sh
 
+  # The handbook claims to be generated from capabilities.ts, so that it cannot
+  # quietly disagree with the cards. That is only true if something checks —
+  # otherwise the first person to edit a tool and forget to regenerate ships a
+  # document that lies. This regenerates it and fails if the result differs.
+  handbook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Regenerate the handbook
+        run: python3 scripts/build-handbook.py
+      - name: Fail if it was not up to date
+        run: |
+          if ! git diff --quiet -- public/handbook.md; then
+            echo "public/handbook.md is stale. Run: python3 scripts/build-handbook.py"
+            git diff --stat -- public/handbook.md
+            exit 1
+          fi
+
   build:
     runs-on: ubuntu-latest
     steps:
