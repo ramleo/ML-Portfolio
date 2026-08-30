@@ -30,46 +30,48 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 - <a class="bk-toc-chapter bk-part-1" href="#ch-5-feature-engineering">5. Feature Engineering</a>
 - <a class="bk-toc-chapter bk-part-1" href="#ch-6-feature-selection">6. Feature Selection</a>
 - <a class="bk-toc-chapter bk-part-1" href="#ch-7-optuna-tuning">7. Optuna Tuning</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-8-real-time-analytics">8. Real-Time Analytics</a>
-- <a class="bk-toc-chapter bk-part-1" href="#ch-9-shap-explainability">9. SHAP Explainability</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-8-pipeline-builder">8. Pipeline Builder</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-9-pipeline-cinema">9. Pipeline Cinema</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-10-real-time-analytics">10. Real-Time Analytics</a>
+- <a class="bk-toc-chapter bk-part-1" href="#ch-11-shap-explainability">11. SHAP Explainability</a>
 - <a class="bk-toc-part bk-part-2" href="#part-2">Part 2 · Language & Documents</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-10-contract-invoice-reconciliation-assistan">10. Contract/Invoice Reconciliation Assistant</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-11-document-intelligence">11. Document Intelligence</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-12-multimodal-rag">12. Multimodal RAG</a>
-- <a class="bk-toc-chapter bk-part-2" href="#ch-13-text-to-sql-agent">13. Text-to-SQL Agent</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-12-contract-invoice-reconciliation-assistan">12. Contract/Invoice Reconciliation Assistant</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-13-document-intelligence">13. Document Intelligence</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-14-multimodal-rag">14. Multimodal RAG</a>
+- <a class="bk-toc-chapter bk-part-2" href="#ch-15-text-to-sql-agent">15. Text-to-SQL Agent</a>
 - <a class="bk-toc-part bk-part-3" href="#part-3">Part 3 · Computer Vision</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-14-asl-fingerspelling-recognition">14. ASL Fingerspelling Recognition</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-15-astrophotography-anomaly-detector">15. Astrophotography Anomaly Detector</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-16-crime-scene-reconstruction">16. Crime Scene Reconstruction</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-17-gait-pattern-comparison">17. Gait Pattern Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-18-movement-form-comparison">18. Movement Form Comparison</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-19-ppe-compliance-check">19. PPE Compliance Check</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-20-photo-library-visual-search">20. Photo Library Visual Search</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-21-plant-growth-quantification">21. Plant Growth Quantification</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-22-text-prompted-video-object-tracking">22. Text-Prompted Video Object Tracking</a>
-- <a class="bk-toc-chapter bk-part-3" href="#ch-23-wildlife-re-identification">23. Wildlife Re-Identification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-16-asl-fingerspelling-recognition">16. ASL Fingerspelling Recognition</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-17-astrophotography-anomaly-detector">17. Astrophotography Anomaly Detector</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-18-crime-scene-reconstruction">18. Crime Scene Reconstruction</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-19-gait-pattern-comparison">19. Gait Pattern Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-20-movement-form-comparison">20. Movement Form Comparison</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-21-ppe-compliance-check">21. PPE Compliance Check</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-22-photo-library-visual-search">22. Photo Library Visual Search</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-23-plant-growth-quantification">23. Plant Growth Quantification</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-24-text-prompted-video-object-tracking">24. Text-Prompted Video Object Tracking</a>
+- <a class="bk-toc-chapter bk-part-3" href="#ch-25-wildlife-re-identification">25. Wildlife Re-Identification</a>
 - <a class="bk-toc-part bk-part-4" href="#part-4">Part 4 · Security & Trust</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-24-ai-generated-code-detector">24. AI-Generated Code Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-25-adversarial-robustness-lab">25. Adversarial Robustness Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-26-attack-surface-exposed-path-scanner">26. Attack-Surface / Exposed-Path Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-27-binary-byte-plot-entropy-triage">27. Binary Byte-Plot & Entropy Triage</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-28-browser-extension-permission-risk-analyz">28. Browser Extension Permission Risk Analyzer</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-29-captcha-hardening-lab">29. CAPTCHA Hardening Lab</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-30-dns-tunneling-exfiltration-detector">30. DNS Tunneling / Exfiltration Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-31-email-header-authentication-checker">31. Email Header Authentication Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-32-face-cloak">32. Face Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-33-face-deanonymization-risk-demo">33. Face Deanonymization Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-34-keystroke-biometric-auth-risk-demo">34. Keystroke Biometric Auth-Risk Demo</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-35-llm-prompt-injection-detection-playgroun">35. LLM Prompt Injection Detection Playground</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-36-malicious-package-scanner">36. Malicious Package Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-37-password-strength-breach-checker">37. Password Strength & Breach Checker</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-38-phishing-email-body-classifier">38. Phishing Email Body Classifier</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-39-qr-phishing-detector">39. QR Phishing Detector</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-40-siem-alert-triage-agent">40. SIEM Alert Triage Agent</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-41-style-cloak">41. Style Cloak</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-42-tls-security-headers-scanner">42. TLS / Security-Headers Scanner</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-43-video-call-keystroke-inference">43. Video-Call Keystroke Inference</a>
-- <a class="bk-toc-chapter bk-part-4" href="#ch-44-yara-file-scanner">44. YARA File Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-26-ai-generated-code-detector">26. AI-Generated Code Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-27-adversarial-robustness-lab">27. Adversarial Robustness Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-28-attack-surface-exposed-path-scanner">28. Attack-Surface / Exposed-Path Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-29-binary-byte-plot-entropy-triage">29. Binary Byte-Plot & Entropy Triage</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-30-browser-extension-permission-risk-analyz">30. Browser Extension Permission Risk Analyzer</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-31-captcha-hardening-lab">31. CAPTCHA Hardening Lab</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-32-dns-tunneling-exfiltration-detector">32. DNS Tunneling / Exfiltration Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-33-email-header-authentication-checker">33. Email Header Authentication Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-34-face-cloak">34. Face Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-35-face-deanonymization-risk-demo">35. Face Deanonymization Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-36-keystroke-biometric-auth-risk-demo">36. Keystroke Biometric Auth-Risk Demo</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-37-llm-prompt-injection-detection-playgroun">37. LLM Prompt Injection Detection Playground</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-38-malicious-package-scanner">38. Malicious Package Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-39-password-strength-breach-checker">39. Password Strength & Breach Checker</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-40-phishing-email-body-classifier">40. Phishing Email Body Classifier</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-41-qr-phishing-detector">41. QR Phishing Detector</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-42-siem-alert-triage-agent">42. SIEM Alert Triage Agent</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-43-style-cloak">43. Style Cloak</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-44-tls-security-headers-scanner">44. TLS / Security-Headers Scanner</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-45-video-call-keystroke-inference">45. Video-Call Keystroke Inference</a>
+- <a class="bk-toc-chapter bk-part-4" href="#ch-46-yara-file-scanner">46. YARA File Scanner</a>
 - <a class="bk-toc-part" href="#appendix">Appendix · Every tool</a>
 
 </nav>
@@ -84,7 +86,7 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 Everything between a raw CSV and a trained, explained model — cleaning, feature work, tuning, comparison and drift.
 
-9 of this area's 11 tools have a chapter here. All of them are listed in the appendix.
+11 of this area's 11 tools have a chapter here. All of them are listed in the appendix.
 
 </div>
 
@@ -2152,7 +2154,468 @@ single number, so there is nothing to prune against. Making it real would mean
 scoring fold by fold and reporting after each, which would let a clearly bad
 configuration be abandoned after two folds instead of five.
 
-<h1 class="bk-chapter" id="ch-8-real-time-analytics"><span class="bk-chnum">Chapter 8</span>Real-Time Analytics</h1>
+<h1 class="bk-chapter" id="ch-8-pipeline-builder"><span class="bk-chnum">Chapter 8</span>Pipeline Builder</h1>
+
+> Run the whole pipeline as one sequence instead of tool by tool. A visual canvas chains all seven stages together — preprocessing, feature engineering, feature selection, AutoML, Optuna tuning, SHAP explanation and ensembling — so a labelled CSV goes in one end and a trained, explained model comes out the other.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | End-to-End ML Canvas |
+| **Model or method** | Full Pipeline |
+| **What you give it** | Any labeled CSV |
+| **Stages** | 7 |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/pipeline-builder` |
+
+</div>
+
+## What problem it solves
+
+Every other tool in this part of the book does one job. Clean the file. Build
+features. Cut the useless columns. Train and compare. Tune. Explain.
+
+Used one at a time, each hands you a CSV that you then feed into the next, and
+three things go wrong. You lose track of what you did — three files later, was
+the outlier removal on or off? You cannot compare — was the score better because
+of the feature engineering, or because you changed the imputation at the same
+time? And you cannot repeat it — the sequence exists only as a memory and a
+folder of downloads.
+
+The Pipeline Builder makes the sequence itself the object. Seven stages on one
+canvas, each configured, each showing what it did, running as one chain. A
+labelled CSV goes in and a trained, explained model comes out, and the recipe is
+visible the whole way.
+
+## How it works, step by step
+
+### The seven stages
+
+They run in this order, and the order is the argument of the whole tool:
+
+| # | Stage | Produces | Consumed by |
+|---|---|---|---|
+| 1 | **Preprocessing** | a cleaned CSV | everything after |
+| 2 | **Feature Engineering** | new columns | everything after |
+| 3 | **Feature Selection** | a narrowed column set | AutoML |
+| 4 | **AutoML** | a winning algorithm and a leaderboard | Optuna, SHAP, Ensemble |
+| 5 | **Optuna** | tuned hyperparameters | Ensemble |
+| 6 | **SHAP** | per-feature contributions | display |
+| 7 | **Ensemble** | a voting or stacking score | display |
+
+Stages 5, 6 and 7 are **locked until AutoML has run**, because each needs a
+winning model to work on. The canvas greys them out rather than letting you
+click into a dead end.
+
+Data passes between stages as base64 CSV strings held in a shared pipeline
+state — `csvB64` for the raw upload, then `preprocessedCsvB64`, `feCsvB64`,
+`fsCsvB64` as each stage rewrites it. Because they are strings rather than file
+handles, the whole pipeline survives being written to browser storage and
+reopened.
+
+### Three ways to run it
+
+- **Guided** — one stage at a time. Configure, run, look at the result, then
+  move on. This is the mode for learning what each stage does to your data.
+- **Express** — configure all seven up front, then run the chain in one go, with
+  the canvas animating each stage as it executes. This is the mode for the
+  fifth time you run it.
+- **A/B Compare** — define **two** complete pipelines and run both on the same
+  file. This is the mode that answers the question the other tools cannot.
+
+### Code export
+
+At the end, the tool writes out the equivalent **scikit-learn Python** — the
+imports for the winning algorithm, the preprocessing, the feature work and the
+model with its tuned parameters. The canvas is a way to arrive at a pipeline;
+the export is how it leaves and becomes real code someone can review, put in a
+repository, and run in production.
+
+## The model or algorithm
+
+There is no new algorithm here. The stages are covered in their own chapters.
+What is worth explaining is **what the pipeline object is and why it matters**,
+and how the A/B comparison works.
+
+### The pipeline as the unit
+
+In scikit-learn a `Pipeline` is a list of steps where every step but the last is
+a transformer with `fit` and `transform`, and the last is an estimator. Calling
+`fit` on the pipeline fits each step on the output of the one before.
+
+The reason this is a *concept* and not just a convenience: a pipeline can be
+cross-validated as a single object. When you write
+
+```python
+cross_val_score(pipeline, X, y, cv=5)
+```
+
+scikit-learn refits **every step** inside each fold — the imputer, the scaler,
+the encoder, the model — on that fold's training rows only. Do the same steps by
+hand before splitting and the imputer's mean, the scaler's standard deviation
+and the encoder's categories have all been computed using rows the model is
+about to be scored on. The score comes out too high, and you discover it in
+production.
+
+That is why the tool is built around a chain rather than a sequence of file
+downloads. The chain corresponds to something scikit-learn can hold as one
+object; the downloads do not.
+
+**Where this implementation does and does not honour that.** The AutoML stage
+builds a real `Pipeline([("pre", preprocessor), ("est", estimator)])` and
+cross-validates it, so the preprocessing is refit per fold — correct. But the
+Preprocessing, Feature Engineering and Feature Selection stages run **before**
+that, over the whole file, and hand the next stage a rewritten CSV. Their
+statistics have therefore seen every row. The chain is honest from AutoML
+onward, and not before it. *That is my reading of the design from the code, not
+a stated intent.*
+
+### Inside the AutoML stage
+
+Sample to 15,000 rows if larger, then for each chosen algorithm build a fresh
+pipeline and cross-validate it — `f1_weighted` for classification,
+`neg_mean_absolute_error` for regression, with the sign flipped back so higher
+is better on the leaderboard. Sort, take the winner, refit on everything,
+register it in memory under a `pb_` id so the later stages can find it.
+
+A failing algorithm is scored **−999** and stays on the leaderboard with its
+error attached, rather than vanishing or taking the request down.
+
+### The A/B comparison
+
+Both pipelines run over the same decoded dataframe, in sequence:
+
+```
+decode → preprocess → feature engineering → feature selection → AutoML
+```
+
+Each returns a score and a wall-clock time in milliseconds, and the higher score
+wins with the absolute difference reported.
+
+The value here is that **only one thing needs to change between A and B**. Same
+file, same target, same folds, same seed. Turn Yeo-Johnson on in B and nothing
+else, and the difference in score is attributable to that decision in a way it
+never is when you compare two things you ran on different days with different
+settings.
+
+One honest detail in the comparison code: if *every* model in a leg fails, the
+top of the leaderboard is a −999 entry, and the function logs
+*"every model failed — returned 'winner' is not a real comparison outcome"*
+rather than pretending. Worth knowing the winner field can be meaningless in
+that case.
+
+## Why these choices
+
+**Why this stage order.** Each stage depends on the last being done. Feature
+engineering on un-imputed columns propagates the gaps into every derived column.
+Feature selection before the features exist cannot see them. Tuning before you
+know which algorithm won tunes the wrong one — and worse, tuning every candidate
+before the competition inflates the score that decides the competition, which is
+covered in the Optuna chapter. SHAP and ensembling both need a fitted model.
+
+**Why three modes rather than one.** They are three different questions.
+*Guided* answers "what does this stage do?", *Express* answers "give me the
+model", *A/B* answers "was that change worth it?". A single mode would serve one
+of those well and the other two badly.
+
+**Why the CSV moves as base64 rather than a file handle.** A `File` object
+cannot be serialised, so a refresh would lose the pipeline. Strings can be
+written to browser storage, which is what lets the canvas survive a reload —
+at the cost of roughly a third more memory than the raw bytes.
+
+**Why code export exists at all.** A visual builder that only produces a model
+inside itself is a demo. One that produces the code is a starting point someone
+can review in a pull request. It is also the honest admission that a canvas is
+for exploring, and production belongs in a repository.
+
+**Why the later stages are locked rather than hidden.** A greyed-out stage tells
+you it exists and what it needs. A hidden one teaches nothing.
+
+## How to read the output
+
+- **The stage cards are the record.** Each shows what it changed — rows before
+  and after, columns added, features dropped, the winner and its score. Read
+  them as a sequence and you have the story of what happened to your data.
+- **Watch the row and column counts across stages.** Preprocessing dropping
+  40% of the rows or feature engineering tripling the columns is usually not
+  what you intended, and it is only visible in the chain view.
+- **In A/B, read the difference against the fold spread.** A gap of 0.003
+  between two pipelines is not a result. The comparison is only meaningful when
+  the difference is bigger than the noise between folds — which the AutoML
+  chapter's advice on fold scores applies to directly.
+- **A/B also reports time.** A pipeline that scores 0.002 better and takes four
+  times as long has lost.
+- **A `−999` on a leaderboard** is a failure, not a score. The error is attached.
+- **Read the exported code before you trust the pipeline.** It is the clearest
+  statement of what the canvas actually built, and the place a mistake in your
+  configuration becomes obvious.
+
+## Limits
+
+- **Only AutoML onward is leak-safe.** The first three stages compute their
+  statistics over the whole file. For a model you intend to deploy, the
+  cleaning, feature building and selection all belong inside the cross-validation
+  loop, and here they are not.
+- **The stage order is fixed.** You cannot select features before engineering
+  them, or clean twice.
+- **15,000 rows** is the AutoML stage's ceiling; larger files are sampled.
+- **A/B is two, not many.** No grid over pipeline configurations.
+- **A/B compares a single cross-validated score.** Two runs on the same seed and
+  the same folds — better than comparing across days, but still one measurement
+  each, with no repeats and no confidence interval.
+- **No branching.** The canvas is a chain, not a graph; you cannot fork a
+  dataset down two paths and rejoin them.
+- **The exported code covers four algorithms** — Random Forest, XGBoost,
+  LightGBM and CatBoost — and falls back to Random Forest for anything else, so
+  an exported pipeline whose winner was, say, Ridge will not be the model you
+  actually ran.
+- **No scheduling and no persistence of the run.** This builds a pipeline; it
+  does not operate one.
+
+## Likely interview questions
+
+**"What is a scikit-learn Pipeline and why does it matter?"**
+A list of transformers ending in an estimator, treated as one object. It matters
+because `fit` is applied step by step *within* whatever data it is given, so
+cross-validating a pipeline refits the preprocessing inside each fold. Doing the
+same transformations by hand before splitting lets the imputer and scaler see
+the validation rows, and the score comes out optimistically high. The pipeline
+is the mechanism that makes the split honest.
+
+**"Walk me through your pipeline order and defend it."**
+Clean, engineer, select, train, tune, explain, ensemble. Cleaning first because
+every later step assumes complete columns. Engineering before selection because
+you cannot select a feature that does not exist yet. Selection before training so
+the competition is not diluted by noise columns. Tuning after training, never
+before, because tuning inflates a cross-validation score and selecting on an
+inflated score picks whichever model the search flattered most. Explanation and
+ensembling last because both need fitted models.
+
+**"How do you know a change to your pipeline actually helped?"**
+Change one thing, hold everything else fixed — same data, same folds, same seed
+— and compare. That is what the A/B mode enforces. And then check the difference
+against the fold-to-fold variance: if the models swing by two points across
+folds, a half-point difference between pipelines is noise, and I would call it a
+tie rather than a win.
+
+**"Where does this design leak, if anywhere?"**
+The first three stages. They transform the whole file and pass the result on, so
+their statistics — imputation means, scaler parameters, selection scores — have
+seen every row including whatever ends up in the validation folds. From AutoML
+onward it is correct, because that stage builds a real pipeline and
+cross-validates it. If I were fixing it, I would make the first three stages
+emit *configuration* rather than a rewritten CSV, and have AutoML assemble them
+into the pipeline it fits — which is exactly what the code export already
+produces on paper.
+
+**"Why export code rather than a saved model file?"**
+Because a pickled model is opaque and version-fragile, and nobody can review it.
+Code can be read in a pull request, kept in version control, adapted, and run
+where the model actually has to live. The canvas is for deciding what the
+pipeline should be; the export is how that decision leaves the tool.
+
+<h1 class="bk-chapter" id="ch-9-pipeline-cinema"><span class="bk-chnum">Chapter 9</span>Pipeline Cinema</h1>
+
+> Watch the seven ML stages play out as an animation rather than reading about them. Illustrated characters carry data through each step of the pipeline in turn. Nothing to upload — it is a walkthrough of how the stages fit together.
+
+## At a glance
+
+<div class="bk-facts">
+
+| | |
+|---|---|
+| **Also called** | Animated ML Showcase |
+| **Model or method** | Visual Demo |
+| **What you give it** | No upload needed |
+| **Stages** | 4 |
+| **Where it runs** | On the server |
+| **Find it at** | `/tools/pipeline-cinema` |
+
+</div>
+
+## What problem it solves
+
+Everything else in this part of the book asks you to already know why it exists.
+Preprocessing assumes you know why missing values are a problem. AutoML assumes
+you know what cross-validation is for. The Pipeline Builder shows seven stages
+and expects you to recognise them.
+
+Pipeline Cinema is for the person who does not — a stakeholder, an interviewer
+asking what your app does, a student, or you on the first day. It plays the
+pipeline as an animation. Illustrated characters carry an orb of data left to
+right across a stage, a narrator explains what is happening in ordinary
+sentences, and each stage takes its turn.
+
+It is the one tool in the app whose product is understanding rather than output.
+
+## How it works, step by step
+
+**Without a file** it runs as a scripted walkthrough. Four chapters, four
+characters, four scenes. Each stage announces itself with a chapter card, the
+data orb travels to that stage's position on the track, the narrator delivers
+its lines, and the stage marks itself done. You can pause it, stop it, and
+click any completed stage to go back and look at it again.
+
+**With a file** it becomes something else entirely: a real run, narrated. Upload
+a CSV, pick a target, and the same four scenes play — but now each one **calls
+the real backend**, on your data, and the narration is generated from what came
+back:
+
+| Stage | Endpoint | What the narrator then says |
+|---|---|---|
+| Preprocess | `/pipeline-builder/preprocess` | *"Loading your dataset — 891 rows, 12 columns detected."* … *"Imputing missing values: Age (177), Cabin (687)."* … *"Removed 3 duplicate rows."* … *"Fixed skewness in: Fare using log1p."* |
+| Feature Eng | `/pipeline-builder/feature-eng` | how many feature columns it started with, and how many new ones it created |
+| Feature Select | `/pipeline-builder/feature-select` | how many features were evaluated, which low-signal ones were dropped, how many were kept |
+| AutoML | `/pipeline-builder/automl` | how many models were trained on how many rows, each one's score, and the winner |
+
+The output CSV of each stage becomes the input of the next, exactly as in the
+Pipeline Builder, so what you are watching is a genuine run with the animation
+wrapped around it.
+
+Each scene runs on a timer — roughly 8.4, 8.0, 7.2 and 10 seconds — long enough
+to read the narration, and the AutoML scene gets the longest because it has the
+most to say.
+
+## The model or algorithm
+
+There is no model of its own. Every number in the narration comes from the
+Pipeline Builder's endpoints, described in that chapter. What is worth
+explaining here is **the construction**, because building a narrated animation
+over a real, slow, failure-prone backend is where the actual engineering is.
+
+### Two clocks that have to agree
+
+There is an animation clock — chapter card in, orb travels, narrator lines
+appear, scene holds — and there is a network clock, which is however long the
+backend takes. They have nothing to do with each other, and the code has to
+reconcile them.
+
+The pattern used is: fire the request, hold the scene for a fixed duration, and
+whenever the response lands, swap the narration lines in. If the call is fast,
+the scene still plays for its full length so you can read it; if the call is
+slow, the animation covers the wait instead of showing a spinner. The animation
+is the loading state.
+
+### Pausing something asynchronous
+
+A pause button is easy when everything is on a timer and hard when the code is
+`await`-ing. The implementation keeps a paused flag in a ref and wraps every
+wait in a `waitPauseable(ms)` helper, so the sequence checks the flag as it goes
+rather than sleeping through it. A ref rather than state, because the running
+loop needs the value at the moment it checks it, and a state variable captured
+in a closure would still hold whatever it was when the loop started. A stopped
+flag works the same way, checked at each step so the sequence can unwind
+cleanly instead of being killed mid-scene.
+
+### Degrading rather than breaking
+
+Each stage's call is wrapped so that a failure sets a visible error and the
+scene still plays with its scripted lines. On free hosting the backend sleeps
+and the first request can take thirty seconds or fail outright — a walkthrough
+that dies at stage one because a server was cold would be worse than useless.
+
+### Reading the columns without a CSV parser
+
+Between stages the tool shows which columns exist now, so you can watch feature
+engineering widen the table and feature selection narrow it. It gets those by
+base64-decoding the CSV it just received and splitting the **first line only**.
+It never parses the body — it only needs the header, and parsing megabytes of
+rows to read one line would be the slowest thing in the tool.
+
+## Why these choices
+
+**Why four stages and not seven.** The four shown are the ones that visibly
+transform the *data* — clean it, widen it, narrow it, learn from it. Optuna,
+SHAP and ensembling operate on the *model* after the fact, and there is no
+visual story of an orb moving through them. *That is my reading of the split
+from the code; the file records the list, not the reasoning.* Note the card's
+description says "seven ML stages" — the tool animates **four**, and its own
+`stat` field correctly says 4.
+
+**Why the file is optional, and why it changes the tool.** The card says
+"nothing to upload", and that is true — it plays without one. But the upload bar
+exists, and with a file the tool stops being a cartoon and becomes a narrated
+run of your own data. Both modes are real; the second is the more interesting
+one and is easy to miss.
+
+**Why narration rather than labels.** *"Imputing missing values: Age (177),
+Cabin (687)"* teaches what imputation is by showing it happening to columns you
+recognise. A label reading "Imputation" teaches nothing to the person who needed
+this tool.
+
+**Why the scenes are fixed-length rather than paced by the network.** Because
+the point is comprehension, and a scene that flashes past in 200 milliseconds
+because the cache was warm is not comprehensible. The timing serves the reader,
+not the machine.
+
+## How to read the output
+
+- **Watch the column count between stages.** Feature engineering adding twenty
+  columns and feature selection removing thirty is the clearest picture of what
+  those two stages are for that the app produces anywhere.
+- **The narration is real when you have uploaded a file.** The row counts, the
+  imputed columns, the dropped features and the model scores are your data, not
+  a script. Without a file, the lines are illustrative.
+- **The AutoML scene reports 3-fold cross-validation**, not the 5 used elsewhere
+  — the Pipeline Builder's AutoML stage takes a fold count, and the cinema asks
+  for a faster one so the scene does not outlast its welcome.
+- **A visible error means the backend failed** and the scene fell back to
+  scripted lines. The numbers on screen after that are not yours.
+- **Click a finished stage to revisit it.** The run does not have to be restarted
+  to look again.
+
+## Limits
+
+- **Four stages only.** No Optuna, SHAP or ensembling.
+- **The configuration is fixed.** Every stage runs with default settings; you
+  cannot choose an imputation strategy or an algorithm. The Pipeline Builder is
+  where choices live.
+- **It is slow on purpose** — around 34 seconds of scene time plus network. That
+  is the right trade for a first-time explanation and the wrong one for anything
+  you do repeatedly.
+- **Only the CSV header is read** for the column display, so the columns shown
+  are names, not a preview of values.
+- **The card's description says seven stages.** It animates four.
+- **No export.** The run happens, and nothing is saved from it — the trained
+  model lives only in the backend's memory under its own id.
+- **It teaches this app's pipeline**, which is one reasonable pipeline, not the
+  only one.
+
+## Likely interview questions
+
+**"Why build an animated explainer at all? Isn't that decoration?"**
+Because the audience for it cannot use the other tools yet. Every other tool
+assumes the reader already knows why the stage exists. This one is aimed at the
+person deciding whether the pipeline is worth their attention — a stakeholder, an
+interviewer, someone new — and for them a narrated run on real data communicates
+in thirty seconds what a documentation page does not.
+
+**"How do you animate over an API that takes an unpredictable time?"**
+Two independent clocks. The animation runs on fixed scene durations so it stays
+readable; the request is fired at the start of the scene and its result is
+swapped into the narration whenever it lands. If the call is quick, the scene
+still plays out fully; if it is slow, the animation *is* the loading state. And
+every call is wrapped so a failure degrades to scripted lines with a visible
+error rather than stopping the sequence.
+
+**"Why is the pause flag a ref and not state?"**
+Because the running loop reads it at the moment it checks, and a state value
+captured in a closure would be whatever it was when the loop started — clicking
+pause would have no effect until the next render, which never comes for an
+already-running async sequence. A ref is always current. The same applies to the
+stop flag.
+
+**"What would you improve?"**
+Let the viewer choose the stage configuration and re-run, so it becomes a
+teaching tool rather than a fixed demonstration. Show a small before-and-after
+sample of actual rows, not just the column names, since seeing a blank cell get
+filled is more convincing than being told it was. And add the three missing
+stages, even if their scene is a diagram rather than a journey.
+
+<h1 class="bk-chapter" id="ch-10-real-time-analytics"><span class="bk-chnum">Chapter 10</span>Real-Time Analytics</h1>
 
 > Watch traffic to this site arrive as it happens. Page views and tool opens flow from the browser into PostgreSQL through a FastAPI ingestion endpoint, and Supabase Realtime pushes each new row straight to the dashboard — no polling, no refresh button.
 
@@ -2215,7 +2678,7 @@ all filterable by date range.
   selected range.
 - The full visible User Guide is available on the page itself.
 
-<h1 class="bk-chapter" id="ch-9-shap-explainability"><span class="bk-chnum">Chapter 9</span>SHAP Explainability</h1>
+<h1 class="bk-chapter" id="ch-11-shap-explainability"><span class="bk-chnum">Chapter 11</span>SHAP Explainability</h1>
 
 > See why a model made a particular prediction, not just what it predicted. Every result comes with a SHAP bar chart showing which features pushed it and by how much. Engineered columns are grouped back to the original feature they came from, so you read source influence rather than transform noise.
 
@@ -2497,7 +2960,7 @@ Reading and reasoning over text: questions answered from your own files, plain E
 
 </div>
 
-<h1 class="bk-chapter" id="ch-10-contract-invoice-reconciliation-assistan"><span class="bk-chnum">Chapter 10</span>Contract/Invoice Reconciliation Assistant</h1>
+<h1 class="bk-chapter" id="ch-12-contract-invoice-reconciliation-assistan"><span class="bk-chnum">Chapter 12</span>Contract/Invoice Reconciliation Assistant</h1>
 
 > Upload a contract, then the invoices billed against it, and see where they disagree. Mismatched amounts, dates and terms are flagged with both source passages side by side and an explanation of the conflict. Invoices are only ever checked against the contract, never against each other — they are supposed to differ.
 
@@ -2564,7 +3027,7 @@ those are the most likely genuine discrepancies.
   tool is built to surface a report for you to review, not to decide anything on
   its own.
 
-<h1 class="bk-chapter" id="ch-11-document-intelligence"><span class="bk-chnum">Chapter 11</span>Document Intelligence</h1>
+<h1 class="bk-chapter" id="ch-13-document-intelligence"><span class="bk-chnum">Chapter 13</span>Document Intelligence</h1>
 
 > Upload an invoice, contract, resume, medical report or bank statement and get its fields back as structured data. The document type is identified automatically, each field is extracted with a confidence score, and a box is drawn on the page showing exactly where the value was found.
 
@@ -2701,7 +3164,7 @@ values from raw AI output.
 - If all AI providers are temporarily unavailable, an amber warning appears —
   wait a few minutes and try again.
 
-<h1 class="bk-chapter" id="ch-12-multimodal-rag"><span class="bk-chnum">Chapter 12</span>Multimodal RAG</h1>
+<h1 class="bk-chapter" id="ch-14-multimodal-rag"><span class="bk-chnum">Chapter 14</span>Multimodal RAG</h1>
 
 > Ask questions about a PDF and get answers cited back to the page they came from — including answers that live in a table or a chart rather than a paragraph. Tables are read as structured data and figures get an AI-written caption, so a number buried in a bar chart is still findable.
 
@@ -3594,7 +4057,7 @@ everything — every upload, its chunks, and any "shared" copy — with no way
 to recover it. Treat this as a scratch space for trying the tool, not a
 place to keep anything you need later.
 
-<h1 class="bk-chapter" id="ch-13-text-to-sql-agent"><span class="bk-chnum">Chapter 13</span>Text-to-SQL Agent</h1>
+<h1 class="bk-chapter" id="ch-15-text-to-sql-agent"><span class="bk-chnum">Chapter 15</span>Text-to-SQL Agent</h1>
 
 > Ask a question in plain English and get SQL you can actually run. The agent writes the query, executes it against a real database, explains what came back, and retries itself if the query errors. Bring your own SQLite file or a PostgreSQL connection, or try it on the Chinook demo database.
 
@@ -3689,7 +4152,7 @@ Tools that look at an image or a video — detection, depth, pose, re-identifica
 
 </div>
 
-<h1 class="bk-chapter" id="ch-14-asl-fingerspelling-recognition"><span class="bk-chnum">Chapter 14</span>ASL Fingerspelling Recognition</h1>
+<h1 class="bk-chapter" id="ch-16-asl-fingerspelling-recognition"><span class="bk-chnum">Chapter 16</span>ASL Fingerspelling Recognition</h1>
 
 > Hold up one hand fingerspelling an ASL letter and it is recognised live from your webcam. MediaPipe hand landmarks feed a k-NN classifier, entirely client-side. This covers individual letters only, not signed words or ASL grammar — those need sequence models over video and are a genuinely different problem. J and Z are excluded because both require motion a single frame cannot capture, following the same convention as the Sign Language MNIST benchmark.
 
@@ -3774,7 +4237,7 @@ example of why every technique choice here was tested, not assumed.
 - **Runs entirely in your browser.** No video frame is ever sent to a
   server.
 
-<h1 class="bk-chapter" id="ch-15-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 15</span>Astrophotography Anomaly Detector</h1>
+<h1 class="bk-chapter" id="ch-17-astrophotography-anomaly-detector"><span class="bk-chnum">Chapter 17</span>Astrophotography Anomaly Detector</h1>
 
 > Upload 5-30 frames from one fixed-tripod night session and find the meteor and satellite streaks in them. Time-adjacent frames are differenced and a Hough transform picks out the trails; a drifting star leaves a paired positive/negative streak that cancels, while a real transient leaves a one-sided one. You also get a median-stacked clean image with those transients removed. It will not tell you which is a meteor and which is a satellite — that proved unreliable to call from a single session, so every hit is labelled as possibly either. Classical OpenCV throughout; no neural network, no GPU.
 
@@ -3867,7 +4330,7 @@ the background level) while preserving every star.
 - **Not validated on a real photo session** — only against synthetic
   ground-truth data with known injected anomalies, disclosed above.
 
-<h1 class="bk-chapter" id="ch-16-crime-scene-reconstruction"><span class="bk-chnum">Chapter 16</span>Crime Scene Reconstruction</h1>
+<h1 class="bk-chapter" id="ch-18-crime-scene-reconstruction"><span class="bk-chnum">Chapter 18</span>Crime Scene Reconstruction</h1>
 
 > Upload 2-6 photos of the same static scene from different angles and get an interactive 3D point cloud built from them. This is real Structure-from-Motion — SIFT feature matching, essential-matrix pose estimation, then incremental camera registration and triangulation — the same technique behind COLMAP-style photogrammetry. What it will not do is measure: there is no bundle adjustment, no camera calibration and no dense mesh, so treat the result as a demonstration rather than a forensic-grade tool.
 
@@ -3956,7 +4419,7 @@ failure path directly.
   the real technique, not something that should inform any actual
   investigation, measurement, or legal determination.
 
-<h1 class="bk-chapter" id="ch-17-gait-pattern-comparison"><span class="bk-chnum">Chapter 17</span>Gait Pattern Comparison</h1>
+<h1 class="bk-chapter" id="ch-19-gait-pattern-comparison"><span class="bk-chnum">Chapter 19</span>Gait Pattern Comparison</h1>
 
 > Upload two side-view walking videos and compare how the two people move. Body pose is tracked per frame, individual stride cycles are found from knee-angle peaks, and each video's strides are averaged into one walking signature before the two are compared. This is not identification: a monocular, uncalibrated view can show that two clips walk similarly, never that they are the same person. Runs entirely in the browser; no video leaves your device.
 
@@ -4039,7 +4502,7 @@ reports "not enough consistent strides detected" instead of guessing.
 - **Assumes one person per video.** Multiple people in frame will confuse
   pose tracking.
 
-<h1 class="bk-chapter" id="ch-18-movement-form-comparison"><span class="bk-chnum">Chapter 18</span>Movement Form Comparison</h1>
+<h1 class="bk-chapter" id="ch-20-movement-form-comparison"><span class="bk-chnum">Chapter 20</span>Movement Form Comparison</h1>
 
 > Upload a clip of your own movement and a reference clip of the same exercise, and see where your form differs. Body pose is tracked in both, six joint angles (elbows, knees, hips) are computed from 3D landmarks, and the two clips are stretched onto a shared 0-100% movement-phase axis so a 4-second rep compares directly against a 6-second one. Joints are ranked by how far apart they drift, with the single worst moment called out for each. Assumes one person and one full rep per clip — a training aid, not a clinical assessment. Runs entirely in the browser; no video leaves your device.
 
@@ -4116,7 +4579,7 @@ alignment needed despite the clips' different lengths.
   baggy clothing, or an unusual camera angle can degrade MediaPipe's
   landmark detection, which propagates into the angle measurements.
 
-<h1 class="bk-chapter" id="ch-19-ppe-compliance-check"><span class="bk-chnum">Chapter 19</span>PPE Compliance Check</h1>
+<h1 class="bk-chapter" id="ch-21-ppe-compliance-check"><span class="bk-chnum">Chapter 21</span>PPE Compliance Check</h1>
 
 > Upload a site photo and see, per person, whether a hard hat and safety vest are visible. A dedicated PPE detection model is used rather than a general object detector, since general detectors have no safety-vest class at all. Compliance is only ever read from an explicit present or absent signal the model was trained on — never inferred from something simply not being detected — so an unclear photo returns 'unclear' instead of a false pass. Low-resolution images weaken the result noticeably.
 
@@ -4193,7 +4656,7 @@ being worn by anyone.
   even for genuinely-worn PPE (seen directly in testing: a top-down
   camera angle scored a real, clearly-worn vest at only 39% confidence).
 
-<h1 class="bk-chapter" id="ch-20-photo-library-visual-search"><span class="bk-chnum">Chapter 20</span>Photo Library Visual Search</h1>
+<h1 class="bk-chapter" id="ch-22-photo-library-visual-search"><span class="bk-chnum">Chapter 22</span>Photo Library Visual Search</h1>
 
 > Upload a batch of photos and describe what you are looking for in plain language — 'the red backpack', 'a dog on a beach' — and every photo is ranked by how well it matches. CLIP puts the images and your words in the same embedding space, so nothing needs tagging or captioning first. Nothing is stored between searches.
 
@@ -4275,7 +4738,7 @@ photos and results only exist in your browser tab for that session.
 - This is search over a batch you upload in-session, not a persistent
   photo library — nothing is saved after you leave the page.
 
-<h1 class="bk-chapter" id="ch-21-plant-growth-quantification"><span class="bk-chnum">Chapter 21</span>Plant Growth Quantification</h1>
+<h1 class="bk-chapter" id="ch-23-plant-growth-quantification"><span class="bk-chnum">Chapter 23</span>Plant Growth Quantification</h1>
 
 > Track how a plant is actually growing. Upload 2-30 timelapse photos for a growth-over-time curve, or a single photo of several plants to compare their sizes against each other. Foliage area is measured by an HSV green-hue threshold — no model, no API call. Several plants in one shot are separated automatically, and a before/after collage is split and charted as growth. It also reports a vegetation index (a yellowing signal independent of size) and a leaf count, so a decline can show up in the numbers before you can see it.
 
@@ -4456,7 +4919,7 @@ rough "if nothing changes" projection, not a forecast.
 - All the core measurement (mask, growth %, greenness, leaf count) runs
   locally with no API cost; only species/health ID uses a paid AI call.
 
-<h1 class="bk-chapter" id="ch-22-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 22</span>Text-Prompted Video Object Tracking</h1>
+<h1 class="bk-chapter" id="ch-24-text-prompted-video-object-tracking"><span class="bk-chnum">Chapter 24</span>Text-Prompted Video Object Tracking</h1>
 
 > Upload a short clip, type what to follow — 'the red backpack' — and get that object masked through the rest of the video. Grounding DINO locates it in the first frame, then SAM2 tracks it forward using its video memory. The result is a downscaled, reduced-framerate preview rather than a full-resolution export.
 
@@ -4549,7 +5012,7 @@ every frame of a zoom.
   a real, published limitation of video segmentation models, not unique
   to this tool.
 
-<h1 class="bk-chapter" id="ch-23-wildlife-re-identification"><span class="bk-chnum">Chapter 23</span>Wildlife Re-Identification</h1>
+<h1 class="bk-chapter" id="ch-25-wildlife-re-identification"><span class="bk-chnum">Chapter 25</span>Wildlife Re-Identification</h1>
 
 > Upload a new sighting and a gallery of past ones and see which individual animal it most likely matches. The animal is cropped out of each photo, then compared using MegaDescriptor, a foundation model built specifically for individual animal re-identification rather than a general-purpose vision embedding. Treat it as a ranking aid, not an identification system — the same/uncertain/different bands are not calibrated against a benchmark. MegaDescriptor is CC-BY-NC-4.0, so non-commercial use only.
 
@@ -4646,7 +5109,7 @@ Checking whether something can be trusted: files, links, emails, packages, model
 
 </div>
 
-<h1 class="bk-chapter" id="ch-24-ai-generated-code-detector"><span class="bk-chnum">Chapter 24</span>AI-Generated Code Detector</h1>
+<h1 class="bk-chapter" id="ch-26-ai-generated-code-detector"><span class="bk-chnum">Chapter 26</span>AI-Generated Code Detector</h1>
 
 > Paste a code snippet and see the stylometric signals people associate with AI authorship — comment density, generic naming, docstring formality, exception handling, boilerplate phrasing — alongside an independent LLM opinion, shown side by side. It deliberately never returns a probability or an 'AI-written' verdict, because no reliable general-purpose detector exists in the published research and a confidence number here would be invented.
 
@@ -4728,7 +5191,7 @@ itself just another style, not a determination of authorship either way.
   (job interviews, academic integrity, code review) — using it that way
   would be exactly the overclaiming this tool is built to avoid.
 
-<h1 class="bk-chapter" id="ch-25-adversarial-robustness-lab"><span class="bk-chnum">Chapter 25</span>Adversarial Robustness Lab</h1>
+<h1 class="bk-chapter" id="ch-27-adversarial-robustness-lab"><span class="bk-chnum">Chapter 27</span>Adversarial Robustness Lab</h1>
 
 > Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.
 
@@ -4961,7 +5424,7 @@ Nothing is stored: your photo and the results only exist for this one run.
   (see the Adversarial training section above) — no manual cropping or
   thresholding needed on your end.
 
-<h1 class="bk-chapter" id="ch-26-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 26</span>Attack-Surface / Exposed-Path Scanner</h1>
+<h1 class="bk-chapter" id="ch-28-attack-surface-exposed-path-scanner"><span class="bk-chnum">Chapter 28</span>Attack-Surface / Exposed-Path Scanner</h1>
 
 > Enter a domain and see what it exposes to the open internet. Four passive checks run live: sensitive paths like .git/HEAD and .env (only flagged when the response really is that file, not merely a 200), Apache/nginx directory listings, CMS fingerprinting from the standard generator tag, and a short common-port connect check. It refuses to touch private, loopback or internal addresses, and reports real findings for you to weigh rather than a made-up risk score.
 
@@ -5033,7 +5496,7 @@ either — plenty of legitimate servers run SSH or a database port openly
 by design; it's evidence worth reviewing in context, not an automatic
 verdict.
 
-<h1 class="bk-chapter" id="ch-27-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 27</span>Binary Byte-Plot & Entropy Triage</h1>
+<h1 class="bk-chapter" id="ch-29-binary-byte-plot-entropy-triage"><span class="bk-chnum">Chapter 29</span>Binary Byte-Plot & Entropy Triage</h1>
 
 > Upload any file and see its structure as a picture. The bytes are rendered as the grayscale byte-plot used in malware-visualisation research, next to a sliding-window entropy heatmap — sustained near-random entropy is an established sign of packed or encrypted content, the same signal tools like PEiD look for. Windows executables also get a PE header check for a classic packer tell. It won't name a malware family — no dependable pretrained model exists for that — and it never executes the file: static byte analysis only, up to 5MB.
 
@@ -5115,7 +5578,7 @@ visible structure, and the entropy heatmap renders almost entirely red
 - Never executes, opens, or interprets the uploaded file's actual code —
   only reads its raw bytes.
 
-<h1 class="bk-chapter" id="ch-28-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 28</span>Browser Extension Permission Risk Analyzer</h1>
+<h1 class="bk-chapter" id="ch-30-browser-extension-permission-risk-analyz"><span class="bk-chnum">Chapter 30</span>Browser Extension Permission Risk Analyzer</h1>
 
 > Paste a Chrome or Edge extension's manifest.json and see what it is allowed to do. Checks individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history), broad host access, and dangerous combinations — broad host access plus network interception plus cookies together enable session hijacking on any site. This reads declared permissions, not behaviour: a legitimate password manager needs much the same access, so findings are framed as worth a closer look, never a judgement of intent.
 
@@ -5198,7 +5661,7 @@ access.
   array) and V3 (\`host_permissions\` as a separate field) formats.
 - Entirely client-side — nothing you paste is sent anywhere.
 
-<h1 class="bk-chapter" id="ch-29-captcha-hardening-lab"><span class="bk-chnum">Chapter 29</span>CAPTCHA Hardening Lab</h1>
+<h1 class="bk-chapter" id="ch-31-captcha-hardening-lab"><span class="bk-chnum">Chapter 31</span>CAPTCHA Hardening Lab</h1>
 
 > Upload a CAPTCHA-style image and watch a vision-language model try to read it — modern VLMs handle plain text CAPTCHAs far more easily than classic OCR ever did. One intensity slider then stacks three model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast reduction) and the model tries again, side by side. Nothing gradient-based is used, because the solver here is a black box — the same constraint a real CAPTCHA vendor faces. It only ever reads an image you upload; it never contacts a live CAPTCHA on a real site.
 
@@ -5276,7 +5739,7 @@ of you.
 - Never submits to, or interacts with, a live CAPTCHA challenge on any
   real website — upload-only, one image per request.
 
-<h1 class="bk-chapter" id="ch-30-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 30</span>DNS Tunneling / Exfiltration Detector</h1>
+<h1 class="bk-chapter" id="ch-32-dns-tunneling-exfiltration-detector"><span class="bk-chnum">Chapter 32</span>DNS Tunneling / Exfiltration Detector</h1>
 
 > Paste a DNS query log, or check a single hostname, and spot possible tunnelling or exfiltration. Uses the published heuristics real tools rely on for this (MITRE ATT&CK T1071.004): subdomain length, Shannon entropy and query volume per parent domain. A domain is only flagged when several signals agree, so ordinary long CDN-style subdomains don't trip it. Pure heuristics, no model, fully client-side.
 
@@ -5359,7 +5822,7 @@ it isn't proof no tunneling is happening, and a genuinely sophisticated
 tunnel could pace its queries or use lower-entropy encoding specifically to
 stay under these thresholds.
 
-<h1 class="bk-chapter" id="ch-31-email-header-authentication-checker"><span class="bk-chnum">Chapter 31</span>Email Header Authentication Checker</h1>
+<h1 class="bk-chapter" id="ch-33-email-header-authentication-checker"><span class="bk-chnum">Chapter 33</span>Email Header Authentication Checker</h1>
 
 > Paste raw email headers and see whether the sender checks out. You get two things: what the receiving mail server's own Authentication-Results already concluded about SPF, DKIM and DMARC (relayed, not re-verified), and independent live DNS lookups of the sending domain's real records, plus a From: alignment check. It does not cryptographically verify the DKIM signature — that needs the full message body — and says so rather than implying otherwise.
 
@@ -5444,7 +5907,7 @@ claiming "phishing detected" outright.
   protected against spoofing — it is not proof that a specific email is
   fraudulent.
 
-<h1 class="bk-chapter" id="ch-32-face-cloak"><span class="bk-chnum">Chapter 32</span>Face Cloak</h1>
+<h1 class="bk-chapter" id="ch-34-face-cloak"><span class="bk-chnum">Chapter 34</span>Face Cloak</h1>
 
 > Add a barely-visible perturbation to a photo so face-recognition models place it somewhere other than your real face. A simplified take on Fawkes, the privacy technique built to counter unauthorised facial-recognition scraping. You get the actual measured drop in embedding similarity, and an honest caveat: this protects the copy you cloak, not photos of you already scraped elsewhere.
 
@@ -5531,7 +5994,7 @@ Glaze/Nightshade use to protect artists' work from AI style-mimicry.
 - Nothing is stored: your photo and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-33-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 33</span>Face Deanonymization Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-35-face-deanonymization-risk-demo"><span class="bk-chnum">Chapter 35</span>Face Deanonymization Risk Demo</h1>
 
 > See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.
 
@@ -5612,7 +6075,7 @@ similarity score moved.
   of the target photo in this session — it cannot retroactively protect
   copies of the same photo already posted or scraped elsewhere.
 
-<h1 class="bk-chapter" id="ch-34-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 34</span>Keystroke Biometric Auth-Risk Demo</h1>
+<h1 class="bk-chapter" id="ch-36-keystroke-biometric-auth-risk-demo"><span class="bk-chnum">Chapter 36</span>Keystroke Biometric Auth-Risk Demo</h1>
 
 > Type a short phrase three times to enrol a keystroke-timing profile, then type it once more and see how closely the rhythm matches. Scoring uses scaled Manhattan distance over dwell and flight times, a published approach for keystroke-dynamics anomaly detection. Try typing normally, then deliberately faster or hunt-and-peck, and watch the score move. A concept demo rather than a calibrated authenticator — and entirely client-side, with no server call.
 
@@ -5690,7 +6153,7 @@ problem), not a heuristic invented for this demo.
   patch the timing — corrected typos have a different rhythm than a
   clean run and would distort the profile.
 
-<h1 class="bk-chapter" id="ch-35-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 35</span>LLM Prompt Injection Detection Playground</h1>
+<h1 class="bk-chapter" id="ch-37-llm-prompt-injection-detection-playgroun"><span class="bk-chnum">Chapter 37</span>LLM Prompt Injection Detection Playground</h1>
 
 > Paste a prompt, or a document an AI might be asked to read, and see whether it tries to hijack the model. Two independent signals sit side by side: a transparent pattern library covering direct overrides, jailbreak roleplay, indirect injection and encoding tricks, and a separately-prompted LLM judge. They combine into an overall risk badge rather than one invented confidence number — no detector here is claimed to be reliable on its own.
 
@@ -5771,7 +6234,7 @@ alarms on any trigger word.
 - Treat this as a second opinion for learning and testing, not a security
   boundary you'd deploy as-is in front of a production system.
 
-<h1 class="bk-chapter" id="ch-36-malicious-package-scanner"><span class="bk-chnum">Chapter 36</span>Malicious Package Scanner</h1>
+<h1 class="bk-chapter" id="ch-38-malicious-package-scanner"><span class="bk-chnum">Chapter 38</span>Malicious Package Scanner</h1>
 
 > Paste a package.json, requirements.txt or a source file and see what a supply-chain reviewer would flag. Checks for npm install-script hooks, dependency names that typosquat well-known packages, dynamic execution calls (eval, exec, subprocess), obfuscated high-entropy strings, embedded URLs, hardcoded secrets, SQL built by string interpolation, and unsafe deserialization. It matches attacker techniques rather than known signatures, which is what lets it flag packages nobody has seen before. Every hit is real evidence to judge, never a safe/malicious verdict. Runs fully in your browser.
 
@@ -5858,7 +6321,7 @@ well-known package names, and cannot detect more sophisticated evasion
 (code that's obfuscated below the entropy threshold, or a malicious
 payload fetched at runtime from a URL that isn't hardcoded in the source).
 
-<h1 class="bk-chapter" id="ch-37-password-strength-breach-checker"><span class="bk-chnum">Chapter 37</span>Password Strength & Breach Checker</h1>
+<h1 class="bk-chapter" id="ch-39-password-strength-breach-checker"><span class="bk-chnum">Chapter 39</span>Password Strength & Breach Checker</h1>
 
 > Check how strong a password really is. Scored in your browser by zxcvbn, the pattern-matching algorithm behind many real password meters — dictionaries, keyboard walks, dates, repeats — rather than naive character-class counting. You can also check it against Have I Been Pwned using k-anonymity: only the first five characters of its SHA-1 hash ever leave your machine, never the password itself. Nothing is stored.
 
@@ -5938,7 +6401,7 @@ only network request this tool ever makes is the 5-character hash-prefix
 lookup to \`api.pwnedpasswords.com\`, and only when you click the breach
 check button — never automatically, and never on every keystroke.
 
-<h1 class="bk-chapter" id="ch-38-phishing-email-body-classifier"><span class="bk-chnum">Chapter 38</span>Phishing Email Body Classifier</h1>
+<h1 class="bk-chapter" id="ch-40-phishing-email-body-classifier"><span class="bk-chnum">Chapter 40</span>Phishing Email Body Classifier</h1>
 
 > Paste an email's body text and see whether the writing itself reads like phishing — urgency, generic greetings, manipulative phrasing. A Multinomial Naive Bayes classifier trained on real phishing and legitimate mail shows you the exact words driving its score, next to a separate, transparent list of rule-based flags. Two signals shown side by side, never blended into one black-box number. Runs fully client-side — nothing you paste leaves your browser.
 
@@ -6011,7 +6474,7 @@ check like this one. Treat a "likely phishing" result as a real reason to
 scrutinize the email further, and a "likely safe" result as one signal
 among several, not a guarantee.
 
-<h1 class="bk-chapter" id="ch-39-qr-phishing-detector"><span class="bk-chnum">Chapter 39</span>QR Phishing Detector</h1>
+<h1 class="bk-chapter" id="ch-41-qr-phishing-detector"><span class="bk-chnum">Chapter 41</span>QR Phishing Detector</h1>
 
 > Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.
 
@@ -6133,7 +6596,7 @@ source you trust.
   for that link — it's never treated as suspicious on its own, only used
   when a real registration date is available.
 
-<h1 class="bk-chapter" id="ch-40-siem-alert-triage-agent"><span class="bk-chnum">Chapter 40</span>SIEM Alert Triage Agent</h1>
+<h1 class="bk-chapter" id="ch-42-siem-alert-triage-agent"><span class="bk-chnum">Chapter 42</span>SIEM Alert Triage Agent</h1>
 
 > Paste raw alert lines and get them grouped and prioritised. Near-identical alerts are deduplicated by template in your browser first, so only the grouped summary — never your raw log — is sent on to an LLM for a priority, a one-line reason and a suggested next step per group. Advisory only: every suggestion is written for you to act on, never phrased as something already done.
 
@@ -6212,7 +6675,7 @@ correlation across sessions). If the judge is temporarily unavailable, the
 grouping data is still shown on its own — the deduplication itself is
 useful even without a priority opinion layered on top.
 
-<h1 class="bk-chapter" id="ch-41-style-cloak"><span class="bk-chnum">Chapter 41</span>Style Cloak</h1>
+<h1 class="bk-chapter" id="ch-43-style-cloak"><span class="bk-chnum">Chapter 43</span>Style Cloak</h1>
 
 > Add a barely-visible perturbation across an image so its CLIP embedding drifts away from where a model would naturally place it — a simplified take on the Glaze and Nightshade approach to countering AI style-mimicry. You get the actual measured similarity drop, calibrated against an unrelated-image baseline, plus the honest caveat: it protects the copy you cloak, not images already scraped elsewhere.
 
@@ -6304,7 +6767,7 @@ applies to face-recognition embeddings instead of style embeddings.
 - Nothing is stored: your image and the cloaked result only exist for
   this one run.
 
-<h1 class="bk-chapter" id="ch-42-tls-security-headers-scanner"><span class="bk-chnum">Chapter 42</span>TLS / Security-Headers Scanner</h1>
+<h1 class="bk-chapter" id="ch-44-tls-security-headers-scanner"><span class="bk-chnum">Chapter 44</span>TLS / Security-Headers Scanner</h1>
 
 > Enter a domain and check its TLS and security headers the way Mozilla Observatory does. A real handshake verifies the certificate chain, expiry and protocol version, flagging deprecated SSLv3 and TLS 1.0/1.1, and a live request checks the six standard security headers. It refuses to connect to private, loopback or internal addresses, and gives a qualitative verdict with the actual warnings behind it rather than a numeric score.
 
@@ -6380,7 +6843,7 @@ expired or untrusted certificate is a real problem any browser would also
 flag), while a missing security header is a softer, defense-in-depth gap
 rather than proof of an active vulnerability.
 
-<h1 class="bk-chapter" id="ch-43-video-call-keystroke-inference"><span class="bk-chnum">Chapter 43</span>Video-Call Keystroke Inference</h1>
+<h1 class="bk-chapter" id="ch-45-video-call-keystroke-inference"><span class="bk-chnum">Chapter 45</span>Video-Call Keystroke Inference</h1>
 
 > Upload a short clip of someone typing and recover when the keys were pressed from hand motion alone. Frame-by-frame hand tracking feeds a tap detector on fingertip movement, producing a timeline of keystrokes, which hand, and likely word boundaries from the gaps — the same side channel behind published research on video keystroke inference. It stops at timing and does not attempt to recover what was typed: that needs per-target trained models this doesn't have. Runs in your browser; no video leaves your device.
 
@@ -6462,7 +6925,7 @@ over the keyboard.
 - 60-second clip cap, entirely client-side (MediaPipe WASM) — nothing is
   sent to any server.
 
-<h1 class="bk-chapter" id="ch-44-yara-file-scanner"><span class="bk-chnum">Chapter 44</span>YARA File Scanner</h1>
+<h1 class="bk-chapter" id="ch-46-yara-file-scanner"><span class="bk-chnum">Chapter 46</span>YARA File Scanner</h1>
 
 > Scan a file with real YARA — the same pattern-matching engine antivirus and threat-intel teams use to write and share detection rules. Run it against a small built-in rule set (EICAR, PowerShell LOLBin encoding, webshell and macro patterns, embedded-PE smuggling, an entropy rule), or write your own rule and test it, which is what YARA actually exists for. Your file is never executed, and every hit shows the matched string and offset rather than a bare verdict.
 
@@ -6565,10 +7028,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **Feature Engineering** *(ch. 5)* | No-Code Transforms | In your browser — the file never leaves your machine |
 | **Feature Selection** *(ch. 6)* | Keep Only What Matters | On the server |
 | **Optuna Tuning** *(ch. 7)* | Post-Winner Hyperparameter Search | On the server |
-| **Pipeline Builder** | End-to-End ML Canvas | On the server |
-| **Pipeline Cinema** | Animated ML Showcase | On the server |
-| **Real-Time Analytics** *(ch. 8)* | Live Event Dashboard | On the server |
-| **SHAP Explainability** *(ch. 9)* | Per-Prediction Feature Impact | On the server |
+| **Pipeline Builder** *(ch. 8)* | End-to-End ML Canvas | On the server |
+| **Pipeline Cinema** *(ch. 9)* | Animated ML Showcase | On the server |
+| **Real-Time Analytics** *(ch. 10)* | Live Event Dashboard | On the server |
+| **SHAP Explainability** *(ch. 11)* | Per-Prediction Feature Impact | On the server |
 
 </div>
 
@@ -6578,10 +7041,10 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **Contract/Invoice Reconciliation Assistant** *(ch. 10)* | Discrepancy Report Across Documents | On the server |
-| **Document Intelligence** *(ch. 11)* | AI-Powered Document Data Extraction | On the server |
-| **Multimodal RAG** *(ch. 12)* | Tables & Figures as Citable Knowledge | On the server |
-| **Text-to-SQL Agent** *(ch. 13)* | Natural Language → Database Queries | On the server |
+| **Contract/Invoice Reconciliation Assistant** *(ch. 12)* | Discrepancy Report Across Documents | On the server |
+| **Document Intelligence** *(ch. 13)* | AI-Powered Document Data Extraction | On the server |
+| **Multimodal RAG** *(ch. 14)* | Tables & Figures as Citable Knowledge | On the server |
+| **Text-to-SQL Agent** *(ch. 15)* | Natural Language → Database Queries | On the server |
 
 </div>
 
@@ -6591,20 +7054,20 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **ASL Fingerspelling Recognition** *(ch. 14)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Astrophotography Anomaly Detector** *(ch. 15)* | Frame Differencing + Hough Transform | On the server |
-| **Crime Scene Reconstruction** *(ch. 16)* | Sparse SfM | On the server |
+| **ASL Fingerspelling Recognition** *(ch. 16)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Astrophotography Anomaly Detector** *(ch. 17)* | Frame Differencing + Hough Transform | On the server |
+| **Crime Scene Reconstruction** *(ch. 18)* | Sparse SfM | On the server |
 | **Depth Parallax** | One Photo, Instant 3D | On the server |
 | **Face Liveness Detector** | Real vs. Spoofed | On the server |
-| **Gait Pattern Comparison** *(ch. 17)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Movement Form Comparison** *(ch. 18)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **PPE Compliance Check** *(ch. 19)* | YOLOv8n PPE | On the server |
-| **Photo Library Visual Search** *(ch. 20)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
-| **Plant Growth Quantification** *(ch. 21)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Gait Pattern Comparison** *(ch. 19)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **Movement Form Comparison** *(ch. 20)* | Client-Side · No API Cost | In your browser — the file never leaves your machine |
+| **PPE Compliance Check** *(ch. 21)* | YOLOv8n PPE | On the server |
+| **Photo Library Visual Search** *(ch. 22)* | CLIP · No API Cost | In your browser — the file never leaves your machine |
+| **Plant Growth Quantification** *(ch. 23)* | Local · No API Cost | In your browser — the file never leaves your machine |
 | **Pose VJ Visuals** | Client-Side · No API Cost | In your browser — the file never leaves your machine |
-| **Text-Prompted Video Object Tracking** *(ch. 22)* | Grounded-SAM | On the server |
+| **Text-Prompted Video Object Tracking** *(ch. 24)* | Grounded-SAM | On the server |
 | **Text-to-Image Generator** | Describe It, Generate It | On the server |
-| **Wildlife Re-Identification** *(ch. 23)* | MegaDescriptor | On the server |
+| **Wildlife Re-Identification** *(ch. 25)* | MegaDescriptor | On the server |
 
 </div>
 
@@ -6614,27 +7077,27 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 
 | Tool | What it does | Runs |
 |---|---|---|
-| **AI-Generated Code Detector** *(ch. 24)* | Signals, Not A Verdict | On the server |
-| **Adversarial Robustness Lab** *(ch. 25)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Attack-Surface / Exposed-Path Scanner** *(ch. 26)* | Live Recon · Zero ML | On the server, with a live external check |
-| **Binary Byte-Plot & Entropy Triage** *(ch. 27)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
-| **Browser Extension Permission Risk Analyzer** *(ch. 28)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **CAPTCHA Hardening Lab** *(ch. 29)* | VLM Read Attempt · Before/After | On the server |
-| **DNS Tunneling / Exfiltration Detector** *(ch. 30)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Email Header Authentication Checker** *(ch. 31)* | Live DNS · Zero ML | On the server |
-| **Face Cloak** *(ch. 32)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Face Deanonymization Risk Demo** *(ch. 33)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Keystroke Biometric Auth-Risk Demo** *(ch. 34)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
-| **LLM Prompt Injection Detection Playground** *(ch. 35)* | Pattern + LLM Judge | On the server |
-| **Malicious Package Scanner** *(ch. 36)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Password Strength & Breach Checker** *(ch. 37)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **Phishing Email Body Classifier** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **QR Phishing Detector** *(ch. 39)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **SIEM Alert Triage Agent** *(ch. 40)* | Grouping + LLM Judge | On the server |
-| **Style Cloak** *(ch. 41)* | Local · No API Cost | In your browser — the file never leaves your machine |
-| **TLS / Security-Headers Scanner** *(ch. 42)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
-| **Video-Call Keystroke Inference** *(ch. 43)* | Client-Side Only | In your browser — the file never leaves your machine |
-| **YARA File Scanner** *(ch. 44)* | Live Engine · Real YARA | On the server, with a live external check |
+| **AI-Generated Code Detector** *(ch. 26)* | Signals, Not A Verdict | On the server |
+| **Adversarial Robustness Lab** *(ch. 27)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Attack-Surface / Exposed-Path Scanner** *(ch. 28)* | Live Recon · Zero ML | On the server, with a live external check |
+| **Binary Byte-Plot & Entropy Triage** *(ch. 29)* | Static Analysis · No Execution | In your browser — the file never leaves your machine |
+| **Browser Extension Permission Risk Analyzer** *(ch. 30)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **CAPTCHA Hardening Lab** *(ch. 31)* | VLM Read Attempt · Before/After | On the server |
+| **DNS Tunneling / Exfiltration Detector** *(ch. 32)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Email Header Authentication Checker** *(ch. 33)* | Live DNS · Zero ML | On the server |
+| **Face Cloak** *(ch. 34)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Face Deanonymization Risk Demo** *(ch. 35)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Keystroke Biometric Auth-Risk Demo** *(ch. 36)* | Live Biometric Demo · Zero ML | In your browser — the file never leaves your machine |
+| **LLM Prompt Injection Detection Playground** *(ch. 37)* | Pattern + LLM Judge | On the server |
+| **Malicious Package Scanner** *(ch. 38)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Password Strength & Breach Checker** *(ch. 39)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **Phishing Email Body Classifier** *(ch. 40)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **QR Phishing Detector** *(ch. 41)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **SIEM Alert Triage Agent** *(ch. 42)* | Grouping + LLM Judge | On the server |
+| **Style Cloak** *(ch. 43)* | Local · No API Cost | In your browser — the file never leaves your machine |
+| **TLS / Security-Headers Scanner** *(ch. 44)* | Live TLS + Headers · Zero ML | On the server, with a live external check |
+| **Video-Call Keystroke Inference** *(ch. 45)* | Client-Side Only | In your browser — the file never leaves your machine |
+| **YARA File Scanner** *(ch. 46)* | Live Engine · Real YARA | On the server, with a live external check |
 
 </div>
 
