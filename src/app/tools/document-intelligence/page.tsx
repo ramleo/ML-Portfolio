@@ -11,7 +11,7 @@ import DocUserGuideModal from "./DocUserGuideModal";
 import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#06b6d4";
+const ACCENT = "#387e8a";
 
 const DOC_TYPES_STATIC = [
   { id: "invoice",        label: "Invoice",        description: "Vendor invoice or bill",                fields: [] },

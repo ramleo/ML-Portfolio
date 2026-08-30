@@ -11,7 +11,7 @@ import TlsHeadersScanUserGuideModal from "./TlsHeadersScanUserGuideModal";
 import { TLS_HEADERS_GUIDE, TLS_HEADERS_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#0ea5e9";
+const ACCENT = "#3c7d9b";
 
 const TOOL_SUMMARY =
   "Type a domain and it's checked live two ways: a real TLS handshake verifying certificate chain validity, " +

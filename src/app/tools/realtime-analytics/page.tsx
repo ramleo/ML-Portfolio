@@ -11,7 +11,7 @@ import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#10b981";
+const ACCENT = "#40816c";
 
 export default function RealtimeAnalyticsPage() {
   useToolTracking("realtime-analytics");

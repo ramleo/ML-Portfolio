@@ -128,7 +128,7 @@ export default function KeystrokeAuthRiskRunner({ accent }: { accent: string }) 
           <div className="flex items-center gap-3">
             <button onClick={tryAgain}
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-              style={{ background: accent, color: "#0b0b12" }}>
+              style={{ background: accent, color: "#fff" }}>
               Try another attempt
             </button>
             <button onClick={restart} className="text-xs underline" style={{ color: "var(--text3)" }}>

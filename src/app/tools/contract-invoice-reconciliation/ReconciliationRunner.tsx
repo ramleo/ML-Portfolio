@@ -8,7 +8,7 @@ import ReconciliationReport from "./ReconciliationReport";
 import type { IngestState } from "../multimodal-rag/_types";
 import type { ReconciledDoc } from "./_types";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)",

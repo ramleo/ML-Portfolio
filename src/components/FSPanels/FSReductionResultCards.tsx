@@ -5,7 +5,7 @@ import RepulsionCard from "@/components/RepulsionCard";
 import UMAPScatter from "@/components/UMAPScatter";
 import type { SelectionResult, SelectionOpts, ColInfo } from "@/lib/fsAlgorithms";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

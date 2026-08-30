@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { ASTRO_ANOMALY_GUIDE } from "./userGuide";
 
-const ACCENT = "#0ea5e9";
+const ACCENT = "#3c7d9b";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

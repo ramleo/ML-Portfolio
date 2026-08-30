@@ -12,7 +12,7 @@ import PlantGrowthUserGuideModal from "./PlantGrowthUserGuideModal";
 import { PLANT_GROWTH_GUIDE, PLANT_GROWTH_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#4ade80";
+const ACCENT = "#3f8258";
 
 const TOOL_SUMMARY =
   "Upload 2-30 photos of the same plant taken on different days — a local HSV green-hue threshold " +

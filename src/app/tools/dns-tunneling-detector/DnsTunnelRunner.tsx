@@ -45,7 +45,7 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-2">
           <button onClick={() => runLog(logText)} disabled={!logText.trim()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12", opacity: logText.trim() ? 1 : 0.5 }}>
+            style={{ background: accent, color: "#fff", opacity: logText.trim() ? 1 : 0.5 }}>
             Analyze log
           </button>
           <button onClick={() => { setLogText(SAMPLE_LOG); runLog(SAMPLE_LOG); }}

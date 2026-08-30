@@ -24,7 +24,7 @@ function nearestSegmentIndex(segments: TranscriptSegment[], time: number): numbe
   return bestIdx;
 }
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 const CONTEXT = {
   tool: "Multimodal RAG",

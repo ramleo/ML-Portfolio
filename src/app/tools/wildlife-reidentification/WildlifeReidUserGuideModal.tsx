@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { WILDLIFE_REID_GUIDE } from "./userGuide";
 
-const ACCENT = "#a16207";
+const ACCENT = "#956e37";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

@@ -11,7 +11,7 @@ import WildlifeReidUserGuideModal from "./WildlifeReidUserGuideModal";
 import { WILDLIFE_REID_GUIDE, WILDLIFE_REID_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#a16207";
+const ACCENT = "#956e37";
 
 const TOOL_SUMMARY =
   "Upload a new animal sighting photo and a gallery of past sightings — crops the animal from each photo " +

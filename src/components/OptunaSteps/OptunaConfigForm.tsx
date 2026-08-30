@@ -1,6 +1,6 @@
 "use client";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
 
 interface Column { name: string; is_numeric: boolean; nunique: number; missing: number }

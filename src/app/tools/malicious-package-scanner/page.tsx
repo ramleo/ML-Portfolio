@@ -11,7 +11,7 @@ import PackageScannerUserGuideModal from "./PackageScannerUserGuideModal";
 import { PACKAGE_SCANNER_GUIDE, PACKAGE_SCANNER_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 const TOOL_SUMMARY =
   "Paste a package.json/requirements.txt or a JS/TS/Python source file and it's checked with real, published " +

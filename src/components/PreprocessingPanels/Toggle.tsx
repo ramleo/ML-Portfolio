@@ -1,6 +1,6 @@
 "use client";
 
-const ACCENT = "#22d3ee";
+const ACCENT = "#377f8a";
 
 export function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (

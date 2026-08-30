@@ -8,7 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import FaceLivenessRunner from "./FaceLivenessRunner";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#14b8a6";
+const ACCENT = "#428079";
 
 export default function FaceLivenessPage() {
   useToolTracking("face-liveness");

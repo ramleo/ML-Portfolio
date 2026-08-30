@@ -15,7 +15,7 @@ import { downloadBase64Image } from "./imageComposite";
 import { tamperingLevel } from "./tamperingLevel";
 import type { Bbox, CameraMatch, DetectedObject, DuplicateMatch, Entity, MoireResult, PersistedEdit, StegoResult } from "./_types";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const OBJECT_COLOR = "#34d399"; // distinct from the static table/figure box — a specific answer to "where is the X"
 
 type Props = {

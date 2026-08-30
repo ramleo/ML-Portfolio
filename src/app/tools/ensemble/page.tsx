@@ -12,7 +12,7 @@ import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f472b6";
+const ACCENT = "#b95087";
 const ENSEMBLE_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function EnsemblePageInner() {

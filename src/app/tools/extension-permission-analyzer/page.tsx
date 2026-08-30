@@ -11,7 +11,7 @@ import ExtensionAnalyzerUserGuideModal from "./ExtensionAnalyzerUserGuideModal";
 import { EXTENSION_ANALYZER_GUIDE, EXTENSION_ANALYZER_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#eab308";
+const ACCENT = "#85733d";
 
 const TOOL_SUMMARY =
   "Paste a Chrome/Edge extension's manifest.json — checks declared permissions and host access against a " +

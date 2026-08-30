@@ -11,7 +11,7 @@ import FaceReidUserGuideModal from "./FaceReidUserGuideModal";
 import { FACE_REID_GUIDE, FACE_REID_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f97316";
+const ACCENT = "#a06840";
 
 const TOOL_SUMMARY =
   "Upload a target photo and a small gallery of other photos — runs a real face-embedding similarity search " +

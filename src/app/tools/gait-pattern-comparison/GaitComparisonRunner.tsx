@@ -54,7 +54,7 @@ function UploadSlot({ label, fileName, videoUrl, videoRef, onFile, accent, signa
       <div className="flex items-center gap-2 flex-wrap">
         <button onClick={() => inputRef.current?.click()}
           className="text-sm px-3 py-1.5 rounded-lg font-semibold transition-colors"
-          style={{ background: accent, color: "#0b0b12" }}>
+          style={{ background: accent, color: "#fff" }}>
           Choose video
         </button>
         <input ref={inputRef} type="file" accept="video/*" className="hidden"
@@ -115,7 +115,7 @@ export default function GaitComparisonRunner({ accent }: { accent: string }) {
           <div className="flex items-center gap-3 mt-4 pt-4 flex-wrap" style={{ borderTop: "1px solid var(--border)" }}>
             <button onClick={analyze} disabled={!canAnalyze || running}
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-              style={{ background: accent, color: "#0b0b12", opacity: (!canAnalyze || running) ? 0.5 : 1 }}>
+              style={{ background: accent, color: "#fff", opacity: (!canAnalyze || running) ? 0.5 : 1 }}>
               {running ? `Analyzing… ${progress}%` : "Compare gait patterns"}
             </button>
             <button onClick={reset} className="text-xs underline" style={{ color: "var(--text3)" }}>Clear all</button>

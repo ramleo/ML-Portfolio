@@ -60,7 +60,7 @@ export default function StyleCloakRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12" }}>
+            style={{ background: accent, color: "#fff" }}>
             Choose image
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden"

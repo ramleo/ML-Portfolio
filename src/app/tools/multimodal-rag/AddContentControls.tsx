@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Bbox } from "./_types";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 type Tab = "text" | "image" | "ai";
 
@@ -59,7 +59,7 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
             style={{
               left: `${(bx + bw / 2) * 100}%`, top: `${(by + bh / 2) * 100}%`,
               transform: "translate(-50%, -50%)", width: 22, height: 22,
-              background: ACCENT, color: "#0b0b12", fontSize: 14, fontWeight: 700,
+              background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700,
               boxShadow: "0 0 0 2px rgba(0,0,0,0.4)",
             }}
             title="Add something here">
@@ -93,7 +93,7 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
               <input value={text} onChange={e => setText(e.target.value)} placeholder="Label or caption…"
                 className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
               <button onClick={() => { onAddText(activeIndex, text); close(); }} disabled={!text.trim()}
-                className="text-[9px] px-2 py-1 rounded" style={{ background: ACCENT, color: "#0b0b12", opacity: text.trim() ? 1 : 0.4 }}>
+                className="text-[9px] px-2 py-1 rounded" style={{ background: ACCENT, color: "#fff", opacity: text.trim() ? 1 : 0.4 }}>
                 Add
               </button>
             </div>
@@ -108,7 +108,7 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
                 disabled={aiFilling}
                 className="flex-1 text-[10px] rounded px-2 py-1" style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
               <button onClick={async () => { await onAddAiFill(activeIndex, prompt); close(); }} disabled={aiFilling}
-                className="text-[9px] px-2 py-1 rounded whitespace-nowrap" style={{ background: ACCENT, color: "#0b0b12", opacity: aiFilling ? 0.5 : 1 }}>
+                className="text-[9px] px-2 py-1 rounded whitespace-nowrap" style={{ background: ACCENT, color: "#fff", opacity: aiFilling ? 0.5 : 1 }}>
                 {aiFilling ? "Generating…" : "Generate"}
               </button>
             </div>

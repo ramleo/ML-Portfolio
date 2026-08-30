@@ -9,7 +9,7 @@ import DocChatPanel from "./DocChatPanel";
 import DocHistory, { saveHistoryEntry } from "./DocHistory";
 import type { ExtractedField, DocTypeInfo, HistoryEntry, ProcessingStep, StepState } from "./_types";
 
-const ACCENT = "#06b6d4";
+const ACCENT = "#387e8a";
 
 const STEPS: { key: ProcessingStep; label: string }[] = [
   { key: "extract",  label: "Extract" },

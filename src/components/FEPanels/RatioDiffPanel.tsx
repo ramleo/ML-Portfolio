@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { ColInfo } from "@/lib/feAlgorithms";
 
-const ACCENT = "#34d399";
+const ACCENT = "#4c806d";
 
 const SEL: React.CSSProperties = {
   background: "rgba(0,0,0,0.3)",

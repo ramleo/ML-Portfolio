@@ -1,6 +1,6 @@
 // Shared type + card/label style helpers for OptunaResults.tsx and
 // OptunaAIExplain.tsx (split apart 2026-08-15 to stay under the 400-line cap).
-export const ACCENT = "#a78bfa";
+export const ACCENT = "#7e68c0";
 
 export interface FIEntry { feature: string; importance: number }
 export interface CVEntry { name: string; score: number; fold_scores?: number[] }

@@ -3,7 +3,7 @@
 import React from "react";
 import { FeResult } from "@/lib/feAlgorithms";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

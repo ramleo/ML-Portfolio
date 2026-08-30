@@ -11,7 +11,7 @@ import KeystrokeAuthRiskUserGuideModal from "./KeystrokeAuthRiskUserGuideModal";
 import { KEYSTROKE_AUTH_GUIDE, KEYSTROKE_AUTH_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#22c55e";
+const ACCENT = "#3f8358";
 
 const TOOL_SUMMARY =
   "Type a fixed phrase 3 times to enroll a real keystroke-timing profile (dwell + flight time per " +

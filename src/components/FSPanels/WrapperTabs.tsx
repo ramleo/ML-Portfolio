@@ -2,7 +2,7 @@
 
 import type { SelectionOpts } from "@/lib/fsAlgorithms";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 interface WrapperTabsProps {
   opts: SelectionOpts;

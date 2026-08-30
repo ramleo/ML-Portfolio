@@ -71,4 +71,4 @@ export function levelColor(lv: string) {
   return "#34d399";
 }
 
-export const ACCENT = "#fb923c";
+export const ACCENT = "#a9652d";

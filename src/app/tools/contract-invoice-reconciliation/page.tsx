@@ -11,7 +11,7 @@ import ReconciliationUserGuideModal from "./ReconciliationUserGuideModal";
 import { RECONCILIATION_GUIDE, RECONCILIATION_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 export default function ContractInvoiceReconciliationPage() {
   useToolTracking("contract-invoice-reconciliation");

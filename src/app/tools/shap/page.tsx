@@ -12,7 +12,7 @@ import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 const SHAP_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function ShapPageInner() {

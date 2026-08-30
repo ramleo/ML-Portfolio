@@ -11,7 +11,7 @@ import DnsTunnelUserGuideModal from "./DnsTunnelUserGuideModal";
 import { DNS_TUNNEL_GUIDE, DNS_TUNNEL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#8b5cf6";
+const ACCENT = "#8164c4";
 
 const TOOL_SUMMARY =
   "Paste a DNS query log (one hostname per line) or check a single hostname, and it's analyzed with real, " +

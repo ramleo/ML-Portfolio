@@ -11,10 +11,10 @@ export type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "au
 export const STAGES: StageKind[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
 
 export const STAGE_META: Record<StageKind, { label: string; accent: string }> = {
-  preprocessing:    { label: "Preprocess",     accent: "#38bdf8" },
-  "feature-eng":    { label: "Feature Eng",    accent: "#34d399" },
-  "feature-select": { label: "Feature Select", accent: "#f59e0b" },
-  automl:           { label: "AutoML",          accent: "#a78bfa" },
+  preprocessing:    { label: "Preprocess",     accent: "#3e7c98" },
+  "feature-eng":    { label: "Feature Eng",    accent: "#4c806d" },
+  "feature-select": { label: "Feature Select", accent: "#966f2b" },
+  automl:           { label: "AutoML",          accent: "#7e68c0" },
 };
 
 const STAGE_DURATIONS: Record<StageKind, number> = {

@@ -4,7 +4,7 @@ import { SharpenButtons } from "./SharpenControls";
 import WatermarkControls from "./WatermarkControls";
 import type { CameraMatch, DetectedObject, MoireResult, StegoResult } from "./_types";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const FACE_COLOR = "#fbbf24";
 const TYPE_LABEL: Record<string, string> = { table: "Table", figure: "Figure", text: "Text", image: "Image", video: "Video Frame" };
 

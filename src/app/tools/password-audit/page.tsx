@@ -11,7 +11,7 @@ import PasswordAuditUserGuideModal from "./PasswordAuditUserGuideModal";
 import { PASSWORD_AUDIT_GUIDE, PASSWORD_AUDIT_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#14b8a6";
+const ACCENT = "#428079";
 
 const TOOL_SUMMARY =
   "Type a password to score its real strength (zxcvbn — pattern-matching against dictionaries/keyboard-walks/" +

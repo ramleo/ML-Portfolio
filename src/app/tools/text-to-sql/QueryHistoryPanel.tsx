@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const ACCENT = "#6366f1";
+const ACCENT = "#6a6cc8";
 
 interface HistoryTurn { question: string; sql: string; result_summary: string; count: number; timestamp?: number; }
 

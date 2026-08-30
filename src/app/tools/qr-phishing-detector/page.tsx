@@ -11,7 +11,7 @@ import QrPhishingUserGuideModal from "./QrPhishingUserGuideModal";
 import { QR_PHISHING_GUIDE, QR_PHISHING_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f97316";
+const ACCENT = "#a06840";
 
 const TOOL_SUMMARY =
   "Upload a photo/screenshot containing a QR code, or type a URL directly — decoded locally (OpenCV, no ML " +

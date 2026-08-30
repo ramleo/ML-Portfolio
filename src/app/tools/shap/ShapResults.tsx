@@ -1,6 +1,6 @@
 "use client";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 interface FIEntry { feature: string; importance: number }
 interface CVEntry { name: string; score: number }

@@ -118,7 +118,7 @@ export default function FaceReidDemoRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-3 flex-wrap">
               <button onClick={() => targetInputRef.current?.click()}
                 className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-                style={{ background: accent, color: "#0b0b12" }}>
+                style={{ background: accent, color: "#fff" }}>
                 Choose target photo
               </button>
               <input ref={targetInputRef} type="file" accept="image/*" className="hidden"
@@ -157,7 +157,7 @@ export default function FaceReidDemoRunner({ accent }: { accent: string }) {
           {targetPreview && gallery.length > 0 && (
             <button onClick={run} disabled={running}
               className="self-start text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-              style={{ background: accent, color: "#0b0b12", opacity: running ? 0.6 : 1 }}>
+              style={{ background: accent, color: "#fff", opacity: running ? 0.6 : 1 }}>
               {running ? "Searching…" : "Run search"}
             </button>
           )}

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { PLANT_GROWTH_GUIDE } from "./userGuide";
 
-const ACCENT = "#4ade80";
+const ACCENT = "#3f8258";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

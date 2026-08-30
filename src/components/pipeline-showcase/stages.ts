@@ -8,27 +8,27 @@
  */
 const STAGES = [
   {
-    step: 1, title: "Data Ingestion", accent: "#34d399",
+    step: 1, title: "Data Ingestion", accent: "#4c806d",
     tools: ["CSV Upload", "REST APIs", "Web Scraping", "Selenium", "Scrapy", "BeautifulSoup"],
     description: "Collect raw data from any source — upload CSV files, call REST APIs, or scrape websites with Selenium, Scrapy, or BeautifulSoup. This is where every ML project begins.",
     liveLink: "/?mode=eda",
     liveLinkLabel: "Try EDA Explorer →",
   },
   {
-    step: 2, title: "Exploratory Analysis", accent: "#38bdf8",
+    step: 2, title: "Exploratory Analysis", accent: "#3e7c98",
     tools: ["Pandas", "NumPy", "Plotly", "Distributions", "Correlations", "Outliers"],
     description: "Understand the data before touching it. Distributions, missing values, correlations, outlier detection, type inference — visualized interactively.",
     liveLink: "/?mode=eda",
     liveLinkLabel: "Open EDA Explorer →",
   },
   {
-    step: 3, title: "Feature Engineering", accent: "#a78bfa",
+    step: 3, title: "Feature Engineering", accent: "#7e68c0",
     tools: ["Encoding", "Scaling", "PCA", "LDA", "SHAP", "Feature Selection", "SMOTE", "ADASYN"],
     description: "Clean, encode, scale, and select features. Reduce dimensionality with PCA/LDA. Handle class imbalance with SMOTE and ADASYN. Identify important features with SHAP.",
     liveLink: null, liveLinkLabel: null,
   },
   {
-    step: 4, title: "Model Training", accent: "#f59e0b",
+    step: 4, title: "Model Training", accent: "#966f2b",
     tools: ["Scikit-learn", "XGBoost", "LightGBM", "CatBoost", "PyTorch", "GridSearchCV", "Auto-ML"],
     description: "Select and train the right algorithm — from Linear Regression and Random Forest to XGBoost, deep learning (CNN/RNN), and Auto-ML pipelines with hyperparameter tuning.",
     liveLink: "/?mode=ml",

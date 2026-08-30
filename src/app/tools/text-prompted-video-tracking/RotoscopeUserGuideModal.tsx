@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { ROTOSCOPE_GUIDE } from "./userGuide";
 
-const ACCENT = "#7c3aed";
+const ACCENT = "#8465b9";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

@@ -59,7 +59,7 @@ const MODES: ModeConfig[] = [
     title: "Guided Mode",
     description:
       "Configure and run one stage at a time. See results after each step before moving to the next.",
-    accent: "#38bdf8",
+    accent: "#3e7c98",
     Icon: GuidedIcon,
   },
   {
@@ -67,7 +67,7 @@ const MODES: ModeConfig[] = [
     title: "Express Mode",
     description:
       "Configure all 7 stages at once, then run the full pipeline. Watch it execute with live animations.",
-    accent: "#22c55e",
+    accent: "#3f8358",
     Icon: ExpressIcon,
   },
   {
@@ -75,7 +75,7 @@ const MODES: ModeConfig[] = [
     title: "A/B Compare",
     description:
       "Run two different pipeline configurations on the same dataset. Compare which performs better.",
-    accent: "#a78bfa",
+    accent: "#7e68c0",
     Icon: ABIcon,
   },
 ];

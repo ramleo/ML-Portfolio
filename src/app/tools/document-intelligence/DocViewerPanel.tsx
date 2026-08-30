@@ -2,7 +2,7 @@
 
 import type { ExtractedField } from "./_types";
 
-const ACCENT = "#06b6d4";
+const ACCENT = "#387e8a";
 
 const FIELD_TYPE_STROKE: Record<string, string> = {
   currency: "#10b981",

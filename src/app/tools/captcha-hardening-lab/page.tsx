@@ -11,7 +11,7 @@ import CaptchaHardeningUserGuideModal from "./CaptchaHardeningUserGuideModal";
 import { CAPTCHA_HARDENING_GUIDE, CAPTCHA_HARDENING_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 const TOOL_SUMMARY =
   "Upload a CAPTCHA-style image — a vision-language model attempts to read it, then a hardening slider stacks " +

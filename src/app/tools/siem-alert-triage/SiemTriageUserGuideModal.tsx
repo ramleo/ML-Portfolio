@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { SIEM_TRIAGE_GUIDE } from "./userGuide";
 
-const ACCENT = "#0891b2";
+const ACCENT = "#307f92";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

@@ -94,7 +94,7 @@ export default function PasswordAuditRunner({ accent }: { accent: string }) {
           </p>
           <button onClick={checkBreach} disabled={breach.status === "checking"}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12", opacity: breach.status === "checking" ? 0.6 : 1 }}>
+            style={{ background: accent, color: "#fff", opacity: breach.status === "checking" ? 0.6 : 1 }}>
             {breach.status === "checking" ? "Checking…" : "Check breach exposure"}
           </button>
 

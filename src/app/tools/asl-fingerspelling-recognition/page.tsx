@@ -11,7 +11,7 @@ import AslFingerspellingUserGuideModal from "./AslFingerspellingUserGuideModal";
 import { ASL_FINGERSPELLING_GUIDE, ASL_FINGERSPELLING_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#0891b2";
+const ACCENT = "#307f92";
 
 const TOOL_SUMMARY =
   "Hold up one hand fingerspelling an ASL letter and this recognizes it live from your webcam — " +

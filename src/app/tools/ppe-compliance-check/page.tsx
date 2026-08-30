@@ -11,7 +11,7 @@ import PpeComplianceUserGuideModal from "./PpeComplianceUserGuideModal";
 import { PPE_COMPLIANCE_GUIDE, PPE_COMPLIANCE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#ea580c";
+const ACCENT = "#a0684b";
 
 const TOOL_SUMMARY =
   "Upload a photo and this detects each person and checks whether a hard hat and safety vest are visible " +

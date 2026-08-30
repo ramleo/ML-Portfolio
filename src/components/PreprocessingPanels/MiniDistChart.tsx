@@ -2,7 +2,7 @@
 
 import { ColumnInfo } from "@/lib/preprocessingAlgorithms";
 
-const ACCENT = "#22d3ee";
+const ACCENT = "#377f8a";
 
 export function MiniDistChart({ col, width = 160, dimmed = false }: { col: ColumnInfo; width?: number; dimmed?: boolean }) {
   const { min = 0, max = 0, mean = 0, std = 1, skew = 0 } = col;

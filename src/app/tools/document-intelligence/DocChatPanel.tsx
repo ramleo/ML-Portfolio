@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { ExtractedField } from "./_types";
 
-const ACCENT = "#06b6d4";
+const ACCENT = "#387e8a";
 
 interface Msg { role: "user" | "assistant"; content: string; }
 

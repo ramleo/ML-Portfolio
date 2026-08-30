@@ -39,7 +39,7 @@ export default function PoseVjRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => (webcam.active ? webcam.stop() : webcam.start())}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12" }}>
+            style={{ background: accent, color: "#fff" }}>
             {webcam.active ? "Stop camera" : "Start camera"}
           </button>
           <button onClick={() => (mic.active ? mic.stop() : mic.start())} disabled={!webcam.active}

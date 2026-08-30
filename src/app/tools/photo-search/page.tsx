@@ -11,7 +11,7 @@ import PhotoSearchUserGuideModal from "./PhotoSearchUserGuideModal";
 import { PHOTO_SEARCH_GUIDE, PHOTO_SEARCH_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 const TOOL_SUMMARY =
   "Upload a batch of photos and describe what you're looking for in plain language ('the red backpack', " +

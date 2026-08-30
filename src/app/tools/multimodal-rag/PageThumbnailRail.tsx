@@ -1,6 +1,6 @@
 "use client";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 type Props = {
   pageImages: string[];

@@ -12,7 +12,7 @@ function highlightMatches(text: string, query: string, accent: string) {
   const parts = splitForHighlight(text);
   return parts.map((part, i) =>
     i % 2 === 1 && wordsMatch(part, query)
-      ? <mark key={i} style={{ background: accent, color: "#0b0b12", fontWeight: 700, borderRadius: 3, padding: "0 2px" }}>{part}</mark>
+      ? <mark key={i} style={{ background: accent, color: "#fff", fontWeight: 700, borderRadius: 3, padding: "0 2px" }}>{part}</mark>
       : part
   );
 }

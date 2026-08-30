@@ -3,7 +3,7 @@
 import FreehandDrawLayer from "./FreehandDrawLayer";
 import type { Bbox } from "./_types";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const WARNING_COLOR = "#f87171"; // same red-toned accent used for tampering warnings and the low-confidence caption below
 
 type ButtonsProps = {

@@ -11,7 +11,7 @@ import AiCodeDetectorUserGuideModal from "./AiCodeDetectorUserGuideModal";
 import { AI_CODE_DETECTOR_GUIDE, AI_CODE_DETECTOR_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#14b8a6";
+const ACCENT = "#428079";
 
 const TOOL_SUMMARY =
   "Paste a code snippet — surfaces documented stylometric signals (comment density, generic naming, docstring " +

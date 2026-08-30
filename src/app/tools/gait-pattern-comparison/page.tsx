@@ -11,7 +11,7 @@ import GaitComparisonUserGuideModal from "./GaitComparisonUserGuideModal";
 import { GAIT_COMPARISON_GUIDE, GAIT_COMPARISON_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#84cc16";
+const ACCENT = "#678042";
 
 const TOOL_SUMMARY =
   "Upload two side-view walking videos — tracks body pose with MediaPipe (reusing Movement Form " +

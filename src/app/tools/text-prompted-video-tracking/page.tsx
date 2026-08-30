@@ -11,7 +11,7 @@ import RotoscopeUserGuideModal from "./RotoscopeUserGuideModal";
 import { ROTOSCOPE_GUIDE, ROTOSCOPE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#7c3aed";
+const ACCENT = "#8465b9";
 
 const TOOL_SUMMARY =
   "Upload a short video and type an object description (e.g. \"the red backpack\") — Grounding DINO finds " +

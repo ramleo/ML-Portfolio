@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { ATTACK_SURFACE_GUIDE } from "./userGuide";
 
-const ACCENT = "#dc2626";
+const ACCENT = "#a86161";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

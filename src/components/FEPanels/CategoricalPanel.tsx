@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { ColInfo, DATE_PARTS, getTopValues } from "@/lib/feAlgorithms";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 export interface CategoricalPanelProps {
   catCols: ColInfo[];

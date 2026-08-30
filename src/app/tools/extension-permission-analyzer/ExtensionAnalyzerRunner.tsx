@@ -75,7 +75,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
             onClick={analyze}
             disabled={!raw.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
-            style={{ background: accent, color: "#000" }}>
+            style={{ background: accent, color: "#fff" }}>
             Analyze permissions
           </button>
           <button onClick={() => setRaw(SAMPLE_MANIFEST)}

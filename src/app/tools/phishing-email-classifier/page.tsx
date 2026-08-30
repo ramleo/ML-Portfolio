@@ -12,7 +12,7 @@ import { PHISHING_EMAIL_GUIDE, PHISHING_EMAIL_SUGGESTIONS } from "./userGuide";
 import { MEASURED_HELD_OUT_ACCURACY } from "./emailBodyClassifier";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#e11d48";
+const ACCENT = "#aa5f6f";
 
 const TOOL_SUMMARY =
   "Paste an email's body text and a Naive Bayes classifier (trained on real phishing + legitimate emails, " +

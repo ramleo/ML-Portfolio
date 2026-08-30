@@ -11,7 +11,7 @@ import StyleCloakUserGuideModal from "./StyleCloakUserGuideModal";
 import { STYLE_CLOAK_GUIDE, STYLE_CLOAK_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#ec4899";
+const ACCENT = "#b65384";
 
 const TOOL_SUMMARY =
   "Upload an image and this tool adds an imperceptible adversarial perturbation across the whole " +

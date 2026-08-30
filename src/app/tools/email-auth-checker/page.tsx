@@ -11,7 +11,7 @@ import EmailAuthUserGuideModal from "./EmailAuthUserGuideModal";
 import { EMAIL_AUTH_GUIDE, EMAIL_AUTH_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#0ea5e9";
+const ACCENT = "#3c7d9b";
 
 const TOOL_SUMMARY =
   "Paste raw email headers — parses the receiving mail server's own Authentication-Results (SPF/DKIM/DMARC), " +

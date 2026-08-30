@@ -25,7 +25,7 @@ import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" };
 const FE_STEP_KEYS: Step[] = ["upload", "configure", "processing", "results"];
 const FE_STEP_LABELS = ["Upload", "Configure", "Processing", "Results"];

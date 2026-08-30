@@ -11,7 +11,7 @@ import YaraScanUserGuideModal from "./YaraScanUserGuideModal";
 import { YARA_SCAN_GUIDE, YARA_SCAN_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#b91c1c";
+const ACCENT = "#a96161";
 
 const TOOL_SUMMARY =
   "Upload a file and it's scanned with the real, open-source YARA pattern-matching engine — the " +

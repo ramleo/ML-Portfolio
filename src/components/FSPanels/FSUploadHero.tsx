@@ -3,7 +3,7 @@
 import type { ColInfo, SelectionOpts } from "@/lib/fsAlgorithms";
 import DatasetEstimator from "@/components/DatasetEstimator";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

@@ -12,7 +12,7 @@ import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const OPTUNA_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function OptunaPageInner() {

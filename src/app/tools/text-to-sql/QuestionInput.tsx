@@ -3,7 +3,7 @@
 import { type RefObject, useState, useEffect, useRef } from "react";
 import PipelineStatus from "./PipelineStatus";
 
-const ACCENT = "#6366f1";
+const ACCENT = "#6a6cc8";
 
 type Provider = "groq" | "gemini" | "cohere";
 

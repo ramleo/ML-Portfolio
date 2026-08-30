@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 const TAB_LABELS: Record<string, string> = {
   variance:    "Variance Filter",

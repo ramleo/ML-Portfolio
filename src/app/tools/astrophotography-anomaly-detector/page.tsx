@@ -11,7 +11,7 @@ import AstroAnomalyUserGuideModal from "./AstroAnomalyUserGuideModal";
 import { ASTRO_ANOMALY_GUIDE, ASTRO_ANOMALY_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#0ea5e9";
+const ACCENT = "#3c7d9b";
 
 const TOOL_SUMMARY =
   "Upload 5-30 photos from one fixed-tripod night-sky session — detects meteor/satellite streaks via frame " +

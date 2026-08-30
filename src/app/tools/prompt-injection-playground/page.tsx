@@ -11,7 +11,7 @@ import PromptInjectionUserGuideModal from "./PromptInjectionUserGuideModal";
 import { PROMPT_INJECTION_GUIDE, PROMPT_INJECTION_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#8b5cf6";
+const ACCENT = "#8164c4";
 
 const TOOL_SUMMARY =
   "Paste a prompt or a document an AI might be asked to read — checks it for prompt injection using a transparent " +

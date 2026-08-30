@@ -12,7 +12,7 @@ import AdversarialUserGuideModal from "./AdversarialUserGuideModal";
 import { ADVERSARIAL_GUIDE, ADVERSARIAL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#f43f5e";
+const ACCENT = "#c84b60";
 
 const TOOL_SUMMARY =
   "Upload a photo and craft an adversarial attack against a pretrained classifier — FGSM/PGD " +

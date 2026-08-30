@@ -39,10 +39,10 @@ const STORY_MAP = {
 } as const;
 
 const STAGE_META: Record<StageKind, { label: string; accent: string }> = {
-  "preprocessing":   { label: "Preprocessing",       accent: "#38bdf8" },
-  "feature-eng":     { label: "Feature Engineering", accent: "#34d399" },
-  "feature-select":  { label: "Feature Selection",   accent: "#f59e0b" },
-  "automl":          { label: "AutoML",               accent: "#a78bfa" },
+  "preprocessing":   { label: "Preprocessing",       accent: "#3e7c98" },
+  "feature-eng":     { label: "Feature Engineering", accent: "#4c806d" },
+  "feature-select":  { label: "Feature Selection",   accent: "#966f2b" },
+  "automl":          { label: "AutoML",               accent: "#7e68c0" },
 };
 
 const PulsingDots = () => (

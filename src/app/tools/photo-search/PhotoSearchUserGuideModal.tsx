@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { PHOTO_SEARCH_GUIDE } from "./userGuide";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

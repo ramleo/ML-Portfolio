@@ -3,7 +3,7 @@
 import React from "react";
 import { ColInfo } from "@/lib/feAlgorithms";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 const SELECT_STYLE: React.CSSProperties = {
   flex: 1,

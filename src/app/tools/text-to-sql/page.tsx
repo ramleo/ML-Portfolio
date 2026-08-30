@@ -11,7 +11,7 @@ import TextToSqlRunner from "./TextToSqlRunner";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#6366f1";
+const ACCENT = "#6a6cc8";
 
 export default function TextToSqlPage() {
   useToolTracking("text-to-sql");

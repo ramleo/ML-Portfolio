@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { EmbeddingMode, IngestState, SaveScope } from "./_types";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 type Props = {
   sessionId: string;

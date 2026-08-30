@@ -12,7 +12,7 @@ import { extractImagePrompt } from "@/components/chatImageIntent";
 import { extractStyleComparison } from "./chatCompareIntent";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#ec4899";
+const ACCENT = "#b65384";
 
 // Built from the same STYLE_OPTIONS/ASPECT_RATIO_OPTIONS the UI renders —
 // one source of truth, so the chat's grounding can never drift out of sync

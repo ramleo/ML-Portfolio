@@ -11,7 +11,7 @@ import SiemTriageUserGuideModal from "./SiemTriageUserGuideModal";
 import { SIEM_TRIAGE_GUIDE, SIEM_TRIAGE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#0891b2";
+const ACCENT = "#307f92";
 
 const TOOL_SUMMARY =
   "Paste raw security alert lines and they're deduplicated/grouped by normalized template entirely in " +

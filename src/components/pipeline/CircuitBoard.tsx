@@ -15,7 +15,7 @@ interface PathData {
   active: boolean;
 }
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 export default function CircuitBoard({
   cardRefs,

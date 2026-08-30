@@ -16,7 +16,7 @@ import type { Provider, SchemaTable } from "./_types";
 import { SAMPLE_QUESTIONS } from "./_types";
 import { useQueryRunner } from "./useQueryRunner";
 
-const ACCENT = "#6366f1";
+const ACCENT = "#6a6cc8";
 
 export default function TextToSqlRunner() {
   const [dbSource, setDbSource] = useState<DbSource>("demo");

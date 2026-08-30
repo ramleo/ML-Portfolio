@@ -11,7 +11,7 @@ import FaceCloakUserGuideModal from "./FaceCloakUserGuideModal";
 import { FACE_CLOAK_GUIDE, FACE_CLOAK_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#8b5cf6";
+const ACCENT = "#8164c4";
 
 const TOOL_SUMMARY =
   "Upload a personal photo and this tool adds an imperceptible adversarial perturbation to the " +

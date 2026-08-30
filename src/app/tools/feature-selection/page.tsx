@@ -29,7 +29,7 @@ import { toolBackHref } from "@/lib/toolNav";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

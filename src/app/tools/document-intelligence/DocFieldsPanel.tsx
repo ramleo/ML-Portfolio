@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ExtractedField, FieldValidation } from "./_types";
 
-const ACCENT = "#06b6d4";
+const ACCENT = "#387e8a";
 const RING_SIZE = 28;
 const RING_R = 11;
 const RING_CIRC = 2 * Math.PI * RING_R;

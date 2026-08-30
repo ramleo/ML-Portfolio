@@ -18,7 +18,7 @@ import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#22d3ee";
+const ACCENT = "#377f8a";
 
 function buildPreprocessingContext(analyzed: AnalyzeResult | null, result: PrepResult | null): string {
   if (!analyzed) return "Data Preprocessing tool. No dataset loaded yet — ask the user to upload a CSV file first.";

@@ -70,7 +70,7 @@ export default function VideoKeystrokeInferenceRunner({ accent }: { accent: stri
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12" }}>
+            style={{ background: accent, color: "#fff" }}>
             Choose video
           </button>
           <input ref={fileInputRef} type="file" accept="video/*" className="hidden"
@@ -88,7 +88,7 @@ export default function VideoKeystrokeInferenceRunner({ accent }: { accent: stri
             <video ref={videoRef} src={videoUrl} controls muted className="rounded-lg max-w-xs" style={{ background: "#000" }} />
             <button onClick={analyze} disabled={running}
               className="self-start text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-              style={{ background: accent, color: "#0b0b12", opacity: running ? 0.6 : 1 }}>
+              style={{ background: accent, color: "#fff", opacity: running ? 0.6 : 1 }}>
               {running ? `Analyzing… ${progress}%` : "Analyze"}
             </button>
             {running && (

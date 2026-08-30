@@ -37,11 +37,11 @@ const ICONS: Record<string, ReactElement> = {
 };
 
 const STAGES: { id: StageId; title: string; accent: string; description: string }[] = [
-  { id: "preprocessing", title: "Preprocessing", accent: "#38bdf8", description: "Clean data, handle missing values and outliers" },
-  { id: "feature-eng", title: "Feature Engineering", accent: "#f59e0b", description: "Create polynomial, date, and transform features" },
-  { id: "feature-select", title: "Feature Selection", accent: "#34d399", description: "Remove noise, select top K features" },
-  { id: "automl", title: "AutoML", accent: "#22c55e", description: "Train and benchmark multiple algorithms" },
-  { id: "optuna", title: "Optuna Tuning", accent: "#a78bfa", description: "Hyperparameter optimization with Bayesian search" },
+  { id: "preprocessing", title: "Preprocessing", accent: "#3e7c98", description: "Clean data, handle missing values and outliers" },
+  { id: "feature-eng", title: "Feature Engineering", accent: "#966f2b", description: "Create polynomial, date, and transform features" },
+  { id: "feature-select", title: "Feature Selection", accent: "#4c806d", description: "Remove noise, select top K features" },
+  { id: "automl", title: "AutoML", accent: "#3f8358", description: "Train and benchmark multiple algorithms" },
+  { id: "optuna", title: "Optuna Tuning", accent: "#7e68c0", description: "Hyperparameter optimization with Bayesian search" },
   { id: "shap", title: "SHAP", accent: "#f87171", description: "Explain model predictions with SHAP values" },
   { id: "ensemble", title: "Ensemble", accent: "#818cf8", description: "Combine models for higher accuracy" },
 ];

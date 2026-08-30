@@ -12,7 +12,7 @@ import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
 import { MM_RAG_GUIDE, MM_RAG_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source Serif Pro', Georgia, serif";
 
 export default function MultimodalRagPage() {

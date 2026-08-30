@@ -13,7 +13,7 @@ import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#22c55e";
+const ACCENT = "#3f8358";
 const AUTOML_STEP_KEYS: AutoMLStep[] = ["upload", "config", "training", "results"];
 const AUTOML_STEP_LABELS = ["Upload", "Config", "Training", "Results"];
 

@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { MM_RAG_GUIDE } from "./userGuide";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

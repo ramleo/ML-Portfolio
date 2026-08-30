@@ -2,7 +2,7 @@
 
 import type { SelectionOpts, ColInfo } from "@/lib/fsAlgorithms";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 interface ReductionTabsProps {
   opts: SelectionOpts;

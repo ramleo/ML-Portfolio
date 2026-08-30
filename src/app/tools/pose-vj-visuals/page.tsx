@@ -8,7 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PoseVjRunner from "./PoseVjRunner";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#d946ef";
+const ACCENT = "#b247c2";
 
 export default function PoseVjVisualsPage() {
   useToolTracking("pose-vj-visuals");

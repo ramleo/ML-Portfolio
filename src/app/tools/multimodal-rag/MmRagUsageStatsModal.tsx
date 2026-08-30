@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import AnalyticsContent from "../rag-analytics/AnalyticsContent";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 export default function MmRagUsageStatsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {

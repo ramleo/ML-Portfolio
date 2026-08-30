@@ -24,7 +24,7 @@ const CATEGORIES = [
   {
     id: "dl",
     title: "Deep Learning",
-    accent: "#a78bfa",
+    accent: "#7e68c0",
     skills: [
       "ANN", "CNN", "RNN", "LSTM", "Transfer Learning",
       "VGG16", "VGG19", "ResNet50", "MobileNet", "GoogLeNet",
@@ -34,7 +34,7 @@ const CATEGORIES = [
   {
     id: "genai",
     title: "Generative AI",
-    accent: "#f59e0b",
+    accent: "#966f2b",
     skills: [
       "Transformers", "RAG", "AI Agents", "LangChain", "LangGraph",
       "LLMs", "Prompt Engineering", "Vector Databases", "Embeddings",
@@ -43,7 +43,7 @@ const CATEGORIES = [
   {
     id: "nlp",
     title: "NLP",
-    accent: "#34d399",
+    accent: "#4c806d",
     skills: [
       "Word2Vec", "LSTM", "Topic Modeling", "Sentiment Analysis",
       "POS Tagging", "Lemmatization", "Stemming", "Text Preprocessing",
@@ -53,7 +53,7 @@ const CATEGORIES = [
   {
     id: "cv",
     title: "Computer Vision",
-    accent: "#38bdf8",
+    accent: "#3e7c98",
     skills: [
       "Image Classification", "Object Detection", "Semantic Segmentation",
       "ONNX", "TinyYOLOv3", "Custom CNN", "CNN Layer Visualization",

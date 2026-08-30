@@ -110,7 +110,7 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()} disabled={proposing || measuring}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12", opacity: proposing || measuring ? 0.5 : 1 }}>
+            style={{ background: accent, color: "#fff", opacity: proposing || measuring ? 0.5 : 1 }}>
             Choose photos
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
@@ -231,7 +231,7 @@ export default function PlantGrowthGroupMode({ accent }: { accent: string }) {
 
           <button onClick={onRunMeasurement} disabled={measuring}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors self-start"
-            style={{ background: accent, color: "#0b0b12", opacity: measuring ? 0.5 : 1 }}>
+            style={{ background: accent, color: "#fff", opacity: measuring ? 0.5 : 1 }}>
             {measuring ? "Measuring…" : "Run measurement"}
           </button>
         </Card>

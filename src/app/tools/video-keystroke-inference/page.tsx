@@ -11,7 +11,7 @@ import KeystrokeUserGuideModal from "./KeystrokeUserGuideModal";
 import { KEYSTROKE_GUIDE, KEYSTROKE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 const TOOL_SUMMARY =
   "Upload a video of hands typing — tracks fingertip motion frame-by-frame (MediaPipe HandLandmarker, entirely " +

@@ -11,7 +11,7 @@ import CrimeSceneUserGuideModal from "./CrimeSceneUserGuideModal";
 import { CRIME_SCENE_GUIDE, CRIME_SCENE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#b91c1c";
+const ACCENT = "#a96161";
 
 const TOOL_SUMMARY =
   "Upload 2-6 photos of the same static scene from different angles — runs a real, sparse Structure-from-Motion " +

@@ -3,10 +3,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 const STAGES = [
-  { id: "preprocessing",   label: "Preprocess",     accent: "#38bdf8" },
-  { id: "feature-eng",     label: "Feature Eng",    accent: "#f59e0b" },
-  { id: "feature-select",  label: "Feature Select", accent: "#34d399" },
-  { id: "automl",          label: "AutoML",         accent: "#22c55e" },
+  { id: "preprocessing",   label: "Preprocess",     accent: "#3e7c98" },
+  { id: "feature-eng",     label: "Feature Eng",    accent: "#966f2b" },
+  { id: "feature-select",  label: "Feature Select", accent: "#4c806d" },
+  { id: "automl",          label: "AutoML",         accent: "#3f8358" },
 ];
 
 interface Props {

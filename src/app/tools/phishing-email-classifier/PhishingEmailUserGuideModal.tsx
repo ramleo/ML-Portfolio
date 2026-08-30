@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { PHISHING_EMAIL_GUIDE } from "./userGuide";
 
-const ACCENT = "#e11d48";
+const ACCENT = "#aa5f6f";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

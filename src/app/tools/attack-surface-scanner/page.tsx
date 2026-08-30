@@ -11,7 +11,7 @@ import AttackSurfaceScanUserGuideModal from "./AttackSurfaceScanUserGuideModal";
 import { ATTACK_SURFACE_GUIDE, ATTACK_SURFACE_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#dc2626";
+const ACCENT = "#a86161";
 
 const TOOL_SUMMARY =
   "Type a domain and 4 real, entirely passive recon checks run live: exposed sensitive paths " +

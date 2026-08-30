@@ -9,7 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import DepthParallaxRunner from "./DepthParallaxRunner";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#3b82f6";
+const ACCENT = "#4274c8";
 
 const TOOL_SUMMARY =
   "Upload a single photo — a local ONNX model (Depth-Anything-V2-Small) estimates a per-pixel " +

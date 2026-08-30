@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 export function mdToHtml(text: string): string {
   return text

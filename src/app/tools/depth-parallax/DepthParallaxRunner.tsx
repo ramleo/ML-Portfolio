@@ -92,7 +92,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()} disabled={loading}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12", opacity: loading ? 0.5 : 1 }}>
+            style={{ background: accent, color: "#fff", opacity: loading ? 0.5 : 1 }}>
             {loading ? "Estimating depth…" : "Upload a photo"}
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden"

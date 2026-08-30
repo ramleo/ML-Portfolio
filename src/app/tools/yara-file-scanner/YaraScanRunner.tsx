@@ -44,7 +44,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
     <button onClick={() => setMode(m)}
       className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
       style={mode === m
-        ? { background: accent, color: "#0b0b12" }
+        ? { background: accent, color: "#fff" }
         : { background: "var(--surface)", color: "var(--text3)", border: "1px solid var(--border)" }}>
       {label}
     </button>
@@ -88,7 +88,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-            style={{ background: accent, color: "#0b0b12" }}>
+            style={{ background: accent, color: "#fff" }}>
             Choose file
           </button>
           <input ref={fileInputRef} type="file" className="hidden"
@@ -105,7 +105,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
           <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
             <button onClick={handleRun} disabled={running}
               className="self-start text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-              style={{ background: accent, color: "#0b0b12", opacity: running ? 0.6 : 1 }}>
+              style={{ background: accent, color: "#fff", opacity: running ? 0.6 : 1 }}>
               {running ? "Scanning…" : "Scan"}
             </button>
 

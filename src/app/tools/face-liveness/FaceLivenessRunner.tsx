@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useWebcam } from "./useWebcam";
 import { useLivenessCheck } from "./useLivenessCheck";
 
-const ACCENT = "#14b8a6";
+const ACCENT = "#428079";
 const REAL_COLOR = "#34d399";
 const SPOOF_COLOR = "#f87171";
 const UNCERTAIN_COLOR = "#fbbf24";
@@ -84,7 +84,7 @@ export default function FaceLivenessRunner({ accent = ACCENT }: { accent?: strin
             <>
               <button onClick={captureAndCheck} disabled={checking}
                 className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                style={{ background: accent, color: "#0b0b12", opacity: checking ? 0.5 : 1 }}>
+                style={{ background: accent, color: "#fff", opacity: checking ? 0.5 : 1 }}>
                 {checking ? `Checking… (${progress}/${frameCount})` : "Capture & check"}
               </button>
               <button onClick={webcam.stop}

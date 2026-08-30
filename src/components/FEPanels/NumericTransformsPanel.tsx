@@ -16,7 +16,7 @@ const SEARCH_INPUT_STYLE: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const ACCENT = "#38bdf8";
+const ACCENT = "#3e7c98";
 
 // ── Mini histogram (SVG, pure browser) ───────────────────────────────────────
 

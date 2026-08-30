@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { YARA_SCAN_GUIDE } from "./userGuide";
 
-const ACCENT = "#b91c1c";
+const ACCENT = "#a96161";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { FACE_REID_GUIDE } from "./userGuide";
 
-const ACCENT = "#f97316";
+const ACCENT = "#a06840";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (

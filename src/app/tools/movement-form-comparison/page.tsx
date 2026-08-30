@@ -11,7 +11,7 @@ import MovementComparisonUserGuideModal from "./MovementComparisonUserGuideModal
 import { MOVEMENT_COMPARISON_GUIDE, MOVEMENT_COMPARISON_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 
-const ACCENT = "#22c55e";
+const ACCENT = "#3f8358";
 
 const TOOL_SUMMARY =
   "Upload your movement video and a reference video of the same exercise — tracks body pose with MediaPipe, " +

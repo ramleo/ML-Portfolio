@@ -66,7 +66,7 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
 
         <button onClick={() => fileInputRef.current?.click()}
           className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
-          style={{ background: accent, color: "#0b0b12" }}>
+          style={{ background: accent, color: "#fff" }}>
           Choose photo{"(s)"}
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"

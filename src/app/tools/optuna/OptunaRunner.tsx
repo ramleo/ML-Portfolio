@@ -7,7 +7,7 @@ import { track } from "@/hooks/useAnalytics";
 import OptunaResults from "./OptunaResults";
 import OptunaConfigForm from "@/components/OptunaSteps/OptunaConfigForm";
 
-const ACCENT = "#a78bfa";
+const ACCENT = "#7e68c0";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

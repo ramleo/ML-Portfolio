@@ -5,7 +5,7 @@ import { MODELS, Step, useShapRunner } from "./useShapRunner";
 import type { TrainResult } from "./useShapRunner";
 import ShapResults from "./ShapResults";
 
-const ACCENT = "#f59e0b";
+const ACCENT = "#966f2b";
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-glass)",

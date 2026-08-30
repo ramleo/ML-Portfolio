@@ -1,6 +1,6 @@
 "use client";
 
-const ACCENT = "#6366f1";
+const ACCENT = "#6a6cc8";
 
 export type DbSource = "demo" | "upload" | "postgres" | "mysql" | "mssql";
 

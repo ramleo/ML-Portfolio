@@ -2,7 +2,7 @@
 
 import type { SelectionResult } from "@/lib/fsAlgorithms";
 
-const ACCENT = "#fb923c";
+const ACCENT = "#a9652d";
 
 interface FSControlsProps {
   tabs: { id: string; label: string; enabled: boolean; cat: string }[];

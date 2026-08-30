@@ -92,8 +92,8 @@ export default function ABPanel({
   }
 
   const pipelineDefs = [
-    { label: "Pipeline A", accent: "#38bdf8", pipeline: "a" as const, configured: configuredA },
-    { label: "Pipeline B", accent: "#a78bfa", pipeline: "b" as const, configured: configuredB },
+    { label: "Pipeline A", accent: "#3e7c98", pipeline: "a" as const, configured: configuredA },
+    { label: "Pipeline B", accent: "#7e68c0", pipeline: "b" as const, configured: configuredB },
   ];
 
   const activeStage = activeModal ? stages.find((s) => s.id === activeModal.stageId) : null;
