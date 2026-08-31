@@ -24,7 +24,8 @@ body.bk-paginated #bk-pages a.bk-toc-part { color: var(--hue) !important; }
 body.bk-paginated nav:not(.bk-toc),
 body.bk-paginated footer,
 body.bk-paginated .hb-head,
-body.bk-paginated .hb-body { display: none !important; }
+body.bk-paginated .hb-body,
+body.bk-paginated .hb-audio { display: none !important; }
 body.bk-paginated #bk-pages { display: block !important; }
 
 @media print {
@@ -34,7 +35,7 @@ body.bk-paginated #bk-pages { display: block !important; }
     background: #fff !important; color: #111 !important;
   }
   /* Site furniture that means nothing on paper. */
-  nav:not(.bk-toc), footer, .hb-actions, .bk-exit, .particle-grid, canvas,
+  nav:not(.bk-toc), footer, .hb-actions, .hb-audio, .bk-exit, .particle-grid, canvas,
   .constellation-bg, .chatbot-launcher { display: none !important; }
   body.bk-paginated .hb-body { display: none !important; }
 

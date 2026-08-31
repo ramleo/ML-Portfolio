@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
 import HandbookActions from "./HandbookActions";
+import HandbookAudio from "./HandbookAudio";
 
 /**
  * The handbook, rendered from the same public/handbook.md the reader can
@@ -61,6 +62,9 @@ export default function HandbookPage() {
               {markdown}
             </ReactMarkdown>
           </article>
+          {/* Reads the page aloud with the browser's own voice — see
+              HandbookAudio.tsx for why this is not a hosted audio file. */}
+          <HandbookAudio />
         </main>
         <Footer />
       </div>
