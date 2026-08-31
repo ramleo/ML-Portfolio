@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Reading the handbook aloud, using the browser's own speech synthesiser.
@@ -122,7 +122,14 @@ function nearestBlock(blocks: HTMLElement[]): number {
 }
 
 export default function HandbookAudio() {
-  const [supported, setSupported] = useState(false);
+  // Read rather than stored: the server has no speechSynthesis, so a plain
+  // useState initialiser would disagree with the server's HTML at hydration,
+  // and setting it from an effect is a cascading render.
+  const supported = useSyncExternalStore(
+    () => () => {},
+    () => typeof window !== "undefined" && "speechSynthesis" in window,
+    () => false
+  );
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -153,7 +160,6 @@ export default function HandbookAudio() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    setSupported(true);
     // getVoices() is empty on first call in Chrome and fills in asynchronously.
     const load = () => {
       const list = window.speechSynthesis
@@ -165,9 +171,14 @@ export default function HandbookAudio() {
       // chosen rather than inherited.
       setVoiceURI((cur) => cur || list[0]?.voiceURI || "");
     };
-    load();
+    // Off the effect's own tick, so the first voice list does not land as a
+    // second render inside the first one.
+    const t = window.setTimeout(load, 0);
     window.speechSynthesis.addEventListener("voiceschanged", load);
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", load);
+    return () => {
+      window.clearTimeout(t);
+      window.speechSynthesis.removeEventListener("voiceschanged", load);
+    };
   }, []);
 
   const mark = (el: HTMLElement | null) => {
@@ -193,6 +204,12 @@ export default function HandbookAudio() {
   /** Top the synthesiser's queue back up to LOOKAHEAD. Called once to start
    *  and again as each utterance finishes, so the queue never runs dry mid-way
    *  through a sentence. */
+  /** fill() queues the next utterance from inside the previous one's `end`
+   *  handler, so it has to be able to reach itself. A callback cannot name
+   *  itself before it is declared; the ref is the hook-safe way to close that
+   *  loop. */
+  const again = useRef<() => void>(() => {});
+
   const fill = useCallback(() => {
     const list = chunks.current;
     while (pushed.current < list.length && inFlight.current < LOOKAHEAD) {
@@ -222,7 +239,7 @@ export default function HandbookAudio() {
         inFlight.current = Math.max(0, inFlight.current - 1);
         if (halted.current) return;
         if (pushed.current >= list.length && inFlight.current === 0) stop();
-        else fill();
+        else again.current();
       };
       u.onend = done;
       u.onerror = done;
@@ -230,6 +247,10 @@ export default function HandbookAudio() {
       window.speechSynthesis.speak(u);
     }
   }, [stop]);
+
+  useEffect(() => {
+    again.current = fill;
+  }, [fill]);
 
   const play = () => {
     if (paused) {

@@ -101,7 +101,7 @@ function AutoMLPageInner() {
             <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} />
+            <span data-wt="automl-steps"><StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} /></span>
             <ThemeToggle />
           </div>
         </div>

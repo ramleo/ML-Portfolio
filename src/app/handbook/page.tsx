@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
 import HandbookActions from "./HandbookActions";
 import HandbookAudio from "./HandbookAudio";
+import DemoLauncher from "./DemoLauncher";
 
 /**
  * The handbook, rendered from the same public/handbook.md the reader can
@@ -65,6 +66,9 @@ export default function HandbookPage() {
           {/* Reads the page aloud with the browser's own voice — see
               HandbookAudio.tsx for why this is not a hosted audio file. */}
           <HandbookAudio />
+          {/* Adds a "Watch this work" button under the chapters that have a
+              guided demo — see src/data/demos. */}
+          <DemoLauncher />
         </main>
         <Footer />
       </div>

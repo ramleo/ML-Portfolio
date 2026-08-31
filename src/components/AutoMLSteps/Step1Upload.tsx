@@ -24,6 +24,7 @@ export default function Step1Upload({
         Upload any labeled CSV. AutoML will run RF, XGBoost, LightGBM, and CatBoost via 5-fold CV and pick the winner.
       </p>
       <div
+        data-wt="automl-upload"
         className="subtle-card"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}

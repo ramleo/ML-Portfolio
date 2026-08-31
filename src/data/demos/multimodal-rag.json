@@ -1,0 +1,15 @@
+{
+  "toolId": "multimodal-rag",
+  "chapter": "ch-14-multimodal-rag",
+  "route": "/tools/multimodal-rag",
+  "title": "Multimodal RAG",
+  "blurb": "Answers cited back to the page — including answers that live in a chart.",
+  "steps": [
+    { "say": "This is multimodal retrieval augmented generation. Ordinary document question answering reads paragraphs. This one also reads the tables and the pictures.", "settle": 600 },
+    { "say": "You add a document here. A PDF is split three ways: the prose is chunked as text, every table is pulled out as structured rows, and every figure gets a caption written for it by a vision model. All three become searchable in the same index.", "settle": 2000 },
+    { "say": "That third path is the point. A number that only exists inside a bar chart has no text anywhere in the file, so a normal search can never find it. Here the chart has been described in words, and the description is what gets matched.", "settle": 2000 },
+    { "say": "You ask your question here, in any language, and it answers in the one you asked in.", "at": "mmrag-ask", "settle": 1600 },
+    { "say": "Every answer is cited back to the page it came from, and clicking a citation shows you that page with the region highlighted, so you can check the answer against the source rather than trusting it.", "settle": 1800 },
+    { "say": "It will also tell you when it cannot support a claim. A groundedness check runs over the answer, and a separate pass looks for statements in the documents that contradict each other. Add a document and try it, this one is live.", "settle": 1200 }
+  ]
+}

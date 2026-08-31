@@ -176,6 +176,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             onChange={e => chat.setInput(e.target.value)}
             onKeyDown={chat.onKeyDown}
             rows={1}
+            data-wt="mmrag-ask"
             placeholder="Ask anything about this document…"
             className="flex-1 bg-transparent text-[14px] py-1.5 outline-none resize-none"
             style={{ color: "var(--text)" }}
