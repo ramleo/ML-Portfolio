@@ -105,3 +105,31 @@
 .hb-demo-key::placeholder { color: var(--text3); }
 .hb-demo-key:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .hb-demo-warn { font-size: 0.7rem; color: #f0a35e; }
+
+/* Provider setup. A panel rather than more controls in the bar: seven fields
+   describing an HTTP request do not belong in a row of pills. */
+.hb-demo-config {
+  position: absolute; top: 100%; right: 0; z-index: 5; width: min(30rem, 92vw);
+  margin-top: 0.4rem; padding: 0.85rem 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  border: 1px solid var(--border2); border-radius: 12px;
+  background: var(--bg); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+.hb-demo-config-note { margin: 0 0 0.2rem; font-size: 0.72rem; color: var(--text3); line-height: 1.5; }
+.hb-demo-config-note code {
+  font-family: var(--type-data); font-size: 0.92em;
+  padding: 0.05rem 0.25rem; border-radius: 4px; background: var(--bg-glass);
+}
+.hb-demo-field { display: flex; flex-direction: column; gap: 0.2rem; }
+.hb-demo-field span {
+  font-family: var(--type-data); font-size: 0.64rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text3);
+}
+.hb-demo-field input {
+  padding: 0.35rem 0.6rem; border-radius: 8px;
+  font-family: var(--type-data); font-size: 0.72rem;
+  background: var(--bg-glass); color: var(--text); border: 1px solid var(--border);
+}
+.hb-demo-field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The bar is the positioning context for the panel above. */
+.hb-demo-bar { position: relative; }

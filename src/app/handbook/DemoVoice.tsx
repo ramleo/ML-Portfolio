@@ -2,18 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usableVoices } from "@/lib/speech";
-import {
-  getPresenter, hostedPresenter, setOwnKey,
-  HOSTED_LABELS, type HostedProvider,
-} from "@/lib/presenter";
+import { getPresenter, hostedPresenter, setOwnKey } from "@/lib/presenter";
+import DemoVoiceConfig, { loadConfig } from "./DemoVoiceConfig";
 
 /** "" means the voice baked into the clip's own audio track. */
 export const AS_RECORDED = "";
 
-/** A selection naming a paid vendor rather than one of the browser's voices. */
-export const OWN_KEY_PREFIX = "byo:";
-export const isOwnKey = (v: string) => v.startsWith(OWN_KEY_PREFIX);
-const providerOf = (v: string) => v.slice(OWN_KEY_PREFIX.length) as HostedProvider;
+/** The one selection meaning "a provider I am paying for", whichever it is.
+ *  Which provider, and how to call it, is configured separately — this is not
+ *  a menu of vendors the project approves of. */
+export const OWN_KEY = "byo";
+export const isOwnKey = (v: string) => v === OWN_KEY;
 
 /**
  * Choosing who narrates.
@@ -63,6 +62,7 @@ export default function DemoVoice({
   const voices = useVoices();
   const key = ownKey;
   const setKey = onOwnKey;
+  const [{ preset, config }, setProvider] = useState(() => loadConfig());
   // Only offered when this deployment has actually configured it — an option
   // that cannot work is worse than no option. See src/lib/presenter/avatar.ts.
   const avatarReady = getPresenter().id === "avatar";
@@ -71,8 +71,8 @@ export default function DemoVoice({
   // The key lives here and nowhere else: not in storage, and never sent to
   // this site's backend. Same handling as the API-key fields in the tools.
   useEffect(() => {
-    setOwnKey(wantsKey ? providerOf(value) : null, key);
-  }, [wantsKey, value, key]);
+    setOwnKey(wantsKey ? config : null, key);
+  }, [wantsKey, config, key]);
 
   // The failure happens inside the presenter, during playback, with nothing
   // to re-render this control — so a wrong key would silently degrade to the
@@ -103,25 +103,28 @@ export default function DemoVoice({
             {v.name}
           </option>
         ))}
-        {(Object.keys(HOSTED_LABELS) as HostedProvider[]).map((p) => (
-          <option key={p} value={OWN_KEY_PREFIX + p}>
-            {HOSTED_LABELS[p]}
-          </option>
-        ))}
+        <option value={OWN_KEY}>Your own provider…</option>
         {avatarReady && <option value="__avatar">Presenter</option>}
       </select>
 
       {wantsKey && (
-        <input
-          type="password"
-          className="hb-demo-key"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder={`${HOSTED_LABELS[providerOf(value)].split(" ")[0]} API key`}
-          aria-label="Your API key — stays in this browser"
-          autoComplete="off"
-          spellCheck={false}
-        />
+        <>
+          <DemoVoiceConfig
+            preset={preset}
+            config={config}
+            onChange={(p, c) => setProvider({ preset: p, config: c })}
+          />
+          <input
+            type="password"
+            className="hb-demo-key"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="API key"
+            aria-label="Your API key — stays in this browser, never sent to this site"
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </>
       )}
       {problem && <span className="hb-demo-warn">key rejected: {problem}</span>}
     </>

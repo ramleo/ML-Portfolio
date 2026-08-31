@@ -1,66 +1,89 @@
 import type { Presenter } from "./types";
+import { dig, fill, forJson, type HostedConfig } from "./providers";
 
 /**
  * A narrator the viewer pays for, with their own key, entered in the UI.
  *
- * Why text-to-speech and not a talking head: an avatar API (HeyGen, D-ID,
- * Synthesia) renders asynchronously — you post a script, poll a job, and get a
- * video back seconds or minutes later. That cannot narrate a clip that is
- * already playing. A neural TTS endpoint answers a single POST with audio,
- * which is fast enough to speak a line on its cue and is the thing people
- * actually want when they say the browser voice sounds poor. The avatar path
- * still exists in avatar.ts, configured server-side.
+ * Vendor-agnostic on purpose: it knows how to send one POST and find audio in
+ * the reply, and everything specific to a vendor is data the viewer can edit
+ * (see providers.ts). Any service that turns a request into audio can be used
+ * here, whether or not this project has heard of it.
+ *
+ * Why text-to-speech and not a talking head: an avatar API renders
+ * asynchronously — post a script, poll a job, get a video back seconds or
+ * minutes later — which cannot narrate a clip that is already playing. The
+ * avatar path still exists in avatar.ts, configured server-side.
  *
  * The key is held in memory for as long as the panel is open and is sent to
- * exactly one place: the vendor the viewer chose. It never reaches this site's
- * own backend, and it is never written to disk — the same handling as the
- * API-key fields elsewhere in this project.
+ * exactly one place: the endpoint the viewer named. It never reaches this
+ * site's own backend and is never written to storage.
  *
- * UNTESTED AGAINST A LIVE VENDOR. Neither endpoint below has been exercised
- * with a real key, because doing so costs money that is not mine to spend. The
- * request shapes are the vendors' documented ones; if one is wrong this falls
- * back to the browser voice rather than going silent, and reports why.
+ * UNTESTED AGAINST A LIVE VENDOR — that costs money that is not mine to
+ * spend. The preset request shapes are the vendors' documented ones. A failure
+ * falls back to the browser voice and reports why rather than going silent.
  */
-export type HostedProvider = "elevenlabs" | "openai";
 
-export const HOSTED_LABELS: Record<HostedProvider, string> = {
-  elevenlabs: "ElevenLabs (your key)",
-  openai: "OpenAI (your key)",
-};
+/** Raw PCM has no container, so no browser will play it. Gemini returns
+ *  signed 16-bit little-endian mono; this is the 44-byte header that makes it
+ *  a WAV. */
+function wav(pcm: Uint8Array<ArrayBuffer>, rate: number): Blob {
+  const head = new DataView(new ArrayBuffer(44));
+  const put = (o: number, s: string) =>
+    [...s].forEach((c, i) => head.setUint8(o + i, c.charCodeAt(0)));
+  put(0, "RIFF");
+  head.setUint32(4, 36 + pcm.length, true);
+  put(8, "WAVEfmt ");
+  head.setUint32(16, 16, true);
+  head.setUint16(20, 1, true);        // PCM
+  head.setUint16(22, 1, true);        // mono
+  head.setUint32(24, rate, true);
+  head.setUint32(28, rate * 2, true); // byte rate
+  head.setUint16(32, 2, true);        // block align
+  head.setUint16(34, 16, true);       // bits
+  put(36, "data");
+  head.setUint32(40, pcm.length, true);
+  return new Blob([head.buffer, pcm], { type: "audio/wav" });
+}
 
-/** A pleasant, widely available default per vendor. */
-const DEFAULT_VOICE: Record<HostedProvider, string> = {
-  elevenlabs: "21m00Tcm4TlvDq8ikWAM", // "Rachel", ElevenLabs' own sample voice
-  openai: "alloy",
+/** Typed as ArrayBuffer-backed so it is accepted as a BlobPart. */
+const bytes = (b64: string): Uint8Array<ArrayBuffer> => {
+  const out = new Uint8Array(new ArrayBuffer(b64.length ? atob(b64).length : 0));
+  const raw = atob(b64);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
 };
 
 async function synthesise(
-  provider: HostedProvider,
+  cfg: HostedConfig,
   key: string,
   text: string,
   signal?: AbortSignal
 ): Promise<Blob> {
-  if (provider === "elevenlabs") {
-    const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${DEFAULT_VOICE.elevenlabs}`,
-      {
-        method: "POST",
-        headers: { "xi-api-key": key, "Content-Type": "application/json" },
-        body: JSON.stringify({ text, model_id: "eleven_turbo_v2_5" }),
-        signal,
-      }
-    );
-    if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
-    return res.blob();
-  }
-  const res = await fetch("https://api.openai.com/v1/audio/speech", {
+  const vars = { key, voice: cfg.voice, text: forJson(text) };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (cfg.header) headers[cfg.header] = fill(cfg.value, vars);
+
+  const res = await fetch(fill(cfg.endpoint, vars), {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "gpt-4o-mini-tts", voice: DEFAULT_VOICE.openai, input: text }),
+    headers,
+    body: fill(cfg.body, vars),
     signal,
   });
-  if (!res.ok) throw new Error(`OpenAI ${res.status}`);
-  return res.blob();
+  if (!res.ok) {
+    // The vendor's own message is far more useful than the status alone —
+    // "voice not found" and "quota exceeded" are both 400 somewhere.
+    const why = (await res.text().catch(() => "")).slice(0, 140);
+    throw new Error(`${res.status}${why ? ` — ${why}` : ""}`);
+  }
+  if (!cfg.audioPath) return res.blob();
+
+  const json = await res.json();
+  const b64 = dig(json, cfg.audioPath);
+  if (typeof b64 !== "string") {
+    throw new Error(`no audio at "${cfg.audioPath}" in the reply`);
+  }
+  const raw = bytes(b64);
+  return cfg.pcmRate ? wav(raw, cfg.pcmRate) : new Blob([raw], { type: cfg.mime });
 }
 
 class HostedPresenter implements Presenter {
@@ -68,22 +91,17 @@ class HostedPresenter implements Presenter {
   readonly label = "Hosted voice";
   readonly hasVisual = false;
 
-  private provider: HostedProvider = "elevenlabs";
+  private cfg: HostedConfig | null = null;
   private key = "";
   private audio: HTMLAudioElement | null = null;
-  /** The next line, fetched while the current one is still speaking — a
-   *  round-trip per line would otherwise show up as a gap before every cue. */
-  private ahead = new Map<string, Promise<Blob>>();
-  /** Set once a call has failed, so a bad key degrades to the browser voice
-   *  immediately instead of failing again on every single line. */
+  /** Set once a call has failed, so a bad key or endpoint degrades to the
+   *  browser voice immediately rather than failing again on every line. */
   private broken = "";
 
-  configure(provider: HostedProvider, key: string) {
-    if (provider !== this.provider || key !== this.key) {
-      this.ahead.clear();
-      this.broken = "";
-    }
-    this.provider = provider;
+  configure(cfg: HostedConfig | null, key: string) {
+    const same = JSON.stringify(cfg) === JSON.stringify(this.cfg) && key === this.key;
+    if (!same) this.broken = "";
+    this.cfg = cfg;
     this.key = key;
   }
 
@@ -93,24 +111,14 @@ class HostedPresenter implements Presenter {
   }
 
   available() {
-    return Boolean(this.key) && !this.broken;
-  }
-
-  /** Warm the cache for a line that is about to be needed. */
-  prefetch(text: string) {
-    if (!this.available() || this.ahead.has(text)) return;
-    this.ahead.set(text, synthesise(this.provider, this.key, text).catch((e) => {
-      this.ahead.delete(text);
-      throw e;
-    }));
+    return Boolean(this.cfg?.endpoint && this.key) && !this.broken;
   }
 
   async speak(text: string, signal?: AbortSignal) {
-    if (!this.available()) throw new Error(this.broken || "no key");
+    if (!this.cfg || !this.available()) throw new Error(this.broken || "not configured");
     let blob: Blob;
     try {
-      blob = await (this.ahead.get(text) ?? synthesise(this.provider, this.key, text, signal));
-      this.ahead.delete(text);
+      blob = await synthesise(this.cfg, this.key, text, signal);
     } catch (e) {
       this.broken = e instanceof Error ? e.message : "request failed";
       throw e;
