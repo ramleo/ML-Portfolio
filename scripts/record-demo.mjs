@@ -19,29 +19,19 @@
  * Narration uses macOS `say`, and ffmpeg muxes it onto the video. Both are
  * checked for up front rather than failing halfway through a recording.
  */
-import { execFileSync, execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { have, mux, narrate, voiceTrack } from "./demo-audio.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMOS = path.join(ROOT, "src/data/demos");
 const OUT = path.join(ROOT, "public/demos");
 const BASE = process.env.DEMO_BASE_URL ?? "http://localhost:3000";
-const VOICE = process.env.DEMO_VOICE ?? "Samantha";
 // Wide enough that a tool with a document viewer AND a chat column can show
 // both. At 1280 the Multimodal RAG citation panel pushed the answer off-frame.
 const SIZE = { width: 1600, height: 1000 };
-
-function have(cmd) {
-  try {
-    execSync(`command -v ${cmd}`, { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 async function loadPlaywright() {
   try {
@@ -53,27 +43,6 @@ async function loadPlaywright() {
     );
     process.exit(1);
   }
-}
-
-/** One narration file per step, so the video can be cut to the real length of
- *  each line rather than a guess. Returns [{ file, seconds }]. */
-function narrate(steps, dir) {
-  return steps.map((s, i) => {
-    const aiff = path.join(dir, `line-${i}.aiff`);
-    const wav = path.join(dir, `line-${i}.wav`);
-    const text = s.say
-      .replace(/[—–]/g, ", ")
-      .replace(/[·•]/g, ", ")
-      .replace(/\s+/g, " ")
-      .trim();
-    execFileSync("say", ["-v", VOICE, "-o", aiff, text]);
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-ar", "44100", "-ac", "2", wav]);
-    const probe = execFileSync("ffprobe", [
-      "-v", "error", "-show_entries", "format=duration",
-      "-of", "default=noprint_wrappers=1:nokey=1", wav,
-    ]).toString().trim();
-    return { file: wav, seconds: Number(probe) || 3 };
-  });
 }
 
 /** Draw the spotlight and caption into the page itself. The live player paints
@@ -99,6 +68,54 @@ const OVERLAY = `(() => {
   document.body.append(spot, cap);
 })()`;
 
+/** Anything the page asks for that is not served by the site itself — in
+ *  practice, the ML-Unified backend. Requests to BASE are the app's own
+ *  (/api/track answers 400 locally and is none of our business). */
+const isBackend = (url) => !url.startsWith(BASE);
+
+/** Watch for a backend that cannot answer, and say so in those words.
+ *  Without this the symptom surfaces as a missing string on screen, which
+ *  reads like a broken demo script and sends you looking in the wrong file. */
+function watchBackend(page) {
+  const failed = [];
+  page.on("requestfailed", (r) => {
+    if (isBackend(r.url())) failed.push(`${r.url()} — ${r.failure()?.errorText ?? "failed"}`);
+  });
+  // A Space in the middle of a rebuild serves proxy 500s for several minutes.
+  // The page looks fine and every assertion fails for reasons of its own.
+  page.on("response", (r) => {
+    if (isBackend(r.url()) && r.status() >= 500) failed.push(`${r.url()} — HTTP ${r.status()}`);
+  });
+  return failed;
+}
+
+const FIX =
+  `start ML-Unified on :8000, or rebuild against the Space:\n` +
+  `  NEXT_PUBLIC_ML_UNIFIED_URL=https://wram1708-ml-unified.hf.space npm run build && npm start`;
+
+/** Load the page once before committing to anything expensive. Narration is
+ *  a `say` call and an ffmpeg convert per step, all of it spent before the
+ *  browser ever opens — finding out afterwards that the backend was down the
+ *  whole time is minutes wasted on a clip that was never going to work.
+ *
+ *  This only sees calls the page makes on load. Everything later is covered
+ *  by the same listeners running during the recording itself. */
+async function preflight(demo, chromium) {
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({ viewport: SIZE });
+  const page = await ctx.newPage();
+  const failed = watchBackend(page);
+  try {
+    await page.goto(BASE + demo.route, { waitUntil: "networkidle", timeout: 60000 });
+  } catch (err) {
+    await browser.close();
+    throw new Error(`${demo.route} would not load from ${BASE}: ${err.message.split("\n")[0]}`);
+  }
+  await browser.close();
+  if (failed.length)
+    throw new Error(`backend unreachable, before recording started:\n  ${failed.join("\n  ")}\n${FIX}`);
+}
+
 async function record(demo, chromium) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `demo-${demo.toolId}-`));
   console.log(`\n${demo.toolId}: narrating ${demo.steps.length} steps…`);
@@ -120,6 +137,7 @@ async function record(demo, chromium) {
     }, demo.suppress);
   }
   const page = await ctx.newPage();
+  const failed = watchBackend(page);
   await page.goto(BASE + demo.route, { waitUntil: "networkidle" });
   await page.evaluate(OVERLAY);
 
@@ -215,6 +233,12 @@ async function record(demo, chromium) {
     // Assert the world is as the narration is about to claim. A tool that
     // failed its own network call leaves the page looking plausible and the
     // clip sounding confident; this is the only thing that catches it.
+    // Before the assertion, not after: a backend that could not answer is the
+    // cause and the missing text is the symptom. Reporting the symptom sends
+    // you reading the demo script, which is not where the problem is.
+    if (failed.length)
+      throw new Error(`step ${i + 1}: a backend call failed —\n  ${failed.join("\n  ")}\n${FIX}`);
+
     if (s.expect) {
       // Everything except the overlay. The caption is a child of body, so a
       // plain body.innerText lets a step satisfy its own assertion with its
@@ -242,29 +266,9 @@ async function record(demo, chromium) {
   const raw = fs.readdirSync(tmp).find((f) => f.endsWith(".webm"));
   if (!raw) throw new Error("playwright produced no video");
 
-  // One narration track: the lines back to back, each padded out to the time
-  // the video actually spent on that step.
-  const listFile = path.join(tmp, "audio.txt");
-  const parts = [];
-  for (const [i, l] of lines.entries()) {
-    const pad = path.join(tmp, `pad-${i}.wav`);
-    // whole_dur, not pad_dur: pad the line out to the measured length of the
-    // step, so the narration stays under the picture it belongs to.
-    const total = Math.max(l.seconds, (spent[i] ?? 0) / 1000);
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", l.file,
-      "-af", `apad=whole_dur=${total.toFixed(2)}`, pad]);
-    parts.push(`file '${pad}'`);
-  }
-  fs.writeFileSync(listFile, parts.join("\n"));
-  const voiceTrack = path.join(tmp, "voice.wav");
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
-    "-i", listFile, "-c", "copy", voiceTrack]);
-
   fs.mkdirSync(OUT, { recursive: true });
   const out = path.join(OUT, `${demo.toolId}.webm`);
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error",
-    "-i", path.join(tmp, raw), "-i", voiceTrack,
-    "-c:v", "copy", "-c:a", "libopus", "-b:a", "96k", "-shortest", out]);
+  mux(path.join(tmp, raw), voiceTrack(lines, spent, tmp), out);
 
   // What the player needs to narrate this clip in the viewer's own voice:
   // when each step begins. Measured here rather than inferred later.
@@ -301,4 +305,7 @@ if (!wanted.length) {
   process.exit(1);
 }
 const chromium = await loadPlaywright();
-for (const d of wanted) await record(d, chromium);
+for (const d of wanted) {
+  await preflight(d, chromium);
+  await record(d, chromium);
+}
