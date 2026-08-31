@@ -257,6 +257,17 @@ async function record(demo, chromium) {
     "-i", path.join(tmp, raw), "-i", voiceTrack,
     "-c:v", "copy", "-c:a", "libopus", "-b:a", "96k", "-shortest", out]);
 
+  // What the player needs to narrate this clip in the viewer's own voice:
+  // when each step begins. Measured here rather than inferred later.
+  let at = 0;
+  const timings = demo.steps.map((s, i) => {
+    const start = Number((at / 1000).toFixed(2));
+    at += spent[i] ?? 0;
+    return { start, say: s.say };
+  });
+  fs.writeFileSync(path.join(OUT, `${demo.toolId}.timings.json`),
+    JSON.stringify(timings, null, 2) + "\n");
+
   fs.rmSync(tmp, { recursive: true, force: true });
   const mb = (fs.statSync(out).size / 1e6).toFixed(1);
   console.log(`  → public/demos/${demo.toolId}.webm  (${mb} MB)`);

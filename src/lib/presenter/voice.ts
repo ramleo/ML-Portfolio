@@ -15,6 +15,12 @@ class VoicePresenter implements Presenter {
   readonly hasVisual = false;
 
   private stopped = false;
+  /** Empty means "whichever this browser ranks best" — see usableVoices(). */
+  private chosen = "";
+
+  setVoice(voiceURI: string) {
+    this.chosen = voiceURI;
+  }
 
   available() {
     return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -38,7 +44,8 @@ class VoicePresenter implements Presenter {
     if (!parts.length) return Promise.resolve();
 
     return new Promise<void>((resolve) => {
-      const voice = usableVoices()[0];
+      const all = usableVoices();
+      const voice = all.find((v) => v.voiceURI === this.chosen) ?? all[0];
       let pushed = 0;
       let inFlight = 0;
       let finished = false;

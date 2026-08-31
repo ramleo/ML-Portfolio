@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Demo, DemoStep } from "@/data/demos";
 import { getPresenter } from "@/lib/presenter";
+import DemoVoice, { AS_RECORDED, useClipNarration } from "./DemoVoice";
 
 /**
  * A guided demo: the real tool, running, with someone talking you through it.
@@ -34,6 +35,9 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   const [step, setStep] = useState(-1);
   const [box, setBox] = useState<Box | null>(null);
   const [clipMissing, setClipMissing] = useState(false);
+  const [voiceURI, setVoiceURI] = useState(AS_RECORDED);
+  const [timings, setTimings] = useState<{ start: number; say: string }[] | null>(null);
+  const [video, setVideo] = useState<HTMLVideoElement | null>(null);
 
   const frame = useRef<HTMLIFrameElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -159,6 +163,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       if (ctrl.signal.aborted) break;
       // The narration sets the pace: a step lasts exactly as long as its line
       // takes to say, plus whatever the tool needs to catch up.
+      if (voiceURI !== AS_RECORDED) presenter.current.setVoice?.(voiceURI);
       await presenter.current.speak(s.say, ctrl.signal);
       if (ctrl.signal.aborted) break;
       await new Promise((r) => setTimeout(r, s.settle ?? 800));
@@ -167,7 +172,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       setRunning(false);
       setBox(null);
     }
-  }, [demo, locate, perform, waitForAnchor]);
+  }, [demo, locate, perform, waitForAnchor, voiceURI]);
 
   // Nothing outlives the panel: a demo left talking after the reader closed it
   // is the worst bug this component could have.
@@ -193,6 +198,24 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Only fetched when the reader actually opens the recorded tab: most never
+  // will, and it is a request they should not pay for.
+  useEffect(() => {
+    if (mode !== "clip" || timings) return;
+    let live = true;
+    fetch(`/demos/${demo.toolId}.timings.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((t) => {
+        if (live) setTimings(t);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [mode, demo.toolId, timings]);
+
+  useClipNarration(video, timings, voiceURI);
 
   useEffect(() => {
     const host = avatarHost.current;
@@ -232,6 +255,8 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
               {running ? "Stop" : step >= 0 ? "Replay" : "Start the walkthrough"}
             </button>
           )}
+          <DemoVoice value={voiceURI} onChange={setVoiceURI} />
+
           <button className="hb-demo-btn" onClick={onClose} aria-label="Close the demo">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
@@ -251,7 +276,9 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
               The live walkthrough works either way.
             </div>
           ) : (
-            <video className="hb-demo-video" src={clip} controls autoPlay
+            <video ref={setVideo} className="hb-demo-video" src={clip} controls autoPlay
+              // Muted exactly when something else is doing the narrating.
+              muted={voiceURI !== AS_RECORDED}
               onError={() => setClipMissing(true)} />
           )}
 
@@ -269,6 +296,8 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
         <div className="hb-demo-note">
           This is the real tool, not a mock-up — anything the walkthrough fills in is really there,
           and you can take over at any point. Steps stop short of buttons that call a paid model.
+          {mode === "clip" && voiceURI !== AS_RECORDED &&
+            " The clip is muted and its lines are being read in the voice you picked."}
         </div>
       </div>
     </div>

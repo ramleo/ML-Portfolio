@@ -20,6 +20,9 @@ export interface Presenter {
   speak(text: string, signal?: AbortSignal): Promise<void>;
   /** Drop anything queued and go quiet immediately. */
   stop(): void;
+  /** Use this specific voice. Optional because a hosted avatar has one voice
+   *  and no say in the matter; the browser presenter has dozens. */
+  setVoice?(voiceURI: string): void;
   /** Optional on-screen presence — a talking head, a waveform. The voice
    *  presenter has none, which is why this is optional rather than a
    *  component every implementation has to supply. */

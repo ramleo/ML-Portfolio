@@ -1,0 +1,30 @@
+[
+  {
+    "start": 0,
+    "say": "This is multimodal retrieval augmented generation. Ordinary document question answering reads paragraphs. This one also reads the tables and the pictures."
+  },
+  {
+    "start": 9.88,
+    "say": "I am adding a real PDF: a one page operations review with a bar chart in it. Watch what it does with the file, because it does three different things at once."
+  },
+  {
+    "start": 25.54,
+    "say": "The prose was chunked as text, the tables were pulled out as structured rows, and the chart was handed to a vision model. One text chunk, two table chunks, one figure. Note there are two tables when the document only prints one: the chart's own values were read out of the picture into a table of their own."
+  },
+  {
+    "start": 44.76,
+    "say": "That third path is the point. This document's on-time delivery figures exist only inside the bar chart. The words sixty five point eight percent appear nowhere in the text of the file, so an ordinary search could never find them."
+  },
+  {
+    "start": 59.73,
+    "say": "So I will ask for exactly that: which depot had the lowest on-time delivery rate."
+  },
+  {
+    "start": 67.49,
+    "say": "Every answer comes back cited to the exact piece of the document it was read from. Click a citation and it opens that page with the region highlighted, so the answer can be checked against the source rather than trusted."
+  },
+  {
+    "start": 89.48,
+    "say": "It will also tell you when it cannot support a claim. A groundedness check runs over every answer, and a separate pass looks for statements across your documents that contradict each other. Add your own PDF and try it, this one is live."
+  }
+]
