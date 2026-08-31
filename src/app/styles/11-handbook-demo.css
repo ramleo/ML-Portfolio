@@ -96,3 +96,12 @@
 }
 .hb-demo-select:hover { color: var(--text); border-color: var(--text3); }
 .hb-demo-select option { background: var(--bg); color: var(--text); }
+.hb-demo-key {
+  width: 11rem; padding: 0.32rem 0.6rem; border-radius: 9999px;
+  font-size: 0.72rem; font-family: var(--type-data);
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border2);
+}
+.hb-demo-key::placeholder { color: var(--text3); }
+.hb-demo-key:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hb-demo-warn { font-size: 0.7rem; color: #f0a35e; }

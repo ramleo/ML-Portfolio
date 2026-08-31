@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Demo, DemoStep } from "@/data/demos";
 import { getPresenter } from "@/lib/presenter";
-import DemoVoice, { AS_RECORDED, useClipNarration } from "./DemoVoice";
+import DemoVoice, { AS_RECORDED, isOwnKey, useClipNarration } from "./DemoVoice";
 
 /**
  * A guided demo: the real tool, running, with someone talking you through it.
@@ -36,6 +36,10 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   const [box, setBox] = useState<Box | null>(null);
   const [clipMissing, setClipMissing] = useState(false);
   const [voiceURI, setVoiceURI] = useState(AS_RECORDED);
+  const [ownKey, setOwnKeyValue] = useState("");
+  // A paid narrator that has no key yet cannot narrate anything, so the clip
+  // keeps its own audio until one is entered rather than going silent.
+  const narrating = voiceURI !== AS_RECORDED && !(isOwnKey(voiceURI) && !ownKey);
   const [timings, setTimings] = useState<{ start: number; say: string }[] | null>(null);
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
 
@@ -215,7 +219,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
     };
   }, [mode, demo.toolId, timings]);
 
-  useClipNarration(video, timings, voiceURI);
+  useClipNarration(video, timings, narrating ? voiceURI : AS_RECORDED, ownKey);
 
   useEffect(() => {
     const host = avatarHost.current;
@@ -255,7 +259,8 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
               {running ? "Stop" : step >= 0 ? "Replay" : "Start the walkthrough"}
             </button>
           )}
-          <DemoVoice value={voiceURI} onChange={setVoiceURI} />
+          <DemoVoice value={voiceURI} onChange={setVoiceURI}
+            ownKey={ownKey} onOwnKey={setOwnKeyValue} />
 
           <button className="hb-demo-btn" onClick={onClose} aria-label="Close the demo">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
@@ -278,7 +283,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
           ) : (
             <video ref={setVideo} className="hb-demo-video" src={clip} controls autoPlay
               // Muted exactly when something else is doing the narrating.
-              muted={voiceURI !== AS_RECORDED}
+              muted={narrating}
               onError={() => setClipMissing(true)} />
           )}
 
@@ -296,7 +301,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
         <div className="hb-demo-note">
           This is the real tool, not a mock-up — anything the walkthrough fills in is really there,
           and you can take over at any point. Steps stop short of buttons that call a paid model.
-          {mode === "clip" && voiceURI !== AS_RECORDED &&
+          {mode === "clip" && narrating &&
             " The clip is muted and its lines are being read in the voice you picked."}
         </div>
       </div>
