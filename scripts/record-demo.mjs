@@ -89,6 +89,23 @@ function watchBackend(page) {
   return failed;
 }
 
+/** Put the spotlight over an anchor, measuring where it is *now*.
+ *  Called again after anything that moves the page under it — a smooth scroll
+ *  that has not finished, or a result panel that has just appeared. A rect
+ *  read while the page is still scrolling points at whatever used to be
+ *  there, which is how a spotlight ends up framing the wrong paragraph. */
+const place = (page, at) =>
+  page.evaluate((sel) => {
+    const spot = document.getElementById("__demo_spot");
+    const el = document.querySelector(`[data-wt="${sel}"]`);
+    if (!el || !spot) return;
+    const r = el.getBoundingClientRect();
+    Object.assign(spot.style, {
+      display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
+      width: r.width + 12 + "px", height: r.height + 12 + "px",
+    });
+  }, at).catch(() => {});
+
 const FIX =
   `start ML-Unified on :8000, or rebuild against the Space:\n` +
   `  NEXT_PUBLIC_ML_UNIFIED_URL=https://wram1708-ml-unified.hf.space npm run build && npm start`;
@@ -174,6 +191,13 @@ async function record(demo, chromium) {
       [s.at ?? null, s.say, i + 1, demo.steps.length]
     );
 
+    // The scroll above is smooth, so the rect it measured was taken while the
+    // page was still moving. Let it land, then measure again.
+    if (s.at) {
+      await page.waitForTimeout(600);
+      await place(page, s.at);
+    }
+
     // A failed action used to be swallowed, which is how narration describing
     // something that never happened reached a finished clip — twice. An action
     // that cannot be carried out is a broken demo, so it is loud and it stops
@@ -214,19 +238,12 @@ async function record(demo, chromium) {
         .catch(() => console.log(`     (gave up waiting for ${s.waitFor})`));
       // The page has changed underneath the spotlight; put it back where the
       // step asked for, now that the element it named may finally exist.
-      if (s.at) {
-        await page.evaluate((at) => {
-          const spot = document.getElementById("__demo_spot");
-          const el = document.querySelector(`[data-wt="${at}"]`);
-          if (!el || !spot) return;
-          const r = el.getBoundingClientRect();
-          Object.assign(spot.style, {
-            display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
-            width: r.width + 12 + "px", height: r.height + 12 + "px",
-          });
-        }, s.at).catch(() => {});
-      }
+      if (s.at) await place(page, s.at);
     }
+
+    // An action can also move things: a click that reveals a panel pushes
+    // everything below it down, out from under the spotlight.
+    if (s.at && s.act && s.act !== "none") await place(page, s.at);
 
     // The clip is paced by the narration, exactly as the live player is.
     await page.waitForTimeout(lines[i].seconds * 1000 + (s.settle ?? 800));
@@ -250,7 +267,10 @@ async function record(demo, chromium) {
           .map((el) => el.innerText)
           .join("\n")
       );
-      if (!seen.includes(s.expect)) {
+      // Case-insensitively: innerText is the *rendered* text, so a label
+      // styled `text-transform: uppercase` comes back shouting even though
+      // the source spells it normally. Nothing in the JSX tells you that.
+      if (!seen.toLowerCase().includes(s.expect.toLowerCase())) {
         throw new Error(
           `step ${i + 1} expected "${s.expect}" on screen and it is not there — ` +
           `the recording would narrate something that did not happen`

@@ -1,0 +1,53 @@
+{
+  "toolId": "phishing-email-classifier",
+  "chapter": "ch-44-phishing-email-body-classifier",
+  "route": "/tools/phishing-email-classifier",
+  "title": "Phishing Email Body Classifier",
+  "blurb": "A trained model and a rule list, kept deliberately apart.",
+  "steps": [
+    {
+      "say": "This one judges the writing. Not the sender, not the links, not the headers, which other tools here already cover. Just whether the language reads like a phishing email.",
+      "settle": 700
+    },
+    {
+      "say": "Loading a phishing example.",
+      "at": "phish-example",
+      "act": "click",
+      "settle": 1600
+    },
+    {
+      "say": "Behind this is a real trained Naive Bayes classifier, ninety one percent accurate on a held out test set. That number is measured, and it is stated because ninety one percent also means roughly one in eleven wrong.",
+      "at": "phish-input",
+      "settle": 2600
+    },
+    {
+      "say": "Likely phishing, with a probability rather than a yes or no. And underneath, the words that actually drove it. Those are pulled out of the model, not chosen afterwards to look convincing.",
+      "at": "phish-verdict",
+      "settle": 2600,
+      "expect": "Likely phishing"
+    },
+    {
+      "say": "Separately, a small rule list: urgency phrasing and generic greetings, quoted where they appear. Notice these are shown beside the model rather than folded into its score. Two signals you can weigh yourself beat one number you have to trust.",
+      "at": "phish-flags",
+      "settle": 2800,
+      "expect": "Rule-based flags"
+    },
+    {
+      "say": "Now the other sample, an ordinary email.",
+      "at": "phish-safe",
+      "act": "click",
+      "settle": 1600
+    },
+    {
+      "say": "Likely safe, at zero percent, and the contributing words are mostly green now, the ones that pull a message away from phishing. A couple still lean the other way and the model weighed them against the rest. This is the half people forget to check. A detector that only ever sees threats is not a detector, it is an alarm.",
+      "at": "phish-verdict",
+      "settle": 2600,
+      "expect": "Likely safe"
+    },
+    {
+      "say": "And the rules agree, finding no urgency phrasing and no generic greeting. When the trained model and the plain rules disagree, that is not a bug. That is the case worth reading yourself.",
+      "at": "phish-flags",
+      "settle": 2400
+    }
+  ]
+}

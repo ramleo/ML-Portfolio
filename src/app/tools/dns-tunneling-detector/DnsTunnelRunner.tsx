@@ -34,6 +34,7 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
           false-flagging ordinary long CDN-style subdomains.
         </p>
         <textarea
+          data-wt="dns-log"
           value={logText}
           onChange={e => setLogText(e.target.value)}
           placeholder={"one hostname per line, e.g.:\nwww.example.com\napi.example.com\n..."}
@@ -48,7 +49,7 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
             style={{ background: accent, color: "#fff", opacity: logText.trim() ? 1 : 0.5 }}>
             Analyze log
           </button>
-          <button onClick={() => { setLogText(SAMPLE_LOG); runLog(SAMPLE_LOG); }}
+          <button onClick={() => { setLogText(SAMPLE_LOG); runLog(SAMPLE_LOG); }} data-wt="dns-sample"
             className="text-[11px] px-3 py-2 rounded-lg border transition-colors"
             style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
             Try a sample log
@@ -63,7 +64,7 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
         </div>
 
         {logResult && (
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-3" data-wt="dns-log-result">
             <p className="text-[11px]" style={{ color: "var(--text3)" }}>
               {logResult.totalQueries} queries across {logResult.parentDomains.length} parent domain
               {logResult.parentDomains.length === 1 ? "" : "s"} — {logResult.flaggedDomains.length} flagged.
@@ -105,12 +106,12 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
           detection relies on volume/repetition a single query can&apos;t show.
         </p>
         <div className="flex items-center gap-2">
-          <input value={hostText} onChange={e => setHostText(e.target.value)}
+          <input data-wt="dns-host" value={hostText} onChange={e => setHostText(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") runHost(hostText); }}
             placeholder="e.g. suspicious-looking-subdomain.example.com"
             className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }} />
-          <button onClick={() => runHost(hostText)} disabled={!hostText.trim()}
+          <button onClick={() => runHost(hostText)} disabled={!hostText.trim()} data-wt="dns-host-check"
             className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
             style={{ borderColor: `${accent}50`, color: accent, opacity: hostText.trim() ? 1 : 0.5 }}>
             Check
@@ -118,7 +119,7 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
         </div>
 
         {hostResult && (
-          <div className="mt-3 rounded-lg p-3"
+          <div className="mt-3 rounded-lg p-3" data-wt="dns-host-result"
             style={{ border: `1px solid ${hostResult.lengthFlag && hostResult.entropyFlag ? "#fbbf24" : "var(--border)"}60` }}>
             <p className="text-[11px]" style={{ color: "var(--text3)" }}>
               Parent domain: <span style={{ color: "var(--text)" }}>{hostResult.parentDomain}</span> · Subdomain length:{" "}

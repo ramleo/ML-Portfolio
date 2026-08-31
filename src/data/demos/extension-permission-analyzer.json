@@ -1,0 +1,52 @@
+{
+  "toolId": "extension-permission-analyzer",
+  "chapter": "ch-34-browser-extension-permission-risk-analyz",
+  "route": "/tools/extension-permission-analyzer",
+  "title": "Browser Extension Permission Risk Analyzer",
+  "blurb": "What an extension is allowed to do, read out of its manifest.",
+  "steps": [
+    {
+      "say": "When you install a browser extension you agree to a list of permissions almost nobody reads. This takes that list and says, in plain terms, what it actually grants.",
+      "settle": 700
+    },
+    {
+      "say": "Loading a synthetic manifest.",
+      "at": "ext-sample",
+      "act": "click",
+      "settle": 1200
+    },
+    {
+      "say": "Six permissions. All urls, web request and web request blocking, cookies, tabs, and history. Individually every one of these is used by extensions you probably trust.",
+      "at": "ext-input",
+      "settle": 2400
+    },
+    {
+      "say": "Analyzing.",
+      "at": "ext-analyze",
+      "act": "click",
+      "settle": 1400,
+      "expect": "Declared permissions"
+    },
+    {
+      "say": "High risk, and the reason given is not the individual permissions. It is the combination.",
+      "at": "ext-verdict",
+      "settle": 1800
+    },
+    {
+      "say": "This is the part worth understanding. All urls plus web request blocking means the extension can read and rewrite every request on every site you visit, before the page ever sees it. Add cookies and it can read your session tokens too. Each permission on its own is ordinary. Together they are a man in the middle living inside your browser.",
+      "at": "ext-combos",
+      "settle": 3400,
+      "expect": "combination"
+    },
+    {
+      "say": "Below that, every declared permission on its own terms, with what it grants rather than what it is called.",
+      "at": "ext-permissions",
+      "settle": 2000
+    },
+    {
+      "say": "And the honest limit. This reads declared permissions, not code. It cannot tell whether a permission is being misused or genuinely needed, and plenty of legitimate extensions ask for frightening things. A password manager needs broad host access and cookie access to do its job. High risk means look closer, not malicious.",
+      "at": "ext-caveats",
+      "settle": 3000
+    }
+  ]
+}

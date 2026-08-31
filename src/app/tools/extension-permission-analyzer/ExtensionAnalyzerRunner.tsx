@@ -29,9 +29,9 @@ function Badge({ text, color }: { text: string; color: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, anchor }: { title: string; children: React.ReactNode; anchor?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+    <div className="rounded-xl p-4" data-wt={anchor} style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
       <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h3>
       {children}
     </div>
@@ -63,6 +63,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
     <div className="flex flex-col gap-5">
       <Section title="Paste a manifest.json">
         <textarea
+          data-wt="ext-input"
           value={raw}
           onChange={e => setRaw(e.target.value)}
           placeholder="Paste the full contents of an extension's manifest.json..."
@@ -73,12 +74,13 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
         <div className="flex items-center gap-3 mt-3">
           <button
             onClick={analyze}
+            data-wt="ext-analyze"
             disabled={!raw.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             Analyze permissions
           </button>
-          <button onClick={() => setRaw(SAMPLE_MANIFEST)}
+          <button onClick={() => setRaw(SAMPLE_MANIFEST)} data-wt="ext-sample"
             className="px-4 py-2 rounded-lg text-sm font-semibold"
             style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
             Load sample manifest
@@ -99,7 +101,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
 
       {result && (
         <>
-          <div className="rounded-xl p-4"
+          <div className="rounded-xl p-4" data-wt="ext-verdict"
             style={{ background: `${RISK_COLOR[result.overallRisk]}14`, border: `1px solid ${RISK_COLOR[result.overallRisk]}40` }}>
             <div className="text-base font-bold" style={{ color: RISK_COLOR[result.overallRisk] }}>
               {RISK_LABEL[result.overallRisk]}
@@ -126,7 +128,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
           )}
 
           {result.combosTriggered.length > 0 && (
-            <Section title="Dangerous permission combinations">
+            <Section title="Dangerous permission combinations" anchor="ext-combos">
               <ul className="flex flex-col gap-3">
                 {result.combosTriggered.map((c, i) => (
                   <li key={i} className="flex flex-col gap-1">
@@ -141,7 +143,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
             </Section>
           )}
 
-          <Section title="Declared permissions">
+          <Section title="Declared permissions" anchor="ext-permissions">
             {result.permissions.length === 0
               ? <p className="text-sm" style={{ color: "var(--text3)" }}>No named permissions declared.</p>
               : (
@@ -161,7 +163,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div className="text-xs leading-relaxed rounded-xl p-4" data-wt="ext-caveats" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> this is a static analysis of <em>declared</em> permissions
         against a documented risk taxonomy — it does not inspect the extension&apos;s actual code or runtime behavior, and it cannot tell
         you whether a permission is being misused or legitimately needed. A password manager, for example, can legitimately need broad

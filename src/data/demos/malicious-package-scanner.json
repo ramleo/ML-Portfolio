@@ -1,0 +1,65 @@
+{
+  "toolId": "malicious-package-scanner",
+  "chapter": "ch-42-malicious-package-scanner",
+  "route": "/tools/malicious-package-scanner",
+  "title": "Malicious Package Scanner",
+  "blurb": "Supply-chain tells in a dependency list and in the code itself.",
+  "steps": [
+    {
+      "say": "A supply chain attack does not need you to write bad code. It only needs you to install something. This checks two places that go wrong: the manifest listing your dependencies, and the source of a package itself.",
+      "settle": 700
+    },
+    {
+      "say": "Loading a deliberately suspicious package.json.",
+      "at": "pkg-example",
+      "act": "click",
+      "settle": 1200
+    },
+    {
+      "say": "Two things are wrong here and neither is obvious at a glance. One dependency is spelt lodahs rather than lodash. And there is a postinstall script that pipes a remote file straight into a shell.",
+      "at": "pkg-input",
+      "settle": 2400
+    },
+    {
+      "say": "Both are caught, with the evidence quoted rather than summarised. The install script is shown in full, because that is the thing you actually need to read.",
+      "at": "pkg-manifest-result",
+      "settle": 2200,
+      "expect": "postinstall"
+    },
+    {
+      "say": "The typosquat is found by edit distance against a curated list of well known packages. Lodahs is one character away from lodash. That list is not exhaustive and the tool says so, because a curated list pretending to be complete is worse than one that admits its limits.",
+      "at": "pkg-manifest-result",
+      "settle": 2600,
+      "expect": "typosquat"
+    },
+    {
+      "say": "Now the other half: the source of a package, rather than the list of them.",
+      "at": "pkg-mode-source",
+      "act": "click",
+      "settle": 1000
+    },
+    {
+      "say": "Loading a sample file.",
+      "at": "pkg-example",
+      "act": "click",
+      "settle": 1400
+    },
+    {
+      "say": "Six independent signal sets, each reported with a line number and the snippet that triggered it. A hardcoded AWS key, masked rather than reprinted. A SQL query built by interpolation instead of parameters. Pickle loading untrusted bytes.",
+      "at": "pkg-source-result",
+      "settle": 2800,
+      "expect": "insecure deserialization"
+    },
+    {
+      "say": "And the obfuscation tell: a string literal with unusually high entropy, measured in bits per character. That is what a base64 encoded payload looks like from the outside, without needing to know what it decodes to.",
+      "at": "pkg-source-result",
+      "settle": 2400,
+      "expect": "bits/char"
+    },
+    {
+      "say": "This is pattern matching, not signature comparison, so it can flag a package nobody has seen before. It is also why it cannot promise a verdict. Every finding is a reason to go and read the line it points at.",
+      "at": "pkg-source-result",
+      "settle": 2200
+    }
+  ]
+}

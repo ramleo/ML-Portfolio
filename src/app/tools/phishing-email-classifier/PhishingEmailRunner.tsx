@@ -39,6 +39,7 @@ export default function PhishingEmailRunner({ accent }: { accent: string }) {
           or headers, which the site&apos;s other phishing tools already cover.
         </p>
         <textarea
+          data-wt="phish-input"
           value={text}
           onChange={e => run(e.target.value)}
           placeholder="Paste the body text of an email here…"
@@ -48,12 +49,12 @@ export default function PhishingEmailRunner({ accent }: { accent: string }) {
           style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }}
         />
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => run(SAMPLE_PHISHING_EMAIL)}
+          <button onClick={() => run(SAMPLE_PHISHING_EMAIL)} data-wt="phish-example"
             className="text-[11px] px-3 py-2 rounded-lg border transition-colors"
             style={{ borderColor: `${accent}50`, color: accent }}>
             Try a phishing example
           </button>
-          <button onClick={() => run(SAMPLE_SAFE_EMAIL)}
+          <button onClick={() => run(SAMPLE_SAFE_EMAIL)} data-wt="phish-safe"
             className="text-[11px] px-3 py-2 rounded-lg border transition-colors"
             style={{ borderColor: `${accent}50`, color: accent }}>
             Try a safe example
@@ -77,7 +78,7 @@ export default function PhishingEmailRunner({ accent }: { accent: string }) {
       )}
 
       {result && (
-        <div style={cardStyle} className="p-5">
+        <div style={cardStyle} className="p-5" data-wt="phish-verdict">
           <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
             <span className="text-sm font-bold"
               style={{ color: result.verdict === "phishing" ? "#f87171" : "#34d399" }}>
@@ -104,7 +105,7 @@ export default function PhishingEmailRunner({ accent }: { accent: string }) {
       )}
 
       {flags && (
-        <div style={cardStyle} className="p-5">
+        <div style={cardStyle} className="p-5" data-wt="phish-flags">
           <p className="text-xs mb-2 font-semibold" style={{ color: "var(--text)" }}>Rule-based flags (independent, transparent)</p>
           {flags.urgencyPhrases.length === 0 && !flags.genericGreeting ? (
             <p className="text-[11px]" style={{ color: "var(--text3)" }}>No urgency phrasing or generic greeting matched.</p>

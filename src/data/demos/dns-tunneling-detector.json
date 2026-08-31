@@ -1,0 +1,60 @@
+{
+  "toolId": "dns-tunneling-detector",
+  "chapter": "ch-36-dns-tunneling-exfiltration-detector",
+  "route": "/tools/dns-tunneling-detector",
+  "title": "DNS Tunneling / Exfiltration Detector",
+  "blurb": "Data smuggled out through the one protocol nobody blocks.",
+  "steps": [
+    {
+      "say": "Almost every network blocks outbound traffic it does not recognise. Almost none of them block DNS, because nothing works without it. So DNS is how data leaves a network that is otherwise locked down: you encode what you are stealing into the hostname you look up.",
+      "settle": 900
+    },
+    {
+      "say": "Loading a sample log. One hostname per line, the shape you get from pasting a resolver or Pi-hole export.",
+      "at": "dns-sample",
+      "act": "click",
+      "settle": 1600
+    },
+    {
+      "say": "Eight queries. Five are the sort of thing any machine looks up all day. Three are not.",
+      "at": "dns-log",
+      "settle": 1800
+    },
+    {
+      "say": "Hostnames are grouped by parent domain, and one is flagged. Google, GitHub and the CDNs pass without comment.",
+      "at": "dns-log-result",
+      "settle": 2200,
+      "expect": "Possible DNS tunneling channel"
+    },
+    {
+      "say": "Look at what it reports rather than the verdict. Average entropy in bits per character, the longest subdomain in characters, and how many unique subdomains sit under one parent. Random looking text scores high entropy because it is carrying data, not a name someone chose.",
+      "at": "dns-log-result",
+      "settle": 3000,
+      "expect": "bits/char"
+    },
+    {
+      "say": "The important design decision is that no single signal flags anything. A long subdomain alone is normal, plenty of CDNs generate those. High entropy alone is normal too. It takes two signals agreeing, and one of them has to be entropy.",
+      "at": "dns-log-result",
+      "settle": 2800
+    },
+    {
+      "say": "There is a single hostname mode as well, and the tool is upfront that it is the weaker one.",
+      "at": "dns-host",
+      "act": "type",
+      "value": "zjceuqrli6o01ib7n7qodki70tlbz6n575yxu8x6kew4inhkijeihaj4dosu.attacker-c2.com",
+      "settle": 1200
+    },
+    {
+      "say": "Checking.",
+      "at": "dns-host-check",
+      "act": "click",
+      "settle": 1600,
+      "expect": "Both length and entropy"
+    },
+    {
+      "say": "Over fifty characters and above four bits per character, so both thresholds are crossed. But it says the honest thing: worth investigating, not evidence. Real tunneling shows up as volume and repetition over time, and a single query cannot show you either.",
+      "at": "dns-host-result",
+      "settle": 2800
+    }
+  ]
+}

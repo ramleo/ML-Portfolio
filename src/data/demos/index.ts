@@ -1,7 +1,11 @@
 import automl from "./automl.json";
+import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
+import extensionPermissions from "./extension-permission-analyzer.json";
+import maliciousPackage from "./malicious-package-scanner.json";
 import multimodalRag from "./multimodal-rag.json";
 import passwordAudit from "./password-audit.json";
+import phishingEmail from "./phishing-email-classifier.json";
 import textToSql from "./text-to-sql.json";
 import tlsHeaders from "./tls-security-headers-scanner.json";
 import yaraFileScanner from "./yara-file-scanner.json";
@@ -64,8 +68,12 @@ export const DEMOS: Demo[] = [
   automl,
   textToSql,
   multimodalRag,
+  dnsTunneling,
   emailAuthChecker,
+  extensionPermissions,
+  maliciousPackage,
   passwordAudit,
+  phishingEmail,
   tlsHeaders,
   yaraFileScanner,
 ] as Demo[];

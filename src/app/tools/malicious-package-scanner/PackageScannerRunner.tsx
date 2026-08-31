@@ -69,7 +69,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
             style={mode === "manifest" ? { background: accent, color: "#fff" } : { border: "1px solid var(--border2)", color: "var(--text3)" }}>
             Manifest (package.json / requirements.txt)
           </button>
-          <button onClick={() => switchMode("source")}
+          <button onClick={() => switchMode("source")} data-wt="pkg-mode-source"
             className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
             style={mode === "source" ? { background: accent, color: "#fff" } : { border: "1px solid var(--border2)", color: "var(--text3)" }}>
             Source code (JS/TS or Python)
@@ -83,6 +83,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
         </p>
 
         <textarea
+          data-wt="pkg-input"
           value={text}
           onChange={e => run(e.target.value, mode)}
           placeholder={mode === "manifest" ? "Paste package.json or requirements.txt content…" : "Paste source code…"}
@@ -92,7 +93,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
           style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }}
         />
         <div className="flex items-center gap-2">
-          <button onClick={() => run(mode === "manifest" ? SAMPLE_MANIFEST : SAMPLE_SOURCE, mode)}
+          <button onClick={() => run(mode === "manifest" ? SAMPLE_MANIFEST : SAMPLE_SOURCE, mode)} data-wt="pkg-example"
             className="text-[11px] px-3 py-2 rounded-lg border transition-colors"
             style={{ borderColor: `${accent}50`, color: accent }}>
             Try a suspicious example
@@ -109,7 +110,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
       </div>
 
       {mode === "manifest" && manifestResult && (
-        <div style={cardStyle} className="p-5 flex flex-col gap-4">
+        <div style={cardStyle} className="p-5 flex flex-col gap-4" data-wt="pkg-manifest-result">
           <p className="text-[11px]" style={{ color: "var(--text3)" }}>
             {manifestResult.packageManager === "npm" ? "npm (package.json)" : "pip (requirements.txt)"} —{" "}
             {manifestResult.dependencyCount} dependencies checked.
@@ -140,7 +141,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
       )}
 
       {mode === "source" && sourceResult && (
-        <div style={cardStyle} className="p-5 flex flex-col gap-4">
+        <div style={cardStyle} className="p-5 flex flex-col gap-4" data-wt="pkg-source-result">
           {sourceResult.suspiciousApiCalls.length === 0 && sourceResult.obfuscationTells.length === 0 && sourceResult.embeddedUrls.length === 0
             && sourceResult.hardcodedSecrets.length === 0 && sourceResult.sqlInjectionTells.length === 0 && sourceResult.insecureDeserialization.length === 0 ? (
             <p className="text-xs" style={{ color: "#34d399" }}>No suspicious findings.</p>
