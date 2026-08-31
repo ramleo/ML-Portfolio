@@ -19,8 +19,9 @@
       "settle": 1500
     },
     {
-      "say": "The prose was chunked as text, the cost table was pulled out as structured rows, and the chart was handed to a vision model which wrote a description of it. All three are now searchable in the same index.",
-      "settle": 1800
+      "say": "The prose was chunked as text, the tables were pulled out as structured rows, and the chart was handed to a vision model. One text chunk, two table chunks, one figure. Note there are two tables when the document only prints one: the chart's own values were read out of the picture into a table of their own.",
+      "settle": 1800,
+      "expect": "1 figure chunks"
     },
     {
       "say": "That third path is the point. This document's on-time delivery figures exist only inside the bar chart. The words sixty five point eight percent appear nowhere in the text of the file, so an ordinary search could never find them.",
@@ -34,10 +35,12 @@
       "settle": 1200
     },
     {
-      "say": "The answer comes back cited to the page it was read from, and the citation is the chart, not a paragraph. Clicking it shows that page with the region highlighted, so the answer can be checked against the source rather than trusted.",
+      "say": "Every answer comes back cited to the exact piece of the document it was read from. Click a citation and it opens that page with the region highlighted, so the answer can be checked against the source rather than trusted.",
       "at": "mmrag-send",
       "act": "click",
-      "settle": 14000
+      "settle": 6000,
+      "waitFor": "mmrag-answer",
+      "waitMs": 90000
     },
     {
       "say": "It will also tell you when it cannot support a claim. A groundedness check runs over every answer, and a separate pass looks for statements across your documents that contradict each other. Add your own PDF and try it, this one is live.",

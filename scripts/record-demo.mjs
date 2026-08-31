@@ -30,7 +30,9 @@ const DEMOS = path.join(ROOT, "src/data/demos");
 const OUT = path.join(ROOT, "public/demos");
 const BASE = process.env.DEMO_BASE_URL ?? "http://localhost:3000";
 const VOICE = process.env.DEMO_VOICE ?? "Samantha";
-const SIZE = { width: 1280, height: 800 };
+// Wide enough that a tool with a document viewer AND a chat column can show
+// both. At 1280 the Multimodal RAG citation panel pushed the answer off-frame.
+const SIZE = { width: 1600, height: 1000 };
 
 function have(cmd) {
   try {
@@ -121,7 +123,14 @@ async function record(demo, chromium) {
   await page.goto(BASE + demo.route, { waitUntil: "networkidle" });
   await page.evaluate(OVERLAY);
 
+  // How long each step really occupied the screen. A step that waits for the
+  // tool can run far past its narration, and the audio track has to be padded
+  // to what actually happened — pad it to narration+settle and every later
+  // line drifts ahead of the picture it describes.
+  const spent = [];
+
   for (const [i, s] of demo.steps.entries()) {
+    const began = Date.now();
     console.log(`  ${i + 1}/${demo.steps.length} ${s.say.slice(0, 58)}…`);
     await page.evaluate(
       ([at, say, n, total]) => {
@@ -147,13 +156,40 @@ async function record(demo, chromium) {
       [s.at ?? null, s.say, i + 1, demo.steps.length]
     );
 
-    if (s.act === "click" && s.at) await page.click(`[data-wt="${s.at}"]`).catch(() => {});
+    // A failed action used to be swallowed, which is how narration describing
+    // something that never happened reached a finished clip — twice. An action
+    // that cannot be carried out is a broken demo, so it is loud and it stops
+    // the recording rather than producing a confident lie.
+    const must = async (what, fn) => {
+      try {
+        await fn();
+      } catch (err) {
+        throw new Error(`step ${i + 1} could not ${what}: ${err.message.split("\n")[0]}`);
+      }
+    };
+
+    if (s.act === "click" && s.at)
+      await must(`click [data-wt="${s.at}"]`, () => page.click(`[data-wt="${s.at}"]`, { timeout: 15000 }));
+
     if (s.act === "type" && s.at && s.value)
-      await page.locator(`[data-wt="${s.at}"] input, [data-wt="${s.at}"] textarea`)
-        .first().type(s.value, { delay: 25 }).catch(() => {});
+      // The anchor may be the field itself or a wrapper around it — Text-to-SQL
+      // marks the wrapper, Multimodal RAG marks the textarea. Accept both.
+      await must(`type into [data-wt="${s.at}"]`, () =>
+        page
+          .locator(
+            `[data-wt="${s.at}"]:is(input,textarea), ` +
+            `[data-wt="${s.at}"] input, [data-wt="${s.at}"] textarea`
+          )
+          .first()
+          // keystroke by keystroke, not fill(): the viewer should see it typed
+          .pressSequentially(s.value, { delay: 25, timeout: 20000 })
+      );
+
     if (s.act === "file" && s.file)
-      await page.locator("input[type=file]").first()
-        .setInputFiles(path.join(ROOT, "public", s.file.replace(/^\//, ""))).catch(() => {});
+      await must(`upload ${s.file}`, () =>
+        page.locator("input[type=file]").first()
+          .setInputFiles(path.join(ROOT, "public", s.file.replace(/^\//, "")), { timeout: 15000 })
+      );
 
     if (s.waitFor) {
       await page.waitForSelector(`[data-wt="${s.waitFor}"]`, { timeout: s.waitMs ?? 120000 })
@@ -176,6 +212,19 @@ async function record(demo, chromium) {
 
     // The clip is paced by the narration, exactly as the live player is.
     await page.waitForTimeout(lines[i].seconds * 1000 + (s.settle ?? 800));
+    // Assert the world is as the narration is about to claim. A tool that
+    // failed its own network call leaves the page looking plausible and the
+    // clip sounding confident; this is the only thing that catches it.
+    if (s.expect) {
+      const seen = await page.evaluate(() => document.body.innerText);
+      if (!seen.includes(s.expect)) {
+        throw new Error(
+          `step ${i + 1} expected "${s.expect}" on screen and it is not there — ` +
+          `the recording would narrate something that did not happen`
+        );
+      }
+    }
+    spent.push(Date.now() - began);
   }
 
   await ctx.close();
@@ -190,9 +239,11 @@ async function record(demo, chromium) {
   const parts = [];
   for (const [i, l] of lines.entries()) {
     const pad = path.join(tmp, `pad-${i}.wav`);
-    const hold = (demo.steps[i].settle ?? 800) / 1000;
+    // whole_dur, not pad_dur: pad the line out to the measured length of the
+    // step, so the narration stays under the picture it belongs to.
+    const total = Math.max(l.seconds, (spent[i] ?? 0) / 1000);
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", l.file,
-      "-af", `apad=pad_dur=${hold}`, pad]);
+      "-af", `apad=whole_dur=${total.toFixed(2)}`, pad]);
     parts.push(`file '${pad}'`);
   }
   fs.writeFileSync(listFile, parts.join("\n"));

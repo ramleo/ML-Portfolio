@@ -112,7 +112,9 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
             const isLastAssistant = m.role === "assistant" && i === chat.messages.length - 1;
             const showFeedback = m.role === "assistant" && !(chat.loading && isLastAssistant) && m.content;
             return (
-              <div key={i} className="self-start w-full">
+              <div key={i} className="self-start w-full"
+                data-wt={m.role === "assistant" && m.content && !(chat.loading && isLastAssistant)
+                  ? "mmrag-answer" : undefined}>
                 <div className={m.role === "user" ? "px-3 py-2 rounded-xl text-[15px] leading-snug" : "px-3 py-2 rounded-xl text-[13.5px] leading-relaxed"}
                   style={m.role === "user"
                     ? { background: `${ACCENT}18`, color: "var(--text)", fontFamily: DISPLAY_FONT }

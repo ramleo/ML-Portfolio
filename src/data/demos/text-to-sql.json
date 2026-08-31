@@ -21,7 +21,8 @@
     {
       "say": "On the left is the schema it can see. Tables, columns, row counts. This is what gets handed to the model as context, and it is the reason the generated SQL uses your real column names rather than inventing plausible ones.",
       "at": "schema",
-      "settle": 1800
+      "settle": 1800,
+      "expect": "Album"
     },
     {
       "say": "If you are not sure what to ask, these sample questions prefill the box.",

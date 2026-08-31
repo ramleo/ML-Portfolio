@@ -32,6 +32,11 @@ export interface DemoStep {
   /** Give up waiting after this long (default two minutes) and carry on, so a
    *  backend having a bad day cannot wedge the walkthrough. */
   waitMs?: number;
+  /** Text that must be on screen once this step is done. The recorder aborts
+   *  if it is not — three separate clips shipped narration describing
+   *  something that had silently failed, and no amount of care while writing
+   *  the script catches a backend having a bad day mid-recording. */
+  expect?: string;
   /** Extra milliseconds to hold after the narration ends, for the tool to
    *  respond to whatever the step just did. */
   settle?: number;
