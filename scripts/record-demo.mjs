@@ -216,7 +216,16 @@ async function record(demo, chromium) {
     // failed its own network call leaves the page looking plausible and the
     // clip sounding confident; this is the only thing that catches it.
     if (s.expect) {
-      const seen = await page.evaluate(() => document.body.innerText);
+      // Everything except the overlay. The caption is a child of body, so a
+      // plain body.innerText lets a step satisfy its own assertion with its
+      // own narration — an assertion that can be met by the claim it is
+      // supposed to be checking is worse than no assertion at all.
+      const seen = await page.evaluate(() =>
+        Array.from(document.body.children)
+          .filter((el) => el.id !== "__demo_cap" && el.id !== "__demo_spot")
+          .map((el) => el.innerText)
+          .join("\n")
+      );
       if (!seen.includes(s.expect)) {
         throw new Error(
           `step ${i + 1} expected "${s.expect}" on screen and it is not there — ` +

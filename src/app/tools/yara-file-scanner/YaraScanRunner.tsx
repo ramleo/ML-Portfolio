@@ -41,7 +41,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
   };
 
   const modeButton = (m: Mode, label: string) => (
-    <button onClick={() => setMode(m)}
+    <button onClick={() => setMode(m)} data-wt={`yara-mode-${m}`}
       className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
       style={mode === m
         ? { background: accent, color: "#fff" }
@@ -69,13 +69,14 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
           verdict.
         </p>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4" data-wt="yara-mode">
           {modeButton("builtin", "Built-in rules")}
           {modeButton("custom", "Write your own rule")}
         </div>
 
         {mode === "custom" && (
           <textarea
+            data-wt="yara-rule"
             value={ruleSource}
             onChange={e => setRuleSource(e.target.value)}
             spellCheck={false}
@@ -85,7 +86,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
           />
         )}
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap" data-wt="yara-upload">
           <button onClick={() => fileInputRef.current?.click()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff" }}>
@@ -103,7 +104,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
 
         {fileName && (
           <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
-            <button onClick={handleRun} disabled={running}
+            <button onClick={handleRun} disabled={running} data-wt="yara-scan"
               className="self-start text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
               style={{ background: accent, color: "#fff", opacity: running ? 0.6 : 1 }}>
               {running ? "Scanning…" : "Scan"}
@@ -112,7 +113,7 @@ export default function YaraScanRunner({ accent }: { accent: string }) {
             {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 
             {result && (
-              <div className="flex flex-col gap-3 mt-2">
+              <div className="flex flex-col gap-3 mt-2" data-wt="yara-result">
                 <div className="flex items-center gap-4 flex-wrap">
                   <span className="text-xs font-semibold" style={{ color: result.matches.length ? "#f87171" : "#4ade80" }}>
                     {result.matches.length === 0

@@ -1,6 +1,10 @@
 import automl from "./automl.json";
+import emailAuthChecker from "./email-auth-checker.json";
 import multimodalRag from "./multimodal-rag.json";
+import passwordAudit from "./password-audit.json";
 import textToSql from "./text-to-sql.json";
+import tlsHeaders from "./tls-security-headers-scanner.json";
+import yaraFileScanner from "./yara-file-scanner.json";
 
 /**
  * A guided demo: what to say, what to point at, and what to actually do.
@@ -56,6 +60,14 @@ export interface Demo {
   steps: DemoStep[];
 }
 
-export const DEMOS: Demo[] = [automl, textToSql, multimodalRag] as Demo[];
+export const DEMOS: Demo[] = [
+  automl,
+  textToSql,
+  multimodalRag,
+  emailAuthChecker,
+  passwordAudit,
+  tlsHeaders,
+  yaraFileScanner,
+] as Demo[];
 
 export const demoForChapter = (id: string) => DEMOS.find((d) => d.chapter === id);

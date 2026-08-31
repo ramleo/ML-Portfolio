@@ -42,9 +42,9 @@ function Badge({ text, color }: { text: string; color: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, anchor }: { title: string; children: React.ReactNode; anchor?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+    <div className="rounded-xl p-4" data-wt={anchor} style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
       <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h3>
       {children}
     </div>
@@ -80,6 +80,7 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-5">
       <Section title="Paste raw email headers">
         <textarea
+          data-wt="eauth-input"
           value={rawHeaders}
           onChange={e => setRawHeaders(e.target.value)}
           placeholder="Paste the full raw headers of an email (View Source / Show Original in most mail clients)..."
@@ -90,12 +91,13 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
         <div className="flex items-center gap-3 mt-3">
           <button
             onClick={check}
+            data-wt="eauth-check"
             disabled={running || !rawHeaders.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {running ? "Checking DNS records…" : "Check authentication"}
           </button>
-          <button onClick={() => setRawHeaders(SAMPLE_HEADERS)} disabled={running}
+          <button onClick={() => setRawHeaders(SAMPLE_HEADERS)} disabled={running} data-wt="eauth-sample"
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
             Load sample headers
@@ -116,7 +118,7 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
 
       {result && (
         <>
-          <div className="rounded-xl p-4 flex items-center justify-between gap-4"
+          <div className="rounded-xl p-4 flex items-center justify-between gap-4" data-wt="eauth-verdict"
             style={{ background: `${VERDICT_STYLE[result.verdict]?.bg ?? "#64748b"}14`, border: `1px solid ${VERDICT_STYLE[result.verdict]?.bg ?? "#64748b"}40` }}>
             <div>
               <div className="text-base font-bold" style={{ color: VERDICT_STYLE[result.verdict]?.bg ?? "#64748b" }}>
@@ -156,7 +158,7 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
                   ))}
             </Section>
 
-            <Section title="Independent live DNS checks">
+            <Section title="Independent live DNS checks" anchor="eauth-dns">
               <Row label="SPF record" value={result.spf.found ? <Badge text={result.spf.all_qualifier ?? "found"} color={result.spf.all_qualifier?.includes("permissive") ? "#ef4444" : "#22c55e"} /> : <Badge text="not found" color="#ef4444" />} />
               <Row label="DMARC policy" value={result.dmarc.found ? <Badge text={`p=${result.dmarc.policy}`} color={result.dmarc.policy === "reject" ? "#22c55e" : result.dmarc.policy === "quarantine" ? "#f59e0b" : "#ef4444"} /> : <Badge text="not found" color="#ef4444" />} />
               {result.dkim_signatures.length === 0
@@ -165,14 +167,14 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
             </Section>
           </div>
 
-          <Section title="From:-domain alignment">
+          <Section title="From:-domain alignment" anchor="eauth-alignment">
             <Row label="DKIM d= aligns with From:" value={result.alignment.dkim_aligned === null ? "—" : <Badge text={result.alignment.dkim_aligned ? "aligned" : "not aligned"} color={result.alignment.dkim_aligned ? "#22c55e" : "#ef4444"} />} />
             <Row label="SPF domain aligns with From:" value={result.alignment.spf_aligned === null ? "—" : <Badge text={result.alignment.spf_aligned ? "aligned" : "not aligned"} color={result.alignment.spf_aligned ? "#22c55e" : "#ef4444"} />} />
           </Section>
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div className="text-xs leading-relaxed rounded-xl p-4" data-wt="eauth-caveats" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> it does not cryptographically verify the DKIM signature —
         that requires the full raw message body to recompute the body hash, which a headers-only paste doesn&apos;t include.
         DNS records reflect the domain&apos;s <em>current</em> configuration, which may differ from when the email was actually sent.

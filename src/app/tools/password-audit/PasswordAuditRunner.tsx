@@ -31,6 +31,7 @@ export default function PasswordAuditRunner({ accent }: { accent: string }) {
 
         <div className="flex items-center gap-2">
           <input
+            data-wt="pw-input"
             type={show ? "text" : "password"}
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -40,13 +41,13 @@ export default function PasswordAuditRunner({ accent }: { accent: string }) {
             className="flex-1 text-sm rounded-lg px-3 py-2 min-w-0"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }}
           />
-          <button onClick={() => setShow(s => !s)}
+          <button onClick={() => setShow(s => !s)} data-wt="pw-show"
             className="text-[11px] px-3 py-2 rounded-lg border shrink-0 transition-colors"
             style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
             {show ? "Hide" : "Show"}
           </button>
           {password && (
-            <button onClick={reset}
+            <button onClick={reset} data-wt="pw-clear"
               className="text-[11px] px-3 py-2 rounded-lg border shrink-0 transition-colors"
               style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
               Clear
@@ -55,7 +56,7 @@ export default function PasswordAuditRunner({ accent }: { accent: string }) {
         </div>
 
         {strength && (
-          <div className="mt-4">
+          <div className="mt-4" data-wt="pw-strength">
             <div className="flex gap-1 mb-2">
               {[0, 1, 2, 3, 4].map(i => (
                 <div key={i} className="h-1.5 flex-1 rounded-full transition-colors"
@@ -85,14 +86,14 @@ export default function PasswordAuditRunner({ accent }: { accent: string }) {
       </div>
 
       {password && (
-        <div style={cardStyle} className="p-5">
+        <div style={cardStyle} className="p-5" data-wt="pw-breach">
           <p className="text-xs mb-3" style={{ color: "var(--text3)" }}>
             Separately, check whether this exact password has appeared in a known data breach — via Have
             I Been Pwned&apos;s Pwned Passwords database, using k-anonymity: your password is hashed (SHA-1,
             HIBP&apos;s own requirement) right here in your browser, and only the first 5 characters of that
             hash are ever sent. The full password and full hash never leave your device.
           </p>
-          <button onClick={checkBreach} disabled={breach.status === "checking"}
+          <button onClick={checkBreach} disabled={breach.status === "checking"} data-wt="pw-check"
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff", opacity: breach.status === "checking" ? 0.6 : 1 }}>
             {breach.status === "checking" ? "Checking…" : "Check breach exposure"}

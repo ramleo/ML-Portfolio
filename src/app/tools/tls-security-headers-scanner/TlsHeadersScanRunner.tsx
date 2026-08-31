@@ -40,12 +40,12 @@ export default function TlsHeadersScanRunner({ accent }: { accent: string }) {
           Mozilla Observatory uses. Private/internal addresses are refused, not scanned.
         </p>
         <div className="flex items-center gap-2">
-          <input value={host} onChange={e => setHost(e.target.value)}
+          <input data-wt="tls-host" value={host} onChange={e => setHost(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") scan(); }}
             placeholder="example.com"
             className="flex-1 text-sm rounded-lg px-3 py-2 min-w-0"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }} />
-          <button onClick={scan} disabled={!host.trim() || running}
+          <button onClick={scan} disabled={!host.trim() || running} data-wt="tls-scan"
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors shrink-0"
             style={{ background: accent, color: "#fff", opacity: host.trim() && !running ? 1 : 0.5 }}>
             {running ? "Scanning…" : "Scan"}
@@ -69,7 +69,7 @@ export default function TlsHeadersScanRunner({ accent }: { accent: string }) {
 
       {result && !result.blocked && (
         <>
-          <div style={cardStyle} className="p-5">
+          <div style={cardStyle} className="p-5" data-wt="tls-verdict">
             <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
               <span className="text-sm font-bold" style={{ color: VERDICT_COLOR[result.verdict] || "var(--text)" }}>
                 {result.verdict}
@@ -85,7 +85,7 @@ export default function TlsHeadersScanRunner({ accent }: { accent: string }) {
             )}
           </div>
 
-          <div style={cardStyle} className="p-5">
+          <div style={cardStyle} className="p-5" data-wt="tls-cert">
             <p className="text-xs font-semibold mb-2" style={{ color: "var(--text)" }}>TLS Certificate</p>
             {result.tls.connected ? (
               <div className="flex flex-col gap-1 text-[11px]" style={{ color: "var(--text3)" }}>
@@ -108,7 +108,7 @@ export default function TlsHeadersScanRunner({ accent }: { accent: string }) {
             )}
           </div>
 
-          <div style={cardStyle} className="p-5">
+          <div style={cardStyle} className="p-5" data-wt="tls-headers">
             <p className="text-xs font-semibold mb-2" style={{ color: "var(--text)" }}>Security Headers</p>
             {result.headers.reachable ? (
               <div className="flex flex-wrap gap-1.5">

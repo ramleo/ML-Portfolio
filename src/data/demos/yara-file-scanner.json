@@ -1,0 +1,76 @@
+{
+  "toolId": "yara-file-scanner",
+  "chapter": "ch-50-yara-file-scanner",
+  "route": "/tools/yara-file-scanner",
+  "title": "YARA File Scanner",
+  "blurb": "Real YARA rules over real bytes — including one you write yourself.",
+  "steps": [
+    {
+      "say": "This runs the actual open source YARA engine, the same one antivirus and threat intelligence teams use to write and share detection rules. It never executes the file. It only reads bytes and tells you which patterns matched.",
+      "settle": 700
+    },
+    {
+      "say": "There are two halves. Built-in rules run a small educational rule set. Write your own is the half that matters more, because writing and testing a rule is what an analyst actually does with YARA.",
+      "at": "yara-mode",
+      "settle": 1000
+    },
+    {
+      "say": "Starting with the built-in set. I am giving it an ordinary sales report PDF, the same file the Multimodal RAG demo uses. Nothing about it is suspicious.",
+      "at": "yara-upload",
+      "act": "file",
+      "file": "/samples/northwind-q3.pdf",
+      "settle": 1800,
+      "expect": "northwind-q3.pdf"
+    },
+    {
+      "say": "Scan.",
+      "at": "yara-scan",
+      "act": "click",
+      "waitFor": "yara-result",
+      "settle": 1200,
+      "expect": "High_Overall_Entropy"
+    },
+    {
+      "say": "One rule matched: high overall entropy. That means the bytes are close to random, above seven point five bits per byte. Packers and crypters do that on purpose, which is why the rule exists, but so does every compressed format. A PDF, a JPEG, a zip file all sit around seven point nine.",
+      "at": "yara-result",
+      "settle": 2000
+    },
+    {
+      "say": "So this is a property of the file, not evidence of intent. The rule says so in its own description. Treating a signal like this as a verdict is exactly how a scanner ends up rejecting every legitimate document a user uploads.",
+      "at": "yara-result",
+      "settle": 1800
+    },
+    {
+      "say": "Now the other half. Switching to write your own rule.",
+      "at": "yara-mode-custom",
+      "act": "click",
+      "settle": 1200
+    },
+    {
+      "say": "This is real YARA syntax. A strings block naming the byte patterns to look for, and a condition saying which combination counts as a match. This example one looks for a single marker string.",
+      "at": "yara-rule",
+      "settle": 2200
+    },
+    {
+      "say": "And here is a plain text file that contains that marker. The built-in rules find nothing in it, which is the point: the thing you care about is often something only you know to look for.",
+      "at": "yara-upload",
+      "act": "file",
+      "file": "/samples/yara-marker.txt",
+      "settle": 1600,
+      "expect": "yara-marker.txt"
+    },
+    {
+      "say": "Scanning again, this time against my own rule.",
+      "at": "yara-scan",
+      "act": "click",
+      "waitFor": "yara-result",
+      "settle": 1400,
+      "expect": "MyTestRule"
+    },
+    {
+      "say": "It matched, and it shows the evidence: which string in the rule fired, the byte offset it was found at, and the raw hex of the bytes that matched. Not a score, not a guess. The scanner tells you what it saw and where, and you decide what it means.",
+      "at": "yara-result",
+      "settle": 2000
+    }
+  ]
+}
