@@ -108,6 +108,15 @@ async function record(demo, chromium) {
     recordVideo: { dir: tmp, size: SIZE },
     reducedMotion: "no-preference",
   });
+  // Before any of the page's own scripts run, so a first-visit tour never
+  // gets the chance to decide it should appear.
+  if (demo.suppress?.length) {
+    await ctx.addInitScript((keys) => {
+      for (const k of keys) {
+        try { window.localStorage.setItem(k, "1"); } catch { /* ignore */ }
+      }
+    }, demo.suppress);
+  }
   const page = await ctx.newPage();
   await page.goto(BASE + demo.route, { waitUntil: "networkidle" });
   await page.evaluate(OVERLAY);
@@ -145,6 +154,25 @@ async function record(demo, chromium) {
     if (s.act === "file" && s.file)
       await page.locator("input[type=file]").first()
         .setInputFiles(path.join(ROOT, "public", s.file.replace(/^\//, ""))).catch(() => {});
+
+    if (s.waitFor) {
+      await page.waitForSelector(`[data-wt="${s.waitFor}"]`, { timeout: s.waitMs ?? 120000 })
+        .catch(() => console.log(`     (gave up waiting for ${s.waitFor})`));
+      // The page has changed underneath the spotlight; put it back where the
+      // step asked for, now that the element it named may finally exist.
+      if (s.at) {
+        await page.evaluate((at) => {
+          const spot = document.getElementById("__demo_spot");
+          const el = document.querySelector(`[data-wt="${at}"]`);
+          if (!el || !spot) return;
+          const r = el.getBoundingClientRect();
+          Object.assign(spot.style, {
+            display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
+            width: r.width + 12 + "px", height: r.height + 12 + "px",
+          });
+        }, s.at).catch(() => {});
+      }
+    }
 
     // The clip is paced by the narration, exactly as the live player is.
     await page.waitForTimeout(lines[i].seconds * 1000 + (s.settle ?? 800));

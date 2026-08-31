@@ -162,6 +162,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
               ? "flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed cursor-pointer transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
               : "flex flex-col items-center justify-center gap-3 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"}
             style={{ borderColor: "var(--border2)" }}
+            data-wt="mmrag-add"
             onClick={() => inputRef.current?.click()}
             role="button"
             tabIndex={0}

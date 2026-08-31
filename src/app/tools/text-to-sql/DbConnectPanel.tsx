@@ -83,7 +83,7 @@ export default function DbConnectPanel({
             <p className="text-xs text-[var(--text2)]">Chinook music store</p>
             <p className="text-[10px] text-[var(--text3)]">11 tables · ~3.5k rows</p>
           </div>
-          <button onClick={loadDemoSchema}
+          <button onClick={loadDemoSchema} data-wt="db-load"
             className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-all hover:brightness-110"
             style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
             Load Schema

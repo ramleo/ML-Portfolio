@@ -188,7 +188,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
               <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2" /></svg>
             </button>
           ) : (
-            <button onClick={chat.send} disabled={!chat.input.trim()} title="Ask" aria-label="Ask"
+            <button onClick={chat.send} disabled={!chat.input.trim()} title="Ask" aria-label="Ask" data-wt="mmrag-send"
               className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: ACCENT, color: "#0c0f16", opacity: !chat.input.trim() ? 0.4 : 1 }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

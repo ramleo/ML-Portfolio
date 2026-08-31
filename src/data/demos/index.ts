@@ -25,6 +25,13 @@ export interface DemoStep {
   value?: string;
   /** For act: "file" — a path under /public, dropped into the nearest file input. */
   file?: string;
+  /** Hold this step until an anchor appears — for work whose length cannot be
+   *  guessed. Ingesting a PDF takes as long as it takes; a fixed wait is
+   *  either a stall or a truncation, never the right number. */
+  waitFor?: string;
+  /** Give up waiting after this long (default two minutes) and carry on, so a
+   *  backend having a bad day cannot wedge the walkthrough. */
+  waitMs?: number;
   /** Extra milliseconds to hold after the narration ends, for the tool to
    *  respond to whatever the step just did. */
   settle?: number;
@@ -37,6 +44,10 @@ export interface Demo {
   route: string;
   title: string;
   blurb: string;
+  /** localStorage keys to set to "1" before the tool loads. Several tools run
+   *  their own first-visit tour, and two walkthroughs on one screen is worse
+   *  than either alone — this is how a demo says "I am the tour now". */
+  suppress?: string[];
   steps: DemoStep[];
 }
 

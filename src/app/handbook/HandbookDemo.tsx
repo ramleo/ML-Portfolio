@@ -119,6 +119,19 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
     }
   }, []);
 
+  /** Poll the tool's own document until the anchor turns up. Polling rather
+   *  than a MutationObserver because the interesting change is often several
+   *  React renders deep and a single observer callback would fire long before
+   *  the element the step wants actually exists. */
+  const waitForAnchor = useCallback(async (anchor: string, ms: number, signal: AbortSignal) => {
+    const deadline = Date.now() + ms;
+    while (Date.now() < deadline && !signal.aborted) {
+      if (doc()?.querySelector(`[data-wt="${anchor}"]`)) return true;
+      await new Promise((r) => setTimeout(r, 400));
+    }
+    return false;
+  }, []);
+
   const stop = useCallback(() => {
     abort.current?.abort();
     presenter.current.stop();
@@ -139,6 +152,11 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       setBox(locate(s.at));
       await perform(s);
       if (ctrl.signal.aborted) break;
+      if (s.waitFor) {
+        await waitForAnchor(s.waitFor, s.waitMs ?? 120000, ctrl.signal);
+        setBox(locate(s.at));
+      }
+      if (ctrl.signal.aborted) break;
       // The narration sets the pace: a step lasts exactly as long as its line
       // takes to say, plus whatever the tool needs to catch up.
       await presenter.current.speak(s.say, ctrl.signal);
@@ -149,11 +167,24 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       setRunning(false);
       setBox(null);
     }
-  }, [demo, locate, perform]);
+  }, [demo, locate, perform, waitForAnchor]);
 
   // Nothing outlives the panel: a demo left talking after the reader closed it
   // is the worst bug this component could have.
   useEffect(() => stop, [stop]);
+
+  // Set before the iframe is rendered, not after it loads: the tool reads
+  // these on mount, and an iframe that has already mounted has already
+  // decided to show its tour. Same origin, so this is the same store.
+  useEffect(() => {
+    for (const key of demo.suppress ?? []) {
+      try {
+        window.localStorage.setItem(key, "1");
+      } catch {
+        // private browsing; the tool's own tour will show, which is survivable
+      }
+    }
+  }, [demo]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

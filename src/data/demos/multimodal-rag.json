@@ -3,13 +3,45 @@
   "chapter": "ch-14-multimodal-rag",
   "route": "/tools/multimodal-rag",
   "title": "Multimodal RAG",
-  "blurb": "Answers cited back to the page — including answers that live in a chart.",
+  "blurb": "Answers cited back to the page \u2014 including answers that live in a chart.",
   "steps": [
-    { "say": "This is multimodal retrieval augmented generation. Ordinary document question answering reads paragraphs. This one also reads the tables and the pictures.", "settle": 600 },
-    { "say": "You add a document here. A PDF is split three ways: the prose is chunked as text, every table is pulled out as structured rows, and every figure gets a caption written for it by a vision model. All three become searchable in the same index.", "settle": 2000 },
-    { "say": "That third path is the point. A number that only exists inside a bar chart has no text anywhere in the file, so a normal search can never find it. Here the chart has been described in words, and the description is what gets matched.", "settle": 2000 },
-    { "say": "You ask your question here, in any language, and it answers in the one you asked in.", "at": "mmrag-ask", "settle": 1600 },
-    { "say": "Every answer is cited back to the page it came from, and clicking a citation shows you that page with the region highlighted, so you can check the answer against the source rather than trusting it.", "settle": 1800 },
-    { "say": "It will also tell you when it cannot support a claim. A groundedness check runs over the answer, and a separate pass looks for statements in the documents that contradict each other. Add a document and try it, this one is live.", "settle": 1200 }
+    {
+      "say": "This is multimodal retrieval augmented generation. Ordinary document question answering reads paragraphs. This one also reads the tables and the pictures.",
+      "settle": 600
+    },
+    {
+      "say": "I am adding a real PDF: a one page operations review with a bar chart in it. Watch what it does with the file, because it does three different things at once.",
+      "at": "mmrag-add",
+      "act": "file",
+      "file": "/samples/northwind-q3.pdf",
+      "waitFor": "mmrag-ask",
+      "waitMs": 180000,
+      "settle": 1500
+    },
+    {
+      "say": "The prose was chunked as text, the cost table was pulled out as structured rows, and the chart was handed to a vision model which wrote a description of it. All three are now searchable in the same index.",
+      "settle": 1800
+    },
+    {
+      "say": "That third path is the point. This document's on-time delivery figures exist only inside the bar chart. The words sixty five point eight percent appear nowhere in the text of the file, so an ordinary search could never find them.",
+      "settle": 2000
+    },
+    {
+      "say": "So I will ask for exactly that: which depot had the lowest on-time delivery rate.",
+      "at": "mmrag-ask",
+      "act": "type",
+      "value": "Which depot had the lowest on-time delivery rate, and what was it?",
+      "settle": 1200
+    },
+    {
+      "say": "The answer comes back cited to the page it was read from, and the citation is the chart, not a paragraph. Clicking it shows that page with the region highlighted, so the answer can be checked against the source rather than trusted.",
+      "at": "mmrag-send",
+      "act": "click",
+      "settle": 14000
+    },
+    {
+      "say": "It will also tell you when it cannot support a claim. A groundedness check runs over every answer, and a separate pass looks for statements across your documents that contradict each other. Add your own PDF and try it, this one is live.",
+      "settle": 1500
+    }
   ]
 }
