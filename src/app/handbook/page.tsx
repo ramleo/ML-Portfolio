@@ -9,6 +9,8 @@ import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
 import HandbookActions from "./HandbookActions";
 import HandbookAudio from "./HandbookAudio";
+import HandbookSearch from "./HandbookSearch";
+import HandbookRail from "./HandbookRail";
 import DemoLauncher from "./DemoLauncher";
 
 /**
@@ -37,8 +39,12 @@ export default function HandbookPage() {
     "utf8"
   );
 
+  // overflow-x-*clip*, not hidden: `hidden` makes this element a scroll
+  // container, and a scroll container stops `position: sticky` working for
+  // anything inside it — which silently disabled the search bar. `clip` cuts
+  // the same horizontal overflow without creating one.
   return (
-    <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
+    <div className="relative min-h-screen overflow-x-clip" style={{ color: "var(--text)" }}>
       <ParticleGridClient />
       <div className="relative z-10">
         <Navbar />
@@ -55,6 +61,9 @@ export default function HandbookPage() {
           {/* Paged.js renders the typeset pages into this container when the
               reader asks for the PDF; empty until then. */}
           <div id="bk-pages" />
+          {/* Find-in-page that can say which chapter a hit is in —
+              see handbookIndex.ts. */}
+          <HandbookSearch />
           <article className="hb-body">
             {/* remark-gfm, because each tool's facts are a pipe table and plain
                 CommonMark has no tables — without it they render as literal
@@ -69,6 +78,9 @@ export default function HandbookPage() {
           {/* Adds a "Watch this work" button under the chapters that have a
               guided demo — see src/data/demos. */}
           <DemoLauncher />
+          {/* A grabbable stand-in for a scrollbar thumb that is a few pixels
+              tall on a page this long — see HandbookRail.tsx. */}
+          <HandbookRail />
         </main>
         <Footer />
       </div>

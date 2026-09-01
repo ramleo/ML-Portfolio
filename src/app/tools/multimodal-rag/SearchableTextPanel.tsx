@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { splitForHighlight, textMatches, wordsMatch } from "./wordMatch";
+import { splitForHighlight, textMatches, wordsMatch } from "@/lib/search/wordMatch";
 
 export type SearchableItem = { key: string | number; prefix?: string; text: string };
 

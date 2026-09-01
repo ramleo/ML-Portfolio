@@ -1,0 +1,161 @@
+/* ── Handbook search ──────────────────────────────────────────────────────
+   A find bar that stays with the reader. It sticks to the top of the
+   viewport rather than scrolling away with the page heading, because the
+   whole point is stepping between hits that are thousands of lines apart. */
+/* Pinned *below* the navbar, not at 0. Navbar.tsx is position:fixed, 60px
+   tall, z-index 100, and once scrolled it paints a solid background — so a
+   bar stuck at top:0 sits behind it and vanishes the moment you scroll. It
+   still measured as correctly pinned, which is why this was missed: the
+   geometry was right and only the paint order was wrong. */
+:root { --hb-nav-h: 60px; }
+.hb-search {
+  position: sticky; top: var(--hb-nav-h); z-index: 40; margin: 0 0 2rem;
+}
+.hb-search-bar {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.65rem; border-radius: 9999px;
+  border: 1px solid var(--border2);
+  /* --bg-nav, matching the navbar directly above it, rather than --bg-glass:
+     at 60% opacity the chapter rules and highlights scrolling underneath show
+     straight through the bar. Only visible in a screenshot — every positional
+     measurement of the glass version passed. */
+  background: var(--bg-nav);
+  backdrop-filter: blur(16px);
+}
+.hb-search-icon { color: var(--text3); flex: none; }
+.hb-search-input {
+  flex: 1 1 auto; min-width: 0; border: 0; outline: 0; background: transparent;
+  color: var(--text); font-family: inherit; font-size: 0.88rem; padding: 0.15rem 0;
+}
+.hb-search-input::placeholder { color: var(--text3); }
+/* Safari draws its own clear button on type=search and it fights the layout. */
+.hb-search-input::-webkit-search-decoration,
+.hb-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.hb-search-count {
+  flex: none; font-family: var(--type-data); font-size: 0.7rem;
+  letter-spacing: 0.04em; color: var(--text3); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hb-search-step {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.85rem; height: 1.85rem; padding: 0 0.5rem; border-radius: 9999px;
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  color: var(--text2); font-family: inherit; font-size: 0.72rem; font-weight: 600;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.hb-search-step:hover:not(:disabled) { color: var(--text); border-color: var(--border2); }
+.hb-search-step:disabled { opacity: 0.35; cursor: default; }
+.hb-search-step:focus-visible { outline: 2px solid var(--hb-hue); outline-offset: 2px; }
+.hb-search-toggle { color: var(--hb-hue); }
+
+/* Where the hits are — the one thing the browser's own find bar cannot say. */
+.hb-search-groups {
+  /* Flush against the bar, not floated 0.4rem below it: the gap was a
+     transparent strip that let one clipped line of the chapter behind show
+     through, which reads as a rendering fault. */
+  list-style: none; margin: 0; padding: 0.35rem;
+  max-height: 15rem; overflow-y: auto;
+  border: 1px solid var(--border2); border-radius: var(--radius-md, 0.75rem);
+  background: var(--bg-nav); backdrop-filter: blur(16px);
+}
+.hb-search-group {
+  display: flex; align-items: baseline; gap: 0.75rem; width: 100%;
+  padding: 0.35rem 0.6rem; border: 0; border-radius: 0.5rem; cursor: pointer;
+  background: transparent; color: var(--text2); font-family: inherit;
+  font-size: 0.8rem; text-align: left;
+}
+.hb-search-group:hover { background: var(--bg-glass); color: var(--text); }
+.hb-search-group-name { flex: 1 1 auto; min-width: 0; }
+.hb-search-group-name em {
+  font-style: normal; font-family: var(--type-data); font-size: 0.68rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--hb-hue);
+}
+.hb-search-group-count {
+  flex: none; font-family: var(--type-data); font-size: 0.7rem;
+  color: var(--text3); font-variant-numeric: tabular-nums;
+}
+
+/* Painted with the CSS Custom Highlight API, so nothing is inserted into the
+   article — HandbookActions hands `.hb-body`'s innerHTML to the typesetter,
+   and a <mark> put here would end up printed in the reader's PDF. */
+/* Literal rgba, not color-mix() — this build flattens color-mix() to its
+   first argument, which was caught here: every hit painted at full strength
+   and the reader could not tell which one they were standing on. There is
+   already a note about the same rewrite at 09-handbook.css:155.
+
+   Amber rather than --hb-hue: that variable is the *part* colour, four
+   different values down the book, so highlights would change colour by
+   chapter and collide with the rules and headings already drawn in it. */
+::highlight(hb-hit) {
+  background: rgba(251, 191, 36, 0.32);
+  color: var(--text);
+}
+::highlight(hb-hit-current) {
+  background: #fbbf24;
+  color: #0a0f1e;
+}
+/* Browsers without the API get no painted ranges at all, so the jump target
+   is flashed instead — otherwise stepping through matches moves the page with
+   nothing to show for it. */
+.hb-hit-flash {
+  animation: hb-hit-flash 1.6s ease-out;
+  border-radius: 0.25rem;
+}
+@keyframes hb-hit-flash {
+  from { background: rgba(251, 191, 36, 0.45); }
+  to { background: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-hit-flash { animation-duration: 0.01ms; }
+}
+
+/* The typeset editions are a different document: no live search in them. */
+.bk-paginated .hb-search { display: none; }
+@media print { .hb-search { display: none; } }
+
+/* ── Chapter rail ─────────────────────────────────────────────────────────
+   The book is ~387,000px tall, so the browser's own scrollbar thumb is a few
+   pixels high and near-impossible to grab. This is a full-height target on
+   the right edge: click a tick to jump to a chapter, or drag anywhere on the
+   strip to scrub. It stays faint until pointed at. */
+.hb-rail {
+  /* Also cleared past the fixed navbar, or its first ticks are unreachable. */
+  position: fixed; top: var(--hb-nav-h); right: 0; bottom: 0; width: 2.75rem; z-index: 45;
+  touch-action: none; cursor: grab;
+}
+.hb-rail-dragging { cursor: grabbing; }
+.hb-rail-track {
+  position: absolute; top: 0; bottom: 0; right: 1.15rem; width: 2px;
+  background: var(--border2); opacity: 0.5;
+}
+.hb-rail-tick {
+  position: absolute; right: 0.85rem; width: 0.65rem; height: 2px; padding: 0;
+  transform: translateY(-50%); border: 0; border-radius: 1px; cursor: pointer;
+  background: var(--text3); opacity: 0.55;
+  transition: opacity 0.15s ease, width 0.15s ease, background 0.15s ease;
+}
+.hb-rail-tick-part { width: 1.15rem; height: 3px; background: var(--accent); opacity: 0.9; }
+.hb-rail:hover .hb-rail-tick { opacity: 0.9; }
+.hb-rail-tick:hover, .hb-rail-tick:focus-visible { width: 1.5rem; background: var(--accent); opacity: 1; outline: none; }
+/* Where the reader is now, on the same axis as the ticks. */
+.hb-rail-now {
+  position: absolute; right: 0.6rem; width: 1.5rem; height: 3px;
+  transform: translateY(-50%); border-radius: 2px;
+  background: #fbbf24; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+.hb-rail-label {
+  position: absolute; right: 2.5rem; transform: translateY(-50%);
+  display: flex; align-items: baseline; gap: 0.4rem; max-width: 15rem;
+  padding: 0.3rem 0.6rem; border-radius: 0.5rem; pointer-events: none;
+  background: var(--bg-glass); border: 1px solid var(--border2);
+  backdrop-filter: blur(14px); color: var(--text);
+  font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hb-rail-label em {
+  font-style: normal; font-family: var(--type-data); font-size: 0.62rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+}
+/* Below the reading measure the rail would sit on top of the text. */
+@media (max-width: 900px) { .hb-rail { display: none; } }
+.bk-paginated .hb-rail { display: none; }
+@media print { .hb-rail { display: none; } }

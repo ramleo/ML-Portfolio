@@ -63,15 +63,27 @@ function canonicalForm(wordLower: string): string {
   return IRREGULAR_CANON[wordLower] ?? stemmer(wordLower);
 }
 
+export type MatchOptions = {
+  /** Also match a query that appears anywhere inside the word, not only at
+   * its start — "curity" finding "security".
+   *
+   * Off by default, and deliberately so: the handbook opted in because a
+   * reader half-remembers a term and types the middle of it, but for the
+   * RAG transcript panel this widens every short query into noise. Callers
+   * choose; the behaviour is not changed underneath anyone. */
+  substring?: boolean;
+};
+
 /** True if `word` (as found in a document) should count as a match for
  * `query` (what the user typed) — prefix match first (cheap, catches most
  * real cases directly), falling back to canonical-form comparison (stemmer
  * + irregular-plural override) for everything else. */
-export function wordsMatch(word: string, query: string): boolean {
+export function wordsMatch(word: string, query: string, opts: MatchOptions = {}): boolean {
   const w = word.toLowerCase();
   const q = query.toLowerCase();
   if (!q) return false;
   if (w.startsWith(q)) return true;
+  if (opts.substring && q.length >= 3 && w.includes(q)) return true;
   return canonicalForm(w) === canonicalForm(q);
 }
 
