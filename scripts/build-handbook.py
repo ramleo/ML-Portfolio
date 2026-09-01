@@ -25,11 +25,18 @@ Run after changing any of those sources; CI fails if the committed file is
 stale.
 """
 import json, pathlib, re, sys
-from datetime import date
 
 from handbook_sources import (
     read_capabilities, read_domains, read_guide, read_deep,
 )
+
+# When the first edition was set, stated once. It used to be date.today(),
+# which is not a fact about the book — it is a fact about when the generator
+# last ran, so the same sources produced a different handbook.md on the first
+# of every month. CI regenerates and diffs, and it went red on 1 September
+# 2026 with nobody having changed a thing. A new edition gets a new date here,
+# deliberately.
+EDITION = "August 2026"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "public" / "handbook.md"
@@ -104,7 +111,7 @@ def main():
     add("")
     add(f"### {len(caps)} tools for machine learning, documents, vision and security")
     add("")
-    add(f"First edition · {date.today().strftime('%B %Y')}")
+    add(f"First edition · {EDITION}")
     add("")
     add("</div>")
     add("")
