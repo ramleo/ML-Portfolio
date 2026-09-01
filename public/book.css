@@ -240,3 +240,11 @@ hr { border: 0; border-top: 1.5pt solid var(--hue); opacity: .45; margin: 1.6em 
 .bk-sec-qa { border-left-color: #94a3b8; background: #f2f5f8; }
 .bk-sec > :first-child { margin-top: 0; }
 .bk-sec > :last-child { margin-bottom: 0; }
+
+/* ── Screen-only affordances ──────────────────────────────────────────────
+   Paged.js typesets the innerHTML of .hb-body, and by then the launcher has
+   injected a "Watch this work" button under eleven headings, a play marker
+   into eleven contents rows, and a line explaining them. All three are offers
+   to click something. On paper they are noise, and the contents marker would
+   sit in the middle of a leader line. */
+.hb-demo-open, .hb-toc-demo, .hb-toc-legend { display: none !important; }

@@ -133,3 +133,29 @@
 .hb-demo-field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 /* The bar is the positioning context for the panel above. */
 .hb-demo-bar { position: relative; }
+
+/* ── Which chapters have a demo, said in the contents ─────────────────────
+   Eleven of fifty. The marker rides at the end of its row in that part's
+   colour, so the four groups still read as four groups and the demos read as
+   a thin second layer over them rather than a competing one. */
+.hb-body .hb-toc-demo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.05rem; height: 1.05rem; flex: none;
+  vertical-align: -0.15rem; border-radius: 9999px;
+  color: var(--hb-hue); background: rgba(148, 163, 184, 0.18);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+/* A literal grey rather than a tint of the hue: color-mix() is flattened to
+   its first argument by this build (the note at 09-handbook.css:155), which
+   would have painted every marker as a solid disc of its part colour. */
+.hb-body a.bk-toc-chapter .hb-toc-demo { margin-left: 0.45rem; }
+.hb-body a.bk-toc-chapter:hover .hb-toc-demo { color: #fff; background: var(--hb-hue); }
+
+/* The legend shows the marker itself, not a smaller cousin of it — a key that
+   does not match what it is explaining is worse than no key. */
+.hb-body .hb-toc-legend {
+  display: flex; align-items: center; gap: 0.45rem;
+  margin: 1.75rem 0 0; padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--text2);
+}
