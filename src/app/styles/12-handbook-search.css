@@ -47,6 +47,10 @@
 .hb-search-step:disabled { opacity: 0.35; cursor: default; }
 .hb-search-step:focus-visible { outline: 2px solid var(--hb-hue); outline-offset: 2px; }
 .hb-search-toggle { color: var(--hb-hue); }
+/* Sits with the count it clears, not with the step arrows. Its own hover
+   colour, because emptying the field is the one destructive control here. */
+.hb-search-clear { color: var(--text3); margin-right: 0.15rem; }
+.hb-search-clear:hover:not(:disabled) { color: #f87171; border-color: #f8717150; }
 
 /* Where the hits are — the one thing the browser's own find bar cannot say. */
 .hb-search-groups {

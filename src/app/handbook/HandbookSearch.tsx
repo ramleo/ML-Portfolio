@@ -111,11 +111,20 @@ export default function HandbookSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  /** Back to an empty bar: Escape and the clear button do the same thing, and
+   * focus stays in the field so the next query can just be typed. */
+  const clear = () => {
+    setQuery("");
+    setOpen(false);
+    clearPaint();
+    input.current?.focus();
+  };
+
   const onInputKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") { e.preventDefault(); go(e.shiftKey ? at - 1 : at + 1); }
     else if (e.key === "ArrowDown") { e.preventDefault(); go(at + 1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); go(at - 1); }
-    else if (e.key === "Escape") { setQuery(""); setOpen(false); clearPaint(); }
+    else if (e.key === "Escape") { clear(); }
   };
 
   const chapters = groups.length;
@@ -145,6 +154,13 @@ export default function HandbookSearch() {
           className="hb-search-input"
         />
         {summary && <span className="hb-search-count">{summary}</span>}
+        {query && (
+          <button onClick={clear} className="hb-search-step hb-search-clear" aria-label="Clear the search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
         <button onClick={() => go(at - 1)} disabled={!matches.length} className="hb-search-step" aria-label="Previous match">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M18 15l-6-6-6 6" strokeLinecap="round" strokeLinejoin="round" />
