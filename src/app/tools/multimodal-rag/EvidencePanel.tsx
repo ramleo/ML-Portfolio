@@ -45,8 +45,13 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
       retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number }; vision?: { score: number; rank: number }; graph?: { score: number; rank: number } } | null;
       hybrid_score?: number | null; rerank_score?: number | null; type_boost?: number | null;
     };
-    return (
-      <RagSourceCard key={i} index={i + 1} source={s.source} text={s.text}
+    // The top-ranked card carries an anchor so the guided demo has one
+    // deterministic citation to click. Wrapped rather than given a prop:
+    // RagSourceCard is shared with the other RAG tools and sits close to the
+    // file-length limit, and this is a fact about this page's demo, not about
+    // what a citation card is.
+    const card = (
+      <RagSourceCard index={i + 1} source={s.source} text={s.text}
         score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
         usedInAnswer={used ? used.includes(i) : null}
         chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
@@ -56,6 +61,11 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
         onSelect={() => jumpToCitation(s.source, withMeta.chunk_type, withMeta.page, s.text, withMeta.bbox, withMeta.objects, withMeta.timestamp_s, withMeta.entities, withMeta.pii_types, withMeta.signatures, withMeta.tampering, withMeta.person_count)}
       />
     );
+    // A plain div, not display:contents — the recorder measures this element
+    // to place its spotlight, and a box-less element measures as zero.
+    return i === 0
+      ? <div key={i} data-wt="mmrag-cite">{card}</div>
+      : <div key={i}>{card}</div>;
   };
 
   // Groundedness now renders inline under the answer in ChatPanel, right next

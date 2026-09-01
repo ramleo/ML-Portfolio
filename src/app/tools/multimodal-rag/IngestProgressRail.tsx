@@ -272,7 +272,11 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
             </div>
           )}
           {state.kind === "done" && (
-            <div className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "var(--text2)" }}>
+            /* Anchored so the guided demo can spotlight these counts while the
+               narration reads them out — see src/data/demos/multimodal-rag.json.
+               The clip used to say "one text chunk, two table chunks, one
+               figure" over a screen showing none of them. */
+            <div data-wt="mmrag-chunks" className="flex items-center gap-2 flex-wrap text-[10px]" style={{ color: "var(--text2)" }}>
               <span>
                 {[
                   state.summary.text ? `${state.summary.text} text` : null,

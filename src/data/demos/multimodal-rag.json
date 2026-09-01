@@ -3,7 +3,7 @@
   "chapter": "ch-14-multimodal-rag",
   "route": "/tools/multimodal-rag",
   "title": "Multimodal RAG",
-  "blurb": "Answers cited back to the page \u2014 including answers that live in a chart.",
+  "blurb": "Answers cited back to the page — including answers that live in a chart.",
   "steps": [
     {
       "say": "This is multimodal retrieval augmented generation. Ordinary document question answering reads paragraphs. This one also reads the tables and the pictures.",
@@ -20,6 +20,7 @@
     },
     {
       "say": "The prose was chunked as text, the tables were pulled out as structured rows, and the chart was handed to a vision model. One text chunk, two table chunks, one figure. Note there are two tables when the document only prints one: the chart's own values were read out of the picture into a table of their own.",
+      "at": "mmrag-chunks",
       "settle": 1800,
       "expect": "1 figure chunks"
     },
@@ -35,12 +36,18 @@
       "settle": 1200
     },
     {
-      "say": "Every answer comes back cited to the exact piece of the document it was read from. Click a citation and it opens that page with the region highlighted, so the answer can be checked against the source rather than trusted.",
+      "say": "Every answer comes back cited to the exact piece of the document it was read from.",
       "at": "mmrag-send",
       "act": "click",
       "settle": 6000,
       "waitFor": "mmrag-answer",
       "waitMs": 90000
+    },
+    {
+      "say": "So here is the top citation. Clicking it opens that page at the region the passage was read from, so the answer can be checked against the source rather than trusted.",
+      "at": "mmrag-cite",
+      "act": "click",
+      "settle": 4000
     },
     {
       "say": "It will also tell you when it cannot support a claim. A groundedness check runs over every answer, and a separate pass looks for statements across your documents that contradict each other. Add your own PDF and try it, this one is live.",
