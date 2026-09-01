@@ -137,6 +137,13 @@ export default function DemoVoice({
  * Driven off the video's own currentTime rather than a timer, so scrubbing,
  * pausing and buffering all stay in step — a timer started at play() drifts
  * the moment the viewer touches the scrub bar.
+ *
+ * The narrator is told the clip's playbackRate for the same reason. Cues are
+ * frames, so they arrive twice as fast at 2x, but speech runs on wall-clock
+ * time and does not — measured on a 125s clip, 8 of 10 lines were cut off
+ * mid-sentence at 2x against 1 of 6 at normal speed. A speed picked up
+ * mid-line applies from the next line: an utterance already being spoken
+ * cannot change rate, and restarting it would replay words just heard.
  */
 export function useClipNarration(
   video: HTMLVideoElement | null,
@@ -177,6 +184,10 @@ export function useClipNarration(
         // for the rest of the clip.
         const now = getPresenter();
         if (!isOwnKey(voiceURI)) now.setVoice?.(voiceURI);
+        // The clip's speed, read at the moment the line starts rather than
+        // held in state: the viewer changes it through the video element's
+        // own controls, which React never sees.
+        now.setRate?.(video.playbackRate);
         active.current?.stop();
         active.current = now;
         now.speak(timings[due].say).catch(() => {

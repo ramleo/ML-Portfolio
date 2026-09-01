@@ -1,6 +1,11 @@
 import { LOOKAHEAD, sentences, speakable, usableVoices } from "@/lib/speech";
 import type { Presenter } from "./types";
 
+/** A shade under neutral: compact system voices are measurably easier to
+ *  follow just below their nominal speed, and this is the speed every clip's
+ *  timings were recorded against. Anything faster is a multiple of it. */
+const BASE_RATE = 0.95;
+
 /**
  * The free presenter: the speech engine already in the visitor's browser.
  *
@@ -17,9 +22,19 @@ class VoicePresenter implements Presenter {
   private stopped = false;
   /** Empty means "whichever this browser ranks best" — see usableVoices(). */
   private chosen = "";
+  /** A multiplier on BASE_RATE, not a rate itself: 2 means "twice as fast as
+   *  this narrator normally speaks", whatever that speed happens to be. */
+  private rate = 1;
 
   setVoice(voiceURI: string) {
     this.chosen = voiceURI;
+  }
+
+  setRate(rate: number) {
+    // speechSynthesis specifies 0.1–10 and throws outside it in some engines.
+    // Clamped well inside that: nothing above 3 is intelligible in any voice
+    // this project has measured, and the useful range is 0.5–2.
+    this.rate = Number.isFinite(rate) && rate > 0 ? Math.min(3, Math.max(0.25, rate)) : 1;
   }
 
   available() {
@@ -65,7 +80,7 @@ class VoicePresenter implements Presenter {
       const fill = () => {
         while (pushed < parts.length && inFlight < LOOKAHEAD) {
           const u = new SpeechSynthesisUtterance(parts[pushed++]);
-          u.rate = 0.95;
+          u.rate = BASE_RATE * this.rate;
           u.pitch = 0.95;
           if (voice) {
             u.voice = voice;

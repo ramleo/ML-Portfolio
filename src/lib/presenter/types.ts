@@ -23,6 +23,14 @@ export interface Presenter {
   /** Use this specific voice. Optional because a hosted avatar has one voice
    *  and no say in the matter; the browser presenter has dozens. */
   setVoice?(voiceURI: string): void;
+  /** Narrate this many times faster than normal. Optional in the same way
+   *  setVoice is: a presenter that cannot vary its speed simply omits it.
+   *
+   *  It exists because a clip the viewer has put into 2x is a clip whose cues
+   *  arrive twice as fast, and a narrator that does not know that speaks every
+   *  line at its full wall-clock length and gets cut off by the next cue.
+   *  Measured on a 125s clip at 2x: 8 of 10 lines silenced mid-sentence. */
+  setRate?(rate: number): void;
   /** Optional on-screen presence — a talking head, a waveform. The voice
    *  presenter has none, which is why this is optional rather than a
    *  component every implementation has to supply. */

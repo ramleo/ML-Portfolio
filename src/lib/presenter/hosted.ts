@@ -94,6 +94,7 @@ class HostedPresenter implements Presenter {
   private cfg: HostedConfig | null = null;
   private key = "";
   private audio: HTMLAudioElement | null = null;
+  private rate = 1;
   /** Set once a call has failed, so a bad key or endpoint degrades to the
    *  browser voice immediately rather than failing again on every line. */
   private broken = "";
@@ -114,6 +115,14 @@ class HostedPresenter implements Presenter {
     return Boolean(this.cfg?.endpoint && this.key) && !this.broken;
   }
 
+  /** A vendor returns a finished audio file, so this cannot be asked of the
+   *  synthesiser — but the element playing it back has a playbackRate, which
+   *  gets to the same place without a second API call. */
+  setRate(rate: number) {
+    this.rate = Number.isFinite(rate) && rate > 0 ? Math.min(3, Math.max(0.25, rate)) : 1;
+    if (this.audio) this.audio.playbackRate = this.rate;
+  }
+
   async speak(text: string, signal?: AbortSignal) {
     if (!this.cfg || !this.available()) throw new Error(this.broken || "not configured");
     let blob: Blob;
@@ -125,6 +134,7 @@ class HostedPresenter implements Presenter {
     }
     const url = URL.createObjectURL(blob);
     const el = new Audio(url);
+    el.playbackRate = this.rate;
     this.audio = el;
     await el.play().catch(() => undefined);
     await new Promise<void>((resolve) => {
