@@ -93,12 +93,21 @@ function watchBackend(page) {
  *  Called again after anything that moves the page under it — a smooth scroll
  *  that has not finished, or a result panel that has just appeared. A rect
  *  read while the page is still scrolling points at whatever used to be
- *  there, which is how a spotlight ends up framing the wrong paragraph. */
+ *  there, which is how a spotlight ends up framing the wrong paragraph.
+ *
+ *  An anchor that has gone away is hidden, not left alone. Re-measuring
+ *  covers "the element moved"; it did nothing for "the element unmounted",
+ *  and the two look identical from here. The multimodal RAG clip spent
+ *  fourteen seconds ringing the search-filter chips because mmrag-add lives
+ *  on the dropzone, the dropzone is replaced the moment ingest finishes, and
+ *  every re-measure after that returned early and left the box frozen over
+ *  whatever had moved into that space. No anchor means no spotlight. */
 const place = (page, at) =>
   page.evaluate((sel) => {
     const spot = document.getElementById("__demo_spot");
+    if (!spot) return;
     const el = document.querySelector(`[data-wt="${sel}"]`);
-    if (!el || !spot) return;
+    if (!el) { spot.style.display = "none"; return; }
     const r = el.getBoundingClientRect();
     Object.assign(spot.style, {
       display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
