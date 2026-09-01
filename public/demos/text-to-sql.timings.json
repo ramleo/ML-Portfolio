@@ -4,27 +4,31 @@
     "say": "This is the text to SQL agent. You ask a question in ordinary English, it writes the SQL, runs it against a real database, and explains what came back."
   },
   {
-    "start": 10.27,
+    "start": 10.26,
     "say": "There is a database already loaded: Chinook, a music store. I will pull its schema in now. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server."
   },
   {
-    "start": 24.57,
+    "start": 25.18,
     "say": "On the left is the schema it can see. Tables, columns, row counts. This is what gets handed to the model as context, and it is the reason the generated SQL uses your real column names rather than inventing plausible ones."
   },
   {
-    "start": 39.47,
+    "start": 40.69,
     "say": "If you are not sure what to ask, these sample questions prefill the box."
   },
   {
-    "start": 44.9,
+    "start": 46.71,
     "say": "I will type a real question: show the top ten customers by total spending."
   },
   {
-    "start": 51.91,
+    "start": 54.32,
     "say": "You choose which model writes the query. Groq is the fastest; switch to Gemini or Cohere if you hit a rate limit."
   },
   {
-    "start": 59.58,
-    "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself. Results come back as a sortable table with a chart picked to suit the shape of the data, and you can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue."
+    "start": 62.6,
+    "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself."
+  },
+  {
+    "start": 73.82,
+    "say": "There is the SQL it wrote and the rows it came back with, as a sortable table with a chart picked to suit the shape of the data. You can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue."
   }
 ]
