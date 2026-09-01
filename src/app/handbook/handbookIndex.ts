@@ -48,8 +48,12 @@ const SKIPPABLE = new Set(["and", "or"]);
 const MATCH: MatchOptions = { substring: true };
 
 /** Reads a chapter heading's own label off it: the generator puts the number
- * in a `.bk-chnum` span and leaves the title as the heading's other text. */
-function headingRef(el: Element): ChapterRef {
+ * in a `.bk-chnum` span and leaves the title as the heading's other text.
+ *
+ * Exported because handbookJump.ts names the place a reader jumped away from,
+ * and a chapter called one thing in the find bar and another on the way back
+ * is two chapters as far as the reader is concerned. */
+export function headingRef(el: Element): ChapterRef {
   // A part page splits its name across two headings — "Part 4" in the h1 and
   // "Security & Trust" in the h2 — so reading the h1 alone labels the group
   // "Part 4" and tells the reader nothing about what is in it.

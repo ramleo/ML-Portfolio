@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { buildIndex, findMatches, groupByChapter, type ChapterHits, type Match } from "./handbookIndex";
+import { markJump } from "./handbookJump";
 
 /**
  * A find bar for the handbook.
@@ -134,6 +135,10 @@ export default function HandbookSearch() {
   const go = useCallback(
     (index: number) => {
       if (!matches.length) return;
+      // Once for the whole walk, not once per hit — the store keeps the first
+      // mark until the reader scrolls by hand, so Enter-Enter-Enter still
+      // points back at where they stopped reading.
+      markJump();
       const next = (index + matches.length) % matches.length;
       setAt(next);
       paint(matches, next);

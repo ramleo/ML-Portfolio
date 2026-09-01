@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { markJump, movedByHand } from "./handbookJump";
 
 /**
  * A navigation rail down the right edge of the handbook.
@@ -79,6 +80,9 @@ export default function HandbookRail() {
   const onPointerDown = (e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // Scrubbing is the reader moving themselves, not a jump: it should not
+    // offer a way back, and it should let the next real jump mark afresh.
+    movedByHand();
     setDragging(true);
     scrubTo(e.clientY);
   };
@@ -100,6 +104,7 @@ export default function HandbookRail() {
   };
 
   const jump = (s: Stop) => {
+    markJump();
     document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 

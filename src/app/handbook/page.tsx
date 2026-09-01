@@ -11,6 +11,7 @@ import HandbookActions from "./HandbookActions";
 import HandbookAudio from "./HandbookAudio";
 import HandbookSearch from "./HandbookSearch";
 import HandbookRail from "./HandbookRail";
+import HandbookReturn from "./HandbookReturn";
 import DemoLauncher from "./DemoLauncher";
 
 /**
@@ -81,6 +82,9 @@ export default function HandbookPage() {
           {/* A grabbable stand-in for a scrollbar thumb that is a few pixels
               tall on a page this long — see HandbookRail.tsx. */}
           <HandbookRail />
+          {/* The way back from a jump the rail cannot undo — see
+              handbookJump.ts. */}
+          <HandbookReturn />
         </main>
         <Footer />
       </div>

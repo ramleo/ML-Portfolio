@@ -172,3 +172,38 @@
 @media (max-width: 900px) { .hb-rail { display: none; } }
 .bk-paginated .hb-rail { display: none; }
 @media print { .hb-rail { display: none; } }
+
+/* ── The way back ─────────────────────────────────────────────────────────
+   Appears only after a jump has actually taken the reader more than a page
+   and a half from where they were — see HandbookReturn.tsx. Bottom left, the
+   one free corner: the read-aloud bar owns the centre and the rail the right
+   edge. */
+.hb-return {
+  position: fixed; left: 1.1rem; bottom: 1.1rem; z-index: 44;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  max-width: min(22rem, calc(100vw - 2.2rem));
+  padding: 0.45rem 0.85rem; border-radius: 9999px; cursor: pointer;
+  font-family: inherit; font-size: 0.75rem; color: var(--text2);
+  background: var(--bg-glass); border: 1px solid var(--border2);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
+  animation: hb-return-in 0.22s ease-out;
+}
+.hb-return strong {
+  font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.hb-return:hover { color: var(--text); border-color: var(--accent); }
+.hb-return:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@keyframes hb-return-in {
+  from { opacity: 0; transform: translateY(0.4rem); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .hb-return { animation: none; } }
+/* Above the read-aloud bar rather than beside it: below this width that bar
+   spans most of the screen and the two would sit on top of each other. */
+@media (max-width: 720px) {
+  .hb-return { left: 0.75rem; bottom: 4.2rem; }
+}
+.bk-paginated .hb-return { display: none; }
+@media print { .hb-return { display: none; } }
