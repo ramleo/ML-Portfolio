@@ -370,7 +370,13 @@ export default function HandbookAudio() {
           restart();
         }}
       >
-        {[0.75, 0.85, 0.95, 1, 1.1, 1.25, 1.5].map((r) => (
+        {/* Up to 2x. The ceiling used to be 1.5 on the assumption that system
+            voices fall apart above it; measured on this machine's Samantha,
+            the same sentence tracks base/rate within ~5% all the way to 3x
+            with every one of its 19 word-boundary events still firing, so the
+            assumption was wrong. 2 is the top because it is the top of what
+            anyone asked for, not because 2.5 was found to fail. */}
+        {[0.75, 0.85, 0.95, 1, 1.1, 1.25, 1.5, 1.75, 2].map((r) => (
           <option key={r} value={r}>
             {r}×
           </option>
