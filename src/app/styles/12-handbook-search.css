@@ -31,6 +31,15 @@
 /* Safari draws its own clear button on type=search and it fights the layout. */
 .hb-search-input::-webkit-search-decoration,
 .hb-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+/* The shortcut that focuses the bar, advertised where someone looking for a
+   search box is already looking. Decorative: aria-hidden, and not a tab stop. */
+.hb-search-kbd {
+  flex: none; display: inline-flex; align-items: center; gap: 0.2rem;
+  padding: 0.1rem 0.4rem; border-radius: 0.35rem; pointer-events: none;
+  border: 1px solid var(--border2); color: var(--text3);
+  font-family: var(--type-data); font-size: 0.68rem; line-height: 1.5;
+  white-space: nowrap;
+}
 .hb-search-count {
   flex: none; font-family: var(--type-data); font-size: 0.7rem;
   letter-spacing: 0.04em; color: var(--text3); font-variant-numeric: tabular-nums;

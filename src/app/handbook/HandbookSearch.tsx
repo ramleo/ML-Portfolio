@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { buildIndex, findMatches, groupByChapter, type ChapterHits, type Match } from "./handbookIndex";
 
 /**
@@ -65,6 +65,16 @@ export default function HandbookSearch() {
   const [at, setAt] = useState(0);
   const [open, setOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+
+  // The server has no idea which keyboard the reader has, so it renders no
+  // hint at all and the client fills one in — an explicit server snapshot
+  // rather than a guess that would mismatch on hydration. It never changes
+  // after that, hence the no-op subscribe.
+  const modKey = useSyncExternalStore(
+    () => () => {},
+    () => (/Mac|iPhone|iPad/.test(navigator.userAgent) ? "\u2318" : "Ctrl"),
+    () => ""
+  );
 
   /**
    * Undo history for the query, kept by hand.
@@ -193,6 +203,15 @@ export default function HandbookSearch() {
           aria-label="Search the handbook"
           className="hb-search-input"
         />
+        {/* Only worth showing while the field is empty — once there is a query
+            the count and the controls need the room, and anyone who is typing
+            has already found the box. */}
+        {!query && modKey && (
+          <kbd className="hb-search-kbd" aria-hidden="true">
+            {modKey}
+            <span>K</span>
+          </kbd>
+        )}
         {summary && <span className="hb-search-count">{summary}</span>}
         {query && (
           <button onClick={clear} className="hb-search-step hb-search-clear" aria-label="Clear the search">
