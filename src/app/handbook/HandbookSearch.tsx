@@ -66,10 +66,43 @@ export default function HandbookSearch() {
   const [open, setOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
+  /**
+   * Undo history for the query, kept by hand.
+   *
+   * The field is a controlled input, so React reassigns `value` on every
+   * keystroke — and a programmatic assignment throws away the browser's own
+   * undo stack for that field. Cmd-Z therefore does nothing, and clearing the
+   * bar means retyping from scratch. This is that stack, put back.
+   */
+  const past = useRef<string[]>([""]);
+  const step = useRef(0);
+  const replaying = useRef(false);
+
+  const commit = useCallback((value: string) => {
+    // An undo is not itself an edit; recording it would make Cmd-Z a no-op
+    // that toggles between the same two entries.
+    if (replaying.current) { replaying.current = false; return; }
+    if (past.current[step.current] === value) return;
+    past.current = [...past.current.slice(0, step.current + 1), value].slice(-50);
+    step.current = past.current.length - 1;
+  }, []);
+
+  const travel = useCallback((delta: number) => {
+    const next = step.current + delta;
+    if (next < 0 || next >= past.current.length) return;
+    step.current = next;
+    replaying.current = true;
+    setQuery(past.current[next]);
+    input.current?.focus();
+  }, []);
+
   // Debounced: the index walk is cheap after the first call, but re-scanning
-  // 17,000 lines of words on every keystroke of a long word is not.
+  // 17,000 lines of words on every keystroke of a long word is not. The same
+  // pause is what an undo step is snapped to, so one undo takes back a burst
+  // of typing rather than a single character.
   useEffect(() => {
     const t = window.setTimeout(() => {
+      commit(query);
       const root = document.querySelector<HTMLElement>(".hb-body");
       if (!root || query.trim().length < 2) {
         setMatches([]);
@@ -84,7 +117,7 @@ export default function HandbookSearch() {
       paint(found, 0);
     }, 150);
     return () => window.clearTimeout(t);
-  }, [query]);
+  }, [query, commit]);
 
   useEffect(() => () => clearPaint(), []);
 
@@ -125,6 +158,13 @@ export default function HandbookSearch() {
     else if (e.key === "ArrowDown") { e.preventDefault(); go(at + 1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); go(at - 1); }
     else if (e.key === "Escape") { clear(); }
+    else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      travel(e.shiftKey ? 1 : -1);
+    } else if (e.ctrlKey && e.key.toLowerCase() === "y") {
+      e.preventDefault();
+      travel(1);
+    }
   };
 
   const chapters = groups.length;
