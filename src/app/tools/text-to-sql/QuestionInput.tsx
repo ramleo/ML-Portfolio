@@ -150,7 +150,10 @@ export default function QuestionInput({
             <option value="gemini">Gemini</option>
             <option value="cohere">Cohere</option>
           </select>
-          <button onClick={() => onSubmit()} disabled={running || !question.trim() || !schema}
+          {/* Anchored so the guided demo can actually press it — the clip used
+              to narrate the SQL, the results table and the chart over a screen
+              where nothing was ever run. See src/data/demos/text-to-sql.json. */}
+          <button data-wt="ask" onClick={() => onSubmit()} disabled={running || !question.trim() || !schema}
             onMouseEnter={e => { if (!running) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
             onMouseLeave={e => { e.currentTarget.style.opacity = running ? "0.8" : "1"; e.currentTarget.style.transform = "translateY(0)"; }}
             className="text-xs px-4 py-1.5 rounded-full text-white font-semibold disabled:opacity-40 transition-all"

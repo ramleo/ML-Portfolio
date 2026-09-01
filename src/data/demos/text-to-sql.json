@@ -42,9 +42,18 @@
       "settle": 1400
     },
     {
-      "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself. Results come back as a sortable table with a chart picked to suit the shape of the data, and you can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue.",
-      "at": "question",
-      "settle": 1200
+      "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself.",
+      "at": "ask",
+      "act": "click",
+      "waitFor": "sql-results",
+      "waitMs": 120000,
+      "settle": 2500
+    },
+    {
+      "say": "There is the SQL it wrote and the rows it came back with, as a sortable table with a chart picked to suit the shape of the data. You can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue.",
+      "at": "sql-results",
+      "settle": 2500,
+      "expect": "select"
     }
   ]
 }

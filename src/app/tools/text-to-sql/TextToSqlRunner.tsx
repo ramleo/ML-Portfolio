@@ -175,6 +175,16 @@ export default function TextToSqlRunner() {
             onPin={id => patchTab(id, { pinned: !tabs.find(t => t.id === id)?.pinned })}
             onClose={closeTab} />
 
+          {/* Wrapped rather than anchored inside the panel: QueryResultPanel is
+              403 lines, past the project's file-length limit, and splitting it
+              is not this change.
+
+              The anchor is conditional on there being results, because the
+              panel itself renders unconditionally — an anchor that is always
+              present is one a demo's waitFor resolves against instantly, which
+              is the same as not waiting. This one appears exactly when there is
+              something to wait for. */}
+          <div data-wt={activeTab?.results ? "sql-results" : undefined}>
           <QueryResultPanel
             generatedSql={activeTab?.sql ?? null} copied={copied} copySQL={copySQL}
             question={activeTab?.question ?? question}
@@ -187,6 +197,7 @@ export default function TextToSqlRunner() {
             onSuggest={q => { setQuestion(q); runQuery(q); }}
             chartOverride={activeTab?.chartOverride ?? null}
             onChartOverride={t => activeTabId && patchTab(activeTabId, { chartOverride: t })} />
+          </div>
 
           {activeTab?.results && !running && (
             <button onClick={() => { questionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); questionRef.current?.focus(); }}
