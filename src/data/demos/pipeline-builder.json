@@ -1,0 +1,62 @@
+{
+  "toolId": "pipeline-builder",
+  "chapter": "ch-8-pipeline-builder",
+  "route": "/tools/pipeline-builder",
+  "title": "Pipeline Builder",
+  "blurb": "Seven stages of an ML pipeline, wired together, run end to end.",
+  "steps": [
+    {
+      "say": "Every other tool in this part of the handbook does one stage of a machine learning pipeline. This is all of them on one page, wired together, with each stage handed the previous stage's output rather than the original file.",
+      "settle": 900
+    },
+    {
+      "say": "Three ways to run it. Guided opens each stage so you configure it yourself. Express does the whole thing on sensible defaults. A B compare runs two different configurations against the same data and puts the scores side by side.",
+      "at": "pb-modes",
+      "settle": 3000,
+      "expect": "A/B Compare"
+    },
+    {
+      "say": "I am taking Express.",
+      "at": "pb-mode-express",
+      "act": "click",
+      "settle": 2000
+    },
+    {
+      "say": "A customer churn file: two hundred and forty rows, nine features, and a churned column as the label.",
+      "at": "pb-upload",
+      "act": "file",
+      "file": "/samples/automl-churn.csv",
+      "settle": 2400
+    },
+    {
+      "say": "Here are the seven stages. Preprocessing, feature engineering, feature selection, AutoML, Optuna tuning, SHAP, and ensembling. Each one is a real tool on this site, not a mock of it.",
+      "at": "pb-stages",
+      "settle": 2600,
+      "expect": "Ensemble"
+    },
+    {
+      "say": "Express runs the first four of those seven, and it is worth saying why only four. Optuna tuning, SHAP and ensembling are slow and want decisions from you, so they stay opt in — Guided mode is where you run them.",
+      "at": "pb-run",
+      "settle": 2400
+    },
+    {
+      "say": "Running the pipeline.",
+      "at": "pb-run",
+      "act": "click",
+      "waitFor": "pb-done",
+      "waitMs": 180000,
+      "settle": 3000
+    },
+    {
+      "say": "Four stages done, each on the output of the one before it. The cleaned file went to feature engineering, the engineered file went to selection, and only then did AutoML see the data — which is the whole reason to wire stages together rather than run four tools by hand and shuttle CSVs between them.",
+      "at": "pb-stages",
+      "settle": 3000,
+      "expect": "DONE"
+    },
+    {
+      "say": "Every stage keeps its result, so you can open any one of them, change a setting and re-run from there. And when you are happy with the pipeline, export code turns the whole thing into a Python script that reproduces it outside this page.",
+      "at": "pb-stages",
+      "settle": 2400
+    }
+  ]
+}

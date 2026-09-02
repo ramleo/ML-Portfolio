@@ -154,6 +154,7 @@ export default function ModeSelector({ onSelect }: Props) {
         {MODES.map((m) => (
           <motion.div
             key={m.id}
+            data-wt={`pb-mode-${m.id}`}
             variants={cardVariants}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}

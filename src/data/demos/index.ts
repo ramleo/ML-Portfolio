@@ -7,6 +7,7 @@ import maliciousPackage from "./malicious-package-scanner.json";
 import multimodalRag from "./multimodal-rag.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
+import pipelineBuilder from "./pipeline-builder.json";
 import phishingEmail from "./phishing-email-classifier.json";
 import textToSql from "./text-to-sql.json";
 import tlsHeaders from "./tls-security-headers-scanner.json";
@@ -77,6 +78,7 @@ export const DEMOS: Demo[] = [
   maliciousPackage,
   passwordAudit,
   preprocessing,
+  pipelineBuilder,
   phishingEmail,
   tlsHeaders,
   yaraFileScanner,

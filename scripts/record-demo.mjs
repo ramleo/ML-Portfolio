@@ -255,7 +255,15 @@ async function record(demo, chromium) {
 
     if (s.waitFor) {
       await page.waitForSelector(`[data-wt="${s.waitFor}"]`, { timeout: s.waitMs ?? 120000 })
-        .catch(() => console.log(`     (gave up waiting for ${s.waitFor})`));
+        .catch(async () => {
+          // waitForSelector wants the element *visible*. An anchor on a wrapper
+          // whose child unmounts is present in the DOM at zero size, which
+          // looks identical to "never appeared" unless you say so.
+          const attached = await page.locator(`[data-wt="${s.waitFor}"]`).count();
+          console.log(attached
+            ? `     (gave up on ${s.waitFor}: in the DOM but never visible — the anchor is probably an empty wrapper)`
+            : `     (gave up waiting for ${s.waitFor}: never appeared)`);
+        });
       // The page has changed underneath the spotlight; put it back where the
       // step asked for, now that the element it named may finally exist.
       if (s.at) await place(page, s.at);

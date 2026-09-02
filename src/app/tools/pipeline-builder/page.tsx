@@ -188,7 +188,9 @@ export default function PipelineBuilderPage() {
               <ThemeToggle />
             </div>
           </div>
-          <ModeSelector onSelect={setMode} />
+          <div data-wt="pb-modes">
+            <ModeSelector onSelect={setMode} />
+          </div>
         </div>
       </div>
     );
@@ -224,7 +226,11 @@ export default function PipelineBuilderPage() {
         </div>
 
         {/* File upload */}
-        {!csvB64 && <FileUploadSection onFile={(b64, cols) => handleFile(b64, cols)} />}
+        {!csvB64 && (
+          <div data-wt="pb-upload">
+            <FileUploadSection onFile={(b64, cols) => handleFile(b64, cols)} />
+          </div>
+        )}
 
         {/* File info + target */}
         {csvB64 && (
@@ -280,7 +286,7 @@ export default function PipelineBuilderPage() {
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#4ade80", marginBottom: 2 }}>Express Mode</div>
               <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Runs all 4 pipeline stages automatically with optimal defaults. Results appear as each stage completes.</div>
             </div>
-            <button onClick={runExpress} disabled={!!runningStage}
+            <button onClick={runExpress} disabled={!!runningStage} data-wt="pb-run"
               style={{ padding: "0.6rem 1.4rem", borderRadius: 9, background: "#22c55e", color: "#000", fontWeight: 700, fontSize: "0.85rem", border: "none", cursor: runningStage ? "not-allowed" : "pointer", opacity: runningStage ? 0.6 : 1, whiteSpace: "nowrap" }}>
               {runningStage ? `Running ${runningStage}…` : "Auto-Run Pipeline"}
             </button>
@@ -294,6 +300,10 @@ export default function PipelineBuilderPage() {
 
         {/* Guided / Express stage grid */}
         {mode !== "ab" && (
+          <div data-wt="pb-stages">
+          {/* The grid is what is still on screen when the run ends, so it —
+              not the runner, which unmounts — carries the "finished" anchor. */}
+          <div data-wt={doneCount === 4 ? "pb-done" : undefined}>
           <StageGrid
             stages={STAGES.map((s) => ({ ...s, icon: ICONS[s.id] }))}
             stageResults={stageResults}
@@ -305,6 +315,8 @@ export default function PipelineBuilderPage() {
             waterfallStages={waterfallStages}
             icons={ICONS}
           />
+          </div>
+          </div>
         )}
 
         {/* Bottom actions */}
