@@ -27,7 +27,7 @@
       "expect": "postinstall"
     },
     {
-      "say": "The typosquat is found by edit distance against a curated list of well known packages. Lodahs is one character away from lodash. That list is not exhaustive and the tool says so, because a curated list pretending to be complete is worse than one that admits its limits.",
+      "say": "The typosquat is found by edit distance against a curated list of well known packages. Lodahs is two edits from lodash \u2014 the last two letters swapped. That list is not exhaustive and the tool says so, because a curated list pretending to be complete is worse than one that admits its limits.",
       "at": "pkg-manifest-result",
       "settle": 2600,
       "expect": "typosquat"

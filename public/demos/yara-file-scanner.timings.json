@@ -8,39 +8,39 @@
     "say": "There are two halves. Built-in rules run a small educational rule set. Write your own is the half that matters more, because writing and testing a rule is what an analyst actually does with YARA."
   },
   {
-    "start": 24.67,
+    "start": 25.27,
     "say": "Starting with the built-in set. I am giving it an ordinary sales report PDF, the same file the Multimodal RAG demo uses. Nothing about it is suspicious."
   },
   {
-    "start": 35.76,
+    "start": 36.96,
     "say": "Scan."
   },
   {
-    "start": 39.88,
+    "start": 41.17,
     "say": "One rule matched: high overall entropy. That means the bytes are close to random, above seven point five bits per byte. Packers and crypters do that on purpose, which is why the rule exists, but so does every compressed format. A PDF, a JPEG, a zip file all sit around seven point nine."
   },
   {
-    "start": 59.69,
+    "start": 61.58,
     "say": "So this is a property of the file, not evidence of intent. The rule says so in its own description. Treating a signal like this as a verdict is exactly how a scanner ends up rejecting every legitimate document a user uploads."
   },
   {
-    "start": 74.13,
+    "start": 76.62,
     "say": "Now the other half. Switching to write your own rule."
   },
   {
-    "start": 78.29,
+    "start": 81.37,
     "say": "This is real YARA syntax. A strings block naming the byte patterns to look for, and a condition saying which combination counts as a match. This example one looks for a single marker string."
   },
   {
-    "start": 91.56,
-    "say": "And here is a plain text file that contains that marker. The built-in rules find nothing in it, which is the point: the thing you care about is often something only you know to look for."
+    "start": 95.25,
+    "say": "And here is a plain text file that contains that marker. No built-in rule would know to look for it, which is the point: the thing you care about is often something only you know to look for."
   },
   {
-    "start": 102.86,
+    "start": 107.29,
     "say": "Scanning again, this time against my own rule."
   },
   {
-    "start": 108.31,
+    "start": 112.83,
     "say": "It matched, and it shows the evidence: which string in the rule fired, the byte offset it was found at, and the raw hex of the bytes that matched. Not a score, not a guess. The scanner tells you what it saw and where, and you decide what it means."
   }
 ]

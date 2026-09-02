@@ -99,8 +99,11 @@ export type LogAnalysisResult = {
 };
 
 /** Groups a pasted DNS query log (one hostname per line) by parent domain
- * and flags a parent domain only when length, entropy, AND repetition
- * signals agree — never a single heuristic alone. */
+ * and flags a parent domain only when at least two of the three signals
+ * (length, entropy, repetition) agree AND entropy is one of them — never a
+ * single heuristic alone. Repetition needs 5 unique subdomains, so a real
+ * tunnel with only three still flags on length + entropy; saying all three
+ * must agree would describe a stricter tool than this one. */
 export function analyzeLog(rawText: string): LogAnalysisResult {
   const hosts = rawText
     .split("\n")

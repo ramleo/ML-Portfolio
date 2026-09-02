@@ -27,7 +27,7 @@
       "expect": "Likely phishing"
     },
     {
-      "say": "Separately, a small rule list: urgency phrasing and generic greetings, quoted where they appear. Notice these are shown beside the model rather than folded into its score. Two signals you can weigh yourself beat one number you have to trust.",
+      "say": "Separately, a small rule list looks for urgency phrasing and generic greetings. It found neither \u2014 and that is worth seeing. This email opens Hello and Urgent and says my dear, but the list holds exact phrases like urgent action required and dear customer, so it stays silent. A curated list is narrow by construction. That is exactly why it sits beside the model rather than folded into its score.",
       "at": "phish-flags",
       "settle": 2800,
       "expect": "Rule-based flags"
@@ -45,7 +45,7 @@
       "expect": "Likely safe"
     },
     {
-      "say": "And the rules agree, finding no urgency phrasing and no generic greeting. When the trained model and the plain rules disagree, that is not a bug. That is the case worth reading yourself.",
+      "say": "The rules are silent here too, and this time they are right. So across both emails the rules caught nothing and the model caught everything. That is the honest result, and it is the argument for showing you two signals separately rather than blending them into one number that hides which half did the work.",
       "at": "phish-flags",
       "settle": 2400
     }

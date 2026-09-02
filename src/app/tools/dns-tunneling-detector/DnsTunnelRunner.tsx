@@ -29,9 +29,10 @@ export default function DnsTunnelRunner({ accent }: { accent: string }) {
       <div style={cardStyle} className="p-5">
         <p className="text-xs mb-3" style={{ color: "var(--text3)" }}>
           Paste a DNS query log — one hostname per line (the common format for a pasted <code>dig</code>/
-          resolver/Pi-hole export). Hostnames are grouped by parent domain and flagged only when subdomain
-          length, Shannon entropy, and query volume all agree — never a single signal alone, to avoid
-          false-flagging ordinary long CDN-style subdomains.
+          resolver/Pi-hole export). Hostnames are grouped by parent domain and flagged only when at least
+          two of three signals agree — subdomain length, Shannon entropy, and query volume — and entropy
+          has to be one of them. Never a single signal alone, to avoid false-flagging ordinary long
+          CDN-style subdomains.
         </p>
         <textarea
           data-wt="dns-log"

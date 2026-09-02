@@ -36,7 +36,8 @@
     {
       "say": "Here is the independent half. SPF says which servers may send for this domain, and GitHub's record ends in a soft fail, meaning suspicious mail is marked rather than rejected outright. DMARC is set to quarantine, with subdomains set to reject. The DKIM key named in the signature is live in DNS and has not been revoked.",
       "at": "eauth-dns",
-      "settle": 3000
+      "settle": 3000,
+      "expect": "sp=reject"
     },
     {
       "say": "Alignment is the part that catches phishing. A message can pass SPF and DKIM honestly and still be a fake, if the domain it passed for is not the domain in the from address. Both align here. When they do not, that is the signal worth acting on.",

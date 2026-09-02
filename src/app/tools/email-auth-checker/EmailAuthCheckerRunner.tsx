@@ -161,6 +161,13 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
             <Section title="Independent live DNS checks" anchor="eauth-dns">
               <Row label="SPF record" value={result.spf.found ? <Badge text={result.spf.all_qualifier ?? "found"} color={result.spf.all_qualifier?.includes("permissive") ? "#ef4444" : "#22c55e"} /> : <Badge text="not found" color="#ef4444" />} />
               <Row label="DMARC policy" value={result.dmarc.found ? <Badge text={`p=${result.dmarc.policy}`} color={result.dmarc.policy === "reject" ? "#22c55e" : result.dmarc.policy === "quarantine" ? "#f59e0b" : "#ef4444"} /> : <Badge text="not found" color="#ef4444" />} />
+              {/* Only when the domain actually publishes one. sp= is what governs
+                  mail from subdomains, and a domain can be strict about itself
+                  while leaving its subdomains wide open — worth seeing, and the
+                  API has always returned it. */}
+              {result.dmarc.found && result.dmarc.subdomain_policy && (
+                <Row label="DMARC subdomain policy" value={<Badge text={`sp=${result.dmarc.subdomain_policy}`} color={result.dmarc.subdomain_policy === "reject" ? "#22c55e" : result.dmarc.subdomain_policy === "quarantine" ? "#f59e0b" : "#ef4444"} />} />
+              )}
               {result.dkim_signatures.length === 0
                 ? <Row label="DKIM key" value={<span style={{ color: "var(--text3)" }}>no DKIM-Signature header</span>} />
                 : result.dkim_signatures.map((sig, i) => <DkimRow key={i} sig={sig} />)}

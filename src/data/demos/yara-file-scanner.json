@@ -52,7 +52,7 @@
       "settle": 2200
     },
     {
-      "say": "And here is a plain text file that contains that marker. The built-in rules find nothing in it, which is the point: the thing you care about is often something only you know to look for.",
+      "say": "And here is a plain text file that contains that marker. No built-in rule would know to look for it, which is the point: the thing you care about is often something only you know to look for.",
       "at": "yara-upload",
       "act": "file",
       "file": "/samples/yara-marker.txt",
