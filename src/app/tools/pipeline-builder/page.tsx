@@ -3,7 +3,6 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import type { ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -22,44 +21,8 @@ import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type PipelineMode = "guided" | "express" | "ab" | null;
-type StageId = "preprocessing" | "feature-eng" | "feature-select" | "automl" | "optuna" | "shap" | "ensemble";
-
-const S = { width: 22, height: 22, fill: "none" as const, stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, viewBox: "0 0 24 24" };
-
-const ICONS: Record<string, ReactElement> = {
-  preprocessing: <svg {...S}><path d="M22 3H2l8 9.46V19l4 2V12.46z" /></svg>,
-  "feature-eng": <svg {...S}><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>,
-  "feature-select": <svg {...S}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3" /><path d="M12 3v3m0 12v3M3 12h3m12 0h3" /></svg>,
-  automl: <svg {...S}><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12" /></svg>,
-  optuna: <svg {...S}><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" /></svg>,
-  shap: <svg {...S}><rect x="3" y="14" width="4" height="7" rx="1" /><rect x="9.5" y="9" width="4" height="12" rx="1" /><rect x="16" y="4" width="4" height="17" rx="1" /></svg>,
-  ensemble: <svg {...S}><path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z" /></svg>,
-};
-
-const STAGES: { id: StageId; title: string; accent: string; description: string }[] = [
-  { id: "preprocessing", title: "Preprocessing", accent: "#3e7c98", description: "Clean data, handle missing values and outliers" },
-  { id: "feature-eng", title: "Feature Engineering", accent: "#966f2b", description: "Create polynomial, date, and transform features" },
-  { id: "feature-select", title: "Feature Selection", accent: "#4c806d", description: "Remove noise, select top K features" },
-  { id: "automl", title: "AutoML", accent: "#3f8358", description: "Train and benchmark multiple algorithms" },
-  { id: "optuna", title: "Optuna Tuning", accent: "#7e68c0", description: "Hyperparameter optimization with Bayesian search" },
-  { id: "shap", title: "SHAP", accent: "#f87171", description: "Explain model predictions with SHAP values" },
-  { id: "ensemble", title: "Ensemble", accent: "#818cf8", description: "Combine models for higher accuracy" },
-];
-
-
-function fmtM(m: string) {
-  const map: Record<string, string> = { neg_mean_absolute_error: "MAE", neg_root_mean_squared_error: "RMSE", r2: "R²", accuracy: "Accuracy", f1: "F1", roc_auc: "AUC-ROC" };
-  return map[m] ?? m.replace(/^neg_/i, "").replace(/_/g, " ");
-}
-
-function getStageCsv(id: StageId, raw: string, csvs: Record<string, string>): string {
-  const order: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl", "optuna", "shap", "ensemble"];
-  const idx = order.indexOf(id);
-  for (let i = idx - 1; i >= 0; i--) {
-    if (csvs[order[i]]) return csvs[order[i]];
-  }
-  return raw;
-}
+import { ICONS, STAGES, fmtM, getStageCsv, type StageId } from "./stages";
+import { runExpressPipeline } from "./runExpressPipeline";
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -93,40 +56,16 @@ export default function PipelineBuilderPage() {
     if (cols.length > 0) setTarget(cols[cols.length - 1]);
   }, []);
 
-  async function runExpressPipeline() {
+  async function runExpress() {
     if (!csvB64 || !target) return;
     setStageResults({});
     setStageCsvs({});
-    const AUTO_STAGES: StageId[] = ["preprocessing", "feature-eng", "feature-select", "automl"];
-    const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
-      preprocessing: { mv_num: "median", mv_cat: "most_frequent", remove_duplicates: true, remove_outliers: false, fix_skewness: false, drop_cols: [] },
-      "feature-eng": { transforms: {}, date_cols: [], date_parts: [] },
-      "feature-select": { method: "none", top_k: 15 },
-      automl: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 5 },
-    };
-    const ENDPOINTS: Record<string, string> = { preprocessing: "preprocess", "feature-eng": "feature-eng", "feature-select": "feature-select", automl: "automl" };
-    let currentCsv = csvB64;
-    for (const stageId of AUTO_STAGES) {
-      setRunningStage(stageId);
-      try {
-        const config = DEFAULT_CONFIGS[stageId];
-        const extraFields = stageId === "automl" ? { task_type: taskType } : {};
-        const res = await fetch(`${API}/pipeline-builder/${ENDPOINTS[stageId]}`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ csv_b64: currentCsv, target, config, ...extraFields }),
-        });
-        if (!res.ok) break;
-        const json = await res.json() as Record<string, unknown>;
-        const result: StageResult = { stageId, outputCsvB64: json.processed_csv_b64 as string | undefined, metric: json.metric as string | undefined, data: json };
-        setStageResults((p) => ({ ...p, [stageId]: result }));
-        if (json.processed_csv_b64) {
-          const nextCsv = json.processed_csv_b64 as string;
-          setStageCsvs((p) => ({ ...p, [stageId]: nextCsv }));
-          currentCsv = nextCsv;
-        }
-      } catch { break; }
-    }
-    setRunningStage(null);
+    await runExpressPipeline({
+      csvB64, target, taskType,
+      onStage: setRunningStage,
+      onResult: (r) => setStageResults((p) => ({ ...p, [r.stageId]: r })),
+      onCsv: (id, csv) => setStageCsvs((p) => ({ ...p, [id]: csv })),
+    });
   }
 
   function handleStageComplete(result: StageResult) {
@@ -341,7 +280,7 @@ export default function PipelineBuilderPage() {
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#4ade80", marginBottom: 2 }}>Express Mode</div>
               <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>Runs all 4 pipeline stages automatically with optimal defaults. Results appear as each stage completes.</div>
             </div>
-            <button onClick={runExpressPipeline} disabled={!!runningStage}
+            <button onClick={runExpress} disabled={!!runningStage}
               style={{ padding: "0.6rem 1.4rem", borderRadius: 9, background: "#22c55e", color: "#000", fontWeight: 700, fontSize: "0.85rem", border: "none", cursor: runningStage ? "not-allowed" : "pointer", opacity: runningStage ? 0.6 : 1, whiteSpace: "nowrap" }}>
               {runningStage ? `Running ${runningStage}…` : "Auto-Run Pipeline"}
             </button>

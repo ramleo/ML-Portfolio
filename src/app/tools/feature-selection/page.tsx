@@ -27,6 +27,8 @@ import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import { buildTabs, TAB_CATEGORIES, type TabId } from "@/components/FSPanels/fsTabs";
 import { toolBackHref } from "@/lib/toolNav";
 
+import { DEFAULT_OPTS } from "./defaultOpts";
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ACCENT = "#a9652d";
@@ -37,27 +39,6 @@ const CARD: React.CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: 16,
   padding: "1.25rem 1.4rem",
-};
-
-// ── Default opts ──────────────────────────────────────────────────────────────
-
-const DEFAULT_OPTS: Omit<SelectionOpts, "targetCol"> = {
-  useVariance: true, varianceThreshold: 0.01,
-  useCorrelation: true, corrThreshold: 0.9,
-  useTopK: false, topK: 10,
-  useSelectKBest: false, selectKBestK: 10, kBestMethod: "f_regression",
-  useKendall: false, kendallTopK: 10,
-  useChiSq: false, chiSqTopK: 10,
-  useRFE: false, rfeTargetK: 10,
-  useLasso: false, lassoAlpha: 0.01, lassoTopK: 10,
-  useRidge: false, ridgeAlpha: 1.0, ridgeTopK: 10,
-  useTree: false, treeTopK: 10, treeNTrees: 50,
-  useForward: false, forwardK: 10,
-  useExhaustive: false, exhaustiveK: 5,
-  usePCA: false, pcaComponents: 3, pcaKaiser: false,
-  useUMAP: false, umapComponents: 2, umapNeighbors: 15,
-  useFA: false, faFactors: 3,
-  useLDA: false, ldaComponents: 2,
 };
 
 // ── Inner Page ────────────────────────────────────────────────────────────────
@@ -234,7 +215,7 @@ function FeatureSelectionPageInner() {
         {hasFile && (
           <>
             {/* Target */}
-            <RepulsionCard style={{ ...CARD }}>
+            <RepulsionCard style={{ ...CARD }} data-wt="fs-target">
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>
                 Target Column
               </div>
@@ -279,7 +260,7 @@ function FeatureSelectionPageInner() {
             />
 
             {/* Method config */}
-            <RepulsionCard style={{ ...CARD }}>
+            <RepulsionCard style={{ ...CARD }} data-wt="fs-methods">
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: "1rem" }}>
                 Selection Methods
               </div>

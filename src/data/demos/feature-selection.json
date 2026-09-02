@@ -1,0 +1,65 @@
+{
+  "toolId": "feature-selection",
+  "chapter": "ch-6-feature-selection",
+  "route": "/tools/feature-selection",
+  "title": "Feature Selection",
+  "blurb": "Fourteen methods for deciding which columns are earning their place.",
+  "steps": [
+    {
+      "say": "More columns is not more signal. Duplicated measurements, constants left behind by an export, and columns that are pure noise all cost you accuracy and training time. This decides which ones to keep, and it runs entirely in your browser.",
+      "settle": 900
+    },
+    {
+      "say": "I am giving it a fitness dataset with a problem planted in it: two hundred and twenty rows, eight numeric columns, and three of those columns are not pulling their weight — though only two of them get caught, which turns out to be the interesting part.",
+      "at": "fs-upload",
+      "act": "file",
+      "file": "/samples/feature-selection-fitness.csv",
+      "settle": 2500,
+      "expect": "220 rows"
+    },
+    {
+      "say": "First the target. I am predicting vo2 max, so mutual information and F scores are computed against that column rather than against nothing in particular.",
+      "at": "fs-target",
+      "act": "select",
+      "settle": 1800,
+      "value": "vo2max",
+      "expect": "MI and F-scores computed against this column"
+    },
+    {
+      "say": "Fourteen methods are available, grouped by what they actually do. Filters look at the columns themselves. Scores rank them against the target. Wrappers train a model repeatedly to find out. Reduction methods build new columns instead of picking old ones. Two filters are on by default: variance threshold and correlation.",
+      "at": "fs-methods",
+      "settle": 2600
+    },
+    {
+      "say": "Running it.",
+      "at": "fs-run",
+      "act": "click",
+      "waitFor": "fs-stats",
+      "waitMs": 60000,
+      "settle": 2500
+    },
+    {
+      "say": "Seven input features, five kept, two dropped. A twenty nine percent reduction from two filters that did not need a model to run.",
+      "at": "fs-stats",
+      "settle": 2400,
+      "expect": "Features Dropped"
+    },
+    {
+      "say": "And it says which two, and why. Schema version is tagged low variance — it reads three on every single row, so it can tell the model nothing. Weight in kilograms is tagged high correlation, because weight in pounds is the same measurement twice; the heatmap below scores that pair at one point zero zero exactly.",
+      "at": "fs-rankings",
+      "settle": 3000,
+      "expect": "low variance"
+    },
+    {
+      "say": "Now look at what survived, because this is the honest part. Sensor noise is still in the kept list, and its mutual information score is zero point zero zero — the tool is telling you it carries nothing. The two default filters are structural: they catch a constant and a duplicate, not a useless column. Dropping that one needs a scoring method like top K mutual information, switched on deliberately.",
+      "at": "fs-rankings",
+      "settle": 3000,
+      "expect": "sensor_noise"
+    },
+    {
+      "say": "The reduced dataset then downloads as a CSV: five features and the target, ready to train on.",
+      "at": "fs-stats",
+      "settle": 1800
+    }
+  ]
+}

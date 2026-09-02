@@ -104,7 +104,7 @@ export function DatasetOverview({ analyzed }: { analyzed: AnalyzeResult }) {
           )}
 
           {catCols.length > 0 && (
-            <div>
+            <div data-wt="prep-categorical">
               <div style={{ fontSize: "0.65rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.55rem" }}>Categorical Columns</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                 {catCols.slice(0, 12).map(col => (

@@ -94,6 +94,16 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       el?.click();
       return;
     }
+    if (s.act === "select" && s.value) {
+      const sel = (el?.matches("select") ? el : el?.querySelector("select")) as HTMLSelectElement | null;
+      if (!sel) return;
+      // Same React problem as typing: assigning .value is swallowed unless the
+      // native setter is used and a change event is dispatched by hand.
+      const setter = Object.getOwnPropertyDescriptor(w.HTMLSelectElement.prototype, "value")?.set;
+      setter?.call(sel, s.value);
+      sel.dispatchEvent(new w.Event("change", { bubbles: true }));
+      return;
+    }
     if (s.act === "type" && s.value) {
       const input = (el?.matches("input, textarea") ? el : el?.querySelector("input, textarea")) as
         | HTMLInputElement

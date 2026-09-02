@@ -11,11 +11,15 @@ interface Props {
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   onDrop?: React.DragEventHandler<HTMLDivElement>;
   onDragOver?: React.DragEventHandler<HTMLDivElement>;
+  /** Guided-demo anchor. Declared rather than spread: this component takes no
+   *  rest props, so an inline data-wt on a RepulsionCard would be dropped
+   *  silently and the spotlight would have nothing to find. */
+  "data-wt"?: string;
 }
 
 export default function RepulsionCard({
   children, style, className, strength = 18, radius = 180,
-  onClick, onDrop, onDragOver,
+  onClick, onDrop, onDragOver, "data-wt": dataWt,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const mousePos = useMousePos();
@@ -55,6 +59,7 @@ export default function RepulsionCard({
   return (
     <div
       ref={cardRef}
+      data-wt={dataWt}
       className={className}
       style={{ ...style, willChange: "transform" }}
       onClick={onClick}

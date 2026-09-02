@@ -1,0 +1,67 @@
+{
+  "toolId": "preprocessing",
+  "chapter": "ch-3-data-preprocessing",
+  "route": "/tools/preprocessing",
+  "title": "Data Preprocessing",
+  "blurb": "A deliberately messy CSV, cleaned in the browser, with every change counted.",
+  "steps": [
+    {
+      "say": "Real spreadsheets are messy, and a model will not tell you that. It will just train badly. This cleans a file before you train on it, and every step runs in your browser — the file never leaves your machine.",
+      "settle": 900
+    },
+    {
+      "say": "The job is four stages, and the rail here says which one you are in: upload, configure, process, results.",
+      "at": "prep-steps",
+      "settle": 1200
+    },
+    {
+      "say": "I am dropping in a customer file that was built to be broken: a hundred and eighty six rows, with blank cells, six exact duplicate rows, an income column with a long tail, and one row where the income reads forty million.",
+      "at": "prep-upload",
+      "act": "file",
+      "file": "/samples/preprocessing-messy.csv",
+      "settle": 2500
+    },
+    {
+      "say": "It reads the file and counts what is wrong before touching anything. A hundred and eighty six rows, eight columns, twenty nine missing cells.",
+      "at": "prep-stats",
+      "settle": 2200,
+      "expect": "186"
+    },
+    {
+      "say": "One thing that count does not include is worth knowing. Three rows in the region column say the word unknown, and this tool does not treat that as missing. Region shows five unique values here, not four — north, south, east, west, and unknown standing as a category of its own. Blank, nan, null, na and n slash a are recognised; unknown is not. A cleaning tool that guessed at every word someone might have typed would be worse, but you should know where the line is.",
+      "at": "prep-categorical",
+      "settle": 2000,
+      "expect": "5 unique"
+    },
+    {
+      "say": "Then you choose what to do about each problem. Eight strategies for filling missing numbers — mean, median, K nearest neighbours, MICE, forward or backward fill, a constant, or dropping the row — five for categories, outlier stripping by the one point five times interquartile range rule, and a log transform for skew.",
+      "at": "prep-configure",
+      "settle": 2400
+    },
+    {
+      "say": "Running it now.",
+      "at": "prep-run",
+      "act": "click",
+      "waitFor": "prep-summary",
+      "waitMs": 60000,
+      "settle": 2500
+    },
+    {
+      "say": "And here is the part that matters: before and after side by side, for every count. Rows, columns, features and missing cells — twenty nine down to zero.",
+      "at": "prep-summary",
+      "settle": 2600,
+      "expect": "Features"
+    },
+    {
+      "say": "Then the same comparison column by column, with the distribution redrawn. Age was fourteen missing and is now zero. Income was nine missing and is now zero, and you can see its long tail still there because I left the skew fix off — the tool recommended it rather than doing it behind your back.",
+      "at": "prep-columns",
+      "settle": 2800,
+      "expect": "fully imputed"
+    },
+    {
+      "say": "From here the cleaned file downloads as a CSV, or goes straight through to AutoML without a round trip through your downloads folder.",
+      "at": "prep-download",
+      "settle": 1800
+    }
+  ]
+}

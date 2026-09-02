@@ -1,10 +1,12 @@
 import automl from "./automl.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
+import featureSelection from "./feature-selection.json";
 import extensionPermissions from "./extension-permission-analyzer.json";
 import maliciousPackage from "./malicious-package-scanner.json";
 import multimodalRag from "./multimodal-rag.json";
 import passwordAudit from "./password-audit.json";
+import preprocessing from "./preprocessing.json";
 import phishingEmail from "./phishing-email-classifier.json";
 import textToSql from "./text-to-sql.json";
 import tlsHeaders from "./tls-security-headers-scanner.json";
@@ -18,7 +20,7 @@ import yaraFileScanner from "./yara-file-scanner.json";
  * recorded version. One script, two players; a demo can never drift between the
  * live walkthrough and the clip of it.
  */
-export type DemoAction = "none" | "click" | "type" | "file" | "scroll";
+export type DemoAction = "none" | "click" | "type" | "select" | "file" | "scroll";
 
 export interface DemoStep {
   /** Narration. Also shown as the caption, so it has to read as well as it
@@ -71,8 +73,10 @@ export const DEMOS: Demo[] = [
   dnsTunneling,
   emailAuthChecker,
   extensionPermissions,
+  featureSelection,
   maliciousPackage,
   passwordAudit,
+  preprocessing,
   phishingEmail,
   tlsHeaders,
   yaraFileScanner,

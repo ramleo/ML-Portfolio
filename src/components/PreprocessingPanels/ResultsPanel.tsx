@@ -33,7 +33,7 @@ export function ResultsPanel({
       <QualityScoreCard before={beforeScore} after={afterScore} />
 
       {/* Summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.75rem", marginBottom: "1.25rem" }}>
+      <div data-wt="prep-summary" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.75rem", marginBottom: "1.25rem" }}>
         {[
           { label: "Rows",     before: result.rows_before,     after: result.rows_after },
           { label: "Columns",  before: result.cols_before,     after: result.cols_after },
@@ -57,12 +57,14 @@ export function ResultsPanel({
       </div>
 
       {analyzed && result.columns?.length > 0 && (
+        <div data-wt="prep-columns">
         <ComparisonView before={analyzed} result={result} />
+        </div>
       )}
 
       {/* Action buttons */}
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-        <button onClick={onDownload}
+        <button onClick={onDownload} data-wt="prep-download"
           style={{ flex: 1, padding: "0.75rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#0b1120", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", transition: "opacity 0.15s, box-shadow 0.15s, transform 0.15s" }}
           onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 24px ${ACCENT}66`; e.currentTarget.style.transform = "translateY(-1px)"; }}
           onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}

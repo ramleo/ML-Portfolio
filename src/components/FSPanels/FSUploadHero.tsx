@@ -84,6 +84,7 @@ export default function FSUploadHero({
           borderColor: hasFile ? `${ACCENT}33` : "var(--border2)",
           ["--acc-glow" as string]: `${ACCENT}14`,
         }}
+        data-wt="fs-upload"
         onClick={() => fileRef.current?.click()}
         onDrop={onDrop}
         onDragOver={e => e.preventDefault()}

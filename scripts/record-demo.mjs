@@ -236,6 +236,17 @@ async function record(demo, chromium) {
           .pressSequentially(s.value, { delay: 25, timeout: 20000 })
       );
 
+    if (s.act === "select" && s.at && s.value)
+      // A dropdown cannot be driven by clicking it: a click opens the native
+      // menu and picks nothing, which is how a step once narrated a chosen
+      // target over a select still reading "(none)".
+      await must(`select "${s.value}" in [data-wt="${s.at}"]`, () =>
+        page
+          .locator(`[data-wt="${s.at}"]:is(select), [data-wt="${s.at}"] select`)
+          .first()
+          .selectOption(s.value, { timeout: 15000 })
+      );
+
     if (s.act === "file" && s.file)
       await must(`upload ${s.file}`, () =>
         page.locator("input[type=file]").first()

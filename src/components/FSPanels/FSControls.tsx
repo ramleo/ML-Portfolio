@@ -102,6 +102,7 @@ export default function FSControls({
       <div style={{ position: "sticky", bottom: "1.5rem", zIndex: 20, alignSelf: "flex-start" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
           <button
+            data-wt="fs-run"
             onClick={onRun}
             disabled={running}
             onMouseEnter={e => { if (!running) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}

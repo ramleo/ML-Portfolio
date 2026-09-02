@@ -47,7 +47,7 @@ export default function FSResultCards({
   return (
     <>
       {/* ── Stats ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
+      <div data-wt="fs-stats" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
           { label: "Input Features", value: String(result.features.length) },
           { label: "Features Kept", value: String(result.keptCount), accentVal: true },
@@ -69,7 +69,7 @@ export default function FSResultCards({
       </div>
 
       {/* ── Rankings ── */}
-      <RepulsionCard style={{ ...CARD }}>
+      <RepulsionCard style={{ ...CARD }} data-wt="fs-rankings">
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
           <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Feature Rankings</span>
           {/* Live count badge — always shown when result exists */}

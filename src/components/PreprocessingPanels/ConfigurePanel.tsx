@@ -61,9 +61,9 @@ export function ConfigurePanel({
   const hasCat  = catCols.length > 0;
 
   return (
-    <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0 }}>
+    <div data-wt="prep-configure" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0 }}>
       {/* Stats + Presets bar */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem", flexWrap: "wrap", flexShrink: 0 }}>
+      <div data-wt="prep-stats" style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem", flexWrap: "wrap", flexShrink: 0 }}>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           {[
             { label: "Rows",    value: analyzed.rows.toLocaleString() },
@@ -189,7 +189,7 @@ export function ConfigurePanel({
               onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--text3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(255,255,255,0.06)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.boxShadow = "none"; }}
             >Back</button>
-            <button onClick={onPreprocess} disabled={targetEncodingWarn}
+            <button onClick={onPreprocess} disabled={targetEncodingWarn} data-wt="prep-run"
               style={{ flex: 1, padding: "0.6rem 1.5rem", borderRadius: 9999, fontSize: "0.85rem", fontWeight: 700, background: ACCENT, color: "#fff", border: "none", cursor: targetEncodingWarn ? "not-allowed" : "pointer", opacity: targetEncodingWarn ? 0.5 : 1, transition: "box-shadow 0.15s, transform 0.15s" }}
               onMouseEnter={e => { if (!targetEncodingWarn) { e.currentTarget.style.boxShadow = `0 0 24px ${ACCENT}66`; e.currentTarget.style.transform = "translateY(-1px)"; } }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
