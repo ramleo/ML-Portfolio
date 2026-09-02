@@ -8,6 +8,7 @@ import ensemble from "./ensemble.json";
 import extensionPermissions from "./extension-permission-analyzer.json";
 import maliciousPackage from "./malicious-package-scanner.json";
 import multimodalRag from "./multimodal-rag.json";
+import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
 import pipelineBuilder from "./pipeline-builder.json";
@@ -82,6 +83,7 @@ export const DEMOS: Demo[] = [
   featureEngineering,
   featureSelection,
   maliciousPackage,
+  optuna,
   passwordAudit,
   preprocessing,
   pipelineBuilder,

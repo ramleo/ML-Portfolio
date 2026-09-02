@@ -83,6 +83,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
 
           {/* B — Trial History chart (left) */}
           {displayTrials.length > 0 && (
+            <div data-wt="opt-trial-history">
             <TrialHistoryChart
               trials={displayTrials}
               bestTrial={bestTrial}
@@ -90,12 +91,13 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
               secondaryTrials={result.optuna_secondary_trials}
               secondaryMetricLabel={result.optuna_secondary_metric && result.optuna_secondary_metric !== "none" ? metricLabel(result.optuna_secondary_metric) : undefined}
             />
+            </div>
           )}
 
           {/* C + D — HP Importance + Best Params stacked (right) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {paramImp.length > 0 && (
-              <div style={card()}>
+              <div data-wt="opt-importance" style={card()}>
                 <div style={label()}>Hyperparameter Importance</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {paramImp.map(([param, imp]) => (
@@ -141,7 +143,7 @@ export default function OptunaResults({ result }: { result: TrainResult }) {
 
       {/* E — Winner Metrics */}
       {metrics.length > 0 && (
-        <div>
+        <div data-wt="opt-winner-metrics">
           <div style={label({ color: "var(--text3)" })}>Winner Metrics — {result.winner}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.6rem" }}>
             {metrics.map(([k, v]) => {

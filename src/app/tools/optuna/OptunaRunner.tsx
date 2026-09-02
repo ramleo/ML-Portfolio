@@ -9,41 +9,10 @@ import OptunaConfigForm from "@/components/OptunaSteps/OptunaConfigForm";
 
 const ACCENT = "#7e68c0";
 
-const CARD: React.CSSProperties = {
-  background: "var(--bg-glass)",
-  backdropFilter: "blur(14px)",
-  border: "1px solid var(--border)",
-  borderRadius: 16,
-  padding: "1.25rem 1.4rem",
-};
-
-type Step = 1 | 2 | 3;
-
-interface Column {
-  name: string;
-  is_numeric: boolean;
-  nunique: number;
-  missing: number;
-}
-
-interface AnalyzeResult {
-  columns: Column[];
-  suggested_target: string;
-  suggested_task: "classification" | "regression";
-  rows: number;
-}
-
-interface FIEntry { feature: string; importance: number }
-interface CVEntry { name: string; score: number }
-interface TrainResult {
-  winner: string;
-  cv_results: CVEntry[];
-  winner_metrics: Record<string, number | string>;
-  feature_importance: FIEntry[];
-  best_params?: Record<string, number | string>;
-}
-
-const MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
+import {
+  CARD, MODELS,
+  type Step, type AnalyzeResult, type TrainResult,
+} from "./optunaTypes";
 
 interface OptunaRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
@@ -252,6 +221,7 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
+            data-wt="opt-upload"
             onClick={() => inputRef.current?.click()}
             style={{
               border: `2px dashed ${ACCENT}${dragging ? "99" : "4d"}`,
@@ -318,11 +288,12 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
             </div>
           </div>
 
-          {result && <OptunaResults result={result} />}
+          {result && <div data-wt="opt-results"><OptunaResults result={result} /></div>}
 
           {result?.best_params && (
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
               <button
+                data-wt="opt-download"
                 onClick={handleDownloadParams}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",

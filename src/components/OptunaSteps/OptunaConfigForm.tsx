@@ -61,7 +61,7 @@ export default function OptunaConfigForm({
 
       <div>
         <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Model</label>
-        <select value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+        <select data-wt="opt-model" value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
           {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
@@ -94,7 +94,7 @@ export default function OptunaConfigForm({
 
       <div>
         <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
-          Optuna Trials: <span style={{ color: ACCENT }}>{nTrials}</span>
+          Optuna Trials: <span data-wt="opt-trials" style={{ color: ACCENT }}>{nTrials}</span>
         </label>
         <input type="range" min={10} max={200} step={5} value={nTrials} onChange={e => setNTrials(Number(e.target.value))} style={{ width: "100%", accentColor: ACCENT }} />
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "var(--text3)", marginTop: "0.2rem" }}>
@@ -130,7 +130,7 @@ export default function OptunaConfigForm({
         <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>
           Sampler
         </label>
-        <select value={sampler} onChange={e => setSampler(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+        <select data-wt="opt-sampler" value={sampler} onChange={e => setSampler(e.target.value)} style={{ width: "100%", background: "rgba(0,0,0,0.4)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
           <option value="tpe">TPE (Tree Parzen Estimator)</option>
           <option value="qmc">QMC (Quasi-Monte Carlo / Sobol)</option>
         </select>
@@ -158,7 +158,7 @@ export default function OptunaConfigForm({
         </select>
       </div>
 
-      <button onClick={onTrain}
+      <button data-wt="opt-run" onClick={onTrain}
         onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
         onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
         style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: ACCENT, color: "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>

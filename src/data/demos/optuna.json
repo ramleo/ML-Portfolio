@@ -1,0 +1,68 @@
+{
+  "toolId": "optuna",
+  "chapter": "ch-7-optuna-tuning",
+  "route": "/tools/optuna",
+  "title": "Optuna Tuning",
+  "blurb": "Hyperparameter search that improves the cross-validation score — and a held-out number that keeps it honest.",
+  "steps": [
+    {
+      "say": "An algorithm's defaults are a guess made by its authors about datasets in general, not about yours. Hyperparameter tuning searches for better ones. Optuna does that search with a Bayesian method rather than trying every combination.",
+      "settle": 1000
+    },
+    {
+      "say": "The customer churn file again: two hundred and forty rows, nine features, predicting churned.",
+      "at": "opt-upload",
+      "act": "file",
+      "file": "/samples/automl-churn.csv",
+      "settle": 2600
+    },
+    {
+      "say": "Tuning is per algorithm, not a competition, so you pick one. I am taking XGBoost, which has nine parameters worth searching.",
+      "at": "opt-model",
+      "act": "select",
+      "value": "XGBoost",
+      "settle": 2200
+    },
+    {
+      "say": "Thirty trials by default. Each trial is one complete set of parameter values, cross validated. More trials find more, with diminishing returns and linearly more compute.",
+      "at": "opt-trials",
+      "settle": 2400
+    },
+    {
+      "say": "And the sampler is the part that makes this cleverer than a grid. Tree structured Parzen estimation builds a model of which regions of the parameter space produced good scores, and spends later trials there instead of sweeping uniformly.",
+      "at": "opt-sampler",
+      "settle": 2800
+    },
+    {
+      "say": "Running the search.",
+      "at": "opt-run",
+      "act": "click",
+      "waitFor": "opt-results",
+      "waitMs": 300000,
+      "settle": 3000
+    },
+    {
+      "say": "There is the trial history, one point per trial, with the best one marked. The search improved the cross validation score over the untuned default.",
+      "at": "opt-trial-history",
+      "settle": 3000,
+      "expect": "Running best"
+    },
+    {
+      "say": "And the parameter importance is the most useful thing on this screen. Optuna reports how much each parameter actually mattered to the outcome, and the answer is usually lopsided — one or two do nearly all the work while the rest barely move the score. That tells you what to search harder next time and what to leave alone.",
+      "at": "opt-importance",
+      "settle": 3200,
+      "expect": "Hyperparameter Importance"
+    },
+    {
+      "say": "And the number to be careful with is the cross validation score, because that is exactly what the search was optimising — it is an optimistic estimate by construction. These held-out metrics were measured after the search finished and took no part in it. They are the ones to quote.",
+      "at": "opt-winner-metrics",
+      "settle": 3200,
+      "expect": "Winner Metrics"
+    },
+    {
+      "say": "And the tuned parameters download as JSON, so the run is reproducible rather than a number you have to trust.",
+      "at": "opt-download",
+      "settle": 2200
+    }
+  ]
+}
