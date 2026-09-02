@@ -147,7 +147,11 @@
   background: var(--text3); opacity: 0.55;
   transition: opacity 0.15s ease, width 0.15s ease, background 0.15s ease;
 }
-.hb-rail-tick-part { width: 1.15rem; height: 3px; background: var(--accent); opacity: 0.9; }
+/* A Part heading and its first chapter are adjacent in the book, so their
+   ticks land within a pixel or two of each other and the chapter's — drawn
+   later — was swallowing every click aimed at the Part. The bigger, rarer
+   target wins. */
+.hb-rail-tick-part { width: 1.15rem; height: 3px; background: var(--accent); opacity: 0.9; z-index: 1; }
 .hb-rail:hover .hb-rail-tick { opacity: 0.9; }
 .hb-rail-tick:hover, .hb-rail-tick:focus-visible { width: 1.5rem; background: var(--accent); opacity: 1; outline: none; }
 /* Where the reader is now, on the same axis as the ticks. */
@@ -178,32 +182,41 @@
    and a half from where they were — see HandbookReturn.tsx. Bottom left, the
    one free corner: the read-aloud bar owns the centre and the rail the right
    edge. */
-.hb-return {
+/* One cluster, so the two buttons stack instead of being positioned against
+   each other — the return offer comes and goes and the Top button must not
+   move when it does. */
+.hb-backs {
   position: fixed; left: 1.1rem; bottom: 1.1rem; z-index: 44;
+  display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 0.4rem;
+}
+.hb-return, .hb-top {
   display: inline-flex; align-items: center; gap: 0.45rem;
   max-width: min(22rem, calc(100vw - 2.2rem));
   padding: 0.45rem 0.85rem; border-radius: 9999px; cursor: pointer;
   font-family: inherit; font-size: 0.75rem; color: var(--text2);
+  /* The label ellipsizes; the words around it must never wrap. */
+  white-space: nowrap;
   background: var(--bg-glass); border: 1px solid var(--border2);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
   animation: hb-return-in 0.22s ease-out;
 }
+.hb-top { padding-right: 0.95rem; }
 .hb-return strong {
   font-weight: 600; color: var(--text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.hb-return:hover { color: var(--text); border-color: var(--accent); }
-.hb-return:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hb-return:hover, .hb-top:hover { color: var(--text); border-color: var(--accent); }
+.hb-return:focus-visible, .hb-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @keyframes hb-return-in {
   from { opacity: 0; transform: translateY(0.4rem); }
   to { opacity: 1; transform: none; }
 }
-@media (prefers-reduced-motion: reduce) { .hb-return { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hb-return, .hb-top { animation: none; } }
 /* Above the read-aloud bar rather than beside it: below this width that bar
    spans most of the screen and the two would sit on top of each other. */
 @media (max-width: 720px) {
-  .hb-return { left: 0.75rem; bottom: 4.2rem; }
+  .hb-backs { left: 0.75rem; bottom: 4.2rem; }
 }
-.bk-paginated .hb-return { display: none; }
-@media print { .hb-return { display: none; } }
+.bk-paginated .hb-backs { display: none; }
+@media print { .hb-backs { display: none; } }

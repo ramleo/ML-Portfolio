@@ -135,16 +135,17 @@ export default function HandbookSearch() {
   const go = useCallback(
     (index: number) => {
       if (!matches.length) return;
-      // Once for the whole walk, not once per hit — the store keeps the first
-      // mark until the reader scrolls by hand, so Enter-Enter-Enter still
-      // points back at where they stopped reading.
-      markJump();
+      // Once for the whole walk, not once per hit: the query names the
+      // navigation, so Enter-Enter-Enter through one search keeps pointing
+      // back at where reading stopped — while searching for something else
+      // is a new trip and takes a fresh mark.
+      markJump(`find:${query}`);
       const next = (index + matches.length) % matches.length;
       setAt(next);
       paint(matches, next);
       reveal(matches[next]);
     },
-    [matches]
+    [matches, query]
   );
 
   useEffect(() => {

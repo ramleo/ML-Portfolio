@@ -47,6 +47,9 @@ let moved = true;
  */
 let landing: number | null = null;
 
+/** Which navigation the current mark belongs to — see markJump. */
+let lastGroup: string | undefined;
+
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 
@@ -82,9 +85,34 @@ function chapterAt(y: number): string {
 }
 
 /** Called by anything that is about to move the reader a long way. */
-export function markJump() {
-  if (mark && !moved) return;
-  mark = { y: window.scrollY, label: chapterAt(window.scrollY) };
+/**
+ * Where the reader considers themselves to be, which is not the top edge of
+ * the window.
+ *
+ * A chapter heading sitting a third of the way down the screen means the top
+ * edge is still inside the *previous* chapter — so marking at scrollY named
+ * the place the reader had just finished, one chapter behind where they
+ * actually were. The probe is offset to where the eye is instead. Only the
+ * label uses it; the mark itself still stores the true scroll position,
+ * because that is what has to be restored.
+ */
+const READING_LINE = 0.38;
+
+/**
+ * Called by anything about to move the reader a long way.
+ *
+ * `group` names the navigation, not the hop. Walking search hits with Enter is
+ * one navigation and passes the same group each time, so the mark keeps
+ * pointing at where reading stopped rather than at the previous hit. Anything
+ * that omits it — the rail, a contents link — is a new navigation and always
+ * takes a fresh mark. Without that distinction a mark set on the first jump of
+ * a session survived every later one, and "back" kept naming a chapter the
+ * reader had left three jumps ago.
+ */
+export function markJump(group?: string) {
+  if (mark && !moved && group !== undefined && group === lastGroup) return;
+  lastGroup = group;
+  mark = { y: window.scrollY, label: chapterAt(window.scrollY + window.innerHeight * READING_LINE) };
   moved = false;
   landing = null;
   emit();
@@ -103,6 +131,7 @@ export function clearMark() {
   mark = null;
   landing = null;
   moved = true;
+  lastGroup = undefined;
   emit();
 }
 
