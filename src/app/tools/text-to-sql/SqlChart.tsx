@@ -17,6 +17,17 @@ const isNC  = (i: number, rows: unknown[][]) => {
   return s.length > 0 && s.every(r => isNum((r as unknown[])[i]));
 };
 const isD = (c: string) => /(year|date|month|week|quarter|day|time|period)/i.test(c);
+/** How close a column is to being an identifier: 1 means every row differs.
+ * A heatmap needs its two categorical axes to *repeat* — that is what makes a
+ * grid. Two columns that never repeat (FirstName, LastName) are one entity cut
+ * in half, and cross them and you get n filled cells in an n-by-n field of
+ * zeros. The tool's own insights panel already prints this ratio as
+ * "100% distinct — likely a key"; the chooser just never asked. */
+const uniqRatio = (i: number, rows: unknown[][]) =>
+  new Set(rows.map(r => String((r as unknown[])[i] ?? ""))).size / rows.length;
+/** 0.5 is the worst a genuine full grid can do (two values on one axis crossed
+ * with the other), so 0.7 leaves sparse-but-real grids alone. */
+const GRID_MAX_UNIQ = 0.7;
 
 // ── Detection ─────────────────────────────────────────────────────────────────
 export function detectViz(cols: string[], rows: unknown[][]): VS | null {
@@ -29,7 +40,9 @@ export function detectViz(cols: string[], rows: unknown[][]): VS | null {
   const n  = rows.length;
   if (n<=3 && ni.length>=1) return { type:"stat", cx:ac[0]??-1, n:ni };
   if (di.length>=1 && ni.length>=1) return { type:n>=10?"area":"line", cx:di[0], n:ni };
-  if (ci.length>=2 && ni.length===1) return { type:"heatmap", cx:ci[0], n:ni, c2:ci[1] };
+  if (ci.length>=2 && ni.length===1 &&
+      uniqRatio(ci[0],rows)<=GRID_MAX_UNIQ && uniqRatio(ci[1],rows)<=GRID_MAX_UNIQ)
+    return { type:"heatmap", cx:ci[0], n:ni, c2:ci[1] };
   if (ni.length>=2 && ci.length<=1 && n>=5) return { type:"scatter", cx:ci[0]??-1, n:ni };
   if (ci.length===1 && ni.length>1) return { type:"grouped_bar", cx:ci[0], n:ni };
   if (ci.length>=1 && ni.length>=1) {

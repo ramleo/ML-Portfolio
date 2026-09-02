@@ -5,30 +5,30 @@
   },
   {
     "start": 10.26,
-    "say": "There is a database already loaded: Chinook, a music store. I will pull its schema in now. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server."
+    "say": "There is a database already loaded: Chinook, a music store — eleven tables, about three and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server."
   },
   {
-    "start": 25.18,
+    "start": 30.7,
     "say": "On the left is the schema it can see. Tables, columns, row counts. This is what gets handed to the model as context, and it is the reason the generated SQL uses your real column names rather than inventing plausible ones."
   },
   {
-    "start": 40.69,
+    "start": 46.21,
     "say": "If you are not sure what to ask, these sample questions prefill the box."
   },
   {
-    "start": 46.71,
+    "start": 52.24,
     "say": "I will type a real question: show the top ten customers by total spending."
   },
   {
-    "start": 54.32,
+    "start": 59.86,
     "say": "You choose which model writes the query. Groq is the fastest; switch to Gemini or Cohere if you hit a rate limit."
   },
   {
-    "start": 62.6,
+    "start": 68.14,
     "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself."
   },
   {
-    "start": 73.82,
+    "start": 79.36,
     "say": "There is the SQL it wrote and the rows it came back with, as a sortable table with a chart picked to suit the shape of the data. You can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue."
   }
 ]

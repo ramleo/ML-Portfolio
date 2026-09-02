@@ -13,7 +13,7 @@
       "settle": 600
     },
     {
-      "say": "There is a database already loaded: Chinook, a music store. I will pull its schema in now. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server.",
+      "say": "There is a database already loaded: Chinook, a music store \u2014 eleven tables, about three and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server.",
       "at": "db-load",
       "settle": 2600,
       "act": "click"
@@ -22,7 +22,7 @@
       "say": "On the left is the schema it can see. Tables, columns, row counts. This is what gets handed to the model as context, and it is the reason the generated SQL uses your real column names rather than inventing plausible ones.",
       "at": "schema",
       "settle": 1800,
-      "expect": "Album"
+      "expect": "PlaylistTrack"
     },
     {
       "say": "If you are not sure what to ask, these sample questions prefill the box.",
@@ -53,7 +53,7 @@
       "say": "There is the SQL it wrote and the rows it came back with, as a sortable table with a chart picked to suit the shape of the data. You can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue.",
       "at": "sql-results",
       "settle": 2500,
-      "expect": "select"
+      "expect": "10 rows"
     }
   ]
 }
