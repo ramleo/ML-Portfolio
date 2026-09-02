@@ -2,7 +2,9 @@ import automl from "./automl.json";
 import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
+import featureEngineering from "./feature-engineering.json";
 import featureSelection from "./feature-selection.json";
+import ensemble from "./ensemble.json";
 import extensionPermissions from "./extension-permission-analyzer.json";
 import maliciousPackage from "./malicious-package-scanner.json";
 import multimodalRag from "./multimodal-rag.json";
@@ -75,7 +77,9 @@ export const DEMOS: Demo[] = [
   drift,
   dnsTunneling,
   emailAuthChecker,
+  ensemble,
   extensionPermissions,
+  featureEngineering,
   featureSelection,
   maliciousPackage,
   passwordAudit,

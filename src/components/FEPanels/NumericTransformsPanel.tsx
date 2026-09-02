@@ -58,12 +58,15 @@ export interface NumericTransformsPanelProps {
   binConfigs: Record<string, number>;
   onToggleBinCol: (col: string, bins: number) => void;
   onRemoveBinCol: (col: string) => void;
+  /** Guided-demo anchor; declared because this component takes no rest props. */
+  "data-wt"?: string;
 }
 
 export default function NumericTransformsPanel({
   numCols, colTransforms, onToggleTransform, onToggleAllTransform, onClearAll,
   onAiSuggest, aiSuggestLoading, aiSuggestError,
   squareCols, onToggleSquareCol, binConfigs, onToggleBinCol, onRemoveBinCol,
+  "data-wt": dataWt,
 }: NumericTransformsPanelProps) {
   const [colSearch, setColSearch] = useState("");
   const visibleCols = colSearch.trim()
@@ -74,7 +77,7 @@ export default function NumericTransformsPanel({
   const binCandidates = numCols.filter(c => c.nunique > 10);
 
   return (
-    <div style={{ background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" }}>
+    <div data-wt={dataWt} style={{ background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" }}>
       <div style={{ marginBottom: "0.85rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
@@ -121,7 +124,7 @@ export default function NumericTransformsPanel({
                       const allOn = numCols.length > 0 && numCols.every(c => (colTransforms[c.name] ?? []).includes(t.key));
                       const anyOn = numCols.some(c => (colTransforms[c.name] ?? []).includes(t.key));
                       return (
-                        <button key={t.key} onClick={() => onToggleAllTransform(t.key, !allOn)} title={t.hint}
+                        <button key={t.key} data-wt={`fe-all-${t.key}`} onClick={() => onToggleAllTransform(t.key, !allOn)} title={t.hint}
                           style={{ padding: "2px 9px", borderRadius: 9999, fontSize: "0.66rem", fontWeight: 600, cursor: "pointer", border: `1px solid ${allOn ? ACCENT : anyOn ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`, background: allOn ? `${ACCENT}1e` : anyOn ? `${ACCENT}09` : "rgba(255,255,255,0.03)", color: allOn ? ACCENT : anyOn ? `${ACCENT}99` : "var(--text3)", transition: "all 0.12s" }}>
                           {t.label}
                         </button>

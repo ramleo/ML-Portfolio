@@ -1,0 +1,63 @@
+{
+  "toolId": "feature-engineering",
+  "chapter": "ch-5-feature-engineering",
+  "route": "/tools/feature-engineering",
+  "title": "Feature Engineering",
+  "blurb": "Derive new columns from the ones you have — and see exactly how many you just made.",
+  "steps": [
+    {
+      "say": "Most of the signal in a dataset is often not in the columns you were given, but in combinations and transformations of them. This builds those extra columns, and it runs entirely in your browser — the file is never uploaded anywhere.",
+      "settle": 1000
+    },
+    {
+      "say": "The same customer churn file: two hundred and forty rows, ten columns, all of them numeric.",
+      "at": "fe-upload",
+      "act": "file",
+      "file": "/samples/automl-churn.csv",
+      "settle": 2600
+    },
+    {
+      "say": "Here are the numeric transforms, and each one can be applied to a single column or to all of them at once. Log and square root for skew, z-score and min-max for scale, percentile rank, outlier and missing flags, winsorising, above-mean flags, and two kinds of binning.",
+      "at": "fe-transforms",
+      "settle": 3000,
+      "expect": "winsor"
+    },
+    {
+      "say": "I am taking log of one plus x across every numeric column. That is the standard fix for a right skewed distribution, and it is safe on zeros, which plain log is not.",
+      "at": "fe-all-log1p",
+      "act": "click",
+      "settle": 2000
+    },
+    {
+      "say": "And z-score, which centres each column on zero and scales it to unit variance. Distance based models care about that; tree based ones do not.",
+      "at": "fe-all-zscore",
+      "act": "click",
+      "settle": 2000
+    },
+    {
+      "say": "Applying both.",
+      "at": "fe-apply",
+      "act": "click",
+      "waitFor": "fe-results",
+      "waitMs": 60000,
+      "settle": 2500
+    },
+    {
+      "say": "Ten columns went in and thirty came out. Twenty new features, which is exactly two transforms across ten numeric columns — and it lists every one by name rather than just handing back a wider file.",
+      "at": "fe-results",
+      "settle": 3000,
+      "expect": "20"
+    },
+    {
+      "say": "Which exposes something you need to know. Churned is the label, and it got transformed too — there is a churned log and a churned z-score in that list. This tool has no idea which column you are predicting, so it works on all of them. Drop your label before you train, or you will hand the model the answer.",
+      "at": "fe-results",
+      "settle": 3200,
+      "expect": "churned_log1p"
+    },
+    {
+      "say": "Beyond these, the panels on the left build interactions and ratios between pairs of columns, extract day, month and weekday from dates, and frequency encode categories. The result downloads as a CSV, or goes straight on to feature selection to decide which of these thirty are worth keeping.",
+      "at": "fe-results",
+      "settle": 2600
+    }
+  ]
+}

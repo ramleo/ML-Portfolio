@@ -15,6 +15,7 @@ import DatetimePanel from "@/components/FEPanels/DatetimePanel";
 import RatioDiffPanel from "@/components/FEPanels/RatioDiffPanel";
 import { ColInfo, FeResult, Step } from "@/lib/feAlgorithms";
 import { serializeCSV } from "@/lib/feTransforms";
+import ActionBtn from "./ActionBtn";
 import { useFELDA } from "@/hooks/useFELDA";
 import { useFETransforms } from "@/hooks/useFETransforms";
 import { useFEAISuggest } from "@/hooks/useFEAISuggest";
@@ -29,16 +30,6 @@ const ACCENT = "#3e7c98";
 const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" };
 const FE_STEP_KEYS: Step[] = ["upload", "configure", "processing", "results"];
 const FE_STEP_LABELS = ["Upload", "Configure", "Processing", "Results"];
-
-function ActionBtn({ onClick, disabled = false, children, secondary = false }: { onClick: () => void; disabled?: boolean; children: React.ReactNode; secondary?: boolean }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button onClick={onClick} disabled={disabled} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ padding: "0.6rem 1.4rem", borderRadius: 9999, border: secondary ? "1px solid var(--border2)" : "none", background: disabled ? "var(--border)" : secondary ? "transparent" : ACCENT, color: disabled ? "var(--text3)" : secondary ? "var(--text2)" : "#fff", fontWeight: 600, fontSize: "0.82rem", cursor: disabled ? "not-allowed" : "pointer", transition: "opacity 0.15s, transform 0.15s", opacity: hov && !disabled && !secondary ? 0.88 : 1, transform: hov && !disabled && !secondary ? "translateY(-1px)" : "translateY(0)" }}>
-      {children}
-    </button>
-  );
-}
 
 function FeatureEngineeringPageInner() {
   const router = useRouter();
@@ -219,7 +210,7 @@ function FeatureEngineeringPageInner() {
             {step === "configure" && (
               <>
                 <span style={{ fontSize: "0.72rem", color: "var(--text3)", maxWidth: 340, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={transformSummary || undefined}>{transformSummary || "0 transforms selected"}</span>
-                <ActionBtn onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
+                <ActionBtn data-wt="fe-apply" onClick={applyAllTransforms} disabled={totalSelected === 0}>Apply Transforms</ActionBtn>
               </>
             )}
             {step === "results" && (
@@ -253,7 +244,7 @@ function FeatureEngineeringPageInner() {
               }}
             />
           )}
-          <div className="subtle-card" onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current?.click()}
+          <div data-wt="fe-upload" className="subtle-card" onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current?.click()}
             style={{ ...CARD, textAlign: "center", padding: "3rem 2rem", cursor: "pointer", borderStyle: "dashed", borderColor: `${ACCENT}40`, ["--acc-glow" as string]: `${ACCENT}14` }}>
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke={ACCENT} strokeWidth="1.5" style={{ display: "block", margin: "0 auto 1rem", opacity: 0.7 }}>
               <path d="M20 26V14M14 20l6-6 6 6" strokeLinecap="round" strokeLinejoin="round" />
@@ -292,7 +283,7 @@ function FeatureEngineeringPageInner() {
             onSetRollN={setRollN} onSetRollAgg={setRollAgg} />
           <div style={{ flex: 1, minWidth: 0, overflowY: "auto", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <FEUploadInfo rowCount={rawRows.length > 1 ? rawRows.length - 1 : 0} numericColCount={numCols.length} ldaEnabled={!!ldaCol} ldaTopics={ldaNTopics} ldaIter={ldaNIter} />
-            <NumericTransformsPanel numCols={numCols} colTransforms={colTransforms}
+            <NumericTransformsPanel data-wt="fe-transforms" numCols={numCols} colTransforms={colTransforms}
               onToggleTransform={toggleTransform} onToggleAllTransform={toggleAllTransform}
               onClearAll={() => { setColTransforms({}); setAiSuggestError(null); }}
               onAiSuggest={aiSuggest} aiSuggestLoading={aiSuggestLoading} aiSuggestError={aiSuggestError}
@@ -323,7 +314,7 @@ function FeatureEngineeringPageInner() {
         </div>
       )}
 
-      {step === "results" && result && <ResultsPanel result={result} filename={filename} onBackToConfigure={() => setStep("configure")} onDownload={downloadResult} />}
+      {step === "results" && result && <div data-wt="fe-results"><ResultsPanel result={result} filename={filename} onBackToConfigure={() => setStep("configure")} onDownload={downloadResult} /></div>}
 
       <ToolsAIChat context={{ accent: ACCENT, tool: "Feature Engineering", summary: rawRows.length > 1
         ? [`Dataset: ${rawRows.length - 1} rows, ${numCols.length} numeric cols (${numCols.map(c => c.name).join(", ")}), ${catCols.length} categorical cols (${catCols.map(c => c.name).join(", ")}).`,

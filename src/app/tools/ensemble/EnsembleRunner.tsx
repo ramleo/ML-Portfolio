@@ -4,40 +4,10 @@ import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from
 import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
 import EnsembleResults from "./EnsembleResults";
-
-const CARD: React.CSSProperties = {
-  background: "var(--bg-glass)",
-  backdropFilter: "blur(14px)",
-  border: "1px solid var(--border)",
-  borderRadius: 16,
-  padding: "1.25rem 1.4rem",
-};
-
-type Step = 1 | 2 | 3;
-
-interface Column {
-  name: string;
-  is_numeric: boolean;
-  nunique: number;
-  missing: number;
-}
-
-interface AnalyzeResult {
-  columns: Column[];
-  suggested_target: string;
-  suggested_task: "classification" | "regression";
-  rows: number;
-}
-
-interface CVEntry { name: string; score: number }
-interface TrainResult {
-  winner: string;
-  cv_results: CVEntry[];
-  winner_metrics: Record<string, number | string>;
-  feature_importance: { feature: string; importance: number }[];
-}
-
-const ALL_MODELS = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "Extra Trees"];
+import {
+  CARD, ALL_MODELS,
+  type Step, type Column, type AnalyzeResult, type CVEntry, type TrainResult,
+} from "./ensembleTypes";
 
 interface EnsembleRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
@@ -250,6 +220,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
+            data-wt="ens-upload"
             onClick={() => inputRef.current?.click()}
             style={{
               border: `2px dashed ${ACCENT}${dragging ? "99" : "4d"}`,
@@ -286,7 +257,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Target Column</label>
-              <select value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              <select data-wt="ens-target" value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
                 {analyzeResult.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
             </div>
@@ -304,13 +275,13 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
 
           <div>
             <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.5rem" }}>
-              Algorithms <span style={{ color: selectedModels.length < 3 ? "#f87171" : ACCENT }}>({selectedModels.length} selected — min 3)</span>
+              Algorithms <span data-wt="ens-count" style={{ color: selectedModels.length < 3 ? "#f87171" : ACCENT }}>({selectedModels.length} selected — min 3)</span>
             </label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
               {ALL_MODELS.map(m => {
                 const sel = selectedModels.includes(m);
                 return (
-                  <button key={m} onClick={() => toggleModel(m)} style={{ padding: "0.4rem 0.85rem", borderRadius: 9999, border: `1px solid ${sel ? ACCENT + "44" : "var(--border2)"}`, background: sel ? `${ACCENT}22` : "var(--border)", color: sel ? ACCENT : "var(--text2)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
+                  <button key={m} data-wt={`ens-model-${m.replace(/\s+/g, "-").toLowerCase()}`} onClick={() => toggleModel(m)} style={{ padding: "0.4rem 0.85rem", borderRadius: 9999, border: `1px solid ${sel ? ACCENT + "44" : "var(--border2)"}`, background: sel ? `${ACCENT}22` : "var(--border)", color: sel ? ACCENT : "var(--text2)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
                     {m}
                   </button>
                 );
@@ -321,7 +292,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
             )}
           </div>
 
-          <button onClick={handleTrain} disabled={selectedModels.length < 3}
+          <button data-wt="ens-train" onClick={handleTrain} disabled={selectedModels.length < 3}
             onMouseEnter={e => { if (selectedModels.length >= 3) { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
             onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
             style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: selectedModels.length < 3 ? "var(--border)" : ACCENT, color: selectedModels.length < 3 ? "var(--text3)" : "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: selectedModels.length < 3 ? "not-allowed" : "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>
@@ -345,7 +316,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
             </div>
           </div>
 
-          {result && <EnsembleResults result={result} accent={ACCENT} />}
+          {result && <div data-wt="ens-results"><EnsembleResults result={result} accent={ACCENT} /></div>}
 
           {!training && !result && error && (
             <div style={{ fontSize: "0.78rem", color: "#f87171" }}>{error}</div>

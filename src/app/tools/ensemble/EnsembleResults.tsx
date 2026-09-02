@@ -1,9 +1,11 @@
 "use client";
 
 interface CVEntry { name: string; score: number; fold_scores?: number[] }
+interface FailedModel { algorithm: string; reason: string }
 interface TrainResult {
   winner: string;
   cv_results: CVEntry[];
+  failed_models?: FailedModel[];
   winner_metrics: Record<string, number | string>;
   feature_importance: { feature: string; importance: number }[];
 }
@@ -94,6 +96,23 @@ export default function EnsembleResults({ result, accent }: { result: TrainResul
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Models that were asked for and did not run. Shown rather than
+          subtracted: a leaderboard with four rows where five were requested
+          reads as "five competed and this one won", which is not what
+          happened. */}
+      {(result.failed_models?.length ?? 0) > 0 && (
+        <div data-wt="ens-failed" style={{ borderRadius: 10, border: "1px solid #f8717140", background: "#f8717110", padding: "0.7rem 0.9rem" }}>
+          <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f87171", marginBottom: "0.35rem" }}>
+            {result.failed_models!.length} requested model{result.failed_models!.length === 1 ? "" : "s"} did not run
+          </div>
+          {result.failed_models!.map(f => (
+            <div key={f.algorithm} style={{ fontSize: "0.66rem", color: "var(--text3)", lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--text2)" }}>{f.algorithm}</strong> — {f.reason}
+            </div>
+          ))}
         </div>
       )}
 
