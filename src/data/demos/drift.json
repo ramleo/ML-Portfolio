@@ -1,0 +1,69 @@
+{
+  "toolId": "drift",
+  "chapter": "ch-2-data-drift-detection",
+  "route": "/tools/drift",
+  "title": "Data Drift Detection",
+  "blurb": "A model does not tell you when the world changed under it. This does.",
+  "steps": [
+    {
+      "say": "A trained model keeps answering long after the data stops looking like what it was trained on. It does not complain, it does not get slower, and its accuracy quietly decays. This compares a new batch of data against the distribution a model was actually fitted on.",
+      "settle": 1000
+    },
+    {
+      "say": "I am pointing it at the diabetes risk predictor, a real trained model on this site with eight numeric inputs.",
+      "at": "drift-model",
+      "act": "select",
+      "value": "diabetes",
+      "settle": 2000
+    },
+    {
+      "say": "And I am comparing against the training baseline rather than the previous upload. Both are useful: against training tells you how far you have come in total, against the last batch tells you what changed this week.",
+      "at": "drift-compare",
+      "act": "click",
+      "settle": 2200
+    },
+    {
+      "say": "Now a batch of two hundred rows that I built to have a known right answer. Six of the eight columns are drawn from the model's real training distribution. Two are not: glucose is shifted up by about forty five, and body mass index by about eight and a half. If the tool is measuring anything real, it should flag those two and leave the other six alone.",
+      "at": "drift-drop",
+      "act": "file",
+      "file": "/samples/drift-glucose-batch.csv",
+      "waitFor": "drift-overview",
+      "waitMs": 120000,
+      "settle": 3000
+    },
+    {
+      "say": "Here is the verdict across the batch: an overall score, and the eight features split by how far each one moved.",
+      "at": "drift-overview",
+      "settle": 2600,
+      "expect": "Overall Drift Score"
+    },
+    {
+      "say": "And this is the answer to the test. The features are ranked by how far they drifted, and the two at the top are glucose and body mass index — exactly the two I moved. The other six sit at the bottom, because nothing happened to them.",
+      "at": "drift-ranking",
+      "settle": 3000,
+      "expect": "Glucose"
+    },
+    {
+      "say": "Opening the top one.",
+      "at": "drift-top-feature",
+      "act": "click",
+      "settle": 2200
+    },
+    {
+      "say": "This is evidence rather than a label. The training mean against this batch's mean, the population stability index, a Kolmogorov Smirnov statistic, and the two distributions drawn over each other so you can see the shape of the shift, not just its size.",
+      "at": "drift-top-feature",
+      "settle": 3200,
+      "expect": "KS Stat"
+    },
+    {
+      "say": "One thing worth knowing about where that training mean comes from. It is read out of the fitted pipeline itself — the scaler inside the model remembers what it was fitted on. When a model has no recoverable baseline, the tool now says so explicitly instead of substituting the midpoint of the column's declared range and presenting the guess as a measurement. It did exactly that until today.",
+      "at": "drift-overview",
+      "settle": 3000
+    },
+    {
+      "say": "Every upload is kept as a version, so drift is tracked over time rather than as a single verdict. And the limit worth stating: drift is not accuracy loss. A shifted input distribution is a reason to go and check your model, not proof that it has got worse.",
+      "at": "drift-overview",
+      "settle": 2400
+    }
+  ]
+}

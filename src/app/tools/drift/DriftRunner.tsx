@@ -99,7 +99,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
           {/* Model selector */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", minWidth: 220 }}>
             <label style={{ fontSize: "0.65rem", fontWeight: 600, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Trained model</label>
-            <select value={modelId} onChange={e => setModelId(e.target.value)} style={{
+            <select data-wt="drift-model" value={modelId} onChange={e => setModelId(e.target.value)} style={{
               background: "rgba(var(--fg-rgb),0.05)", border: "1px solid rgba(var(--fg-rgb),0.12)",
               borderRadius: 7, color: "var(--text)", fontSize: "0.75rem", padding: "0.4rem 0.6rem", cursor: "pointer",
             }}>
@@ -121,6 +121,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
 
         {/* Drop zone */}
         <div
+          data-wt="drift-drop"
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={e => { e.preventDefault(); setDragging(false); onFiles(e.dataTransfer.files); }}
@@ -149,6 +150,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
         {/* Compare against training toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <button
+            data-wt="drift-compare"
             onClick={() => setCompareToTraining(v => !v)}
             style={{
               width: 32, height: 18, borderRadius: 9999, border: "none", cursor: "pointer",
@@ -193,10 +195,10 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
             </div>
           )}
 
-          <DriftOverview result={result} />
+          <div data-wt="drift-overview"><DriftOverview result={result} /></div>
 
           {/* Ranking + Radar side by side */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem" }}>
+          <div data-wt="drift-ranking" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.25rem" }}>
             <DriftRankingChart features={result.features} />
             <DriftRadarChart features={result.features} />
           </div>
@@ -222,7 +224,11 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
                 </span>
               )}
             </div>
-            {[...high, ...rest].map(f => <DriftFeatureCard key={f.name} f={f} />)}
+            {[...high, ...rest].map((f, i) => (
+              <div key={f.name} data-wt={i === 0 ? "drift-top-feature" : undefined}>
+                <DriftFeatureCard f={f} />
+              </div>
+            ))}
           </div>
         </>
       )}

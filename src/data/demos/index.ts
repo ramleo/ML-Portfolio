@@ -1,4 +1,5 @@
 import automl from "./automl.json";
+import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
 import featureSelection from "./feature-selection.json";
@@ -71,6 +72,7 @@ export const DEMOS: Demo[] = [
   automl,
   textToSql,
   multimodalRag,
+  drift,
   dnsTunneling,
   emailAuthChecker,
   extensionPermissions,
