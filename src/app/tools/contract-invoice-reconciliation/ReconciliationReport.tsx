@@ -35,7 +35,7 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <button onClick={check} disabled={state === "loading"}
+        <button onClick={check} disabled={state === "loading"} data-wt="recon-check"
           className="text-[11px] px-3 py-1.5 rounded-lg border font-medium transition-colors"
           style={{ borderColor: `${accent}55`, background: `${accent}18`, color: accent,
                   opacity: state === "loading" ? 0.6 : 1 }}>
@@ -48,22 +48,30 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
 
       {state === "done" && result && (
         result.discrepancies.length === 0 ? (
-          <p className="text-[11px]" style={{ color: "var(--text3)" }}>
+          <p data-wt="recon-clean" className="text-[11px]" style={{ color: "var(--text3)" }}>
             No discrepancies found — {result.checked_pairs} contract/invoice passage pair{result.checked_pairs === 1 ? "" : "s"} checked.
           </p>
         ) : (
-          <div className="flex flex-col gap-2.5">
+          <div data-wt="recon-report" className="flex flex-col gap-2.5">
             <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#f87171" }}>
               {result.discrepancies.length} discrepanc{result.discrepancies.length === 1 ? "y" : "ies"} found
             </span>
             {result.discrepancies.map((d, i) => (
-              <div key={i} className="text-[11px] rounded-lg p-3 flex flex-col gap-2"
+              <div key={i} data-wt={`recon-disc-${i}`} className="text-[11px] rounded-lg p-3 flex flex-col gap-2"
                 style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)" }}>
                 <div className="flex items-center justify-between gap-2">
                   <p style={{ color: "var(--text)" }}>{d.explanation}</p>
                   <div className="shrink-0 flex items-center gap-1">
                     {!d.confirmed && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                      /* Anchored on the badge, not on its row. Which finding
+                         comes back unconfirmed changes from run to run, so a
+                         guided demo pointing at recon-disc-0 spotlights a row
+                         with no badge on it while narrating the badge — it did
+                         exactly that, and the expect guard passed because the
+                         word was elsewhere on the page. querySelector takes the
+                         first match, so the spotlight lands on a badge either way. */
+                      <span data-wt="recon-unconfirmed"
+                        className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
                         title="A second, independently-worded check disagreed with this one — worth reading the passages yourself before trusting it."
                         style={{ background: "rgba(250,204,21,0.15)", color: "#facc15" }}>
                         Unconfirmed
@@ -75,7 +83,10 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Same reason as the badge above: an unconfirmed row cannot be
+                    addressed by index, so it gets a name of its own. */}
+                <div data-wt={d.confirmed ? `recon-passages-${i}` : "recon-unconfirmed-passages"}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="rounded px-2 py-1.5" style={{ background: "var(--bg-glass)" }}>
                     <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
                       Contract{d.contract_chunk.page ? ` · page ${d.contract_chunk.page}` : ""}

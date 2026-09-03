@@ -1,0 +1,78 @@
+{
+  "toolId": "contract-invoice-reconciliation",
+  "chapter": "ch-12-contract-invoice-reconciliation-assistan",
+  "route": "/tools/contract-invoice-reconciliation",
+  "title": "Contract/Invoice Reconciliation",
+  "blurb": "The invoice bills one rate, the contract agreed another. Find it before you pay it.",
+  "steps": [
+    {
+      "say": "Somebody signs a contract. Months later the invoices arrive, and nobody reads the contract again. This tool reads both and tells you where they disagree.",
+      "settle": 600
+    },
+    {
+      "say": "First the contract: a four page haulage agreement between a freight company and a retailer. It is split page by page, because a clause can only be compared against another clause, not against a whole document.",
+      "at": "mmrag-add",
+      "act": "file",
+      "file": "/samples/meridian-contract.pdf",
+      "waitFor": "mmrag-chunks",
+      "waitMs": 180000,
+      "settle": 1500
+    },
+    {
+      "say": "Four pages, four passages. The first document you add is tagged as the contract automatically, and the tag can be clicked to flip it if you upload them the other way round.",
+      "at": "recon-chip-0",
+      "settle": 1600,
+      "expect": "contract"
+    },
+    {
+      "say": "Now the invoice that was raised against it.",
+      "at": "mmrag-add-another",
+      "act": "click",
+      "settle": 900
+    },
+    {
+      "say": "This is invoice MF twenty two ninety one, for the work done that May.",
+      "at": "mmrag-add",
+      "act": "file",
+      "file": "/samples/meridian-invoice-2291.pdf",
+      "waitFor": "mmrag-chunks",
+      "waitMs": 180000,
+      "settle": 1500
+    },
+    {
+      "say": "Two documents, one marked contract and one marked invoice. You can add as many invoices as you like against the one contract.",
+      "at": "recon-chips",
+      "settle": 1600,
+      "expect": "invoice"
+    },
+    {
+      "say": "Before running it, here is what is actually in these two files. The contract sets one hundred and forty five dollars an hour and payment in thirty days. The invoice bills one hundred and sixty five an hour and asks for payment in fifteen. Two real disagreements. But the fuel surcharge is four per cent in both, and the late payment interest is one per cent a month in both. Those two agree, and a tool that flags them is wrong.",
+      "settle": 2400
+    },
+    {
+      "say": "So it pairs every contract passage against every invoice passage, throws out the pairs that are not about the same subject, and asks a language model about what is left.",
+      "at": "recon-check",
+      "act": "click",
+      "waitFor": "recon-report",
+      "waitMs": 180000,
+      "settle": 2500
+    },
+    {
+      "say": "It caught both. The rate and the payment terms are each reported against the passage they came from, with a match score showing how closely the two passages were talking about the same thing.",
+      "at": "recon-report",
+      "settle": 2200,
+      "expect": "% match"
+    },
+    {
+      "say": "Now the yellow badge, which matters more than any single finding. Every pair the model flags is put to it a second time, worded differently. When the two answers disagree, the row is badged Unconfirmed rather than quietly dropped.",
+      "at": "recon-unconfirmed",
+      "settle": 2200,
+      "expect": "Unconfirmed"
+    },
+    {
+      "say": "That badge is doing real work here. This is a small, cheap model and it over-flags: the row it is sitting on is not a discrepancy at all, just two different true numbers about the same clause. Nothing is hidden from you either way. Every row prints the contract passage and the invoice passage side by side, so a badge is a prompt to go and read the source, not a verdict.",
+      "at": "recon-unconfirmed-passages",
+      "settle": 2000
+    }
+  ]
+}

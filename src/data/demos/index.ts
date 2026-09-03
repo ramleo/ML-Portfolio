@@ -1,4 +1,5 @@
 import automl from "./automl.json";
+import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
 import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
@@ -77,6 +78,7 @@ export interface Demo {
 export const DEMOS: Demo[] = [
   automl,
   textToSql,
+  contractInvoiceReconciliation,
   multimodalRag,
   drift,
   dnsTunneling,

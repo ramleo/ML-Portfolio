@@ -1,0 +1,46 @@
+[
+  {
+    "start": 0,
+    "say": "Somebody signs a contract. Months later the invoices arrive, and nobody reads the contract again. This tool reads both and tells you where they disagree."
+  },
+  {
+    "start": 9.17,
+    "say": "First the contract: a four page haulage agreement between a freight company and a retailer. It is split page by page, because a clause can only be compared against another clause, not against a whole document."
+  },
+  {
+    "start": 29.19,
+    "say": "Four pages, four passages. The first document you add is tagged as the contract automatically, and the tag can be clicked to flip it if you upload them the other way round."
+  },
+  {
+    "start": 40.88,
+    "say": "Now the invoice that was raised against it."
+  },
+  {
+    "start": 45.25,
+    "say": "This is invoice MF twenty two ninety one, for the work done that May."
+  },
+  {
+    "start": 56.29,
+    "say": "Two documents, one marked contract and one marked invoice. You can add as many invoices as you like against the one contract."
+  },
+  {
+    "start": 65.67,
+    "say": "Before running it, here is what is actually in these two files. The contract sets one hundred and forty five dollars an hour and payment in thirty days. The invoice bills one hundred and sixty five an hour and asks for payment in fifteen. Two real disagreements. But the fuel surcharge is four per cent in both, and the late payment interest is one per cent a month in both. Those two agree, and a tool that flags them is wrong."
+  },
+  {
+    "start": 91.54,
+    "say": "So it pairs every contract passage against every invoice passage, throws out the pairs that are not about the same subject, and asks a language model about what is left."
+  },
+  {
+    "start": 112.64,
+    "say": "It caught both. The rate and the payment terms are each reported against the passage they came from, with a match score showing how closely the two passages were talking about the same thing."
+  },
+  {
+    "start": 125.22,
+    "say": "Now the yellow badge, which matters more than any single finding. Every pair the model flags is put to it a second time, worded differently. When the two answers disagree, the row is badged Unconfirmed rather than quietly dropped."
+  },
+  {
+    "start": 141,
+    "say": "That badge is doing real work here. This is a small, cheap model and it over-flags: the row it is sitting on is not a discrepancy at all, just two different true numbers about the same clause. Nothing is hidden from you either way. Every row prints the contract passage and the invoice passage side by side, so a badge is a prompt to go and read the source, not a verdict."
+  }
+]

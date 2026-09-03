@@ -22,15 +22,20 @@ export default function ReconciliationDocChipsRow({ documents, accent, onSetRole
   if (documents.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div data-wt="recon-chips" className="flex items-center gap-2 flex-wrap">
       <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
         Documents:
       </span>
-      {documents.map(d => (
-        <span key={d.source} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
+      {documents.map((d, i) => (
+        /* Anchored by upload position, not by source name: a guided demo has
+           to name the thing it points at when the script is written, and the
+           source is a runtime id. First upload is always index 0. */
+        <span key={d.source} data-wt={`recon-chip-${i}`}
+          className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
           style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
           {displayName(d.source)}
           <button onClick={() => onSetRole(d.source, d.role === "contract" ? "invoice" : "contract")}
+            data-wt={`recon-role-${i}`}
             title="Click to flip role"
             className="px-1.5 py-px rounded-full font-bold uppercase tracking-wide"
             style={{

@@ -293,6 +293,7 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
                 </span>
               )}
               <button onClick={() => { setState({ kind: "idle" }); setFileName(null); }}
+                data-wt="mmrag-add-another"
                 className="ml-auto text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: "var(--border2)", color: "var(--text2)" }}>
                 Add another document
