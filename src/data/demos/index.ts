@@ -1,5 +1,6 @@
 import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
+import documentIntelligence from "./document-intelligence.json";
 import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
@@ -79,6 +80,7 @@ export const DEMOS: Demo[] = [
   automl,
   textToSql,
   contractInvoiceReconciliation,
+  documentIntelligence,
   multimodalRag,
   drift,
   dnsTunneling,

@@ -73,7 +73,7 @@ export default function DocSidebar({
 
       {/* Detection result */}
       {detectedType && (
-        <div style={{ ...CARD, borderColor: `${ACCENT}30` }}>
+        <div data-wt="doc-detected" style={{ ...CARD, borderColor: `${ACCENT}30` }}>
           <p className="text-[9px] font-bold uppercase tracking-[0.12em] mb-1.5"
             style={{ color: `${ACCENT}99` }}>
             AI Detected

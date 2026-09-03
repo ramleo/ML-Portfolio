@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ExtractedField, FieldValidation } from "./_types";
+import DocExportDropdown from "./DocExportDropdown";
 
 const ACCENT = "#387e8a";
 const RING_SIZE = 28;
@@ -90,106 +91,6 @@ function ValidationBadge({ v }: { v: FieldValidation }) {
   );
 }
 
-function ExportDropdown({ fields, docTypeLabel }: { fields: ExtractedField[]; docTypeLabel: string | null }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const download = (content: string, filename: string, mime: string) => {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
-    setOpen(false);
-  };
-
-  const exportJSON = () => {
-    const data = {
-      document_type: docTypeLabel ?? "unknown",
-      exported_at: new Date().toISOString(),
-      field_count: fields.length,
-      fields: fields.map(f => ({
-        name: f.name,
-        label: f.label,
-        value: f.value,
-        confidence: Math.round(f.confidence * 100) / 100,
-        ...(f.originalValue !== undefined && f.originalValue !== f.value
-          ? { original_value: f.originalValue, human_edited: true } : {}),
-      })),
-    };
-    download(JSON.stringify(data, null, 2), "extracted_fields.json", "application/json");
-  };
-
-  const exportCSV = () => {
-    const header = ["Field Name", "Label", "Value", "Confidence %"];
-    const rows = fields.map(f => [
-      f.name,
-      f.label,
-      `"${f.value.replace(/"/g, '""')}"`,
-      Math.round(f.confidence * 100).toString(),
-    ]);
-    const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
-    download(csv, "extracted_fields.csv", "text/csv");
-  };
-
-  const menuStyle: React.CSSProperties = {
-    position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50,
-    background: "var(--bg-card)", border: "1px solid var(--border)",
-    borderRadius: 8, padding: "4px", minWidth: 130,
-    boxShadow: "var(--shadow)",
-  };
-
-  const itemStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 8,
-    padding: "6px 10px", borderRadius: 6, cursor: "pointer",
-    fontSize: 11, color: "var(--text2)", width: "100%", border: "none",
-    background: "transparent", textAlign: "left",
-  };
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1 text-[9px] px-2 py-1 rounded-md border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
-        style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
-        Export
-        <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-      </button>
-      {open && (
-        <div style={menuStyle}>
-          <button style={itemStyle} onClick={exportJSON}
-            onMouseEnter={e => (e.currentTarget.style.background = "var(--border)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2"/>
-              <path d="M10 2v4h4" stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
-            JSON
-          </button>
-          <button style={itemStyle} onClick={exportCSV}
-            onMouseEnter={e => (e.currentTarget.style.background = "var(--border)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
-              <path d="M2 6h12M2 10h12M6 2v12" stroke="currentColor" strokeWidth="1.2"/>
-            </svg>
-            CSV
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function DocFieldsPanel({ fields, activeField, onFieldHover, docTypeLabel, provider, onFieldEdit }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -229,7 +130,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
             </span>
           )}
         </div>
-        {fields.length > 0 && <ExportDropdown fields={fields} docTypeLabel={docTypeLabel} />}
+        {fields.length > 0 && <DocExportDropdown fields={fields} docTypeLabel={docTypeLabel} />}
       </div>
 
       {/* Fields list */}
@@ -250,7 +151,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
           </div>
         ) : (
           <AnimatePresence>
-            {fields.map((field) => {
+            {fields.map((field, fi) => {
               const isActive = activeField === field.name;
               const conf = field.confidence;
               const confColor = conf >= 0.9 ? "#10b981" : conf >= 0.7 ? "#f59e0b" : "#ef4444";
@@ -258,6 +159,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
               return (
                 <motion.div
                   key={field.name}
+                  data-wt={`doc-field-${fi}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
@@ -286,7 +188,15 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
                           Located
                         </span>
                       )}
-                      {field.validation && <ValidationBadge v={field.validation} />}
+                      {field.validation && (
+                        /* Named, not indexed. Which field comes back needing
+                           review is the model's call and changes per document,
+                           so a demo pointing at doc-field-3 would spotlight
+                           whatever happened to be third. */
+                        <span data-wt={field.validation.status === "ok" ? undefined : "doc-review-badge"}>
+                          <ValidationBadge v={field.validation} />
+                        </span>
+                      )}
                     </div>
                     {editing === field.name ? (
                       <div className="flex flex-col gap-1.5 mt-1" onClick={e => e.stopPropagation()}>
@@ -351,7 +261,7 @@ export default function DocFieldsPanel({ fields, activeField, onFieldHover, docT
       </div>
 
       {fields.length > 0 && (
-        <div className="px-4 py-2 border-t shrink-0"
+        <div data-wt="doc-summary" className="px-4 py-2 border-t shrink-0"
           style={{ borderColor: "var(--border)" }}>
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             {fields.length} field{fields.length !== 1 ? "s" : ""} extracted

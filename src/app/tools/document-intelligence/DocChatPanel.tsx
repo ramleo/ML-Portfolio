@@ -83,7 +83,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
         </span>
       </div>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
+      <div ref={listRef} data-wt="doc-chat-log" className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
         style={{ maxHeight: 260, minHeight: 80 }}>
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-1.5">
@@ -122,6 +122,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
       <form className="flex gap-2 p-3 border-t" style={{ borderColor: "var(--border)" }}
         onSubmit={e => { e.preventDefault(); ask(input); }}>
         <input
+          data-wt="doc-chat-input"
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Ask anything about this document…"
@@ -129,7 +130,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
           style={{ borderColor: "var(--border2)", color: "var(--text)" }}
           disabled={busy}
         />
-        <button type="submit" disabled={busy || !input.trim()}
+        <button type="submit" data-wt="doc-chat-send" disabled={busy || !input.trim()}
           className="px-3 py-2 rounded-lg text-[11px] font-medium transition-opacity disabled:opacity-30"
           style={{ background: "rgba(6,182,212,0.15)", color: ACCENT, border: "1px solid rgba(6,182,212,0.3)" }}>
           Ask

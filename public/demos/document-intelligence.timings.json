@@ -1,0 +1,50 @@
+[
+  {
+    "start": 0,
+    "say": "Every business has a pile of documents somebody retypes into a system by hand. This reads them instead, and then argues with itself about whether it read them correctly."
+  },
+  {
+    "start": 9.59,
+    "say": "Here is a one page invoice. I have not told it what this document is. The dropdown on the left is still set to detect the type automatically."
+  },
+  {
+    "start": 21.53,
+    "say": "Four stages ran, and they are worth separating. Extract pulls the raw text or runs optical character recognition. Classify decides what kind of document this is. Analyze pulls the fields. Validate then checks the fields against each other."
+  },
+  {
+    "start": 38.65,
+    "say": "It decided this was an invoice on its own, and it says how sure it is. That matters, because the fields it goes looking for next depend entirely on this answer. A receipt and an invoice are not the same document and do not have the same fields."
+  },
+  {
+    "start": 54.69,
+    "say": "This page has two dates printed on it, and here is the second of them: the due date, the first of August. The invoice date, the second of July, went into its own field one row up. Neither ended up in the other's slot, which is the thing that actually goes wrong with tools like this."
+  },
+  {
+    "start": 73.26,
+    "say": "Same trap with the money. There are three amounts on the page, a subtotal, a tax line, and the total. This is the total, thirteen thousand five hundred and nine dollars sixty, and not the twelve four eight zero subtotal sitting two rows above it."
+  },
+  {
+    "start": 90.07,
+    "say": "Fifteen fields in all, and only nine of them are the ones an invoice is defined as having. The other six, the VAT number, the vendor email, the purchase order reference, were not asked for. It found them and kept them."
+  },
+  {
+    "start": 105.63,
+    "say": "And one field is asking to be looked at. This is the validate stage, which is separate from the extraction and is partly not a language model at all. It adds the four line item amounts up and checks them against the subtotal, and it checks that the subtotal plus the tax equals the total. Both of those balance here. A second opinion flagged the row anyway, and hovering the badge tells you what it was unhappy about."
+  },
+  {
+    "start": 131.06,
+    "say": "The document is also askable, against its own text rather than against the fields. So: which line item cost the most."
+  },
+  {
+    "start": 142.22,
+    "say": "It goes to the document's own text for this, not to the fields it just pulled out."
+  },
+  {
+    "start": 151.97,
+    "say": "Zone two depots, six thousand nine hundred and sixty dollars. That is the largest of the four line amounts, and it is sitting in the table on the left for you to check it against."
+  },
+  {
+    "start": 164.58,
+    "say": "Everything here comes out as JSON or CSV. And any field you correct by hand is sent back as a training example, so the next document of this type is extracted with your correction as guidance. The tool is meant to be argued with, which is why every value carries a confidence score and a way to overrule it."
+  }
+]
