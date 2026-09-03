@@ -21,7 +21,7 @@ function OptunaPageInner() {
   const triggerRef = useRef<((f: File) => void) | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [fileLoaded, setFileLoaded] = useState(false);
-  const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[]; best_params?: Record<string, number | string> } | null>(null);
+  const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name?: string; algorithm?: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[]; best_params?: Record<string, number | string> } | null>(null);
   const [runnerStep, setRunnerStep] = useState(1);
 
   const handleBack = useCallback(() => router.push(toolBackHref("optuna")), [router]);
@@ -115,7 +115,7 @@ function OptunaPageInner() {
               `Metrics: ${Object.entries(trainResult.winner_metrics).map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(4) : v}`).join(", ")}`,
               trainResult.best_params ? `Best hyperparameters: ${Object.entries(trainResult.best_params).map(([k, v]) => `${k}=${v}`).join(", ")}` : "",
               `Top features: ${trainResult.feature_importance.slice(0, 8).map(f => `${f.feature}(${f.importance.toFixed(3)})`).join(", ")}`,
-              `All model CV scores: ${trainResult.cv_results.map(c => `${c.name}=${c.score.toFixed(4)}`).join(", ")}`,
+              `All model CV scores: ${trainResult.cv_results.map(c => `${c.name ?? c.algorithm}=${c.score.toFixed(4)}`).join(", ")}`,
             ].filter(Boolean).join("\n")
           : "Optuna Hyperparameter Tuning tool. No training run yet — upload a CSV and run tuning first.",
       }} />
