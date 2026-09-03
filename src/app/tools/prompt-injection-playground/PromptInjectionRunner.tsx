@@ -41,9 +41,9 @@ function Badge({ text, color }: { text: string; color: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, wt }: { title: string; children: React.ReactNode; wt?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+    <div data-wt={wt} className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
       <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h3>
       {children}
     </div>
@@ -57,6 +57,7 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-5">
       <Section title="Paste text to analyze">
         <textarea
+          data-wt="pi-input"
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder="Paste a prompt, or a document/web page an AI might be asked to read..."
@@ -67,13 +68,14 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <button
             onClick={check}
+            data-wt="pi-check"
             disabled={running || !text.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {running ? "Running heuristics + LLM judge…" : "Check for prompt injection"}
           </button>
           {Object.entries(EXAMPLES).map(([key, ex]) => (
-            <button key={key} onClick={() => setText(ex.text)} disabled={running}
+            <button key={key} data-wt={`pi-example-${key}`} onClick={() => setText(ex.text)} disabled={running}
               className="px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-40"
               style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
               {ex.label}
@@ -95,7 +97,7 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
 
       {result && (
         <>
-          <div className="rounded-xl p-4"
+          <div data-wt="pi-verdict" className="rounded-xl p-4"
             style={{ background: `${RISK_COLOR[result.overall_risk] ?? "#64748b"}14`, border: `1px solid ${RISK_COLOR[result.overall_risk] ?? "#64748b"}40` }}>
             <div className="text-base font-bold" style={{ color: RISK_COLOR[result.overall_risk] ?? "#64748b" }}>
               {RISK_LABEL[result.overall_risk] ?? result.overall_risk}
@@ -104,7 +106,7 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Section title={`Pattern matches (${result.heuristic_hits.length})`}>
+            <Section wt="pi-patterns" title={`Pattern matches (${result.heuristic_hits.length})`}>
               {result.heuristic_hits.length === 0
                 ? <p className="text-sm" style={{ color: "var(--text3)" }}>No known injection pattern matched.</p>
                 : result.heuristic_hits.map((h, i) => (
@@ -120,7 +122,7 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
                   ))}
             </Section>
 
-            <Section title="Independent LLM judge">
+            <Section wt="pi-judge" title="Independent LLM judge">
               {!result.llm_verdict
                 ? <p className="text-sm" style={{ color: "var(--text3)" }}>LLM judge unavailable (no server key configured) — relying on pattern matches only.</p>
                 : (
@@ -138,7 +140,7 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div data-wt="pi-caveat" className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> no detector is 100% reliable. The pattern list is transparent
         and can be evaded by rewording — it&apos;s shown as raw evidence, not a verdict. The LLM judge is itself an LLM and can in principle be
         fooled by a sufficiently crafted prompt, a known limitation of LLM-based guardrails. Treat this as a second opinion, not a security boundary.

@@ -301,12 +301,27 @@ async function record(demo, chromium) {
       // plain body.innerText lets a step satisfy its own assertion with its
       // own narration — an assertion that can be met by the claim it is
       // supposed to be checking is worse than no assertion at all.
-      const seen = await page.evaluate(() =>
-        Array.from(document.body.children)
-          .filter((el) => el.id !== "__demo_cap" && el.id !== "__demo_spot")
-          .map((el) => el.innerText)
-          .join("\n")
-      );
+      //
+      // The trade-off: a step that TYPES a value and then asserts that same
+      // value now satisfies itself, the same way a step could once satisfy
+      // itself with its own caption. No demo does that today (checked), and
+      // the point of an assertion on a typed step is the tool's response to
+      // the text, not the text.
+      //
+      // innerText alone cannot see the contents of a textarea or an input:
+      // those live in .value, not in the DOM's text. A step that loads a
+      // sample into a textarea and then narrates what the sample says was
+      // unassertable until this line existed — the guard failed a claim that
+      // was in fact true and on screen.
+      const seen = await page.evaluate(() => {
+        const roots = Array.from(document.body.children)
+          .filter((el) => el.id !== "__demo_cap" && el.id !== "__demo_spot");
+        const text = roots.map((el) => el.innerText);
+        for (const root of roots)
+          for (const f of root.querySelectorAll("input, textarea"))
+            if (f.value) text.push(f.value);
+        return text.join("\n");
+      });
       // Case-insensitively: innerText is the *rendered* text, so a label
       // styled `text-transform: uppercase` comes back shouting even though
       // the source spells it normally. Nothing in the JSX tells you that.

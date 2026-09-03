@@ -13,6 +13,7 @@ import multimodalRag from "./multimodal-rag.json";
 import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
+import promptInjection from "./prompt-injection-playground.json";
 import pipelineBuilder from "./pipeline-builder.json";
 import pipelineCinema from "./pipeline-cinema.json";
 import realtimeAnalytics from "./realtime-analytics.json";
@@ -98,6 +99,7 @@ export const DEMOS: Demo[] = [
   realtimeAnalytics,
   shap,
   phishingEmail,
+  promptInjection,
   tlsHeaders,
   yaraFileScanner,
 ] as Demo[];

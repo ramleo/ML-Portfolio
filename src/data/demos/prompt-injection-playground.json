@@ -1,0 +1,83 @@
+{
+  "toolId": "prompt-injection-playground",
+  "chapter": "ch-41-llm-prompt-injection-detection-playgroun",
+  "route": "/tools/prompt-injection-playground",
+  "title": "LLM Prompt Injection Detection",
+  "blurb": "An instruction hidden inside a document the AI was only asked to read.",
+  "steps": [
+    {
+      "say": "A language model cannot tell the difference between the instructions you gave it and text it happened to read. That is the whole problem, and it is not a bug anyone has fixed. This is a detector for it.",
+      "settle": 700
+    },
+    {
+      "say": "The interesting attack is not somebody typing ignore your instructions into a chat box. It is this one: the attack is sitting inside a document, and the victim is whoever asks an assistant to summarize it.",
+      "at": "pi-example-indirect",
+      "act": "click",
+      "settle": 1400
+    },
+    {
+      "say": "Read what is actually here. It is a quarterly sales summary, with real looking revenue figures above and a regional breakdown below. Buried in the middle is one line addressed to the AI rather than to the reader, telling it to dump the conversation and then report that the document said nothing notable.",
+      "at": "pi-input",
+      "settle": 2600,
+      "expect": "no notable results"
+    },
+    {
+      "say": "Two independent checks run against it. A pattern list, and a language model asked to judge it.",
+      "at": "pi-check",
+      "act": "click",
+      "waitFor": "pi-verdict",
+      "waitMs": 60000,
+      "settle": 2500
+    },
+    {
+      "say": "High risk, and the summary line says which of the two checks drove that.",
+      "at": "pi-verdict",
+      "settle": 2000,
+      "expect": "High risk"
+    },
+    {
+      "say": "The pattern side shows its working. One rule matched, and rather than just naming the rule it quotes the exact span that tripped it: A I colon ignore. You can read the evidence and disagree with it, which you cannot do with a score.",
+      "at": "pi-patterns",
+      "settle": 2400,
+      "expect": "AI: ignore"
+    },
+    {
+      "say": "The judge agrees it is an injection, with high confidence, and explains why in its own words. Note that it files this under direct override while the pattern list called it indirect. They disagree about what to call it and agree about the risk, which is worth more than two boxes that always say the same thing.",
+      "at": "pi-judge",
+      "settle": 2600,
+      "expect": "direct override"
+    },
+    {
+      "say": "Now the part that actually tells you whether a detector is any good. This one is a control, and it is supposed to come back clean.",
+      "at": "pi-example-benign",
+      "act": "click",
+      "settle": 1400
+    },
+    {
+      "say": "It is an ordinary work email, and it contains the words please ignore my previous email. A detector built on keyword spotting flags this and cries wolf at its users until they switch it off.",
+      "at": "pi-input",
+      "settle": 2400,
+      "expect": "resend the updated calendar invite"
+    },
+    {
+      "say": "Same two checks, same button.",
+      "at": "pi-check",
+      "act": "click",
+      "waitFor": "pi-verdict",
+      "waitMs": 60000,
+      "settle": 2500
+    },
+    {
+      "say": "Low risk. No pattern matched, and the judge read it as a routine request. The word ignore was there and neither check took the bait.",
+      "at": "pi-verdict",
+      "settle": 2200,
+      "expect": "Low risk"
+    },
+    {
+      "say": "One thing this page is honest about. The pattern list is published, so anyone can reword their way around it. The judge is itself a language model, so it can in principle be talked out of its answer by the very thing it is inspecting. Two opinions are better than one and neither is a wall. Treat it as a second opinion, not a security boundary.",
+      "at": "pi-caveat",
+      "settle": 2400,
+      "expect": "not a security boundary"
+    }
+  ]
+}
