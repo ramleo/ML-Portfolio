@@ -163,7 +163,18 @@ export function useShapRunner({ onReady, onResult }: UseShapRunnerOpts) {
             if (evt.pct !== undefined) setProgress(evt.pct);
             if (evt.msg) setStatus(evt.msg);
             if (evt.result) {
-              const data: TrainResult = evt.result.automl ?? evt.result;
+              const raw = evt.result.automl ?? evt.result;
+              // /train names each entry `algorithm`; everything on this page
+              // reads `name`. Without the rename the AI panel was handed
+              // "undefined=0.8114" as the model's CV score. Ensemble already
+              // normalises the same field the same way.
+              const data: TrainResult = {
+                ...raw,
+                cv_results: (raw.cv_results ?? []).map(
+                  (r: { algorithm?: string; name?: string; score: number }) => ({
+                    ...r, name: r.name ?? r.algorithm ?? "",
+                  })),
+              };
               setResult(data); onResult?.(data);
               if (data?.feature_importance) {
                 const vals: Record<string, number> = {};

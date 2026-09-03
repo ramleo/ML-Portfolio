@@ -1,0 +1,46 @@
+[
+  {
+    "start": 0,
+    "say": "A model says this customer is a seventy-eight percent churn risk. The next question is always the same one: why? That question has two halves — which features matter to the model across the whole dataset, and which ones moved this single prediction. They are not the same question, and this panel answers the first."
+  },
+  {
+    "start": 19,
+    "say": "Give it a table and it trains a model on it, then ranks the features by how much that model leaned on them."
+  },
+  {
+    "start": 27.55,
+    "say": "A customer churn table."
+  },
+  {
+    "start": 32.69,
+    "say": "Two hundred and forty rows, ten columns, and it has read the file and picked churned as the target on its own. Classification, because that column is a yes or no."
+  },
+  {
+    "start": 45.26,
+    "say": "XGBoost, which is what this panel reaches for by default. The model choice matters more here than it looks, because the explainer has to match the model — tree ensembles get TreeExplainer, linear models get LinearExplainer, and anything that fits neither is refused outright rather than approximated slowly and badly."
+  },
+  {
+    "start": 66.77,
+    "say": "Train it."
+  },
+  {
+    "start": 71.92,
+    "say": "And there is the answer for this table. Support tickets, at twenty-seven percent — the single biggest driver of churn here. Not price, not contract length. How often they had to ask for help."
+  },
+  {
+    "start": 86.55,
+    "say": "The rest in order. Contract type at sixteen percent, tenure a hair behind it, fibre at eleven. These are magnitudes, not directions — the chart says how hard the model leaned on a feature, not which way it pushed."
+  },
+  {
+    "start": 102.53,
+    "say": "The same numbers as a table, each feature's share of the total alongside a plain-language band, so a stakeholder can read it without reading a chart."
+  },
+  {
+    "start": 113.74,
+    "say": "And the model those numbers came out of: XGBoost, cross-validated at zero point eight five. Read the two together, always — a feature ranking from a model that cannot predict is a ranking of nothing."
+  },
+  {
+    "start": 128.43,
+    "say": "What this panel does not do is the other half. It tells you support tickets matter across two hundred and forty customers. It cannot tell you that this one customer was pushed over the line by their ticket count while their long tenure was pulling the other way. That breakdown rides along with every individual prediction — the same idea, one row at a time."
+  }
+]

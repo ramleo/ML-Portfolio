@@ -22,10 +22,10 @@ export default function ShapResults({ result }: { result: TrainResult }) {
   const totalImportance = result.feature_importance.reduce((s, f) => s + f.importance, 0) || 1;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div data-wt="shap-results" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
 
       {/* CV score badge */}
-      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.9rem", background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, borderRadius: 8, alignSelf: "flex-start" }}>
+      <div data-wt="shap-cv" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.9rem", background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, borderRadius: 8, alignSelf: "flex-start" }}>
         <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em" }}>CV Score</span>
         <span style={{ fontSize: "1rem", fontWeight: 800, color: ACCENT }}>{result.cv_results[0]?.score?.toFixed(4) ?? "—"}</span>
         <span style={{ fontSize: "0.72rem", color: "var(--text3)" }}>({result.winner})</span>
@@ -33,7 +33,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
 
       {/* Top feature callout */}
       {result.feature_importance.length > 0 && (
-        <div style={{ padding: "0.85rem 1rem", background: `${ACCENT}0a`, border: `1px solid ${ACCENT}22`, borderRadius: 10 }}>
+        <div data-wt="shap-top" style={{ padding: "0.85rem 1rem", background: `${ACCENT}0a`, border: `1px solid ${ACCENT}22`, borderRadius: 10 }}>
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.2rem" }}>Most Impactful Feature</div>
           <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text)" }}>
             {result.feature_importance[0].feature}{" "}
@@ -44,7 +44,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
 
       {/* SHAP-style importance bars */}
       {topFeatures.length > 0 && (
-        <div>
+        <div data-wt="shap-bars">
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.6rem" }}>SHAP-style Importance</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
             {topFeatures.map((f, i) => {
@@ -65,7 +65,7 @@ export default function ShapResults({ result }: { result: TrainResult }) {
 
       {/* Feature breakdown table */}
       {topFeatures.length > 0 && (
-        <div>
+        <div data-wt="shap-table">
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.5rem" }}>Feature Breakdown</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", gap: "0.5rem", padding: "0.3rem 0.6rem", fontSize: "0.63rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(var(--fg-rgb),0.07)" }}>

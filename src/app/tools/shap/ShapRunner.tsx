@@ -57,6 +57,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
       {step === 1 && (
         <div>
           <div
+            data-wt="shap-upload"
             className="subtle-card"
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
@@ -89,7 +90,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
 
       {/* STEP 2: Configure */}
       {step === 2 && analyzeResult && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div data-wt="shap-config" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ fontSize: "0.78rem", color: "var(--text2)" }}>
             <strong style={{ color: "var(--text)" }}>{file?.name}</strong> — {analyzeResult.rows.toLocaleString()} rows, {analyzeResult.columns.length} columns
           </div>
@@ -97,7 +98,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem" }}>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Target Column</label>
-              <select value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+              <select data-wt="shap-target" value={target} onChange={e => setTarget(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
                 {analyzeResult.columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
             </div>
@@ -115,7 +116,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
 
           <div>
             <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "0.4rem" }}>Model</label>
-            <select value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
+            <select data-wt="shap-model" value={model} onChange={e => setModel(e.target.value)} style={{ width: "100%", background: "var(--border)", border: `1px solid ${ACCENT}30`, borderRadius: 7, padding: "0.45rem 0.7rem", color: "var(--text)", fontSize: "0.82rem", outline: "none" }}>
               {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
@@ -153,7 +154,7 @@ export default function ShapRunner({ onReady, onResult, onStepChange }: ShapRunn
             )}
           </div>
 
-          <button onClick={handleTrain}
+          <button data-wt="shap-run" onClick={handleTrain}
             onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
             style={{ padding: "0.65rem 1.4rem", borderRadius: 9999, border: "none", background: ACCENT, color: "#fff", fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start", transition: "opacity 0.15s, transform 0.15s" }}>
