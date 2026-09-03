@@ -39,6 +39,20 @@ function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: s
   }
 }
 
+/* Transport icons. Inline SVG rather than the play, pause and stop glyphs these
+   buttons used to carry: those render as full-colour emoji on some platforms
+   and as bare typographic marks on others, and neither takes the button's own
+   colour. */
+const Icon = ({ d }: { d: string }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+       aria-hidden="true" style={{ flexShrink: 0 }}>
+    <path d={d} />
+  </svg>
+);
+const PlayIcon = () => <Icon d="M6 4l14 8-14 8z" />;
+const PauseIcon = () => <Icon d="M7 4h4v16H7zM13 4h4v16h-4z" />;
+const StopIcon = () => <Icon d="M5 5h14v14H5z" />;
+
 export default function PipelineCinemaPage() {
   useToolTracking("pipeline-cinema");
   const router = useRouter();
@@ -296,9 +310,13 @@ export default function PipelineCinemaPage() {
                 fontSize: "0.95rem",
                 border: `1.5px solid ${paused ? "#38bdf8" : "var(--border2)"}`,
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
               }}
             >
-              {paused ? "▶ Resume" : "⏸ Pause"}
+              {paused ? <PlayIcon /> : <PauseIcon />}
+              {paused ? "Resume" : "Pause"}
             </motion.button>
           )}
 
@@ -318,9 +336,13 @@ export default function PipelineCinemaPage() {
                 fontSize: "0.95rem",
                 border: "1.5px solid #7f1d1d",
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
               }}
             >
-              ⏹ Stop
+              <StopIcon />
+              Stop
             </motion.button>
           )}
 
