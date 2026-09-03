@@ -31,13 +31,6 @@ interface Props {
   automlResults?: AutoMLResults | null;
 }
 
-const STORY_MAP = {
-  "preprocessing":    PreprocessStory,
-  "feature-eng":      FEStory,
-  "feature-select":   FSStory,
-  "automl":           AutoMLStory,
-} as const;
-
 const STAGE_META: Record<StageKind, { label: string; accent: string }> = {
   "preprocessing":   { label: "Preprocessing",       accent: "#3e7c98" },
   "feature-eng":     { label: "Feature Engineering", accent: "#4c806d" },
