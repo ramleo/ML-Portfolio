@@ -134,7 +134,13 @@ export default function AnalyticsLiveFeed({ feed, selectedSid, onTraceSession }:
           const friendlyPath = pathLabel(ev.path || "/");
           const showDur = ev.type === "tool_close" && (ev.duration_ms ?? 0) > 0;
           return (
-            <div key={ev.id ?? i} className="border-b border-[var(--border)]">
+            /* The newest row carries its own type in an anchor. A guided demo
+               clicks Export, which posts an event into the very table this
+               feed subscribes to, and needs a way to wait for that specific
+               row to arrive — "an export event exists somewhere" would be
+               satisfied by any earlier one. */
+            <div key={ev.id ?? i} data-wt={i === 0 ? `ra-newest-${ev.type}` : undefined}
+                 className="border-b border-[var(--border)]">
             <div
               className="group relative flex items-center gap-2 pr-4 transition-colors hover:bg-[var(--border)] cursor-pointer"
               onClick={() => setExpandedId(isExpanded ? null : evKey)}

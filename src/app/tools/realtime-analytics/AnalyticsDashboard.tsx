@@ -5,13 +5,13 @@ import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap
 import { DeviceDonut } from "./AnalyticsDeviceDonut";
 import { useRealtimeFeed } from "./useRealtimeFeed";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
-import type { PerMinute, TopPage, ByType, Country, Funnel, Referrer, ProviderStat, ModelStat } from "./AnalyticsCharts";
 import { StatCard, SkeletonCard, formatDuration, EngagementRow } from "./AnalyticsStatCard";
 import SessionPathPanel from "./AnalyticsSessionPanel";
 import type { SessionEvent } from "./AnalyticsSessionPanel";
 import AnalyticsLiveFeed from "./AnalyticsLiveFeed";
 import type { FeedEvent } from "./AnalyticsLiveFeed";
-import AnalyticsCalendar from "./AnalyticsCalendar";
+import AnalyticsToolbar from "./AnalyticsToolbar";
+import { RANGE_LABELS, type Range, type Stats } from "./analyticsTypes";
 import AnalyticsUserGuide from "./AnalyticsUserGuide";
 import AnalyticsHFTools from "./AnalyticsHFTools";
 import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
@@ -22,47 +22,6 @@ import { generateMarkdownReport } from "@/lib/analyticsReport";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-type Range = "today" | "yesterday" | "7d" | "30d" | "custom";
-
-const RANGE_LABELS: Record<Range, string> = {
-  today: "Today", yesterday: "Yesterday", "7d": "7 days", "30d": "30 days", custom: "Custom",
-};
-
-interface Stats {
-  active_now: number;
-  is_range: boolean;
-  today_count: number;
-  per_minute: PerMinute[];
-  error_per_minute: PerMinute[];
-  top_pages: TopPage[];
-  by_type: ByType[];
-  top_countries: Country[];
-  top_referrers: Referrer[];
-  funnel: Funnel;
-  avg_session_duration_ms: number | null;
-  bounce_rate: number | null;
-  bounce_session_count: number;
-  total_session_count: number;
-  query_success_rate: number | null;
-  query_success_count: number;
-  query_total_count: number;
-  query_by_tool: { path: string; success_count: number; total_count: number; success_rate: number }[];
-  prev_period_count: number;
-  heatmap: { day: number; hour: number; count: number }[];
-  peak_hour: number | null;
-  provider_breakdown: ProviderStat[];
-  model_breakdown: ModelStat[];
-  error_count: number;
-  device_breakdown: { device: string; count: number }[];
-  returning_pct: number | null;
-  avg_query_length: number | null;
-  avg_queries_per_session: number | null;
-  export_conversion_pct: number | null;
-  hf_tools: Record<string, Record<string, number>>;
-  portfolio_tools: Record<string, Record<string, number>>;
-}
-
 
 export default function AnalyticsDashboard() {
   const [range, setRange]          = useState<Range>("today");
@@ -174,56 +133,21 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 flex flex-col gap-5">
-      {/* Range selector */}
-      <div className="flex items-center gap-3 self-start">
-        <div className="relative flex items-center gap-1">
-          {(["today","yesterday","7d","30d"] as const).map(r => (
-            <button key={r} onClick={() => { setRange(r); setShowCal(false); }}
-              className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
-              style={range === r
-                ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
-                : { borderColor: "var(--border)", color: "var(--text3)" }}>
-              {RANGE_LABELS[r]}
-            </button>
-          ))}
-          <button onClick={() => setShowCal(v => !v)}
-            className="text-[10px] px-2.5 py-1 rounded-md border transition-colors"
-            style={range === "custom"
-              ? { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" }
-              : { borderColor: "var(--border)", color: "var(--text3)" }}>
-            {range === "custom" && customRange ? rangeLabel : "Custom"}
-          </button>
-          {showCal && (
-            <AnalyticsCalendar onSelect={(start, end) => {
-              setCustomRange({ start, end }); setRange("custom"); setShowCal(false);
-            }}/>
-          )}
-        </div>
-        <button onClick={() => setShowGuide(true)}
-          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-[var(--border2)]"
-          style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
-          User Guide
-        </button>
-        <a href={range === "custom" && customRange
-            ? `/api/events/export?start=${customRange.start}&end=${customRange.end}`
-            : `/api/events/export?range=${range}`}
-          download
-          onClick={() => {
-            const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-            fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ type: "export", path: "/tools/realtime-analytics", session_id: sid, meta: { format: "csv", range } }),
-            }).catch(() => {});
-          }}
-          className="text-[10px] px-2.5 py-1 rounded-md border transition-colors hover:border-[var(--border2)]"
-          style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
-          Export CSV
-        </a>
-      </div>
+      <AnalyticsToolbar
+        range={range}
+        customRange={customRange}
+        rangeLabel={rangeLabel}
+        showCal={showCal}
+        onRange={(r) => { setRange(r); setShowCal(false); }}
+        onCustom={(start, end) => { setCustomRange({ start, end }); setRange("custom"); setShowCal(false); }}
+        onToggleCal={() => setShowCal(v => !v)}
+        onGuide={() => setShowGuide(true)}
+      />
 
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
       {/* Summary card + Stat cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+      <div data-wt="ra-cards" className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
         <AnalyticsSummaryCard
           stats={stats}
           rangeLabel={rangeLabel}
@@ -266,7 +190,7 @@ export default function AnalyticsDashboard() {
 
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
+        <div data-wt="ra-sparkline" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
           <div className="flex items-center gap-2 mb-3">
             <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">{sparklineLabel}</p>
             {peakHour && (
@@ -282,7 +206,7 @@ export default function AnalyticsDashboard() {
             <Sparkline data={stats!.error_per_minute} color="#ef4444"/>
           </>}
         </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
+        <div data-wt="ra-funnel" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
           <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Conversion Funnel — {rangeLabel}</p>
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
@@ -369,7 +293,9 @@ export default function AnalyticsDashboard() {
           <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mt-4 mb-2">Visitors by Device</p>
           <DeviceDonut data={stats?.device_breakdown ?? []}/>
         </div>
-        <AnalyticsLiveFeed feed={feed} selectedSid={selectedSid} onTraceSession={openSession}/>
+        <div data-wt="ra-feed">
+          <AnalyticsLiveFeed feed={feed} selectedSid={selectedSid} onTraceSession={openSession}/>
+        </div>
       </div>
 
       {selectedSid && (
