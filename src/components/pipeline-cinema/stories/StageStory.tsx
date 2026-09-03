@@ -76,7 +76,7 @@ export default function StageStory({ stage, active, frozen = false, taskType, cs
             }}
           >
             <div style={{ fontSize: 13, color: "var(--text3)", textAlign: "center" }}>
-              Click Run Animation to start
+              Click Run Cinema to start
             </div>
             <PulsingDots />
           </motion.div>

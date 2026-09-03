@@ -271,7 +271,19 @@ async function record(demo, chromium) {
 
     // An action can also move things: a click that reveals a panel pushes
     // everything below it down, out from under the spotlight.
-    if (s.at && s.act && s.act !== "none") await place(page, s.at);
+    //
+    // Twice, though, 700ms apart. One measurement taken the instant the action
+    // returns is taken too early on both counts: the step's own scrollIntoView
+    // is smooth and may still be in flight, and a click that flips state
+    // re-renders on the *next* frame — Pipeline Cinema's Run button becomes
+    // "Running…" and narrows, and gains a Pause and a Stop beside it. Measured
+    // once, the ring settled 90px below a button that had also moved sideways,
+    // and sat there ringing empty space for the rest of the step.
+    if (s.at && s.act && s.act !== "none") {
+      await place(page, s.at);
+      await page.waitForTimeout(700);
+      await place(page, s.at);
+    }
 
     // The clip is paced by the narration, exactly as the live player is.
     await page.waitForTimeout(lines[i].seconds * 1000 + (s.settle ?? 800));

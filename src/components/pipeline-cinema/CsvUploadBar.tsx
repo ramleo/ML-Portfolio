@@ -43,6 +43,7 @@ export default function CsvUploadBar({
       <div style={{ maxWidth: 900, margin: "0 auto 1.25rem" }}>
         <div
           className="subtle-card"
+          data-wt="cin-upload"
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
@@ -73,6 +74,7 @@ export default function CsvUploadBar({
 
   return (
     <div
+      data-wt="cin-meta"
       style={{
         maxWidth: 900,
         margin: "0 auto 1.25rem",

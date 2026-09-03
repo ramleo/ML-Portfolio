@@ -107,7 +107,7 @@ export default function NarratorPanel({ activeStage, viewingStage, running, dyna
     ? isViewing
       ? lines[lines.length - 1]
       : lines[Math.min(step, lines.length - 1)]
-    : "Hello! I'm your ML guide. Hit 'Run Animation' to watch the full pipeline in action.";
+    : "Hello! I'm your ML guide. Hit 'Run Cinema' to watch the full pipeline in action.";
 
   const mouthPath = mouthOpen ? "M14,25 Q20,31 26,25" : "M14,26 Q20,30 26,26";
 

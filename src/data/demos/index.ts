@@ -12,6 +12,7 @@ import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
 import pipelineBuilder from "./pipeline-builder.json";
+import pipelineCinema from "./pipeline-cinema.json";
 import phishingEmail from "./phishing-email-classifier.json";
 import textToSql from "./text-to-sql.json";
 import tlsHeaders from "./tls-security-headers-scanner.json";
@@ -87,6 +88,7 @@ export const DEMOS: Demo[] = [
   passwordAudit,
   preprocessing,
   pipelineBuilder,
+  pipelineCinema,
   phishingEmail,
   tlsHeaders,
   yaraFileScanner,

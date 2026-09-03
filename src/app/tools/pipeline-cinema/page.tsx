@@ -105,7 +105,7 @@ export default function PipelineCinemaPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", position: "relative" }}>
       <ConstellationBackground />
-      <main style={{ minHeight: "100vh", position: "relative", zIndex: 1, padding: "2rem" }}>
+      <main style={{ minHeight: "100vh", position: "relative", zIndex: 1, padding: "2rem 2rem 10rem" }}>
 
         {/* Header */}
         <header style={{ maxWidth: 900, margin: "0 auto 2rem" }}>
@@ -166,7 +166,7 @@ export default function PipelineCinemaPage() {
         )}
 
         {/* Scene */}
-        <div style={{ margin: "0 auto 2rem", width: "100%", maxWidth: 1200 }}>
+        <div data-wt="cin-scene" style={{ margin: "0 auto 2rem", width: "100%", maxWidth: 1200 }}>
           <CinemaScene
             activeStage={activeStage}
             doneStages={doneStages}
@@ -185,8 +185,39 @@ export default function PipelineCinemaPage() {
           />
         </div>
 
+        {/* Run complete.
+            Without this the screen has no ending: the story panel drops back to
+            "Click Run Cinema to start" the moment the last scene finishes, which
+            reads as though the run was thrown away. It was not — every stage is
+            still there behind its pill, and this is the only thing that says so. */}
+        {!running && doneStages.size === STAGES.length && (
+          <div
+            data-wt="cin-done"
+            style={{
+              maxWidth: 900,
+              margin: "0 auto 2rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.6rem",
+              padding: "0.7rem 1rem",
+              borderRadius: 10,
+              border: "1px solid rgba(52,211,153,0.35)",
+              background: "rgba(52,211,153,0.08)",
+              color: "var(--text2)",
+              fontSize: "0.82rem",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            All four stages finished — pick any stage below to look at it again.
+          </div>
+        )}
+
         {/* Controls */}
         <div
+          data-wt="cin-controls"
           style={{
             display: "flex",
             alignItems: "center",
@@ -204,6 +235,7 @@ export default function PipelineCinemaPage() {
             return (
               <motion.button
                 key={stage}
+                data-wt={`cin-stage-${stage}`}
                 onClick={() => handleStageClick(stage)}
                 disabled={running && !isDone}
                 whileHover={{ scale: running && !isDone ? 1 : 1.05 }}
@@ -229,6 +261,7 @@ export default function PipelineCinemaPage() {
           <div style={{ width: 1, height: 28, background: "var(--border2)" }} />
 
           <motion.button
+            data-wt="cin-run"
             onClick={handleRunAnimation}
             disabled={running}
             whileHover={{ scale: running ? 1 : 1.03 }}

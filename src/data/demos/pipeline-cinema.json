@@ -1,0 +1,74 @@
+{
+  "toolId": "pipeline-cinema",
+  "chapter": "ch-9-pipeline-cinema",
+  "route": "/tools/pipeline-cinema",
+  "title": "Pipeline Cinema",
+  "blurb": "The pipeline played as an animation — and, with a file, as a narrated real run.",
+  "steps": [
+    {
+      "say": "Everything else in this part of the book expects you to already know why it exists. Pipeline Cinema does not. It plays a machine learning pipeline as an animation, with a narrator, for the person seeing one for the first time.",
+      "settle": 900
+    },
+    {
+      "say": "It runs with nothing uploaded at all, as a scripted walkthrough. But there is an upload bar, and this is the part people miss — give it a file and it stops being a cartoon.",
+      "at": "cin-upload",
+      "settle": 2600,
+      "expect": "Drop a CSV here"
+    },
+    {
+      "say": "Here is a customer churn file.",
+      "at": "cin-upload",
+      "act": "file",
+      "file": "/samples/automl-churn.csv",
+      "settle": 2000
+    },
+    {
+      "say": "Two hundred and forty rows, nine features, and it has taken the last column, churned, as the label. Classification is already selected, because that column is a yes or no.",
+      "at": "cin-meta",
+      "settle": 2600,
+      "expect": "churned"
+    },
+    {
+      "say": "This is the screen. Four stages on a track — preprocess, feature engineering, feature selection, AutoML — and a data orb that travels to whichever one is running. Four, not the seven the Pipeline Builder lays out, because these are the four that visibly change the data itself.",
+      "at": "cin-scene",
+      "settle": 2600,
+      "expect": "Click Run Cinema to start"
+    },
+    {
+      "say": "Run it.",
+      "at": "cin-run",
+      "act": "click",
+      "settle": 1200
+    },
+    {
+      "say": "Every scene calls the real backend on this file, and everything the narrator says is generated from what came back. The scenes are a fixed length whether a call takes half a second or twenty, so the animation is the loading state — there is no spinner anywhere in this tool.",
+      "at": "cin-scene",
+      "settle": 1000
+    },
+    {
+      "say": "You can pause it mid-scene, or stop it outright. And if a stage's call fails, that scene still plays with its scripted lines rather than the whole run dying at stage one — which matters on free hosting, where the first request has to wake a sleeping server.",
+      "at": "cin-controls",
+      "settle": 1000
+    },
+    {
+      "say": "And none of this is a stand-in. All four calls are the Pipeline Builder's own endpoints, on the same data, in the same order. The chapter before this one is the version you drive yourself — this is the version that explains itself while it runs.",
+      "at": "cin-scene",
+      "settle": 1000
+    },
+    {
+      "say": "Four scenes, four real calls, and the output of each one was the input to the next.",
+      "at": "cin-done",
+      "waitFor": "cin-done",
+      "waitMs": 180000,
+      "settle": 1500,
+      "expect": "All four stages finished"
+    },
+    {
+      "say": "And the run is not thrown away when it ends. Click any stage and it opens again — here is AutoML, with the models it actually trained on this file, and the one that won.",
+      "at": "cin-stage-automl",
+      "act": "click",
+      "settle": 2600,
+      "expect": "MODEL COMPETITION"
+    }
+  ]
+}

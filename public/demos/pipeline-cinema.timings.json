@@ -1,0 +1,46 @@
+[
+  {
+    "start": 0,
+    "say": "Everything else in this part of the book expects you to already know why it exists. Pipeline Cinema does not. It plays a machine learning pipeline as an animation, with a narrator, for the person seeing one for the first time."
+  },
+  {
+    "start": 13.4,
+    "say": "It runs with nothing uploaded at all, as a scripted walkthrough. But there is an upload bar, and this is the part people miss — give it a file and it stops being a cartoon."
+  },
+  {
+    "start": 26.08,
+    "say": "Here is a customer churn file."
+  },
+  {
+    "start": 31.21,
+    "say": "Two hundred and forty rows, nine features, and it has taken the last column, churned, as the label. Classification is already selected, because that column is a yes or no."
+  },
+  {
+    "start": 45.04,
+    "say": "This is the screen. Four stages on a track — preprocess, feature engineering, feature selection, AutoML — and a data orb that travels to whichever one is running. Four, not the seven the Pipeline Builder lays out, because these are the four that visibly change the data itself."
+  },
+  {
+    "start": 65.07,
+    "say": "Run it."
+  },
+  {
+    "start": 68.08,
+    "say": "Every scene calls the real backend on this file, and everything the narrator says is generated from what came back. The scenes are a fixed length whether a call takes half a second or twenty, so the animation is the loading state — there is no spinner anywhere in this tool."
+  },
+  {
+    "start": 84.11,
+    "say": "You can pause it mid-scene, or stop it outright. And if a stage's call fails, that scene still plays with its scripted lines rather than the whole run dying at stage one — which matters on free hosting, where the first request has to wake a sleeping server."
+  },
+  {
+    "start": 99.91,
+    "say": "And none of this is a stand-in. All four calls are the Pipeline Builder's own endpoints, on the same data, in the same order. The chapter before this one is the version you drive yourself — this is the version that explains itself while it runs."
+  },
+  {
+    "start": 114.78,
+    "say": "Four scenes, four real calls, and the output of each one was the input to the next."
+  },
+  {
+    "start": 121.76,
+    "say": "And the run is not thrown away when it ends. Click any stage and it opens again — here is AutoML, with the models it actually trained on this file, and the one that won."
+  }
+]
