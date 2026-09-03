@@ -1,0 +1,46 @@
+[
+  {
+    "start": 0,
+    "say": "Every other tool in this book does something to data you hand it. This one watches the site itself. And the question it answers is not analytical, it is architectural: how do you get an event from a visitor's browser onto a dashboard, live, without polling for it?"
+  },
+  {
+    "start": 15.79,
+    "say": "Headline totals for whatever window is selected. Every panel on the page reads the same one response, which is why the range control is a single strip at the top rather than a setting on each of twenty panels."
+  },
+  {
+    "start": 30.04,
+    "say": "Four presets and a calendar for anything else."
+  },
+  {
+    "start": 35.24,
+    "say": "Seven days."
+  },
+  {
+    "start": 40.04,
+    "say": "Event volume across the window. The green badge is the busiest hour of the trailing seven days, and it deliberately ignores the range you picked — that is a property of the site, not of the window you happen to be looking through."
+  },
+  {
+    "start": 55.15,
+    "say": "Page view, then tool open, then query run, in that order. That is the drop-off worth measuring on a site like this: how many arrive, how many open something, and how many actually run it. Each step is a far stronger signal of interest than the one before."
+  },
+  {
+    "start": 73.42,
+    "say": "Back to today, and there is a reason that matters in a moment. An event arriving while you are looking at last week still joins the feed, but it must not be added to statistics describing last week."
+  },
+  {
+    "start": 87.63,
+    "say": "The live feed is the newest fifty events. A window, not a log. And nothing arriving is a real observation — a quiet feed means a quiet site, not a broken socket."
+  },
+  {
+    "start": 100.55,
+    "say": "Now watch the top of that feed. Exporting is itself a tracked action, so this click puts a row into the very table the feed is subscribed to."
+  },
+  {
+    "start": 111.03,
+    "say": "There it is. Nothing on this page polled for that. The row was committed to Postgres, the replication stream that exists so the database can recover from a crash noticed the insert, and Supabase pushed it down a WebSocket this page opened when it loaded."
+  },
+  {
+    "start": 128.08,
+    "say": "That is the whole idea. Zero requests when nothing is happening, and no staleness when something is. The number changed because something happened, not because a clock ticked."
+  }
+]
