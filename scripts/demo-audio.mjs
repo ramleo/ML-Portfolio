@@ -48,8 +48,11 @@ export function narrate(steps, dir) {
  *
  *  `leadMs` is everything the video shows before the first step begins — the
  *  page load and the title card. Narration used to start at zero regardless,
- *  which put every caption about 1.3s behind the words describing it. */
-export function voiceTrack(lines, spent, tmp, leadMs = 0) {
+ *  which put every caption about 1.3s behind the words describing it.
+ *
+ *  `tailMs` is the closing card. Without it the mux's -shortest, seeing the
+ *  audio end first, would cut the card straight back off. */
+export function voiceTrack(lines, spent, tmp, leadMs = 0, tailMs = 0) {
   const listFile = path.join(tmp, "audio.txt");
   const parts = [];
   if (leadMs > 0) {
@@ -66,6 +69,12 @@ export function voiceTrack(lines, spent, tmp, leadMs = 0) {
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", l.file,
       "-af", `apad=whole_dur=${total.toFixed(2)}`, pad]);
     parts.push(`file '${pad}'`);
+  }
+  if (tailMs > 0) {
+    const tail = path.join(tmp, "tail.wav");
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi",
+      "-i", `anullsrc=r=44100:cl=stereo:d=${(tailMs / 1000).toFixed(2)}`, tail]);
+    parts.push(`file '${tail}'`);
   }
   fs.writeFileSync(listFile, parts.join("\n"));
   const out = path.join(tmp, "voice.wav");

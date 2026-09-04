@@ -1,6 +1,6 @@
 [
   {
-    "start": 4.9,
+    "start": 4.91,
     "say": "A photograph is flat. It has no depth channel, no second camera, nothing recording how far away anything was. This tool guesses that missing information from the picture alone, and then spends the rest of the page proving the guess is good enough to be useful."
   },
   {
@@ -8,51 +8,51 @@
     "say": "Uploading a single still photograph. A mirrored building in a desert, with water in front of it and a canyon behind. Everything from here runs on this machine — a local model for the depth, WebGL for everything after it. No API key, no cost."
   },
   {
-    "start": 41.89,
+    "start": 35.75,
     "say": "The estimate is back, and this is the parallax diorama. Watch what happens when the pointer moves across it."
   },
   {
-    "start": 49.43,
+    "start": 42.69,
     "say": "The shrubs and the water in front slide a long way. The canyon behind barely moves at all. That difference is the whole illusion, and it is the same thing your eyes do when you move your head — near things sweep past, far things hold still."
   },
   {
-    "start": 72.07,
+    "start": 55.74,
     "say": "Here is what is actually driving that. The raw depth the model estimated, drawn as brightness."
   },
   {
-    "start": 80.36,
+    "start": 62.68,
     "say": "Bright is near, dark is far. The water and sand at the bottom are almost white. The sky and the far canyon are almost black. Now look at the building, because this is the interesting part. Its walls are mirrors reflecting the canyon behind it, and the model was not fooled — it read a solid box sitting in the middle distance, not a hole with a distant canyon showing through. It measured the glass, not the reflection."
   },
   {
-    "start": 107.42,
+    "start": 89.14,
     "say": "With a depth value for every pixel you can do the thing phone cameras charge you for. This is portrait mode, computed after the fact."
   },
   {
-    "start": 117.94,
+    "start": 98.31,
     "say": "Clicking picks what stays sharp, and everything else blurs by how far it is from that plane. There was no lens involved. The blur is being decided by the depth map."
   },
   {
-    "start": 129.86,
+    "start": 108.9,
     "say": "And turning the blur up shows it is a real depth-ordered falloff, not a vignette."
   },
   {
-    "start": 141.09,
+    "start": 116.43,
     "say": "The last one is the problem every augmented reality app has to solve. A virtual object dropped into a photo should go behind anything real that is closer to the camera, instead of floating on top like a sticker."
   },
   {
-    "start": 155.73,
+    "start": 129.73,
     "say": "Dropping a marker onto the front face of the building. It is a stand-in for any virtual object you might want to place into the scene."
   },
   {
-    "start": 165.49,
+    "start": 138.15,
     "say": "Now dragging it away from the camera. Watch it disappear the moment the building is nearer than it is. Nothing is being masked by hand — the occlusion is decided pixel by pixel against a depth map that was guessed out of a flat photograph."
   },
   {
-    "start": 188.24,
+    "start": 152.61,
     "say": "And the honest limit. This is real geometry now, viewed with a real camera — drag and the near shrubs swing past the far canyon properly. But turn too far and it tears, because a single photograph only ever saw the camera-facing surface of anything. There is no data for the back of that building. The depth is also relative, not measured: it can tell you the water is nearer than the canyon, but not that either one is thirty metres away."
   },
   {
-    "start": 216.15,
+    "start": 179.18,
     "say": "Same photo, five uses, one estimate behind all of them."
   }
 ]

@@ -25,12 +25,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { have, mux, narrate, voiceTrack } from "./demo-audio.mjs";
 import { runAction } from "./demo-actions.mjs";
-import { CARD_MS, cardScript, liftCard } from "./demo-cards.mjs";
+import { CARD_MS, cardScript, closingCard, liftCard } from "./demo-cards.mjs";
+import { OVERLAY, place, watchBackend } from "./demo-overlay.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMOS = path.join(ROOT, "src/data/demos");
 const OUT = path.join(ROOT, "public/demos");
 const BASE = process.env.DEMO_BASE_URL ?? "http://localhost:3000";
+// Where the closing card sends people — the live site, never the local
+// server the clip happened to be recorded against.
+const SITE = "ml-portfolio-rho.vercel.app";
 // Wide enough that a tool with a document viewer AND a chat column can show
 // both. At 1280 the Multimodal RAG citation panel pushed the answer off-frame.
 const SIZE = { width: 1600, height: 1000 };
@@ -46,91 +50,6 @@ async function loadPlaywright() {
     process.exit(1);
   }
 }
-
-/** Draw the spotlight and caption into the page itself. The live player paints
- *  them over the iframe from outside; here there is no outside, so the same
- *  two elements are injected into the page being recorded. */
-const OVERLAY = `(() => {
-  const spot = document.createElement("div");
-  spot.id = "__demo_spot";
-  Object.assign(spot.style, {
-    position: "fixed", zIndex: 2147483646, borderRadius: "10px", display: "none",
-    border: "2px solid #7da5ff", pointerEvents: "none",
-    boxShadow: "0 0 0 9999px rgba(6,8,14,.55), 0 0 22px rgba(120,160,255,.55)",
-    transition: "all .35s ease",
-  });
-  const cap = document.createElement("div");
-  cap.id = "__demo_cap";
-  Object.assign(cap.style, {
-    position: "fixed", zIndex: 2147483647, left: "50%", transform: "translateX(-50%)",
-    bottom: "24px", maxWidth: "780px", padding: "14px 18px", borderRadius: "12px",
-    background: "rgba(12,15,24,.93)", color: "#eef2ff", font: "500 15px/1.55 system-ui",
-    pointerEvents: "none",
-    border: "1px solid rgba(255,255,255,.14)", boxShadow: "0 12px 34px rgba(0,0,0,.5)",
-    display: "none",
-  });
-  document.body.append(spot, cap);
-})()`;
-
-/** Anything the page asks for that is not served by the site itself — in
- *  practice, the ML-Unified backend. Requests to BASE are the app's own
- *  (/api/track answers 400 locally and is none of our business). */
-const isBackend = (url) => !url.startsWith(BASE);
-
-/** Watch for a backend that cannot answer, and say so in those words.
- *  Without this the symptom surfaces as a missing string on screen, which
- *  reads like a broken demo script and sends you looking in the wrong file. */
-function watchBackend(page) {
-  const failed = [];
-  page.on("requestfailed", (r) => {
-    if (isBackend(r.url())) failed.push(`${r.url()} — ${r.failure()?.errorText ?? "failed"}`);
-  });
-  // A Space in the middle of a rebuild serves proxy 500s for several minutes.
-  // The page looks fine and every assertion fails for reasons of its own.
-  page.on("response", (r) => {
-    if (isBackend(r.url()) && r.status() >= 500) failed.push(`${r.url()} — HTTP ${r.status()}`);
-  });
-  return failed;
-}
-
-/** Put the spotlight over an anchor, measuring where it is *now*.
- *  Called again after anything that moves the page under it — a smooth scroll
- *  that has not finished, or a result panel that has just appeared. A rect
- *  read while the page is still scrolling points at whatever used to be
- *  there, which is how a spotlight ends up framing the wrong paragraph.
- *
- *  An anchor that has gone away is hidden, not left alone. Re-measuring
- *  covers "the element moved"; it did nothing for "the element unmounted",
- *  and the two look identical from here. The multimodal RAG clip spent
- *  fourteen seconds ringing the search-filter chips because mmrag-add lives
- *  on the dropzone, the dropzone is replaced the moment ingest finishes, and
- *  every re-measure after that returned early and left the box frozen over
- *  whatever had moved into that space. No anchor means no spotlight. */
-const place = (page, at, also) =>
-  page.evaluate(([sel, sel2]) => {
-    const spot = document.getElementById("__demo_spot");
-    if (!spot) return;
-    const el = document.querySelector(`[data-wt="${sel}"]`);
-    if (!el) { spot.style.display = "none"; return; }
-    // A step that drives a slider is about what the slider does to the
-    // picture, but the spotlight dims everything outside itself — so ringing
-    // the control alone darkened the very thing the narration was pointing
-    // at. `with` widens the ring to enclose both.
-    const other = sel2 ? document.querySelector(`[data-wt="${sel2}"]`) : null;
-    const rects = [el, other].filter(Boolean).map((n) => n.getBoundingClientRect());
-    const r = {
-      top: Math.min(...rects.map((b) => b.top)),
-      left: Math.min(...rects.map((b) => b.left)),
-      bottom: Math.max(...rects.map((b) => b.bottom)),
-      right: Math.max(...rects.map((b) => b.right)),
-    };
-    r.width = r.right - r.left;
-    r.height = r.bottom - r.top;
-    Object.assign(spot.style, {
-      display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
-      width: r.width + 12 + "px", height: r.height + 12 + "px",
-    });
-  }, [at, also]).catch(() => {});
 
 const FIX =
   `start ML-Unified on :8000, or rebuild against the Space:\n` +
@@ -156,7 +75,7 @@ async function preflight(demo, chromium) {
   const browser = await chromium.launch(LAUNCH);
   const ctx = await browser.newContext({ viewport: SIZE });
   const page = await ctx.newPage();
-  const failed = watchBackend(page);
+  const failed = watchBackend(page, BASE);
   try {
     await page.goto(BASE + demo.route, { waitUntil: "networkidle", timeout: 60000 });
   } catch (err) {
@@ -195,7 +114,7 @@ async function record(demo, chromium) {
     }, demo.suppress);
   }
   const page = await ctx.newPage();
-  const failed = watchBackend(page);
+  const failed = watchBackend(page, BASE);
   await page.goto(BASE + demo.route, { waitUntil: "networkidle" });
   await page.evaluate(OVERLAY);
 
@@ -294,8 +213,14 @@ async function record(demo, chromium) {
       await place(page, s.at, s.with);
     }
 
-    // The clip is paced by the narration, exactly as the live player is.
-    await page.waitForTimeout(lines[i].seconds * 1000 + (s.settle ?? 800));
+    // The clip is paced by the narration, exactly as the live player is —
+    // but the narration has been playing since the step began, over whatever
+    // the step was doing. Waiting its full length *after* the action counts
+    // that time twice, and a long action left the step sitting silent on a
+    // static frame for the difference. The last step of Depth Parallax has a
+    // three-second drag in it and ended on eight seconds of dead air.
+    const narrationLeft = lines[i].seconds * 1000 - (Date.now() - began);
+    await page.waitForTimeout(Math.max(0, narrationLeft) + (s.settle ?? 800));
     // Assert the world is as the narration is about to claim. A tool that
     // failed its own network call leaves the page looking plausible and the
     // clip sounding confident; this is the only thing that catches it.
@@ -344,6 +269,13 @@ async function record(demo, chromium) {
     spent.push(Date.now() - began);
   }
 
+  // A clip used to stop rather than end. The card gives it a last beat and
+  // somewhere to send the viewer; the audio track is padded to match so the
+  // mux's -shortest does not cut it straight back off.
+  const closedAt = Date.now();
+  await closingCard(page, { title: demo.title, route: SITE + demo.route });
+  const tailMs = Date.now() - closedAt;
+
   await ctx.close();
   await browser.close();
 
@@ -352,7 +284,7 @@ async function record(demo, chromium) {
 
   fs.mkdirSync(OUT, { recursive: true });
   const out = path.join(OUT, `${demo.toolId}.webm`);
-  mux(path.join(tmp, raw), voiceTrack(lines, spent, tmp, leadMs), out);
+  mux(path.join(tmp, raw), voiceTrack(lines, spent, tmp, leadMs, tailMs), out);
 
   // What the player needs to narrate this clip in the viewer's own voice:
   // when each step begins. Measured here rather than inferred later.

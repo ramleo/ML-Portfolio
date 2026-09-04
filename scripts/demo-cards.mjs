@@ -11,6 +11,7 @@
  */
 
 export const CARD_MS = 4200;
+export const CLOSE_MS = 3600;
 const FADE_MS = 700;
 
 /** Painted from an init script rather than after the load, so it is on screen
@@ -58,4 +59,35 @@ export async function liftCard(page) {
   });
   await page.waitForTimeout(FADE_MS);
   await page.evaluate(() => document.getElementById("__demo_card")?.remove());
+}
+
+/** The closing card. Injected at the end rather than from an init script,
+ *  because by then there is a document to attach to and nothing to race.
+ *
+ *  It fades IN over the finished tool rather than cutting, so the last thing
+ *  the viewer saw stays under it for a moment. Resolves when the card is
+ *  fully opaque and has been held; the caller then has to keep recording for
+ *  no longer, and the audio track is padded to match. */
+export async function closingCard(page, { title, route }) {
+  await page.evaluate(([t, r, fade]) => {
+    document.getElementById("__demo_cap")?.remove();
+    document.getElementById("__demo_spot")?.remove();
+    const el = document.createElement("div");
+    el.innerHTML =
+      '<div style="max-width:820px;padding:0 48px;text-align:center">' +
+      '<div style="font:600 13px/1 system-ui;letter-spacing:.18em;text-transform:uppercase;' +
+      'color:#7da5ff;margin-bottom:22px">End of walkthrough</div>' +
+      '<h1 style="font:700 46px/1.15 system-ui;color:#eef2ff;margin:0 0 18px">' + t + '</h1>' +
+      '<p style="font:400 19px/1.55 system-ui;color:#9fb0d0;margin:0">Try it yourself at ' + r + '</p>' +
+      '</div>';
+    Object.assign(el.style, {
+      position: "fixed", inset: "0", zIndex: "2147483647",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "#0b0e17", opacity: "0",
+      transition: `opacity ${fade}ms ease`,
+    });
+    document.body.append(el);
+    requestAnimationFrame(() => { el.style.opacity = "1"; });
+  }, [title, route, FADE_MS]);
+  await page.waitForTimeout(FADE_MS + CLOSE_MS);
 }
