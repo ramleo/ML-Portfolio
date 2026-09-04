@@ -1,5 +1,6 @@
 import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
+import depthParallax from "./depth-parallax.json";
 import documentIntelligence from "./document-intelligence.json";
 import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
@@ -31,7 +32,13 @@ import yaraFileScanner from "./yara-file-scanner.json";
  * recorded version. One script, two players; a demo can never drift between the
  * live walkthrough and the clip of it.
  */
-export type DemoAction = "none" | "click" | "type" | "select" | "file" | "scroll";
+export type DemoAction =
+  | "none" | "click" | "type" | "select" | "file" | "scroll"
+  /** Pointer motion. Depth Parallax is driven entirely by moving and dragging
+   *  over a WebGL canvas — a step that clicks it does nothing at all, and a
+   *  clip narrating "near objects shift more than far ones" over a still frame
+   *  is a video that lies about the tool. */
+  | "hover" | "drag" | "range";
 
 export interface DemoStep {
   /** Narration. Also shown as the caption, so it has to read as well as it
@@ -42,8 +49,17 @@ export interface DemoStep {
    *  an anchor is there on purpose and shows up in a grep. */
   at?: string;
   act?: DemoAction;
-  /** For act: "type". */
+  /** For act: "type", the text. For act: "range", where to leave the slider
+   *  as a 0..1 fraction of its track — not the input's own min/max. */
   value?: string;
+  /** For act: "hover" and "drag" — where the sweep starts and ends, as
+   *  fractions of the anchor's box. Defaults run left to right through the
+   *  middle. */
+  from?: { x: number; y: number };
+  to?: { x: number; y: number };
+  /** How long the pointer motion should take. Long enough to read as motion,
+   *  short enough not to outlast the narration. */
+  overMs?: number;
   /** For act: "file" — a path under /public, dropped into the nearest file input. */
   file?: string;
   /** Hold this step until an anchor appears — for work whose length cannot be
@@ -82,6 +98,7 @@ export const DEMOS: Demo[] = [
   textToSql,
   contractInvoiceReconciliation,
   documentIntelligence,
+  depthParallax,
   multimodalRag,
   drift,
   dnsTunneling,

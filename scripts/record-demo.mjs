@@ -24,6 +24,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { have, mux, narrate, voiceTrack } from "./demo-audio.mjs";
+import { runAction } from "./demo-actions.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMOS = path.join(ROOT, "src/data/demos");
@@ -63,6 +64,7 @@ const OVERLAY = `(() => {
     position: "fixed", zIndex: 2147483647, left: "50%", transform: "translateX(-50%)",
     bottom: "24px", maxWidth: "780px", padding: "14px 18px", borderRadius: "12px",
     background: "rgba(12,15,24,.93)", color: "#eef2ff", font: "500 15px/1.55 system-ui",
+    pointerEvents: "none",
     border: "1px solid rgba(255,255,255,.14)", boxShadow: "0 12px 34px rgba(0,0,0,.5)",
   });
   document.body.append(spot, cap);
@@ -119,6 +121,15 @@ const FIX =
   `start ML-Unified on :8000, or rebuild against the Space:\n` +
   `  NEXT_PUBLIC_ML_UNIFIED_URL=https://wram1708-ml-unified.hf.space npm run build && npm start`;
 
+/** Real, visible Chrome, not the bundled headless Chromium: headless renders
+ *  WebGL as a blank canvas on this machine, so every 3D tool filmed as an
+ *  empty white box. `channel: "chrome"` uses the installed browser and
+ *  `headless: false` gives it a real GPU context. The window is visible while
+ *  recording — that is the cost. DEMO_HEADLESS=1 restores the old behaviour. */
+const LAUNCH = process.env.DEMO_HEADLESS
+  ? {}
+  : { channel: "chrome", headless: false };
+
 /** Load the page once before committing to anything expensive. Narration is
  *  a `say` call and an ffmpeg convert per step, all of it spent before the
  *  browser ever opens — finding out afterwards that the backend was down the
@@ -127,7 +138,7 @@ const FIX =
  *  This only sees calls the page makes on load. Everything later is covered
  *  by the same listeners running during the recording itself. */
 async function preflight(demo, chromium) {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(LAUNCH);
   const ctx = await browser.newContext({ viewport: SIZE });
   const page = await ctx.newPage();
   const failed = watchBackend(page);
@@ -147,7 +158,7 @@ async function record(demo, chromium) {
   console.log(`\n${demo.toolId}: narrating ${demo.steps.length} steps…`);
   const lines = narrate(demo.steps, tmp);
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(LAUNCH);
   const ctx = await browser.newContext({
     viewport: SIZE,
     recordVideo: { dir: tmp, size: SIZE },
@@ -219,39 +230,7 @@ async function record(demo, chromium) {
       }
     };
 
-    if (s.act === "click" && s.at)
-      await must(`click [data-wt="${s.at}"]`, () => page.click(`[data-wt="${s.at}"]`, { timeout: 15000 }));
-
-    if (s.act === "type" && s.at && s.value)
-      // The anchor may be the field itself or a wrapper around it — Text-to-SQL
-      // marks the wrapper, Multimodal RAG marks the textarea. Accept both.
-      await must(`type into [data-wt="${s.at}"]`, () =>
-        page
-          .locator(
-            `[data-wt="${s.at}"]:is(input,textarea), ` +
-            `[data-wt="${s.at}"] input, [data-wt="${s.at}"] textarea`
-          )
-          .first()
-          // keystroke by keystroke, not fill(): the viewer should see it typed
-          .pressSequentially(s.value, { delay: 25, timeout: 20000 })
-      );
-
-    if (s.act === "select" && s.at && s.value)
-      // A dropdown cannot be driven by clicking it: a click opens the native
-      // menu and picks nothing, which is how a step once narrated a chosen
-      // target over a select still reading "(none)".
-      await must(`select "${s.value}" in [data-wt="${s.at}"]`, () =>
-        page
-          .locator(`[data-wt="${s.at}"]:is(select), [data-wt="${s.at}"] select`)
-          .first()
-          .selectOption(s.value, { timeout: 15000 })
-      );
-
-    if (s.act === "file" && s.file)
-      await must(`upload ${s.file}`, () =>
-        page.locator("input[type=file]").first()
-          .setInputFiles(path.join(ROOT, "public", s.file.replace(/^\//, "")), { timeout: 15000 })
-      );
+    await runAction(page, s, { must, root: ROOT });
 
     if (s.waitFor) {
       await page.waitForSelector(`[data-wt="${s.waitFor}"]`, { timeout: s.waitMs ?? 120000 })

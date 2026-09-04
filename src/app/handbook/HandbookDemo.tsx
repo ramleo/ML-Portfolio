@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Demo, DemoStep } from "@/data/demos";
+import { performStep } from "./demoActions";
 import { getPresenter } from "@/lib/presenter";
 import DemoVoice, { AS_RECORDED, isOwnKey, useClipNarration } from "./DemoVoice";
 
@@ -81,60 +82,11 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   const perform = useCallback(async (s: DemoStep) => {
     const d = doc();
     // Typed as the iframe's own global, not merely a Window: the constructors
-    // below have to come from that document or React's checks reject them.
+    // performStep uses have to come from that document or React's checks
+    // reject them.
     const w = frame.current?.contentWindow as (Window & typeof globalThis) | null | undefined;
-    if (!d || !w || !s.act || s.act === "none") return;
-    const el = s.at ? (d.querySelector(`[data-wt="${s.at}"]`) as HTMLElement | null) : null;
-
-    if (s.act === "scroll") {
-      el?.scrollIntoView({ block: "center", behavior: "smooth" });
-      return;
-    }
-    if (s.act === "click") {
-      el?.click();
-      return;
-    }
-    if (s.act === "select" && s.value) {
-      const sel = (el?.matches("select") ? el : el?.querySelector("select")) as HTMLSelectElement | null;
-      if (!sel) return;
-      // Same React problem as typing: assigning .value is swallowed unless the
-      // native setter is used and a change event is dispatched by hand.
-      const setter = Object.getOwnPropertyDescriptor(w.HTMLSelectElement.prototype, "value")?.set;
-      setter?.call(sel, s.value);
-      sel.dispatchEvent(new w.Event("change", { bubbles: true }));
-      return;
-    }
-    if (s.act === "type" && s.value) {
-      const input = (el?.matches("input, textarea") ? el : el?.querySelector("input, textarea")) as
-        | HTMLInputElement
-        | HTMLTextAreaElement
-        | null;
-      if (!input) return;
-      // React tracks the previous value on the node, so assigning .value
-      // directly is swallowed. The native setter is the documented way past it.
-      const proto = input instanceof w.HTMLTextAreaElement ? w.HTMLTextAreaElement : w.HTMLInputElement;
-      const setter = Object.getOwnPropertyDescriptor(proto.prototype, "value")?.set;
-      input.focus();
-      for (let i = 1; i <= s.value.length; i++) {
-        setter?.call(input, s.value.slice(0, i));
-        input.dispatchEvent(new w.Event("input", { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 18));
-      }
-      return;
-    }
-    if (s.act === "file" && s.file) {
-      const res = await fetch(s.file);
-      const buf = await res.arrayBuffer();
-      const name = s.file.split("/").pop() ?? "sample";
-      const file = new w.File([buf], name, { type: "text/csv" });
-      const dt = new w.DataTransfer();
-      dt.items.add(file);
-      const input = (el?.querySelector("input[type=file]") ??
-        d.querySelector("input[type=file]")) as HTMLInputElement | null;
-      if (!input) return;
-      input.files = dt.files;
-      input.dispatchEvent(new w.Event("change", { bubbles: true }));
-    }
+    if (!d || !w) return;
+    await performStep(s, d, w);
   }, []);
 
   /** Poll the tool's own document until the anchor turns up. Polling rather
