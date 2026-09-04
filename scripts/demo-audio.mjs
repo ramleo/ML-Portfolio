@@ -44,10 +44,20 @@ export function narrate(steps, dir) {
 }
 
 /** The lines back to back, each padded out to the time the video actually
- *  spent on that step. `spent` is in milliseconds, measured by the recorder. */
-export function voiceTrack(lines, spent, tmp) {
+ *  spent on that step. `spent` is in milliseconds, measured by the recorder.
+ *
+ *  `leadMs` is everything the video shows before the first step begins — the
+ *  page load and the title card. Narration used to start at zero regardless,
+ *  which put every caption about 1.3s behind the words describing it. */
+export function voiceTrack(lines, spent, tmp, leadMs = 0) {
   const listFile = path.join(tmp, "audio.txt");
   const parts = [];
+  if (leadMs > 0) {
+    const lead = path.join(tmp, "lead.wav");
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi",
+      "-i", `anullsrc=r=44100:cl=stereo:d=${(leadMs / 1000).toFixed(2)}`, lead]);
+    parts.push(`file '${lead}'`);
+  }
   for (const [i, l] of lines.entries()) {
     const pad = path.join(tmp, `pad-${i}.wav`);
     // whole_dur, not pad_dur: pad the line out to the measured length of the

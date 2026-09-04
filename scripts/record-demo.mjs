@@ -25,6 +25,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { have, mux, narrate, voiceTrack } from "./demo-audio.mjs";
 import { runAction } from "./demo-actions.mjs";
+import { CARD_MS, cardScript, liftCard } from "./demo-cards.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMOS = path.join(ROOT, "src/data/demos");
@@ -66,6 +67,7 @@ const OVERLAY = `(() => {
     background: "rgba(12,15,24,.93)", color: "#eef2ff", font: "500 15px/1.55 system-ui",
     pointerEvents: "none",
     border: "1px solid rgba(255,255,255,.14)", boxShadow: "0 12px 34px rgba(0,0,0,.5)",
+    display: "none",
   });
   document.body.append(spot, cap);
 })()`;
@@ -164,6 +166,12 @@ async function record(demo, chromium) {
     recordVideo: { dir: tmp, size: SIZE },
     reducedMotion: "no-preference",
   });
+  // Capture starts the moment the context exists, so this is the clock the
+  // narration has to be lined up against — not the moment the page loaded.
+  const capturedFrom = Date.now();
+  // The title card, painted before the page's own scripts run so it is
+  // already there in the first captured frame.
+  await ctx.addInitScript(cardScript(demo));
   // Before any of the page's own scripts run, so a first-visit tour never
   // gets the chance to decide it should appear.
   if (demo.suppress?.length) {
@@ -178,6 +186,14 @@ async function record(demo, chromium) {
   await page.goto(BASE + demo.route, { waitUntil: "networkidle" });
   await page.evaluate(OVERLAY);
 
+  // Hold the card for its full time counted from the first frame, not from
+  // now: a slow page load has already spent some of it behind the card.
+  await page.waitForTimeout(Math.max(0, CARD_MS - (Date.now() - capturedFrom)));
+  await liftCard(page);
+  // Everything before this point is the card. The narration is laid down
+  // after it, which is what keeps the words under the picture they describe.
+  const leadMs = Date.now() - capturedFrom;
+
   // How long each step really occupied the screen. A step that waits for the
   // tool can run far past its narration, and the audio track has to be padded
   // to what actually happened — pad it to narration+settle and every later
@@ -191,6 +207,7 @@ async function record(demo, chromium) {
       ([at, say, n, total]) => {
         const cap = document.getElementById("__demo_cap");
         const spot = document.getElementById("__demo_spot");
+        cap.style.display = "block";
         cap.innerHTML =
           `<div style="font:700 11px/1 ui-monospace;letter-spacing:.14em;` +
           `text-transform:uppercase;color:#9fb2d8;margin-bottom:6px">Step ${n} of ${total}</div>` +
@@ -322,7 +339,7 @@ async function record(demo, chromium) {
 
   fs.mkdirSync(OUT, { recursive: true });
   const out = path.join(OUT, `${demo.toolId}.webm`);
-  mux(path.join(tmp, raw), voiceTrack(lines, spent, tmp), out);
+  mux(path.join(tmp, raw), voiceTrack(lines, spent, tmp, leadMs), out);
 
   // What the player needs to narrate this clip in the viewer's own voice:
   // when each step begins. Measured here rather than inferred later.
