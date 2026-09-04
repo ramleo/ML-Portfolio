@@ -1,26 +1,26 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "This is the AutoML pipeline, running for real. You give it a labelled spreadsheet and it gives you back a trained model, without you writing a line of code."
   },
   {
-    "start": 9.09,
+    "start": 13.99,
     "say": "The whole job is four stages, and the rail up here tells you which one you are in: upload, configure, train, results."
   },
   {
-    "start": 17.46,
+    "start": 22.34,
     "say": "Stage one wants a CSV where one column is the thing you are trying to predict. I am dropping in a customer churn file: two hundred and forty rows, nine features, and a churned column as the label."
   },
   {
-    "start": 31.38,
+    "start": 36.25,
     "say": "It reads the file, works out which columns are numbers and which are categories, and moves you to configure. You pick the target column and whether this is classification or regression."
   },
   {
-    "start": 43.18,
-    "say": "Then four algorithms compete: random forest, XGBoost, LightGBM and CatBoost. Each is scored by five fold cross validation, so the winner is not just the model that got lucky on one split."
+    "start": 48.03,
+    "say": "Then five algorithms compete: random forest, XGBoost, LightGBM, CatBoost and extra trees. Each is scored by five fold cross validation, so the winner is not just the model that got lucky on one split."
   },
   {
-    "start": 57.21,
+    "start": 63.18,
     "say": "The winner is chosen on F1 for classification, or mean absolute error for regression. Optuna tuning and a SHAP explanation then run on whichever model won, so you can see which features actually drove the prediction. Press train when you are ready, it is your run from here."
   }
 ]

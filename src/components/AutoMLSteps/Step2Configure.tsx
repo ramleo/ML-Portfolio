@@ -59,7 +59,7 @@ export default function Step2Configure({
       </div>
 
       {/* Target column */}
-      <div>
+      <div data-wt="automl-target">
         <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.4rem" }}>Target column</label>
         <select
           value={target}
@@ -71,7 +71,7 @@ export default function Step2Configure({
       </div>
 
       {/* Task type */}
-      <div>
+      <div data-wt="automl-tasktype">
         <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>Task type</label>
         <div style={{ display: "flex", gap: "0.6rem" }}>
           {(["classification", "regression"] as const).map(t => (
@@ -164,7 +164,7 @@ export default function Step2Configure({
       </div>
 
       {/* Model selection */}
-      <div>
+      <div data-wt="automl-models">
         <label style={{ fontSize: "0.78rem", color: "var(--text2)", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>
           Models to compete
         </label>

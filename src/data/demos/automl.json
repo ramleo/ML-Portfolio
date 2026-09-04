@@ -24,11 +24,14 @@
     {
       "say": "It reads the file, works out which columns are numbers and which are categories, and moves you to configure. You pick the target column and whether this is classification or regression.",
       "settle": 1800,
-      "expect": "ROWS"
+      "expect": "ROWS",
+      "at": "automl-target",
+      "with": "automl-tasktype"
     },
     {
-      "say": "Then four algorithms compete: random forest, XGBoost, LightGBM and CatBoost. Each is scored by five fold cross validation, so the winner is not just the model that got lucky on one split.",
-      "settle": 1600
+      "say": "Then five algorithms compete: random forest, XGBoost, LightGBM, CatBoost and extra trees. Each is scored by five fold cross validation, so the winner is not just the model that got lucky on one split.",
+      "settle": 1600,
+      "at": "automl-models"
     },
     {
       "say": "The winner is chosen on F1 for classification, or mean absolute error for regression. Optuna tuning and a SHAP explanation then run on whichever model won, so you can see which features actually drove the prediction. Press train when you are ready, it is your run from here.",
