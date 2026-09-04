@@ -69,7 +69,8 @@
       "act": "range",
       "value": "0.85",
       "overMs": 2400,
-      "settle": 1200
+      "settle": 1200,
+      "with": "dp-bokeh-canvas"
     },
     {
       "say": "The last one is the problem every augmented reality app has to solve. A virtual object dropped into a photo should go behind anything real that is closer to the camera, instead of floating on top like a sticker.",
@@ -90,7 +91,8 @@
       "act": "range",
       "value": "0.03",
       "overMs": 3400,
-      "settle": 1600
+      "settle": 1600,
+      "with": "dp-ar-canvas"
     },
     {
       "say": "And the honest limit. This is real geometry now, viewed with a real camera — drag and the near shrubs swing past the far canyon properly. But turn too far and it tears, because a single photograph only ever saw the camera-facing surface of anything. There is no data for the back of that building. The depth is also relative, not measured: it can tell you the water is nearer than the canyon, but not that either one is thirty metres away.",

@@ -62,6 +62,11 @@ export interface DemoStep {
   overMs?: number;
   /** For act: "file" — a path under /public, dropped into the nearest file input. */
   file?: string;
+  /** A second anchor to include in the spotlight, so the ring encloses both.
+   *  For a step that drives a control whose whole point is its effect on
+   *  something else: everything outside the ring is dimmed, so spotlighting a
+   *  slider on its own darkens the picture the slider is changing. */
+  with?: string;
   /** Hold this step until an anchor appears — for work whose length cannot be
    *  guessed. Ingesting a PDF takes as long as it takes; a fixed wait is
    *  either a stall or a truncation, never the right number. */

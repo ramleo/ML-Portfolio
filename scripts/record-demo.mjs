@@ -106,18 +106,31 @@ function watchBackend(page) {
  *  on the dropzone, the dropzone is replaced the moment ingest finishes, and
  *  every re-measure after that returned early and left the box frozen over
  *  whatever had moved into that space. No anchor means no spotlight. */
-const place = (page, at) =>
-  page.evaluate((sel) => {
+const place = (page, at, also) =>
+  page.evaluate(([sel, sel2]) => {
     const spot = document.getElementById("__demo_spot");
     if (!spot) return;
     const el = document.querySelector(`[data-wt="${sel}"]`);
     if (!el) { spot.style.display = "none"; return; }
-    const r = el.getBoundingClientRect();
+    // A step that drives a slider is about what the slider does to the
+    // picture, but the spotlight dims everything outside itself — so ringing
+    // the control alone darkened the very thing the narration was pointing
+    // at. `with` widens the ring to enclose both.
+    const other = sel2 ? document.querySelector(`[data-wt="${sel2}"]`) : null;
+    const rects = [el, other].filter(Boolean).map((n) => n.getBoundingClientRect());
+    const r = {
+      top: Math.min(...rects.map((b) => b.top)),
+      left: Math.min(...rects.map((b) => b.left)),
+      bottom: Math.max(...rects.map((b) => b.bottom)),
+      right: Math.max(...rects.map((b) => b.right)),
+    };
+    r.width = r.right - r.left;
+    r.height = r.bottom - r.top;
     Object.assign(spot.style, {
       display: "block", top: r.top - 6 + "px", left: r.left - 6 + "px",
       width: r.width + 12 + "px", height: r.height + 12 + "px",
     });
-  }, at).catch(() => {});
+  }, [at, also]).catch(() => {});
 
 const FIX =
   `start ML-Unified on :8000, or rebuild against the Space:\n` +
@@ -232,7 +245,7 @@ async function record(demo, chromium) {
     // page was still moving. Let it land, then measure again.
     if (s.at) {
       await page.waitForTimeout(600);
-      await place(page, s.at);
+      await place(page, s.at, s.with);
     }
 
     // A failed action used to be swallowed, which is how narration describing
@@ -262,7 +275,7 @@ async function record(demo, chromium) {
         });
       // The page has changed underneath the spotlight; put it back where the
       // step asked for, now that the element it named may finally exist.
-      if (s.at) await place(page, s.at);
+      if (s.at) await place(page, s.at, s.with);
     }
 
     // An action can also move things: a click that reveals a panel pushes
@@ -276,9 +289,9 @@ async function record(demo, chromium) {
     // once, the ring settled 90px below a button that had also moved sideways,
     // and sat there ringing empty space for the rest of the step.
     if (s.at && s.act && s.act !== "none") {
-      await place(page, s.at);
+      await place(page, s.at, s.with);
       await page.waitForTimeout(700);
-      await place(page, s.at);
+      await place(page, s.at, s.with);
     }
 
     // The clip is paced by the narration, exactly as the live player is.
@@ -343,7 +356,12 @@ async function record(demo, chromium) {
 
   // What the player needs to narrate this clip in the viewer's own voice:
   // when each step begins. Measured here rather than inferred later.
-  let at = 0;
+  //
+  // Counted from the start of the *video*, which means starting at the lead —
+  // the title card and page load happen before step 1. DemoVoice compares
+  // these against video.currentTime, so leaving the lead out made every line
+  // speak several seconds early.
+  let at = leadMs;
   const timings = demo.steps.map((s, i) => {
     const start = Number((at / 1000).toFixed(2));
     at += spent[i] ?? 0;

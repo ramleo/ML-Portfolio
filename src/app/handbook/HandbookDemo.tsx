@@ -55,7 +55,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   /** Where an anchor sits, in the coordinates of this document rather than the
    *  iframe's — the spotlight is drawn out here, so the iframe's own offset
    *  has to be added back in. */
-  const locate = useCallback((anchor?: string): Box | null => {
+  const locate = useCallback((anchor?: string, also?: string): Box | null => {
     if (!anchor) return null;
     const d = doc();
     const f = frame.current;
@@ -64,14 +64,21 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
     const el = d.querySelector(`[data-wt="${anchor}"]`) as HTMLElement | null;
     if (!el) return null;
     el.scrollIntoView({ block: "center", behavior: "smooth" });
-    const r = el.getBoundingClientRect();
+    // `also` widens the box to enclose a second anchor. A step that drives a
+    // slider is about what the slider does to the picture, and everything
+    // outside the box is dimmed — so ringing the control alone darkened the
+    // one thing the narration was telling you to watch.
+    const other = also ? (d.querySelector(`[data-wt="${also}"]`) as HTMLElement | null) : null;
+    const rs = [el, other].filter(Boolean).map((n) => n!.getBoundingClientRect());
+    const top = Math.min(...rs.map((b) => b.top));
+    const left = Math.min(...rs.map((b) => b.left));
     const fr = f.getBoundingClientRect();
     const sr = s.getBoundingClientRect();
     return {
-      top: fr.top - sr.top + r.top - 6,
-      left: fr.left - sr.left + r.left - 6,
-      width: r.width + 12,
-      height: r.height + 12,
+      top: fr.top - sr.top + top - 6,
+      left: fr.left - sr.left + left - 6,
+      width: Math.max(...rs.map((b) => b.right)) - left + 12,
+      height: Math.max(...rs.map((b) => b.bottom)) - top + 12,
     };
   }, []);
 
@@ -119,12 +126,12 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       if (ctrl.signal.aborted) break;
       const s = demo.steps[i];
       setStep(i);
-      setBox(locate(s.at));
+      setBox(locate(s.at, s.with));
       await perform(s);
       if (ctrl.signal.aborted) break;
       if (s.waitFor) {
         await waitForAnchor(s.waitFor, s.waitMs ?? 120000, ctrl.signal);
-        setBox(locate(s.at));
+        setBox(locate(s.at, s.with));
       }
       if (ctrl.signal.aborted) break;
       // The narration sets the pace: a step lasts exactly as long as its line
@@ -194,7 +201,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   // The spotlight is anchored to a live element, so it has to follow the page.
   useEffect(() => {
     if (step < 0) return;
-    const id = window.setInterval(() => setBox(locate(demo.steps[step]?.at)), 400);
+    const id = window.setInterval(() => setBox(locate(demo.steps[step]?.at, demo.steps[step]?.with)), 400);
     return () => window.clearInterval(id);
   }, [step, demo, locate]);
 
