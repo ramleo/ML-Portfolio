@@ -67,6 +67,10 @@ export interface DemoStep {
    *  something else: everything outside the ring is dimmed, so spotlighting a
    *  slider on its own darkens the picture the slider is changing. */
   with?: string;
+  /** Override when this step's action fires, in milliseconds from the start
+   *  of the narration. The default is a third of the way in, capped — long
+   *  enough for the sentence to have named what is about to happen. */
+  actAfter?: number;
   /** Hold this step until an anchor appears — for work whose length cannot be
    *  guessed. Ingesting a PDF takes as long as it takes; a fixed wait is
    *  either a stall or a truncation, never the right number. */

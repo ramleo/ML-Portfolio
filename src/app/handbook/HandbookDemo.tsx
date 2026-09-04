@@ -6,6 +6,16 @@ import { performStep } from "./demoActions";
 import { getPresenter } from "@/lib/presenter";
 import DemoVoice, { AS_RECORDED, isOwnKey, useClipNarration } from "./DemoVoice";
 
+/** How long to let the narration run before carrying out the step's action:
+ *  a third of the way in, capped. The recorder computes this from the real
+ *  length of the rendered speech; out here the browser will not say in
+ *  advance how long it intends to take, so it is estimated from the word
+ *  count at roughly 165 words a minute. Only the cue is estimated — the step
+ *  still lasts exactly as long as the speech actually does. */
+const cueMs = (say: string) =>
+  Math.min((say.trim().split(/\s+/).length / 165) * 60 * 1000 * 0.35, 2500);
+
+
 /**
  * A guided demo: the real tool, running, with someone talking you through it.
  *
@@ -127,6 +137,22 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
       const s = demo.steps[i];
       setStep(i);
       setBox(locate(s.at, s.with));
+      // The narration sets the pace: a step lasts exactly as long as its line
+      // takes to say, plus whatever the tool needs to catch up.
+      //
+      // Started before the action, not after it. This used to perform the
+      // step and only then begin speaking, so every upload, click and drag
+      // happened in silence before a word describing it was said. Now the
+      // line runs underneath, and the action lands once the sentence has had
+      // time to name it — see `cueMs`.
+      if (voiceURI !== AS_RECORDED) presenter.current.setVoice?.(voiceURI);
+      // Swallowed, not left to float: the loop can break out on an abort
+      // between starting this and awaiting it, and a speak() that rejects on
+      // that same abort would surface as an unhandled rejection. The signal
+      // checks are what actually stop the run.
+      const speaking = presenter.current.speak(s.say, ctrl.signal).catch(() => {});
+      await new Promise((r) => setTimeout(r, s.actAfter ?? cueMs(s.say)));
+      if (ctrl.signal.aborted) break;
       await perform(s);
       if (ctrl.signal.aborted) break;
       if (s.waitFor) {
@@ -134,10 +160,7 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
         setBox(locate(s.at, s.with));
       }
       if (ctrl.signal.aborted) break;
-      // The narration sets the pace: a step lasts exactly as long as its line
-      // takes to say, plus whatever the tool needs to catch up.
-      if (voiceURI !== AS_RECORDED) presenter.current.setVoice?.(voiceURI);
-      await presenter.current.speak(s.say, ctrl.signal);
+      await speaking;
       if (ctrl.signal.aborted) break;
       await new Promise((r) => setTimeout(r, s.settle ?? 800));
     }

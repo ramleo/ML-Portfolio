@@ -1,6 +1,6 @@
 [
   {
-    "start": 4.91,
+    "start": 4.9,
     "say": "A photograph is flat. It has no depth channel, no second camera, nothing recording how far away anything was. This tool guesses that missing information from the picture alone, and then spends the rest of the page proving the guess is good enough to be useful."
   },
   {
@@ -8,7 +8,7 @@
     "say": "Uploading a single still photograph. A mirrored building in a desert, with water in front of it and a canyon behind. Everything from here runs on this machine — a local model for the depth, WebGL for everything after it. No API key, no cost."
   },
   {
-    "start": 35.75,
+    "start": 35.76,
     "say": "The estimate is back, and this is the parallax diorama. Watch what happens when the pointer moves across it."
   },
   {
@@ -36,23 +36,23 @@
     "say": "And turning the blur up shows it is a real depth-ordered falloff, not a vignette."
   },
   {
-    "start": 116.43,
+    "start": 117.26,
     "say": "The last one is the problem every augmented reality app has to solve. A virtual object dropped into a photo should go behind anything real that is closer to the camera, instead of floating on top like a sticker."
   },
   {
-    "start": 129.73,
+    "start": 130.56,
     "say": "Dropping a marker onto the front face of the building. It is a stand-in for any virtual object you might want to place into the scene."
   },
   {
-    "start": 138.15,
+    "start": 138.98,
     "say": "Now dragging it away from the camera. Watch it disappear the moment the building is nearer than it is. Nothing is being masked by hand — the occlusion is decided pixel by pixel against a depth map that was guessed out of a flat photograph."
   },
   {
-    "start": 152.61,
+    "start": 153.44,
     "say": "And the honest limit. This is real geometry now, viewed with a real camera — drag and the near shrubs swing past the far canyon properly. But turn too far and it tears, because a single photograph only ever saw the camera-facing surface of anything. There is no data for the back of that building. The depth is also relative, not measured: it can tell you the water is nearer than the canyon, but not that either one is thirty metres away."
   },
   {
-    "start": 179.18,
+    "start": 180.01,
     "say": "Same photo, five uses, one estimate behind all of them."
   }
 ]

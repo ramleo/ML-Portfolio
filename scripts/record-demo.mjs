@@ -179,6 +179,15 @@ async function record(demo, chromium) {
       }
     };
 
+    // Let the narration get to the point before doing the thing it describes.
+    // The action used to fire the instant the step began, so the upload had
+    // already happened before "uploading a single still photograph" had left
+    // the speaker's mouth. A third of the way in is enough to have named it,
+    // and the cap keeps a long sentence from stalling the tool for ten
+    // seconds; `actAfter` overrides both when a step needs its own timing.
+    const cue = s.actAfter ?? Math.min(lines[i].seconds * 350, 2500);
+    await page.waitForTimeout(Math.max(0, cue - (Date.now() - began)));
+
     await runAction(page, s, { must, root: ROOT });
 
     if (s.waitFor) {
