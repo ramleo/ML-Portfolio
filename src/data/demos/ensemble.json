@@ -50,16 +50,16 @@
       "settle": 3000
     },
     {
-      "say": "There is the leaderboard, and XGBoost takes it. But look at the numbers rather than the ribbon: the five scores sit between about zero point eight one and zero point eight five. The winner is ahead by roughly three hundredths.",
+      "say": "There is the leaderboard. But look at the numbers rather than the ribbon: the five scores sit between about zero point eight one and zero point eight five, so the whole field is inside three and a half hundredths of a point.",
       "at": "ens-results",
       "settle": 3200,
-      "expect": "XGBoost"
+      "expect": "Algorithm leaderboard"
     },
     {
-      "say": "That gap is narrower than the run-to-run variation inside a single model, which is what the stability column is telling you. Every one of the five reads variable — their fold scores swing by more than three hundredths of a point, which is wider than the gap between first place and last. The honest conclusion on this dataset is that these five algorithms perform about the same, and the choice should be made on training time or interpretability instead.",
+      "say": "That gap is about the size of the variation inside a single model, which is what the stability column is telling you. Every one of the five reads variable, meaning its fold scores scatter by at least three hundredths of a point — the same order as the distance from first place to last. The honest conclusion on this dataset is that these five algorithms perform about the same, and the choice should be made on training time or interpretability instead.",
       "at": "ens-results",
       "settle": 3200,
-      "expect": "Stability"
+      "expect": "Variable"
     },
     {
       "say": "And the winner's held-out metrics are reported separately from the score that selected it. Cross validation picked XGBoost on weighted F1; accuracy, precision, recall and area under the ROC curve are measured afterwards and shown alongside it, because the number used to choose a model is not the number you should quote for it.",
