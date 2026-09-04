@@ -1,34 +1,34 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "When you install a browser extension you agree to a list of permissions almost nobody reads. This takes that list and says, in plain terms, what it actually grants."
   },
   {
-    "start": 10.23,
+    "start": 15.14,
     "say": "Loading a synthetic manifest."
   },
   {
-    "start": 13.87,
+    "start": 18.13,
     "say": "Six permissions. All urls, web request and web request blocking, cookies, tabs, and history. Individually every one of these is used by extensions you probably trust."
   },
   {
-    "start": 28.19,
+    "start": 31.85,
     "say": "Analyzing."
   },
   {
-    "start": 31,
+    "start": 34.59,
     "say": "High risk, and the reason given is not the individual permissions. It is the combination."
   },
   {
-    "start": 38.41,
+    "start": 41.4,
     "say": "This is the part worth understanding. All urls plus web request blocking means the extension can read and rewrite every request on every site you visit, before the page ever sees it. Add cookies and it can read your session tokens too. Each permission on its own is ordinary. Together they are a man in the middle living inside your browser."
   },
   {
-    "start": 60.77,
+    "start": 63.16,
     "say": "Below that, every declared permission on its own terms, with what it grants rather than what it is called."
   },
   {
-    "start": 68.95,
+    "start": 70.73,
     "say": "And the honest limit. This reads declared permissions, not code. It cannot tell whether a permission is being misused or genuinely needed, and plenty of legitimate extensions ask for frightening things. A password manager needs broad host access and cookie access to do its job. High risk means look closer, not malicious."
   }
 ]
