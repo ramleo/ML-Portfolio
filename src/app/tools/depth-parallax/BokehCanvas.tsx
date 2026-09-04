@@ -118,7 +118,7 @@ export default function BokehCanvas({
   return (
     <div className="flex flex-col gap-3">
       <div className="relative rounded-xl overflow-hidden mx-auto" style={{ width: dispW, height: dispH, background: "var(--bg)" }}>
-        <canvas ref={canvasRef} onClick={onClick} style={{ width: "100%", height: "100%", display: glError ? "none" : "block", cursor: "crosshair" }} />
+        <canvas ref={canvasRef} data-wt="dp-bokeh-canvas" onClick={onClick} style={{ width: "100%", height: "100%", display: glError ? "none" : "block", cursor: "crosshair" }} />
         {glError && <img src={imageSrc} alt="" className="w-full h-full object-cover" />}
         {!ready && !glError && (
           <div className="absolute inset-0 flex items-center justify-center text-xs" style={{ color: "var(--text3)" }}>
@@ -129,7 +129,7 @@ export default function BokehCanvas({
       <div className="flex flex-col gap-2 max-w-xs mx-auto w-full">
         <label className="text-[10px] flex items-center justify-between" style={{ color: "var(--text3)" }}>
           Blur strength
-          <input type="range" min={0} max={0.15} step={0.005} value={blurStrength}
+          <input data-wt="dp-bokeh-blur" type="range" min={0} max={0.15} step={0.005} value={blurStrength}
             onChange={e => setBlurStrength(Number(e.target.value))} className="w-40 ml-2" />
         </label>
         <p className="text-[10px] text-center" style={{ color: "var(--text3)" }}>

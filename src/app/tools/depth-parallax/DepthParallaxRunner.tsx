@@ -89,7 +89,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
           occlusion demo, and a draggable 3D relief. Pure local ONNX + WebGL, no API key or budget cost.
         </p>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div data-wt="dp-upload" className="flex items-center gap-2 flex-wrap">
           <button onClick={() => fileInputRef.current?.click()} disabled={loading}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff", opacity: loading ? 0.5 : 1 }}>
@@ -104,13 +104,14 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
 
       {imageSrc && result && (
         <Card accent={accent} className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div data-wt="dp-views" className="flex items-center gap-2 flex-wrap">
             {VIEWS.map(v => (
-              <button key={v.id} onClick={() => setView(v.id)} style={tabStyle(view === v.id)}>{v.label}</button>
+              <button key={v.id} data-wt={`dp-tab-${v.id}`} onClick={() => setView(v.id)}
+                style={tabStyle(view === v.id)}>{v.label}</button>
             ))}
           </div>
 
-          <div className="flex flex-col gap-3 items-center">
+          <div data-wt="dp-canvas" className="flex flex-col gap-3 items-center">
             {view === "parallax" && (
               <ParallaxCanvas imageSrc={imageSrc} depthSrc={result.depthMapUrl} width={result.width} height={result.height} displayWidth={DISPLAY_MAX_WIDTH} />
             )}
@@ -127,7 +128,7 @@ export default function DepthParallaxRunner({ accent }: { accent: string }) {
             {view === "relief" && (
               <Relief3DCanvas imageSrc={imageSrc} depthSrc={result.depthMapUrl} width={result.width} height={result.height} displayWidth={DISPLAY_MAX_WIDTH} />
             )}
-            <p className="text-xs text-center max-w-2xl" style={{ color: "var(--text3)" }}>
+            <p data-wt="dp-caption" className="text-xs text-center max-w-2xl" style={{ color: "var(--text3)" }}>
               {VIEW_CAPTIONS[view]}
               {view === "parallax" && " This is a per-pixel WebGL shader, not a discrete tile grid."}
             </p>

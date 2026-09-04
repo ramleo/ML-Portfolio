@@ -1,0 +1,118 @@
+{
+  "toolId": "depth-parallax",
+  "chapter": "ch-19-depth-parallax",
+  "route": "/tools/depth-parallax",
+  "title": "Depth Parallax",
+  "blurb": "One flat photo, five ways of using the depth a model guessed out of it.",
+  "steps": [
+    {
+      "say": "A photograph is flat. It has no depth channel, no second camera, nothing recording how far away anything was. This tool guesses that missing information from the picture alone, and then spends the rest of the page proving the guess is good enough to be useful.",
+      "settle": 700
+    },
+    {
+      "say": "Uploading a single still photograph. A mirrored building in a desert, with water in front of it and a canyon behind. Everything from here runs on this machine — a local model for the depth, WebGL for everything after it. No API key, no cost.",
+      "at": "dp-upload",
+      "act": "file",
+      "file": "/samples/depth-parallax-mirror-house.jpg",
+      "waitFor": "dp-views",
+      "settle": 1200
+    },
+    {
+      "say": "The estimate is back, and this is the parallax diorama. Watch what happens when the pointer moves across it.",
+      "at": "dp-canvas",
+      "settle": 900,
+      "expect": "per-pixel WebGL shader"
+    },
+    {
+      "say": "The shrubs and the water in front slide a long way. The canyon behind barely moves at all. That difference is the whole illusion, and it is the same thing your eyes do when you move your head — near things sweep past, far things hold still.",
+      "at": "dp-parallax-canvas",
+      "act": "hover",
+      "from": {
+        "x": 0.12,
+        "y": 0.45
+      },
+      "to": {
+        "x": 0.88,
+        "y": 0.55
+      },
+      "overMs": 4200,
+      "settle": 600
+    },
+    {
+      "say": "Here is what is actually driving that. The raw depth the model estimated, drawn as brightness.",
+      "at": "dp-tab-depth",
+      "act": "click",
+      "settle": 1600,
+      "expect": "brighter means nearer"
+    },
+    {
+      "say": "Bright is near, dark is far. The water and sand at the bottom are almost white. The sky and the far canyon are almost black. Now look at the building, because this is the interesting part. Its walls are mirrors reflecting the canyon behind it, and the model was not fooled — it read a solid box sitting in the middle distance, not a hole with a distant canyon showing through. It measured the glass, not the reflection.",
+      "at": "dp-canvas",
+      "settle": 3600
+    },
+    {
+      "say": "With a depth value for every pixel you can do the thing phone cameras charge you for. This is portrait mode, computed after the fact.",
+      "at": "dp-tab-bokeh",
+      "act": "click",
+      "settle": 1800,
+      "expect": "refocus there"
+    },
+    {
+      "say": "Clicking picks what stays sharp, and everything else blurs by how far it is from that plane. There was no lens involved. The blur is being decided by the depth map.",
+      "at": "dp-bokeh-canvas",
+      "act": "click",
+      "settle": 1600
+    },
+    {
+      "say": "And turning the blur up shows it is a real depth-ordered falloff, not a vignette.",
+      "at": "dp-bokeh-blur",
+      "act": "range",
+      "value": "0.85",
+      "overMs": 2400,
+      "settle": 1200
+    },
+    {
+      "say": "The last one is the problem every augmented reality app has to solve. A virtual object dropped into a photo should go behind anything real that is closer to the camera, instead of floating on top like a sticker.",
+      "at": "dp-tab-ar",
+      "act": "click",
+      "settle": 1800,
+      "expect": "Virtual object depth"
+    },
+    {
+      "say": "Dropping a marker onto the front face of the building. It is a stand-in for any virtual object you might want to place into the scene.",
+      "at": "dp-ar-canvas",
+      "act": "click",
+      "settle": 1500
+    },
+    {
+      "say": "Now dragging it away from the camera. Watch it disappear the moment the building is nearer than it is. Nothing is being masked by hand — the occlusion is decided pixel by pixel against a depth map that was guessed out of a flat photograph.",
+      "at": "dp-ar-depth",
+      "act": "range",
+      "value": "0.03",
+      "overMs": 3400,
+      "settle": 1600
+    },
+    {
+      "say": "And the honest limit. This is real geometry now, viewed with a real camera — drag and the near shrubs swing past the far canyon properly. But turn too far and it tears, because a single photograph only ever saw the camera-facing surface of anything. There is no data for the back of that building. The depth is also relative, not measured: it can tell you the water is nearer than the canyon, but not that either one is thirty metres away.",
+      "at": "dp-tab-relief",
+      "act": "click",
+      "settle": 2200,
+      "expect": "camera-facing surface"
+    },
+    {
+      "say": "Same photo, five uses, one estimate behind all of them.",
+      "at": "dp-relief-canvas",
+      "act": "drag",
+      "from": {
+        "x": 0.35,
+        "y": 0.5
+      },
+      "to": {
+        "x": 0.68,
+        "y": 0.5
+      },
+      "overMs": 3000,
+      "settle": 900
+    }
+  ]
+}
