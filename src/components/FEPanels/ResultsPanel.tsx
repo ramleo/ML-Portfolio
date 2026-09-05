@@ -75,7 +75,7 @@ function ActionBtn({ onClick, disabled = false, children, secondary = false }: {
 export default function ResultsPanel({ result, filename, onBackToConfigure, onDownload }: ResultsPanelProps) {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
+      <div data-wt="fe-summary" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
           { label: "Rows", value: result.rows.toLocaleString() },
           { label: "Columns Before", value: String(result.colsBefore) },
@@ -89,7 +89,7 @@ export default function ResultsPanel({ result, filename, onBackToConfigure, onDo
         ))}
       </div>
 
-      <div style={CARD}>
+      <div data-wt="fe-newcols" style={CARD}>
         <SectionTitle>New Columns Added ({result.newColumns.length})</SectionTitle>
         {result.newColumns.length === 0
           ? <div style={{ color: "var(--text3)", fontSize: "0.8rem" }}>No transforms selected — go back and choose some.</div>
@@ -164,7 +164,7 @@ export default function ResultsPanel({ result, filename, onBackToConfigure, onDo
         </div>
       )}
 
-      <div style={{ ...CARD, borderColor: `${ACCENT}22`, background: `${ACCENT}07`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+      <div data-wt="fe-download" style={{ ...CARD, borderColor: `${ACCENT}22`, background: `${ACCENT}07`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <div style={{ fontSize: "0.93rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.2rem" }}>Ready to download</div>
           <div style={{ fontSize: "0.78rem", color: "var(--text3)" }}>engineered_{filename} — {result.colsAfter} columns, {result.rows.toLocaleString()} rows</div>

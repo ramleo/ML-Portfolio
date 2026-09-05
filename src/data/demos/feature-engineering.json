@@ -44,19 +44,19 @@
     },
     {
       "say": "Ten columns went in and thirty came out. Twenty new features, which is exactly two transforms across ten numeric columns — and it lists every one by name rather than just handing back a wider file.",
-      "at": "fe-results",
+      "at": "fe-summary",
       "settle": 3000,
       "expect": "20"
     },
     {
       "say": "Which exposes something you need to know. Churned is the label, and it got transformed too — there is a churned log and a churned z-score in that list. This tool has no idea which column you are predicting, so it works on all of them. Drop your label before you train, or you will hand the model the answer.",
-      "at": "fe-results",
+      "at": "fe-newcols",
       "settle": 3200,
       "expect": "churned_log1p"
     },
     {
-      "say": "Beyond these, the panels on the left build interactions and ratios between pairs of columns, extract day, month and weekday from dates, and frequency encode categories. The result downloads as a CSV, or goes straight on to feature selection to decide which of these thirty are worth keeping.",
-      "at": "fe-results",
+      "say": "Beyond these there are more panels back on the configure screen: interactions and ratios between pairs of columns on the left, and below the transforms, day, month and weekday pulled out of date columns, and frequency encoding for categories. From here the widened file downloads as a CSV — thirty columns, twenty of which did not exist a minute ago.",
+      "at": "fe-download-top",
       "settle": 2600
     }
   ]

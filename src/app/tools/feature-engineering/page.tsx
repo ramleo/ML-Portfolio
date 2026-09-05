@@ -216,7 +216,7 @@ function FeatureEngineeringPageInner() {
             {step === "results" && (
               <>
                 <ActionBtn secondary onClick={() => setStep("configure")}>Back to Configure</ActionBtn>
-                <ActionBtn onClick={downloadResult}>Download CSV</ActionBtn>
+                <ActionBtn data-wt="fe-download-top" onClick={downloadResult}>Download CSV</ActionBtn>
               </>
             )}
             <StepIndicator labels={FE_STEP_LABELS} currentIndex={FE_STEP_KEYS.indexOf(step)} accent={ACCENT} />
