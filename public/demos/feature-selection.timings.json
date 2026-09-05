@@ -1,38 +1,38 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "More columns is not more signal. Duplicated measurements, constants left behind by an export, and columns that are pure noise all cost you accuracy and training time. This decides which ones to keep, and it runs entirely in your browser."
   },
   {
-    "start": 14.8,
+    "start": 19.71,
     "say": "I am giving it a fitness dataset with a problem planted in it: two hundred and twenty rows, eight numeric columns, and three of those columns are not pulling their weight — though only two of them get caught, which turns out to be the interesting part."
   },
   {
-    "start": 31.41,
+    "start": 35.68,
     "say": "First the target. I am predicting vo2 max, so mutual information and F scores are computed against that column rather than against nothing in particular."
   },
   {
-    "start": 42.91,
-    "say": "Fourteen methods are available, grouped by what they actually do. Filters look at the columns themselves. Scores rank them against the target. Wrappers train a model repeatedly to find out. Reduction methods build new columns instead of picking old ones. Two filters are on by default: variance threshold and correlation."
+    "start": 46.58,
+    "say": "Sixteen methods are available, grouped by what they actually do. Filters look at the columns themselves. Scores rank them against the target. Wrappers train a model repeatedly to find out. Reduction methods build new columns instead of picking old ones. Two filters are on by default: variance threshold and correlation."
   },
   {
-    "start": 64.92,
+    "start": 68.04,
     "say": "Running it."
   },
   {
-    "start": 68.68,
+    "start": 71.93,
     "say": "Seven input features, five kept, two dropped. A twenty nine percent reduction from two filters that did not need a model to run."
   },
   {
-    "start": 79.57,
+    "start": 82.22,
     "say": "And it says which two, and why. Schema version is tagged low variance — it reads three on every single row, so it can tell the model nothing. Weight in kilograms is tagged high correlation, because weight in pounds is the same measurement twice; the heatmap below scores that pair at one point zero zero exactly."
   },
   {
-    "start": 101,
-    "say": "Now look at what survived, because this is the honest part. Sensor noise is still in the kept list, and its mutual information score is zero point zero zero — the tool is telling you it carries nothing. The two default filters are structural: they catch a constant and a duplicate, not a useless column. Dropping that one needs a scoring method like top K mutual information, switched on deliberately."
+    "start": 103.04,
+    "say": "Now look at what survived, because this is the honest part. Sensor noise is still in the kept list, and its mutual information score is zero point zero zero — the tool is telling you it carries nothing. The two default filters are structural: they catch a constant and a duplicate, not a useless column. Dropping that one needs the Top-K filter, which ranks every feature by mutual information against the target and keeps only the highest, switched on deliberately."
   },
   {
-    "start": 127.95,
+    "start": 132.88,
     "say": "The reduced dataset then downloads as a CSV: five features and the target, ready to train on."
   }
 ]

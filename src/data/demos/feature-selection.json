@@ -3,7 +3,7 @@
   "chapter": "ch-6-feature-selection",
   "route": "/tools/feature-selection",
   "title": "Feature Selection",
-  "blurb": "Fourteen methods for deciding which columns are earning their place.",
+  "blurb": "Sixteen methods for deciding which columns are earning their place.",
   "steps": [
     {
       "say": "More columns is not more signal. Duplicated measurements, constants left behind by an export, and columns that are pure noise all cost you accuracy and training time. This decides which ones to keep, and it runs entirely in your browser.",
@@ -26,7 +26,7 @@
       "expect": "MI and F-scores computed against this column"
     },
     {
-      "say": "Fourteen methods are available, grouped by what they actually do. Filters look at the columns themselves. Scores rank them against the target. Wrappers train a model repeatedly to find out. Reduction methods build new columns instead of picking old ones. Two filters are on by default: variance threshold and correlation.",
+      "say": "Sixteen methods are available, grouped by what they actually do. Filters look at the columns themselves. Scores rank them against the target. Wrappers train a model repeatedly to find out. Reduction methods build new columns instead of picking old ones. Two filters are on by default: variance threshold and correlation.",
       "at": "fs-methods",
       "settle": 2600
     },
@@ -51,7 +51,7 @@
       "expect": "low variance"
     },
     {
-      "say": "Now look at what survived, because this is the honest part. Sensor noise is still in the kept list, and its mutual information score is zero point zero zero — the tool is telling you it carries nothing. The two default filters are structural: they catch a constant and a duplicate, not a useless column. Dropping that one needs a scoring method like top K mutual information, switched on deliberately.",
+      "say": "Now look at what survived, because this is the honest part. Sensor noise is still in the kept list, and its mutual information score is zero point zero zero — the tool is telling you it carries nothing. The two default filters are structural: they catch a constant and a duplicate, not a useless column. Dropping that one needs the Top-K filter, which ranks every feature by mutual information against the target and keeps only the highest, switched on deliberately.",
       "at": "fs-rankings",
       "settle": 3000,
       "expect": "sensor_noise"
