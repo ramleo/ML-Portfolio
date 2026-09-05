@@ -36,7 +36,7 @@ export default function DnsTunnelingDetectorPage() {
         suggestions: DNS_TUNNEL_SUGGESTIONS,
       }} />
 
-      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
+      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-32">
         <div className="max-w-6xl mx-auto px-4 w-full">
           <button onClick={handleBack}
             className="flex items-center gap-2 text-sm mb-4 transition-colors"

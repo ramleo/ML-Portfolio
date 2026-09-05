@@ -1,38 +1,38 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "Almost every network blocks outbound traffic it does not recognise. Almost none of them block DNS, because nothing works without it. So DNS is how data leaves a network that is otherwise locked down: you encode what you are stealing into the hostname you look up."
   },
   {
-    "start": 15.85,
+    "start": 20.75,
     "say": "Loading a sample log. One hostname per line, the shape you get from pasting a resolver or Pi-hole export."
   },
   {
-    "start": 24.56,
+    "start": 28.82,
     "say": "Eight queries. Five are the sort of thing any machine looks up all day. Three are not."
   },
   {
-    "start": 31.81,
+    "start": 35.47,
     "say": "Hostnames are grouped by parent domain, and one is flagged. Google, GitHub and the CDNs pass without comment."
   },
   {
-    "start": 41.37,
+    "start": 44.43,
     "say": "Look at what it reports rather than the verdict. Average entropy in bits per character, the longest subdomain in characters, and how many unique subdomains sit under one parent. Random looking text scores high entropy because it is carrying data, not a name someone chose."
   },
   {
-    "start": 60.22,
+    "start": 62.68,
     "say": "The important design decision is that no single signal flags anything. A long subdomain alone is normal, plenty of CDNs generate those. High entropy alone is normal too. It takes two signals agreeing, and one of them has to be entropy."
   },
   {
-    "start": 77.6,
+    "start": 79.46,
     "say": "There is a single hostname mode as well, and the tool is upfront that it is the weaker one."
   },
   {
-    "start": 86.02,
+    "start": 85.26,
     "say": "Checking."
   },
   {
-    "start": 88.8,
+    "start": 88.21,
     "say": "Over fifty characters and above four bits per character, so both thresholds are crossed. But it says the honest thing: worth investigating, not evidence. Real tunneling shows up as volume and repetition over time, and a single query cannot show you either."
   }
 ]
