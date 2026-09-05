@@ -46,7 +46,7 @@
       "settle": 1000
     },
     {
-      "say": "You can pause it mid-scene, or stop it outright. And if a stage's call fails, that scene still plays with its scripted lines rather than the whole run dying at stage one — which matters on free hosting, where the first request has to wake a sleeping server.",
+      "say": "You can pause it mid-scene, or stop it outright. And if a stage's call fails, that scene falls back to its scripted lines and the run carries on to the next one rather than dying at stage one — which matters on free hosting, where the first request has to wake a sleeping server.",
       "at": "cin-controls",
       "settle": 1000
     },
