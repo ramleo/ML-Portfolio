@@ -1,30 +1,30 @@
 [
   {
-    "start": 0,
+    "start": 4.91,
     "say": "This one has no machine learning in it at all. It opens a real TLS connection to a domain you name, inspects the certificate it is handed, then makes a real HTTPS request and reads the response headers. Everything you are about to see was measured, not simulated."
   },
   {
-    "start": 16.25,
+    "start": 21.15,
     "say": "I am pointing it at this site. Scanning your own deployment is the honest version of this demo, because there is nowhere to hide if the result is bad."
   },
   {
-    "start": 25.72,
+    "start": 29.86,
     "say": "Scan. Private and internal addresses are refused rather than scanned, which is how a tool like this avoids being turned into a port scanner for someone else's network."
   },
   {
-    "start": 37.51,
+    "start": 40.32,
     "say": "The certificate half. Which TLS version the handshake actually negotiated, which cipher, whether the chain verified against real root certificates, who issued it, and how many days are left before it expires. Expiry is the one that takes sites down, and it is the one nobody watches."
   },
   {
-    "start": 57.13,
+    "start": 59.94,
     "say": "Then the six response headers, the same checklist Mozilla Observatory uses. Content Security Policy, Strict Transport Security, X Frame Options, X Content Type Options, Referrer Policy and Permissions Policy."
   },
   {
-    "start": 73.41,
+    "start": 76.23,
     "say": "All six are present here, and they were not always. This site had none of them until a security pass added them, and the way that was confirmed was by running this scanner against the deployed site. A tool that audits its own author is a tool you can check."
   },
   {
-    "start": 88.82,
+    "start": 91.63,
     "say": "The verdict at the top is just a summary of those two halves. It is worth being clear about the limit: present is not the same as well configured. This checks that a Content Security Policy exists, not that yours is a good one."
   }
 ]
