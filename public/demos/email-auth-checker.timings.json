@@ -1,34 +1,34 @@
 [
   {
-    "start": 0,
+    "start": 4.91,
     "say": "Every email carries a block of headers most people never look at. Inside them is a claim about whether the sender was authenticated. This tool reads that claim, then goes and checks it independently against live DNS."
   },
   {
-    "start": 12.58,
+    "start": 17.48,
     "say": "Loading a sample header block, so nothing private goes on screen."
   },
   {
-    "start": 18.25,
+    "start": 22.51,
     "say": "This is what real headers look like. The from address says GitHub. There is an authentication results line where the receiving mail server recorded its own verdict, and a DKIM signature naming a domain and a selector."
   },
   {
-    "start": 33.19,
+    "start": 36.84,
     "say": "Checking. This makes real DNS queries, so it takes a moment."
   },
   {
-    "start": 40.84,
+    "start": 42.58,
     "say": "Likely legitimate, and the reason is stated rather than implied: the domain enforces a DMARC policy and the alignment checks pass."
   },
   {
-    "start": 51.34,
+    "start": 52.47,
     "say": "Here is the independent half. SPF says which servers may send for this domain, and GitHub's record ends in a soft fail, meaning suspicious mail is marked rather than rejected outright. DMARC is set to quarantine, with subdomains set to reject. The DKIM key named in the signature is live in DNS and has not been revoked."
   },
   {
-    "start": 74.41,
+    "start": 74.95,
     "say": "Alignment is the part that catches phishing. A message can pass SPF and DKIM honestly and still be a fake, if the domain it passed for is not the domain in the from address. Both align here. When they do not, that is the signal worth acting on."
   },
   {
-    "start": 91.58,
+    "start": 91.52,
     "say": "And the limits, stated plainly. It does not cryptographically verify the DKIM signature, because that needs the full message body. DNS shows the domain's configuration now, not when the mail was sent. And the receiving server's verdict is only as trustworthy as the server that stamped it. This tool relays that claim, it does not re-check it."
   }
 ]
