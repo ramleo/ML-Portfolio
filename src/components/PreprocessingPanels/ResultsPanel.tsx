@@ -38,7 +38,8 @@ export function ResultsPanel({
           { label: "Rows",     before: result.rows_before,     after: result.rows_after },
           { label: "Columns",  before: result.cols_before,     after: result.cols_after },
           { label: "Features", before: result.features_before, after: result.features_after },
-          { label: "Missing",  before: "—" as string | number, after: result.total_missing },
+          { label: "Missing",  before: analyzed?.total_missing ?? ("—" as string | number),
+            after: result.total_missing },
         ].map(s => {
           const changed  = s.before !== s.after && s.before !== "—";
           const improved = typeof s.before === "number" && typeof s.after === "number"

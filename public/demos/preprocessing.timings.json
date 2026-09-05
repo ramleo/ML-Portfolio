@@ -1,42 +1,42 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "Real spreadsheets are messy, and a model will not tell you that. It will just train badly. This cleans a file before you train on it, and every step runs in your browser — the file never leaves your machine."
   },
   {
-    "start": 12.32,
+    "start": 17.22,
     "say": "The job is four stages, and the rail here says which one you are in: upload, configure, process, results."
   },
   {
-    "start": 21.14,
+    "start": 25.44,
     "say": "I am dropping in a customer file that was built to be broken: a hundred and eighty six rows, with blank cells, six exact duplicate rows, an income column with a long tail, and one row where the income reads forty million."
   },
   {
-    "start": 37.12,
+    "start": 40.78,
     "say": "It reads the file and counts what is wrong before touching anything. A hundred and eighty six rows, eight columns, twenty nine missing cells."
   },
   {
-    "start": 47.74,
+    "start": 50.8,
     "say": "One thing that count does not include is worth knowing. Three rows in the region column say the word unknown, and this tool does not treat that as missing. Region shows five unique values here, not four — north, south, east, west, and unknown standing as a category of its own. Blank, nan, null, na and n slash a are recognised; unknown is not. A cleaning tool that guessed at every word someone might have typed would be worse, but you should know where the line is."
   },
   {
-    "start": 77.49,
+    "start": 79.95,
     "say": "Then you choose what to do about each problem. Eight strategies for filling missing numbers — mean, median, K nearest neighbours, MICE, forward or backward fill, a constant, or dropping the row — five for categories, outlier stripping by the one point five times interquartile range rule, and a log transform for skew."
   },
   {
-    "start": 99.86,
+    "start": 101.71,
     "say": "Running it now."
   },
   {
-    "start": 104.06,
-    "say": "And here is the part that matters: before and after side by side, for every count. Rows, columns, features and missing cells — twenty nine down to zero."
+    "start": 105.66,
+    "say": "And here is the part that matters: before and after side by side, for every count. Rows, a hundred and eighty six down to a hundred and eighty — the six duplicate rows gone. Columns and features unchanged, at eight and seven. And missing cells, twenty nine down to zero."
   },
   {
-    "start": 116.81,
+    "start": 124.42,
     "say": "Then the same comparison column by column, with the distribution redrawn. Age was fourteen missing and is now zero. Income was nine missing and is now zero, and you can see its long tail still there because I left the skew fix off — the tool recommended it rather than doing it behind your back."
   },
   {
-    "start": 136.31,
+    "start": 143.32,
     "say": "From here the cleaned file downloads as a CSV, or goes straight through to AutoML without a round trip through your downloads folder."
   }
 ]

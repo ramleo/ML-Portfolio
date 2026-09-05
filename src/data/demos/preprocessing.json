@@ -47,7 +47,7 @@
       "settle": 2500
     },
     {
-      "say": "And here is the part that matters: before and after side by side, for every count. Rows, columns, features and missing cells — twenty nine down to zero.",
+      "say": "And here is the part that matters: before and after side by side, for every count. Rows, a hundred and eighty six down to a hundred and eighty — the six duplicate rows gone. Columns and features unchanged, at eight and seven. And missing cells, twenty nine down to zero.",
       "at": "prep-summary",
       "settle": 2600,
       "expect": "Features"
