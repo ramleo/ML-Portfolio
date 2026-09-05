@@ -11,7 +11,8 @@ type Contradiction = {
   chunk_b: { text: string; source: string; page: number | null };
 };
 
-type Result = { checked_pairs: number; sources: string[]; contradictions: Contradiction[] };
+type Result = { checked_pairs: number; judge_failures?: number; sources: string[];
+                contradictions: Contradiction[] };
 
 const displayName = (source: string) => source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "");
 
@@ -67,11 +68,20 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
           ))}
         </div>
       )}
+      {/* A judge call that never answered is not a pair that came back clean. */}
+      {state === "done" && result && (result.judge_failures ?? 0) > 0 && (
+        <p className="text-[9px] mb-1.5" style={{ color: "#fbbf24" }}>
+          Incomplete — {result.judge_failures} of {result.checked_pairs} pair{result.checked_pairs === 1 ? "" : "s"} could
+          not be checked (the review model did not respond).
+        </p>
+      )}
       {state === "done" && result && (
         result.contradictions.length === 0 ? (
+          (result.judge_failures ?? 0) > 0 ? null : (
           <p className="text-[9px]" style={{ color: "var(--text3)" }}>
             No contradictions found ({result.checked_pairs} overlapping passage{result.checked_pairs === 1 ? "" : "s"} checked across your documents).
           </p>
+          )
         ) : (
           <div className="flex flex-col gap-2">
             <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "#f87171" }}>

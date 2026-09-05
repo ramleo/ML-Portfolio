@@ -46,11 +46,27 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
         )}
       </div>
 
+      {/* A judge call that never answered is not a pair that came back clean.
+          Reporting "no discrepancies" when the checker was rate-limited is
+          the one failure this tool must not have, so an incomplete run says
+          so — before the count of what it did manage to check. */}
+      {state === "done" && result && (result.judge_failures ?? 0) > 0 && (
+        <p data-wt="recon-incomplete" className="text-[11px] mb-2" style={{ color: "#fbbf24" }}>
+          Incomplete check — {result.judge_failures} of {result.checked_pairs} passage
+          pair{result.checked_pairs === 1 ? "" : "s"} could not be checked (the review
+          model did not respond). {result.discrepancies.length === 0
+            ? "This is not a clean result. Re-run it before relying on it."
+            : "Anything found below still stands, but the unchecked pairs were not looked at."}
+        </p>
+      )}
+
       {state === "done" && result && (
         result.discrepancies.length === 0 ? (
+          (result.judge_failures ?? 0) > 0 ? null : (
           <p data-wt="recon-clean" className="text-[11px]" style={{ color: "var(--text3)" }}>
             No discrepancies found — {result.checked_pairs} contract/invoice passage pair{result.checked_pairs === 1 ? "" : "s"} checked.
           </p>
+          )
         ) : (
           <div data-wt="recon-report" className="flex flex-col gap-2.5">
             <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#f87171" }}>

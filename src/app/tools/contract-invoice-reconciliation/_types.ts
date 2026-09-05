@@ -25,6 +25,10 @@ export type Discrepancy = {
 
 export type ReconciliationResult = {
   checked_pairs: number;
+  /** Pairs whose judge call never answered — rate-limited, timed out, or
+   *  unparseable. Distinct from a pair the judge looked at and cleared: an
+   *  empty report with judge_failures > 0 means "not checked", not "clean". */
+  judge_failures?: number;
   contract_source: string;
   invoice_sources: string[];
   discrepancies: Discrepancy[];
