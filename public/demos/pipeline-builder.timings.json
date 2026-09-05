@@ -1,38 +1,38 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "Every other tool in this part of the handbook does one stage of a machine learning pipeline. This is all of them on one page, wired together, with each stage handed the previous stage's output rather than the original file."
   },
   {
-    "start": 13.04,
-    "say": "Three ways to run it. Guided opens each stage so you configure it yourself. Express does the whole thing on sensible defaults. A B compare runs two different configurations against the same data and puts the scores side by side."
+    "start": 17.95,
+    "say": "Three ways to run it. Guided opens each stage so you configure it yourself. Express runs the first four back to back on sensible defaults. A B compare runs two different configurations against the same data and puts the scores side by side."
   },
   {
-    "start": 29.79,
+    "start": 34.94,
     "say": "I am taking Express."
   },
   {
-    "start": 33.87,
+    "start": 38.33,
     "say": "A customer churn file: two hundred and forty rows, nine features, and a churned column as the label."
   },
   {
-    "start": 43.04,
+    "start": 46.9,
     "say": "Here are the seven stages. Preprocessing, feature engineering, feature selection, AutoML, Optuna tuning, SHAP, and ensembling. Each one is a real tool on this site, not a mock of it."
   },
   {
-    "start": 58.67,
-    "say": "Express runs the first four of those seven, and it is worth saying why only four. Optuna tuning, SHAP and ensembling are slow and want decisions from you, so they stay opt in — Guided mode is where you run them."
+    "start": 61.92,
+    "say": "Express runs the first four of those seven, and the last three are locked until it does. Tuning, SHAP and ensembling are slow and want decisions from you, so they wait — once the first four are done they unlock, and you run them when you choose to."
   },
   {
-    "start": 73.86,
+    "start": 77.72,
     "say": "Running the pipeline."
   },
   {
-    "start": 83.52,
+    "start": 87.38,
     "say": "Four stages done, each on the output of the one before it. The cleaned file went to feature engineering, the engineered file went to selection, and only then did AutoML see the data — which is the whole reason to wire stages together rather than run four tools by hand and shuttle CSVs between them."
   },
   {
-    "start": 104.09,
+    "start": 107.34,
     "say": "Every stage keeps its result, so you can open any one of them, change a setting and re-run from there. And when you are happy with the pipeline, export code turns the whole thing into a Python script that reproduces it outside this page."
   }
 ]

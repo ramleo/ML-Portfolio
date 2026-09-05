@@ -66,7 +66,7 @@ const MODES: ModeConfig[] = [
     id: "express",
     title: "Express Mode",
     description:
-      "Configure all 7 stages at once, then run the full pipeline. Watch it execute with live animations.",
+      "Runs the first four stages back to back on sensible defaults. Tuning, SHAP and ensembling unlock once it finishes.",
     accent: "#3f8358",
     Icon: ExpressIcon,
   },

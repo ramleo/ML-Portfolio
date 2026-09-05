@@ -10,7 +10,7 @@
       "settle": 900
     },
     {
-      "say": "Three ways to run it. Guided opens each stage so you configure it yourself. Express does the whole thing on sensible defaults. A B compare runs two different configurations against the same data and puts the scores side by side.",
+      "say": "Three ways to run it. Guided opens each stage so you configure it yourself. Express runs the first four back to back on sensible defaults. A B compare runs two different configurations against the same data and puts the scores side by side.",
       "at": "pb-modes",
       "settle": 3000,
       "expect": "A/B Compare"
@@ -35,7 +35,7 @@
       "expect": "Ensemble"
     },
     {
-      "say": "Express runs the first four of those seven, and it is worth saying why only four. Optuna tuning, SHAP and ensembling are slow and want decisions from you, so they stay opt in — Guided mode is where you run them.",
+      "say": "Express runs the first four of those seven, and the last three are locked until it does. Tuning, SHAP and ensembling are slow and want decisions from you, so they wait — once the first four are done they unlock, and you run them when you choose to.",
       "at": "pb-run",
       "settle": 2400
     },
