@@ -1,42 +1,42 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "A supply chain attack does not need you to write bad code. It only needs you to install something. This checks two places that go wrong: the manifest listing your dependencies, and the source of a package itself."
   },
   {
-    "start": 12.56,
+    "start": 17.47,
     "say": "Loading a deliberately suspicious package.json."
   },
   {
-    "start": 17.03,
+    "start": 21.3,
     "say": "Two things are wrong here and neither is obvious at a glance. One dependency is spelt lodahs rather than lodash. And there is a postinstall script that pipes a remote file straight into a shell."
   },
   {
-    "start": 30.17,
+    "start": 33.83,
     "say": "Both are caught, with the evidence quoted rather than summarised. The install script is shown in full, because that is the thing you actually need to read."
   },
   {
-    "start": 41.25,
+    "start": 44.3,
     "say": "The typosquat is found by edit distance against a curated list of well known packages. Lodahs is two edits from lodash — the last two letters swapped. That list is not exhaustive and the tool says so, because a curated list pretending to be complete is worse than one that admits its limits."
   },
   {
-    "start": 60.15,
+    "start": 62.6,
     "say": "Now the other half: the source of a package, rather than the list of them."
   },
   {
-    "start": 65.81,
+    "start": 67.62,
     "say": "Loading a sample file."
   },
   {
-    "start": 69.25,
+    "start": 70.44,
     "say": "Six independent signal sets, each reported with a line number and the snippet that triggered it. A hardcoded AWS key, masked rather than reprinted. A SQL query built by interpolation instead of parameters. Pickle loading untrusted bytes."
   },
   {
-    "start": 86.86,
+    "start": 87.45,
     "say": "And the obfuscation tell: a string literal with unusually high entropy, measured in bits per character. That is what a base64 encoded payload looks like from the outside, without needing to know what it decodes to."
   },
   {
-    "start": 102.35,
+    "start": 102.34,
     "say": "This is pattern matching, not signature comparison, so it can flag a package nobody has seen before. It is also why it cannot promise a verdict. Every finding is a reason to go and read the line it points at."
   }
 ]

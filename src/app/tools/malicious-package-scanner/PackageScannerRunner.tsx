@@ -78,7 +78,7 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
 
         <p className="text-xs mb-3" style={{ color: "var(--text3)" }}>
           {mode === "manifest"
-            ? "Paste a package.json or requirements.txt. Checked for suspicious install/lifecycle scripts and dependency-name typosquats against a curated list of well-known packages."
+            ? "Paste a package.json or requirements.txt. Checked for suspicious install/lifecycle scripts and dependency-name typosquats against a curated list of well-known packages — a few hundred names, not exhaustive, so a clean result is not a clean bill of health."
             : "Paste a JS/TS or Python source file. Checked for suspicious dynamic-execution API calls, obfuscated (high-entropy) string literals, embedded network URLs, hardcoded secrets, SQL-injection-shaped query building, and insecure deserialization (pickle/yaml.load/marshal)."}
         </p>
 
