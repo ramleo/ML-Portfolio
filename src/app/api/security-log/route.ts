@@ -6,9 +6,27 @@
  * it either. Two locks, because one of them is a line of code someone could
  * delete by accident.
  *
- * Unlike /api/llm-log this is called from the BROWSER, so the shared secret
- * cannot gate it — shipping a secret to the browser is not a secret. It is
- * origin-checked and everything it stores is clamped server-side instead.
+ * Unlike /api/llm-log this is called from the BROWSER, so a shared secret
+ * cannot gate it: a secret shipped to the browser is not a secret. What
+ * guards it instead, in order of how much each is worth:
+ *
+ *  1. Every field is clamped server-side. Lengths are cut, numbers are
+ *     bounded, and `sha256` must be exactly 64 hex characters or it is
+ *     stored as null — so that column can never become a place to smuggle
+ *     content into.
+ *  2. An Origin allow-list. This stops another website POSTing here from a
+ *     visitor's browser. It does NOT stop curl, which can send any Origin it
+ *     likes — no header-based check can. It raises the floor, nothing more.
+ *  3. A per-IP rate limit. Best-effort: serverless functions do not share
+ *     memory, so a determined flood across instances gets through. It stops
+ *     the easy case.
+ *
+ * The residual risk is honest and worth stating: someone determined can put
+ * junk rows in this table. They cannot read it, cannot reach any other table,
+ * and cannot store anything large. The damage is a polluted security log —
+ * which matters, because a log you can bury a real event in is a log you
+ * cannot trust. If that ever happens, the fix is a signed token minted
+ * server-side per session, not a bigger header check.
  */
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
@@ -27,7 +45,58 @@ const int = (v: unknown, max: number) => {
  * depends on every caller remembering is not a promise. */
 const EXCLUDED = new Set(["password-audit", "password-strength"]);
 
+/** Reject bodies far larger than a real payload. The biggest legitimate row
+ * is a 255-char filename plus a 64-char hash and some short strings. */
+const MAX_BODY_BYTES = 4_000;
+
+/** Best-effort per-IP limit. A module-level Map lives as long as one warm
+ * serverless instance — it will not see a flood spread across instances, and
+ * it is not meant to. */
+const HITS = new Map<string, { n: number; resetAt: number }>();
+const WINDOW_MS = 60_000;
+const MAX_PER_WINDOW = 60;   // a person uploading files cannot approach this
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const cur = HITS.get(ip);
+  if (!cur || now > cur.resetAt) {
+    HITS.set(ip, { n: 1, resetAt: now + WINDOW_MS });
+    if (HITS.size > 5_000) HITS.clear();   // crude bound on memory growth
+    return false;
+  }
+  cur.n += 1;
+  return cur.n > MAX_PER_WINDOW;
+}
+
+/** Same-origin only. NEXT_PUBLIC_SITE_URL when set, plus any *.vercel.app
+ * preview of this project, plus localhost for development. */
+function originAllowed(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;              // browsers always send it on POST
+  try {
+    const host = new URL(origin).host;
+    if (host === req.headers.get("host")) return true;
+    if (/^localhost(:\d+)?$/.test(host)) return true;
+    return host.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
+  if (!originAllowed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+  if (rateLimited(ip)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
+  if (Number(req.headers.get("content-length") ?? "0") > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  // Config is checked AFTER the guards on purpose: a forged or oversized
+  // request should be refused on its own merits, not accidentally masked by a
+  // 500 about our environment. Getting this order wrong hid all three guards
+  // behind an env error in local testing.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
