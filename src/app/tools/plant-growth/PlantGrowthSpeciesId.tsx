@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const ERROR_COLOR = "#f87171";
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -28,13 +29,15 @@ export function SpeciesId({ imageDataUrl, accent }: { imageDataUrl: string | nul
     setResult(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const runId = newRunId();
+    trackRunStart("plant-growth-species-id", runId);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-species`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-species`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: imageDataUrl.split(",")[1] ?? "" }),
         signal: controller.signal,
-      });
+      }, { tool: "plant-growth-species-id", runId });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "request failed");
       setResult({ species: data.species ?? null, health: data.health ?? null });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox, PersistedEdit } from "./_types";
 import { compositeOntoImage, loadImageFile } from "./imageComposite";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const COVERAGE_GRID = 8; // 8x8 sample points — coarse but cheap, plenty for a UI-only check
 
@@ -97,12 +98,14 @@ export function useInpaint(
     if (!base) return;
     setInpainting(true);
     setError(null);
+    const runId = newRunId();
+    trackRunStart("mmrag-inpaint", runId, { masked: !!mask });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-inpaint`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-inpaint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base, bbox, mask: mask ?? null }),
-      });
+      }, { tool: "mmrag-inpaint", runId, meta: { masked: !!mask } });
       if (!res.ok) throw new Error();
       const data = await res.json();
       persist(data.image as string, [...removedBboxes, bbox], filledIndices);
@@ -171,13 +174,16 @@ export function useInpaint(
       // so the bar never lies about being done before it actually is.
       setAiFillProgress(Math.min(90, ((Date.now() - startedAt) / AI_FILL_EXPECTED_MS) * 90));
     }, 300);
+    // mm-ai-fill is the PAID Gemini path, unlike mm-inpaint above.
+    const fillRunId = newRunId();
+    trackRunStart("mmrag-ai-fill", fillRunId, { prompted: !!prompt });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: resultImg, bbox, prompt: prompt || null }),
         signal: controller.signal,
-      });
+      }, { tool: "mmrag-ai-fill", runId: fillRunId, meta: { prompted: !!prompt } });
       if (!res.ok) throw new Error();
       const data = await res.json();
       persist(data.image as string, removedBboxes, [...filledIndices, index]);

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { ColInfo, NUM_TRANSFORMS } from "@/lib/feAlgorithms";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 interface UseFEAISuggestParams {
   numCols: ColInfo[];
@@ -50,7 +51,9 @@ ${colSummaries}
 Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
 
     try {
-      const res = await fetch("/api/ai-tools", {
+      const runId = newRunId();
+      trackRunStart("feature-engineering-ai-suggest", runId, { provider: "cohere" });
+      const res = await trackedFetch("/api/ai-tools", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -59,7 +62,7 @@ Example output: {"Age":["missing_flag","log1p"],"Fare":["winsor","zscore"]}`;
           jsonMode: true,
           toolContext: "Feature Engineering — AI Suggest transform selection. Return only raw JSON.",
         }),
-      });
+      }, { tool: "feature-engineering-ai-suggest", runId, meta: { provider: "cohere" } });
       const data = await res.json();
       if (data.error) {
         setAiSuggestError(data.error);

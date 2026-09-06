@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 60_000; // two VLM read-attempts per request (original + hardened)
 
@@ -47,13 +48,15 @@ export function useCaptchaHardening() {
     setError(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
+    const runId = newRunId();
+    trackRunStart("captcha-hardening-lab", runId, { intensity });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-captcha/solve`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-captcha/solve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: b64, intensity, ground_truth: groundTruth.trim() || null }),
         signal: controller.signal,
-      });
+      }, { tool: "captcha-hardening-lab", runId, meta: { intensity } });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Run failed — try again in a moment.");
       setResult(data as CaptchaResult);

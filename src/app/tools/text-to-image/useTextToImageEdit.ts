@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { toPngBase64 } from "./imageUtils";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const EDIT_TIMEOUT_MS = 60_000;
 export const MAX_EDIT_PROMPT_LEN = 500;
@@ -57,12 +58,14 @@ export function useTextToImageEdit(
     const timeout = setTimeout(() => controller.abort(), EDIT_TIMEOUT_MS);
     try {
       const png = await toPngBase64(baseImage, baseMimeType);
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-deblur`, {
+      const sharpenRunId = newRunId();
+      trackRunStart("text-to-image-sharpen", sharpenRunId);
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-deblur`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: png, bbox: null }),
         signal: controller.signal,
-      });
+      }, { tool: "text-to-image-sharpen", runId: sharpenRunId });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSharpenError(data.detail ?? "Sharpen is temporarily unavailable — try again in a moment.");
@@ -87,12 +90,14 @@ export function useTextToImageEdit(
     const timeout = setTimeout(() => controller.abort(), EDIT_TIMEOUT_MS);
     try {
       const png = await toPngBase64(baseImage, baseMimeType);
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
+      const editRunId = newRunId();
+      trackRunStart("text-to-image-edit", editRunId, { chars: trimmed.length });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-ai-fill`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: png, bbox: null, prompt: trimmed, mode: "edit" }),
         signal: controller.signal,
-      });
+      }, { tool: "text-to-image-edit", runId: editRunId, meta: { chars: trimmed.length } });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setEditError(data.detail ?? "Edit is temporarily unavailable — try again in a moment.");

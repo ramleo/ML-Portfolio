@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { ExtractedField } from "./_types";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const ACCENT = "#387e8a";
 
@@ -37,8 +38,11 @@ export default function DocChatPanel({ docText, fields }: Props) {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: q }]);
     setBusy(true);
+    // chars only — the question is content, which §6 rule 1 keeps out.
+    const runId = newRunId();
+    trackRunStart("document-intelligence-chat", runId, { chars: q.length });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/document/chat`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/document/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -47,7 +51,7 @@ export default function DocChatPanel({ docText, fields }: Props) {
           fields: fields.map(f => ({ name: f.name, label: f.label, value: f.value })),
           history: messages.slice(-6),
         }),
-      });
+      }, { tool: "document-intelligence-chat", runId, meta: { chars: q.length } });
       if (!res.ok) {
         const detail = (await res.json().catch(() => null))?.detail;
         throw new Error(detail || `Request failed (${res.status})`);

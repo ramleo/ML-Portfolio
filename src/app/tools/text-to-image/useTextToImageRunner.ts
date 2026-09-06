@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { readFileAsBase64 } from "./imageUtils";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS, VARIATION_COUNTS, type VariationCount } from "./textToImageOptions";
+// Re-exported so existing importers of this hook are unaffected by the split.
+export { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS, VARIATION_COUNTS };
+export type { VariationCount };
 
 const GENERATE_TIMEOUT_MS = 60_000;
 const ENHANCE_TIMEOUT_MS = 20_000;
@@ -27,9 +32,6 @@ export interface GeneratedImage {
   label?: string;
 }
 
-export const VARIATION_COUNTS = [1, 2, 4] as const;
-export type VariationCount = (typeof VARIATION_COUNTS)[number];
-
 function loadHistory(): HistoryEntry[] {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
@@ -51,22 +53,6 @@ function saveHistory(entries: HistoryEntry[]) {
 // the backend validates against its own fixed set and rejects anything
 // else with a 400, so these are just labels for the same keys, not a
 // second source of truth for the actual prompt text.
-export const STYLE_OPTIONS: { key: string; label: string }[] = [
-  { key: "photorealistic", label: "Photorealistic" },
-  { key: "watercolor", label: "Watercolor" },
-  { key: "anime", label: "Anime" },
-  { key: "cyberpunk", label: "Cyberpunk" },
-  { key: "oil-painting", label: "Oil Painting" },
-  { key: "3d-render", label: "3D Render" },
-  { key: "sketch", label: "Sketch" },
-];
-
-export const ASPECT_RATIO_OPTIONS: { key: string; label: string }[] = [
-  { key: "square", label: "Square" },
-  { key: "landscape", label: "Landscape" },
-  { key: "portrait", label: "Portrait" },
-];
-
 // Mirrors text-to-sql's _utils.tsx cleanErr() pattern — friendlier text for
 // the budget-cap 429 than the raw backend detail string.
 function cleanErr(status: number, detail: string): string {
@@ -133,13 +119,15 @@ export function useTextToImageRunner() {
     setError(null);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), ENHANCE_TIMEOUT_MS);
+    const runId = newRunId();
+    trackRunStart("text-to-image-enhance", runId, { chars: trimmed.length });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/enhance-prompt`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/enhance-prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: trimmed }),
         signal: controller.signal,
-      });
+      }, { tool: "text-to-image-enhance", runId, meta: { chars: trimmed.length } });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(cleanErr(res.status, data.detail ?? ""));
@@ -170,12 +158,15 @@ export function useTextToImageRunner() {
     const timeout = setTimeout(() => controller.abort(), DESCRIBE_TIMEOUT_MS);
     try {
       const base64 = await readFileAsBase64(file);
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/describe-image`, {
+      const describeRunId = newRunId();
+      trackRunStart("text-to-image-describe", describeRunId, { size_bytes: file.size });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-text-to-image/describe-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64 }),
         signal: controller.signal,
-      });
+      }, { tool: "text-to-image-describe", runId: describeRunId,
+           meta: { size_bytes: file.size } });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(cleanErr(res.status, data.detail ?? ""));
@@ -286,8 +277,14 @@ export function useTextToImageRunner() {
     const runOne = async (styleForThisCall: string | null, index: number): Promise<{ ok: true; value: GeneratedImage } | { ok: false; status: number; detail: string }> => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), GENERATE_TIMEOUT_MS);
+      // The generation call itself — this is the one that spends the PAID
+      // Gemini budget, so its outcome is the single most worth-recording
+      // event on the site. runOne() is called once per requested variant.
+      const genRunId = newRunId();
+      trackRunStart("text-to-image", genRunId,
+                    { variant: index, aspect_ratio: aspectRatio, chars: trimmed.length });
       try {
-        const res = await fetch(`${ML_UNIFIED_API}/rag/mm-text-to-image`, {
+        const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-text-to-image`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -297,7 +294,8 @@ export function useTextToImageRunner() {
             negative_prompt: negativePrompt.trim() || null,
           }),
           signal: controller.signal,
-        });
+        }, { tool: "text-to-image", runId: genRunId,
+             meta: { variant: index, aspect_ratio: aspectRatio } });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) return { ok: false, status: res.status, detail: data.detail ?? "" };
         return {

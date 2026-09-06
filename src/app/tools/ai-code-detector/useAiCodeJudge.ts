@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const JUDGE_TIMEOUT_MS = 25_000;
 
@@ -17,13 +18,15 @@ export function useAiCodeJudge() {
     setVerdict(undefined);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), JUDGE_TIMEOUT_MS);
+    const runId = newRunId();
+    trackRunStart("ai-code-detector", runId, { chars: code.length });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/ai-code-detect/judge`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/ai-code-detect/judge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
         signal: controller.signal,
-      });
+      }, { tool: "ai-code-detector", runId, meta: { chars: code.length } });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Judge call failed.");
       setVerdict(data as AiCodeJudgeVerdict);

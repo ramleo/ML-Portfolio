@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { groupAlerts, type AlertGroup } from "./alertGrouping";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 const JUDGE_TIMEOUT_MS = 25_000;
 
@@ -25,15 +26,17 @@ export function useSiemTriage() {
     setRunning(true);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), JUDGE_TIMEOUT_MS);
+    const runId = newRunId();
+    trackRunStart("siem-alert-triage", runId, { groups: groups.length });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/siem-triage/judge`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/siem-triage/judge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           groups: groups.map(g => ({ template: g.template, count: g.count, example: g.example, unique_ips: g.uniqueIps })),
         }),
         signal: controller.signal,
-      });
+      }, { tool: "siem-alert-triage", runId, meta: { groups: groups.length } });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Judge call failed.");
       const verdicts: (TriageVerdict | null)[] = Array.isArray(data) ? data : groups.map(() => null);

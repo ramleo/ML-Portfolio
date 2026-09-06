@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { Bbox } from "./_types";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 // A region-scoped call makes FOUR sequential network calls on the backend
 // (two independent Gemini generations for corroboration + one OCR read
@@ -79,13 +80,15 @@ export function useSharpen(syncKey: string) {
     const progressTimer = setInterval(() => {
       setSharpenProgress(Math.min(90, ((Date.now() - startedAt) / expectedMs) * 90));
     }, 300);
+    const runId = newRunId();
+    trackRunStart("mmrag-sharpen", runId, { region: !!bbox });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-deblur`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-deblur`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: baseImage, bbox: bbox ?? null }),
         signal: controller.signal,
-      });
+      }, { tool: "mmrag-sharpen", runId, meta: { region: !!bbox } });
       if (!res.ok) throw new Error(res.status === 429 ? "rate_limited" : "failed");
       const data = await res.json();
       setSharpenedImg(data.image as string);
