@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { type IngestStatus } from "./RagIngestButton";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
+import { STAGE, ERR } from "@/lib/logEvents";
 import { STEP_LABELS } from "./ToolsAIChatIcons";
 import { isImageGenerationIntent } from "./chatImageIntent";
 import { buildToolContext, sanitizeHistory, type ToolChatContext, type Message, type RagSource, type Groundedness } from "./chatContext";
@@ -264,6 +265,13 @@ export function useRagChat(context: ToolChatContext) {
             } else if (evt.type === "error") {
               hadError = true;
               setMessages(m => [...m, { role: "assistant", content: `Error: ${evt.message}` }]);
+              // Delivered inside a 200 stream that then closes cleanly, so the
+              // stream wrapper would record a success while the visitor is
+              // reading an error message.
+              trackRunError("rag-chat", runId, STAGE.RUN,
+                /429|rate limit/i.test(String(evt.message ?? "")) ? ERR.RATE_LIMITED : ERR.UNKNOWN,
+                { provider, model, reason: "in_band_stream_error",
+                  message: String(evt.message ?? "").slice(0, 120) });
             }
           } catch { /* skip malformed lines */ }
         }

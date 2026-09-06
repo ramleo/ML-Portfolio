@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
-import { STAGE, classifyThrown } from "@/lib/logEvents";
+import { STAGE, ERR, classifyThrown } from "@/lib/logEvents";
 import { usePipeline } from "@/context/PipelineContext";
 import { track } from "@/hooks/useAnalytics";
 import OptunaResults from "./OptunaResults";
@@ -164,7 +164,17 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
                 }));
               }
             }
-            if (evt.error) setError(`Server error: ${evt.error}`);
+            if (evt.error) {
+              setError(`Server error: ${evt.error}`);
+              // In-band: this arrives INSIDE a healthy 200 stream, which then
+              // closes cleanly, so the stream wrapper would record a success
+              // while the visitor is looking at an error. Same shape as
+              // text-to-sql's {type:"error"} events.
+              trackRunError("optuna", runId, STAGE.RUN,
+                /429|rate limit/i.test(String(evt.error)) ? ERR.RATE_LIMITED : ERR.UNKNOWN,
+                { model, reason: "in_band_stream_error",
+                  message: String(evt.error).slice(0, 120) });
+            }
           } catch { /* skip malformed */ }
         }
       }

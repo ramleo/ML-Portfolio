@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
+import { STAGE, ERR } from "@/lib/logEvents";
 import DocSidebar from "./DocSidebar";
 import DocViewerPanel from "./DocViewerPanel";
 import DocFieldsPanel from "./DocFieldsPanel";
@@ -88,7 +89,17 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
           try {
             const evt = JSON.parse(line.slice(5).trim());
 
-            if (evt.error) { setError(evt.error); setStep("error"); return; }
+            if (evt.error) {
+              setError(evt.error); setStep("error");
+              // Same in-band case: a 200 stream carrying a failure. Returning
+              // here also abandons the stream, which the wrapper would other-
+              // wise record as a user cancellation.
+              trackRunError("document-intelligence", runId, STAGE.RUN,
+                /429|rate limit/i.test(String(evt.error)) ? ERR.RATE_LIMITED : ERR.UNKNOWN,
+                { doc_type: docType, reason: "in_band_stream_error",
+                  message: String(evt.error).slice(0, 120) });
+              return;
+            }
             if (evt.warning) setWarning(evt.warning);
             if (evt.provider) setProvider(evt.provider);
 

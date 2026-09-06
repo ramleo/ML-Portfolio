@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { DriftResult, ACCENT } from "./driftTypes";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
+import { STAGE, ERR } from "@/lib/logEvents";
 
 const TOOL = "drift-ai-explain";
 
@@ -114,7 +115,15 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
           try {
             const msg = JSON.parse(part.slice(6));
             if (msg.type === "token") setText(t => t + msg.text);
-            if (msg.type === "error") setError(msg.message ?? "Generation failed.");
+            if (msg.type === "error") {
+              setError(msg.message ?? "Generation failed.");
+              // See the Optuna note: an error delivered inside a 200 stream
+              // that then closes cleanly would otherwise log a success.
+              trackRunError(TOOL, runId, STAGE.RUN,
+                /429|rate limit/i.test(String(msg.message ?? "")) ? ERR.RATE_LIMITED : ERR.UNKNOWN,
+                { provider, reason: "in_band_stream_error",
+                  message: String(msg.message ?? "").slice(0, 120) });
+            }
           } catch { /* skip malformed chunks */ }
         }
       }
