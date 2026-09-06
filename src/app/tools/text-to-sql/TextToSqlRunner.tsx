@@ -62,7 +62,8 @@ export default function TextToSqlRunner() {
 
   const loadDemoSchema = useCallback(async () => {
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/schema?db_ref=chinook`);
+      const res = await trackedFetch(`${ML_SQL_API}/sql/schema?db_ref=chinook`,
+        undefined, { tool: "text-to-sql-schema" });
       const data = await res.json().catch(() => { throw new Error("Backend warming up — wait 30s and click Load Schema again."); });
       if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`);
       setSchema(data.tables); setDbRef("chinook");

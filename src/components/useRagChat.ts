@@ -92,14 +92,14 @@ export function useRagChat(context: ToolChatContext) {
   }, [ingestStatus]);
   useEffect(() => {
     if (!open || jinaStatus !== "error") return;
-    fetch(`${ML_UNIFIED_API}/rag/health`).then(r => r.json())
+    trackedFetch(`${ML_UNIFIED_API}/rag/health`, undefined, { tool: "rag-health" }).then(r => r.json())
       .then(d => { if (!d.jina_error) setJinaStatus("idle"); }).catch(() => {});
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (jinaStatus !== "loading") return;
     const id = setInterval(async () => {
       try {
-        const d = await (await fetch(`${ML_UNIFIED_API}/rag/health`)).json();
+        const d = await (await trackedFetch(`${ML_UNIFIED_API}/rag/health`, undefined, { tool: "rag-health" })).json();
         if (d.jina_ready) setJinaStatus("ready");
         else if (d.initialized && d.jina_error) setJinaStatus("error");
       } catch { /* ignore */ }
@@ -122,7 +122,7 @@ export function useRagChat(context: ToolChatContext) {
     if (jinaStatus === "ready") return;
     setJinaStatus("loading");
     try {
-      const d = await (await fetch(`${ML_UNIFIED_API}/rag/prepare-jina`, { method: "POST" })).json();
+      const d = await (await trackedFetch(`${ML_UNIFIED_API}/rag/prepare-jina`, { method: "POST" }, { tool: "rag-prepare-jina" })).json();
       if (d.status === "ready") setJinaStatus("ready");
     } catch { /* status updates via done event */ }
   }, [useJina, jinaStatus]);

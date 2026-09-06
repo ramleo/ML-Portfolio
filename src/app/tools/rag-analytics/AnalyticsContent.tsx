@@ -8,6 +8,7 @@ import StatCard from "./StatCard";
 import ProviderDonut from "./ProviderDonut";
 import UploadTypeBars from "./UploadTypeBars";
 import AnalyticsSkeleton from "./AnalyticsSkeleton";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 type Analytics = {
   since: number;
@@ -33,7 +34,7 @@ export default function AnalyticsContent() {
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch(`${ML_UNIFIED_API}/rag/analytics`)
+    trackedFetch(`${ML_UNIFIED_API}/rag/analytics`, undefined, { tool: "rag-analytics" })
       .then(r => r.json())
       .then(setData)
       .catch(() => setError("Couldn't load analytics — the backend may be starting up."))

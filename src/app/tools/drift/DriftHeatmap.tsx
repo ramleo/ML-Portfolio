@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 interface HistFeat {
   name: string;
@@ -38,7 +39,7 @@ export default function DriftHeatmap({ modelId }: { modelId: string }) {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${ML_UNIFIED_API}/drift/${modelId}/history`)
+    trackedFetch(`${ML_UNIFIED_API}/drift/${modelId}/history`, undefined, { tool: "drift-history" })
       .then(r => r.json())
       .then(d => {
         const snaps = (d.history ?? []).filter((s: HistSnap) => s.features?.length > 0);

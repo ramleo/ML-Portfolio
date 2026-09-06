@@ -195,10 +195,10 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     if (!activeTabId) return;
     const tabId = activeTabId;
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/page`, {
+      const res = await trackedFetch(`${ML_SQL_API}/sql/page`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql, db_ref: dbRef, page: 1, page_size: 50 }),
-      });
+      }, { tool: "text-to-sql-run-sql" });
       const data = await res.json();
       if (data.error) { patchTab(tabId, { error: data.error }); return; }
       patchTab(tabId, { sql, currentSql: sql, originalSql: sql, results: data, currentPage: 1, totalCount: data.total_count ?? -1, error: null });
@@ -216,10 +216,10 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     const tab = tabs.find(t => t.id === activeTabId);
     if (!tab?.currentSql) return;
     const { id: tabId, currentSql } = tab;
-    const res = await fetch(`${ML_SQL_API}/sql/page`, {
+    const res = await trackedFetch(`${ML_SQL_API}/sql/page`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sql: currentSql, db_ref: dbRef, page, page_size: 50 }),
-    });
+    }, { tool: "text-to-sql-page", meta: { page } });
     const data = await res.json();
     if (!data.error) patchTab(tabId, { results: data, currentPage: page });
   }, [tabs, activeTabId, dbRef, patchTab]);
@@ -229,10 +229,10 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     if (!tab?.currentSql || !tab.results) return;
     const { id: tabId, currentSql, results: tabResults } = tab;
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/filter`, {
+      const res = await trackedFetch(`${ML_SQL_API}/sql/filter`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql: currentSql, db_ref: dbRef, filter_text: filterText, columns: tabResults.columns, provider }),
-      });
+      }, { tool: "text-to-sql-filter", meta: { provider } });
       const data = await res.json();
       if (data.error) { patchTab(tabId, { error: data.error }); return; }
       patchTab(tabId, { results: data, currentPage: 1, totalCount: data.total_count ?? -1, currentSql: data.filtered_sql, activeFilter: filterText });
@@ -243,10 +243,10 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     const tab = tabs.find(t => t.id === activeTabId);
     if (!tab?.originalSql) return;
     const { id: tabId, originalSql } = tab;
-    const res = await fetch(`${ML_SQL_API}/sql/page`, {
+    const res = await trackedFetch(`${ML_SQL_API}/sql/page`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sql: originalSql, db_ref: dbRef, page: 1, page_size: 50 }),
-    });
+    }, { tool: "text-to-sql-clear-filter" });
     const data = await res.json();
     if (!data.error) patchTab(tabId, { currentSql: originalSql, activeFilter: null, results: data, currentPage: 1 });
   }, [tabs, activeTabId, dbRef, patchTab]);

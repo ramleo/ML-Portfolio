@@ -27,7 +27,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch(`${ML_UNIFIED_API}/models`)
+    trackedFetch(`${ML_UNIFIED_API}/models`, undefined, { tool: "drift-models" })
       .then(r => r.json())
       .then((data: ModelMeta[]) => {
         setModels(data);
@@ -40,7 +40,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
 
   async function fetchVersions(mid: string) {
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/drift/${mid}/versions`);
+      const res = await trackedFetch(`${ML_UNIFIED_API}/drift/${mid}/versions`, undefined, { tool: "drift-versions" });
       if (res.ok) {
         const data = await res.json();
         setVersions(data.versions ?? []);
