@@ -130,6 +130,18 @@ export default function PrivacyPage() {
             referrer, how long you stayed, and a two-letter country code derived from the request. Your
             IP address is not stored with analytics.
           </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            Alongside each event a small amount of structured detail is stored, and it is deliberately
+            limited to counts, sizes, durations and fixed choices — for example which tool you used, how
+            long a run took, whether it succeeded, and if it failed, a category such as
+            &ldquo;rate limited&rdquo; or &ldquo;timed out&rdquo; with the HTTP status. Each run is given
+            a random id so a click can be matched to its outcome.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>None of it contains what you typed or uploaded.</strong> Document text, prompt text
+            and search terms are never written to the analytics store. Where the length of something is
+            useful, the length is recorded and the text is not.
+          </p>
           <p style={{ margin: 0 }}>
             The backend separately logs security events — a blocked origin, a rate-limit hit, an
             oversized request, a file that matched a malware-scanning rule. Those entries do include the

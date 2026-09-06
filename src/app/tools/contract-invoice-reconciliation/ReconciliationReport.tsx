@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 import type { ReconciliationResult } from "./_types";
 
 const displayName = (source: string) => source.replace(/^user:/, "").replace(/:[a-f0-9]{8}$/, "");
@@ -18,14 +21,32 @@ export default function ReconciliationReport({ sessionId, contractSource, invoic
 
   const check = async () => {
     setState("loading");
+    // One run_id per press, joining the click, the HTTP outcome and (once the
+    // llm_calls table exists) the judge's own provider calls. The invoice
+    // count is a count, not content — safe for the analytics table (§6 r1).
+    const runId = newRunId();
+    trackRunStart("contract-invoice-reconciliation", runId, { invoices: invoiceSources.length });
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/reconciliation`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/reconciliation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, contract_source: contractSource, invoice_sources: invoiceSources }),
-      });
+        body: JSON.stringify({ session_id: sessionId, contract_source: contractSource, invoice_sources: invoiceSources, run_id: runId }),
+      }, { tool: "contract-invoice-reconciliation", runId });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setResult(await res.json());
+      const body = await res.json();
+      // An HTTP 200 is not the same as a complete check. On 2026-09-05 this
+      // route returned 200 with an empty report because every judge call was
+      // rate-limited, and the UI printed a confident all-clear. That failure
+      // is invisible to trackedFetch, which only sees the status — so the
+      // counts are recorded here, where the shape of the answer is known.
+      track(EV.RESULT_VIEW, { meta: {
+        tool: "contract-invoice-reconciliation", run_id: runId,
+        result_count: body?.discrepancies?.length ?? 0,
+        checked_pairs: body?.checked_pairs ?? 0,
+        judge_failures: body?.judge_failures ?? 0,
+        incomplete: (body?.judge_failures ?? 0) > 0,
+      } });
+      setResult(body);
       setState("done");
     } catch {
       setState("error");
