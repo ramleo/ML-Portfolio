@@ -17,18 +17,26 @@
  *  2. An Origin allow-list. This stops another website POSTing here from a
  *     visitor's browser. It does NOT stop curl, which can send any Origin it
  *     likes — no header-based check can. It raises the floor, nothing more.
- *  3. A per-IP rate limit. Best-effort: serverless functions do not share
- *     memory, so a determined flood across instances gets through. It stops
- *     the easy case.
+ *  3. A per-IP rate limit enforced IN THE DATABASE, by
+ *     log_security_event(). The in-memory counter below is only a cheap first
+ *     pass — serverless instances share no memory, so a flood spread across
+ *     them walks straight through it. The database counter is shared by
+ *     definition and is the one that actually holds.
  *
- * The residual risk is honest and worth stating: someone determined can put
- * junk rows in this table. They cannot read it, cannot reach any other table,
- * and cannot store anything large. The damage is a polluted security log —
- * which matters, because a log you can bury a real event in is a log you
- * cannot trust. If that ever happens, the fix is a signed token minted
- * server-side per session, not a bigger header check.
+ * The IP is never stored. What is stored is an HMAC of it, salted with a
+ * server-only secret, which is enough to count requests from one caller and
+ * useless to anyone reading the table.
+ *
+ * Residual risk, stated plainly: a forged Origin gets through. Nothing
+ * header-based can prevent that, here or anywhere — headers are
+ * attacker-controlled, and this is equally true of /api/track. What the limit
+ * does is bound the damage: the endpoint can be reached but the table cannot
+ * be filled, so the log's contents stay meaningful. Eliminating it entirely
+ * needs something no header can provide — a proof-of-work, a challenge, or a
+ * platform-level firewall rule.
  */
 import { createClient } from "@supabase/supabase-js";
+import { createHmac } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const trunc = (v: unknown, n: number) =>
@@ -49,9 +57,8 @@ const EXCLUDED = new Set(["password-audit", "password-strength"]);
  * is a 255-char filename plus a 64-char hash and some short strings. */
 const MAX_BODY_BYTES = 4_000;
 
-/** Best-effort per-IP limit. A module-level Map lives as long as one warm
- * serverless instance — it will not see a flood spread across instances, and
- * it is not meant to. */
+/** First-pass per-IP limit, per warm instance. Cheap, and catches the obvious
+ * case without a database round trip. The real limit is in the database. */
 const HITS = new Map<string, { n: number; resetAt: number }>();
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 60;   // a person uploading files cannot approach this
@@ -110,25 +117,36 @@ export async function POST(req: NextRequest) {
     if (EXCLUDED.has(tool)) return NextResponse.json({ ok: true, skipped: true });
 
     const country = req.headers.get("CF-IPCountry") ?? req.headers.get("x-vercel-ip-country") ?? "";
-    const { error } = await createClient(url, key).from("security_log").insert({
-      session_id: trunc(b.session_id, 80),
-      run_id:     trunc(b.run_id, 80),
-      tool:       tool || null,
-      filename:   trunc(b.filename, 255),
-      ext:        trunc(b.ext, 16),
-      size_bytes: int(b.size_bytes, 5_000_000_000),
-      mime:       trunc(b.mime, 120),
-      // A SHA-256 hex digest and nothing else. Anything longer or otherwise
-      // shaped is dropped rather than stored — this column must never become
-      // a place content can be smuggled into.
-      sha256:     /^[a-f0-9]{64}$/.test(String(b.sha256 ?? "")) ? String(b.sha256) : null,
-      prompt_len: int(b.prompt_len, 10_000_000),
-      country,
+
+    // HMAC, not the address. Salted with a server-only secret so a row cannot
+    // be reversed into an IP, and so the same caller hashes consistently.
+    const ipHash = createHmac("sha256", process.env.AIRAML_LOG_TOKEN ?? "unsalted")
+      .update(ip).digest("hex");
+
+    // Insert via the function, not the table: it counts this caller's last
+    // minute inside the database, where every serverless instance sees the
+    // same number, and refuses rather than writing when the caller is over.
+    const { data, error } = await createClient(url, key).rpc("log_security_event", {
+      p_session_id: trunc(b.session_id, 80),
+      p_run_id:     trunc(b.run_id, 80),
+      p_tool:       tool || null,
+      p_filename:   trunc(b.filename, 255),
+      p_ext:        trunc(b.ext, 16),
+      p_size_bytes: int(b.size_bytes, 5_000_000_000),
+      p_mime:       trunc(b.mime, 120),
+      // A SHA-256 hex digest and nothing else. Anything otherwise shaped is
+      // dropped rather than stored — this column must never become a place
+      // content can be smuggled into.
+      p_sha256:     /^[a-f0-9]{64}$/.test(String(b.sha256 ?? "")) ? String(b.sha256) : null,
+      p_prompt_len: int(b.prompt_len, 10_000_000),
+      p_country:    country,
+      p_ip_hash:    ipHash,
     });
     if (error) {
       console.error("security-log: insert failed", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    if (data === false) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("security-log: bad payload", err);
