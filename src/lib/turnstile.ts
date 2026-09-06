@@ -10,10 +10,16 @@
  * against signals the client cannot forge, and the token is single-use and
  * short-lived. A forged Origin no longer gets anywhere without one.
  *
- * FAILS OPEN BY DESIGN. With NEXT_PUBLIC_TURNSTILE_SITE_KEY unset, this
- * returns null and the route accepts requests exactly as it does today.
- * A logging feature must never be the reason an upload stops working (§6
- * rule 2) — the endpoint's other guards still apply meanwhile.
+ * With NEXT_PUBLIC_TURNSTILE_SITE_KEY unset this returns null and the route
+ * accepts requests as before, so switching Turnstile on is opt-in.
+ *
+ * Once it IS configured the endpoint fails CLOSED: no token, no row. Note
+ * what that costs — a visitor who blocks Cloudflare (an ad-blocker will) can
+ * still use every tool normally, but their uploads go unlogged. For a
+ * security log that is the right way round, since the alternative is
+ * accepting unverified rows, but it is a real gap rather than a detail: the
+ * log is a record of what most visitors uploaded, not provably all of them.
+ * §6 rule 2 still holds — the UPLOAD never fails, only its log entry.
  */
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -43,25 +49,38 @@ function loadScript(): Promise<void> {
 
 /** A fresh single-use token, or null if Turnstile is not configured, is
  * blocked, or takes too long. Never throws. */
-export async function getTurnstileToken(timeoutMs = 6000): Promise<string | null> {
+export async function getTurnstileToken(timeoutMs = 8000): Promise<string | null> {
   if (!SITE_KEY || typeof window === "undefined") return null;
   try {
     await loadScript();
     if (!window.turnstile) return null;
     return await new Promise<string | null>((resolve) => {
-      // Invisible: no widget, no interaction, nothing for a visitor to see.
+      // Off-screen, NOT display:none. Turnstile refuses to execute inside a
+      // hidden element, which is what made the first attempt return no token
+      // at all while looking perfectly correct.
       const host = document.createElement("div");
-      host.style.display = "none";
+      host.style.cssText = "position:fixed;left:-9999px;top:0;width:300px;height:65px;";
       document.body.appendChild(host);
-      const done = (v: string | null) => { host.remove(); resolve(v); };
+
+      let settled = false;
+      const done = (v: string | null) => {
+        if (settled) return;
+        settled = true;
+        host.remove();
+        resolve(v);
+      };
       const timer = setTimeout(() => done(null), timeoutMs);
+
       try {
+        // No `size` option. "invisible" is a WIDGET setting chosen in the
+        // Cloudflare dashboard, not a client parameter — passing it as one
+        // is rejected, and the widget then never runs.
         window.turnstile!.render(host, {
           sitekey: SITE_KEY,
-          size: "invisible",
           callback: (t: string) => { clearTimeout(timer); done(t); },
           "error-callback": () => { clearTimeout(timer); done(null); },
           "timeout-callback": () => { clearTimeout(timer); done(null); },
+          "expired-callback": () => { clearTimeout(timer); done(null); },
         });
       } catch {
         clearTimeout(timer);
