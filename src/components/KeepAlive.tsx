@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { installSessionEnd } from "@/lib/sessionTracking";
 import { installDownloadTracking } from "@/lib/downloadTracking";
+import { installUploadLogging } from "@/lib/securityLog";
 import { trackedFetch } from "@/lib/trackedFetch";
 
 export default function KeepAlive() {
@@ -20,7 +21,8 @@ export default function KeepAlive() {
     // exists, so adding a second one just to hold a listener would be worse.
     const removeSessionEnd = installSessionEnd();
     const removeDownloads = installDownloadTracking();
-    return () => { clearInterval(id); removeSessionEnd(); removeDownloads(); };
+    const removeUploads = installUploadLogging();
+    return () => { clearInterval(id); removeSessionEnd(); removeDownloads(); removeUploads(); };
   }, []);
   return null;
 }

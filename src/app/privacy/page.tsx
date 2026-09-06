@@ -147,11 +147,27 @@ export default function PrivacyPage() {
             enough to compare one year against the next, and short enough that nothing is being hoarded.
             The deletion runs as a scheduled database job, not by hand.
           </p>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: "0 0 0.75rem" }}>
             The backend separately logs security events — a blocked origin, a rate-limit hit, an
             oversized request, a file that matched a malware-scanning rule. Those entries do include the
             requesting IP address, because that is the point of them. They are operational logs on the
             Space and are not combined with the analytics above.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>When you upload a file, a short record of it is kept for 30 days</strong> so that
+            abuse can be investigated: the filename, its type and size, and a SHA-256 fingerprint of its
+            contents. <strong>The file itself is not kept</strong> — it is discarded once the tool has
+            answered, and the fingerprint cannot be turned back into it. The fingerprint exists so that
+            if a malicious file is identified later, it can be recognised without any copy having been
+            stored. These records are deleted automatically after 30 days and are not readable by
+            anything on this site.
+          </p>
+          <p style={{ margin: 0 }}>
+            Filenames are the one part of this worth spelling out: <em>report.pdf</em> reveals nothing,
+            but a filename can carry a person&rsquo;s name. It is kept because a name without the
+            document is a far smaller exposure than the document itself, and only under the 30-day
+            limit above. <strong>The Password Strength checker is excluded from this entirely</strong> —
+            nothing you type there leaves your browser, and no record of it is made anywhere.
           </p>
         </Section>
 
