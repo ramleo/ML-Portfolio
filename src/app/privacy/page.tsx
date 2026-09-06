@@ -142,6 +142,11 @@ export default function PrivacyPage() {
             and search terms are never written to the analytics store. Where the length of something is
             useful, the length is recorded and the text is not.
           </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>Analytics are kept for 14 months, then deleted automatically.</strong> That is long
+            enough to compare one year against the next, and short enough that nothing is being hoarded.
+            The deletion runs as a scheduled database job, not by hand.
+          </p>
           <p style={{ margin: 0 }}>
             The backend separately logs security events — a blocked origin, a rate-limit hit, an
             oversized request, a file that matched a malware-scanning rule. Those entries do include the
