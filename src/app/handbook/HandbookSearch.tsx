@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { buildIndex, findMatches, groupByChapter, type ChapterHits, type Match } from "./handbookIndex";
 import { markJump } from "./handbookJump";
+import { useSearchTracking } from "@/lib/useSearchTracking";
 
 /**
  * A find bar for the handbook.
@@ -66,6 +67,8 @@ export default function HandbookSearch() {
   const [at, setAt] = useState(0);
   const [open, setOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+
+  useSearchTracking("handbook", query, matches.length);
 
   // The server has no idea which keyboard the reader has, so it renders no
   // hint at all and the client fills one in — an explicit server snapshot

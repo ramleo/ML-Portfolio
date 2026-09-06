@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { installSessionEnd } from "@/lib/sessionTracking";
+import { installDownloadTracking } from "@/lib/downloadTracking";
 import { trackedFetch } from "@/lib/trackedFetch";
 
 export default function KeepAlive() {
@@ -13,7 +15,12 @@ export default function KeepAlive() {
       { tool: "keepalive" }).catch(() => {});
     ping();
     const id = setInterval(ping, 4 * 60 * 1000);
-    return () => clearInterval(id);
+    // §3 stage 8. Mounted here because this component is already in the root
+    // layout and runs on every page — it is the only global client hook that
+    // exists, so adding a second one just to hold a listener would be worse.
+    const removeSessionEnd = installSessionEnd();
+    const removeDownloads = installDownloadTracking();
+    return () => { clearInterval(id); removeSessionEnd(); removeDownloads(); };
   }, []);
   return null;
 }

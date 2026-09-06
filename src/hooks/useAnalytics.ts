@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { noteSessionPage, noteSessionRun, noteSessionTool } from "@/lib/sessionTracking";
 import { EV } from "@/lib/logEvents";
 
 function getOrCreateSession(): string {
@@ -25,7 +26,11 @@ export function track(type: string, extra: Record<string, unknown> = {}) {
     const count = Number(localStorage.getItem("_ml_pv_count") ?? "0");
     enrichedMeta = { ...enrichedMeta, device: window.innerWidth < 768 ? "mobile" : "desktop", returning: count > 0 };
     localStorage.setItem("_ml_pv_count", String(count + 1));
+    // §3 stage 1/8 counters. Done here rather than at 61 page_view call sites.
+    noteSessionPage(window.location.pathname);
   }
+  if (type === EV.RUN_SUCCESS || type === EV.RUN_ERROR) noteSessionRun(enrichedMeta.tool as string | undefined);
+  if (typeof enrichedMeta.tool === "string") noteSessionTool(enrichedMeta.tool);
   fetch("/api/track", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

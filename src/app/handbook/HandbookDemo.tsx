@@ -5,6 +5,8 @@ import type { Demo, DemoStep } from "@/data/demos";
 import { performStep } from "./demoActions";
 import { getPresenter } from "@/lib/presenter";
 import DemoVoice, { AS_RECORDED, isOwnKey, useClipNarration } from "./DemoVoice";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 
 /** How long to let the narration run before carrying out the step's action:
  *  a third of the way in, capped. The recorder computes this from the real
@@ -212,6 +214,40 @@ export default function HandbookDemo({ demo, onClose }: { demo: Demo; onClose: (
   }, [mode, demo.toolId, timings]);
 
   useClipNarration(video, timings, narrating ? voiceURI : AS_RECORDED, ownKey);
+
+  // §3 stage 3. 19 clips were re-recorded and there is currently no way to
+  // know whether one person watches them or where they give up.
+  //
+  // "Abandon" is decided on unmount, not on pause: pausing to read a caption
+  // is normal, and counting it as abandonment would make the number useless.
+  // What matters is how far they got, so the abandon row carries the percent.
+  useEffect(() => {
+    if (!video) return;
+    let started = false;
+    let completed = false;
+
+    const onPlay = () => {
+      if (started) return;            // resuming after a pause is not a new start
+      started = true;
+      track(EV.DEMO_START, { meta: { tool: demo.toolId, mode: "clip" } });
+    };
+    const onEnded = () => {
+      completed = true;
+      track(EV.DEMO_COMPLETE, { duration_ms: Math.round(video.duration * 1000),
+        meta: { tool: demo.toolId, mode: "clip" } });
+    };
+    video.addEventListener("play", onPlay);
+    video.addEventListener("ended", onEnded);
+    return () => {
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("ended", onEnded);
+      if (started && !completed) {
+        const pct = video.duration ? Math.round((video.currentTime / video.duration) * 100) : 0;
+        track(EV.DEMO_ABANDON, { duration_ms: Math.round(video.currentTime * 1000),
+          meta: { tool: demo.toolId, mode: "clip", percent: pct } });
+      }
+    };
+  }, [video, demo.toolId]);
 
   useEffect(() => {
     const host = avatarHost.current;

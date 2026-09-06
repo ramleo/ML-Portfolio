@@ -7,6 +7,7 @@ import capabilities from "@/data/capabilities";
 import type { Domain } from "@/data/domains";
 import ToolCard from "./ToolCard";
 import { scoreCapability, deriveFilterTags, hasTag } from "@/lib/toolSearch";
+import { useSearchTracking, trackSearchResultClick } from "@/lib/useSearchTracking";
 
 /**
  * One domain's tools, with search and tag facets scoped to that domain.
@@ -47,6 +48,8 @@ export default function DomainToolGrid({ domain }: { domain: Domain }) {
         .map(({ cap }) => cap),
     [all, query, activeTag]
   );
+
+  useSearchTracking(`tools:${domain.name}`, query, items.length);
 
   return (
     <section className="section" style={{ ["--dom" as string]: domain.color, ["--dom-l" as string]: domain.colorLight }}>
@@ -118,11 +121,14 @@ export default function DomainToolGrid({ domain }: { domain: Domain }) {
 
       {items.length > 0 ? (
         <div className="cap-grid">
-          {items.map((cap) => (
+          {items.map((cap, i) => (
             <ToolCard
               key={cap.id}
               cap={cap}
-              onRunHere={cap.modalEnabled ? () => router.push(`/tools/${cap.id}`) : undefined}
+              onRunHere={cap.modalEnabled ? () => {
+                if (query.trim()) trackSearchResultClick(`tools:${domain.name}`, i, cap.id, query.trim().length);
+                router.push(`/tools/${cap.id}`);
+              } : undefined}
             />
           ))}
         </div>
