@@ -15,6 +15,7 @@ import {
   CARD, MODELS,
   type Step, type AnalyzeResult, type TrainResult,
 } from "./optunaTypes";
+import { EV } from "@/lib/logEvents";
 
 interface OptunaRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
@@ -78,7 +79,7 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
       setTarget(data.suggested_target);
       setTask(data.suggested_task);
       setStep(2);
-      track("tool_open", { meta: { tool: "optuna", action: "upload_csv", rows: data.rows, cols: data.columns.length } });
+      track(EV.UPLOAD, { meta: { tool: "optuna", rows: data.rows, cols: data.columns.length } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to analyze CSV");
     } finally {
@@ -150,7 +151,7 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
               const raw = evt.result.automl ?? evt.result;
               const data: TrainResult = { ...raw, best_params: raw.optuna_params ?? raw.best_params };
               setResult(data); onResult?.(data);
-              track("query_run", { meta: { tool: "optuna", action: "optuna", model, n_trials: nTrials, winner: raw.winner, metric_value: Number(Object.values(raw.winner_metrics ?? {})[0] ?? 0), success: true } });
+              track(EV.RESULT_VIEW, { meta: { tool: "optuna", run_id: runId, model, n_trials: nTrials, winner: raw.winner, metric_value: Number(Object.values(raw.winner_metrics ?? {})[0] ?? 0) } });
               // Write tunedModel back to PipelineContext
               if (data?.best_params && data?.winner_metrics) {
                 setState(prev => ({

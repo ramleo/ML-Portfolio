@@ -8,6 +8,8 @@ import {
   CARD, ALL_MODELS,
   type Step, type Column, type AnalyzeResult, type CVEntry, type TrainResult,
 } from "./ensembleTypes";
+import { track } from "@/hooks/useAnalytics";
+import { EV, ERR, STAGE } from "@/lib/logEvents";
 
 interface EnsembleRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
@@ -74,15 +76,14 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
       setTask(data.suggested_task);
       setStep(2);
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "query_run", path: "/tools/ensemble", session_id: sid, meta: { tool: "ensemble", action: "analyze", rows: data.rows } }),
-      }).catch(() => {});
+      // "analyze" is reading the uploaded CSV, not running the model — it was
+      // being counted as a query_run, which inflated that number.
+      track(EV.UPLOAD, { meta: { tool: "ensemble", rows: data.rows } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to analyze CSV");
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "error", path: "/tools/ensemble", session_id: sid, meta: { tool: "ensemble", error_type: "analyze_error" } }),
-      }).catch(() => {});
+      track(EV.RUN_ERROR, { meta: { tool: "ensemble", stage: STAGE.UPLOAD,
+        error_class: ERR.UNKNOWN } });
     } finally {
       setAnalyzing(false);
     }
@@ -155,10 +156,9 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
               };
               setResult(data); onResult?.(data);
               const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/ensemble", session_id: sid,
-                  meta: { tool: "ensemble", action: "train", winner: data.winner ?? "", score: Number(Object.values(data.winner_metrics ?? {})[0] ?? 0) } }),
-              }).catch(() => {});
+              track(EV.RUN_SUCCESS, { meta: { tool: "ensemble",
+                winner: data.winner ?? "",
+                score: Number(Object.values(data.winner_metrics ?? {})[0] ?? 0) } });
               // Write ensembleScore back to PipelineContext
               if (data?.winner_metrics) {
                 setState(prev => ({
@@ -174,9 +174,8 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
     } catch (e) {
       setError(e instanceof Error ? e.message : "Training failed");
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "error", path: "/tools/ensemble", session_id: sid, meta: { tool: "ensemble", error_type: "train_error" } }),
-      }).catch(() => {});
+      track(EV.RUN_ERROR, { meta: { tool: "ensemble", stage: STAGE.RUN,
+        error_class: ERR.UNKNOWN } });
     } finally {
       setTraining(false);
     }

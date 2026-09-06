@@ -3,6 +3,8 @@
 import { useCallback, useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { EmbeddingMode, IngestState, SaveScope } from "./_types";
+import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
+import { EV, ERR, STAGE } from "@/lib/logEvents";
 
 const ACCENT = "#7e68c0";
 
@@ -71,6 +73,9 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     const sid = sessionId || ensureSessionId();
     const embeddingMode: EmbeddingMode = findSimilar ? "caption+clip" : "caption";
 
+    const runId = newRunId();
+    trackRunStart("mm-ingest", runId, { size_bytes: file.size, ext: file.name.split(".").pop() ?? "" });
+
     const fd = new FormData();
     fd.append("file", file);
     fd.append("embedding_mode", embeddingMode);
@@ -78,7 +83,10 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
     fd.append("session_id", sid);
 
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ingest`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-ingest`,
+        { method: "POST", body: fd },
+        { tool: "mm-ingest", runId, stage: STAGE.UPLOAD, streaming: true,
+          meta: { size_bytes: file.size, embedding_mode: embeddingMode } });
       if (!res.ok || !res.body) throw new Error(`Upload failed: ${res.statusText}`);
 
       const reader = res.body.getReader();
@@ -96,7 +104,15 @@ export default function IngestProgressRail({ sessionId, ensureSessionId, onInges
           if (!line.startsWith("data:")) continue;
           try {
             const evt = JSON.parse(line.slice(5).trim());
-            if (evt.error) { setState({ kind: "error", message: evt.error }); return; }
+            if (evt.error) {
+              setState({ kind: "error", message: evt.error });
+              // In-band, and the early return also abandons the stream, which
+              // the wrapper would otherwise read as a user cancellation.
+              trackRunError("mm-ingest", runId, STAGE.UPLOAD, ERR.UNKNOWN,
+                { reason: "in_band_stream_error",
+                  message: String(evt.error).slice(0, 120) });
+              return;
+            }
             if (evt.step === "extract" && evt.status === "running") {
               setState({ kind: "extracting", page: evt.page, pages: evt.pages, indeterminate: !!evt.indeterminate });
             }

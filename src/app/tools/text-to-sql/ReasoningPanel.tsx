@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { saveCorrection, deleteCorrection, getCorrection } from "./_corrections";
+import { streamSqlExplain } from "./sqlExplainStream";
 
-const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
 
 interface Props {
   question: string;
@@ -53,26 +53,12 @@ export default function ReasoningPanel({ question, sql, columns, provider, dbRef
     if (loading) return;
     setShown(true); setLoading(true); setErr(null); setReasoning("");
     try {
-      const resp = await fetch(`${ML_SQL_URL}/sql/reason`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, sql, columns, provider }),
+      await streamSqlExplain({
+        tool: "text-to-sql-reasoning", path: "/sql/reason", provider,
+        body: { question, sql, columns, provider },
+        onToken: (t) => setReasoning(prev => prev + t),
+        onError: (m) => setErr(cleanErr(m)),
       });
-      const reader = resp.body?.getReader();
-      if (!reader) throw new Error("No response body");
-      const dec = new TextDecoder(); let buf = "";
-      while (true) {
-        const { done, value } = await reader.read(); if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n"); buf = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const ev = JSON.parse(line.slice(6));
-            if (ev.type === "token") setReasoning(prev => prev + ev.text);
-            else if (ev.type === "error") setErr(cleanErr(ev.text));
-          } catch {}
-        }
-      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load reasoning");
     } finally { setLoading(false); }

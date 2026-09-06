@@ -6,8 +6,10 @@ import AutoInsights from "./AutoInsights";
 import ReasoningPanel from "./ReasoningPanel";
 import ColumnLineageGraph from "./ColumnLineageGraph";
 import { highlightSQL, formatCell, cleanErr, csvEscape, downloadFile, exportNotebook, SqlDiff } from "./_utils";
+import { track } from "@/hooks/useAnalytics";
+import { streamSqlExplain, ML_SQL_URL } from "./sqlExplainStream";
+import { EV } from "@/lib/logEvents";
 
-const ML_SQL_URL = process.env.NEXT_PUBLIC_ML_SQL_URL ?? "https://wram1708-ml-sql.hf.space";
 
 interface Results {
   columns: string[];
@@ -76,11 +78,7 @@ export default function QueryResultPanel({
     setEditedSql(val);
     if (!sqlEdited && val !== generatedSql) {
       setSqlEdited(true);
-      const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
-      fetch("/api/track", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "sql_edited", path: window.location.pathname, session_id: sid, meta: {} }),
-      }).catch(() => {});
+      track(EV.SQL_EDITED, { meta: { tool: "text-to-sql" } });
     }
   };
 
@@ -88,27 +86,14 @@ export default function QueryResultPanel({
     if (!generatedSql || sqlExplLoading) return;
     setSqlExplLoading(true); setSqlExplErr(null); setSqlExpl("");
     try {
-      const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: results?.columns ?? [], rows: results?.rows?.slice(0, 5) ?? [], provider: provider ?? "groq" }),
+      await streamSqlExplain({
+        tool: "text-to-sql-explain-sql", provider: provider ?? "groq",
+        body: { question: question ?? "", sql: generatedSql,
+                columns: results?.columns ?? [], rows: results?.rows?.slice(0, 5) ?? [],
+                provider: provider ?? "groq" },
+        onToken: (t) => setSqlExpl(prev => prev + t),
+        onError: (m) => setSqlExplErr(cleanErr(m)),
       });
-      const reader = resp.body?.getReader();
-      if (!reader) throw new Error("No response body");
-      const dec = new TextDecoder(); let buf = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n"); buf = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const ev = JSON.parse(line.slice(6));
-            if (ev.type === "token") setSqlExpl(prev => prev + ev.text);
-            else if (ev.type === "error") setSqlExplErr(cleanErr(ev.text));
-          } catch { /* skip */ }
-        }
-      }
     } catch (e) {
       setSqlExplErr(e instanceof Error ? e.message : "Explanation failed");
     } finally { setSqlExplLoading(false); }
@@ -118,29 +103,15 @@ export default function QueryResultPanel({
     if (!results || !generatedSql || explLoading) return;
     setExplLoading(true); setExplErr(null); setLocalExpl(""); setSuggestions([]);
     try {
-      const resp = await fetch(`${ML_SQL_URL}/sql/explain`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question ?? "", sql: generatedSql, columns: results.columns, rows: results.rows.slice(0, 10), provider: provider ?? "groq" }),
+      await streamSqlExplain({
+        tool: "text-to-sql-explain-results", provider: provider ?? "groq",
+        body: { question: question ?? "", sql: generatedSql,
+                columns: results.columns, rows: results.rows.slice(0, 10),
+                provider: provider ?? "groq" },
+        onToken: (t) => setLocalExpl(prev => prev + t),
+        onSuggestions: (q) => setSuggestions(q),
+        onError: (m) => setExplErr(cleanErr(m)),
       });
-      const reader = resp.body?.getReader();
-      const dec = new TextDecoder();
-      if (!reader) throw new Error("No response body");
-      let buf = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n"); buf = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const ev = JSON.parse(line.slice(6));
-            if (ev.type === "token") setLocalExpl(prev => prev + ev.text);
-            else if (ev.type === "suggestions") setSuggestions(ev.questions ?? []);
-            else if (ev.type === "error") setExplErr(cleanErr(ev.text));
-          } catch { /* skip malformed */ }
-        }
-      }
     } catch (e) {
       setExplErr(e instanceof Error ? e.message : "Explanation failed");
     } finally { setExplLoading(false); }

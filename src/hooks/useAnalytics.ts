@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { EV } from "@/lib/logEvents";
 
 function getOrCreateSession(): string {
   if (typeof window === "undefined") return "";
@@ -51,9 +52,9 @@ export function useToolTracking(toolName: string) {
   useEffect(() => {
     countRef.current = 0;
     const t0 = Date.now();
-    track("tool_open", { meta: { tool: toolName } });
+    track(EV.TOOL_OPEN, { meta: { tool: toolName } });
     return () => {
-      track("tool_close", { duration_ms: Date.now() - t0, meta: { tool: toolName, queries_run: countRef.current } });
+      track(EV.TOOL_CLOSE, { duration_ms: Date.now() - t0, meta: { tool: toolName, queries_run: countRef.current } });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

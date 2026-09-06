@@ -48,6 +48,9 @@ export const EV = {
   EXPORT: "export",
   COPY: "copy",
   DOWNLOAD: "download",
+  /** Live in the table before this file existed — kept under its original
+   * spelling so existing rows stay countable. */
+  SQL_EDITED: "sql_edited",
 
   // ── Stage 7: failure ──────────────────────────────────────────────────
   ERROR: "error",                    // EXISTS

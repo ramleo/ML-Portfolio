@@ -10,6 +10,8 @@ import DriftRadarChart    from "./DriftRadarChart";
 import DriftHeatmap       from "./DriftHeatmap";
 import DriftCorrelation   from "./DriftCorrelation";
 import DriftAIExplain     from "./DriftAIExplain";
+import { track } from "@/hooks/useAnalytics";
+import { EV, ERR, STAGE } from "@/lib/logEvents";
 
 export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult | null) => void }) {
   const [models,            setModels]            = useState<ModelMeta[]>([]);
@@ -61,16 +63,14 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
       setResult(r); onResult?.(r);
       fetchVersions(modelId);
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "query_run", path: "/tools/drift", session_id: sid,
-          meta: { tool: "drift", action: "detect_drift", features: r.features?.length ?? 0, high_drift: r.features?.filter((f: { drift_level: string }) => f.drift_level === "high").length ?? 0 } }),
-      }).catch(() => {});
+      track(EV.RUN_SUCCESS, { meta: { tool: "drift",
+        features: r.features?.length ?? 0,
+        high_drift: r.features?.filter((f: { drift_level: string }) => f.drift_level === "high").length ?? 0 } });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed.");
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "error", path: "/tools/drift", session_id: sid, meta: { tool: "drift", error_type: "drift_error" } }),
-      }).catch(() => {});
+      track(EV.RUN_ERROR, { meta: { tool: "drift", stage: STAGE.RUN,
+        error_class: ERR.UNKNOWN } });
     } finally {
       setBusy(false);
     }

@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
+import { track } from "@/hooks/useAnalytics";
 
 export const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
@@ -31,12 +32,10 @@ export interface TrainResult {
   feature_importance: FIEntry[];
 }
 
+/** Was a hand-rolled copy of track(). Signature unchanged so callers are
+ * untouched. */
 function trackEvent(type: string, meta: Record<string, unknown>) {
-  const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-  fetch("/api/track", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type, path: "/tools/shap", session_id: sid, meta }),
-  }).catch(() => {});
+  track(type, { meta });
 }
 
 interface UseShapRunnerOpts {

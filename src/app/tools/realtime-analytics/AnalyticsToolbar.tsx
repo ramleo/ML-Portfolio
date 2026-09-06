@@ -2,6 +2,8 @@
 
 import AnalyticsCalendar from "./AnalyticsCalendar";
 import { RANGE_LABELS, type Range } from "./analyticsTypes";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 
 const PILL = "text-[10px] px-2.5 py-1 rounded-md border transition-colors";
 const on   = { borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.1)" };
@@ -57,15 +59,7 @@ export default function AnalyticsToolbar({
         href={exportHref}
         download
         onClick={() => {
-          const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-          fetch("/api/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "export", path: "/tools/realtime-analytics",
-              session_id: sid, meta: { format: "csv", range },
-            }),
-          }).catch(() => {});
+          track(EV.EXPORT, { meta: { tool: "realtime-analytics", format: "csv", range } });
         }}
         className={`${PILL} hover:border-[var(--border2)]`}
         style={off}

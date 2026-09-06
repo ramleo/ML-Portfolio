@@ -209,10 +209,7 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     if (!activeTab?.sql) return;
     navigator.clipboard.writeText(activeTab.sql);
     setCopied(true); setTimeout(() => setCopied(false), 1500);
-    const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-    fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "copy", path: "/tools/text-to-sql", session_id: sid, meta: { tool: "text-to-sql", content_type: "sql" } }),
-    }).catch(() => {});
+    track(EV.COPY, { meta: { tool: TOOL, what: "sql" } });
   }, [activeTab]);
 
   const changePage = useCallback(async (page: number) => {

@@ -28,6 +28,7 @@ import { buildTabs, TAB_CATEGORIES, type TabId } from "@/components/FSPanels/fsT
 import { toolBackHref } from "@/lib/toolNav";
 
 import { DEFAULT_OPTS } from "./defaultOpts";
+import { EV } from "@/lib/logEvents";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +96,7 @@ function FeatureSelectionPageInner() {
           kBestMethod: last.type === "categorical" ? "f_classif" : "f_regression",
         }));
       }
-      track("tool_open", { meta: { tool: "feature-selection", action: "upload_csv", rows: rows.length, cols: analyzed.length } });
+      track(EV.UPLOAD, { meta: { tool: "feature-selection", rows: rows.length, cols: analyzed.length } });
     }, () => {});
   }, []);
 
@@ -145,7 +146,7 @@ function FeatureSelectionPageInner() {
   const handleRun = useCallback(() => {
     if (!cols.length || typeof window === "undefined") return;
     setRunning(true);
-    track("query_run", { meta: { tool: "feature-selection", action: "run_selection", cols: cols.length } });
+    track(EV.QUERY_RUN, { meta: { tool: "feature-selection", cols: cols.length } });
     runSelectionWorker(excludedCols.length ? cols.filter(c => !excludedCols.includes(c.name)) : cols, opts);
   }, [cols, opts, excludedCols, runSelectionWorker]);
 
@@ -163,7 +164,7 @@ function FeatureSelectionPageInner() {
 
   useEffect(() => {
     if (!result) return;
-    track("query_run", { meta: { tool: "feature-selection", action: "selection_complete", kept: result.keptCount, dropped: result.droppedCount } });
+    track(EV.RUN_SUCCESS, { meta: { tool: "feature-selection", kept: result.keptCount, dropped: result.droppedCount } });
   }, [result]);
 
   const handleReset = useCallback(() => {

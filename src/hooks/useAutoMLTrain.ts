@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import { ACCENT, type TrainResult, type HistoryEntry } from "@/lib/automlUtils";
+import { track } from "@/hooks/useAnalytics";
 
 interface TrainParams {
   file:           File;
@@ -24,12 +25,11 @@ interface TrainCallbacks {
   addHistory:    (entry: HistoryEntry) => void;
 }
 
+/** Was a hand-rolled copy of track(): the same request built by hand, so it
+ * never picked up anything added to the real helper. Signature unchanged so
+ * callers are untouched. */
 function trackEvent(type: string, meta: Record<string, unknown>) {
-  const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-  fetch("/api/track", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type, path: "/tools/automl", session_id: sid, meta }),
-  }).catch(() => {});
+  track(type, { meta });
 }
 
 export function useAutoMLTrain() {

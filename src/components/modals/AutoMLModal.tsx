@@ -23,6 +23,8 @@ import Step3Train     from "@/components/AutoMLSteps/Step3Train";
 import Step4Results   from "@/components/AutoMLSteps/Step4Results";
 import SavedRunsView  from "@/components/AutoMLSteps/SavedRunsView";
 import AutoMLFooter   from "@/components/AutoMLSteps/AutoMLFooter";
+import { track } from "@/hooks/useAnalytics";
+import { EV, ERR, STAGE } from "@/lib/logEvents";
 
 export type { TrainResult, HistoryEntry };
 
@@ -119,9 +121,8 @@ export default function AutoMLModal({
         setError(e instanceof Error ? e.message : "Analysis failed.");
       }
       const sid = typeof window !== "undefined" ? (localStorage.getItem("_ml_session") ?? "") : "";
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "error", path: "/tools/automl", session_id: sid, meta: { tool: "automl", error_type: "analyze_error" } }),
-      }).catch(() => {});
+      track(EV.RUN_ERROR, { meta: { tool: "automl", stage: STAGE.UPLOAD,
+        error_class: ERR.UNKNOWN } });
     } finally {
       clearTimeout(timer);
       setAnalyzing(false);

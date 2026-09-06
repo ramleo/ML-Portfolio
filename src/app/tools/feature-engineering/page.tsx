@@ -25,6 +25,7 @@ import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import { EV } from "@/lib/logEvents";
 
 const ACCENT = "#3e7c98";
 const CARD: React.CSSProperties = { background: "var(--bg-glass)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 16, padding: "1.25rem 1.4rem" };
@@ -101,13 +102,13 @@ function FeatureEngineeringPageInner() {
   useEffect(() => {
     if (step === "configure" && cols.length > 0 && !uploadTrackedRef.current) {
       uploadTrackedRef.current = true;
-      track("tool_open", { meta: { tool: "feature-engineering", action: "upload_csv", rows: rawRows.length - 1, cols: cols.length } });
+      track(EV.UPLOAD, { meta: { tool: "feature-engineering", rows: rawRows.length - 1, cols: cols.length } });
     }
   }, [step, cols.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!result) return;
-    track("query_run", { meta: { tool: "feature-engineering", action: "apply_transforms", new_cols: result.newColumns.length } });
+    track(EV.RUN_SUCCESS, { meta: { tool: "feature-engineering", new_cols: result.newColumns.length } });
   }, [result]);
 
   const { handleFile, handleDrop } = useFEFileLoad({
