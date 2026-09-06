@@ -30,6 +30,13 @@ const SECURITY_HEADERS = [
       "media-src 'self' data: blob: https:",
       "connect-src 'self' https: http: wss: ws:",
       "worker-src 'self' blob:",
+      // Turnstile renders its challenge in an iframe. Without this, framing
+      // falls back to default-src 'self' and the widget is blocked outright —
+      // which is exactly what happened: the script loaded, the API object
+      // existed, and no token was ever produced, so every upload silently
+      // stopped being logged. Scoped to Cloudflare alone rather than opening
+      // framing to https: generally.
+      "frame-src 'self' https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
     ].join("; "),
   },
