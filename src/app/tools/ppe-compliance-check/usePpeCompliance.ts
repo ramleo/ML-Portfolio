@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 45_000;
 
@@ -47,12 +48,12 @@ export function usePpeCompliance() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-ppe-compliance/check`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-ppe-compliance/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: b64 }),
         signal: controller.signal,
-      });
+      }, { tool: "ppe-compliance-check" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Check failed — try again in a moment.");
       setResult(data as PpeCheckResult);

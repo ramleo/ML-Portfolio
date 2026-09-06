@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const SEARCH_TIMEOUT_MS = 30_000;
 
@@ -54,12 +55,12 @@ export function usePhotoSearch() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-photo-search/search`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-photo-search/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
         signal: controller.signal,
-      });
+      }, { tool: "photo-search" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Search failed — try again in a moment.");
       setResults(data.results as SearchResult[]);
@@ -105,12 +106,12 @@ export function usePhotoSearch() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-photo-search/duplicates`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-photo-search/duplicates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photos: photos.map(p => ({ filename: p.filename, image: p.b64 })) }),
         signal: controller.signal,
-      });
+      }, { tool: "photo-search" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Duplicate check failed — try again in a moment.");
       setDuplicateGroups(data.groups as DuplicateGroups);

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { IngestStatus } from "./RagIngestButton";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 function ManageIcon() {
   return (
@@ -39,7 +40,7 @@ export default function RagUploadsPanel({
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/uploads`);
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/uploads`, undefined, { tool: "rag-uploads" });
       const data = await res.json();
       setSources(data.sources || []);
     } catch {
@@ -63,7 +64,7 @@ export default function RagUploadsPanel({
 
   const remove = useCallback(async (source: string) => {
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" }, { tool: "rag-uploads" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || res.statusText);
       onStatusChange({ kind: "deleted", name: source });

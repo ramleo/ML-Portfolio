@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 20_000;
 
@@ -44,7 +45,7 @@ export function useRobustTrainingDefense() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${ML_UNIFIED_API}/rag/mm-robust-training/samples`)
+    trackedFetch(`${ML_UNIFIED_API}/rag/mm-robust-training/samples`, undefined, { tool: "adversarial-robustness-lab" })
       .then(res => res.json())
       .then(data => { if (!cancelled) setSamples(data.samples ?? []); })
       .catch(() => { if (!cancelled) setSamplesError("Could not load sample digits."); });
@@ -78,12 +79,12 @@ export function useRobustTrainingDefense() {
       const body = mode === "upload"
         ? { image: uploadB64, intended_label: intendedLabel, epsilon }
         : { sample_id: selectedId, epsilon };
-      const res = await fetch(url, {
+      const res = await trackedFetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
         signal: controller.signal,
-      });
+      }, { tool: "adversarial-robustness-lab" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Attack failed — try again in a moment.");
       setResult(data as RobustTrainingResult);

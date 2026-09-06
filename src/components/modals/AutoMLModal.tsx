@@ -25,6 +25,7 @@ import SavedRunsView  from "@/components/AutoMLSteps/SavedRunsView";
 import AutoMLFooter   from "@/components/AutoMLSteps/AutoMLFooter";
 import { track } from "@/hooks/useAnalytics";
 import { EV, ERR, STAGE } from "@/lib/logEvents";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export type { TrainResult, HistoryEntry };
 
@@ -109,7 +110,7 @@ export default function AutoMLModal({
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${API}/analyze`, { method: "POST", body: fd, signal: abort.signal });
+      const res = await trackedFetch(`${API}/analyze`, { method: "POST", body: fd, signal: abort.signal }, { tool: "automl" });
       if (!res.ok) throw new Error("Analysis failed — check the CSV format.");
       const data: AnalyzeResult = await res.json();
       setAnalyzed(data); setTarget(data.suggested_target); setTaskType(data.suggested_task);

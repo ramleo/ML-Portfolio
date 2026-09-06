@@ -6,6 +6,7 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import RagTableView from "./RagTableView";
 import RagSourceFlags from "./RagSourceFlags";
 import RagRetrievalTrace from "./RagRetrievalTrace";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 type Props = {
   source: string;
@@ -163,7 +164,7 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
     if (!page) return;
     setPageChunks("loading");
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/page-chunks/${encodeURIComponent(source)}?page=${page}`);
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/page-chunks/${encodeURIComponent(source)}?page=${page}`, undefined, { tool: "rag-sources" });
       const data = await res.json();
       setPageChunks((data.chunks ?? []).filter((c: PageChunk) => c.text !== text));
     } catch {

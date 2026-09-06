@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const CHECK_TIMEOUT_MS = 15_000;
 
@@ -46,12 +47,12 @@ export function useEmailAuthCheck() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/email-auth/check`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/email-auth/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ raw_headers: rawHeaders }),
         signal: controller.signal,
-      });
+      }, { tool: "email-auth-checker" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Check failed.");
       setResult(data as EmailAuthResult);

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import type { ReconstructedPoint, CameraPose } from "./PointCloudViewer";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RECONSTRUCT_TIMEOUT_MS = 60_000;
 
@@ -41,7 +42,7 @@ export function useCrimeSceneReconstruction() {
     try {
       const distanceCm = parseFloat(calibDistanceCm);
       const hasCalibration = calibA && calibB && !isNaN(distanceCm) && distanceCm > 0;
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-crime-scene/reconstruct`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-crime-scene/reconstruct`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -53,7 +54,7 @@ export function useCrimeSceneReconstruction() {
           } : {}),
         }),
         signal: controller.signal,
-      });
+      }, { tool: "crime-scene-reconstruction" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Reconstruction failed.");
       setResult(data as ReconstructionResult);

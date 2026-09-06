@@ -9,6 +9,7 @@ import UploadStep     from "@/components/PreprocessingModalParts/UploadStep";
 import ConfigureStep  from "@/components/PreprocessingModalParts/ConfigureStep";
 import ProcessingStep from "@/components/PreprocessingModalParts/ProcessingStep";
 import ResultsStep    from "@/components/PreprocessingModalParts/ResultsStep";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export default function PreprocessingModal({ onClose }: { onClose: () => void }) {
   // ── Wizard state ──────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${API}/analyze`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${API}/analyze`, { method: "POST", body: fd }, { tool: "preprocessing" });
       if (!res.ok) throw new Error(await res.text());
       const data: AnalyzeResult = await res.json();
       setAnalyzed(data);
@@ -68,7 +69,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const res = await fetch(`${API}/automl/preprocess`, {
+      const res = await trackedFetch(`${API}/automl/preprocess`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -79,7 +80,7 @@ export default function PreprocessingModal({ onClose }: { onClose: () => void })
             encode_method: encodeMethod, standardize, drop_columns: [...dropCols],
           },
         }),
-      });
+      }, { tool: "preprocessing" });
       if (!res.ok) throw new Error(await res.text());
       const data: PrepResult = await res.json();
       setResult(data);

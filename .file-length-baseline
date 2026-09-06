@@ -9,6 +9,5 @@
 # format: <max-lines> <path>
 403 src/app/tools/text-to-sql/UserGuideModal.tsx
 410 src/components/AutoMLSteps/Step4Results.tsx
-428 src/components/Chatbot.tsx
 943 src/data/capabilities.ts
 496 src/lib/preprocessing.ts

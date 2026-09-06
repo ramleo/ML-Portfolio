@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const CHECK_TIMEOUT_MS = 20_000;
 const FRAME_COUNT = 4;
@@ -31,12 +32,12 @@ export function useLivenessCheck() {
   const cancelRef = useRef(false);
 
   const checkOneFrame = async (b64: string, signal: AbortSignal): Promise<{ foundFace: boolean; score: number | null }> => {
-    const res = await fetch(`${ML_UNIFIED_API}/rag/mm-liveness`, {
+    const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-liveness`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image: b64 }),
       signal,
-    });
+    }, { tool: "face-liveness" });
     if (!res.ok) throw new Error("request failed");
     const data = await res.json();
     if (data.error) throw new Error(data.error);

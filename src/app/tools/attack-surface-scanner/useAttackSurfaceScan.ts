@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const SCAN_TIMEOUT_MS = 25_000;
 
@@ -33,12 +34,12 @@ export function useAttackSurfaceScan() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/attack-surface/scan`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/attack-surface/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host: host.trim() }),
         signal: controller.signal,
-      });
+      }, { tool: "attack-surface-scanner" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Scan failed.");
       setResult(data as ScanResult);

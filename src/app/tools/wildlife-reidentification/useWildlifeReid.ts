@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 45_000;
 
@@ -64,12 +65,12 @@ export function useWildlifeReid() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-wildlife-reid/search`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-wildlife-reid/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ target: targetB64, gallery: gallery.map(g => g.b64) }),
         signal: controller.signal,
-      });
+      }, { tool: "wildlife-reidentification" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Search failed — try again in a moment.");
       setResult(data as WildlifeReidResult);

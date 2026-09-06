@@ -10,6 +10,7 @@ import {
 } from "./ensembleTypes";
 import { track } from "@/hooks/useAnalytics";
 import { EV, ERR, STAGE } from "@/lib/logEvents";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 interface EnsembleRunnerProps {
   onReady?: (trigger: (f: File) => void) => void;
@@ -68,7 +69,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${ML_UNIFIED_API}/analyze`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/analyze`, { method: "POST", body: fd }, { tool: "ensemble" });
       if (!res.ok) throw new Error(`Analyze failed: ${res.statusText}`);
       const data: AnalyzeResult = await res.json();
       setAnalyzeResult(data);
@@ -133,7 +134,7 @@ export default function EnsembleRunner({ onReady, onResult, onStepChange, accent
       fd.append("fe_b64", "");
       fd.append("pre_fe_cols_json", "[]");
       fd.append("pre_fe_sample_json", "{}");
-      const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd }, { tool: "ensemble" });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

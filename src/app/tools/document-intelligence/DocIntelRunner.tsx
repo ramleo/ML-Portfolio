@@ -157,7 +157,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
     const edited = fields.find(f => f.name === name);
     const aiValue = edited?.originalValue ?? edited?.value ?? "";
     if (edited && value !== aiValue) {
-      fetch(`${ML_UNIFIED_API}/document/correction`, {
+      trackedFetch(`${ML_UNIFIED_API}/document/correction`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -167,7 +167,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
           original_value: aiValue,
           corrected_value: value,
         }),
-      }).catch(() => { /* feedback is best-effort */ });
+      }, { tool: "document-intelligence-correction" }).catch(() => { /* feedback is best-effort */ });
     }
     setFields(prev => prev.map(f => {
       if (f.name !== name) return f;

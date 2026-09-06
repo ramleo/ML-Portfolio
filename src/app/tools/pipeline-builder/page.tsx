@@ -23,6 +23,7 @@ import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 type PipelineMode = "guided" | "express" | "ab" | null;
 import { ICONS, STAGES, fmtM, getStageCsv, type StageId } from "./stages";
 import { runExpressPipeline } from "./runExpressPipeline";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -76,10 +77,10 @@ export default function PipelineBuilderPage() {
 
   async function handleExportCode() {
     const winner = stageResults["automl"]?.data?.winner as Record<string, unknown> | undefined;
-    const res = await fetch(`${API}/pipeline-builder/export-code`, {
+    const res = await trackedFetch(`${API}/pipeline-builder/export-code`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ target, task_type: taskType, winner_algo: winner?.algo, winner_params: stageResults["optuna"]?.data?.best_params ?? {}, preprocess_config: stageResults["preprocessing"]?.data ?? null, fe_config: stageResults["feature-eng"]?.data ?? null, fs_config: stageResults["feature-select"]?.data ?? null }),
-    });
+    }, { tool: "pipeline-builder" });
     if (res.ok) { const { code } = await res.json() as { code: string }; setExportedCode(code); setShowCode(true); }
   }
 
@@ -96,7 +97,7 @@ export default function PipelineBuilderPage() {
         fs: cfg["feature-select"] ?? null,
         automl: cfg["automl"] ?? null,
       });
-      const res = await fetch(`${API}/pipeline-builder/compare`, {
+      const res = await trackedFetch(`${API}/pipeline-builder/compare`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -106,7 +107,7 @@ export default function PipelineBuilderPage() {
           pipeline_a: buildSpec(configA),
           pipeline_b: buildSpec(configB),
         }),
-      });
+      }, { tool: "pipeline-builder" });
       if (res.ok) {
         const j = await res.json() as { pipeline_a?: { score: number; winner: string; time_ms: number }; pipeline_b?: { score: number; winner: string; time_ms: number } };
         setAbResultA(j.pipeline_a ?? null);

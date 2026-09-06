@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export type VisualizeState = { visualizing: boolean; vizImage: string | null; vizError: string | null; visualize: () => void };
 
@@ -27,10 +28,10 @@ export function useVisualizeActions<K extends string>(
   const visualize = useCallback(async (key: K) => {
     setState(s => ({ ...s, [key]: { visualizing: true, vizImage: null, vizError: null } }));
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/${endpoints[key]}/visualize`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/${endpoints[key]}/visualize`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: getImage() }),
-      });
+      }, { tool: "multimodal-rag" });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setState(s => ({ ...s, [key]: { visualizing: false, vizImage: data.image as string, vizError: null } }));

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const DETECT_TIMEOUT_MS = 60_000;
 
@@ -33,9 +34,9 @@ export function useAstroAnomalyDetect() {
     try {
       const fd = new FormData();
       images.forEach(img => fd.append("images", img));
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-astro-anomaly/detect`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-astro-anomaly/detect`, {
         method: "POST", body: fd, signal: controller.signal,
-      });
+      }, { tool: "astrophotography-anomaly-detector" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Detection failed.");
       setResult(data as AstroAnomalyResult);

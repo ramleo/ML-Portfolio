@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export type WatermarkVerifyResult = { present: boolean; label: string | null; confidence: number };
 
@@ -17,11 +18,11 @@ export function useWatermark() {
     setEmbedding(true);
     setError(null);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-watermark/embed`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-watermark/embed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image, label }),
-      });
+      }, { tool: "multimodal-rag" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Embed failed");
       return data.image as string;
@@ -38,11 +39,11 @@ export function useWatermark() {
     setError(null);
     setVerifyResult(null);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-watermark/verify`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-watermark/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image }),
-      });
+      }, { tool: "multimodal-rag" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Verify failed");
       setVerifyResult(data as WatermarkVerifyResult);

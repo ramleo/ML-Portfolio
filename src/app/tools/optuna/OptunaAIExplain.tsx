@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { mdToHtml } from "./OptunaCharts";
 import { ACCENT, card, label, type TrainResult } from "./optunaResultsStyle";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 // Split out of OptunaResults.tsx (2026-08-15) — that file crossed the
 // project's 400-line cap once its card styling was updated to the
@@ -38,7 +39,7 @@ export default function OptunaAIExplain({ result, tuningRan }: { result: TrainRe
       fd.append("winner_metrics_json", JSON.stringify(result.winner_metrics ?? {}));
       fd.append("api_key", apiKey);
       fd.append("provider", provider);
-      const resp = await fetch(`${ML_UNIFIED_API}/optuna-explain`, { method: "POST", body: fd });
+      const resp = await trackedFetch(`${ML_UNIFIED_API}/optuna-explain`, { method: "POST", body: fd }, { tool: "optuna" });
       const data = await resp.json();
       clearInterval(timer);
       setExpProgress(100);

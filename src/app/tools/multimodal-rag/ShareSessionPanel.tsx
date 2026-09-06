@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 type ShareInfo = { token: string; expiresAt: number };
 
@@ -17,10 +18,10 @@ export default function ShareSessionPanel({ sessionId, accent }: { sessionId: st
   const createLink = async () => {
     setCreating(true);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/share-session`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/share-session`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ session_id: sessionId }),
-      });
+      }, { tool: "multimodal-rag" });
       const d = await res.json();
       setShare({ token: d.token, expiresAt: d.expires_at });
       setWarnOpen(false);
@@ -32,10 +33,10 @@ export default function ShareSessionPanel({ sessionId, accent }: { sessionId: st
     if (!share) return;
     setRevoking(true);
     try {
-      await fetch(`${ML_UNIFIED_API}/rag/revoke-share`, {
+      await trackedFetch(`${ML_UNIFIED_API}/rag/revoke-share`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ token: share.token, session_id: sessionId }),
-      });
+      }, { tool: "multimodal-rag" });
     } catch { /* best-effort */ }
     setShare(null);
     setRevoking(false);

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 45_000;
 
@@ -78,12 +79,12 @@ export function useFaceReidDemo() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
       try {
-        const res = await fetch(`${ML_UNIFIED_API}/rag/mm-face-reid-demo/search`, {
+        const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-face-reid-demo/search`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ target, gallery: galleryB64 }),
           signal: controller.signal,
-        });
+        }, { tool: "face-deanonymization-demo" });
         const data = await res.json().catch(() => null);
         if (!res.ok) throw new Error(data?.detail || "Search failed — try again in a moment.");
         return data as ReidSearchResult;
@@ -114,12 +115,12 @@ export function useFaceReidDemo() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
     try {
-      const cloakRes = await fetch(`${ML_UNIFIED_API}/rag/mm-face-cloak/run`, {
+      const cloakRes = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-face-cloak/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: targetB64, epsilon: 0.05 }),
         signal: controller.signal,
-      });
+      }, { tool: "face-deanonymization-demo" });
       const cloakData = await cloakRes.json().catch(() => null);
       if (!cloakRes.ok || !cloakData?.found_face) {
         throw new Error(cloakData?.error || cloakData?.detail || "Could not cloak this photo — try again.");

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 45_000;
 
@@ -47,12 +48,12 @@ export function useFaceCloak() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-face-cloak/run`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-face-cloak/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: b64, epsilon }),
         signal: controller.signal,
-      });
+      }, { tool: "face-cloak" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Cloaking failed — try again in a moment.");
       setResult(data as FaceCloakResult);

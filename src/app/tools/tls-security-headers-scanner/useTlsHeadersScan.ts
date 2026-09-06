@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const SCAN_TIMEOUT_MS = 15_000;
 
@@ -47,12 +48,12 @@ export function useTlsHeadersScan() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/tls-headers/check`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/tls-headers/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host: host.trim() }),
         signal: controller.signal,
-      });
+      }, { tool: "tls-security-headers-scanner" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail?.[0]?.msg || data?.detail || "Scan failed.");
       setResult(data as ScanResult);

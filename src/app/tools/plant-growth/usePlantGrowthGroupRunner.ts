@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { MAX_FRAMES, type GrowthFrame, type PlantTrack } from "./usePlantGrowthRunner";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 export const GROUP_MIN_PHOTOS = 2;
@@ -66,12 +67,12 @@ export function usePlantGrowthGroupRunner() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-group/propose`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-group/propose`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photos: photos.map(image => ({ image })), auto_detect: true }),
         signal: controller.signal,
-      });
+      }, { tool: "plant-growth" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "request failed");
       setProposed({
@@ -109,7 +110,7 @@ export function usePlantGrowthGroupRunner() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-group/measure`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-plant-growth-group/measure`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -118,7 +119,7 @@ export function usePlantGrowthGroupRunner() {
           auto_detect: true,
         }),
         signal: controller.signal,
-      });
+      }, { tool: "plant-growth" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "request failed");
       setResult((data.groups ?? []).map((g: { group_id: number; plants: { index: number; frames: RawFrame[] }[] }) => ({

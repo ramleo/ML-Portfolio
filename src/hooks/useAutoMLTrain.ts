@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import { ACCENT, type TrainResult, type HistoryEntry } from "@/lib/automlUtils";
 import { track } from "@/hooks/useAnalytics";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 interface TrainParams {
   file:           File;
@@ -55,7 +56,7 @@ export function useAutoMLTrain() {
       fd.append("col_encoding_json",   JSON.stringify(colEncodings));
       fd.append("drop_cols_json",      JSON.stringify(dropCols));
 
-      const res = await fetch(`${API}/train`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${API}/train`, { method: "POST", body: fd }, { tool: "automl" });
       if (!res.ok || !res.body) throw new Error("Training request failed.");
 
       const reader  = res.body.getReader();

@@ -12,6 +12,7 @@ import DriftCorrelation   from "./DriftCorrelation";
 import DriftAIExplain     from "./DriftAIExplain";
 import { track } from "@/hooks/useAnalytics";
 import { EV, ERR, STAGE } from "@/lib/logEvents";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult | null) => void }) {
   const [models,            setModels]            = useState<ModelMeta[]>([]);
@@ -57,7 +58,7 @@ export default function DriftRunner({ onResult }: { onResult?: (r: DriftResult |
       if (batchLabel.trim()) params.set("label", batchLabel.trim());
       if (compareToTraining) params.set("compare_to_training", "true");
       const url = `${ML_UNIFIED_API}/drift/${modelId}/upload?${params.toString()}`;
-      const res = await fetch(url, { method: "POST", body: fd });
+      const res = await trackedFetch(url, { method: "POST", body: fd }, { tool: "drift" });
       if (!res.ok) { const t = await res.text(); throw new Error(t); }
       const r = await res.json();
       setResult(r); onResult?.(r);

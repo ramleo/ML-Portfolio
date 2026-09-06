@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { saveHistoryEntry, type QrHistoryEntry } from "./QrScanHistory";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const SCAN_TIMEOUT_MS = 20_000;
 
@@ -37,12 +38,12 @@ async function scanOne(imageB64: string): Promise<ScanResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
   try {
-    const res = await fetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan`, {
+    const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image: imageB64 }),
       signal: controller.signal,
-    });
+    }, { tool: "qr-phishing-detector" });
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error(data?.detail || "request failed");
     if (data.error) throw new Error(data.error);
@@ -68,12 +69,12 @@ async function scanUrl(url: string): Promise<ScanResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
   try {
-    const res = await fetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan-url`, {
+    const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-qr-phishing/scan-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
       signal: controller.signal,
-    });
+    }, { tool: "qr-phishing-detector" });
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error(data?.detail || "request failed");
     const q = data.result as RawQr;

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const RUN_TIMEOUT_MS = 60_000; // higher than the base attack alone — a
 // transferability check can trigger a one-time ResNet18 weight download
@@ -48,7 +49,7 @@ export function useAdversarial() {
 
   const loadCategories = useCallback(() => {
     if (categories !== null) return;
-    fetch(`${ML_UNIFIED_API}/rag/mm-adversarial/categories`)
+    trackedFetch(`${ML_UNIFIED_API}/rag/mm-adversarial/categories`, undefined, { tool: "adversarial-robustness-lab" })
       .then(res => res.json())
       .then(data => setCategories(Array.isArray(data?.categories) ? data.categories : []))
       .catch(() => setCategories([]));
@@ -76,7 +77,7 @@ export function useAdversarial() {
     const timeoutMs = method === "patch" ? PATCH_RUN_TIMEOUT_MS : method === "blackbox" ? BLACKBOX_RUN_TIMEOUT_MS : RUN_TIMEOUT_MS;
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-adversarial/run`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-adversarial/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +88,7 @@ export function useAdversarial() {
           max_queries: maxQueries,
         }),
         signal: controller.signal,
-      });
+      }, { tool: "adversarial-robustness-lab" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Run failed — try again in a moment.");
       setResult(data as AdversarialResult);

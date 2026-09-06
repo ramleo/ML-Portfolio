@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import { StageConfigForm } from "./StageConfigForms";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export type StageResult = {
   stageId: string;
@@ -297,11 +298,11 @@ export default function StageModal({ stageId, title, accent, csvB64, target, tas
     try {
       const endpoint = ENDPOINTS[stageId] ?? stageId;
       const body = buildBody(stageId, csvB64, target, taskType, config, modelId);
-      const res = await fetch(`${API}/pipeline-builder/${endpoint}`, {
+      const res = await trackedFetch(`${API}/pipeline-builder/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      });
+      }, { tool: "pipeline-builder" });
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const json = await res.json();
       const r: StageResult = { stageId, outputCsvB64: json.processed_csv_b64 as string | undefined, metric: json.metric as string | undefined, data: json };

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 export const MIN_FRAMES = 1;
@@ -111,12 +112,12 @@ export function usePlantGrowthRunner() {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-plant-growth`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-plant-growth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ frames: payload, auto_detect: autoDetect }),
         signal: controller.signal,
-      });
+      }, { tool: "plant-growth" });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "request failed");
       if (data.mode === "compare") {

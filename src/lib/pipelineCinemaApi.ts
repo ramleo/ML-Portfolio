@@ -1,4 +1,5 @@
 import { ML_UNIFIED_API as API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export type StageKind = "preprocessing" | "feature-eng" | "feature-select" | "automl";
 
@@ -50,7 +51,7 @@ export async function callPreprocess(
   csvB64: string,
   target: string
 ): Promise<{ csv: string; lines: string[] } | null> {
-  const res = await fetch(`${API}/pipeline-builder/preprocess`, {
+  const res = await trackedFetch(`${API}/pipeline-builder/preprocess`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -67,7 +68,7 @@ export async function callPreprocess(
         drop_cols: [],
       },
     }),
-  });
+  }, { tool: "pipeline-cinema" });
   if (!res.ok) return null;
   const data = (await res.json()) as PreprocessResponse;
   const imputedList = Object.entries(data.imputed_cols ?? {})
@@ -108,7 +109,7 @@ export async function callFeatureEng(
   const interactionPairs: string[][] = logCols.length >= 2 ? [[logCols[0], logCols[1]]] : [];
   const polyCols = logCols.slice(0, 2);
 
-  const res = await fetch(`${API}/pipeline-builder/feature-eng`, {
+  const res = await trackedFetch(`${API}/pipeline-builder/feature-eng`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -120,7 +121,7 @@ export async function callFeatureEng(
         interactions: interactionPairs,
       },
     }),
-  });
+  }, { tool: "pipeline-cinema" });
   if (!res.ok) return null;
   const data = (await res.json()) as FeatureEngResponse;
   const engineeredCols: string[] = Array.isArray(data.new_columns) ? data.new_columns : [];
@@ -143,7 +144,7 @@ export async function callFeatureSelect(
   csvB64: string,
   target: string
 ): Promise<{ csv: string; lines: string[] } | null> {
-  const res = await fetch(`${API}/pipeline-builder/feature-select`, {
+  const res = await trackedFetch(`${API}/pipeline-builder/feature-select`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -151,7 +152,7 @@ export async function callFeatureSelect(
       target,
       config: { method: "mutual_info", top_k: 4 },
     }),
-  });
+  }, { tool: "pipeline-cinema" });
   if (!res.ok) return null;
   const data = (await res.json()) as FeatureSelectResponse;
   const dropped = data.dropped_features?.length ?? 0;
@@ -180,7 +181,7 @@ export async function callAutoML(
   target: string,
   taskType: "classification" | "regression"
 ): Promise<{ lines: string[]; models: Array<{ name: string; score: number }>; winner: string; taskType: "classification" | "regression"; metric: string } | null> {
-  const res = await fetch(`${API}/pipeline-builder/automl`, {
+  const res = await trackedFetch(`${API}/pipeline-builder/automl`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -189,7 +190,7 @@ export async function callAutoML(
       task_type: taskType,
       config: { models: ["RandomForest", "XGBoost", "LightGBM", "CatBoost"], n_folds: 3 },
     }),
-  });
+  }, { tool: "pipeline-cinema" });
   if (!res.ok) return null;
   const data = (await res.json()) as AutoMLResponse;
 

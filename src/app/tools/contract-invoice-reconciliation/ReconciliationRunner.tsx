@@ -7,6 +7,7 @@ import ReconciliationDocChipsRow from "./ReconciliationDocChipsRow";
 import ReconciliationReport from "./ReconciliationReport";
 import type { IngestState } from "../multimodal-rag/_types";
 import type { ReconciledDoc } from "./_types";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const ACCENT = "#966f2b";
 
@@ -56,7 +57,7 @@ export default function ReconciliationRunner() {
 
   const removeDocument = useCallback(async (source: string) => {
     try {
-      await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" });
+      await trackedFetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" }, { tool: "contract-invoice-reconciliation" });
     } catch { /* best-effort — a stale chunk left behind is not fatal */ }
     setDocuments(docs => docs.filter(d => d.source !== source));
   }, []);

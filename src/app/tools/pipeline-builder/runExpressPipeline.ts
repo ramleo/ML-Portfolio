@@ -1,6 +1,7 @@
 import { ML_UNIFIED_API as API } from "@/config/urls";
 import type { StageResult } from "@/components/pipeline/StageModal";
 import type { StageId } from "./stages";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 /** The four stages Express mode runs unattended, and the settings it runs them
  *  with — a sensible default for each, because the whole point of the mode is
@@ -40,10 +41,10 @@ export async function runExpressPipeline({ csvB64, target, taskType, onStage, on
     onStage(stageId);
     try {
       const extraFields = stageId === "automl" ? { task_type: taskType } : {};
-      const res = await fetch(`${API}/pipeline-builder/${ENDPOINTS[stageId]}`, {
+      const res = await trackedFetch(`${API}/pipeline-builder/${ENDPOINTS[stageId]}`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csv_b64: currentCsv, target, config: DEFAULT_CONFIGS[stageId], ...extraFields }),
-      });
+      }, { tool: "pipeline-builder" });
       if (!res.ok) break;
       const json = await res.json() as Record<string, unknown>;
       onResult({ stageId, outputCsvB64: json.processed_csv_b64 as string | undefined, metric: json.metric as string | undefined, data: json });

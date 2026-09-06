@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -21,12 +22,12 @@ export function useDepthEstimate() {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/mm-depth`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/mm-depth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: b64 }),
         signal: controller.signal,
-      });
+      }, { tool: "depth-parallax" });
       if (!res.ok) throw new Error("request failed");
       const data = await res.json();
       if (data.error || !data.depth_map) throw new Error(data.error || "no depth map returned");

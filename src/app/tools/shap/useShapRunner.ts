@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from
 import { ML_UNIFIED_API } from "@/config/urls";
 import { usePipeline } from "@/context/PipelineContext";
 import { track } from "@/hooks/useAnalytics";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 export const MODELS = ["Random Forest", "XGBoost", "LightGBM"];
 
@@ -93,7 +94,7 @@ export function useShapRunner({ onReady, onResult }: UseShapRunnerOpts) {
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${ML_UNIFIED_API}/analyze`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/analyze`, { method: "POST", body: fd }, { tool: "shap" });
       if (!res.ok) throw new Error(`Analyze failed: ${res.statusText}`);
       const data: AnalyzeResult = await res.json();
       setAnalyzeResult(data);
@@ -148,7 +149,7 @@ export function useShapRunner({ onReady, onResult }: UseShapRunnerOpts) {
       fd.append("pre_fe_cols_json", "[]");
       fd.append("pre_fe_sample_json", "{}");
       fd.append("preset_params_json", usePresetParams && presetParams ? JSON.stringify(presetParams) : "{}");
-      const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd }, { tool: "shap" });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

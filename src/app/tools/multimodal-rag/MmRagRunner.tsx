@@ -12,6 +12,7 @@ import RevisionPromptBanner from "./RevisionPromptBanner";
 import DocumentChipsRow from "./DocumentChipsRow";
 import ContradictionsPanel from "./ContradictionsPanel";
 import type { Bbox, DetectedObject, Entity, IngestState, PersistedEdit, RevisionCandidate, TranscriptSegment } from "./_types";
+import { trackedFetch } from "@/lib/trackedFetch";
 
 function nearestSegmentIndex(segments: TranscriptSegment[], time: number): number | null {
   if (segments.length === 0) return null;
@@ -129,7 +130,7 @@ export default function MmRagRunner() {
 
   const removeDocument = useCallback(async (source: string) => {
     try {
-      await fetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" });
+      await trackedFetch(`${ML_UNIFIED_API}/rag/uploads/${encodeURIComponent(source)}`, { method: "DELETE" }, { tool: "multimodal-rag" });
     } catch { /* best-effort — a stale chunk left behind is not fatal */ }
     setDocuments(docs => docs.filter(d => d.source !== source));
     setActiveCitation(c => (c?.source === source ? null : c));
