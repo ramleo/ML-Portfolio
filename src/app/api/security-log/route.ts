@@ -27,13 +27,20 @@
  * server-only secret, which is enough to count requests from one caller and
  * useless to anyone reading the table.
  *
- * Residual risk, stated plainly: a forged Origin gets through. Nothing
- * header-based can prevent that, here or anywhere — headers are
- * attacker-controlled, and this is equally true of /api/track. What the limit
- * does is bound the damage: the endpoint can be reached but the table cannot
- * be filled, so the log's contents stay meaningful. Eliminating it entirely
- * needs something no header can provide — a proof-of-work, a challenge, or a
- * platform-level firewall rule.
+ *  4. A Cloudflare Turnstile token, when TURNSTILE_SECRET_KEY is set. This
+ *     is the only guard here that actually separates a browser from a
+ *     script: verification happens on Cloudflare's side against signals a
+ *     client cannot forge, and the token is single-use and short-lived. With
+ *     it configured, a forged Origin gets nowhere.
+ *
+ * Guards 2 and 3 bound damage; guard 4 prevents entry. Proof-of-work was
+ * considered and rejected: a browser can afford ~200ms of hashing and a
+ * native attacker does that in microseconds, so it would look like defence
+ * without being any.
+ *
+ * With no Turnstile secret configured this FAILS OPEN — the other three
+ * guards still apply and nothing breaks. A logging feature must never be the
+ * reason an upload stops working (§6 rule 2).
  */
 import { createClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
@@ -75,6 +82,28 @@ function rateLimited(ip: string): boolean {
   return cur.n > MAX_PER_WINDOW;
 }
 
+/** Verifies a Turnstile token with Cloudflare. Returns true when the secret
+ * is unset, so the endpoint keeps working until it is configured. */
+async function turnstileOk(token: unknown, ip: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true;                       // not configured — fail open
+  if (typeof token !== "string" || !token) return false;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token, remoteip: ip }),
+    });
+    const out = (await res.json()) as { success?: boolean };
+    return out.success === true;
+  } catch {
+    // Cloudflare unreachable. Accepting is the lesser evil: the alternative
+    // is that an outage there silently stops the security log recording.
+    console.error("security-log: turnstile verify unreachable");
+    return true;
+  }
+}
+
 /** Same-origin only. NEXT_PUBLIC_SITE_URL when set, plus any *.vercel.app
  * preview of this project, plus localhost for development. */
 function originAllowed(req: NextRequest): boolean {
@@ -100,21 +129,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   }
 
-  // Config is checked AFTER the guards on purpose: a forged or oversized
-  // request should be refused on its own merits, not accidentally masked by a
-  // 500 about our environment. Getting this order wrong hid all three guards
-  // behind an env error in local testing.
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    console.error("security-log: Supabase env missing");
-    return NextResponse.json({ error: "Not configured" }, { status: 500 });
-  }
-
   try {
     const b = await req.json();
     const tool = String(b.tool ?? "").slice(0, 80);
     if (EXCLUDED.has(tool)) return NextResponse.json({ ok: true, skipped: true });
+
+    if (!(await turnstileOk(b.turnstile_token, ip))) {
+      return NextResponse.json({ error: "Failed verification" }, { status: 403 });
+    }
+
+    // Config last, after EVERY check on the request itself. Twice now this
+    // sat too early and swallowed the guards below it in local testing —
+    // first the origin/rate/size trio, then the Turnstile check. A request
+    // that should be refused must be refused on its own merits, never masked
+    // by a 500 about our own environment.
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      console.error("security-log: Supabase env missing");
+      return NextResponse.json({ error: "Not configured" }, { status: 500 });
+    }
 
     const country = req.headers.get("CF-IPCountry") ?? req.headers.get("x-vercel-ip-country") ?? "";
 

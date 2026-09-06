@@ -11,6 +11,7 @@
  * in order to fingerprint them.
  */
 import { EXCLUDED_TOOLS } from "@/lib/securityLogExclusions";
+import { getTurnstileToken } from "@/lib/turnstile";
 
 async function sha256Hex(file: File): Promise<string | null> {
   try {
@@ -44,6 +45,9 @@ export function logUpload(file: File, tool: string, runId?: string): void {
         size_bytes: file.size,
         mime: file.type || "unknown",
         sha256: await sha256Hex(file),
+        // null when Turnstile is not configured; the route then skips the
+        // check rather than rejecting.
+        turnstile_token: await getTurnstileToken(),
       };
       await fetch("/api/security-log", {
         method: "POST",

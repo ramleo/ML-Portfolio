@@ -162,7 +162,10 @@ export default function PrivacyPage() {
             stored. These records are deleted automatically after 30 days and are not readable by
             anything on this site. They also hold a scrambled, one-way form of the requesting IP
             address &mdash; not the address itself &mdash; used only to stop the same source
-            flooding the log. It cannot be turned back into an address.
+            flooding the log. It cannot be turned back into an address. If bot protection is enabled, that check is
+            performed by Cloudflare Turnstile, which sees your IP and browser characteristics in order
+            to tell a person from a script; it does not use tracking cookies and is not used to
+            identify you across sites.
           </p>
           <p style={{ margin: 0 }}>
             Filenames are the one part of this worth spelling out: <em>report.pdf</em> reveals nothing,
