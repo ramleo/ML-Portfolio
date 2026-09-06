@@ -28,6 +28,18 @@ export type TrackedFetchOptions = {
   /** Extra meta merged into the emitted events. Enumerated values and counts
    * only — §6 rule 1 forbids content in this table. */
   meta?: Record<string, unknown>;
+  /** Set for endpoints that stream their answer (SSE, chunked text).
+   *
+   * fetch() resolves at the response HEADERS — the moment the server says it
+   * is about to start sending — not when the answer finishes arriving. So
+   * without this, a 25-second chat answer logs latency_ms of ~800, and a
+   * stream that dies halfway (visitor sees half a sentence) logs a clean
+   * success. That is the same "HTTP 200 is not the same as it worked" trap
+   * that hid the rate-limited reconciliation report on 2026-09-05.
+   *
+   * With it, the response body is wrapped and the outcome is recorded when
+   * the stream actually ends. */
+  streaming?: boolean;
 };
 
 /** A UUID minted per run, client-side (LOGGING_SPEC.md §3 stage 5). */
@@ -50,6 +62,13 @@ export async function trackedFetch(
     const res = await fetch(input, init);
     const latency = Date.now() - t0;
     if (res.ok) {
+      // 204/205/304 must not be given a body, and a null body has nothing to
+      // wrap — both fall through to logging at the headers, as before.
+      if (opts.streaming && res.body && ![204, 205, 304].includes(res.status)) {
+        return new Response(watchStream(res.body, t0, base), {
+          status: res.status, statusText: res.statusText, headers: res.headers,
+        });
+      }
       track(EV.RUN_SUCCESS, { duration_ms: latency, meta: { ...base, latency_ms: latency } });
     } else {
       // A non-ok Response is NOT thrown — it is returned, exactly as fetch
@@ -71,6 +90,55 @@ export async function trackedFetch(
     });
     throw err;
   }
+}
+
+/** Wraps a streaming body so the run is recorded when the stream ENDS.
+ *
+ * Three outcomes, kept distinct on purpose:
+ *   - finished  → run_success with the real end-to-end duration.
+ *   - broke     → run_error. The visitor got a truncated answer; that is a
+ *                 failure however healthy the headers looked.
+ *   - cancelled → run_success with completed:false. This is mostly the
+ *                 visitor pressing Stop, which is normal behaviour, not an
+ *                 outage — counting it as an error would inflate the error
+ *                 rate with people changing their minds. The flag keeps it
+ *                 filterable without pretending the answer was delivered.
+ */
+function watchStream(body: ReadableStream<Uint8Array>, t0: number,
+                     base: Record<string, unknown>): ReadableStream<Uint8Array> {
+  const reader = body.getReader();
+  let settled = false;
+  const once = (fn: () => void) => { if (!settled) { settled = true; fn(); } };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done: finished, value } = await reader.read();
+        if (finished) {
+          const ms = Date.now() - t0;
+          once(() => track(EV.RUN_SUCCESS, { duration_ms: ms,
+            meta: { ...base, latency_ms: ms, streamed: true, completed: true } }));
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (err) {
+        const ms = Date.now() - t0;
+        once(() => track(EV.RUN_ERROR, { duration_ms: ms,
+          meta: { ...base, stage: STAGE.RUN, latency_ms: ms, streamed: true,
+                  error_class: classifyThrown(err), http_status: 200,
+                  reason: "stream_broke_after_headers" } }));
+        controller.error(err);
+      }
+    },
+    cancel(reason) {
+      const ms = Date.now() - t0;
+      once(() => track(EV.RUN_SUCCESS, { duration_ms: ms,
+        meta: { ...base, latency_ms: ms, streamed: true, completed: false,
+                reason: "cancelled" } }));
+      return reader.cancel(reason);
+    },
+  });
 }
 
 /** Emit the press itself. Separate from trackedFetch because a run can begin

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+
+const TOOL = "multimodal-rag-contradictions";
 import Skeleton from "./Skeleton";
 
 type Contradiction = {
@@ -25,12 +28,14 @@ export default function ContradictionsPanel({ sessionId, accent }: { sessionId: 
 
   const check = async () => {
     setState("loading");
+    const runId = newRunId();
+    trackRunStart(TOOL, runId);
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/rag/contradictions`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}/rag/contradictions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId }),
-      });
+      }, { tool: TOOL, runId });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setResult(await res.json());
       setState("done");

@@ -2,6 +2,8 @@
 
 import { useRef, useState, useCallback, useEffect, DragEvent, ChangeEvent } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
+import { STAGE, classifyThrown } from "@/lib/logEvents";
 import { usePipeline } from "@/context/PipelineContext";
 import { track } from "@/hooks/useAnalytics";
 import OptunaResults from "./OptunaResults";
@@ -67,7 +69,9 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
     try {
       const fd = new FormData();
       fd.append("file", f);
-      const res = await fetch(`${ML_UNIFIED_API}/analyze`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/analyze`,
+        { method: "POST", body: fd },
+        { tool: "optuna", stage: STAGE.UPLOAD, meta: { size_bytes: f.size } });
       if (!res.ok) throw new Error(`Analyze failed: ${res.statusText}`);
       const data: AnalyzeResult = await res.json();
       setAnalyzeResult(data);
@@ -106,7 +110,8 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
     setStatus("Starting...");
     setResult(null);
     setStep(3);
-    track("query_run", { meta: { tool: "optuna", action: "optuna_start", model, n_trials: nTrials, task, sampler } });
+    const runId = newRunId();
+    trackRunStart("optuna", runId, { model, n_trials: nTrials, task, sampler });
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -126,7 +131,9 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
       fd.append("opt_metric", optMetric);
       fd.append("sampler", sampler);
       fd.append("secondary_metric", secondaryMetric);
-      const res = await fetch(`${ML_UNIFIED_API}/train`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/train`,
+        { method: "POST", body: fd },
+        { tool: "optuna", runId, streaming: true, meta: { opt_metric: optMetric, sampler } });
       if (!res.ok || !res.body) throw new Error(`Train failed: ${res.statusText}`);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -163,7 +170,10 @@ export default function OptunaRunner({ onReady, onResult, onStepChange }: Optuna
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Training failed");
-      track("error", { meta: { tool: "optuna", action: "optuna_error", model } });
+      // Was the ONLY track("error") call site in the codebase, and it recorded
+      // no run_id, no stage and no error class — so a failure here could not
+      // be joined to the attempt or counted by kind. §3 stage 7.
+      trackRunError("optuna", runId, STAGE.RUN, classifyThrown(e), { model });
     } finally {
       setTraining(false);
     }

@@ -3,9 +3,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { RefObject } from "react";
 import { ML_SQL_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { track } from "@/hooks/useAnalytics";
+import { EV, ERR, STAGE } from "@/lib/logEvents";
 import type { Provider, HistoryTurn, Results, ResultTab } from "./_types";
 import { getCorrection } from "./_corrections";
 import { incrementQueryCount } from "@/hooks/useAnalytics";
+
+const TOOL = "text-to-sql";
 
 const PROVIDER_MODEL: Record<string, string> = {
   groq: "llama-3.3-70b-versatile",
@@ -102,12 +107,15 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     const t0 = Date.now();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
+    const runId = newRunId();
+    trackRunStart(TOOL, runId, { provider, model: PROVIDER_MODEL[provider] ?? provider,
+                                 query_length: activeQ.length, db_ref: dbRef });
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/query`, {
+      const res = await trackedFetch(`${ML_SQL_API}/sql/query`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: activeQ, provider, db_ref: dbRef, history: historyPayload, glossary, correction: getCorrection(dbRef, activeQ) }),
         signal: controller.signal,
-      });
+      }, { tool: TOOL, runId, streaming: true, meta: { provider } });
       if (!res.body) throw new Error("No response stream");
       const reader = res.body.getReader(); readerRef.current = reader;
       const dec = new TextDecoder(); let buf = "";
@@ -131,21 +139,23 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
               finalResults = evt;
               patchTab(tabId, { results: evt, totalCount: evt.total_count ?? -1 });
               setStatus(`${evt.count} rows in ${evt.exec_time_ms}ms`);
-              const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
-              incrementQueryCount("text-to-sql");
-              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { rows: evt.count, provider, model: PROVIDER_MODEL[provider] ?? provider, success: true, query_length: activeQ.length } }),
-              }).catch(() => {});
+              incrementQueryCount(TOOL);
+              track(EV.RESULT_VIEW, { duration_ms: Date.now() - t0, meta: {
+                tool: TOOL, run_id: runId, result_count: evt.count,
+                provider, model: PROVIDER_MODEL[provider] ?? provider,
+                query_length: activeQ.length } });
             }
             else if (evt.type === "error") {
               patchTab(tabId, { error: evt.text });
-              const sid = (typeof window !== "undefined" && localStorage.getItem("_ml_session")) ?? "";
-              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "query_run", path: "/tools/text-to-sql", session_id: sid, duration_ms: Date.now() - t0, meta: { provider, model: PROVIDER_MODEL[provider] ?? provider, success: false, query_length: activeQ.length } }),
-              }).catch(() => {});
-              fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "error", path: "/tools/text-to-sql", session_id: sid, meta: { tool: "text-to-sql", error_type: "query_error", message: (evt.text ?? "").slice(0, 120) } }),
-              }).catch(() => {});
+              // An SSE {type:"error"} arrives inside a 200 response, so
+              // trackedFetch saw a success. This is the real outcome.
+              track(EV.RUN_ERROR, { duration_ms: Date.now() - t0, meta: {
+                tool: TOOL, run_id: runId, stage: STAGE.RUN,
+                error_class: /429|Too Many Requests/i.test(evt.text ?? "")
+                  ? ERR.RATE_LIMITED : ERR.UNKNOWN,
+                provider, model: PROVIDER_MODEL[provider] ?? provider,
+                query_length: activeQ.length,
+                message: (evt.text ?? "").slice(0, 120) } });
             }
             else if (evt.type === "done")  setRunning(false);
           } catch { }

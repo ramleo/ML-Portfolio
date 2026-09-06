@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ML_SQL_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
 import SchemaDiagram from "./SchemaDiagram";
@@ -52,7 +53,8 @@ export default function TextToSqlRunner() {
   const [dynQ, setDynQ] = useState(SAMPLE_QUESTIONS);
   useEffect(() => {
     if (dbRef === "chinook") { setDynQ(SAMPLE_QUESTIONS); return; }
-    fetch(`${ML_SQL_API}/sql/sample-questions?db_ref=${dbRef}&provider=${provider}`)
+    trackedFetch(`${ML_SQL_API}/sql/sample-questions?db_ref=${dbRef}&provider=${provider}`,
+      undefined, { tool: "text-to-sql-samples", meta: { provider, db_ref: dbRef } })
       .then(r => r.json()).then(d => { if (d.questions?.length) setDynQ(d.questions.map((q: unknown) => String(q))); }).catch(() => {});
   }, [dbRef, provider]);
 

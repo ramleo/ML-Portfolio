@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { DriftResult, ACCENT } from "./driftTypes";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+
+const TOOL = "drift-ai-explain";
 
 type ProviderId = "groq" | "gemini-2.5-flash" | "gemini-3.5-flash" | "cohere";
 
@@ -80,9 +83,11 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
     }
     setLoading(true); setText(""); setError("");
     abortRef.current = new AbortController();
+    const runId = newRunId();
+    trackRunStart(TOOL, runId, { provider });
 
     try {
-      const res = await fetch(
+      const res = await trackedFetch(
         `${ML_UNIFIED_API}/drift/${modelId}/explain?provider=${provider}`,
         {
           method: "POST",
@@ -90,6 +95,7 @@ export default function DriftAIExplain({ result, modelId }: { result: DriftResul
           body: JSON.stringify(result),
           signal: abortRef.current.signal,
         },
+        { tool: TOOL, runId, streaming: true, meta: { provider } },
       );
       if (!res.ok) throw new Error(await res.text());
 

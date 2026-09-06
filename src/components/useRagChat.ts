@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { type IngestStatus } from "./RagIngestButton";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 import { STEP_LABELS } from "./ToolsAIChatIcons";
 import { isImageGenerationIntent } from "./chatImageIntent";
 import { buildToolContext, sanitizeHistory, type ToolChatContext, type Message, type RagSource, type Groundedness } from "./chatContext";
@@ -188,12 +189,17 @@ export function useRagChat(context: ToolChatContext) {
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    // provider/model are the caller's SELECTION, not necessarily who served
+    // it — the backend cascade may fall through to another. The served
+    // provider is recorded backend-side in llm_calls against the same run_id.
+    const runId = newRunId();
+    trackRunStart("rag-chat", runId, { provider, model, endpoint });
 
     try {
-      const res = await fetch(`${ML_UNIFIED_API}${endpoint}`, {
+      const res = await trackedFetch(`${ML_UNIFIED_API}${endpoint}`, {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify(body), signal: controller.signal,
-      });
+      }, { tool: "rag-chat", runId, streaming: true, meta: { provider, model } });
       if (!res.ok || !res.body) throw new Error(`Request failed: ${res.statusText}`);
 
       const reader = res.body.getReader();

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 import DocSidebar from "./DocSidebar";
 import DocViewerPanel from "./DocViewerPanel";
 import DocFieldsPanel from "./DocFieldsPanel";
@@ -61,8 +62,14 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
     fd.append("doc_type", docType);
     if (customFields.trim()) fd.append("custom_fields", customFields.trim());
 
+    const runId = newRunId();
+    trackRunStart("document-intelligence", runId,
+                  { doc_type: docType, size_bytes: file.size });
+
     try {
-      const res = await fetch(`${ML_UNIFIED_API}/document/analyze`, { method: "POST", body: fd });
+      const res = await trackedFetch(`${ML_UNIFIED_API}/document/analyze`,
+        { method: "POST", body: fd },
+        { tool: "document-intelligence", runId, streaming: true, meta: { doc_type: docType } });
       if (!res.ok || !res.body) throw new Error(`Request failed: ${res.statusText}`);
 
       const reader = res.body.getReader();

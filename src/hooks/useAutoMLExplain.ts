@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { type TrainResult, type Explanation, type LLMProvider } from "@/lib/automlUtils";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 // Maps LLMProvider to /api/ai-tools provider+model (used for Vercel fallback only)
 function mapProvider(
@@ -113,6 +114,11 @@ export function useAutoMLExplain(
   const handleExplain = useCallback(async () => {
     if (!trainResult?.automl) return;
 
+    // Declared once for the whole action so the primary call and the fallback
+    // share it — see the fallback comment below.
+    const runId = newRunId();
+    trackRunStart("automl-explain", runId, { provider: llmProvider });
+
     setLlmLoading(true);
     setLlmExp(null);
     setLlmError(null);
@@ -135,11 +141,11 @@ export function useAutoMLExplain(
         if (customLLMModel?.trim())   body.custom_model    = customLLMModel.trim();
 
         try {
-          const res = await fetch(`${ML_UNIFIED_API}/explain`, {
+          const res = await trackedFetch(`${ML_UNIFIED_API}/explain`, {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify(body),
-          });
+          }, { tool: "automl-explain", runId, meta: { provider: llmProvider } });
           if (res.ok) {
             const data = await res.json() as { explanation?: Explanation; source?: string; rag_used?: boolean };
             if (data.explanation?.why_won) {
@@ -171,11 +177,14 @@ export function useAutoMLExplain(
       };
       if (customLLMUrl?.trim() && userApiKey?.trim()) fallbackBody.baseUrl = customLLMUrl.trim();
 
-      const res = await fetch("/api/ai-tools", {
+      // The fallback path. Same run_id on purpose: this is the same user
+      // action, and keeping the id makes "primary failed, fallback served"
+      // one readable sequence rather than two unrelated runs.
+      const res = await trackedFetch("/api/ai-tools", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify(fallbackBody),
-      });
+      }, { tool: "automl-explain", runId, meta: { path: "fallback" } });
 
       const data = await res.json() as { reply?: string; error?: string };
 

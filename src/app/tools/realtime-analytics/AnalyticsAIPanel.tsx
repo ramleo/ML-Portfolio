@@ -1,4 +1,5 @@
 "use client";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
 import { useState } from "react";
 
@@ -44,12 +45,14 @@ export default function AnalyticsAIPanel({ stats, rangeLabel }: Props) {
   const generate = async () => {
     setLoading(true);
     setError(null);
+    const runId = newRunId();
+    trackRunStart("realtime-analytics-ai", runId, { range: rangeLabel });
     try {
-      const res = await fetch("/api/ai-explain", {
+      const res = await trackedFetch("/api/ai-explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stats, rangeLabel }),
-      });
+      }, { tool: "realtime-analytics-ai", runId });
       const data = await res.json();
       if (data.error) setError(data.error);
       else setExplanation(data.explanation ?? "No explanation returned.");
