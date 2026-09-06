@@ -34,10 +34,10 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "groq", label: "Groq", color: "#a78bfa",
     models: [
-      { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-      { id: "llama-3.1-8b-instant",   label: "Llama 3.1 8B Instant" },
-      { id: "mixtral-8x7b-32768",   label: "Mixtral 8x7B" },
-      { id: "gemma2-9b-it",         label: "Gemma 2 9B" },
+      // Both Llama names 404 on Groq now and gemma2-9b-it is decommissioned;
+      // these two were verified reachable 2026-09-06.
+      { id: "qwen/qwen3.6-27b", label: "Qwen3.6 27B" },
+      { id: "qwen/qwen3.8-27b", label: "Qwen3.8 27B" },
     ],
     envKeyNote: "Paste your Groq API key (free tier available).",
   },

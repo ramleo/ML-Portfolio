@@ -75,7 +75,11 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
     method: 'POST',
     headers: { 'Authorization': `Bearer ${key}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      // llama-3.1-8b-instant was retired by Groq (404 model_not_found), which
+      // made the Groq option in this chat throw for every visitor who picked
+      // it. Verified 2026-09-06: this name resolves; max_tokens 400 below fits
+      // the free tier's 1000 output-tokens-per-minute cap.
+      model: 'qwen/qwen3.6-27b',
       max_tokens: 400,
       temperature: 0.7,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],

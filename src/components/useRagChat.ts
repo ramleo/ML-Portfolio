@@ -47,8 +47,12 @@ export function useRagChat(context: ToolChatContext) {
   const [likelyUsedSources, setLikelyUsedSources] = useState<number[] | null>(null);
   const [groundedness, setGroundedness] = useState<Groundedness | null>(null);
   const [selfCorrected, setSelfCorrected] = useState(false);
-  const [provider, setProvider]       = useState("gemini");
-  const [model, setModel]             = useState("gemini-2.5-flash");
+  // Cohere, not Gemini (2026-09-06). Gemini is the only paid key here, and
+  // as the opening default it answered every question any visitor asked.
+  // Cohere is free and was verified serving real queries end to end. Gemini
+  // is still one click away in the provider list.
+  const [provider, setProvider]       = useState("cohere");
+  const [model, setModel]             = useState("command-a-03-2025");
   const [userKey, setUserKey]         = useState("");
   const [sessionId, setSessionId]     = useState("");
   const [answerLength, setAnswerLength] = useState<"concise" | "normal" | "detailed">("normal");
