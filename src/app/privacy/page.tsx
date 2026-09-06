@@ -165,7 +165,14 @@ export default function PrivacyPage() {
             flooding the log. It cannot be turned back into an address. If bot protection is enabled, that check is
             performed by Cloudflare Turnstile, which sees your IP and browser characteristics in order
             to tell a person from a script; it does not use tracking cookies and is not used to
-            identify you across sites.
+            identify you across sites. It runs invisibly &mdash; there is nothing to click and no
+            puzzle to solve. Cloudflare&rsquo;s handling of that data is described in their{" "}
+            <a href="https://www.cloudflare.com/turnstile-privacy-policy/"
+               target="_blank" rel="noopener noreferrer"
+               style={{ color: "var(--accent, #6366f1)", textDecoration: "underline" }}>
+              Turnstile Privacy Addendum
+            </a>, which Cloudflare requires be referenced here as a condition of running it
+            invisibly.
           </p>
           <p style={{ margin: 0 }}>
             Filenames are the one part of this worth spelling out: <em>report.pdf</em> reveals nothing,
