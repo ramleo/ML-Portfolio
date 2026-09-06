@@ -16,6 +16,8 @@ import WalkthroughTooltip from "./WalkthroughTooltip";
 import type { Provider, SchemaTable } from "./_types";
 import { SAMPLE_QUESTIONS } from "./_types";
 import { useQueryRunner } from "./useQueryRunner";
+import { track } from "@/hooks/useAnalytics";
+import { EV, STAGE } from "@/lib/logEvents";
 
 const ACCENT = "#6a6cc8";
 
@@ -70,8 +72,18 @@ export default function TextToSqlRunner() {
 
   const uploadDb = useCallback(async (file: File) => {
     const form = new FormData(); form.append("file", file);
+    // §3 stage 4. Extension and size only — the database itself is content.
+    // Recorded as `upload`, not `query_run`: this is feeding the tool its
+    // input, not running it. Conflating the two is what made "Query Runs"
+    // count downloads in four other tools (fixed in 441eeeb).
+    const runId = newRunId();
+    track(EV.UPLOAD, { meta: { tool: "text-to-sql", run_id: runId,
+      ext: file.name.split(".").pop()?.toLowerCase() ?? "", size_bytes: file.size } });
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/upload`, { method: "POST", body: form });
+      const res = await trackedFetch(`${ML_SQL_API}/sql/upload`,
+        { method: "POST", body: form },
+        { tool: "text-to-sql-db-upload", runId, stage: STAGE.UPLOAD,
+          meta: { size_bytes: file.size } });
       const text = await res.text();
       let data: Record<string, unknown>;
       try { data = JSON.parse(text); }
@@ -85,10 +97,16 @@ export default function TextToSqlRunner() {
   const connectRemote = useCallback(async (connStr: string, dbType: "postgresql" | "mysql" | "mssql") => {
     if (!connStr.trim()) return;
     try {
-      const res = await fetch(`${ML_SQL_API}/sql/connect`, {
+      // db_type ONLY. The connection string holds a host, a username and a
+      // password — it must never reach the analytics table (§6 rule 1).
+      const runId = newRunId();
+      track(EV.CONFIG_CHANGE, { meta: { tool: "text-to-sql", run_id: runId,
+        field: "remote_db", to: dbType } });
+      const res = await trackedFetch(`${ML_SQL_API}/sql/connect`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conn_str: connStr, db_type: dbType }),
-      });
+      }, { tool: "text-to-sql-db-connect", runId, stage: STAGE.CONFIG,
+           meta: { db_type: dbType } });
       const text2 = await res.text();
       let data: Record<string, unknown>;
       try { data = JSON.parse(text2); }
