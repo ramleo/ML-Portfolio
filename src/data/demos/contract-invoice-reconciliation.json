@@ -64,15 +64,16 @@
       "expect": "% match"
     },
     {
-      "say": "Now the yellow badge, which matters more than any single finding. Every pair the model flags is put to it a second time, worded differently. When the two answers disagree, the row is badged Unconfirmed rather than quietly dropped.",
-      "at": "recon-unconfirmed",
-      "settle": 2200,
-      "expect": "Unconfirmed"
+      "say": "Every row here survived being asked twice. When the model flags a pair, the tool puts it back a second time worded differently, and only a pair both passes agree on is reported as a finding. Where the two disagree, the row is badged Unconfirmed rather than quietly dropped.",
+      "at": "recon-disc-0",
+      "settle": 2400,
+      "expect": "discrepancies found"
     },
     {
-      "say": "That badge is doing real work here. This is a small, cheap model and it over-flags: the row it is sitting on is not a discrepancy at all, just two different true numbers about the same clause. Nothing is hidden from you either way. Every row prints the contract passage and the invoice passage side by side, so a badge is a prompt to go and read the source, not a verdict.",
-      "at": "recon-unconfirmed-passages",
-      "settle": 2000
+      "say": "And nothing is taken on trust either way. Every row prints the contract passage and the invoice passage side by side, with the page they came from, so the tool is showing you its evidence rather than asking you to believe a verdict.",
+      "at": "recon-passages-0",
+      "settle": 2200,
+      "expect": "USD 165.00 per hour"
     }
   ]
 }
