@@ -7,9 +7,12 @@ import { trackedFetch } from "@/lib/trackedFetch";
 import { ChatIcon, CloseIcon, SendIcon, SparkIcon } from "./ChatbotIcons";
 
 type Message = { role: "user" | "assistant"; content: string };
-type Provider = "gemini" | "claude" | "groq";
+type Provider = "cohere" | "gemini" | "claude" | "groq";
 
 const PROVIDERS: { id: Provider; label: string; color: string }[] = [
+  // Cohere leads because it is free; Gemini is the one paid provider on this
+  // route, so it is an explicit pick rather than what a visitor gets by default.
+  { id: "cohere", label: "Cohere", color: "#a78bfa" },
   { id: "gemini", label: "Gemini", color: "#38bdf8" },
   { id: "claude", label: "Claude", color: "#f59e0b" },
   { id: "groq",   label: "Groq",   color: "#34d399" },
@@ -34,7 +37,7 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentSection, setCurrentSection] = useState("hero");
-  const [provider, setProvider] = useState<Provider>("gemini");
+  const [provider, setProvider] = useState<Provider>("cohere");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 

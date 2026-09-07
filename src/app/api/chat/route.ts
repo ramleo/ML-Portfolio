@@ -24,6 +24,37 @@ Do not make up information not provided here. If asked something you don't know,
 
 type ChatMessage = { role: string; content: string };
 
+async function callCohere(key: string, systemPrompt: string, messages: ChatMessage[]) {
+  // Matches the shape the ML-Unified backend already uses for Cohere
+  // (routers/rag/llm.py, routers/document/_llm.py): v2/chat, system as the
+  // first message, and the reply at message.content[0].text — NOT the v1
+  // `text` field. Same model the backend's cascade leads with.
+  const fmt = [
+    { role: 'system', content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: m.content,
+    })),
+  ];
+  const res = await fetch('https://api.cohere.ai/v2/chat', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'command-a-03-2025',
+      messages: fmt,
+      max_tokens: 400,
+      temperature: 0.7,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[chat/cohere]', res.status, err);
+    throw new Error(`Cohere ${res.status}: ${err.slice(0, 120)}`);
+  }
+  const data = await res.json();
+  return data.message?.content?.[0]?.text ?? "No response received.";
+}
+
 async function callGemini(key: string, systemPrompt: string, messages: ChatMessage[]) {
   const contents = messages.map((m) => ({
     role: m.role === "user" ? "user" : "model",
@@ -95,7 +126,7 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, section, provider = 'gemini' } = await req.json();
+  const { messages, section, provider = 'cohere' } = await req.json();
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ reply: "No messages provided." }, { status: 400 });
@@ -108,18 +139,25 @@ export async function POST(req: NextRequest) {
 
     if (provider === 'claude') {
       const key = process.env.ANTHROPIC_API_KEY;
-      if (!key) return NextResponse.json({ reply: "Claude is not configured yet. Try Gemini or Groq!" });
+      if (!key) return NextResponse.json({ reply: "Claude is not configured yet. Try Cohere or Groq!" });
       reply = await callClaude(key, systemPrompt, messages);
 
     } else if (provider === 'groq') {
       const key = process.env.GROQ_API_KEY;
-      if (!key) return NextResponse.json({ reply: "Groq is not configured yet. Try Gemini or Claude!" });
+      if (!key) return NextResponse.json({ reply: "Groq is not configured yet. Try Cohere or Claude!" });
       reply = await callGroq(key, systemPrompt, messages);
 
-    } else {
+    } else if (provider === 'gemini') {
       const key = process.env.GEMINI_API_KEY;
-      if (!key) return NextResponse.json({ reply: "Gemini is not configured yet. Use the contact form to get in touch!" });
+      if (!key) return NextResponse.json({ reply: "Gemini is not configured yet. Try Cohere or Groq!" });
       reply = await callGemini(key, systemPrompt, messages);
+
+    } else {
+      // Default. Gemini is the one paid provider here, so it is no longer what
+      // an unspecified request gets — it stays available as an explicit pick.
+      const key = process.env.COHERE_API_KEY;
+      if (!key) return NextResponse.json({ reply: "Cohere is not configured yet. Try Groq, or use the contact form to get in touch!" });
+      reply = await callCohere(key, systemPrompt, messages);
     }
 
     return NextResponse.json({ reply });
