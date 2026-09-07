@@ -279,7 +279,12 @@ export function ProviderBreakdownBar({ data }: { data: ProviderStat[] }) {
 
 // ── Model breakdown bar ───────────────────────────────────────────────────────
 const MODEL_COLORS: Record<string, string> = {
+  // llama-* were retired by Groq; the keys stay so historical rows keep their
+  // colour, with the models actually in use added alongside.
   "llama-3.3-70b-versatile": "#10b981",
+  "qwen/qwen3.8-27b": "#a78bfa",
+  "qwen/qwen3.6-27b": "#c4b5fd",
+  "command-a-03-2025": "#fb923c",
   "gpt-4o-mini": "#6366f1",
   "claude-haiku-4-5": "#f59e0b",
 };

@@ -14,8 +14,10 @@ function mapProvider(
     case "gemini-2.5":   return { provider: "gemini",  model: "gemini-2.5-flash" };
     case "anthropic":    return { provider: "claude",  model: "claude-haiku-4-5-20251001" };
     case "openai":       return { provider: "openai",  model: "gpt-4o-mini" };
-    case "groq":         return { provider: "groq",    model: "llama-3.3-70b-versatile" };
-    case "groq-mixtral": return { provider: "groq",    model: "llama-3.1-8b-instant" };
+    // Both Llama names were retired by Groq and 404'd. The two options stay
+    // distinct so an existing saved preference still resolves to something.
+    case "groq":         return { provider: "groq",    model: "qwen/qwen3.8-27b" };
+    case "groq-mixtral": return { provider: "groq",    model: "qwen/qwen3.6-27b" };
     default:             return { provider: "gemini",  model: "gemini-2.5-flash" };
   }
 }

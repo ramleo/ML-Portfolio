@@ -55,8 +55,12 @@ async function callGroq(key: string, prompt: string): Promise<string> {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 600,
+      // llama-3.1-8b-instant was retired by Groq and 404'd here, so this whole
+      // branch was dead. qwen is a reasoning model, hence reasoning_format.
+      // Verified live 2026-09-07.
+      model: "qwen/qwen3.8-27b",
+      reasoning_format: "hidden",
+      max_tokens: 900,
       temperature: 0.4,
       messages: [{ role: "user", content: prompt }],
     }),

@@ -336,7 +336,7 @@ const capabilities: Capability[] = [
     icon: Scale,
     stat: "2",
     statLabel: "Doc Roles",
-    model: "Groq (llama-3.1-8b-instant)",
+    model: "Cohere / Mistral / Gemini",
     input: "PDF, PNG, JPG (contract + invoices)",
     tags: ["RAG", "Reconciliation", "Contracts", "Invoices", "LLM"],
     link: "/?mode=ml",

@@ -93,8 +93,8 @@ export const LLM_PROVIDERS: { value: LLMProvider; label: string }[] = [
   { value: "gemini-2.5",   label: "Gemini 2.5 Flash" },
   { value: "anthropic",    label: "Claude Haiku" },
   { value: "openai",       label: "GPT-4o Mini" },
-  { value: "groq",         label: "Groq Llama 3.3 70B" },
-  { value: "groq-mixtral", label: "Groq Llama 3.1 8B Instant" },
+  { value: "groq",         label: "Groq Qwen3.8 27B" },
+  { value: "groq-mixtral", label: "Groq Qwen3.6 27B" },
 ];
 
 export const LLM_KEY_HINTS: Record<LLMProvider, string> = {

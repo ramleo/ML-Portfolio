@@ -13,7 +13,7 @@ import { incrementQueryCount } from "@/hooks/useAnalytics";
 const TOOL = "text-to-sql";
 
 const PROVIDER_MODEL: Record<string, string> = {
-  groq: "llama-3.3-70b-versatile",
+  groq: "qwen/qwen3.8-27b",
   openai: "gpt-4o-mini",
   anthropic: "claude-haiku-4-5",
 };

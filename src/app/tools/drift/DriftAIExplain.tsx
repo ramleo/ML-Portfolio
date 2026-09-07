@@ -12,7 +12,7 @@ const TOOL = "drift-ai-explain";
 type ProviderId = "groq" | "gemini-2.5-flash" | "gemini-3.5-flash" | "cohere";
 
 const PROVIDERS: { id: ProviderId; label: string; model: string; color: string }[] = [
-  { id: "groq",             label: "Groq",       model: "Llama 3.3 70B",    color: "#f59e0b" },
+  { id: "groq",             label: "Groq",       model: "Qwen3.8 27B",      color: "#f59e0b" },
   { id: "gemini-2.5-flash", label: "Gemini 2.5", model: "Gemini 2.5 Flash", color: "#34d399" },
   { id: "gemini-3.5-flash", label: "Gemini 3.5", model: "Gemini 3.5 Flash", color: "#22d3ee" },
   { id: "cohere",           label: "Cohere",     model: "Command A 03-2025",color: "#a78bfa" },

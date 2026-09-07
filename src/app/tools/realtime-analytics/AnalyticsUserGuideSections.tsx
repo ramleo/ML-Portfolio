@@ -208,7 +208,7 @@ export default function GuideSections() {
           desc="Each bar is proportional to that provider's share of all query_run events in the active range. Provider is read from meta.provider on each query_run event. Hidden when no query_run events exist."/>
         <Feat icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10h10M2 7h8M2 4h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
           title="By Model — specific model breakdown"
-          desc="Second chart below the provider bars. Shows the exact model name used (e.g. llama-3.3-70b-versatile, gemini-2.0-flash, command-r-plus) from meta.model on each query_run event. Useful for tracking which models handle the most load."/>
+          desc="Second chart below the provider bars. Shows the exact model name used (e.g. qwen/qwen3.8-27b, gemini-2.0-flash, command-a-03-2025) from meta.model on each query_run event. Useful for tracking which models handle the most load."/>
       </Sec>
 
       <Sec id="ug-engage" title="Engagement Metrics">

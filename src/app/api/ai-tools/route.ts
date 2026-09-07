@@ -4,6 +4,18 @@ export const maxDuration = 30;
 
 type ChatMessage = { role: string; content: string };
 
+// Fallback for reasoning models if a provider stops honouring reasoning_format.
+// Mirrors the backend's strip_thinking() (routers/rag/mm_caption.py): an
+// unterminated block means generation was cut off mid-monologue, so there is no
+// answer in there to salvage and the dump must not reach the user.
+function stripThinking(text: string | undefined): string | undefined {
+  if (!text || !text.includes("<think>")) return text;
+  const end = text.indexOf("</think>");
+  if (end === -1) return undefined;
+  const rest = text.slice(end + "</think>".length).trim();
+  return rest || undefined;
+}
+
 const OPENAI_COMPAT: Record<string, string> = {
   openai:      "https://api.openai.com/v1",
   groq:        "https://api.groq.com/openai/v1",
@@ -16,7 +28,7 @@ const OPENAI_COMPAT: Record<string, string> = {
 // for non-OpenAI providers (e.g. sending "gpt-4o-mini" to Groq 404s).
 const DEFAULT_MODELS: Record<string, string> = {
   openai:      "gpt-4o-mini",
-  groq:        "llama-3.3-70b-versatile",
+  groq:        "qwen/qwen3.8-27b",
   together:    "meta-llama/Llama-3-70b-chat-hf",
   mistral:     "mistral-small-latest",
   perplexity:  "sonar",
@@ -69,14 +81,20 @@ async function callOpenAICompat(
   jsonMode = false, maxTokens = 800,
   providerLabel = "",
 ) {
+  // Groq's qwen models are reasoning models: without this they return the
+  // <think> monologue as the reply and truncate the real answer. Gated on
+  // Groq + qwen because it is not a standard OpenAI-compatible field — sending
+  // it to OpenAI or Together would 400 the request.
+  const isGroqReasoning = baseUrl.includes("api.groq.com") && model.startsWith("qwen");
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({
       model,
-      max_tokens: maxTokens,
+      max_tokens: isGroqReasoning ? Math.max(maxTokens, 900) : maxTokens,
       temperature: 0.4,
       messages: [{ role: "system", content: system }, ...messages],
+      ...(isGroqReasoning ? { reasoning_format: "hidden" } : {}),
       ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     }),
   });
@@ -90,7 +108,7 @@ async function callOpenAICompat(
     throw new Error(`${res.status}: ${body.slice(0, 120)}`);
   }
   const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "No response.";
+  return stripThinking(data.choices?.[0]?.message?.content) ?? "No response.";
 }
 
 async function callCohere(key: string, model: string, system: string, messages: ChatMessage[], jsonMode = false, maxTokens = 800) {
