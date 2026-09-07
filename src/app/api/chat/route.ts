@@ -24,6 +24,20 @@ Do not make up information not provided here. If asked something you don't know,
 
 type ChatMessage = { role: string; content: string };
 
+// Belt-and-braces for reasoning models. `reasoning_format: 'hidden'` below is
+// the actual fix; this catches the case where a provider stops honouring it or
+// the model is swapped again. Mirrors the backend's strip_thinking()
+// (routers/rag/mm_caption.py), including its unterminated case: if generation
+// was cut off mid-monologue there is no answer in there to salvage, and the
+// reasoning dump must not be shown to a visitor.
+function stripThinking(text: string | undefined): string | undefined {
+  if (!text || !text.includes('<think>')) return text;
+  const end = text.indexOf('</think>');
+  if (end === -1) return undefined;
+  const rest = text.slice(end + '</think>'.length).trim();
+  return rest || undefined;
+}
+
 async function callCohere(key: string, systemPrompt: string, messages: ChatMessage[]) {
   // Matches the shape the ML-Unified backend already uses for Cohere
   // (routers/rag/llm.py, routers/document/_llm.py): v2/chat, system as the
@@ -111,7 +125,17 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
       // it. Verified 2026-09-06: this name resolves; max_tokens 400 below fits
       // the free tier's 1000 output-tokens-per-minute cap.
       model: 'qwen/qwen3.6-27b',
-      max_tokens: 400,
+      // qwen is a reasoning model: without this it returns its <think> monologue
+      // as the reply and the real answer is truncated away by max_tokens. The
+      // model swap above fixed the 404 but the reply body was never read, so
+      // every Groq answer was a reasoning dump. Verified 2026-09-07: 'hidden'
+      // returns a clean, complete answer well inside the 400-token budget.
+      reasoning_format: 'hidden',
+      // 400 was enough for the old non-reasoning llama. qwen spends output
+      // budget on hidden reasoning before it writes anything, so at 400 the
+      // visible answer was still being cut off mid-sentence. 900 keeps a single
+      // reply inside the free tier's 1000 output-tokens-per-minute cap.
+      max_tokens: 900,
       temperature: 0.7,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
     }),
@@ -122,7 +146,7 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
     throw new Error('Groq error');
   }
   const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "No response received.";
+  return stripThinking(data.choices?.[0]?.message?.content) ?? "No response received.";
 }
 
 export async function POST(req: NextRequest) {
