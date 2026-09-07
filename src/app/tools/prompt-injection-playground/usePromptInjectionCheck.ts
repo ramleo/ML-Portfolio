@@ -11,6 +11,10 @@ export type LlmVerdict = { is_injection: boolean; confidence: string; category: 
 export type PromptInjectionResult = {
   heuristic_hits: PatternHit[];
   llm_verdict: LlmVerdict | null;
+  // False when no judge provider could be reached. Distinct from a null
+  // verdict, which on its own cannot say whether the judge cleared the text
+  // or never answered. Defaults true for responses from an older backend.
+  judge_ran?: boolean;
   overall_risk: string;
   overall_reason: string;
 };

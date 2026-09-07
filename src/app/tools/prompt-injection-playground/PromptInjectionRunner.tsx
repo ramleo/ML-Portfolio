@@ -103,6 +103,12 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
               {RISK_LABEL[result.overall_risk] ?? result.overall_risk}
             </div>
             <div className="text-sm mt-0.5" style={{ color: "var(--text2)" }}>{result.overall_reason}</div>
+            {result.judge_ran === false && (
+              <div data-wt="pi-degraded" className="text-xs mt-2 px-2 py-1 rounded inline-block"
+                style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.35)" }}>
+                Pattern check only — the LLM judge was unreachable
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,7 +130,14 @@ export default function PromptInjectionRunner({ accent }: { accent: string }) {
 
             <Section wt="pi-judge" title="Independent LLM judge">
               {!result.llm_verdict
-                ? <p className="text-sm" style={{ color: "var(--text3)" }}>LLM judge unavailable (no server key configured) — relying on pattern matches only.</p>
+                ? <p className="text-sm" style={{ color: "#f59e0b" }}>
+                    {/* This used to assert "no server key configured", which was
+                        simply wrong the day the judge started failing: the key was
+                        fine and the provider was rate-limiting. Don't name a cause
+                        the response cannot support. */}
+                    The LLM judge did not return a verdict, so only the pattern check ran.
+                    This result is half of the two checks this tool normally applies.
+                  </p>
                 : (
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
