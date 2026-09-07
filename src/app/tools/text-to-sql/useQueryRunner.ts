@@ -114,6 +114,12 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
     const runId = newRunId();
+    // The provider that ACTUALLY answered, reported by the sql_generated event.
+    // ml-sql falls back groq -> mistral -> gemini -> cohere, so the picked
+    // provider is only a request, not a fact. Seeded with the request so a run
+    // that fails before sql_generated still logs something sane.
+    let usedProvider = provider;
+    let usedModel = PROVIDER_MODEL[provider] ?? provider;
     trackRunStart(TOOL, runId, { provider, model: PROVIDER_MODEL[provider] ?? provider,
                                  query_length: activeQ.length, db_ref: dbRef });
     try {
@@ -138,6 +144,11 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
             else if (evt.type === "retry")     setRetryMsg(`Retrying (${evt.attempt}/3): ${/429|Too Many Requests/i.test(evt.error??'') ? "Rate limit reached — switch provider or wait ~60s" : (evt.error??'')}`);
             else if (evt.type === "sql_generated") {
               finalSql = evt.sql;
+              if (evt.provider) usedProvider = evt.provider;
+              if (evt.model) usedModel = evt.model;
+              if (evt.fell_back_from) {
+                setRetryMsg(`${evt.fell_back_from} was unavailable — answered by ${evt.provider} instead`);
+              }
               patchTab(tabId, { sql: evt.sql, currentSql: evt.sql, originalSql: evt.sql });
               setStatus("Executing…");
             }
@@ -148,7 +159,8 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
               incrementQueryCount(TOOL);
               track(EV.RESULT_VIEW, { duration_ms: Date.now() - t0, meta: {
                 tool: TOOL, run_id: runId, result_count: evt.count,
-                provider, model: PROVIDER_MODEL[provider] ?? provider,
+                provider: usedProvider, model: usedModel,
+                requested_provider: provider,
                 query_length: activeQ.length } });
             }
             else if (evt.type === "error") {
@@ -159,7 +171,8 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
                 tool: TOOL, run_id: runId, stage: STAGE.RUN,
                 error_class: /429|Too Many Requests/i.test(evt.text ?? "")
                   ? ERR.RATE_LIMITED : ERR.UNKNOWN,
-                provider, model: PROVIDER_MODEL[provider] ?? provider,
+                provider: usedProvider, model: usedModel,
+                requested_provider: provider,
                 query_length: activeQ.length,
                 message: (evt.text ?? "").slice(0, 120) } });
             }
