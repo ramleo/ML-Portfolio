@@ -12,10 +12,16 @@ import { incrementQueryCount } from "@/hooks/useAnalytics";
 
 const TOOL = "text-to-sql";
 
+// ANALYTICS ONLY — the request body below sends `provider`, never `model`.
+// The model actually used comes from services/ml-sql/routers/_providers.py, so
+// this must mirror that file or the Model-breakdown chart reports a model that
+// was never called. openai/anthropic were listed here but ml-sql has no such
+// providers, and the dropdown's gemini/cohere were missing entirely.
 const PROVIDER_MODEL: Record<string, string> = {
-  groq: "qwen/qwen3.8-27b",
-  openai: "gpt-4o-mini",
-  anthropic: "claude-haiku-4-5",
+  groq: "groq/compound",
+  gemini: "gemini-3.6-flash",
+  cohere: "command-r-plus-08-2024",
+  mistral: "codestral-latest",
 };
 
 interface QueryRunnerDeps {

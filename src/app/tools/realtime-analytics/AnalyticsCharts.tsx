@@ -283,6 +283,7 @@ const MODEL_COLORS: Record<string, string> = {
   // colour, with the models actually in use added alongside.
   "llama-3.3-70b-versatile": "#10b981",
   "qwen/qwen3.8-27b": "#a78bfa",
+  "groq/compound": "#10b981",
   "qwen/qwen3.6-27b": "#c4b5fd",
   "command-a-03-2025": "#fb923c",
   "gpt-4o-mini": "#6366f1",
