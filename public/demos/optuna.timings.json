@@ -1,42 +1,42 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "An algorithm's defaults are a guess made by its authors about datasets in general, not about yours. Hyperparameter tuning searches for better ones. Optuna does that search with a Bayesian method rather than trying every combination."
   },
   {
-    "start": 14.22,
+    "start": 19.12,
     "say": "The customer churn file again: two hundred and forty rows, nine features, predicting churned."
   },
   {
-    "start": 23.26,
+    "start": 27.54,
     "say": "Tuning is per algorithm, not a competition, so you pick one. I am taking XGBoost, which has nine parameters worth searching."
   },
   {
-    "start": 34.42,
+    "start": 38.08,
     "say": "Thirty trials by default. Each trial is one complete set of parameter values, cross validated. More trials find more, with diminishing returns and linearly more compute."
   },
   {
-    "start": 48.04,
+    "start": 51.09,
     "say": "And the sampler is the part that makes this cleverer than a grid. Tree structured Parzen estimation builds a model of which regions of the parameter space produced good scores, and spends later trials there instead of sweeping uniformly."
   },
   {
-    "start": 63.87,
+    "start": 66.33,
     "say": "Running the search."
   },
   {
-    "start": 77.27,
+    "start": 82,
     "say": "There is the trial history, one point per trial, with the best one marked. The search improved the cross validation score over the untuned default."
   },
   {
-    "start": 89.14,
+    "start": 93.26,
     "say": "And the parameter importance is the most useful thing on this screen. Optuna reports how much each parameter actually mattered to the outcome, and the answer is usually lopsided — one or two do nearly all the work while the rest barely move the score. That tells you what to search harder next time and what to leave alone."
   },
   {
-    "start": 110.05,
+    "start": 113.57,
     "say": "And the number to be careful with is the cross validation score, because that is exactly what the search was optimising — it is an optimistic estimate by construction. These held-out metrics were measured after the search finished and took no part in it. They are the ones to quote."
   },
   {
-    "start": 128.66,
+    "start": 131.59,
     "say": "And the tuned parameters download as JSON, so the run is reproducible rather than a number you have to trust."
   }
 ]
