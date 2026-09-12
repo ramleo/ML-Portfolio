@@ -29,6 +29,26 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
   // paraphrasing with low literal overlap) falls back to one flat list
   // rather than mislabeling everything.
   const canSplit = !!used && used.length > 0 && used.length < chat.sources.length;
+  // Which card the guided demo clicks. NOT position zero: that is whatever
+  // the reranker happened to put first, and the reranker's order moves per
+  // run. Two takes were lost to it — the top card was prose, so the clip
+  // narrated "clicking it opens that page at the region the passage was read
+  // from" over a jump that opened no region at all.
+  //
+  // Only a citation carrying a bbox HAS a region to open (jumpToCitation
+  // feeds it to the cropped-page panel); a text chunk has none and can only
+  // highlight an entry in the extracted-text list. So the anchor asks for the
+  // property the narration depends on rather than trusting a rank: prefer a
+  // bboxed citation the answer actually used, then any bboxed one, then any
+  // used one, and fall back to the first card so the anchor always exists.
+  const hasBbox = (i: number) => !!(chat.sources[i] as { bbox?: Bbox | null })?.bbox;
+  const usedIdx = used?.length ? used : [];
+  const firstBboxed = chat.sources.findIndex((_, i) => hasBbox(i));
+  const anchorIdx =
+    usedIdx.find(hasBbox)
+    ?? (firstBboxed !== -1 ? firstBboxed : undefined)
+    ?? usedIdx[0]
+    ?? 0;
   // Rank number is the card's position in the always-fixed chat.sources
   // order, not the position within whichever of the two (cited / additional
   // context) groups it lands in — keeps a given source's number stable
@@ -45,15 +65,22 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
       retrieval_trace?: { dense?: { score: number; rank: number }; bm25?: { score: number; rank: number }; vision?: { score: number; rank: number }; graph?: { score: number; rank: number } } | null;
       hybrid_score?: number | null; rerank_score?: number | null; type_boost?: number | null;
     };
-    // The top-ranked card carries an anchor so the guided demo has one
-    // deterministic citation to click. Wrapped rather than given a prop:
+    // One card carries an anchor so the guided demo has a citation to click
+    // (see anchorIdx). Wrapped rather than given a prop:
     // RagSourceCard is shared with the other RAG tools and sits close to the
     // file-length limit, and this is a fact about this page's demo, not about
     // what a citation card is.
     const card = (
       <RagSourceCard index={i + 1} source={s.source} text={s.text}
         score={s.display_score ?? s.score} rawScore={s.score} accent={ACCENT}
-        usedInAnswer={used ? used.includes(i) : null}
+        // An EMPTY list means the overlap detector found nothing, which is
+        // "could not tell", not "not used" — it compares 4-grams of the
+        // answer against each chunk, so a short one-sentence answer that
+        // paraphrases rather than quotes matches nothing at all. Reporting
+        // that as a confident "no" put "Used in answer — no" under every
+        // citation of a demonstrably correct answer. Only claim either way
+        // when the detector actually found something.
+        usedInAnswer={usedIdx.length > 0 ? usedIdx.includes(i) : null}
         chunkType={withMeta.chunk_type} page={withMeta.page} numberMismatch={!!withMeta.number_mismatch}
         piiTypes={withMeta.pii_types} blurry={!!withMeta.blurry} entities={withMeta.entities}
         retrievalTrace={withMeta.retrieval_trace} hybridScore={withMeta.hybrid_score}
@@ -63,7 +90,7 @@ export default function EvidencePanel({ chat, accent: ACCENT, cardStyle, jumpToC
     );
     // A plain div, not display:contents — the recorder measures this element
     // to place its spotlight, and a box-less element measures as zero.
-    return i === 0
+    return i === anchorIdx
       ? <div key={i} data-wt="mmrag-cite">{card}</div>
       : <div key={i}>{card}</div>;
   };
