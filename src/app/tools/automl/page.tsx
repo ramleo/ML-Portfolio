@@ -98,7 +98,7 @@ function AutoMLPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>AutoML Pipeline</span>
+            <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>AutoML Pipeline</h1>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <span data-wt="automl-steps"><StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} /></span>

@@ -204,7 +204,7 @@ function FeatureEngineeringPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Engineering</span>
+            <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Feature Engineering</h1>
             <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" }}>

@@ -44,23 +44,16 @@ const routes = toolRoutes();
 /**
  * Pages with NO heading element anywhere — not an h1, not any level.
  *
- * This is an accessibility gap in the app, not a test to relax: a screen
- * reader gets no document outline for these six, and they are the ML pipeline
- * tools that open straight into a modal wizard with no page-level title.
- * Every other tool page has a heading.
+ * Empty, and it should stay that way. It held six entries for one commit:
+ * automl, ensemble, feature-engineering, feature-selection, optuna and shap
+ * each rendered their title as a styled <span>, so a screen reader got no
+ * document outline. They were found by this suite's first run and fixed
+ * rather than excused; the exception list existed only long enough to make
+ * the gap countable.
  *
- * Listed explicitly so it is visible and countable rather than hidden behind
- * a weakened assertion. The list should only ever shrink — the test below
- * fails if it grows, and an entry that starts passing must be deleted.
+ * Anything added here needs a reason in this comment and a plan to remove it.
  */
-const NO_HEADING_YET = new Set([
-  "automl",
-  "ensemble",
-  "feature-engineering",
-  "feature-selection",
-  "optuna",
-  "shap",
-]);
+const NO_HEADING_YET = new Set<string>([]);
 
 test.describe("tool pages", () => {
   // A list built from the filesystem could silently become empty — a moved
@@ -73,7 +66,7 @@ test.describe("tool pages", () => {
   // An exception list nobody checks becomes permanent. This fails if a route
   // is added to it, and if a listed route no longer exists.
   test("the no-heading exception list has not grown", () => {
-    expect(NO_HEADING_YET.size).toBeLessThanOrEqual(6);
+    expect(NO_HEADING_YET.size).toBe(0);
     for (const route of NO_HEADING_YET) {
       expect(routes, `${route} is on the exception list but has no page`).toContain(route);
     }

@@ -52,7 +52,7 @@ export default function FSPageHeader({ accent, onHome, currentStep }: Props) {
         </button>
         <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
         <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-          <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Feature Selection</span>
+          <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Feature Selection</h1>
           <Badge label="runs in browser" color="#22c55e" />
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>

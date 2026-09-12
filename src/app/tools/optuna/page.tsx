@@ -80,7 +80,7 @@ function OptunaPageInner() {
           </button>
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Optuna Tuning</span>
+            <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Optuna Tuning</h1>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <StepIndicator labels={OPTUNA_STEP_LABELS} currentIndex={runnerStep - 1} accent={ACCENT} />
