@@ -1,34 +1,34 @@
 [
   {
-    "start": 0,
+    "start": 4.9,
     "say": "This is the text to SQL agent. You ask a question in ordinary English, it writes the SQL, runs it against a real database, and explains what came back."
   },
   {
-    "start": 10.26,
-    "say": "There is a database already loaded: Chinook, a music store — eleven tables, about three and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server."
+    "start": 15.16,
+    "say": "There is a database already loaded: Chinook, a music store — eleven tables, about fifteen and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server."
   },
   {
-    "start": 30.7,
+    "start": 35.18,
     "say": "On the left is the schema it can see. Tables, columns, row counts. This is what gets handed to the model as context, and it is the reason the generated SQL uses your real column names rather than inventing plausible ones."
   },
   {
-    "start": 46.21,
+    "start": 50.08,
     "say": "If you are not sure what to ask, these sample questions prefill the box."
   },
   {
-    "start": 52.24,
+    "start": 55.51,
     "say": "I will type a real question: show the top ten customers by total spending."
   },
   {
-    "start": 59.86,
-    "say": "You choose which model writes the query. Groq is the fastest; switch to Gemini or Cohere if you hit a rate limit."
+    "start": 61.35,
+    "say": "You choose which model writes the query. Groq is the fastest; switch to Cohere or Gemini if you hit a rate limit."
   },
   {
-    "start": 68.14,
+    "start": 68.99,
     "say": "Press ask and it runs. If the query errors, the agent reads the database error and retries itself."
   },
   {
-    "start": 79.36,
+    "start": 77.28,
     "say": "There is the SQL it wrote and the rows it came back with, as a sortable table with a chart picked to suit the shape of the data. You can ask it to explain its own reasoning, or correct it when it misunderstands a term like revenue."
   }
 ]

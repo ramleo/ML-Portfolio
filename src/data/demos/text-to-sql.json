@@ -13,7 +13,7 @@
       "settle": 600
     },
     {
-      "say": "There is a database already loaded: Chinook, a music store \u2014 eleven tables, about three and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server.",
+      "say": "There is a database already loaded: Chinook, a music store \u2014 eleven tables, about fifteen and a half thousand rows. Its schema is read the moment the page opens, and this button re-reads it. You can also upload a SQLite file, or connect a live Postgres, MySQL or SQL Server.",
       "at": "db-load",
       "settle": 2600,
       "act": "click"
@@ -37,7 +37,7 @@
       "settle": 1400
     },
     {
-      "say": "You choose which model writes the query. Groq is the fastest; switch to Gemini or Cohere if you hit a rate limit.",
+      "say": "You choose which model writes the query. Groq is the fastest; switch to Cohere or Gemini if you hit a rate limit.",
       "at": "provider",
       "settle": 1400
     },
