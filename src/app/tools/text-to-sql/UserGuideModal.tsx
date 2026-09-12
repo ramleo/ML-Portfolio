@@ -370,7 +370,7 @@ export default function UserGuideModal({ onClose }: Props) {
               {[
                 { tip: "Be specific with column names", detail: "Include column names from the schema for better accuracy, e.g. 'show BillingCountry and sum of Total from Invoice'." },
                 { tip: "Use the Glossary for abbreviations", detail: "If your schema uses codes or abbreviations (e.g. 'cust_ltv'), define them in the Glossary so the LLM maps them correctly." },
-                { tip: "Switch providers on rate limits", detail: "Groq free tier allows ~30 queries/minute. If you see a rate limit error, switch to Gemini or Cohere and try again." },
+                { tip: "Switch providers on rate limits", detail: "Groq free tier allows ~30 queries/minute. If you see a rate limit error, switch to Cohere or Gemini and try again." },
                 { tip: "Pin tabs for reference queries", detail: "Pin a tab whose results you want to keep as reference while exploring other questions in new tabs." },
                 { tip: "Share queries (Chinook only)", detail: "Click the Share button to copy a URL that pre-fills the question box. Useful for sharing interesting findings." },
                 { tip: "Try Ask a follow-up", detail: "After results load, scroll down and click 'Ask a follow-up' — previous query context is retained so you can drill down without re-explaining the schema." },

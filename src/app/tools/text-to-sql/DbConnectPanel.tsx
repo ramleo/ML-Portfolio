@@ -81,7 +81,10 @@ export default function DbConnectPanel({
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <p className="text-xs text-[var(--text2)]">Chinook music store</p>
-            <p className="text-[10px] text-[var(--text3)]">11 tables · ~3.5k rows</p>
+            {/* ~15.6k, not the ~3.5k this used to claim — 3,503 is the Track
+                table alone. Real total across all 11 tables, summed from the
+                row_count the schema endpoint returns: 15,607. */}
+            <p className="text-[10px] text-[var(--text3)]">11 tables · ~15.6k rows</p>
           </div>
           <button onClick={loadDemoSchema} data-wt="db-load"
             className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-all hover:brightness-110"
