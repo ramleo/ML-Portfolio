@@ -44,7 +44,7 @@
       "waitMs": 90000
     },
     {
-      "say": "So here is the top citation. Clicking it opens that page at the region the passage was read from, so the answer can be checked against the source rather than trusted.",
+      "say": "So here is the citation for the chart. Clicking it opens that page at the region the passage was read from, so the answer can be checked against the source rather than trusted.",
       "at": "mmrag-cite",
       "act": "click",
       "settle": 4000
