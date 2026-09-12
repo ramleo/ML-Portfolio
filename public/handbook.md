@@ -3324,7 +3324,7 @@ Reading and reasoning over text: questions answered from your own files, plain E
 | | |
 |---|---|
 | **Also called** | Discrepancy Report Across Documents |
-| **Model or method** | Groq (llama-3.1-8b-instant) |
+| **Model or method** | Cohere / Mistral / Gemini |
 | **What you give it** | PDF, PNG, JPG (contract + invoices) |
 | **Doc Roles** | 2 |
 | **Where it runs** | On the server |
