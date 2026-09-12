@@ -183,7 +183,11 @@ def cmd_add(tool_id, query, musts):
 
 
 def tool_domain(tool_id):
-    src = (ROOT / "src" / "data" / "capabilities.ts").read_text()
+    # The cards were split into src/data/capabilities/ by domain when the
+    # single file outgrew the 400-line gate. Read the whole directory and
+    # regex over the concatenation, which is what this always did.
+    cap_dir = ROOT / "src" / "data" / "capabilities"
+    src = "\n".join(p.read_text() for p in sorted(cap_dir.glob("*.ts")))
     import re
     for block in re.split(r'\n    id: "', src)[1:]:
         if block.split('"')[0] == tool_id:

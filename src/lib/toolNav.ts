@@ -25,6 +25,7 @@ const AREA_OF: Record<string, string> = {
   "drift": "ml-pipeline",
   "email-auth-checker": "security-trust",
   "ensemble": "ml-pipeline",
+  "exploratory-data-analysis": "ml-pipeline",
   "extension-permission-analyzer": "security-trust",
   "face-cloak": "security-trust",
   "face-deanonymization-demo": "security-trust",

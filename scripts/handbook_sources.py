@@ -25,7 +25,11 @@ def field(block, name):
 
 
 def read_capabilities():
-    src = (ROOT / "src" / "data" / "capabilities.ts").read_text()
+    # The cards were split into src/data/capabilities/ by domain when the
+    # single file outgrew the 400-line gate. Read the whole directory and
+    # regex over the concatenation, which is what this always did.
+    cap_dir = ROOT / "src" / "data" / "capabilities"
+    src = "\n".join(p.read_text() for p in sorted(cap_dir.glob("*.ts")))
     out = []
     for block in re.split(r'\n    id: "', src)[1:]:
         tg = re.search(r"tags: \[(.*?)\]", block, re.S)

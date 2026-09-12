@@ -2,7 +2,7 @@
 
 # The AIRaML Handbook
 
-### 50 tools for machine learning, documents, vision and security
+### 51 tools for machine learning, documents, vision and security
 
 First edition · August 2026
 
@@ -90,7 +90,7 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 Everything between a raw CSV and a trained, explained model — cleaning, feature work, tuning, comparison and drift.
 
-11 of this area's 11 tools have a chapter here. All of them are listed in the appendix.
+11 of this area's 12 tools have a chapter here. All of them are listed in the appendix.
 
 </div>
 
@@ -17307,7 +17307,7 @@ demonstration — the custom-rule endpoint is the actual tool.
 
 ## Every tool
 
-All 50 tools, in area order, with the facts each card shows. Tools with a chapter are marked.
+All 51 tools, in area order, with the facts each card shows. Tools with a chapter are marked.
 
 <div class="bk-part-1">
 
@@ -17319,6 +17319,7 @@ All 50 tools, in area order, with the facts each card shows. Tools with a chapte
 | **Data Drift Detection** *(ch. 2)* | Monitor Production Data | On the server |
 | **Data Preprocessing** *(ch. 3)* | Clean Before You Train | In your browser — the file never leaves your machine |
 | **Ensemble Methods** *(ch. 4)* | Combine Top-N Models | On the server |
+| **Exploratory Data Analysis** | Profile Before You Model | On the server |
 | **Feature Engineering** *(ch. 5)* | No-Code Transforms | In your browser — the file never leaves your machine |
 | **Feature Selection** *(ch. 6)* | Keep Only What Matters | On the server |
 | **Optuna Tuning** *(ch. 7)* | Post-Winner Hyperparameter Search | On the server |
