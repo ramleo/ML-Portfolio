@@ -68,3 +68,55 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Phase 1 of the testing plan. Until this existed, CI proved the site
+  # COMPILED and never that any page worked — three times a page was broken
+  # for every visitor and nothing caught it.
+  #
+  # Browsers are installed here and only here. The @playwright/test package is
+  # a normal devDependency (it has no postinstall, so `npm ci` does not pull
+  # browsers down), which is what keeps Vercel deploys unaffected.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      # Point the build at the live Spaces so pages render against the same
+      # URLs production uses. The phase-1 tests assert only on markup the page
+      # owns, so a cold or rate-limited Space cannot fail this job.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_ML_UNIFIED_URL: https://wram1708-ml-unified.hf.space
+          NEXT_PUBLIC_ML_SQL_URL: https://wram1708-ml-sql.hf.space
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
