@@ -3,7 +3,7 @@
   "chapter": "ch-13-document-intelligence",
   "route": "/tools/document-intelligence",
   "title": "Document Intelligence",
-  "blurb": "Fifteen fields off an invoice, each one checked against the arithmetic on the page.",
+  "blurb": "Every field off an invoice, checked against the arithmetic on the page.",
   "steps": [
     {
       "say": "Every business has a pile of documents somebody retypes into a system by hand. This reads them instead, and then argues with itself about whether it read them correctly.",
@@ -43,13 +43,13 @@
       "expect": "13,509.60"
     },
     {
-      "say": "Fifteen fields in all, and only nine of them are the ones an invoice is defined as having. The other six, the VAT number, the vendor email, the purchase order reference, were not asked for. It found them and kept them.",
+      "say": "Only nine of these are the ones an invoice is defined as having. Everything past those nine — the VAT number, the vendor email, the purchase order reference — was never asked for. It found them and kept them.",
       "at": "doc-summary",
       "settle": 2200,
-      "expect": "need review"
+      "expect": "fields extracted"
     },
     {
-      "say": "And one field is asking to be looked at. This is the validate stage, which is separate from the extraction and is partly not a language model at all. It adds the four line item amounts up and checks them against the subtotal, and it checks that the subtotal plus the tax equals the total. Both of those balance here. A second opinion flagged the row anyway, and hovering the badge tells you what it was unhappy about.",
+      "say": "And a line item is asking to be looked at. This is the validate stage, which is separate from the extraction and is partly not a language model at all. It adds the four line item amounts up and checks them against the subtotal, and it checks that the subtotal plus the tax equals the total. Both of those balance here. A second opinion flagged it anyway, and hovering the badge tells you what it was unhappy about.",
       "at": "doc-review-badge",
       "settle": 2400,
       "expect": "Flagged"
