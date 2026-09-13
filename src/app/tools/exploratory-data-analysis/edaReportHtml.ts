@@ -1,4 +1,5 @@
 import type { Captured } from "./edaReportCapture";
+import { palette, type ReportTheme } from "./reportTheme";
 import type { EdaResult, Sample } from "./edaTypes";
 
 /**
@@ -33,39 +34,53 @@ function figure(png: string | null, caption: string): string {
   return `<figure><img src="${png}" alt="${esc(caption)}"><figcaption>${esc(caption)}</figcaption></figure>`;
 }
 
-export const REPORT_CSS = `
-:root { color-scheme: light; }
+/** The stylesheet, in whichever theme the reader picked at download.
+ *
+ *  Colours come from reportTheme.ts so the page and the charts pasted into it
+ *  cannot disagree. The print override differs by theme on purpose: a light
+ *  report forces a white page for paper, and a dark one must not, or its pale
+ *  text would land on white and vanish. */
+export function reportCss(theme: ReportTheme): string {
+  const c = palette(theme);
+  return `
+:root { color-scheme: ${theme}; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #f8fafc; color: #1e293b;
+body { margin: 0; background: ${c.paper}; color: ${c.ink};
   font: 14px/1.6 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .page { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 h1 { font-size: 1.6rem; margin: 0 0 0.3rem; }
 h2 { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
-  color: #64748b; margin: 2.2rem 0 0.6rem; border-top: 1px solid #e2e8f0; padding-top: 1.1rem; }
-.meta { color: #64748b; font-size: 0.82rem; margin: 0 0 1.6rem; }
+  color: ${c.muted}; margin: 2.2rem 0 0.6rem; border-top: 1px solid ${c.border}; padding-top: 1.1rem; }
+.meta { color: ${c.muted}; font-size: 0.82rem; margin: 0 0 1.6rem; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.6rem; }
-.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.7rem 0.85rem; min-width: 0; }
-.card .k { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
+.card { background: ${c.panel}; border: 1px solid ${c.border}; border-radius: 10px; padding: 0.7rem 0.85rem; min-width: 0; }
+.card .k { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: ${c.muted}; }
 .card .v { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-p.narrative { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.9rem 1rem; }
+p.narrative { background: ${c.panel}; border: 1px solid ${c.border}; border-radius: 10px; padding: 0.9rem 1rem; }
 ul { margin: 0; padding-left: 1.1rem; }
 li { margin: 0.2rem 0; }
-li.danger::marker { color: #dc2626; } li.warning::marker { color: #d97706; } li.info::marker { color: #2563eb; }
+li.danger::marker { color: ${c.fail}; } li.warning::marker { color: ${c.warn}; } li.info::marker { color: ${c.info}; }
 .scroll { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: 0.78rem; background: #fff; }
-th, td { border: 1px solid #e2e8f0; padding: 0.35rem 0.55rem; text-align: left; white-space: nowrap;
+table { border-collapse: collapse; width: 100%; font-size: 0.78rem; background: ${c.panel}; }
+th, td { border: 1px solid ${c.border}; padding: 0.35rem 0.55rem; text-align: left; white-space: nowrap;
   font-variant-numeric: tabular-nums; }
-th { background: #f1f5f9; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; color: #475569; }
-.dash { color: #94a3b8; font-style: italic; }
-.pass { color: #16a34a; } .warn { color: #d97706; } .fail { color: #dc2626; }
+th { background: ${c.head}; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; color: ${c.headInk}; }
+.dash { color: ${c.dash}; font-style: italic; }
+.pass { color: ${c.pass}; } .warn { color: ${c.warn}; } .fail { color: ${c.fail}; }
 figure { margin: 1rem 0; page-break-inside: avoid; break-inside: avoid; }
-img { max-width: 100%; height: auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
-figcaption { font-size: 0.72rem; color: #64748b; margin-top: 0.35rem; }
+img { max-width: 100%; height: auto; display: block; border: 1px solid ${c.border}; border-radius: 8px; background: ${c.panel}; }
+figcaption { font-size: 0.72rem; color: ${c.muted}; margin-top: 0.35rem; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
-@media print { body { background: #fff; } .page { padding: 0; max-width: none; } h2 { break-after: avoid; } }
+@media print {
+  ${theme === "light" ? "body { background: #fff; }" : "body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }"}
+  .page { padding: 0; max-width: none; }
+  h2 { break-after: avoid; }
+}
 `;
+}
 
-export function buildReportHtml(result: EdaResult, filename: string, shots: Captured): string {
+export function buildReportHtml(result: EdaResult, filename: string, shots: Captured,
+                                theme: ReportTheme): string {
   const o = result.overview;
   const dup = result.duplicate_rows;
 
@@ -89,7 +104,7 @@ export function buildReportHtml(result: EdaResult, filename: string, shots: Capt
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(filename)} — EDA report</title><style>${REPORT_CSS}</style></head><body><div class="page">
+<title>${esc(filename)} — EDA report</title><style>${reportCss(theme)}</style></head><body><div class="page">
 <h1>Exploratory data analysis</h1>
 <p class="meta">${esc(filename)} · generated ${new Date().toLocaleString()} · analysed in memory, never stored</p>
 <div class="cards">${cards}</div>

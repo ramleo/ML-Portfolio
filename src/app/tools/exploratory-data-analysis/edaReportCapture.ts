@@ -1,4 +1,5 @@
 import { SERIES } from "./plotlyTheme";
+import { palette, type ReportTheme } from "./reportTheme";
 import type { EdaResult } from "./edaTypes";
 
 /**
@@ -11,22 +12,23 @@ import type { EdaResult } from "./edaTypes";
  * a monitor. A fixed offscreen render makes the output reproducible, and it
  * captures charts the reader never scrolled to.
  *
- * The report is a paper artefact, so it is rendered light regardless of the
- * site theme: dark charts on a white page waste ink and read badly.
+ * The palette comes from the theme the reader picked at download, not from
+ * the site's current theme, and it is the same palette the surrounding page
+ * uses — see reportTheme.ts.
  */
-const INK = "#1e293b";
-const GRID = "rgba(15,23,42,0.10)";
-
-const PAPER = {
-  paper_bgcolor: "#ffffff",
-  plot_bgcolor: "#ffffff",
-  font: { color: INK, size: 10 },
-  showlegend: false,
-  margin: { l: 46, r: 14, t: 12, b: 48 },
-  bargap: 0.04,
-  xaxis: { gridcolor: GRID, zerolinecolor: GRID, tickfont: { size: 9 } },
-  yaxis: { gridcolor: GRID, zerolinecolor: GRID, tickfont: { size: 9 } },
-};
+function paperLayout(theme: ReportTheme) {
+  const c = palette(theme);
+  return {
+    paper_bgcolor: c.panel,
+    plot_bgcolor: c.panel,
+    font: { color: c.ink, size: 10 },
+    showlegend: false,
+    margin: { l: 46, r: 14, t: 12, b: 48 },
+    bargap: 0.04,
+    xaxis: { gridcolor: c.grid, zerolinecolor: c.grid, tickfont: { size: 9 } },
+    yaxis: { gridcolor: c.grid, zerolinecolor: c.grid, tickfont: { size: 9 } },
+  };
+}
 
 export type Captured = {
   distributions: { name: string; png: string }[];
@@ -66,20 +68,26 @@ function heat(z: unknown[][], labels: string[], scale: string, diverging: boolea
   }];
 }
 
-const HEAT_LAYOUT = {
-  ...PAPER,
-  margin: { l: 100, r: 60, t: 18, b: 118 },
-  xaxis: { tickangle: -45, tickfont: { size: 9 }, gridcolor: "transparent" },
-  yaxis: { tickfont: { size: 9 }, gridcolor: "transparent", autorange: "reversed" },
-};
+function heatLayout(theme: ReportTheme) {
+  return {
+    ...paperLayout(theme),
+    margin: { l: 100, r: 60, t: 18, b: 118 },
+    xaxis: { tickangle: -45, tickfont: { size: 9 }, gridcolor: "transparent" },
+    yaxis: { tickfont: { size: 9 }, gridcolor: "transparent", autorange: "reversed" },
+  };
+}
 
 /** `onStep` drives the progress readout. Fourteen charts at two-times scale
  *  is several seconds of work, and a button that just sits there for that
  *  long reads as broken. */
 export async function captureAll(
   result: EdaResult,
+  theme: ReportTheme,
   onStep: (done: number, total: number) => void,
 ): Promise<Captured> {
+  const c = palette(theme);
+  const PAPER = paperLayout(theme);
+  const HEAT_LAYOUT = heatLayout(theme);
   const distEntries = Object.entries(result.distributions);
   const boxCols = Object.keys(result.stats).filter((c) => result.stats[c].raw_vals?.length);
   const total = distEntries.length + 4 + (result.pca ? 1 : 0);
@@ -108,7 +116,7 @@ export async function captureAll(
           fillcolor: "rgba(52,211,153,0.14)",
         })),
         { ...PAPER, margin: { l: 54, r: 20, t: 12, b: 92 },
-          xaxis: { tickangle: -35, tickfont: { size: 9 }, gridcolor: GRID } },
+          xaxis: { tickangle: -35, tickfont: { size: 9 }, gridcolor: c.grid } },
         900, 400)
     : null);
 
@@ -140,10 +148,10 @@ export async function captureAll(
            z: result.pca.coords.map((c) => c[2]),
            marker: { size: 3, opacity: 0.8, color: SERIES.scatter } }],
         { ...PAPER, margin: { l: 0, r: 0, t: 0, b: 0 },
-          scene: { xaxis: { title: { text: "PC1" }, gridcolor: GRID },
-                   yaxis: { title: { text: "PC2" }, gridcolor: GRID },
-                   zaxis: { title: { text: "PC3" }, gridcolor: GRID },
-                   bgcolor: "#ffffff" } },
+          scene: { xaxis: { title: { text: "PC1" }, gridcolor: c.grid },
+                   yaxis: { title: { text: "PC2" }, gridcolor: c.grid },
+                   zaxis: { title: { text: "PC3" }, gridcolor: c.grid },
+                   bgcolor: c.panel } },
         760, 620))
     : null;
 

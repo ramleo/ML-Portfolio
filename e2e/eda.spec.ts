@@ -146,4 +146,31 @@ test.describe("exploratory data analysis", () => {
     // somebody analyses two in a row.
     await expect(page.locator("#overview")).toContainText("sample-sales.csv");
   });
+
+  test("downloads the report in the theme chosen at download", async ({ page }) => {
+    await analyseWithFixture(page);
+
+    // Light is the default and is what prints. Dark has to be asked for.
+    await expect(page.locator('[data-wt="eda-report-theme"]')).toHaveValue("light");
+
+    await page.locator('[data-wt="eda-report-theme"]').selectOption("dark");
+    // Saying so matters: a browser drops background colours from a print job
+    // unless the reader ticks "Background graphics", so a dark report printed
+    // without that is pale text on white paper.
+    await expect(page.locator("#report")).toContainText(/Background graphics/i);
+
+    const download = page.waitForEvent("download");
+    await page.locator('[data-wt="eda-report-html"]').click();
+    const file = await download;
+    expect(file.suggestedFilename()).toMatch(/_dark\.html$/);
+
+    const path = await file.path();
+    const html = fs.readFileSync(path, "utf8");
+    // The dark page ground, and the charts rasterised onto the dark panel
+    // colour rather than onto white. The two disagreeing is what made the
+    // seam between a chart and its page visible.
+    expect(html).toContain("#0b1220");
+    expect(html).not.toContain("background: #f8fafc");
+    expect(html).toMatch(/src="data:image\/png/);
+  });
 });

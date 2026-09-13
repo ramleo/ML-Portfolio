@@ -1,4 +1,5 @@
-import { REPORT_CSS } from "./edaReportHtml";
+import { reportCss } from "./edaReportHtml";
+import { palette, type ReportTheme } from "./reportTheme";
 
 /**
  * Typesetting the report into real pages, then printing it.
@@ -33,22 +34,38 @@ table { table-layout: fixed; width: 100%; font-size: 0.6rem; }
 th, td { white-space: normal; overflow-wrap: anywhere; padding: 0.22rem 0.3rem; }
 `;
 
-const HOST_CSS = `
+/** The host page while it is showing typeset pages.
+ *
+ *  The ground has to come from the report's own palette. It was hard-coded
+ *  white, which is right for a light report and wrong for a dark one: Paged.js
+ *  renders into this document, its page boxes are transparent, and the white
+ *  showed straight through — a dark report previewed as its own dark text on
+ *  white paper.
+ */
+function hostCss(theme: ReportTheme): string {
+  const c = palette(theme);
+  return `
 body.eda-printing > *:not(#eda-print-pages):not(.eda-print-exit) { display: none !important; }
-body.eda-printing { background: #fff; overflow: auto; }
+body.eda-printing { background: ${c.paper}; overflow: auto; }
+body.eda-printing .pagedjs_page { background: ${c.paper}; }
 #eda-print-pages:empty { display: none; }
 .eda-print-exit { position: fixed; top: 12px; right: 12px; z-index: 9999;
-  border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1e293b;
+  border: 1px solid ${c.border}; border-radius: 8px; background: ${c.panel}; color: ${c.ink};
   font: 600 0.8rem ui-sans-serif, sans-serif; padding: 0.4rem 0.8rem; cursor: pointer; }
 @media print { .eda-print-exit { display: none; } }
 `;
+}
 
-function ensureHostStyle() {
-  if (document.getElementById("eda-print-style")) return;
-  const style = document.createElement("style");
-  style.id = "eda-print-style";
-  style.textContent = HOST_CSS;
-  document.head.appendChild(style);
+/** Replaced rather than added once, because the palette changes when the
+ *  reader picks a different theme and a stale sheet would keep the old one. */
+function ensureHostStyle(theme: ReportTheme) {
+  let style = document.getElementById("eda-print-style");
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "eda-print-style";
+    document.head.appendChild(style);
+  }
+  style.textContent = hostCss(theme);
 }
 
 async function loadPaged(): Promise<void> {
@@ -72,8 +89,8 @@ function exitButton(onExit: () => void): HTMLButtonElement {
   return btn;
 }
 
-export async function printReport(html: string): Promise<void> {
-  ensureHostStyle();
+export async function printReport(html: string, theme: ReportTheme): Promise<void> {
+  ensureHostStyle(theme);
   await loadPaged();
 
   const parsed = new DOMParser().parseFromString(html, "text/html");
@@ -94,7 +111,7 @@ export async function printReport(html: string): Promise<void> {
   // ever typeset. Passing the text keeps the PDF's CSS identical to the CSS
   // the HTML download embeds, rather than a second copy in public/ that
   // drifts from it.
-  const sheets = [{ "eda-report.css": REPORT_CSS + PAGE_CSS }];
+  const sheets = [{ "eda-report.css": reportCss(theme) + PAGE_CSS }];
   const exit = exitButton(() => {
     document.body.classList.remove("eda-printing");
     exit.remove();
