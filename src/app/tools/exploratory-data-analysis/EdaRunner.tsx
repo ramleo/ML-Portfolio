@@ -4,8 +4,16 @@ import { ML_UNIFIED_API } from "@/config/urls";
 import { trackedFetch } from "@/lib/trackedFetch";
 import EdaOverview from "./EdaOverview";
 import EdaColumns from "./EdaColumns";
-import EdaCharts from "./EdaCharts";
-import EdaActions from "./EdaActions";
+import EdaTables from "./EdaTables";
+import EdaDistributions from "./EdaDistributions";
+import EdaBoxPlots from "./EdaBoxPlots";
+import { CorrelationHeatmap, MiHeatmap } from "./EdaHeatmaps";
+import EdaSplom from "./EdaSplom";
+import EdaPca from "./EdaPca";
+import EdaSuggest from "./EdaSuggest";
+import EdaClean from "./EdaClean";
+import EdaReport from "./EdaReport";
+import EdaSectionNav from "./EdaSectionNav";
 import type { EdaResult } from "./edaTypes";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -124,10 +132,21 @@ export default function EdaRunner({ onResult }: { onResult: (r: EdaResult | null
 
       {result && (
         <>
+          {/* The nav is rendered before the sections it points at so it can
+              sit above them without a wrapper that would break the sticky. */}
+          <EdaSectionNav result={result} />
           <EdaOverview result={result} />
+          <EdaSuggest result={result} />
+          <EdaTables result={result} />
           <EdaColumns result={result} />
-          <EdaCharts result={result} />
-          {file && <EdaActions result={result} file={file} />}
+          <EdaDistributions result={result} />
+          <EdaBoxPlots result={result} />
+          <MiHeatmap result={result} />
+          <EdaSplom result={result} />
+          <EdaPca result={result} />
+          <CorrelationHeatmap result={result} />
+          {file && <EdaClean file={file} />}
+          <EdaReport result={result} filename={file?.name ?? "dataset.csv"} />
         </>
       )}
     </div>

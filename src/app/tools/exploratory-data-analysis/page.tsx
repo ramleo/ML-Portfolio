@@ -38,6 +38,11 @@ function buildContext(result: EdaResult | null): string {
     result.insights.length ? `Insights:\n${result.insights.map((i) => `  - [${i.type}] ${i.text}`).join("\n")}` : "",
     `Readiness: ${readiness.map((r) => `${r.name}=${r.verdict}`).join(", ")}`,
     low_variance_cols.length ? `Low variance: ${low_variance_cols.join(", ")}` : "",
+    // What the reader can see on screen. Without this the assistant offers to
+    // "run a PCA" on a page that is already showing one.
+    `Charts on screen: distributions, box plots${result.mi ? ", mutual information" : ""}` +
+      `${result.splom ? ", scatter matrix" : ""}${result.pca ? ", 3D PCA projection" : ""}` +
+      `${result.correlations ? ", correlation heatmap" : ""}. A PDF and HTML report can be downloaded.`,
     "Columns:",
     ...columns.map((c) => col(c.name)),
   ].filter(Boolean).join("\n");

@@ -1,4 +1,5 @@
 "use client";
+import EdaSection, { Scroller } from "./EdaSection";
 import type { EdaResult, Verdict } from "./edaTypes";
 
 const VERDICT_COLOR: Record<Verdict, string> = {
@@ -7,8 +8,10 @@ const VERDICT_COLOR: Record<Verdict, string> = {
   fail: "#f87171",
 };
 
-/** "—", not "0". A statistic that does not exist for this column and a
- *  statistic that happens to be zero are different facts. */
+/** "—", not "0", and never the literal word "null" — which is what the
+ *  legacy table printed for an undefined kurtosis. A statistic that does not
+ *  exist for this column and a statistic that happens to be zero are
+ *  different facts. */
 function num(value: number | null | undefined, digits = 2): string {
   return value === null || value === undefined ? "—" : Number(value).toFixed(digits);
 }
@@ -24,26 +27,36 @@ const td: React.CSSProperties = {
   fontVariantNumeric: "tabular-nums",
 };
 
+/** A percentage and a bar of the same width. The number is exact and the bar
+ *  is scannable — reading twelve rows of "3.4%" to find the one that says
+ *  "41.2%" is work the eye should not have to do. */
+function MissingBar({ pct }: { pct: number }) {
+  const tone = pct > 20 ? "#f87171" : pct > 5 ? "#fbbf24" : "#4ade80";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+      <span style={{ minWidth: 44, display: "inline-block", color: pct > 20 ? "#f87171" : "var(--text2)" }}>
+        {num(pct, 1)}%
+      </span>
+      <span aria-hidden style={{ width: 52, height: 5, borderRadius: 9999, background: "var(--border)", overflow: "hidden" }}>
+        <span style={{ display: "block", width: `${Math.min(pct, 100)}%`, height: "100%", background: tone }} />
+      </span>
+    </span>
+  );
+}
+
 export default function EdaColumns({ result }: { result: EdaResult }) {
   const verdictOf = new Map(result.readiness.map((r) => [r.name, r]));
 
   return (
-    <section data-wt="eda-columns" style={{
-      background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12,
-    }}>
-      <div style={{ padding: "1rem 1.15rem 0.4rem" }}>
-        <h2 style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text3)", margin: 0 }}>
-          Columns
-        </h2>
-        <p style={{ fontSize: "0.8rem", color: "var(--text3)", margin: "0.3rem 0 0" }}>
-          Hover a verdict for the reason. A dash means the statistic is not defined for
-          this column, usually because it has too few values.
-        </p>
-      </div>
-
-      {/* Wide table, its own scroller — the page body never scrolls sideways. */}
-      <div style={{ overflowX: "auto", padding: "0 0.4rem 0.4rem" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+    <EdaSection
+      id="columns"
+      testId="eda-columns"
+      title="Columns"
+      icon="table"
+      note="Hover a verdict dot for the reason. A dash means the statistic is not defined for this column, usually because it has too few values — kurtosis needs four, skew three, standard deviation two."
+    >
+      <Scroller min={860}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
               <th style={th}>Column</th>
@@ -57,6 +70,7 @@ export default function EdaColumns({ result }: { result: EdaResult }) {
               <th style={th}>Max</th>
               <th style={th}>Outliers</th>
               <th style={th}>Skew</th>
+              <th style={th}>Kurtosis</th>
               <th style={th}>Ready</th>
             </tr>
           </thead>
@@ -68,9 +82,7 @@ export default function EdaColumns({ result }: { result: EdaResult }) {
                 <tr key={col.name}>
                   <td style={{ ...td, color: "var(--text)", fontWeight: 600 }}>{col.name}</td>
                   <td style={td}>{col.is_numeric ? "numeric" : col.dtype}</td>
-                  <td style={{ ...td, color: col.missing_pct > 20 ? "#f87171" : "var(--text2)" }}>
-                    {col.missing} ({num(col.missing_pct, 1)}%)
-                  </td>
+                  <td style={td}><MissingBar pct={col.missing_pct} /></td>
                   <td style={td}>{col.nunique.toLocaleString()}</td>
                   <td style={td}>{num(s?.mean)}</td>
                   <td style={td}>{num(s?.median)}</td>
@@ -78,7 +90,8 @@ export default function EdaColumns({ result }: { result: EdaResult }) {
                   <td style={td}>{num(s?.min)}</td>
                   <td style={td}>{num(s?.max)}</td>
                   <td style={td}>{s ? s.outliers : "—"}</td>
-                  <td style={td}>{num(s?.skew, 2)}</td>
+                  <td style={td}>{num(s?.skew)}</td>
+                  <td style={td}>{num(s?.kurtosis)}</td>
                   <td style={td}>
                     {r ? (
                       <span title={r.reason} style={{
@@ -92,7 +105,7 @@ export default function EdaColumns({ result }: { result: EdaResult }) {
             })}
           </tbody>
         </table>
-      </div>
-    </section>
+      </Scroller>
+    </EdaSection>
   );
 }

@@ -1,0 +1,337 @@
+{
+ "overview": {
+  "rows": 5,
+  "cols": 4,
+  "duplicates": 1,
+  "missing_total": 2,
+  "missing_pct": 10.0
+ },
+ "columns": [
+  {
+   "name": "region",
+   "dtype": "object",
+   "is_numeric": false,
+   "missing": 0,
+   "missing_pct": 0.0,
+   "nunique": 4
+  },
+  {
+   "name": "units",
+   "dtype": "float64",
+   "is_numeric": true,
+   "missing": 1,
+   "missing_pct": 20.0,
+   "nunique": 3
+  },
+  {
+   "name": "price",
+   "dtype": "float64",
+   "is_numeric": true,
+   "missing": 1,
+   "missing_pct": 20.0,
+   "nunique": 1
+  },
+  {
+   "name": "channel",
+   "dtype": "object",
+   "is_numeric": false,
+   "missing": 0,
+   "missing_pct": 0.0,
+   "nunique": 2
+  }
+ ],
+ "stats": {
+  "units": {
+   "mean": 15.75,
+   "median": 12.0,
+   "std": 10.3401,
+   "min": 8.0,
+   "max": 31.0,
+   "q25": 11.0,
+   "q75": 16.75,
+   "outliers": 1,
+   "skew": 1.794,
+   "kurtosis": 3.439,
+   "raw_vals": [
+    12.0,
+    12.0,
+    31.0,
+    8.0
+   ]
+  },
+  "price": {
+   "mean": 4.5,
+   "median": 4.5,
+   "std": 0.0,
+   "min": 4.5,
+   "max": 4.5,
+   "q25": 4.5,
+   "q75": 4.5,
+   "outliers": 0,
+   "skew": 0.0,
+   "kurtosis": 0.0,
+   "raw_vals": [
+    4.5,
+    4.5,
+    4.5,
+    4.5
+   ]
+  }
+ },
+ "distributions": {
+  "units": {
+   "type": "histogram",
+   "bins": [
+    8.0,
+    12.6,
+    17.2,
+    21.8,
+    26.4
+   ],
+   "counts": [
+    3,
+    0,
+    0,
+    0,
+    1
+   ]
+  },
+  "price": {
+   "type": "histogram",
+   "bins": [
+    4.0,
+    4.2,
+    4.4,
+    4.6,
+    4.8
+   ],
+   "counts": [
+    0,
+    0,
+    4,
+    0,
+    0
+   ]
+  },
+  "region": {
+   "type": "bar",
+   "labels": [
+    "north",
+    "south",
+    "east",
+    "west"
+   ],
+   "counts": [
+    2,
+    1,
+    1,
+    1
+   ]
+  },
+  "channel": {
+   "type": "bar",
+   "labels": [
+    "online",
+    "retail"
+   ],
+   "counts": [
+    3,
+    2
+   ]
+  }
+ },
+ "correlations": {
+  "labels": [
+   "units",
+   "price"
+  ],
+  "matrix": [
+   [
+    1.0,
+    null
+   ],
+   [
+    null,
+    null
+   ]
+  ]
+ },
+ "sample": {
+  "columns": [
+   "region",
+   "units",
+   "price",
+   "channel"
+  ],
+  "rows": [
+   [
+    "north",
+    "12.0",
+    "4.5",
+    "online"
+   ],
+   [
+    "south",
+    null,
+    "4.5",
+    "retail"
+   ],
+   [
+    "north",
+    "12.0",
+    "4.5",
+    "online"
+   ],
+   [
+    "east",
+    "31.0",
+    "4.5",
+    "online"
+   ],
+   [
+    "west",
+    "8.0",
+    null,
+    "retail"
+   ]
+  ]
+ },
+ "duplicate_rows": {
+  "columns": [
+   "region",
+   "units",
+   "price",
+   "channel"
+  ],
+  "rows": [
+   [
+    "north",
+    "12.0",
+    "4.5",
+    "online"
+   ]
+  ]
+ },
+ "insights": [
+  {
+   "type": "warning",
+   "text": "'units' has 20.0% missing values."
+  },
+  {
+   "type": "warning",
+   "text": "'price' has 20.0% missing values."
+  },
+  {
+   "type": "warning",
+   "text": "1 duplicate rows (20.0%) \u2014 deduplicate before training."
+  },
+  {
+   "type": "warning",
+   "text": "'units' has 1 outliers (20.0%) \u2014 check for data entry errors."
+  }
+ ],
+ "quality_score": 48,
+ "readiness": [
+  {
+   "name": "region",
+   "verdict": "pass",
+   "reason": "Ready to use"
+  },
+  {
+   "name": "units",
+   "verdict": "warn",
+   "reason": "20.0% missing \u2014 impute recommended"
+  },
+  {
+   "name": "price",
+   "verdict": "fail",
+   "reason": "Near-zero variance \u2014 won't help model; 20.0% missing \u2014 impute recommended"
+  },
+  {
+   "name": "channel",
+   "verdict": "pass",
+   "reason": "Ready to use"
+  }
+ ],
+ "narrative": "This dataset has 5 rows and 4 columns (2 numeric, 2 categorical). Data quality is poor (48/100). 2 column(s) have notable missing values \u2014 worst is 'units' at 20.0%. 1 duplicate row(s) found \u2014 deduplicate before training. 1 column(s) flagged as ML-unready; 1 need attention.",
+ "mi": {
+  "labels": [
+   "region",
+   "units",
+   "price",
+   "channel"
+  ],
+  "matrix": [
+   [
+    1.0,
+    0.713,
+    0.0,
+    0.505
+   ],
+   [
+    0.713,
+    1.0,
+    0.0,
+    0.306
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.505,
+    0.306,
+    0.0,
+    1.0
+   ]
+  ]
+ },
+ "pca": null,
+ "splom": {
+  "cols": [
+   "units",
+   "price"
+  ],
+  "data": {
+   "units": [
+    12.0,
+    12.0,
+    31.0
+   ],
+   "price": [
+    4.5,
+    4.5,
+    4.5
+   ]
+  },
+  "n": 3,
+  "color_col": "region",
+  "color_vals": [
+   "north",
+   "north",
+   "east"
+  ],
+  "color_map": {
+   "region": [
+    "north",
+    "north",
+    "east"
+   ],
+   "channel": [
+    "online",
+    "online",
+    "online"
+   ],
+   "units": [
+    "12.0",
+    "12.0",
+    "31.0"
+   ]
+  }
+ },
+ "low_variance_cols": [
+  "price"
+ ]
+}

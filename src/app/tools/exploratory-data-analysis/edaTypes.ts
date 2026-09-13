@@ -59,6 +59,40 @@ export type InsightLevel = "danger" | "warning" | "info";
 
 export type Insight = { type: InsightLevel; text: string };
 
+/** Mutual information between every pair of the first 15 columns, normalised
+ *  to 0–1 by the larger of the two self-informations. Unlike correlation this
+ *  catches non-linear dependence, and unlike correlation it is never
+ *  negative — there is no "opposite" direction to report. */
+export type Mi = { labels: string[]; matrix: number[][] };
+
+/** Three principal components of the scaled numeric columns.
+ *
+ *  `cat_color_map` carries a colour-by series per candidate column, already
+ *  aligned to `coords` row for row, so switching the colour-by picker is a
+ *  relabel and not another request. `explained_variance` is percentages,
+ *  padded to three entries when the data supports fewer components. */
+export type Pca = {
+  coords: number[][];
+  explained_variance: number[];
+  labels: string[];
+  color_col: string | null;
+  cat_cols: string[];
+  cat_color_map: Record<string, string[]>;
+};
+
+/** Scatter-plot matrix over up to eight numeric columns, sampled server-side
+ *  to at most 400 rows. `n` is that sample size, not the dataset's row count —
+ *  the page says so, because a matrix drawn from 400 of 90,000 rows and one
+ *  drawn from all of them are different pictures. */
+export type Splom = {
+  cols: string[];
+  data: Record<string, number[]>;
+  n: number;
+  color_col: string | null;
+  color_vals: string[] | null;
+  color_map: Record<string, string[]>;
+};
+
 export type EdaResult = {
   overview: Overview;
   columns: ColumnProfile[];
@@ -71,9 +105,9 @@ export type EdaResult = {
   quality_score: number;
   readiness: Readiness[];
   narrative: string;
-  mi: unknown;
-  pca: unknown;
-  splom: unknown;
+  mi: Mi | null;
+  pca: Pca | null;
+  splom: Splom | null;
   low_variance_cols: string[];
 };
 

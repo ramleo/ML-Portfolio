@@ -5,7 +5,10 @@
  * in the call.
  */
 interface PagedPreviewer {
-  preview(content: string | Element, stylesheets: string[], renderTo: Element): Promise<{ total: number }>;
+  /** A stylesheet is a URL to fetch, or a { name: cssText } object when the
+    CSS is generated in the page — the EDA report's is, because the CSP
+    blocks the blob: URL that would otherwise carry it. */
+  preview(content: string | Element, stylesheets: (string | Record<string, string>)[], renderTo: Element): Promise<{ total: number }>;
 }
 
 interface Window {
