@@ -105,6 +105,13 @@
   "pexels": 4513448,
   "url": "https://images.pexels.com/photos/4513448/pexels-photo-4513448.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
+ "exploratory-data-analysis": {
+  "alt": "Close-up of layered sandstone formations in an arid landscape, showcasing natural erosion patterns.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 20015727,
+  "url": "https://images.pexels.com/photos/20015727/pexels-photo-20015727.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
  "extension-permission-analyzer": {
   "alt": "Close-up of an unfinished wooden puzzle with a missing piece, highlighting problem-solving concepts.",
   "domain": "Security & Trust",
