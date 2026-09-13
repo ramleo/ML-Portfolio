@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { SiteIcon } from "./SiteIcons";
 import { ML_UNIFIED_API } from "@/config/urls";
@@ -27,6 +27,16 @@ const SOCIALS = [
   { label: "GitHub",    href: "https://github.com/ramleo",               icon: "gh" },
   { label: "LinkedIn",  href: "https://linkedin.com/in/WRamakrishnasai", icon: "in" },
   { label: "DockerHub", href: "https://hub.docker.com/u/wram",           icon: "docker" },
+];
+
+// AGPL-3.0 §13 asks that anyone using the backend over a network be able to
+// reach its source. Most people reach it through this site rather than the
+// Space's own pages, so the offer has to be here too, not only there. The two
+// repositories are licensed differently and say so, because a single "Source"
+// link would imply one licence covers both.
+const SOURCE_LINKS = [
+  { label: "Source (MIT)",       href: "https://github.com/ramleo/ML-Portfolio", title: "Source for this site — MIT" },
+  { label: "Backend (AGPL-3.0)", href: "https://github.com/ramleo/ML-Unified",   title: "Source for the ML backend — AGPL-3.0" },
 ];
 
 export default function Footer() {
@@ -169,6 +179,20 @@ export default function Footer() {
               >
                 Privacy &amp; Terms
               </a>
+              {SOURCE_LINKS.map((l) => (
+                <Fragment key={l.href}>
+                  <span aria-hidden="true">·</span>
+                  <a
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={l.title}
+                    style={{ color: "var(--text2)", textDecoration: "none" }}
+                  >
+                    {l.label}
+                  </a>
+                </Fragment>
+              ))}
             </p>
             {/* Said "Models on Render", but every backend call goes to the
                 Hugging Face Space — same stale claim that was in the meta

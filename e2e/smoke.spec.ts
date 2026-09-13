@@ -50,6 +50,25 @@ test.describe("site smoke", () => {
     expect(errors, `uncaught page errors: ${errors.join(" | ")}`).toEqual([]);
   });
 
+  // Not a cosmetic assertion. The backend is AGPL-3.0 (three Ultralytics YOLO
+  // detectors decide that — see ML-Unified/THIRD_PARTY.md), and §13 requires
+  // that people using it over a network can obtain its source. Most of them
+  // use it through this site, so this footer is where that offer is made. It
+  // is the kind of link a footer redesign drops without anyone noticing, and
+  // dropping it is a licence violation rather than a missing link.
+  test("the footer carries the source offer both licences require", async ({ page }) => {
+    await page.goto("/");
+
+    const footer = page.locator("footer");
+    const site = footer.getByRole("link", { name: "Source (MIT)" });
+    const backend = footer.getByRole("link", { name: "Backend (AGPL-3.0)" });
+
+    await expect(site).toBeVisible();
+    await expect(site).toHaveAttribute("href", "https://github.com/ramleo/ML-Portfolio");
+    await expect(backend).toBeVisible();
+    await expect(backend).toHaveAttribute("href", "https://github.com/ramleo/ML-Unified");
+  });
+
   test("an unknown route returns the not-found page, not a crash", async ({ page }) => {
     const errors = collectPageErrors(page);
 
