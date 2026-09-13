@@ -200,4 +200,33 @@ test.describe("exploratory data analysis", () => {
     expect(css).toContain("#0b1220");
     expect(css).toMatch(/pagedjs_page_content\s*\{\s*color:\s*#e2e8f0/);
   });
+
+  // F2. The page had thirteen panels and nothing telling a first-time visitor
+  // what any of them mean. The guide is the fix, and a header button is easy
+  // to lose in a later redesign — losing it puts the page back where it was.
+  //
+  // Also asserts what the guide deliberately did NOT change. Passing it through
+  // ToolsAIChat's `guide` slot would have switched the widget to help mode and
+  // narrowed the assistant to tool-only questions; it goes through `summary`
+  // instead, so the placeholder must still be the data one.
+  test("the user guide opens, and the assistant is still the data assistant", async ({ page }) => {
+    await page.goto("/tools/exploratory-data-analysis");
+
+    const button = page.getByRole("button", { name: "User guide" });
+    await expect(button).toBeVisible();
+
+    await button.click();
+    await expect(page.getByText("User Guide — Exploratory Data Analysis")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reading each panel/i })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByText("User Guide — Exploratory Data Analysis")).toBeHidden();
+
+    // The chat input only exists once the panel is open, so open it first.
+    // Help mode would read "Ask about … or this website" instead.
+    await page.getByTitle("AI Assistant").click();
+    await expect(page.getByPlaceholder("Ask about your data or ML techniques…")).toBeVisible();
+    // Help mode also hides the document-upload control; it must still be here.
+    await expect(page.getByTitle(/upload/i).first()).toBeVisible();
+  });
 });

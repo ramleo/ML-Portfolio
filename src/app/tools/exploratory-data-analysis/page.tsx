@@ -7,6 +7,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import EdaRunner from "./EdaRunner";
+import EdaUserGuideModal from "./EdaUserGuideModal";
+import { EDA_GUIDE, EDA_SUGGESTIONS } from "./userGuide";
 import type { EdaResult } from "./edaTypes";
 
 const TOOL = "exploratory-data-analysis";
@@ -48,11 +50,24 @@ function buildContext(result: EdaResult | null): string {
   ].filter(Boolean).join("\n");
 }
 
+// The guide goes in `summary`, deliberately not in ToolsAIChat's `guide` slot.
+// That slot switches the widget into help mode — it hides the document upload
+// and Deep Search controls, and buildToolContext() rewrites the prompt into a
+// help bot that declines "general ML theory". Both are wrong here: half of what
+// people ask this assistant is what a skew of 3.4 means, and the upload button
+// is how they bring a data dictionary along. So the assistant is given the
+// guide as more context rather than as a narrower job. Costs about 1.5k tokens
+// a message; worth it for an assistant that can explain its own panels.
+function assistantContext(result: EdaResult | null): string {
+  return `${buildContext(result)}\n\nUSER GUIDE for this tool:\n${EDA_GUIDE}`;
+}
+
 export default function ExploratoryDataAnalysisPage() {
   useToolTracking(TOOL);
   const router = useRouter();
   const handleBack = useCallback(() => router.push(toolBackHref(TOOL)), [router]);
   const [result, setResult] = useState<EdaResult | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
@@ -86,7 +101,20 @@ export default function ExploratoryDataAnalysisPage() {
               Exploratory Data Analysis
             </h1>
           </div>
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.85rem" }}>
+            <button
+              onClick={() => setGuideOpen(true)}
+              style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0, transition: "color 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text3)")}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="8" cy="8" r="6.5" />
+                <path d="M6.2 6.1a1.9 1.9 0 1 1 2.4 2.2c-.4.2-.6.5-.6.9v.4" />
+                <path d="M8 12.1v.01" />
+              </svg>
+              User guide
+            </button>
             <ThemeToggle />
           </div>
         </div>
@@ -96,10 +124,13 @@ export default function ExploratoryDataAnalysisPage() {
         <EdaRunner onResult={setResult} />
       </div>
 
+      <EdaUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+
       <ToolsAIChat context={{
         accent: "#2d7ea9",
         tool: "Exploratory Data Analysis",
-        summary: buildContext(result),
+        summary: assistantContext(result),
+        suggestions: EDA_SUGGESTIONS,
       }} />
     </div>
   );
