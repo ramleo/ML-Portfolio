@@ -1,51 +1,91 @@
 "use client";
-import EdaSection, { Scroller } from "./EdaSection";
-import type { EdaResult, Verdict } from "./edaTypes";
+import EdaSection from "./EdaSection";
+import type { ColumnProfile, EdaResult } from "./edaTypes";
 
-const VERDICT_COLOR: Record<Verdict, string> = {
-  pass: "#4ade80",
-  warn: "#fbbf24",
-  fail: "#f87171",
-};
-
-/** "—", not "0", and never the literal word "null" — which is what the
- *  legacy table printed for an undefined kurtosis. A statistic that does not
- *  exist for this column and a statistic that happens to be zero are
- *  different facts. */
-function num(value: number | null | undefined, digits = 2): string {
-  return value === null || value === undefined ? "—" : Number(value).toFixed(digits);
+/**
+ * Every column as a labelled bar of its missing percentage.
+ *
+ * This replaced a thirteen-column table, which was the wrong shape for the
+ * question the panel answers. "Which columns have holes in them" is a
+ * comparison across rows, and a table makes the reader do that comparison by
+ * scanning numbers; a bar puts the answer in the shape. The numeric detail
+ * that table carried now lives in the statistics panel, where it is sorted by
+ * something meaningful.
+ *
+ * Each row is two lines: name, bar and percentage on the first, then dtype,
+ * missing count and cardinality underneath in the same three columns, so the
+ * secondary facts line up with what they describe.
+ */
+function barColor(pct: number): string {
+  if (pct > 20) return "#f87171";
+  if (pct > 5) return "#fbbf24";
+  if (pct > 0) return "#38bdf8";
+  return "#4ade80";
 }
 
-const th: React.CSSProperties = {
-  textAlign: "left", padding: "0.55rem 0.75rem", fontSize: "0.62rem",
-  fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
-  color: "var(--text3)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
-};
-const td: React.CSSProperties = {
-  padding: "0.5rem 0.75rem", fontSize: "0.82rem", color: "var(--text2)",
-  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
-  fontVariantNumeric: "tabular-nums",
+const GRID: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 180px) 1fr 52px",
+  gap: "0.75rem",
+  alignItems: "center",
 };
 
-/** A percentage and a bar of the same width. The number is exact and the bar
- *  is scannable — reading twelve rows of "3.4%" to find the one that says
- *  "41.2%" is work the eye should not have to do. */
-function MissingBar({ pct }: { pct: number }) {
-  const tone = pct > 20 ? "#f87171" : pct > 5 ? "#fbbf24" : "#4ade80";
+function Row({ col }: { col: ColumnProfile }) {
+  const pct = col.missing_pct;
+  const color = barColor(pct);
+  const typeColor = col.is_numeric ? "#818cf8" : "#34d399";
+
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
-      <span style={{ minWidth: 44, display: "inline-block", color: pct > 20 ? "#f87171" : "var(--text2)" }}>
-        {num(pct, 1)}%
-      </span>
-      <span aria-hidden style={{ width: 52, height: 5, borderRadius: 9999, background: "var(--border)", overflow: "hidden" }}>
-        <span style={{ display: "block", width: `${Math.min(pct, 100)}%`, height: "100%", background: tone }} />
-      </span>
-    </span>
+    <div>
+      <div style={GRID}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", justifyContent: "flex-end", minWidth: 0 }}>
+          <span style={{
+            fontSize: "0.58rem", padding: "0.1rem 0.35rem", borderRadius: 10,
+            background: `${typeColor}22`, color: typeColor, fontWeight: 700, flexShrink: 0,
+          }}>
+            {col.is_numeric ? "num" : "cat"}
+          </span>
+          <span title={col.name} style={{
+            fontSize: "0.75rem", fontWeight: 600, color: "var(--text)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {col.name}
+          </span>
+        </div>
+
+        <div
+          role="img"
+          aria-label={`${col.name}: ${pct}% missing`}
+          style={{ height: 8, borderRadius: 4, background: "var(--border)", overflow: "hidden", minWidth: 0 }}
+        >
+          <div style={{ height: "100%", width: `${Math.min(100, pct)}%`, background: color, borderRadius: 4 }} />
+        </div>
+
+        <span style={{
+          fontSize: "0.72rem", fontWeight: 700, textAlign: "right",
+          color: pct > 0 ? color : "var(--text3)", fontVariantNumeric: "tabular-nums",
+        }}>
+          {pct}%
+        </span>
+      </div>
+
+      <div style={{ ...GRID, marginTop: 1 }}>
+        <span style={{ fontSize: "0.6rem", color: "var(--text3)", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {col.dtype}
+        </span>
+        <span style={{ fontSize: "0.6rem", color: "var(--text3)" }}>
+          {col.missing === 0 ? "complete" : `${col.missing.toLocaleString()} missing`}
+        </span>
+        <span style={{ fontSize: "0.6rem", color: "var(--text3)", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+          {col.nunique.toLocaleString()}u
+        </span>
+      </div>
+    </div>
   );
 }
 
 export default function EdaColumns({ result }: { result: EdaResult }) {
-  const verdictOf = new Map(result.readiness.map((r) => [r.name, r]));
+  const withHoles = result.columns.filter((c) => c.missing_pct > 0).length;
 
   return (
     <EdaSection
@@ -53,59 +93,14 @@ export default function EdaColumns({ result }: { result: EdaResult }) {
       testId="eda-columns"
       title="Columns"
       icon="table"
-      note="Hover a verdict dot for the reason. A dash means the statistic is not defined for this column, usually because it has too few values — kurtosis needs four, skew three, standard deviation two."
+      meta={`${result.columns.length} total · missing %`}
+      note={withHoles === 0
+        ? "Every column is complete — no missing values anywhere. The bars below are all empty for that reason, not because nothing was measured."
+        : `${withHoles} of ${result.columns.length} columns have missing values. Longer and redder is worse; the number under each bar is how many rows, and the count on the right is distinct values.`}
     >
-      <Scroller min={860}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={th}>Column</th>
-              <th style={th}>Type</th>
-              <th style={th}>Missing</th>
-              <th style={th}>Unique</th>
-              <th style={th}>Mean</th>
-              <th style={th}>Median</th>
-              <th style={th}>Std</th>
-              <th style={th}>Min</th>
-              <th style={th}>Max</th>
-              <th style={th}>Outliers</th>
-              <th style={th}>Skew</th>
-              <th style={th}>Kurtosis</th>
-              <th style={th}>Ready</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.columns.map((col) => {
-              const s = result.stats[col.name];
-              const r = verdictOf.get(col.name);
-              return (
-                <tr key={col.name}>
-                  <td style={{ ...td, color: "var(--text)", fontWeight: 600 }}>{col.name}</td>
-                  <td style={td}>{col.is_numeric ? "numeric" : col.dtype}</td>
-                  <td style={td}><MissingBar pct={col.missing_pct} /></td>
-                  <td style={td}>{col.nunique.toLocaleString()}</td>
-                  <td style={td}>{num(s?.mean)}</td>
-                  <td style={td}>{num(s?.median)}</td>
-                  <td style={td}>{num(s?.std)}</td>
-                  <td style={td}>{num(s?.min)}</td>
-                  <td style={td}>{num(s?.max)}</td>
-                  <td style={td}>{s ? s.outliers : "—"}</td>
-                  <td style={td}>{num(s?.skew)}</td>
-                  <td style={td}>{num(s?.kurtosis)}</td>
-                  <td style={td}>
-                    {r ? (
-                      <span title={r.reason} style={{
-                        display: "inline-block", width: 8, height: 8, borderRadius: 9999,
-                        background: VERDICT_COLOR[r.verdict],
-                      }} />
-                    ) : "—"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Scroller>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minWidth: 0 }}>
+        {result.columns.map((col) => <Row key={col.name} col={col} />)}
+      </div>
     </EdaSection>
   );
 }

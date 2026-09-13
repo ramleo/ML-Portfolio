@@ -43,6 +43,7 @@ export default function EdaBoxPlots({ result }: { result: EdaResult }) {
       testId="eda-box"
       title="Spread and outliers"
       icon="box"
+      meta={`${cols.length} numeric column${cols.length === 1 ? "" : "s"} · IQR fences · outliers as dots`}
       note="Each box covers the middle half of the values, the whiskers reach 1.5× the interquartile range, and every dot beyond them is an outlier. Each column has its own axis — a shared one would flatten every small-magnitude column against the largest. Drawn from the server's sample, at most 300 values per column."
       empty={cols.length === 0
         ? "No numeric column came back with sampled values, so there is nothing to box. Text columns have no spread to draw."

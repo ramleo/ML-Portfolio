@@ -52,6 +52,7 @@ export default function EdaTables({ result }: { result: EdaResult }) {
         testId="eda-sample"
         title="First rows"
         icon="table"
+        meta={`first ${result.sample.rows.length} of ${result.overview.rows.toLocaleString()} rows`}
         note="The first five rows exactly as the parser read them. Worth a glance before trusting anything below: a shifted delimiter or a header row read as data shows up here and nowhere else."
       >
         <Table data={result.sample} />

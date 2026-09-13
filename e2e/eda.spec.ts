@@ -28,9 +28,9 @@ const ROUTE = "/tools/exploratory-data-analysis";
  *  duplicates, because it contains a repeated row, and the empty-state
  *  panels, which are sections too. */
 const SECTIONS = [
-  "overview", "insights", "readiness", "suggestions", "sample", "duplicates",
-  "columns", "distributions", "box-plots", "mutual-information", "splom",
-  "pca", "correlations", "clean", "report",
+  "overview", "summary", "insights", "readiness", "suggestions", "sample",
+  "duplicates", "columns", "statistics", "distributions", "box-plots",
+  "mutual-information", "splom", "pca", "correlations", "clean", "report",
 ];
 
 async function analyseWithFixture(page: Page): Promise<string[]> {
@@ -101,5 +101,49 @@ test.describe("exploratory data analysis", () => {
       return de.scrollWidth - de.clientWidth;
     });
     expect(overflow, "the page body scrolls sideways").toBeLessThanOrEqual(1);
+  });
+
+  test("every nav tab points at a section that exists", async ({ page }) => {
+    await analyseWithFixture(page);
+
+    // The nav is built from its own conditional list and the sections from
+    // theirs. When those drift, a tab scrolls nowhere and nothing complains —
+    // which is how the analyst summary ended up with no way to reach it.
+    const targets = await page.locator('[data-wt="eda-nav"] a').evaluateAll(
+      (links) => links.map((a) => (a.getAttribute("href") ?? "").slice(1)),
+    );
+    expect(targets.length).toBeGreaterThan(10);
+    for (const id of targets) {
+      await expect(page.locator(`#${id}`), `nav tab "${id}" has no section`).toBeAttached();
+    }
+  });
+
+  test("shows why a column is not ready, as text", async ({ page }) => {
+    await analyseWithFixture(page);
+
+    // Not a tooltip. A `title` attribute does not exist on a touch screen and
+    // cannot be scanned across a dozen columns, and shipping the verdict
+    // without the reason made the panel useless. This asserts the reason is
+    // rendered content.
+    const panel = page.locator("#readiness");
+    await expect(panel).toContainText(/likely an ID column|missing|skewed|unique categories|Ready to use/i);
+  });
+
+  test("ranks outliers and skew in the statistics panel", async ({ page }) => {
+    await analyseWithFixture(page);
+
+    const panel = page.locator("#statistics");
+    await expect(panel).toContainText(/Outliers \(IQR\)/i);
+    await expect(panel).toContainText(/Skewness/i);
+    // The full-detail table carries kurtosis, which appears nowhere else.
+    await expect(panel).toContainText(/Kurtosis/i);
+  });
+
+  test("names the file it analysed", async ({ page }) => {
+    await analyseWithFixture(page);
+
+    // Nothing on the page said which file this was, which matters the moment
+    // somebody analyses two in a row.
+    await expect(page.locator("#overview")).toContainText("sample-sales.csv");
   });
 });

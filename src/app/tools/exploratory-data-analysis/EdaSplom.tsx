@@ -85,6 +85,7 @@ export default function EdaSplom({ result }: { result: EdaResult }) {
       testId="eda-splom"
       title="Scatter matrix"
       icon="grid"
+      meta={splom ? `${splom.cols.length} features · ${splom.n.toLocaleString()} samples` : undefined}
       note={splom
         ? `${splom.cols.length} numeric columns against each other, over ${splom.n.toLocaleString()} sampled rows — a sample, not the whole dataset, so a rare cluster may not appear here.`
         : undefined}

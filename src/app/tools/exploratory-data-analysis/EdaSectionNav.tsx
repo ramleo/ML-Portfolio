@@ -9,11 +9,18 @@ function sections(result: EdaResult): { id: string; label: string }[] {
   const dup = result.duplicate_rows && result.duplicate_rows.rows.length > 0;
   return [
     { id: "overview", label: "Overview" },
+    // Conditional entries mirror the conditions the sections themselves are
+    // rendered under. A tab that scrolls to an element that was never
+    // rendered is a dead link, and the two lists drifting apart is how that
+    // happens — the analyst summary had no tab at all until this was fixed.
+    ...(result.narrative ? [{ id: "summary", label: "Summary" }] : []),
+    ...(result.insights.length ? [{ id: "insights", label: "Insights" }] : []),
     { id: "readiness", label: "Readiness" },
     { id: "suggestions", label: "AI suggestions" },
     { id: "sample", label: "First rows" },
     ...(dup ? [{ id: "duplicates", label: "Duplicates" }] : []),
     { id: "columns", label: "Columns" },
+    ...(Object.keys(result.stats).length ? [{ id: "statistics", label: "Statistics" }] : []),
     { id: "distributions", label: "Distributions" },
     { id: "box-plots", label: "Spread" },
     { id: "mutual-information", label: "Mutual info" },

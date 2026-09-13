@@ -82,6 +82,7 @@ export default function EdaPca({ result }: { result: EdaResult }) {
       testId="eda-pca"
       title="3D projection"
       icon="cube"
+      meta={pca ? `PC1 ${pca.explained_variance[0] ?? 0}% · PC2 ${pca.explained_variance[1] ?? 0}% · PC3 ${pca.explained_variance[2] ?? 0}% explained` : undefined}
       note={pca
         ? `Principal components of ${pca.labels.length} scaled numeric columns. These three axes carry ${captured}% of the variation in the data — the rest is flattened away. Drag to rotate, scroll to zoom.`
         : undefined}

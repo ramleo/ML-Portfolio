@@ -47,11 +47,16 @@ export const cardStyle: React.CSSProperties = {
  * have nothing to show passes a sentence explaining why.
  */
 export default function EdaSection({
-  id, title, icon, note, empty, right, children, testId,
+  id, title, icon, meta, note, empty, right, children, testId,
 }: {
   id: string;
   title: string;
   icon: SectionIcon;
+  /** The short context line beside the title — a filename, a count, an
+   *  explained-variance figure. Legacy carried one on every panel and it is
+   *  how a reader knows what they are looking at without reading a paragraph.
+   *  `note` is the sentence below; this is the label on the same line. */
+  meta?: ReactNode;
   note?: ReactNode;
   empty?: string;
   right?: ReactNode;
@@ -68,6 +73,11 @@ export default function EdaSection({
         }}>
           {title}
         </h2>
+        {meta && (
+          <span style={{ fontSize: "0.7rem", fontWeight: 400, color: "var(--text3)" }}>
+            {meta}
+          </span>
+        )}
         {right && <div style={{ marginLeft: "auto" }}>{right}</div>}
       </div>
 

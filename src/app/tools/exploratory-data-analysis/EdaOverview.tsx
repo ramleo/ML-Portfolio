@@ -1,15 +1,9 @@
 "use client";
 import EdaSection, { cardStyle } from "./EdaSection";
-import type { EdaResult, InsightLevel, Verdict } from "./edaTypes";
+import type { EdaResult, InsightLevel } from "./edaTypes";
 
-const VERDICT_COLOR: Record<Verdict, string> = {
-  pass: "#4ade80",
-  warn: "#fbbf24",
-  fail: "#f87171",
-};
-
-// Same three colours as the readiness verdicts, on purpose: a danger insight
-// and a failing column are usually the same problem said twice.
+// The same three colours as the readiness verdicts, on purpose: a danger
+// insight and a failing column are usually the same problem said twice.
 const INSIGHT_COLOR: Record<InsightLevel, string> = {
   danger: "#f87171",
   warning: "#fbbf24",
@@ -67,15 +61,24 @@ function Gauge({ score }: { score: number }) {
   );
 }
 
-export default function EdaOverview({ result }: { result: EdaResult }) {
-  const { overview, quality_score, narrative, insights, readiness, low_variance_cols } = result;
+export default function EdaOverview({ result, filename }: { result: EdaResult; filename: string }) {
+  const { overview, quality_score, narrative, insights } = result;
   const scoreTone = quality_score >= 80 ? "#4ade80" : quality_score >= 60 ? "#fbbf24" : "#f87171";
-  const failing = readiness.filter((r) => r.verdict === "fail");
-  const warning = readiness.filter((r) => r.verdict === "warn");
 
   return (
     <>
-      <section id="overview" data-wt="eda-overview" style={{ display: "grid", gap: "1.25rem", scrollMarginTop: 132 }}>
+      {/* Not an EdaSection: this one is a grid of cards rather than a titled
+          panel, and the filename is the only header it needs. */}
+      <section id="overview" data-wt="eda-overview" style={{ display: "grid", gap: "0.75rem", scrollMarginTop: 132 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text3)", margin: 0 }}>
+            Overview
+          </h2>
+          {/* Which file this is. Nothing on the page said so before, which
+              matters as soon as somebody analyses two in a row. */}
+          <span style={{ fontSize: "0.7rem", color: "var(--text3)", overflowWrap: "anywhere" }}>{filename}</span>
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
           <Stat label="Rows" value={overview.rows.toLocaleString()} />
           <Stat label="Columns" value={String(overview.cols)} />
@@ -93,16 +96,19 @@ export default function EdaOverview({ result }: { result: EdaResult }) {
             </div>
           </div>
         </div>
-
-        {narrative && (
-          <div style={{ ...cardStyle, lineHeight: 1.65, fontSize: "0.92rem", color: "var(--text2)" }}>
-            {narrative}
-          </div>
-        )}
       </section>
 
+      {narrative && (
+        <EdaSection id="summary" testId="eda-summary" title="Analyst summary" icon="narrative">
+          <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.75, color: "var(--text2)", maxWidth: "78ch" }}>
+            {narrative}
+          </p>
+        </EdaSection>
+      )}
+
       {insights.length > 0 && (
-        <EdaSection id="insights" title="What stands out" icon="insight" testId="eda-insights">
+        <EdaSection id="insights" testId="eda-insights" title="What stands out" icon="insight"
+                    meta={`${insights.length} finding${insights.length === 1 ? "" : "s"}`}>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: "0.45rem" }}>
             {insights.map((insight, i) => (
               <li key={i} style={{ display: "flex", gap: "0.55rem", alignItems: "start", fontSize: "0.88rem", color: "var(--text2)", lineHeight: 1.55 }}>
@@ -116,39 +122,6 @@ export default function EdaOverview({ result }: { result: EdaResult }) {
           </ul>
         </EdaSection>
       )}
-
-      <EdaSection
-        id="readiness"
-        testId="eda-readiness"
-        title="Modelling readiness"
-        icon="readiness"
-        note={<>
-          {failing.length} column{failing.length === 1 ? "" : "s"} would hurt a model as-is
-          {warning.length > 0 && `, ${warning.length} need${warning.length === 1 ? "s" : ""} a look`}.
-          Hover any chip for the reason.
-          {low_variance_cols.length > 0 &&
-            ` Barely varying: ${low_variance_cols.join(", ")}.`}
-        </>}
-      >
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-          {readiness.map((r) => (
-            <span
-              key={r.name}
-              title={r.reason}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "0.35rem",
-                fontSize: "0.75rem", padding: "3px 9px", borderRadius: 9999,
-                background: `${VERDICT_COLOR[r.verdict]}14`,
-                border: `1px solid ${VERDICT_COLOR[r.verdict]}38`,
-                color: "var(--text2)",
-              }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: 9999, background: VERDICT_COLOR[r.verdict] }} />
-              {r.name}
-            </span>
-          ))}
-        </div>
-      </EdaSection>
     </>
   );
 }

@@ -53,6 +53,7 @@ export function CorrelationHeatmap({ result }: { result: EdaResult }) {
       testId="eda-correlations"
       title="Correlations"
       icon="grid"
+      meta={corr ? `${corr.labels.length} numeric columns · Pearson` : undefined}
       note="Blue is positive, red is negative, stronger is more saturated. A cell marked n/a could not be computed — that is not the same as zero, which means no linear relationship at all."
       empty={!corr || corr.labels.length < 2
         ? `A correlation needs two numeric columns and this dataset has ${numeric}. Nothing is wrong with the file — there is simply no pair to relate.`
@@ -99,6 +100,7 @@ export function MiHeatmap({ result }: { result: EdaResult }) {
       testId="eda-mi"
       title="Mutual information"
       icon="grid"
+      meta={mi ? `${mi.labels.length} columns · normalised 0–1` : undefined}
       note="How much knowing one column tells you about another, normalised to 0–1 and computed over the first fifteen columns. Unlike correlation it catches curved and categorical relationships, and it is never negative."
       empty={!mi ? "Mutual information needs at least two columns to compare." : undefined}
     >

@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { trackedFetch } from "@/lib/trackedFetch";
 import EdaOverview from "./EdaOverview";
+import EdaReadiness from "./EdaReadiness";
+import EdaStatistics from "./EdaStatistics";
 import EdaColumns from "./EdaColumns";
 import EdaTables from "./EdaTables";
 import EdaDistributions from "./EdaDistributions";
@@ -135,10 +137,12 @@ export default function EdaRunner({ onResult }: { onResult: (r: EdaResult | null
           {/* The nav is rendered before the sections it points at so it can
               sit above them without a wrapper that would break the sticky. */}
           <EdaSectionNav result={result} />
-          <EdaOverview result={result} />
+          <EdaOverview result={result} filename={file?.name ?? "dataset.csv"} />
+          <EdaReadiness result={result} />
           <EdaSuggest result={result} />
           <EdaTables result={result} />
           <EdaColumns result={result} />
+          <EdaStatistics result={result} />
           <EdaDistributions result={result} />
           <EdaBoxPlots result={result} />
           <MiHeatmap result={result} />

@@ -43,6 +43,10 @@ export default function EdaDistributions({ result }: { result: EdaResult }) {
   const entries = Object.entries(result.distributions);
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? entries : entries.slice(0, 6);
+  // Flagged on the card it describes, not in a list somewhere else. A column
+  // whose values barely move is a column a model cannot learn from, and the
+  // chart that shows it is exactly where that is worth knowing.
+  const lowVariance = new Set(result.low_variance_cols);
 
   return (
     <EdaSection
@@ -50,6 +54,7 @@ export default function EdaDistributions({ result }: { result: EdaResult }) {
       testId="eda-distributions"
       title="Distributions"
       icon="chart"
+      meta={`${entries.length} column${entries.length === 1 ? "" : "s"}`}
       note="Numeric columns are histograms over the sampled values; text columns show their ten most common values. Hover for exact counts."
       empty={entries.length === 0
         ? "No column had enough values to chart. A distribution needs at least a handful of non-empty rows."
@@ -74,6 +79,12 @@ export default function EdaDistributions({ result }: { result: EdaResult }) {
               <span style={{ fontWeight: 400, color: "var(--text3)", marginLeft: 6 }}>
                 {dist.type === "histogram" ? "histogram" : "top values"}
               </span>
+              {lowVariance.has(name) && (
+                <span title="Its values barely vary, so a model has almost nothing to learn from it."
+                      style={{ fontWeight: 700, color: "#fbbf24", marginLeft: 6, fontSize: "0.62rem" }}>
+                  low variance
+                </span>
+              )}
             </div>
             <PlotlyFigure
               traces={traceFor(dist, result.stats[name])}
