@@ -154,10 +154,11 @@ test.describe("exploratory data analysis", () => {
     await expect(page.locator('[data-wt="eda-report-theme"]')).toHaveValue("light");
 
     await page.locator('[data-wt="eda-report-theme"]').selectOption("dark");
-    // Saying so matters: a browser drops background colours from a print job
-    // unless the reader ticks "Background graphics", so a dark report printed
-    // without that is pale text on white paper.
-    await expect(page.locator("#report")).toContainText(/Background graphics/i);
+    // The panel says what picking dark means. The wording changed once already,
+    // when the claim it made about print dialogs turned out to be wrong after
+    // the colours were forced — so this asserts a note exists and names the
+    // screen, not a sentence that may need rewording again.
+    await expect(page.locator("#report")).toContainText(/reading on a screen/i);
 
     const download = page.waitForEvent("download");
     await page.locator('[data-wt="eda-report-html"]').click();
@@ -172,5 +173,31 @@ test.describe("exploratory data analysis", () => {
     expect(html).toContain("#0b1220");
     expect(html).not.toContain("background: #f8fafc");
     expect(html).toMatch(/src="data:image\/png/);
+  });
+
+  test("the paginated report forces its own colours onto the printed page", async ({ page }) => {
+    await analyseWithFixture(page);
+    await page.locator('[data-wt="eda-report-theme"]').selectOption("dark");
+
+    // Stub the print dialog: this asserts what the page hands the printer,
+    // not that a dialog opened.
+    await page.evaluate(() => { window.print = () => {}; });
+    await page.locator('[data-wt="eda-report-pdf"]').click();
+    await page.waitForFunction(
+      () => document.querySelectorAll("#eda-print-pages .pagedjs_page").length > 0,
+      null, { timeout: 120_000 });
+
+    // A dark report printed as near-black text on its own dark panels, and
+    // every screen-level check passed while it did: getComputedStyle under
+    // print emulation reported the right colours, because the damage happens
+    // in Chrome's print rasteriser, not in the cascade. The contract that
+    // actually fixes it is print-color-adjust on the report subtree, declared
+    // in the host document rather than in the sheet Paged.js rewrites — so
+    // that is what this asserts.
+    const css = await page.evaluate(
+      () => document.getElementById("eda-print-style")?.textContent ?? "");
+    expect(css).toMatch(/#eda-print-pages[^{]*\{[^}]*print-color-adjust:\s*exact/);
+    expect(css).toContain("#0b1220");
+    expect(css).toMatch(/pagedjs_page_content\s*\{\s*color:\s*#e2e8f0/);
   });
 });

@@ -52,7 +52,35 @@ body.eda-printing .pagedjs_page { background: ${c.paper}; }
 .eda-print-exit { position: fixed; top: 12px; right: 12px; z-index: 9999;
   border: 1px solid ${c.border}; border-radius: 8px; background: ${c.panel}; color: ${c.ink};
   font: 600 0.8rem ui-sans-serif, sans-serif; padding: 0.4rem 0.8rem; cursor: pointer; }
-@media print { .eda-print-exit { display: none; } }
+@media print {
+  .eda-print-exit { display: none; }
+  /* Everything below is in the host document's own stylesheet on purpose.
+     Rules handed to Paged.js go through its polisher, which rewrites and
+     rescopes them, and print-color-adjust declared in there did not survive
+     to the printed page: the report rendered with its backgrounds but with
+     Chrome's own darkened text, so every element that inherited its colour
+     came out near-black on a dark panel. Only elements with an explicit
+     colour of their own — the headings, the verdicts — stayed legible, which
+     is exactly the pattern in the broken PDF.
+
+     It also has to beat styles/10-print.css, which forces white paper and
+     near-black text on html and body with !important, site-wide, for the
+     handbook. Same specificity, both important, and this sheet is inserted
+     at runtime, so it comes later and wins. */
+  html, body.eda-printing {
+    background: ${c.paper} !important;
+    color: ${c.ink} !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #eda-print-pages, #eda-print-pages * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Colour set on the page container rather than left to inherit from body,
+     so a stray body-level rule cannot reach the text inside a page box. */
+  #eda-print-pages .pagedjs_page_content { color: ${c.ink}; }
+}
 `;
 }
 

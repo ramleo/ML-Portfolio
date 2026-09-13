@@ -19,10 +19,10 @@ const btn: React.CSSProperties = {
 export default function EdaReport({ result, filename }: { result: EdaResult; filename: string }) {
   const { status } = usePlotly();
   // Light by default, and deliberately not tied to the site's theme: this is
-  // a file that gets printed and emailed, and a browser drops background
-  // colours from a print job unless the reader ticks "Background graphics",
-  // so a dark report reaches paper as pale text on nothing. Dark is offered
-  // because a report read on screen should be allowed to match the screen.
+  // a file that gets printed and emailed, and light is what paper wants.
+  // Dark is offered because a report read on a screen should be allowed to
+  // match the screen, and it now prints faithfully rather than as pale text
+  // on white — see the print rules in edaPdf.ts for why that took work.
   const [theme, setTheme] = useState<ReportTheme>("light");
   const [busy, setBusy] = useState<"" | "html" | "pdf">("");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -103,10 +103,9 @@ export default function EdaReport({ result, filename }: { result: EdaResult; fil
 
       {theme === "dark" && (
         <p style={{ marginTop: "0.7rem", fontSize: "0.76rem", color: "var(--text3)", lineHeight: 1.5, maxWidth: "70ch" }}>
-          A dark report is for reading on a screen. Browsers leave background
-          colours out of a print job unless &ldquo;Background graphics&rdquo; is
-          ticked in the print dialog, so printing this one without that gives
-          pale text on white paper.
+          Meant for reading on a screen. It asks the browser to keep its
+          colours when printing, so the pages come out dark — check the print
+          preview before sending it to paper, and expect it to use a lot of ink.
         </p>
       )}
 
