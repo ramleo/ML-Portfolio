@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ML_SQL_API } from "@/config/urls";
 import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
-import DbConnectPanel, { type DbSource } from "./DbConnectPanel";
+import DbConnectPanel, { type DbSource, type DbMessage } from "./DbConnectPanel";
 import QueryResultPanel from "./QueryResultPanel";
 import SchemaDiagram from "./SchemaDiagram";
 import MobileSidebar from "./MobileSidebar";
@@ -18,6 +18,16 @@ import { SAMPLE_QUESTIONS } from "./_types";
 import { useQueryRunner } from "./useQueryRunner";
 import { track } from "@/hooks/useAnalytics";
 import { EV, STAGE } from "@/lib/logEvents";
+
+/** ml-sql's reply as JSON, or a readable error. A non-JSON body means the
+ * Space is still starting (HF serves its own page meanwhile). */
+async function readJson(res: Response): Promise<Record<string, unknown>> {
+  const data = await res.json().catch(() => null) as Record<string, unknown> | null;
+  if (!data) throw new Error("The backend is waking up — wait 30 seconds and try again.");
+  if (!res.ok || data.error) throw new Error(String(data.error ?? `Request failed (${res.status}).`));
+  return data;
+}
+const tableCount = (t: unknown) => `${Object.keys((t ?? {}) as object).length} tables`;
 
 const ACCENT = "#6a6cc8";
 
@@ -60,14 +70,17 @@ export default function TextToSqlRunner() {
       .then(r => r.json()).then(d => { if (d.questions?.length) setDynQ(d.questions.map((q: unknown) => String(q))); }).catch(() => {});
   }, [dbRef, provider]);
 
+  // What the last Load / Upload / Connect did. All three used to swallow every
+  // failure, so a wrong password or a refused host showed nothing at all.
+  const [dbMsg, setDbMsg] = useState<DbMessage | null>(null);
+
   const loadDemoSchema = useCallback(async () => {
     try {
       const res = await trackedFetch(`${ML_SQL_API}/sql/schema?db_ref=chinook`,
         undefined, { tool: "text-to-sql-schema" });
-      const data = await res.json().catch(() => { throw new Error("Backend warming up — wait 30s and click Load Schema again."); });
-      if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`);
-      setSchema(data.tables); setDbRef("chinook");
-    } catch { }
+      const data = await readJson(res);
+      setSchema(data.tables as Record<string, SchemaTable>); setDbRef("chinook"); setDbMsg(null);
+    } catch (e) { setDbMsg({ kind: "error", text: (e as Error).message }); }
   }, []);
   useEffect(() => { loadDemoSchema(); }, [loadDemoSchema]);
 
@@ -80,23 +93,22 @@ export default function TextToSqlRunner() {
     const runId = newRunId();
     track(EV.UPLOAD, { meta: { tool: "text-to-sql", run_id: runId,
       ext: file.name.split(".").pop()?.toLowerCase() ?? "", size_bytes: file.size } });
+    setDbMsg({ kind: "busy", text: `Uploading ${file.name}…` });
     try {
       const res = await trackedFetch(`${ML_SQL_API}/sql/upload`,
         { method: "POST", body: form },
         { tool: "text-to-sql-db-upload", runId, stage: STAGE.UPLOAD,
           meta: { size_bytes: file.size } });
-      const text = await res.text();
-      let data: Record<string, unknown>;
-      try { data = JSON.parse(text); }
-      catch { return; }
-      if (data.error) return;
-      const s = data.schema as { tables: Record<string, unknown> };
-      setSchema(s.tables as Record<string, SchemaTable>); setDbRef(data.db_ref as string); setGlossary("");
-    } catch { }
+      const data = await readJson(res);
+      const s = data.schema as { tables: Record<string, SchemaTable> };
+      setSchema(s.tables); setDbRef(data.db_ref as string); setGlossary("");
+      setDbMsg({ kind: "ok", text: `Loaded ${file.name} — ${tableCount(s.tables)}.` });
+    } catch (e) { setDbMsg({ kind: "error", text: (e as Error).message }); }
   }, []);
 
   const connectRemote = useCallback(async (connStr: string, dbType: "postgresql" | "mysql" | "mssql") => {
-    if (!connStr.trim()) return;
+    if (!connStr.trim()) { setDbMsg({ kind: "error", text: "Paste a connection string first." }); return; }
+    setDbMsg({ kind: "busy", text: "Connecting…" });
     try {
       // db_type ONLY. The connection string holds a host, a username and a
       // password — it must never reach the analytics table (§6 rule 1).
@@ -108,14 +120,13 @@ export default function TextToSqlRunner() {
         body: JSON.stringify({ conn_str: connStr, db_type: dbType }),
       }, { tool: "text-to-sql-db-connect", runId, stage: STAGE.CONFIG,
            meta: { db_type: dbType } });
-      const text2 = await res.text();
-      let data: Record<string, unknown>;
-      try { data = JSON.parse(text2); }
-      catch { return; }
-      if (data.error) return;
-      const tables2 = data.tables as Record<string, SchemaTable>;
-      setSchema(tables2); setDbRef(data.db_ref as string); setGlossary("");
-    } catch { }
+      const data = await readJson(res);
+      // The tables are under `schema`, as for uploads. Reading `data.tables`
+      // here left the schema empty even when the connection succeeded.
+      const s = data.schema as { tables: Record<string, SchemaTable> };
+      setSchema(s.tables); setDbRef(data.db_ref as string); setGlossary("");
+      setDbMsg({ kind: "ok", text: `Connected — ${tableCount(s.tables)}.` });
+    } catch (e) { setDbMsg({ kind: "error", text: (e as Error).message }); }
   }, []);
 
   const shareQuery = useCallback(() => {
@@ -156,7 +167,7 @@ export default function TextToSqlRunner() {
             pgConn={pgConn} setPgConn={setPgConn} connectPg={() => connectRemote(pgConn, "postgresql")}
             mysqlConn={mysqlConn} setMysqlConn={setMysqlConn} connectMySQL={() => connectRemote(mysqlConn, "mysql")}
             mssqlConn={mssqlConn} setMssqlConn={setMssqlConn} connectMssql={() => connectRemote(mssqlConn, "mssql")}
-            loadDemoSchema={loadDemoSchema} status={status} />
+            loadDemoSchema={loadDemoSchema} status={status} dbMsg={dbMsg} />
 
           <div className="lg:hidden flex gap-2">
             <button onClick={() => setMobileSidebar(true)}

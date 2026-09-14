@@ -3,6 +3,8 @@
 const ACCENT = "#6a6cc8";
 
 export type DbSource = "demo" | "upload" | "postgres" | "mysql" | "mssql";
+/** Outcome of the last Load / Upload / Connect, shown under the controls. */
+export type DbMessage = { kind: "busy" | "ok" | "error"; text: string };
 
 interface Props {
   dbSource: DbSource; setDbSource: (s: DbSource) => void;
@@ -10,7 +12,7 @@ interface Props {
   pgConn: string; setPgConn: (s: string) => void; connectPg: () => void;
   mysqlConn: string; setMysqlConn: (s: string) => void; connectMySQL: () => void;
   mssqlConn: string; setMssqlConn: (s: string) => void; connectMssql: () => void;
-  loadDemoSchema: () => void; status: string;
+  loadDemoSchema: () => void; status: string; dbMsg: DbMessage | null;
 }
 
 const TABS: { id: DbSource; label: string; icon: React.ReactNode }[] = [
@@ -54,7 +56,7 @@ export default function DbConnectPanel({
   pgConn, setPgConn, connectPg,
   mysqlConn, setMysqlConn, connectMySQL,
   mssqlConn, setMssqlConn, connectMssql,
-  loadDemoSchema, status,
+  loadDemoSchema, status, dbMsg,
 }: Props) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-3" data-wt="db-connect">
@@ -119,6 +121,13 @@ export default function DbConnectPanel({
             Connect
           </button>
         </div>
+      )}
+
+      {dbMsg && (
+        <p role={dbMsg.kind === "error" ? "alert" : "status"} className="text-[11px] mt-2"
+          style={{ color: dbMsg.kind === "error" ? "#ef4444" : dbMsg.kind === "ok" ? "#10b981" : ACCENT }}>
+          {dbMsg.text}
+        </p>
       )}
 
       {status && (
