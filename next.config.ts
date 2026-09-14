@@ -43,7 +43,11 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Standalone is for the Dockerfile only. Vercel never uses it, and on Next
+  // 16.3.x standalone plus Vercel's build adapter crashes after the build
+  // (ENOENT .next/next-server.js.nft.json) — reproducible locally with a
+  // no-op NEXT_ADAPTER_PATH. VERCEL is set in every Vercel build.
+  output: process.env.VERCEL ? undefined : "standalone",
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
