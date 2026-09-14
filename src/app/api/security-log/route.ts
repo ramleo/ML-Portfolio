@@ -45,6 +45,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { turnstileOk } from "@/lib/turnstileVerify";
 
 const trunc = (v: unknown, n: number) =>
   v === null || v === undefined || v === "" ? null : String(v).slice(0, n);
@@ -82,28 +83,6 @@ function rateLimited(ip: string): boolean {
   return cur.n > MAX_PER_WINDOW;
 }
 
-/** Verifies a Turnstile token with Cloudflare. Returns true when the secret
- * is unset, so the endpoint keeps working until it is configured. */
-async function turnstileOk(token: unknown, ip: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return true;                       // not configured — fail open
-  if (typeof token !== "string" || !token) return false;
-  try {
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ secret, response: token, remoteip: ip }),
-    });
-    const out = (await res.json()) as { success?: boolean };
-    return out.success === true;
-  } catch {
-    // Cloudflare unreachable. Accepting is the lesser evil: the alternative
-    // is that an outage there silently stops the security log recording.
-    console.error("security-log: turnstile verify unreachable");
-    return true;
-  }
-}
-
 /** Same-origin only. NEXT_PUBLIC_SITE_URL when set, plus any *.vercel.app
  * preview of this project, plus localhost for development. */
 function originAllowed(req: NextRequest): boolean {
@@ -134,7 +113,7 @@ export async function POST(req: NextRequest) {
     const tool = String(b.tool ?? "").slice(0, 80);
     if (EXCLUDED.has(tool)) return NextResponse.json({ ok: true, skipped: true });
 
-    if (!(await turnstileOk(b.turnstile_token, ip))) {
+    if (!(await turnstileOk(b.turnstile_token, ip, "security-log"))) {
       return NextResponse.json({ error: "Failed verification" }, { status: 403 });
     }
 

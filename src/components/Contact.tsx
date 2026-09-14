@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { SiteIcon, CheckCircleIcon } from "./SiteIcons";
+import { getTurnstileToken } from "@/lib/turnstile";
 
 const LINKS = [
   { icon: "in", label: "LinkedIn",  value: "WRamakrishnasai",       href: "https://linkedin.com/in/WRamakrishnasai" },
@@ -27,7 +28,7 @@ export default function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstile_token: await getTurnstileToken() }),
       });
       setStatus(res.ok ? "sent" : "error");
     } catch {
