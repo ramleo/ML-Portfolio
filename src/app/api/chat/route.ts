@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { boundConversation } from '@/lib/chatLimits';
 
 const SECTION_CONTEXT: Record<string, string> = {
   hero:     "The visitor is on the hero/intro section — overview of who Ramakrishnasai is and what he builds.",
@@ -150,11 +151,11 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, section, provider = 'cohere' } = await req.json();
+  const { messages: rawMessages, section, provider = 'cohere' } = await req.json();
 
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ reply: "No messages provided." }, { status: 400 });
-  }
+  const bounded = boundConversation(rawMessages);
+  if ('error' in bounded) return NextResponse.json({ reply: bounded.error }, { status: bounded.status });
+  const { messages } = bounded;
 
   const systemPrompt = buildSystemPrompt(section ?? 'hero');
 
