@@ -100,6 +100,20 @@ export default function Contact() {
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}><CheckCircleIcon size={36} /></div>
                   <div style={{ fontWeight: 700, color: "var(--text)" }}>Message sent!</div>
                   <div style={{ fontSize: "0.85rem", color: "var(--text2)", marginTop: 4 }}>I&apos;ll get back to you soon.</div>
+                  <button
+                    type="button"
+                    onClick={() => { setForm({ name: "", email: "", message: "" }); setStatus("idle"); }}
+                    style={{
+                      marginTop: "1.25rem", padding: "0.55rem 1.25rem", borderRadius: 9999,
+                      background: "transparent", border: "1px solid var(--border2)",
+                      color: "var(--text)", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer",
+                      transition: "border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text3)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border2)"; }}
+                  >
+                    Send another message
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
