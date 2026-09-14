@@ -204,7 +204,11 @@ export async function POST(req: NextRequest) {
 
     // If caller supplied a baseUrl, use it directly (user's own provider — any OpenAI-compat endpoint)
     if (baseUrl) {
-      if (!key) return NextResponse.json({ error: "API key required when using a custom base URL." }, { status: 401 });
+      // Only the caller's own key may go to a caller-chosen URL. `key` can be
+      // a server env key (resolveKey falls back to it), and sending that as a
+      // Bearer token to an arbitrary host hands it to whoever runs the host.
+      if (!userKey?.trim()) return NextResponse.json({ error: "API key required when using a custom base URL." }, { status: 401 });
+      if (!/^https:\/\//i.test(String(baseUrl))) return NextResponse.json({ error: "Custom base URL must start with https://." }, { status: 400 });
       reply = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, "custom");
     } else if (provider === "gemini") {
       const chosenModel = model ?? "gemini-2.5-flash";
