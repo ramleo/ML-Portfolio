@@ -128,6 +128,12 @@ export function useQueryRunner({ dbRef, provider, glossary, questionRef }: Query
         body: JSON.stringify({ question: activeQ, provider, db_ref: dbRef, history: historyPayload, glossary, correction: getCorrection(dbRef, activeQ) }),
         signal: controller.signal,
       }, { tool: TOOL, runId, streaming: true, meta: { provider } });
+      // ml-sql refuses with plain JSON, not a stream (403 origin, 429 rate or
+      // daily limit): show its message rather than an empty result.
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(d.error ?? `Request failed (${res.status}).`);
+      }
       if (!res.body) throw new Error("No response stream");
       const reader = res.body.getReader(); readerRef.current = reader;
       const dec = new TextDecoder(); let buf = "";

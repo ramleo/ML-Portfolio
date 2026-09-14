@@ -28,6 +28,13 @@ export async function streamSqlExplain(o: Opts): Promise<void> {
     body: JSON.stringify(o.body),
   }, { tool: o.tool, runId, streaming: true, meta: { provider: o.provider } });
 
+  // ml-sql refuses with plain JSON, not a stream (403 origin, 429 rate or
+  // daily limit), so read its message instead of parsing it as events.
+  if (!resp.ok) {
+    const d = await resp.json().catch(() => ({})) as { error?: string };
+    o.onError(d.error ?? `Request failed (${resp.status}).`);
+    return;
+  }
   const reader = resp.body?.getReader();
   if (!reader) throw new Error("No response body");
   const dec = new TextDecoder();
