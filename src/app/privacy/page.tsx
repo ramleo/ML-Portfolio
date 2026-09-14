@@ -127,8 +127,9 @@ export default function PrivacyPage() {
         <Section id="logging" heading="What is recorded about your visit">
           <p style={{ margin: "0 0 0.75rem" }}>
             Basic usage analytics are stored: the event type, the page path, a random session id, the
-            referrer, how long you stayed, and a two-letter country code derived from the request. Your
-            IP address is not stored with analytics.
+            referrer, how long you stayed, a two-letter country code derived from the request, and your
+            browser&apos;s time zone (for example Asia/Kolkata), which is used as a rough region when the
+            country cannot be determined. Your IP address is not stored with analytics.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
             Alongside each event a small amount of structured detail is stored, and it is deliberately

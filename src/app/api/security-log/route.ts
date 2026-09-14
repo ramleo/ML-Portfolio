@@ -46,6 +46,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { turnstileOk } from "@/lib/turnstileVerify";
+import { analyticsWritesEnabled } from "@/lib/analyticsWrites";
 
 const trunc = (v: unknown, n: number) =>
   v === null || v === undefined || v === "" ? null : String(v).slice(0, n);
@@ -116,6 +117,10 @@ export async function POST(req: NextRequest) {
     if (!(await turnstileOk(b.turnstile_token, ip, "security-log"))) {
       return NextResponse.json({ error: "Failed verification" }, { status: 403 });
     }
+
+    // Local runs are not visitors — see analyticsWrites.ts. After the
+    // checks, so they still get exercised locally.
+    if (!analyticsWritesEnabled()) return NextResponse.json({ ok: true, skipped: "local" });
 
     // Config last, after EVERY check on the request itself. Twice now this
     // sat too early and swallowed the guards below it in local testing —

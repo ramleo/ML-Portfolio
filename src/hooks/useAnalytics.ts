@@ -24,7 +24,11 @@ export function track(type: string, extra: Record<string, unknown> = {}) {
   let enrichedMeta: Record<string, unknown> = typeof extra.meta === "object" && extra.meta ? { ...extra.meta as Record<string, unknown> } : {};
   if (type === "page_view") {
     const count = Number(localStorage.getItem("_ml_pv_count") ?? "0");
-    enrichedMeta = { ...enrichedMeta, device: window.innerWidth < 768 ? "mobile" : "desktop", returning: count > 0 };
+    // tz: the browser's time zone (e.g. "Asia/Kolkata"), a rough region for
+    // the visitors Vercel cannot place from their IP. No IP is involved.
+    let tz: string | undefined;
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; } catch { /* old browser */ }
+    enrichedMeta = { ...enrichedMeta, device: window.innerWidth < 768 ? "mobile" : "desktop", returning: count > 0, tz };
     localStorage.setItem("_ml_pv_count", String(count + 1));
     // §3 stage 1/8 counters. Done here rather than at 61 page_view call sites.
     noteSessionPage(window.location.pathname);

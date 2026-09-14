@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { analyticsWritesEnabled } from "@/lib/analyticsWrites";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type, path = "", session_id = "", referrer = "", duration_ms = 0, meta = {} } = body;
     if (!type) return NextResponse.json({ error: "type required" }, { status: 400, headers: CORS });
+    // Local runs are not visitors — see analyticsWrites.ts.
+    if (!analyticsWritesEnabled()) return NextResponse.json({ ok: true, skipped: "local" }, { headers: CORS });
 
     const country = req.headers.get("CF-IPCountry") ?? req.headers.get("x-vercel-ip-country") ?? "";
     const supabase = getClient();
