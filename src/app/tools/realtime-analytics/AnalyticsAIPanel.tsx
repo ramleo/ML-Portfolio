@@ -1,5 +1,6 @@
 "use client";
 import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
+import { getTurnstileToken } from "@/lib/turnstile";
 
 import { useState } from "react";
 
@@ -51,7 +52,7 @@ export default function AnalyticsAIPanel({ stats, rangeLabel }: Props) {
       const res = await trackedFetch("/api/ai-explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stats, rangeLabel }),
+        body: JSON.stringify({ stats, rangeLabel, turnstile_token: await getTurnstileToken() }),
       }, { tool: "realtime-analytics-ai", runId });
       const data = await res.json();
       if (data.error) setError(data.error);
