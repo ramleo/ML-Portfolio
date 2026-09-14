@@ -1,5 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { runOutcomes } from "@/lib/runOutcomes";
+
+const PAGE = 1000;          // Supabase's per-request row cap
+const MAX_ROWS = 100_000;   // bound on one request's work; far above a month today
+
+/** Every row a query matches, fetched a page at a time. */
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; from < MAX_ROWS; from += PAGE) {
+    const { data, error } = await page(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE) break;
+  }
+  return rows;
+}
 
 function getClient() {
   return createClient(
@@ -67,14 +85,19 @@ export async function GET(req: NextRequest) {
     const supabase  = getClient();
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-    let query = supabase
-      .from("events")
-      .select("created_at, type, path, session_id, country, meta, referrer, duration_ms")
-      .gte("created_at", start);
-    if (end) query = query.lte("created_at", end);
-
-    const { data: rangeEvents } = await query;
-    const events = rangeEvents ?? [];
+    // Paged. A bare select returns at most 1000 rows, and the keepalive ping
+    // alone passes that within days — every 7d/30d figure was computed from
+    // the first 1000 events of the window and silently ignored the rest.
+    const events = await fetchAllRows((from, to) => {
+      let q = supabase
+        .from("events")
+        .select("created_at, type, path, session_id, country, meta, referrer, duration_ms")
+        .gte("created_at", start)
+        .order("created_at", { ascending: true })
+        .range(from, to);
+      if (end) q = q.lte("created_at", end);
+      return q;
+    });
 
     // active_now (today) / unique_sessions (other ranges)
     const active_now = !is_range
@@ -93,7 +116,8 @@ export async function GET(req: NextRequest) {
 
     // error sparkline buckets (same bucketing as per_minute)
     const errorBucketMap: Record<string, number> = {};
-    for (const e of events.filter(ev => ev.type === "error")) {
+    const { presses: queryRuns, outcome, errorEvents } = runOutcomes(events);
+    for (const e of errorEvents) {
       const key = useDay ? e.created_at.slice(0, 10) : e.created_at.slice(11, 13) + ":00";
       errorBucketMap[key] = (errorBucketMap[key] ?? 0) + 1;
     }
@@ -152,19 +176,23 @@ export async function GET(req: NextRequest) {
     const bounceSessions = sessionCounts.filter(c => c === 1).length;
     const bounce_rate = sessionCounts.length > 0 ? Math.round((bounceSessions / sessionCounts.length) * 100) : null;
 
-    // query success rate (overall)
-    const queryRuns    = events.filter(e => e.type === "query_run");
-    const successCount = queryRuns.filter(e => e.meta?.success === true).length;
-    const query_success_rate = queryRuns.length > 0 ? Math.round((successCount / queryRuns.length) * 100) : null;
+    // query success rate — over runs that finished; a press with no outcome
+    // yet (still running, tab closed) is neither a success nor a failure.
+    const outcomes     = queryRuns.map(outcome);
+    const successCount = outcomes.filter(o => o === "success").length;
+    const failedRuns   = outcomes.filter(o => o === "error").length;
+    const settledCount = successCount + failedRuns;
+    const query_success_rate = settledCount > 0 ? Math.round((successCount / settledCount) * 100) : null;
 
     // per-tool query success rate
     const toolMap: Record<string, { success: number; total: number }> = {};
-    for (const e of queryRuns) {
+    queryRuns.forEach((e, i) => {
+      if (outcomes[i] === "pending") return;
       const key = e.path ?? "unknown";
       if (!toolMap[key]) toolMap[key] = { success: 0, total: 0 };
       toolMap[key].total++;
-      if (e.meta?.success === true) toolMap[key].success++;
-    }
+      if (outcomes[i] === "success") toolMap[key].success++;
+    });
     const query_by_tool = Object.entries(toolMap)
       .map(([path, { success, total }]) => ({
         path, success_count: success, total_count: total,
@@ -235,8 +263,8 @@ export async function GET(req: NextRequest) {
       portfolioTools[tool][action] = (portfolioTools[tool][action] ?? 0) + 1;
     }
 
-    // Error events count
-    const error_count = events.filter(e => e.type === "error").length;
+    // Failed visitor runs, plus legacy `error` events. Keepalive is excluded.
+    const error_count = failedRuns + events.filter(e => e.type === "error").length;
 
     // Device breakdown + returning visitor rate from page_view meta
     const deviceMap: Record<string, number> = {};
@@ -262,8 +290,9 @@ export async function GET(req: NextRequest) {
 
     // 7-day hourly heatmap (always fixed window, independent of range)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: heatmapRows } = await supabase
-      .from("events").select("created_at").gte("created_at", sevenDaysAgo);
+    const heatmapRows = await fetchAllRows((from, to) => supabase
+      .from("events").select("created_at").gte("created_at", sevenDaysAgo)
+      .order("created_at", { ascending: true }).range(from, to));
     const heatMap: Record<string, number> = {};
     for (const e of heatmapRows ?? []) {
       const d = new Date(e.created_at);
@@ -285,7 +314,8 @@ export async function GET(req: NextRequest) {
       per_minute, error_per_minute, top_pages, by_type, top_countries, top_referrers, funnel,
       avg_session_duration_ms,
       bounce_rate, bounce_session_count: bounceSessions, total_session_count: sessionCounts.length,
-      query_success_rate, query_success_count: successCount, query_total_count: queryRuns.length,
+      query_success_rate, query_success_count: successCount, query_total_count: settledCount,
+      query_pending_count: queryRuns.length - settledCount,
       query_by_tool,
       prev_period_count: prev_period_count ?? 0,
       heatmap,
