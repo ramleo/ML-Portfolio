@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkAiToolsRequest, type ChatMessage } from "@/lib/aiToolsLimits";
 
 export const maxDuration = 30;
-
-type ChatMessage = { role: string; content: string };
 
 // Fallback for reasoning models if a provider stops honouring reasoning_format.
 // Mirrors the backend's strip_thinking() (routers/rag/mm_caption.py): an
@@ -186,10 +185,14 @@ ${toolContext ?? "No dataset loaded yet."}`;
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, provider = "gemini", model, userKey, baseUrl, toolContext, jsonMode = false, maxTokens = 800 } = await req.json();
+  // Cohere by default: Gemini is the one billed key, so it is only ever an
+  // explicit pick. Every caller in the site names its provider anyway.
+  const body = await req.json();
+  const { provider = "cohere", model, userKey, baseUrl, toolContext, jsonMode = false } = body;
 
-  if (!Array.isArray(messages) || messages.length === 0)
-    return NextResponse.json({ error: "No messages provided." }, { status: 400 });
+  const checked = checkAiToolsRequest({ ...body, provider });
+  if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: checked.status });
+  const { messages, maxTokens } = checked;
 
   const key = resolveKey(provider, userKey);
   if (!key && !baseUrl)
