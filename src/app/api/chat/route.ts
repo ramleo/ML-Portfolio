@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { boundConversation } from '@/lib/chatLimits';
+import { isAuthFailure, recordProviderAuthFailure } from '@/lib/providerAlert';
 
 const SECTION_CONTEXT: Record<string, string> = {
   hero:     "The visitor is on the hero/intro section — overview of who Ramakrishnasai is and what he builds.",
@@ -110,7 +111,8 @@ async function callClaude(key: string, systemPrompt: string, messages: ChatMessa
   if (!res.ok) {
     const err = await res.text();
     console.error('[chat/claude]', res.status, err);
-    throw new Error('Claude error');
+    // Carry the status so E3's auth-failure detection can see a 401/403.
+    throw new Error(`Claude ${res.status}`);
   }
   const data = await res.json();
   return data.content?.[0]?.text ?? "No response received.";
@@ -144,7 +146,8 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
   if (!res.ok) {
     const err = await res.text();
     console.error('[chat/groq]', res.status, err);
-    throw new Error('Groq error');
+    // Carry the status so E3's auth-failure detection can see a 401/403.
+    throw new Error(`Groq ${res.status}`);
   }
   const data = await res.json();
   return stripThinking(data.choices?.[0]?.message?.content) ?? "No response received.";
@@ -188,6 +191,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply });
   } catch (e) {
     console.error('[chat] unhandled error:', e);
+    // E3: chat always uses the site's server keys, so a 401/403 is a stale key.
+    if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "chat", provider, error: e });
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
   }
 }

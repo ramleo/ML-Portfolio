@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAiToolsRequest, type ChatMessage } from "@/lib/aiToolsLimits";
+import { isAuthFailure, recordProviderAuthFailure } from "@/lib/providerAlert";
 
 export const maxDuration = 30;
 
@@ -245,6 +246,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply });
   } catch (e) {
     console.error("[ai-tools]", e);
+    // E3: only a SERVER key failing with 401/403 is the alert-worthy case — a
+    // user-supplied key (userKey or the custom baseUrl path) is the caller's own.
+    if (!userKey && isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-tools", provider, error: e });
     const msg = (e as Error).message ?? "Unknown error";
     return NextResponse.json({ error: msg.slice(0, 200) }, { status: 502 });
   }
