@@ -41,7 +41,7 @@ export default function DocumentIntelligencePage() {
         suggestions: DOC_INTEL_SUGGESTIONS,
       }} />
 
-      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
+      <div role="main" className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-7xl mx-auto px-4 w-full">
           {/* Back button */}
           <button onClick={handleBack}

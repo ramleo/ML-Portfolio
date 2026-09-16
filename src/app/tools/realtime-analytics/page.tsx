@@ -30,7 +30,7 @@ export default function RealtimeAnalyticsPage() {
           suggestions: ANALYTICS_SUGGESTIONS,
         }} />
 
-        <div className="relative z-10 flex flex-col gap-6 pt-6">
+        <div role="main" className="relative z-10 flex flex-col gap-6 pt-6">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}
               className="flex items-center gap-2 text-sm text-[var(--text3)] hover:text-[var(--text)] mb-4 transition-colors">

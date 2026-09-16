@@ -30,7 +30,7 @@ export default function TextToSqlPage() {
           suggestions: TEXT_TO_SQL_SUGGESTIONS,
         }} />
 
-        <div className="relative z-10 flex flex-col gap-6 pt-6">
+        <div role="main" className="relative z-10 flex flex-col gap-6 pt-6">
           {/* Header */}
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}

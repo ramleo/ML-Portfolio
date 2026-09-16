@@ -180,7 +180,7 @@ function FeatureSelectionPageInner() {
 
       <FSPageHeader accent={ACCENT} onHome={() => router.push(toolBackHref("feature-selection"))} currentStep={runnerStep} />
 
-      <div style={{
+      <div role="main" style={{
         maxWidth: 960, margin: "0 auto",
         padding: "2.5rem 1.5rem 5rem",
         display: "flex", flexDirection: "column", gap: "1.5rem",

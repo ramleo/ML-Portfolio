@@ -220,7 +220,7 @@ export default function PipelineBuilderPage() {
         <ThemeToggle />
       </header>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem 1.5rem 5rem", position: "relative", zIndex: 2 }}>
+      <div role="main" style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem 1.5rem 5rem", position: "relative", zIndex: 2 }}>
         {/* Progress bar */}
         <div style={{ height: 4, background: "var(--border)", borderRadius: 99, marginBottom: "1.75rem", overflow: "hidden" }}>
           <motion.div style={{ height: "100%", background: "linear-gradient(90deg,#22c55e,#4ade80)", borderRadius: 99 }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5 }} />

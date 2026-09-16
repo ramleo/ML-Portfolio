@@ -193,7 +193,7 @@ function FeatureEngineeringPageInner() {
   })();
 
   return (
-    <div style={step === "configure" ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" } : { minHeight: "100vh", color: "var(--text)" }}>
+    <div role="main" style={step === "configure" ? { height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", color: "var(--text)" } : { minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ position: "sticky", top: 0, zIndex: 50, flexShrink: 0, background: "var(--bg-nav)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>

@@ -107,7 +107,7 @@ function AutoMLPageInner() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
+      <div role="main" style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
         {ctxB64 && !fileLoaded && (
           <CsvFromContextBanner
             csvB64={ctxB64}

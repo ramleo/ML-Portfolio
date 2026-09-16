@@ -80,7 +80,7 @@ export default function DriftPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "2.5rem 1.5rem 5rem" }}>
+      <div role="main" style={{ maxWidth: 1280, margin: "0 auto", padding: "2.5rem 1.5rem 5rem" }}>
         <DriftRunner onResult={setDriftResult} />
       </div>
 

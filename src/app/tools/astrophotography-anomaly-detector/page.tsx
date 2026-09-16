@@ -37,7 +37,7 @@ export default function AstroAnomalyDetectorPage() {
         suggestions: ASTRO_ANOMALY_SUGGESTIONS,
       }} />
 
-      <div className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
+      <div role="main" className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">
           <button onClick={handleBack}
             className="flex items-center gap-2 text-sm mb-4 transition-colors"

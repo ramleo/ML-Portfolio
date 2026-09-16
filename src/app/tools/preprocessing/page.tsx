@@ -212,7 +212,7 @@ function PreprocessingPageInner() {
       </div>
 
       {/* Main content */}
-      <div style={{
+      <div role="main" style={{
         maxWidth: 1140, margin: "0 auto", width: "100%",
         ...(step === "configure"
           ? { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "1.25rem 1.5rem 0", minHeight: 0 }
