@@ -64,3 +64,14 @@ h1, h2, h3 {
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
   height: 100%;
 }
+
+/* ── Keyboard focus (WCAG 2.2 §2.4.7 / §2.4.11) ──
+   A clearly visible focus ring on every interactive element, for keyboard and
+   programmatic focus only — :focus-visible does not fire on a mouse click, so
+   pointer users see nothing new. Components with their own focus styling (e.g.
+   .form-input:focus above, and the tool-scoped rules in 07-tools.css) are more
+   specific and still win; this is the site-wide floor. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

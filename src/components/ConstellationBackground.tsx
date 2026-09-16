@@ -18,9 +18,14 @@ export default function ConstellationBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
+    let animId = 0;
     let W = window.innerWidth, H = window.innerHeight;
     canvas.width = W; canvas.height = H;
+
+    // WCAG 2.2 (2.3.3): honour a reduced-motion preference. When set, we draw a
+    // single static frame — the constellation still shows, but nothing moves and
+    // the cursor-repel is off — instead of running the rAF loop.
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const mouse = { x: -9999, y: -9999 };
 
@@ -33,8 +38,10 @@ export default function ConstellationBackground() {
 
     const onMouseMove = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY; };
     const onMouseLeave = () => { mouse.x = -9999; mouse.y = -9999; };
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseleave", onMouseLeave);
+    if (!reduce) {
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseleave", onMouseLeave);
+    }
 
     const resize = () => {
       W = window.innerWidth; H = window.innerHeight;
@@ -44,6 +51,7 @@ export default function ConstellationBackground() {
         p.ox = Math.random() * W; p.oy = Math.random() * H;
         p.x = p.ox; p.y = p.oy; p.vx = 0; p.vy = 0;
       }
+      if (reduce) draw();   // no rAF loop to repaint after a resize
     };
     window.addEventListener("resize", resize);
 
@@ -92,7 +100,7 @@ export default function ConstellationBackground() {
         }
       }
 
-      animId = requestAnimationFrame(draw);
+      if (!reduce) animId = requestAnimationFrame(draw);
     };
     draw();
 

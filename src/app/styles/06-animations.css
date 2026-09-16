@@ -26,3 +26,18 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
   50%       { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.25); }
 }
+
+/* ── Reduced motion (WCAG 2.2 §2.3.3) ──
+   Site-wide: when a visitor asks their OS for reduced motion, decorative CSS
+   animations and transitions collapse to near-instant and smooth scrolling is
+   turned off. JS/canvas animations check the same preference in their own code
+   (e.g. ConstellationBackground draws a single static frame). This lives last in
+   the animations layer so it overrides the keyframes above. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
