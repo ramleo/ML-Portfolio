@@ -84,7 +84,7 @@ export default function ConstellationBackground() {
         p.y += p.vy;
 
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = isLight ? "rgba(56,132,190,0.30)" : "rgba(34,211,238,0.55)"; ctx.fill();
+        ctx.fillStyle = isLight ? "rgba(56,132,190,0.50)" : "rgba(34,211,238,0.55)"; ctx.fill();
       }
 
       for (let i = 0; i < N; i++) {
@@ -93,12 +93,12 @@ export default function ConstellationBackground() {
           const d = Math.sqrt(dx * dx + dy * dy);
           if (d < MAX_DIST) {
             ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
-            // Light mode keeps a fainter line: over the pale ground blue lines
-            // darken the composite behind text, so muted text/links can drop
-            // below the 4.5:1 WCAG floor where a line (or several, stacked)
-            // crosses them. 0.11 keeps the constellation visible while leaving
-            // the darkened-line composite light enough for --text3 (#4d5a6d).
-            const lineAlpha = (isLight ? 0.11 : 0.13) * (1 - d / MAX_DIST);
+            // Light mode: dots carry the visible "stars" (sparse points rarely
+            // land behind a text sample), so they can be strong; the connecting
+            // lines are what darken the composite *behind text* and can drop
+            // muted text / the dark inline links below the 4.5:1 WCAG floor
+            // where several stack, so lines stay the fainter of the two.
+            const lineAlpha = (isLight ? 0.15 : 0.13) * (1 - d / MAX_DIST);
             ctx.strokeStyle = isLight ? `rgba(56,132,190,${lineAlpha})` : `rgba(34,211,238,${lineAlpha})`;
             ctx.lineWidth = 0.6; ctx.stroke();
           }
