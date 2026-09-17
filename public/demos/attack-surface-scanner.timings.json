@@ -1,0 +1,22 @@
+[
+  {
+    "start": 4.91,
+    "say": "This is passive reconnaissance against a real domain — the same first look an attacker takes, run defensively. Four checks: sensitive paths left exposed, open directory listings, a passive CMS fingerprint, and a short common-port sweep. Only GET and HEAD requests and plain TCP connects — nothing is ever exploited."
+  },
+  {
+    "start": 27.28,
+    "say": "I am pointing it at this very site. Scanning your own deployment is the honest version of this demo — there is nowhere to hide if the result comes back bad."
+  },
+  {
+    "start": 36.52,
+    "say": "Scan. The checks run live from the server, and private or internal addresses are refused outright — that guard is what stops a tool like this from being turned into a port scanner for someone else's network."
+  },
+  {
+    "start": 49.06,
+    "say": "The content checks come back clean: no sensitive path like a .git or .env directory is reachable, no open directory listing was found, and no CMS fingerprint leaked from the homepage's metadata. Green here means each specific thing it looked for was not exposed."
+  },
+  {
+    "start": 67.58,
+    "say": "And the ports: FTP, SSH, mail, and every database port come back closed — none of the services an attacker hopes to find sitting open. When a check does find something — an exposed path, a listable directory, an open database port — it turns red and rises into a Findings box at the top. On this locked-down host there was simply nothing to raise."
+  }
+]

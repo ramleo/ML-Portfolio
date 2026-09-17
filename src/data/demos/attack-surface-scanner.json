@@ -1,0 +1,39 @@
+{
+  "toolId": "attack-surface-scanner",
+  "chapter": "ch-33-attack-surface-exposed-path-scanner",
+  "route": "/tools/attack-surface-scanner",
+  "title": "Attack-Surface / Exposed-Path Scanner",
+  "blurb": "Four passive recon checks against a real domain — exposed paths, directory listings, CMS fingerprint, open ports — and no exploitation.",
+  "steps": [
+    {
+      "say": "This is passive reconnaissance against a real domain — the same first look an attacker takes, run defensively. Four checks: sensitive paths left exposed, open directory listings, a passive CMS fingerprint, and a short common-port sweep. Only GET and HEAD requests and plain TCP connects — nothing is ever exploited.",
+      "at": "as-input",
+      "settle": 2400
+    },
+    {
+      "say": "I am pointing it at this very site. Scanning your own deployment is the honest version of this demo — there is nowhere to hide if the result comes back bad.",
+      "at": "as-input",
+      "act": "type",
+      "value": "ml-portfolio-rho.vercel.app",
+      "settle": 1000
+    },
+    {
+      "say": "Scan. The checks run live from the server, and private or internal addresses are refused outright — that guard is what stops a tool like this from being turned into a port scanner for someone else's network.",
+      "at": "as-scan",
+      "act": "click",
+      "waitFor": "as-ports",
+      "expect": "Closed",
+      "settle": 1600
+    },
+    {
+      "say": "The content checks come back clean: no sensitive path like a .git or .env directory is reachable, no open directory listing was found, and no CMS fingerprint leaked from the homepage's metadata. Green here means each specific thing it looked for was not exposed.",
+      "at": "as-paths",
+      "settle": 3000
+    },
+    {
+      "say": "And the ports: FTP, SSH, mail, and every database port come back closed — none of the services an attacker hopes to find sitting open. When a check does find something — an exposed path, a listable directory, an open database port — it turns red and rises into a Findings box at the top. On this locked-down host there was simply nothing to raise.",
+      "at": "as-ports",
+      "settle": 3400
+    }
+  ]
+}

@@ -22,12 +22,12 @@ export default function AttackSurfaceScanRunner({ accent }: { accent: string }) 
           just GET/HEAD requests and plain TCP connects. Private/internal addresses are refused.
         </p>
         <div className="flex items-center gap-2">
-          <input value={host} onChange={e => setHost(e.target.value)}
+          <input data-wt="as-input" value={host} onChange={e => setHost(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") scan(); }}
             placeholder="example.com"
             className="flex-1 text-sm rounded-lg px-3 py-2 min-w-0"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }} />
-          <button onClick={scan} disabled={!host.trim() || running}
+          <button data-wt="as-scan" onClick={scan} disabled={!host.trim() || running}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors shrink-0"
             style={{ background: accent, color: "#fff", opacity: host.trim() && !running ? 1 : 0.5 }}>
             {running ? "Scanning…" : "Scan"}
@@ -62,7 +62,7 @@ export default function AttackSurfaceScanRunner({ accent }: { accent: string }) 
             </div>
           )}
 
-          <div style={cardStyle} className="p-5">
+          <div data-wt="as-paths" style={cardStyle} className="p-5">
             <p className="text-xs font-semibold mb-2" style={{ color: "var(--text)" }}>Exposed Sensitive Paths</p>
             {result.exposed_paths.length === 0 ? (
               <p className="text-[11px]" style={{ color: "#34d399" }}>None of the checked paths appear exposed.</p>
@@ -97,7 +97,7 @@ export default function AttackSurfaceScanRunner({ accent }: { accent: string }) 
             )}
           </div>
 
-          <div style={cardStyle} className="p-5">
+          <div data-wt="as-ports" style={cardStyle} className="p-5">
             <p className="text-xs font-semibold mb-2" style={{ color: "var(--text)" }}>Common Ports</p>
             <div className="flex flex-wrap gap-1.5">
               {result.open_ports.map(p => (
