@@ -10,6 +10,7 @@ import { ANALYTICS_GUIDE, ANALYTICS_SUGGESTIONS } from "./userGuide";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#40816c";
 
@@ -32,13 +33,7 @@ export default function RealtimeAnalyticsPage() {
 
         <div role="main" className="relative z-10 flex flex-col gap-6 pt-6">
           <div className="max-w-7xl mx-auto px-4 w-full">
-            <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-[var(--text3)] hover:text-[var(--text)] mb-4 py-1 transition-colors">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {toolBackLabel("realtime-analytics")}
-            </button>
+            <ToolBackNav toolId={"realtime-analytics"} />
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: `${ACCENT}20` }}>

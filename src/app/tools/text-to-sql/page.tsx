@@ -10,6 +10,7 @@ import { PipelineProvider } from "@/context/PipelineContext";
 import TextToSqlRunner from "./TextToSqlRunner";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#6a6cc8";
 
@@ -33,13 +34,7 @@ export default function TextToSqlPage() {
         <div role="main" className="relative z-10 flex flex-col gap-6 pt-6">
           {/* Header */}
           <div className="max-w-7xl mx-auto px-4 w-full">
-            <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-[var(--text2)] hover:text-[var(--text)] mb-4 py-1 transition-colors">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {toolBackLabel("text-to-sql")}
-            </button>
+            <ToolBackNav toolId={"text-to-sql"} />
             <div className="flex items-center gap-3 mb-1">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${ACCENT}20` }}>
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">

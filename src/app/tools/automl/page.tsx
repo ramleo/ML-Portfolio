@@ -12,6 +12,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8358";
 const AUTOML_STEP_KEYS: AutoMLStep[] = ["upload", "config", "training", "results"];
@@ -85,17 +86,7 @@ function AutoMLPageInner() {
         borderBottom: "1px solid var(--border)",
       }}>
         <div className="tool-header-row" style={{ maxWidth: 900, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <button
-            onClick={handleBack}
-            style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0", transition: "color 0.15s" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 12L4 7l5-5" />
-            </svg>
-            {toolBackLabel("automl")}
-          </button>
+          <ToolBackNav toolId={"automl"} />
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>AutoML Pipeline</h1>

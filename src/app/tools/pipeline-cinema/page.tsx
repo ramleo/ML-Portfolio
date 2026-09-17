@@ -11,6 +11,7 @@ import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
 import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
 import { toolBackHref } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 function parseCsvB64(b64: string): string[] {
   try {
@@ -124,15 +125,11 @@ export default function PipelineCinemaPage() {
         {/* Header */}
         <header style={{ maxWidth: 900, margin: "0 auto 2rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1rem" }}>
-            <button
-              onClick={handleHome}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: "0.35rem 0" }}
-            >
-              ← Home
-            </button>
+            <ToolBackNav toolId="pipeline-cinema" flush />
             <Link
               href="/tools/pipeline-builder"
-              style={{ color: "#38bdf8", fontSize: "0.85rem", textDecoration: "none", padding: "0.35rem 0" }}
+              className="tool-back-link"
+              style={{ color: "#38bdf8" }}
             >
               ← Pipeline Builder
             </Link>

@@ -10,6 +10,7 @@ import PasswordAuditRunner from "./PasswordAuditRunner";
 import PasswordAuditUserGuideModal from "./PasswordAuditUserGuideModal";
 import { PASSWORD_AUDIT_GUIDE, PASSWORD_AUDIT_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#428079";
 
@@ -38,16 +39,7 @@ export default function PasswordAuditPage() {
 
       <div role="main" className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">
-          <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm mb-4 py-1 transition-colors"
-            style={{ color: "var(--text3)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {toolBackLabel("password-audit")}
-          </button>
+          <ToolBackNav toolId={"password-audit"} />
 
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"

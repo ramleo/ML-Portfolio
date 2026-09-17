@@ -32,6 +32,9 @@ const AREA_OF: Record<string, string> = {
   "face-liveness": "computer-vision",
   "featureeng": "ml-pipeline",
   "featureselect": "ml-pipeline",
+  // route slugs (the tool pages pass these, not the capability ids above)
+  "feature-engineering": "ml-pipeline",
+  "feature-selection": "ml-pipeline",
   "gait-pattern-comparison": "computer-vision",
   "keystroke-biometric-auth-risk": "security-trust",
   "malicious-package-scanner": "security-trust",

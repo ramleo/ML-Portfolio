@@ -6,6 +6,7 @@ import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 import EdaRunner from "./EdaRunner";
 import EdaUserGuideModal from "./EdaUserGuideModal";
 import { EDA_GUIDE, EDA_SUGGESTIONS } from "./userGuide";
@@ -79,17 +80,7 @@ export default function ExploratoryDataAnalysisPage() {
         borderBottom: "1px solid var(--border)",
       }}>
         <div className="tool-header-row" style={{ maxWidth: 1280, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <button
-            onClick={handleBack}
-            style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0", transition: "color 0.15s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text3)")}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 12L4 7l5-5" />
-            </svg>
-            {toolBackLabel(TOOL)}
-          </button>
+          <ToolBackNav toolId={TOOL} />
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#38bdf8", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#38bdf814", border: "1px solid #38bdf830" }}>

@@ -17,6 +17,7 @@ import ExpressRunner from "@/components/pipeline/ExpressRunner";
 import ABPanel from "@/components/pipeline/ABPanel";
 import TargetDropdown from "@/components/pipeline/TargetDropdown";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -181,10 +182,7 @@ export default function PipelineBuilderPage() {
         <ConstellationBackground />
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ padding: "1rem 1.5rem", display: "flex", alignItems: "center" }}>
-            <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4, padding: "0.35rem 0" }}>
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-              {toolBackLabel("pipeline-builder")}
-            </button>
+            <ToolBackNav toolId="pipeline-builder" flush />
             <div style={{ marginLeft: "auto" }}>
               <ThemeToggle />
             </div>
@@ -203,10 +201,7 @@ export default function PipelineBuilderPage() {
 
       {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1.5rem", background: "var(--bg-nav)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
-        <button onClick={handleHome} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4, padding: "0.35rem 0" }}>
-          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-          {toolBackLabel("pipeline-builder")}
-        </button>
+        <ToolBackNav toolId="pipeline-builder" flush />
         <button onClick={handleReset} style={{ background: "transparent", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 4, padding: "0.35rem 0" }}>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
           Back

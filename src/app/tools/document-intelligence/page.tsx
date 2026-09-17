@@ -10,6 +10,7 @@ import DocIntelRunner from "./DocIntelRunner";
 import DocUserGuideModal from "./DocUserGuideModal";
 import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#387e8a";
 
@@ -44,16 +45,7 @@ export default function DocumentIntelligencePage() {
       <div role="main" className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-7xl mx-auto px-4 w-full">
           {/* Back button */}
-          <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm mb-4 py-1 transition-colors"
-            style={{ color: "var(--text3)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {toolBackLabel("document-intelligence")}
-          </button>
+          <ToolBackNav toolId={"document-intelligence"} />
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">

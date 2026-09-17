@@ -11,6 +11,7 @@ import PlantGrowthGroupMode from "./PlantGrowthGroupMode";
 import PlantGrowthUserGuideModal from "./PlantGrowthUserGuideModal";
 import { PLANT_GROWTH_GUIDE, PLANT_GROWTH_SUGGESTIONS } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8258";
 
@@ -42,16 +43,7 @@ export default function PlantGrowthPage() {
 
       <div role="main" className="relative z-10 flex flex-col gap-6 pt-6 pb-12">
         <div className="max-w-6xl mx-auto px-4 w-full">
-          <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm mb-4 py-1 transition-colors"
-            style={{ color: "var(--text3)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {toolBackLabel("plant-growth")}
-          </button>
+          <ToolBackNav toolId={"plant-growth"} />
 
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"

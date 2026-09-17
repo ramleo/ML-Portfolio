@@ -17,6 +17,7 @@ import { ConfigurePanel } from "@/components/PreprocessingPanels/ConfigurePanel"
 import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import ToolBackNav from "@/components/ToolBackNav";
 import { buildPreprocessingContext } from "./preprocessingContext";
 import { EV } from "@/lib/logEvents";
 
@@ -184,17 +185,7 @@ function PreprocessingPageInner() {
       }}>
         <div className="tool-header-row" style={{ maxWidth: 1140, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-            <button
-              onClick={() => router.push(toolBackHref("preprocessing"))}
-              style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0", transition: "color 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 12L4 7l5-5" />
-              </svg>
-              {toolBackLabel("preprocessing")}
-            </button>
+            <ToolBackNav toolId={"preprocessing"} />
             <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
             <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
               <span style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>ML Capabilities</span>

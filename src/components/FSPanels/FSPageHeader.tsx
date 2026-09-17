@@ -2,6 +2,7 @@
 
 import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
+import ToolBackNav from "@/components/ToolBackNav";
 
 interface BadgeProps { label: string; color: string; }
 function Badge({ label, color }: BadgeProps) {
@@ -34,22 +35,7 @@ export default function FSPageHeader({ accent, onHome, currentStep }: Props) {
         maxWidth: 960, margin: "0 auto", padding: "0 1.5rem",
         height: 60, display: "flex", alignItems: "center", gap: "1.5rem",
       }}>
-        <button
-          onClick={onHome}
-          style={{
-            display: "flex", alignItems: "center", gap: "0.4rem",
-            background: "none", border: "none", cursor: "pointer",
-            color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 12L4 7l5-5" />
-          </svg>
-          Home
-        </button>
+        <ToolBackNav toolId="feature-selection" flush />
         <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
         <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
           <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Feature Selection</h1>

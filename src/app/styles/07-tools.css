@@ -1,3 +1,18 @@
+/* ── Tool page back navigation (Home + area), shared via <ToolBackNav> ── */
+.tool-back-nav {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1rem;
+}
+.tool-back-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 24px;               /* WCAG 2.5.8 touch target */
+  color: var(--text3); font-size: 0.875rem; text-decoration: none;
+  transition: color 0.15s ease;
+}
+.tool-back-link:hover { color: var(--text); }
+/* Inside the fixed-height sticky tool header (ML-pipeline family), the nav sits
+   in a centred row next to a divider + title, so it takes no bottom margin. */
+.tool-header-row .tool-back-nav { margin-bottom: 0; }
+
 /* ── ML Capabilities: search/filter bar + domain clusters + flip cards ── */
 .cap-search-bar {
   display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
