@@ -108,7 +108,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => fileInputRef.current?.click()}
+          <button data-wt="adv-choose" onClick={() => fileInputRef.current?.click()}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff" }}>
             Choose photo
@@ -178,7 +178,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
                 <input type="checkbox" checked={checkTransfer} onChange={e => setCheckTransfer(e.target.checked)} />
                 Check transferability (ResNet18)
               </label>
-              <button onClick={run} disabled={running}
+              <button data-wt="adv-run" onClick={run} disabled={running}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border"
                 style={{ borderColor: `${accent}50`, color: accent, opacity: running ? 0.5 : 1 }}>
                 {running ? "Running…" : "Run attack + defense"}
@@ -196,7 +196,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
 
       {result && preview && (
         <div style={cardStyle} className="p-5 flex flex-col gap-4">
-          <div className="flex gap-4 flex-wrap">
+          <div data-wt="adv-cards" className="flex gap-4 flex-wrap">
             <PredictionCard title="Original" src={preview} prediction={result.original} accent={accent} />
             <PredictionCard title="Adversarial" src={`data:image/png;base64,${result.adversarial.image}`} prediction={result.adversarial}
               badge={
@@ -258,7 +258,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             </p>
           )}
 
-          <p className="text-[10px]" style={{ color: "var(--text3)" }}>
+          <p data-wt="adv-defense" className="text-[10px]" style={{ color: "var(--text3)" }}>
             <strong style={{ color: "var(--text2)" }}>JPEG defense: </strong>
             {result.defended.recovered
               ? "The defense fully recovered the original label here — this doesn't always happen."
@@ -309,7 +309,7 @@ export default function AdversarialRunner({ accent }: { accent: string }) {
             </div>
           )}
 
-          <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
+          <div data-wt="adv-gradcam" className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
             <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: accent }}>
               Where was the model looking? (Grad-CAM)
             </span>

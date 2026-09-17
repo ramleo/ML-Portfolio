@@ -1,3 +1,4 @@
+import adversarialRobustness from "./adversarial-robustness-lab.json";
 import aiCodeDetector from "./ai-code-detector.json";
 import attackSurfaceScanner from "./attack-surface-scanner.json";
 import automl from "./automl.json";
@@ -109,6 +110,7 @@ export interface Demo {
 }
 
 export const DEMOS: Demo[] = [
+  adversarialRobustness,
   aiCodeDetector,
   attackSurfaceScanner,
   automl,

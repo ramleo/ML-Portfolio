@@ -1,0 +1,45 @@
+{
+  "toolId": "adversarial-robustness-lab",
+  "chapter": "ch-32-adversarial-robustness-lab",
+  "route": "/tools/adversarial-robustness-lab",
+  "title": "Adversarial Robustness Lab",
+  "blurb": "Crafts a near-invisible pixel perturbation that fools a real ImageNet classifier — then tests whether the usual defenses actually undo it.",
+  "steps": [
+    {
+      "say": "Image classifiers can be fooled by changes far too small for a person to see. This lab crafts one against a real pretrained ImageNet model, then tries the standard defenses on it — and it tells you up front that those defenses often don't fully work, which is the honest state of the art, not a broken demo.",
+      "at": "adv-choose",
+      "settle": 2600
+    },
+    {
+      "say": "Let me load an ordinary photo — no special preparation.",
+      "at": "adv-choose",
+      "act": "file",
+      "file": "/samples/depth-parallax-mirror-house.jpg",
+      "waitFor": "adv-run",
+      "settle": 1000
+    },
+    {
+      "say": "Run the attack and the defenses together. This crafts a single-step FGSM perturbation, applies it, and re-classifies — a few seconds of real compute on the server.",
+      "at": "adv-run",
+      "act": "click",
+      "waitFor": "adv-cards",
+      "expect": "After JPEG defense",
+      "settle": 1800
+    },
+    {
+      "say": "Side by side. The model was 82% sure the original was a mosquito net. The adversarial copy — changed by an amount shown on the right amplified eight times, and genuinely invisible at normal contrast — is now read as something else entirely, and flagged Fooled. It isn't even confident of the wrong answer; the attack simply broke its certainty.",
+      "at": "adv-cards",
+      "settle": 3800
+    },
+    {
+      "say": "And the honest part the tool promised: the JPEG-recompression defense did change the prediction — but to yet another wrong label, studio couch, not back to the original. Randomized smoothing, too, lands on a wrong label rather than recovering the truth. Neither defense works here — preprocessing defenses like these don't reliably beat an attack, and the page says so plainly.",
+      "at": "adv-defense",
+      "settle": 3600
+    },
+    {
+      "say": "Grad-CAM shows why, not just what. The warm regions are what drove each prediction — and for a photo that barely changed, the model's attention has moved somewhere else. A shift in where it looks, with almost no visible change to the image, is the whole point of an adversarial example.",
+      "at": "adv-gradcam",
+      "settle": 3600
+    }
+  ]
+}
