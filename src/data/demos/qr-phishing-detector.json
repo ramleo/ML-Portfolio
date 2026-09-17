@@ -1,0 +1,39 @@
+{
+  "toolId": "qr-phishing-detector",
+  "chapter": "ch-46-qr-phishing-detector",
+  "route": "/tools/qr-phishing-detector",
+  "title": "QR Phishing Detector",
+  "blurb": "A QR code hides its destination until you scan it — this reads the decoded link's structure for phishing tells, and never visits it.",
+  "steps": [
+    {
+      "say": "The danger of a QR code is that you cannot read a URL you cannot see — you point your phone and trust it. This tool decodes the code from a photo, or lets you paste the link directly, then inspects the destination's structure for phishing tells. It never visits the link — the analysis is pure text, safe by construction.",
+      "at": "qr-url-input",
+      "settle": 2800
+    },
+    {
+      "say": "Here is a link of exactly the kind a fake parking-fine or delivery QR carries. Let me paste it in rather than a photo.",
+      "at": "qr-url-input",
+      "act": "type",
+      "value": "http://paypal.com@paypa1.com/login",
+      "settle": 1000
+    },
+    {
+      "say": "Check the URL. The structural heuristics run locally, and the destination is also looked up against Google Safe Browsing's known-threat database.",
+      "at": "qr-check",
+      "act": "click",
+      "waitFor": "qr-result",
+      "expect": "High risk",
+      "settle": 1600
+    },
+    {
+      "say": "High risk — and three concrete reasons, not a vague score. The at-sign trick, where everything before the @ is ignored by the browser so the real host is the lookalike after it. A one-character typosquat of paypal-dot-com. And plain HTTP. Each is a verifiable fact about the link itself.",
+      "at": "qr-result",
+      "settle": 3600
+    },
+    {
+      "say": "The honest limit, stated on the page: these are red flags in the link's structure, not a verdict on the page behind it. A link with no flags can still be malicious — a freshly registered but plausible domain this can't see. The real advice is behavioural: don't scan unfamiliar QR codes in public, and never enter credentials after following one.",
+      "at": "qr-limits",
+      "settle": 3400
+    }
+  ]
+}

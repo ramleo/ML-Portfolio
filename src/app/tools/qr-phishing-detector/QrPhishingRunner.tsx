@@ -74,12 +74,12 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
 
         <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
           <span className="text-xs shrink-0" style={{ color: "var(--text3)" }}>or check a URL directly:</span>
-          <input value={urlInput} onChange={e => setUrlInput(e.target.value)}
+          <input data-wt="qr-url-input" value={urlInput} onChange={e => setUrlInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") onCheckUrl(); }}
             placeholder="https://example.com/..."
             className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", color: "var(--text)" }} />
-          <button onClick={onCheckUrl} disabled={!urlInput.trim()}
+          <button data-wt="qr-check" onClick={onCheckUrl} disabled={!urlInput.trim()}
             className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
             style={{ borderColor: `${accent}50`, color: accent, opacity: urlInput.trim() ? 1 : 0.5 }}>
             Check URL
@@ -90,7 +90,7 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
       {entries.length === 0 && <QrScanHistory onRestore={restoreFromHistory} />}
 
       {entries.map(entry => (
-        <div key={entry.id} style={cardStyle} className="p-5 flex flex-col gap-4">
+        <div key={entry.id} data-wt="qr-result" style={cardStyle} className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             {entry.preview && (
               <img src={entry.preview} alt="" className="rounded-lg object-cover shrink-0" style={{ width: 48, height: 48 }} />
@@ -153,7 +153,7 @@ export default function QrPhishingRunner({ accent }: { accent: string }) {
       )}
 
       {entries.length > 0 && (
-        <p className="text-[10px] text-center" style={{ color: "var(--text3)" }}>
+        <p data-wt="qr-limits" className="text-[10px] text-center" style={{ color: "var(--text3)" }}>
           These are structural red flags in the link itself, not a verdict — a &quot;high risk&quot; link is worth
           real suspicion, but a &quot;low risk&quot; link can still lead somewhere malicious in ways this can&apos;t see
           (e.g. a freshly-registered but plausible-looking domain). When in doubt, don&apos;t scan unfamiliar

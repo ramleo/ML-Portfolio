@@ -18,6 +18,7 @@ import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
 import promptInjection from "./prompt-injection-playground.json";
+import qrPhishing from "./qr-phishing-detector.json";
 import pipelineBuilder from "./pipeline-builder.json";
 import pipelineCinema from "./pipeline-cinema.json";
 import realtimeAnalytics from "./realtime-analytics.json";
@@ -134,6 +135,7 @@ export const DEMOS: Demo[] = [
   siemAlertTriage,
   phishingEmail,
   promptInjection,
+  qrPhishing,
   tlsHeaders,
   yaraFileScanner,
 ] as Demo[];
