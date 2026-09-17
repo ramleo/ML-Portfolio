@@ -86,7 +86,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             style={{
               background: "none",
               border: "none",
-              padding: 0,
+              padding: "0.25rem 0",
               marginTop: "0.35rem",
               fontSize: "0.78rem",
               fontWeight: 600,

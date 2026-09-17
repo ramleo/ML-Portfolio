@@ -39,7 +39,7 @@ export default function FSPageHeader({ accent, onHome, currentStep }: Props) {
           style={{
             display: "flex", alignItems: "center", gap: "0.4rem",
             background: "none", border: "none", cursor: "pointer",
-            color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0,
+            color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0",
           }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
           onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}

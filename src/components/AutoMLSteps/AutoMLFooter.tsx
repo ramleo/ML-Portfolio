@@ -9,7 +9,7 @@ export default function AutoMLFooter() {
         href={`${API}/?mode=ml`}
         target="_blank"
         rel="noopener noreferrer"
-        style={{ fontSize: "0.73rem", color: "var(--text3)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.3rem", transition: "color 0.15s" }}
+        style={{ fontSize: "0.73rem", color: "var(--text3)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.35rem 0", transition: "color 0.15s" }}
         onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text3)"; }}
       >
@@ -22,7 +22,7 @@ export default function AutoMLFooter() {
         href="https://github.com/ramleo/ML-Unified"
         target="_blank"
         rel="noopener noreferrer"
-        style={{ fontSize: "0.73rem", color: "var(--text3)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.3rem", transition: "color 0.15s" }}
+        style={{ fontSize: "0.73rem", color: "var(--text3)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.35rem 0", transition: "color 0.15s" }}
         onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text2)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text3)"; }}
       >

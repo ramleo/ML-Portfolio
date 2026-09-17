@@ -198,7 +198,7 @@ function FeatureEngineeringPageInner() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ position: "sticky", top: 0, zIndex: 50, flexShrink: 0, background: "var(--bg-nav)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
         <div className="tool-header-row" style={{ maxWidth: 1060, margin: "0 auto", padding: "0 1.5rem", height: 60, display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <button onClick={() => router.push(toolBackHref("feature-engineering"))} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: 0, transition: "color 0.15s" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
+          <button onClick={() => router.push(toolBackHref("feature-engineering"))} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.78rem", fontWeight: 500, padding: "0.35rem 0", transition: "color 0.15s" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12L4 7l5-5" /></svg>
             {toolBackLabel("feature-engineering")}
           </button>

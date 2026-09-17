@@ -41,7 +41,7 @@ export default function ProjectsSection() {
         <p style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginTop: "0.75rem" }}>
           Complete, multi-model platforms you can use end to end. For the {" "}
           {capabilities.length} single-purpose tools that sit alongside them, see{" "}
-          <a href="#capabilities" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+          <a href="#capabilities" style={{ color: "var(--link)", textDecoration: "none", fontWeight: 600 }}>
             the toolkit
           </a>{" "}
           below.

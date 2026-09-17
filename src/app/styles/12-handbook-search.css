@@ -170,7 +170,7 @@
 }
 .hb-rail-label em {
   font-style: normal; font-family: var(--type-data); font-size: 0.62rem;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--link);
 }
 /* Below the reading measure the rail would sit on top of the text. */
 @media (max-width: 900px) { .hb-rail { display: none; } }

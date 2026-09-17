@@ -72,7 +72,7 @@ export default function DomainSections() {
           </h2>
           <p style={{ fontSize: "0.95rem", color: "var(--text3)", maxWidth: 560, marginTop: "0.75rem" }}>
             Single-purpose tools, each backed by a real model or algorithm — separate from the{" "}
-            <a href="#projects" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+            <a href="#projects" style={{ color: "var(--link)", textDecoration: "none", fontWeight: 600 }}>
               three full platforms
             </a>{" "}
             above. Pick an area below, or search all {capabilities.length}.

@@ -126,13 +126,13 @@ export default function PipelineCinemaPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1rem" }}>
             <button
               onClick={handleHome}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: 0 }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: "0.35rem 0" }}
             >
               ← Home
             </button>
             <Link
               href="/tools/pipeline-builder"
-              style={{ color: "#38bdf8", fontSize: "0.85rem", textDecoration: "none" }}
+              style={{ color: "#38bdf8", fontSize: "0.85rem", textDecoration: "none", padding: "0.35rem 0" }}
             >
               ← Pipeline Builder
             </Link>

@@ -136,7 +136,7 @@ export default function DomainToolGrid({ domain }: { domain: Domain }) {
         <p className="cap-no-results">
           No {domain.name} tools match{query.trim() ? ` “${query.trim()}”` : ""}
           {activeTag ? ` in ${activeTag}` : ""}. Clear the filters, or{" "}
-          <Link href="/#capabilities" style={{ color: "var(--accent)" }}>search every area</Link>.
+          <Link href="/#capabilities" style={{ color: "var(--link)" }}>search every area</Link>.
         </p>
       )}
     </section>

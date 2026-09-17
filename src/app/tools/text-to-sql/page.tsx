@@ -34,7 +34,7 @@ export default function TextToSqlPage() {
           {/* Header */}
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-[var(--text2)] hover:text-[var(--text)] mb-4 transition-colors">
+              className="flex items-center gap-2 text-sm text-[var(--text2)] hover:text-[var(--text)] mb-4 py-1 transition-colors">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

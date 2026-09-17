@@ -33,7 +33,7 @@ export default function RealtimeAnalyticsPage() {
         <div role="main" className="relative z-10 flex flex-col gap-6 pt-6">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <button onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-[var(--text3)] hover:text-[var(--text)] mb-4 transition-colors">
+              className="flex items-center gap-2 text-sm text-[var(--text3)] hover:text-[var(--text)] mb-4 py-1 transition-colors">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>

@@ -45,7 +45,7 @@ export default function DocumentIntelligencePage() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           {/* Back button */}
           <button onClick={handleBack}
-            className="flex items-center gap-2 text-sm mb-4 transition-colors"
+            className="flex items-center gap-2 text-sm mb-4 py-1 transition-colors"
             style={{ color: "var(--text3)" }}
             onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
             onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>

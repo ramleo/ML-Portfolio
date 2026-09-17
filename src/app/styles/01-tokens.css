@@ -35,6 +35,12 @@
   --accent-to:   #34d399;
   --accent:      #6366f1;
   --brand-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to));
+  /* Text-link colour. --accent (#6366f1) only reaches 4.27:1 on the dark
+     ground, under the 4.5:1 small-text floor, so inline prose links use this
+     instead. It follows --accent-from, whose every palette stop clears 4.5:1
+     on both grounds (dark 4.83-6.89, light 4.69-6.32), so links stay
+     palette-aware and accessible without lightening the solid-accent buttons. */
+  --link: var(--accent-from);
 }
 html.palette-sunset {
   --accent-from: #f97316;
@@ -100,7 +106,7 @@ html.light.palette-ocean {
   --bg-nav:          rgba(10, 15, 30, 0.88);
   --text:            #f1f5f9;
   --text2:           #94a3b8;
-  --text3:           #64748b;
+  --text3:           #7e8ca4;  /* was #64748b (4.01:1 on --bg, failed WCAG 1.4.3); now 5.61:1 */
   --border:          rgba(255, 255, 255, 0.07);
   --border2:         rgba(255, 255, 255, 0.13);
   --shadow:          0 4px 24px rgba(0, 0, 0, 0.4);
@@ -122,7 +128,7 @@ html.light {
   --bg-nav:          rgba(240, 244, 248, 0.92);
   --text:            #0f172a;
   --text2:           #475569;
-  --text3:           #94a3b8;
+  --text3:           #4d5a6d;  /* was #94a3b8 (2.32:1 on light --bg, failed WCAG 1.4.3); now 6.34:1 on --bg and clears 4.5:1 over the quietened constellation lines */
   --border:          rgba(0, 0, 0, 0.07);
   --border2:         rgba(0, 0, 0, 0.12);
   --shadow:          0 4px 24px rgba(0, 0, 0, 0.08);
