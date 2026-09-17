@@ -62,7 +62,7 @@ export default function AslFingerspellingRunner({ accent }: { accent: string }) 
       </div>
 
       <div style={cardStyle} className="p-5">
-        <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>Supported letters</h3>
+        <h2 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>Supported letters</h2>
         <div className="flex flex-wrap gap-2">
           {SUPPORTED_LETTERS.map(l => (
             <span key={l} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"

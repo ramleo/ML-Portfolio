@@ -115,7 +115,7 @@ function Badge({ text, color }: { text: string; color: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-      <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h3>
+      <h2 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h2>
       {children}
     </div>
   );

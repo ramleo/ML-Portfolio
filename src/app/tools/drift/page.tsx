@@ -63,7 +63,7 @@ export default function DriftPage() {
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#fb923c", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#fb923c14", border: "1px solid #fb923c30" }}>Monitor</span>
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Data Drift Detection</span>
+            <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Data Drift Detection</h1>
           </div>
           <div style={{ marginLeft: "auto" }}>
             <ThemeToggle />
