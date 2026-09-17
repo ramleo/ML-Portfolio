@@ -1,5 +1,6 @@
 import adversarialRobustness from "./adversarial-robustness-lab.json";
 import aiCodeDetector from "./ai-code-detector.json";
+import astrophotography from "./astrophotography-anomaly-detector.json";
 import attackSurfaceScanner from "./attack-surface-scanner.json";
 import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
@@ -112,6 +113,7 @@ export interface Demo {
 export const DEMOS: Demo[] = [
   adversarialRobustness,
   aiCodeDetector,
+  astrophotography,
   attackSurfaceScanner,
   automl,
   textToSql,

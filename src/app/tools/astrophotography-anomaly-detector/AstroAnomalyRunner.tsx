@@ -5,9 +5,9 @@ import { useAstroAnomalyDetect } from "./useAstroAnomalyDetect";
 
 const MAX_PHOTOS = 30;
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, anchor }: { title: string; children: React.ReactNode; anchor?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+    <div data-wt={anchor} className="rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
       <h2 className="text-sm font-bold mb-3" style={{ color: "var(--text)" }}>{title}</h2>
       {children}
     </div>
@@ -60,7 +60,7 @@ export default function AstroAnomalyRunner({ accent }: { accent: string }) {
             </div>
           ))}
           {files.length < MAX_PHOTOS && (
-            <button onClick={() => inputRef.current?.click()}
+            <button data-wt="astro-add" onClick={() => inputRef.current?.click()}
               className="rounded-lg flex items-center justify-center text-xs font-semibold"
               style={{ aspectRatio: "1 / 1", background: "var(--surface2)", border: "1px dashed var(--border)", color: "var(--text3)" }}>
               + Add
@@ -71,7 +71,7 @@ export default function AstroAnomalyRunner({ accent }: { accent: string }) {
           onChange={e => e.target.files && onFilesSelected(e.target.files)} />
 
         <div className="flex flex-wrap items-center gap-3 mt-4">
-          <button onClick={run} disabled={running || files.length < 2}
+          <button data-wt="astro-detect" onClick={run} disabled={running || files.length < 2}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {running ? "Differencing frames + Hough transform…" : "Detect anomalies"}
@@ -101,7 +101,7 @@ export default function AstroAnomalyRunner({ accent }: { accent: string }) {
             </ul>
           )}
 
-          <Section title={result.anomalies.length > 0
+          <Section anchor="astro-anomalies" title={result.anomalies.length > 0
             ? `${result.anomalies.length} anomal${result.anomalies.length === 1 ? "y" : "ies"} detected across ${result.frame_count} frames`
             : `No anomalies crossed the detection threshold across ${result.frame_count} frames`}>
             {result.anomalies.length === 0 ? (
@@ -124,7 +124,7 @@ export default function AstroAnomalyRunner({ accent }: { accent: string }) {
             )}
           </Section>
 
-          <Section title="Median stack (transients rejected, stars preserved)">
+          <Section anchor="astro-median" title="Median stack (transients rejected, stars preserved)">
             {/* eslint-disable-next-line @next/next/no-img-element -- base64 preview from API response, not a static asset */}
             <img src={`data:image/jpeg;base64,${result.median_stack}`} alt="Median stack" className="w-full rounded-lg" style={{ background: "#000" }} />
             <p className="text-xs mt-2" style={{ color: "var(--text3)" }}>
@@ -134,7 +134,7 @@ export default function AstroAnomalyRunner({ accent }: { accent: string }) {
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div data-wt="astro-limits" className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> no star-based registration/plate-solving — this assumes a static
         tripod and compares frames exactly as uploaded, in order. It does not distinguish meteors from satellites (tested against synthetic ground
         truth and found unreliable to do with position drift alone — a satellite&apos;s frame-to-frame shift is almost entirely along its own line

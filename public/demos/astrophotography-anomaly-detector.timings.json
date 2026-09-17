@@ -1,0 +1,34 @@
+[
+  {
+    "start": 4.9,
+    "say": "Point a camera at the night sky for a while and most of what you capture is the same stars, frame after frame. The interesting thing is what appears in only one frame — a meteor, a satellite. This tool finds those with classical computer vision: no neural network, just frame differencing and a Hough transform."
+  },
+  {
+    "start": 25.11,
+    "say": "Three frames from a single fixed-tripod session, loaded in order. Here is the first."
+  },
+  {
+    "start": 30.93,
+    "say": "The second."
+  },
+  {
+    "start": 33.15,
+    "say": "And the third."
+  },
+  {
+    "start": 35.36,
+    "say": "Detect anomalies. It compares consecutive frames and runs a Hough transform over the differences to pull out straight streaks that a stack of stars alone would never produce."
+  },
+  {
+    "start": 46.25,
+    "say": "One streak flagged, with a cropped preview and its measured length and angle. Notice the label: possible meteor or satellite trail — never a confident verdict, because telling those two apart from position drift alone is genuinely unreliable, and the tool refuses to pretend otherwise."
+  },
+  {
+    "start": 65.91,
+    "say": "And here is why the detection is trustworthy: the median stack. Take the pixel-wise median across every frame and the transient simply vanishes — it was an outlier at its pixels — while the stars, present in every frame, survive untouched. The streak the tool flagged is exactly what the median threw away."
+  },
+  {
+    "start": 87.11,
+    "say": "The honest limits: this assumes a static tripod and compares frames exactly as uploaded — no star-based alignment or plate-solving — and it deliberately won't call a streak a meteor versus a satellite. Always eyeball the cropped preview; it points you at candidates, it doesn't certify them."
+  }
+]
