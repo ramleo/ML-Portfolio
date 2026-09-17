@@ -1,0 +1,42 @@
+{
+  "toolId": "exploratory-data-analysis",
+  "chapter": "ch-5-exploratory-data-analysis",
+  "route": "/tools/exploratory-data-analysis",
+  "title": "Exploratory Data Analysis",
+  "blurb": "Point it at a CSV and it profiles every column — then says which are fit to model on.",
+  "steps": [
+    {
+      "say": "Before you model anything, you have to know what is in the data. This tool takes a CSV and works through it the way an analyst would — the shape, each column, the distributions, the correlations — and ends with a verdict on what is worth modelling.",
+      "settle": 800
+    },
+    {
+      "say": "Rather than upload anything, let's load the built-in sample. It is analysed in memory and never stored.",
+      "at": "eda-sample",
+      "act": "click",
+      "waitFor": "eda-overview",
+      "expect": "Duplicates",
+      "settle": 1600
+    },
+    {
+      "say": "Here is the overview at a glance: how many rows and columns, how many duplicate rows, how much is missing, and a single data-quality score that folds those together. This is the first thing to read — a high missing rate or a pile of duplicates changes everything that follows.",
+      "at": "eda-overview",
+      "settle": 3200
+    },
+    {
+      "say": "Everything the analysis produced is laid out in these sections — the first rows, a per-column profile, distributions, correlations between features, and the model-fitness verdict. You can jump straight to any of them.",
+      "at": "eda-nav",
+      "settle": 2600
+    },
+    {
+      "say": "And the whole report exports as a standalone HTML or PDF file — the same charts and findings, in something you can hand to someone who will never open this page.",
+      "at": "eda-report-html",
+      "with": "eda-report-pdf",
+      "settle": 2600
+    },
+    {
+      "say": "The limits, plainly: the charts are drawn from a sample of the rows, not every one, so a rare cluster can be missed; and the model-fitness call is a heuristic about each column's shape, not a promise about any particular model. It tells you where to look — the modelling is still yours.",
+      "at": "eda-overview",
+      "settle": 3000
+    }
+  ]
+}

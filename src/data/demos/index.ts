@@ -2,6 +2,7 @@ import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
 import depthParallax from "./depth-parallax.json";
 import documentIntelligence from "./document-intelligence.json";
+import exploratoryDataAnalysis from "./exploratory-data-analysis.json";
 import drift from "./drift.json";
 import dnsTunneling from "./dns-tunneling-detector.json";
 import emailAuthChecker from "./email-auth-checker.json";
@@ -107,6 +108,7 @@ export const DEMOS: Demo[] = [
   textToSql,
   contractInvoiceReconciliation,
   documentIntelligence,
+  exploratoryDataAnalysis,
   depthParallax,
   multimodalRag,
   drift,
