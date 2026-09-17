@@ -1,0 +1,22 @@
+[
+  {
+    "start": 4.9,
+    "say": "A security analyst's real problem is rarely a missing alert — it is a wall of thousands, mostly duplicates. This tool takes raw alert lines and does the two things that make that wall readable: it groups the near-identical ones, then asks for a prioritized opinion on what is left."
+  },
+  {
+    "start": 23.33,
+    "say": "Rather than paste a log, let's load the built-in sample — a burst of failed logins, a new admin account, a firewall change, and some pure noise. Grouping happens right here in your browser first; only the grouped summary, never your raw log, is sent onward."
+  },
+  {
+    "start": 40.28,
+    "say": "There is the first win, before any model runs: thirteen raw lines collapse to a handful of groups after deduplication. Six identical failed logins become one row that remembers it was six — the analyst reads groups, not lines."
+  },
+  {
+    "start": 57.05,
+    "say": "And here is the triage. Each group now carries a priority — from urgent down to pure noise — with the reasoning and a suggested next step. The repeated backups are correctly pushed to the bottom as noise, while the login burst and the new admin account rise to the top."
+  },
+  {
+    "start": 74.95,
+    "say": "The honest limits: this is advisory only — suggestions for a human, never an action the tool takes — and it does not correlate across alert types or across time, which is where a real SIEM earns its keep. Treat it as a first pass that thins the wall, not the analyst."
+  }
+]

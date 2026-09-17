@@ -1,0 +1,26 @@
+[
+  {
+    "start": 4.91,
+    "say": "There is no reliable detector for AI-written code. What there are, are stylistic tells — and this tool surfaces them honestly, without ever claiming a verdict. Let's start with a snippet in the unmistakable AI house style."
+  },
+  {
+    "start": 18.93,
+    "say": "A docstring on every function, a comment before every single step, defensive try-except wrapping, tidy uniform naming throughout. A human can write like this — but models do it relentlessly, and that relentlessness is the signal."
+  },
+  {
+    "start": 35.31,
+    "say": "Analyze. The stylistic pass runs entirely in your browser — no model needed for that part — and, if a server key is set, an independent LLM is asked for its own opinion alongside."
+  },
+  {
+    "start": 48.27,
+    "say": "The headline is worded carefully: it counts AI-style signals, and says in the same breath that it is not a verdict. That restraint is the point — the number of signals is a prompt to look closer, not a label."
+  },
+  {
+    "start": 62.61,
+    "say": "Below, the specific patterns it matched, each with why it is associated with generated code — and beside them, the independent LLM's leaning and confidence, kept separate so you can see where the two agree or disagree."
+  },
+  {
+    "start": 78.24,
+    "say": "And the limits, stated without hedging: every signal here is individually weak and trivially fakeable in either direction. A careful human writes clean, documented code; any model can be told to write messy code. Treat this as a lens, never a ruling."
+  }
+]
