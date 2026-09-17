@@ -1,3 +1,4 @@
+import aiCodeDetector from "./ai-code-detector.json";
 import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
 import depthParallax from "./depth-parallax.json";
@@ -104,6 +105,7 @@ export interface Demo {
 }
 
 export const DEMOS: Demo[] = [
+  aiCodeDetector,
   automl,
   textToSql,
   contractInvoiceReconciliation,

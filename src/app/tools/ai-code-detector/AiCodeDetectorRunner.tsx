@@ -142,6 +142,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-5">
       <Section title="Paste a code snippet">
         <textarea
+          data-wt="acd-input"
           value={code}
           onChange={e => setCode(e.target.value)}
           placeholder="Paste a function or short script..."
@@ -151,6 +152,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
         />
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <button
+            data-wt="acd-analyze"
             onClick={runCheck}
             disabled={running || !code.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
@@ -158,7 +160,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
             {running ? "Running heuristics + LLM judge…" : "Analyze code"}
           </button>
           {Object.entries(EXAMPLES).map(([key, ex]) => (
-            <button key={key} onClick={() => setCode(ex.code)} disabled={running}
+            <button key={key} data-wt={`acd-ex-${key}`} onClick={() => setCode(ex.code)} disabled={running}
               className="px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-40"
               style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
               {ex.label}
@@ -180,7 +182,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
 
       {analysis && (
         <>
-          <div className="rounded-xl p-4"
+          <div className="rounded-xl p-4" data-wt="acd-verdict"
             style={{ background: `${OVERALL_LABEL[analysis.overallLabel].color}14`, border: `1px solid ${OVERALL_LABEL[analysis.overallLabel].color}40` }}>
             <div className="text-base font-bold" style={{ color: OVERALL_LABEL[analysis.overallLabel].color }}>
               {OVERALL_LABEL[analysis.overallLabel].text}
@@ -190,7 +192,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-wt="acd-signals">
             <Section title={`Stylistic signals (${analysis.signals.length})`}>
               {analysis.signals.length === 0
                 ? <p className="text-sm" style={{ color: "var(--text3)" }}>No documented AI-style stylistic pattern matched.</p>
@@ -222,7 +224,7 @@ export default function AiCodeDetectorRunner({ accent }: { accent: string }) {
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div className="text-xs leading-relaxed rounded-xl p-4" data-wt="acd-limits" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> no reliable, published, general-purpose AI-vs-human code
         detector exists. Every signal here is individually weak and trivially fakeable in either direction — a careful human can write
         clean, well-documented code, and any LLM can be prompted to write messy code. This tool never outputs a probability or a
