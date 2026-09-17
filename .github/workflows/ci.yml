@@ -121,6 +121,26 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Unit layer of the testing pyramid: the pure-logic lib (limit math,
+  # run-outcome classification) run with vitest. Fast and hermetic — no browser,
+  # no network — so it gates every push cheaply, alongside the e2e job below.
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
   # Phase 1 of the testing plan. Until this existed, CI proved the site
   # COMPILED and never that any page worked — three times a page was broken
   # for every visitor and nothing caught it.
