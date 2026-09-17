@@ -13,6 +13,7 @@ import featureSelection from "./feature-selection.json";
 import ensemble from "./ensemble.json";
 import extensionPermissions from "./extension-permission-analyzer.json";
 import maliciousPackage from "./malicious-package-scanner.json";
+import malwareImageTriage from "./malware-image-triage.json";
 import multimodalRag from "./multimodal-rag.json";
 import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
@@ -125,6 +126,7 @@ export const DEMOS: Demo[] = [
   featureEngineering,
   featureSelection,
   maliciousPackage,
+  malwareImageTriage,
   optuna,
   passwordAudit,
   preprocessing,
