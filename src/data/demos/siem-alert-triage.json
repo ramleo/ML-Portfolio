@@ -1,0 +1,37 @@
+{
+  "toolId": "siem-alert-triage",
+  "chapter": "ch-47-siem-alert-triage-agent",
+  "route": "/tools/siem-alert-triage",
+  "title": "SIEM Alert Triage Agent",
+  "blurb": "Groups a flood of near-identical security alerts, then asks an LLM which handful actually deserve a human's attention.",
+  "steps": [
+    {
+      "say": "A security analyst's real problem is rarely a missing alert — it is a wall of thousands, mostly duplicates. This tool takes raw alert lines and does the two things that make that wall readable: it groups the near-identical ones, then asks for a prioritized opinion on what is left.",
+      "at": "siem-input",
+      "settle": 2600
+    },
+    {
+      "say": "Rather than paste a log, let's load the built-in sample — a burst of failed logins, a new admin account, a firewall change, and some pure noise. Grouping happens right here in your browser first; only the grouped summary, never your raw log, is sent onward.",
+      "at": "siem-sample",
+      "act": "click",
+      "waitFor": "siem-summary",
+      "expect": "deduplication",
+      "settle": 1800
+    },
+    {
+      "say": "There is the first win, before any model runs: thirteen raw lines collapse to a handful of groups after deduplication. Six identical failed logins become one row that remembers it was six — the analyst reads groups, not lines.",
+      "at": "siem-summary",
+      "settle": 3000
+    },
+    {
+      "say": "And here is the triage. Each group now carries a priority — from urgent down to pure noise — with the reasoning and a suggested next step. The repeated backups are correctly pushed to the bottom as noise, while the login burst and the new admin account rise to the top.",
+      "at": "siem-results",
+      "settle": 3400
+    },
+    {
+      "say": "The honest limits: this is advisory only — suggestions for a human, never an action the tool takes — and it does not correlate across alert types or across time, which is where a real SIEM earns its keep. Treat it as a first pass that thins the wall, not the analyst.",
+      "at": "siem-results",
+      "settle": 3200
+    }
+  ]
+}

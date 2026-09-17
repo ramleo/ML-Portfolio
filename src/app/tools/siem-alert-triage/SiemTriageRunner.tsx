@@ -47,6 +47,7 @@ export default function SiemTriageRunner({ accent }: { accent: string }) {
           never an action this tool takes itself.
         </p>
         <textarea
+          data-wt="siem-input"
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder={"one alert per line, e.g.:\nFailed login for user admin from 10.0.0.5\n..."}
@@ -61,7 +62,7 @@ export default function SiemTriageRunner({ accent }: { accent: string }) {
             style={{ background: accent, color: "#fff", opacity: text.trim() && !running ? 1 : 0.5 }}>
             {running ? "Triaging…" : "Triage alerts"}
           </button>
-          <button onClick={() => { setText(SAMPLE_LOG); analyze(SAMPLE_LOG); }} disabled={running}
+          <button data-wt="siem-sample" onClick={() => { setText(SAMPLE_LOG); analyze(SAMPLE_LOG); }} disabled={running}
             className="text-[11px] px-3 py-2 rounded-lg border transition-colors"
             style={{ borderColor: "var(--border2)", color: "var(--text3)" }}>
             Try a sample log
@@ -76,7 +77,7 @@ export default function SiemTriageRunner({ accent }: { accent: string }) {
         </div>
 
         {totalLines !== null && (
-          <p className="text-[11px] mt-3" style={{ color: "var(--text3)" }}>
+          <p data-wt="siem-summary" className="text-[11px] mt-3" style={{ color: "var(--text3)" }}>
             {totalLines} alert lines → {triaged?.length ?? "…"} group{triaged?.length === 1 ? "" : "s"} after
             deduplication{truncated ? " (capped at the top 20 largest groups)" : ""}.
           </p>
@@ -85,7 +86,7 @@ export default function SiemTriageRunner({ accent }: { accent: string }) {
       </div>
 
       {triaged && triaged.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div data-wt="siem-results" className="flex flex-col gap-3">
           {triaged.map((g, i) => {
             const color = g.verdict ? (PRIORITY_COLOR[g.verdict.priority] || "var(--text3)") : "var(--text3)";
             return (
