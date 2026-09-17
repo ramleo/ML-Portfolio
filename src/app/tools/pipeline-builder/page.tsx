@@ -2,7 +2,6 @@
 import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -16,7 +15,6 @@ import FileUploadSection from "@/components/pipeline/FileUploadSection";
 import ExpressRunner from "@/components/pipeline/ExpressRunner";
 import ABPanel from "@/components/pipeline/ABPanel";
 import TargetDropdown from "@/components/pipeline/TargetDropdown";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -30,8 +28,6 @@ import { trackedFetch } from "@/lib/trackedFetch";
 
 export default function PipelineBuilderPage() {
   useToolTracking("pipeline-builder");
-  const router = useRouter();
-  const handleHome = useCallback(() => router.push(toolBackHref("pipeline-builder")), [router]);
   const [mode, setMode] = useState<PipelineMode>(null);
   const [csvB64, setCsvB64] = useState<string | null>(null);
   const [columns, setColumns] = useState<string[]>([]);

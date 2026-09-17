@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,7 +9,6 @@ import MmRagRunner from "./MmRagRunner";
 import MmRagUserGuideModal from "./MmRagUserGuideModal";
 import MmRagUsageStatsModal from "./MmRagUsageStatsModal";
 import { MM_RAG_GUIDE, MM_RAG_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#7e68c0";
@@ -18,8 +16,6 @@ const DISPLAY_FONT = "ui-serif, 'Iowan Old Style', 'Palatino Linotype', 'Source 
 
 export default function MultimodalRagPage() {
   useToolTracking("multimodal-rag");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("multimodal-rag")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import KeystrokeAuthRiskRunner from "./KeystrokeAuthRiskRunner";
 import KeystrokeAuthRiskUserGuideModal from "./KeystrokeAuthRiskUserGuideModal";
 import { KEYSTROKE_AUTH_GUIDE, KEYSTROKE_AUTH_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8358";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function KeystrokeAuthRiskPage() {
   useToolTracking("keystroke-biometric-auth-risk");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("keystroke-biometric-auth-risk")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

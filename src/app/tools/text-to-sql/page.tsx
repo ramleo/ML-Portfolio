@@ -1,23 +1,18 @@
 "use client";
 import { useToolTracking } from "@/hooks/useAnalytics";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { PipelineProvider } from "@/context/PipelineContext";
 import TextToSqlRunner from "./TextToSqlRunner";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#6a6cc8";
 
 export default function TextToSqlPage() {
   useToolTracking("text-to-sql");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("text-to-sql")), [router]);
 
   return (
     <PipelineProvider>

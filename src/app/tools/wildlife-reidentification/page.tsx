@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import WildlifeReidRunner from "./WildlifeReidRunner";
 import WildlifeReidUserGuideModal from "./WildlifeReidUserGuideModal";
 import { WILDLIFE_REID_GUIDE, WILDLIFE_REID_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#956e37";
@@ -23,8 +21,6 @@ const TOOL_SUMMARY =
 
 export default function WildlifeReidentificationPage() {
   useToolTracking("wildlife-reidentification");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("wildlife-reidentification")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

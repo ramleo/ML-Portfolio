@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import CaptchaHardeningRunner from "./CaptchaHardeningRunner";
 import CaptchaHardeningUserGuideModal from "./CaptchaHardeningUserGuideModal";
 import { CAPTCHA_HARDENING_GUIDE, CAPTCHA_HARDENING_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#966f2b";
@@ -21,8 +19,6 @@ const TOOL_SUMMARY =
 
 export default function CaptchaHardeningLabPage() {
   useToolTracking("captcha-hardening-lab");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("captcha-hardening-lab")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

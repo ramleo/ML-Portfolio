@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import CrimeSceneReconstructionRunner from "./CrimeSceneReconstructionRunner";
 import CrimeSceneUserGuideModal from "./CrimeSceneUserGuideModal";
 import { CRIME_SCENE_GUIDE, CRIME_SCENE_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#a96161";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function CrimeSceneReconstructionPage() {
   useToolTracking("crime-scene-reconstruction");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("crime-scene-reconstruction")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

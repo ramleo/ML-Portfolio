@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PhotoSearchRunner from "./PhotoSearchRunner";
 import PhotoSearchUserGuideModal from "./PhotoSearchUserGuideModal";
 import { PHOTO_SEARCH_GUIDE, PHOTO_SEARCH_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3e7c98";
@@ -21,8 +19,6 @@ const TOOL_SUMMARY =
 
 export default function PhotoSearchPage() {
   useToolTracking("photo-search");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("photo-search")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

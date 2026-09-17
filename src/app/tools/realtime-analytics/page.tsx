@@ -1,23 +1,18 @@
 "use client";
 import { useToolTracking } from "@/hooks/useAnalytics";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { ANALYTICS_GUIDE, ANALYTICS_SUGGESTIONS } from "./userGuide";
 import { PipelineProvider } from "@/context/PipelineContext";
 import AnalyticsDashboard from "./AnalyticsDashboard";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#40816c";
 
 export default function RealtimeAnalyticsPage() {
   useToolTracking("realtime-analytics");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("realtime-analytics")), [router]);
 
   return (
     <PipelineProvider>

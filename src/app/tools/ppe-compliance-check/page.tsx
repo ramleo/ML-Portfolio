@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PpeComplianceRunner from "./PpeComplianceRunner";
 import PpeComplianceUserGuideModal from "./PpeComplianceUserGuideModal";
 import { PPE_COMPLIANCE_GUIDE, PPE_COMPLIANCE_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#a0684b";
@@ -24,8 +22,6 @@ const TOOL_SUMMARY =
 
 export default function PpeComplianceCheckPage() {
   useToolTracking("ppe-compliance-check");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("ppe-compliance-check")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

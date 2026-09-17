@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AstroAnomalyRunner from "./AstroAnomalyRunner";
 import AstroAnomalyUserGuideModal from "./AstroAnomalyUserGuideModal";
 import { ASTRO_ANOMALY_GUIDE, ASTRO_ANOMALY_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3c7d9b";
@@ -23,8 +21,6 @@ const TOOL_SUMMARY =
 
 export default function AstroAnomalyDetectorPage() {
   useToolTracking("astrophotography-anomaly-detector");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("astrophotography-anomaly-detector")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

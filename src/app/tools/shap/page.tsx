@@ -2,7 +2,6 @@
 import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,14 +9,12 @@ import CsvFromContextBanner from "@/components/CsvFromContextBanner";
 import ShapRunner from "./ShapRunner";
 import { StepIndicator } from "@/components/StepIndicator";
 import ThemeToggle from "@/components/ThemeToggle";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#966f2b";
 const SHAP_STEP_LABELS = ["Upload", "Configure", "Results"];
 
 function ShapPageInner() {
-  const router = useRouter();
   const { state, setState } = usePipeline();
   const triggerRef = useRef<((f: File) => void) | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
@@ -25,7 +22,6 @@ function ShapPageInner() {
   const [trainResult, setTrainResult] = useState<{ winner: string; cv_results: { name: string; score: number }[]; winner_metrics: Record<string, number | string>; feature_importance: { feature: string; importance: number }[] } | null>(null);
   const [runnerStep, setRunnerStep] = useState(1);
 
-  const handleBack = useCallback(() => router.push(toolBackHref("shap")), [router]);
 
   const handleReady = useCallback((trigger: (f: File) => void) => {
     triggerRef.current = trigger;

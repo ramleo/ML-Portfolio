@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import TlsHeadersScanRunner from "./TlsHeadersScanRunner";
 import TlsHeadersScanUserGuideModal from "./TlsHeadersScanUserGuideModal";
 import { TLS_HEADERS_GUIDE, TLS_HEADERS_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3c7d9b";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function TlsSecurityHeadersScannerPage() {
   useToolTracking("tls-security-headers-scanner");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("tls-security-headers-scanner")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

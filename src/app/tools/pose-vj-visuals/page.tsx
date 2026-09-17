@@ -1,20 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 import PoseVjRunner from "./PoseVjRunner";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#b247c2";
 
 export default function PoseVjVisualsPage() {
   useToolTracking("pose-vj-visuals");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("pose-vj-visuals")), [router]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>

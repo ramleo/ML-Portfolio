@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import RotoscopeTrackingRunner from "./RotoscopeTrackingRunner";
 import RotoscopeUserGuideModal from "./RotoscopeUserGuideModal";
 import { ROTOSCOPE_GUIDE, ROTOSCOPE_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#8465b9";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function TextPromptedVideoTrackingPage() {
   useToolTracking("text-prompted-video-tracking");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("text-prompted-video-tracking")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

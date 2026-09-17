@@ -1,20 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 import FaceLivenessRunner from "./FaceLivenessRunner";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#428079";
 
 export default function FaceLivenessPage() {
   useToolTracking("face-liveness");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("face-liveness")), [router]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>

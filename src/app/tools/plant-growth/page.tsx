@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,7 +9,6 @@ import PlantGrowthRunner from "./PlantGrowthRunner";
 import PlantGrowthGroupMode from "./PlantGrowthGroupMode";
 import PlantGrowthUserGuideModal from "./PlantGrowthUserGuideModal";
 import { PLANT_GROWTH_GUIDE, PLANT_GROWTH_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8258";
@@ -25,8 +23,6 @@ const TOOL_SUMMARY =
 
 export default function PlantGrowthPage() {
   useToolTracking("plant-growth");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("plant-growth")), [router]);
   const [mode, setMode] = useState<"labeled" | "group">("labeled");
   const [guideOpen, setGuideOpen] = useState(false);
 

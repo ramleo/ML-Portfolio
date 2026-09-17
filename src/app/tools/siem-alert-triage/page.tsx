@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SiemTriageRunner from "./SiemTriageRunner";
 import SiemTriageUserGuideModal from "./SiemTriageUserGuideModal";
 import { SIEM_TRIAGE_GUIDE, SIEM_TRIAGE_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#307f92";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function SiemAlertTriagePage() {
   useToolTracking("siem-alert-triage");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("siem-alert-triage")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

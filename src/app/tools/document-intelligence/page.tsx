@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import DocIntelRunner from "./DocIntelRunner";
 import DocUserGuideModal from "./DocUserGuideModal";
 import { DOC_INTEL_GUIDE, DOC_INTEL_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#387e8a";
@@ -27,8 +25,6 @@ const DOC_TYPES_STATIC = [
 
 export default function DocumentIntelligencePage() {
   useToolTracking("document-intelligence");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("document-intelligence")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

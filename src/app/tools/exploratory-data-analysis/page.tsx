@@ -1,11 +1,9 @@
 "use client";
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useToolTracking } from "@/hooks/useAnalytics";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 import EdaRunner from "./EdaRunner";
 import EdaUserGuideModal from "./EdaUserGuideModal";
@@ -65,8 +63,6 @@ function assistantContext(result: EdaResult | null): string {
 
 export default function ExploratoryDataAnalysisPage() {
   useToolTracking(TOOL);
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref(TOOL)), [router]);
   const [result, setResult] = useState<EdaResult | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
 

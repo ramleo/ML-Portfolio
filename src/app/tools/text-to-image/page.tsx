@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,7 +9,6 @@ import TextToImageRunner, { type TextToImageRunnerHandle } from "./TextToImageRu
 import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from "./useTextToImageRunner";
 import { extractImagePrompt } from "@/components/chatImageIntent";
 import { extractStyleComparison } from "./chatCompareIntent";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#b65384";
@@ -48,8 +46,6 @@ const TOOL_SUMMARY =
 
 export default function TextToImagePage() {
   useToolTracking("text-to-image");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("text-to-image")), [router]);
   const runnerRef = useRef<TextToImageRunnerHandle>(null);
 
   return (

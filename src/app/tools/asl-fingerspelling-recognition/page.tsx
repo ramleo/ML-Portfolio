@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AslFingerspellingRunner from "./AslFingerspellingRunner";
 import AslFingerspellingUserGuideModal from "./AslFingerspellingUserGuideModal";
 import { ASL_FINGERSPELLING_GUIDE, ASL_FINGERSPELLING_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#307f92";
@@ -25,8 +23,6 @@ const TOOL_SUMMARY =
 
 export default function AslFingerspellingRecognitionPage() {
   useToolTracking("asl-fingerspelling-recognition");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("asl-fingerspelling-recognition")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

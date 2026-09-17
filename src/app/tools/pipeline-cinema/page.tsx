@@ -2,7 +2,6 @@
 import { useToolTracking } from "@/hooks/useAnalytics";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ConstellationBackground from "@/components/ConstellationBackground";
@@ -10,7 +9,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
 import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
-import { toolBackHref } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 function parseCsvB64(b64: string): string[] {
@@ -56,8 +54,6 @@ const StopIcon = () => <Icon d="M5 5h14v14H5z" />;
 
 export default function PipelineCinemaPage() {
   useToolTracking("pipeline-cinema");
-  const router = useRouter();
-  const handleHome = useCallback(() => router.push(toolBackHref("pipeline-cinema")), [router]);
 
   // CSV / config state
   const [csvB64, setCsvB64] = useState<string | null>(null);

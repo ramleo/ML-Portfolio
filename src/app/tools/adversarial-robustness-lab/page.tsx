@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,7 +9,6 @@ import AdversarialRunner from "./AdversarialRunner";
 import RobustTrainingDefense from "./RobustTrainingDefense";
 import AdversarialUserGuideModal from "./AdversarialUserGuideModal";
 import { ADVERSARIAL_GUIDE, ADVERSARIAL_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#c84b60";
@@ -30,8 +28,6 @@ const TOOL_SUMMARY =
 
 export default function AdversarialRobustnessLabPage() {
   useToolTracking("adversarial-robustness-lab");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("adversarial-robustness-lab")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

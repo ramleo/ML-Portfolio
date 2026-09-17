@@ -11,7 +11,7 @@ import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
+import { toolBackHref } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8358";

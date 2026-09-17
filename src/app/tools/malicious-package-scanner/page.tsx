@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PackageScannerRunner from "./PackageScannerRunner";
 import PackageScannerUserGuideModal from "./PackageScannerUserGuideModal";
 import { PACKAGE_SCANNER_GUIDE, PACKAGE_SCANNER_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#966f2b";
@@ -23,8 +21,6 @@ const TOOL_SUMMARY =
 
 export default function MaliciousPackageScannerPage() {
   useToolTracking("malicious-package-scanner");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("malicious-package-scanner")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PromptInjectionRunner from "./PromptInjectionRunner";
 import PromptInjectionUserGuideModal from "./PromptInjectionUserGuideModal";
 import { PROMPT_INJECTION_GUIDE, PROMPT_INJECTION_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#8164c4";
@@ -21,8 +19,6 @@ const TOOL_SUMMARY =
 
 export default function PromptInjectionPlaygroundPage() {
   useToolTracking("prompt-injection-playground");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("prompt-injection-playground")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

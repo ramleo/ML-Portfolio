@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AttackSurfaceScanRunner from "./AttackSurfaceScanRunner";
 import AttackSurfaceScanUserGuideModal from "./AttackSurfaceScanUserGuideModal";
 import { ATTACK_SURFACE_GUIDE, ATTACK_SURFACE_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#a86161";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function AttackSurfaceScannerPage() {
   useToolTracking("attack-surface-scanner");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("attack-surface-scanner")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

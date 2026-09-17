@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,15 +8,12 @@ import ThemeToggle from "@/components/ThemeToggle";
 import ReconciliationRunner from "./ReconciliationRunner";
 import ReconciliationUserGuideModal from "./ReconciliationUserGuideModal";
 import { RECONCILIATION_GUIDE, RECONCILIATION_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#966f2b";
 
 export default function ContractInvoiceReconciliationPage() {
   useToolTracking("contract-invoice-reconciliation");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("contract-invoice-reconciliation")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

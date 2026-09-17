@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -10,7 +9,6 @@ import PhishingEmailRunner from "./PhishingEmailRunner";
 import PhishingEmailUserGuideModal from "./PhishingEmailUserGuideModal";
 import { PHISHING_EMAIL_GUIDE, PHISHING_EMAIL_SUGGESTIONS } from "./userGuide";
 import { MEASURED_HELD_OUT_ACCURACY } from "./emailBodyClassifier";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#aa5f6f";
@@ -24,8 +22,6 @@ const TOOL_SUMMARY =
 
 export default function PhishingEmailClassifierPage() {
   useToolTracking("phishing-email-classifier");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("phishing-email-classifier")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

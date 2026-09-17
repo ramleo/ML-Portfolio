@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import EmailAuthCheckerRunner from "./EmailAuthCheckerRunner";
 import EmailAuthUserGuideModal from "./EmailAuthUserGuideModal";
 import { EMAIL_AUTH_GUIDE, EMAIL_AUTH_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3c7d9b";
@@ -21,8 +19,6 @@ const TOOL_SUMMARY =
 
 export default function EmailAuthCheckerPage() {
   useToolTracking("email-auth-checker");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("email-auth-checker")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

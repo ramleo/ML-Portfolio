@@ -2,7 +2,6 @@
 import { useToolTracking, track } from "@/hooks/useAnalytics";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import NumericTransformsPanel from "@/components/FEPanels/NumericTransformsPanel";
@@ -34,7 +33,6 @@ const FE_STEP_KEYS: Step[] = ["upload", "configure", "processing", "results"];
 const FE_STEP_LABELS = ["Upload", "Configure", "Processing", "Results"];
 
 function FeatureEngineeringPageInner() {
-  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep]         = useState<Step>("upload");

@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import FaceReidDemoRunner from "./FaceReidDemoRunner";
 import FaceReidUserGuideModal from "./FaceReidUserGuideModal";
 import { FACE_REID_GUIDE, FACE_REID_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#a06840";
@@ -21,8 +19,6 @@ const TOOL_SUMMARY =
 
 export default function FaceDeanonymizationDemoPage() {
   useToolTracking("face-deanonymization-demo");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("face-deanonymization-demo")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

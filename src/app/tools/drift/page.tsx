@@ -1,14 +1,12 @@
 "use client";
 import { useToolTracking } from "@/hooks/useAnalytics";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import DriftRunner from "./DriftRunner";
 import { DriftResult, FeatureDrift } from "./driftTypes";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 function buildDriftContext(result: DriftResult | null): string {
@@ -44,8 +42,6 @@ function buildDriftContext(result: DriftResult | null): string {
 
 export default function DriftPage() {
   useToolTracking("drift");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("drift")), [router]);
   const [driftResult, setDriftResult] = useState<DriftResult | null>(null);
 
   return (

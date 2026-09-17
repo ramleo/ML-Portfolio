@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import FaceCloakRunner from "./FaceCloakRunner";
 import FaceCloakUserGuideModal from "./FaceCloakUserGuideModal";
 import { FACE_CLOAK_GUIDE, FACE_CLOAK_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#8164c4";
@@ -23,8 +21,6 @@ const TOOL_SUMMARY =
 
 export default function FaceCloakPage() {
   useToolTracking("face-cloak");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("face-cloak")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

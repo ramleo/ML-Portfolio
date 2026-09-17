@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import DnsTunnelRunner from "./DnsTunnelRunner";
 import DnsTunnelUserGuideModal from "./DnsTunnelUserGuideModal";
 import { DNS_TUNNEL_GUIDE, DNS_TUNNEL_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#8164c4";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function DnsTunnelingDetectorPage() {
   useToolTracking("dns-tunneling-detector");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("dns-tunneling-detector")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (

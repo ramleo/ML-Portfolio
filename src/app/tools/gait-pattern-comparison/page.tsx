@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import GaitComparisonRunner from "./GaitComparisonRunner";
 import GaitComparisonUserGuideModal from "./GaitComparisonUserGuideModal";
 import { GAIT_COMPARISON_GUIDE, GAIT_COMPARISON_SUGGESTIONS } from "./userGuide";
-import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#678042";
@@ -22,8 +20,6 @@ const TOOL_SUMMARY =
 
 export default function GaitPatternComparisonPage() {
   useToolTracking("gait-pattern-comparison");
-  const router = useRouter();
-  const handleBack = useCallback(() => router.push(toolBackHref("gait-pattern-comparison")), [router]);
   const [guideOpen, setGuideOpen] = useState(false);
 
   return (
