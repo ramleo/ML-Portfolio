@@ -2,12 +2,10 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProjectsSection from "@/components/ProjectsSection";
 import DomainSections from "@/components/DomainSections";
-import ArchitectureDiagram from "@/components/ArchitectureDiagram";
-import PipelineShowcase from "@/components/PipelineShowcase";
-import NewsSection from "@/components/NewsSection";
+import HomeBelowFold from "@/components/HomeBelowFold";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
-import Chatbot from "@/components/Chatbot";
+import ChatbotClient from "@/components/ChatbotClient";
 
 /**
  * The product half of the site: what a visitor can actually use.
@@ -21,16 +19,15 @@ export default function Home() {
   return (
     <>
       <ParticleGridClient />
-      <Chatbot />
+      <ChatbotClient />
       <Navbar />
       <Hero />
       <ProjectsSection />
       <DomainSections />
       {/* After the work itself: you've seen what there is to use, here's how
-          the system behind it fits together. */}
-      <ArchitectureDiagram />
-      <PipelineShowcase />
-      <NewsSection />
+          the system behind it fits together. Deferred (ssr:false) — below the
+          fold, off the initial-paint critical path. */}
+      <HomeBelowFold />
       <Footer />
     </>
   );
