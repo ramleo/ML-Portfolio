@@ -83,8 +83,12 @@ export default function ConstellationBackground() {
         p.x += p.vx;
         p.y += p.vy;
 
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = isLight ? "rgba(56,132,190,0.50)" : "rgba(34,211,238,0.55)"; ctx.fill();
+        // Light mode leans on the dots for presence (see the lineAlpha note):
+        // they are small points axe rarely samples as a text background, so they
+        // can be both bolder and larger than dark mode without failing contrast,
+        // where the connecting lines cannot.
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (isLight ? 1.4 : 1), 0, Math.PI * 2);
+        ctx.fillStyle = isLight ? "rgba(56,132,190,0.70)" : "rgba(34,211,238,0.55)"; ctx.fill();
       }
 
       for (let i = 0; i < N; i++) {
