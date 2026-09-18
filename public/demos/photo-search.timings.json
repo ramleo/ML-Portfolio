@@ -1,0 +1,26 @@
+[
+  {
+    "start": 4.91,
+    "say": "This searches a pile of photos by describing what you want — no tags, no filenames, no captions written first. It uses CLIP, which puts pictures and words into the same space, so a phrase can be compared directly against every image."
+  },
+  {
+    "start": 21.77,
+    "say": "A small mixed library: a dog, a beach, a pizza, a bicycle and a snowy mountain. Nothing is labelled — the tool has only the pixels."
+  },
+  {
+    "start": 31.62,
+    "say": "Now just describe what I'm after, in plain language: a dog on grass."
+  },
+  {
+    "start": 36.99,
+    "say": "Search."
+  },
+  {
+    "start": 42.74,
+    "say": "The golden retriever jumps to the front at a full 100 percent match, and the beach, mountain, bicycle and pizza all fall well behind it. CLIP found the dog from the words alone — no keyword ever touched these files."
+  },
+  {
+    "start": 59.1,
+    "say": "The honest framing: these percentages are relative to each other within this batch, not an absolute confidence, and CLIP matches meaning rather than exact objects, so an unusual phrase can rank loosely. It is semantic search over your own photos, done in a single request with nothing stored."
+  }
+]

@@ -19,6 +19,7 @@ import malwareImageTriage from "./malware-image-triage.json";
 import multimodalRag from "./multimodal-rag.json";
 import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
+import photoSearch from "./photo-search.json";
 import plantGrowth from "./plant-growth.json";
 import preprocessing from "./preprocessing.json";
 import ppeCompliance from "./ppe-compliance-check.json";
@@ -137,6 +138,7 @@ export const DEMOS: Demo[] = [
   malwareImageTriage,
   optuna,
   passwordAudit,
+  photoSearch,
   plantGrowth,
   preprocessing,
   pipelineBuilder,

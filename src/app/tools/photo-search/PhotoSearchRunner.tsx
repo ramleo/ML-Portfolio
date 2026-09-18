@@ -86,7 +86,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => fileInputRef.current?.click()}
+          <button onClick={() => fileInputRef.current?.click()} data-wt="ps-add"
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff" }}>
             Add photo{"(s)"}
@@ -111,12 +111,12 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
         {photos.length > 0 && (
           <div className="flex flex-col gap-2 mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2">
-              <input value={query} onChange={e => setQuery(e.target.value)}
+              <input value={query} onChange={e => setQuery(e.target.value)} data-wt="ps-query"
                 onKeyDown={e => { if (e.key === "Enter") search(); }}
                 placeholder="Describe what you're looking for…"
                 className="flex-1 text-sm rounded-lg px-3 py-1.5 min-w-0"
                 style={{ background: "var(--border)", border: "1px solid var(--border2)", color: "var(--text)" }} />
-              <button onClick={search} disabled={!query.trim() || searching}
+              <button onClick={search} disabled={!query.trim() || searching} data-wt="ps-search"
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-colors border shrink-0"
                 style={{ borderColor: `${accent}50`, color: accent, opacity: query.trim() && !searching ? 1 : 0.5 }}>
                 {searching ? "Searching…" : "Search"}
@@ -151,7 +151,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
       )}
 
       {photos.length > 0 && (
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
+        <div className="grid gap-3" data-wt="ps-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
           {sortedPhotos.map(p => {
             const score = resultByFilename.get(p.filename);
             const isReference = p.filename === imageQueryFilename;
@@ -190,7 +190,7 @@ export default function PhotoSearchRunner({ accent }: { accent: string }) {
       )}
 
       {results && (
-        <p className="text-[10px] text-center" style={{ color: "var(--text3)" }}>
+        <p className="text-[10px] text-center" data-wt="ps-note" style={{ color: "var(--text3)" }}>
           Match percentages are relative to each other, not an absolute confidence — CLIP compares meaning,
           not exact objects, so a loose or unusual description may rank imperfectly.
         </p>

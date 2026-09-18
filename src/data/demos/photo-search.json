@@ -1,0 +1,46 @@
+{
+  "toolId": "photo-search",
+  "chapter": "ch-25-photo-library-visual-search",
+  "route": "/tools/photo-search",
+  "title": "Photo Library Visual Search",
+  "blurb": "Search a photo library by describing what you want in plain words — CLIP embeds every photo and your text into the same space and ranks by match, no tagging or filenames needed.",
+  "steps": [
+    {
+      "say": "This searches a pile of photos by describing what you want — no tags, no filenames, no captions written first. It uses CLIP, which puts pictures and words into the same space, so a phrase can be compared directly against every image.",
+      "at": "ps-add",
+      "settle": 2400
+    },
+    {
+      "say": "A small mixed library: a dog, a beach, a pizza, a bicycle and a snowy mountain. Nothing is labelled — the tool has only the pixels.",
+      "at": "ps-add",
+      "act": "file",
+      "file": ["/samples/photo-search-dog.jpg", "/samples/photo-search-beach.jpg", "/samples/photo-search-pizza.jpg", "/samples/photo-search-bike.jpg", "/samples/photo-search-mountain.jpg"],
+      "settle": 1200
+    },
+    {
+      "say": "Now just describe what I'm after, in plain language: a dog on grass.",
+      "at": "ps-query",
+      "act": "type",
+      "value": "a dog on grass",
+      "settle": 900
+    },
+    {
+      "say": "Search.",
+      "at": "ps-search",
+      "act": "click",
+      "waitFor": "ps-note",
+      "expect": "100% match",
+      "settle": 1600
+    },
+    {
+      "say": "The golden retriever jumps to the front at a full 100 percent match, and the beach, mountain, bicycle and pizza all fall well behind it. CLIP found the dog from the words alone — no keyword ever touched these files.",
+      "at": "ps-grid",
+      "settle": 3800
+    },
+    {
+      "say": "The honest framing: these percentages are relative to each other within this batch, not an absolute confidence, and CLIP matches meaning rather than exact objects, so an unusual phrase can rank loosely. It is semantic search over your own photos, done in a single request with nothing stored.",
+      "at": "ps-grid",
+      "settle": 3600
+    }
+  ]
+}
