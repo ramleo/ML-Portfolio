@@ -8,7 +8,7 @@
  *  the handbook/thumbnail scripts glob every *.ts in this directory, so both
  *  files are read regardless.
  */
-import { Activity, Bug, Fingerprint, KeyRound, ListChecks, LockKeyhole, MailWarning, Network, PackageSearch, ScanEye, ScanSearch, Syringe } from "lucide-react";
+import { Activity, Bug, Fingerprint, KeyRound, ListChecks, LockKeyhole, MailWarning, Network, PackageSearch, ScanEye, ScanSearch, Syringe, Waypoints } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 import securityMore from "./securityMore";
@@ -85,6 +85,24 @@ const securityCore: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/anomaly-detection",
+  },
+  {
+    id: "intrusion-detection",
+    domain: "Security & Trust",
+    title: "Network Intrusion Classifier",
+    subtitle: "Live Engine · RandomForest",
+    description:
+      "A real scikit-learn RandomForest, trained live on a labelled sample of the NSL-KDD intrusion benchmark, classifies held-out network connections it has never seen into five classes: normal, DoS, Probe, R2L and U2R. It's scored honestly against ground truth the model never sees — with a confusion matrix, per-class precision and recall, and the feature importances the forest relied on. NSL-KDD is a dated benchmark (late-1990s attack families) and R2L/U2R attacks are rare and famously hard to catch, so the per-class recall shows plainly where the model struggles instead of hiding it inside the overall accuracy.",
+    accent: "#4a72c0",
+    icon: Waypoints,
+    stat: "5",
+    statLabel: "Attack Classes",
+    model: "scikit-learn RandomForest (NSL-KDD)",
+    input: "Held-out NSL-KDD test connections",
+    tags: ["Security", "Intrusion Detection", "Supervised ML", "Live Engine"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/intrusion-detection",
   },
   {
     id: "yara-file-scanner",
