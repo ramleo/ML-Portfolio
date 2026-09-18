@@ -1,17 +1,37 @@
-/** Security & Trust tool cards.
+/** Security & Trust tool cards (part 1 of 2).
  *
- *  Split out of a single 961-line capabilities.ts, which was pinned as
- *  oversized debt and could not take another card without failing the
- *  file-length gate. Order within a domain is preserved exactly, because
- *  that is the order the domain page renders. Flat order across domains
- *  is not used by anything: every consumer takes a length or filters by
- *  domain.
+ *  Split out of a single 961-line capabilities.ts, then split again when this
+ *  file itself crossed the 400-line limit: the back half now lives in
+ *  ./securityMore and is concatenated at the end here, so the render order of
+ *  the Security & Trust domain is preserved exactly. Every consumer still does
+ *  `import securityTrust from "./security"` and gets the full, ordered list;
+ *  the handbook/thumbnail scripts glob every *.ts in this directory, so both
+ *  files are read regardless.
  */
-import { Activity, Binary, Blocks, Bug, FileCode2, Fingerprint, KeyRound, Keyboard, ListChecks, LockKeyhole, MailCheck, MailWarning, MessageSquareWarning, Network, PackageSearch, Palette, Puzzle, QrCode, Radar, ScanEye, ScanSearch, ShieldAlert, UserX } from "lucide-react";
+import { Activity, Bug, Fingerprint, KeyRound, ListChecks, LockKeyhole, MailWarning, Network, PackageSearch, ScanEye, ScanSearch, Syringe } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
+import securityMore from "./securityMore";
 
-const securityTrust: Capability[] = [
+const securityCore: Capability[] = [
+  {
+    id: "exploit-payload-detector",
+    domain: "Security & Trust",
+    title: "Exploit / Attack-Payload Detector",
+    subtitle: "Client-Side · No Upload",
+    description:
+      "Paste a URL, HTTP request, form value, header or log line and it flags known attack payloads — SQL injection, cross-site scripting, command injection, path traversal, SSRF, server-side template injection, Log4Shell/JNDI, NoSQL/LDAP/XXE injection, CRLF and unsafe deserialization. Before matching it URL-, HTML-entity- and Base64-decodes each line, so obfuscated attempts are still caught and flagged as such. It's a signature-based demo — the same idea as the ModSecurity CRS or Snort rules real WAFs use — so it can be evaded by a novel encoding and can occasionally false-positive, which is why every finding shows its line, the technique in plain words, and the exact matched string. Everything runs in your browser; the text never leaves the page and is never logged.",
+    accent: "#c8623f",
+    icon: Syringe,
+    stat: "12",
+    statLabel: "Attack Classes",
+    model: "Regex signatures + deobfuscation (client-side)",
+    input: "Pasted URL / request / log line",
+    tags: ["Security", "Injection", "WAF", "Client-Side"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/exploit-payload-detector",
+  },
   {
     id: "secret-scanner",
     domain: "Security & Trust",
@@ -211,240 +231,8 @@ const securityTrust: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/dns-tunneling-detector",
   },
-  {
-    id: "password-audit",
-    domain: "Security & Trust",
-    title: "Password Strength & Breach Checker",
-    subtitle: "Local · No API Cost",
-    description:
-      "Check how strong a password really is. Scored in your browser by zxcvbn, the pattern-matching algorithm behind many real password meters — dictionaries, keyboard walks, dates, repeats — rather than naive character-class counting. You can also check it against Have I Been Pwned using k-anonymity: only the first five characters of its SHA-1 hash ever leave your machine, never the password itself. Nothing is stored.",
-    accent: "#428079",
-    icon: KeyRound,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "zxcvbn-ts + HIBP k-anonymity range API",
-    input: "Password (never stored)",
-    tags: ["Security", "Password Strength", "Breach Detection", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/password-audit",
-  },
-  {
-    id: "qr-phishing-detector",
-    domain: "Security & Trust",
-    title: "QR Phishing Detector",
-    subtitle: "Local · No API Cost",
-    description:
-      "Upload a photo or screenshot of a QR code and see where it actually points before you trust it. The decoded URL is checked for structural phishing signals — IP-literal hosts, punycode, '@' auth tricks, shorteners, suspicious TLDs, and typosquats of well-known brands by edit distance. The link is decoded and read, never visited. You get flags to weigh, not a binary safe/malicious answer.",
-    accent: "#a06840",
-    icon: QrCode,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "cv2 QRCodeDetector + heuristics (local)",
-    input: "Photo or screenshot",
-    tags: ["Security", "Phishing Detection", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/qr-phishing-detector",
-  },
-  {
-    id: "adversarial-robustness-lab",
-    domain: "Security & Trust",
-    title: "Adversarial Robustness Lab",
-    subtitle: "Local · No API Cost",
-    description:
-      "Upload a photo and break an image classifier on purpose. Craft subtle FGSM or PGD perturbations, a visible adversarial patch, or a black-box attack with no gradient access, untargeted or aimed at a specific label. Then try two inference-time defences, check whether the attack transfers to a second model, and see adversarial training compared against a standard model on the run you just performed. It reports honestly whether a defence actually recovered the right label, and whether a targeted black-box attack converged at all within the query budget — often it doesn't.",
-    accent: "#c84b60",
-    icon: ShieldAlert,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "MobileNetV2 + FGSM/PGD/Patch/Black-box (local)",
-    input: "Photo",
-    tags: ["Adversarial ML", "Security", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/adversarial-robustness-lab",
-  },
-  {
-    id: "captcha-hardening-lab",
-    domain: "Security & Trust",
-    title: "CAPTCHA Hardening Lab",
-    subtitle: "VLM Read Attempt · Before/After",
-    description:
-      "Upload a CAPTCHA-style image and watch a vision-language model try to read it — modern VLMs handle plain text CAPTCHAs far more easily than classic OCR ever did. One intensity slider then stacks three model-agnostic hardening techniques (pixel noise, an occlusion wave, contrast reduction) and the model tries again, side by side. Nothing gradient-based is used, because the solver here is a black box — the same constraint a real CAPTCHA vendor faces. It only ever reads an image you upload; it never contacts a live CAPTCHA on a real site.",
-    accent: "#966f2b",
-    icon: Puzzle,
-    stat: "2",
-    statLabel: "VLM Read Attempts",
-    model: "Mistral/Gemini vision cascade",
-    input: "Photo",
-    tags: ["Security Research", "CAPTCHA", "Adversarial ML", "Vision-Language Model"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/captcha-hardening-lab",
-  },
-  {
-    id: "malware-image-triage",
-    domain: "Security & Trust",
-    title: "Binary Byte-Plot & Entropy Triage",
-    subtitle: "Static Analysis · No Execution",
-    description:
-      "Upload any file and see its structure as a picture. The bytes are rendered as the grayscale byte-plot used in malware-visualisation research, next to a sliding-window entropy heatmap — sustained near-random entropy is an established sign of packed or encrypted content, the same signal tools like PEiD look for. Windows executables also get a PE header check for a classic packer tell. It won't name a malware family — no dependable pretrained model exists for that — and it never executes the file: static byte analysis only, up to 5MB.",
-    accent: "#c84b60",
-    icon: Binary,
-    stat: "0",
-    statLabel: "Files Executed",
-    model: "Byte-plot + Shannon entropy (local)",
-    input: "Any file",
-    tags: ["Security Research", "Static Analysis", "Malware Triage", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/malware-image-triage",
-  },
-  {
-    id: "face-deanonymization-demo",
-    domain: "Security & Trust",
-    title: "Face Deanonymization Risk Demo",
-    subtitle: "Local · No API Cost",
-    description:
-      "See how face re-identification actually works, on photos you supply. Upload a target photo and a small gallery, and the gallery is ranked by how closely each face matches — a real measured similarity, the same mechanism behind Clearview-style search. A 'Protect and re-test' step then cloaks the target and runs the identical search again so you can see whether the match survives. It searches nothing but the photos in your request — no internet, no database.",
-    accent: "#a06840",
-    icon: Radar,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "InceptionResnetV1 (local)",
-    input: "Photos",
-    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/face-deanonymization-demo",
-  },
-  {
-    id: "video-keystroke-inference",
-    domain: "Security & Trust",
-    title: "Video-Call Keystroke Inference",
-    subtitle: "Client-Side Only",
-    description:
-      "Upload a short clip of someone typing and recover when the keys were pressed from hand motion alone. Frame-by-frame hand tracking feeds a tap detector on fingertip movement, producing a timeline of keystrokes, which hand, and likely word boundaries from the gaps — the same side channel behind published research on video keystroke inference. It stops at timing and does not attempt to recover what was typed: that needs per-target trained models this doesn't have. Runs in your browser; no video leaves your device.",
-    accent: "#3e7c98",
-    icon: Keyboard,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "MediaPipe HandLandmarker (local)",
-    input: "Video",
-    tags: ["Security Research", "Side-Channel", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/video-keystroke-inference",
-  },
-  {
-    id: "extension-permission-analyzer",
-    domain: "Security & Trust",
-    title: "Browser Extension Permission Risk Analyzer",
-    subtitle: "Local · No API Cost",
-    description:
-      "Paste a Chrome or Edge extension's manifest.json and see what it is allowed to do. Checks individually-risky permissions (debugger, nativeMessaging, webRequestBlocking, cookies, history), broad host access, and dangerous combinations — broad host access plus network interception plus cookies together enable session hijacking on any site. This reads declared permissions, not behaviour: a legitimate password manager needs much the same access, so findings are framed as worth a closer look, never a judgement of intent.",
-    accent: "#85733d",
-    icon: Blocks,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "Rule-based (local)",
-    input: "Text",
-    tags: ["Browser Security", "Static Analysis", "Zero ML", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/extension-permission-analyzer",
-  },
-  {
-    id: "email-auth-checker",
-    domain: "Security & Trust",
-    title: "Email Header Authentication Checker",
-    subtitle: "Live DNS · Zero ML",
-    description:
-      "Paste raw email headers and see whether the sender checks out. You get two things: what the receiving mail server's own Authentication-Results already concluded about SPF, DKIM and DMARC (relayed, not re-verified), and independent live DNS lookups of the sending domain's real records, plus a From: alignment check. It does not cryptographically verify the DKIM signature — that needs the full message body — and says so rather than implying otherwise.",
-    accent: "#3c7d9b",
-    icon: MailCheck,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "DNS TXT lookups (live)",
-    input: "Text",
-    tags: ["Email Security", "DNS", "Anti-Spoofing", "Zero ML"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/email-auth-checker",
-  },
-  {
-    id: "prompt-injection-playground",
-    domain: "Security & Trust",
-    title: "LLM Prompt Injection Detection Playground",
-    subtitle: "Pattern + LLM Judge",
-    description:
-      "Paste a prompt, or a document an AI might be asked to read, and see whether it tries to hijack the model. Two independent signals sit side by side: a transparent pattern library covering direct overrides, jailbreak roleplay, indirect injection and encoding tricks, and a separately-prompted LLM judge. They combine into an overall risk badge rather than one invented confidence number — no detector here is claimed to be reliable on its own.",
-    accent: "#8164c4",
-    icon: MessageSquareWarning,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "Regex heuristics + Mistral judge",
-    input: "Text",
-    tags: ["Prompt Injection", "LLM Security", "AI Red-Teaming", "RAG"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/prompt-injection-playground",
-  },
-  {
-    id: "ai-code-detector",
-    domain: "Security & Trust",
-    title: "AI-Generated Code Detector",
-    subtitle: "Signals, Not A Verdict",
-    description:
-      "Paste a code snippet and see the stylometric signals people associate with AI authorship — comment density, generic naming, docstring formality, exception handling, boilerplate phrasing — alongside an independent LLM opinion, shown side by side. It deliberately never returns a probability or an 'AI-written' verdict, because no reliable general-purpose detector exists in the published research and a confidence number here would be invented.",
-    accent: "#428079",
-    icon: FileCode2,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "Client heuristics + Mistral judge",
-    input: "Text",
-    tags: ["Code Stylometry", "LLM Security", "Zero Overclaiming", "Second Opinion"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/ai-code-detector",
-  },
-  {
-    id: "face-cloak",
-    domain: "Security & Trust",
-    title: "Face Cloak",
-    subtitle: "Local · No API Cost",
-    description:
-      "Add a barely-visible perturbation to a photo so face-recognition models place it somewhere other than your real face. A simplified take on Fawkes, the privacy technique built to counter unauthorised facial-recognition scraping. You get the actual measured drop in embedding similarity, and an honest caveat: this protects the copy you cloak, not photos of you already scraped elsewhere.",
-    accent: "#8164c4",
-    icon: UserX,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "InceptionResnetV1 (local)",
-    input: "Photo",
-    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/face-cloak",
-  },
-  {
-    id: "style-cloak",
-    domain: "Security & Trust",
-    title: "Style Cloak",
-    subtitle: "Local · No API Cost",
-    description:
-      "Add a barely-visible perturbation across an image so its CLIP embedding drifts away from where a model would naturally place it — a simplified take on the Glaze and Nightshade approach to countering AI style-mimicry. You get the actual measured similarity drop, calibrated against an unrelated-image baseline, plus the honest caveat: it protects the copy you cloak, not images already scraped elsewhere.",
-    accent: "#b65384",
-    icon: Palette,
-    stat: "0",
-    statLabel: "API Calls",
-    model: "CLIP ViT-B/32 (local)",
-    input: "Image",
-    tags: ["Privacy", "Security", "Computer Vision", "Local Compute"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/style-cloak",
-  },
 ];
+
+const securityTrust: Capability[] = [...securityCore, ...securityMore];
 
 export default securityTrust;
