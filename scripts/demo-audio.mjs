@@ -83,10 +83,36 @@ export function voiceTrack(lines, spent, tmp, leadMs = 0, tailMs = 0) {
   return out;
 }
 
-/** Video as-is plus the narration track. -shortest so a rounding difference
- *  between the two cannot leave a tail of silence on the end. */
+const secondsOf = (file) =>
+  Number(execFileSync("ffprobe", [
+    "-v", "error", "-show_entries", "format=duration",
+    "-of", "default=noprint_wrappers=1:nokey=1", file,
+  ]).toString().trim()) || 0;
+
+/** How long the picture eases up from and down to black at the two ends. The
+ *  cards already dissolve between themselves and the page, but the *video* used
+ *  to pop on at full brightness on frame one and stop dead on the last — an
+ *  abrupt start and an abrupt end. The card background is #0b0e17, so fading
+ *  the whole frame from and to black reads as one continuous open and close. */
+const FADE_IN = 0.6;
+const FADE_OUT = 0.9;
+
+/** Video plus the narration track, opened and closed with a fade from/to black.
+ *
+ *  Copying the video was faster but left it unable to fade — a fade has to
+ *  touch every frame, so the stream is re-encoded (VP9, visibly smaller than
+ *  Playwright's VP8 for the same clip). The length is pinned to the shorter of
+ *  picture and sound with `-t`, the same guard `-shortest` used to give, so a
+ *  rounding gap can neither leave a tail of silence nor clip the closing card. */
 export function mux(video, voice, out) {
+  const dur = Math.min(secondsOf(video), secondsOf(voice));
+  const outStart = Math.max(0, dur - FADE_OUT).toFixed(2);
+  const vf = `fade=t=in:st=0:d=${FADE_IN},fade=t=out:st=${outStart}:d=${FADE_OUT}`;
+  const af = `afade=t=in:st=0:d=${FADE_IN},afade=t=out:st=${outStart}:d=${FADE_OUT}`;
   execFileSync("ffmpeg", ["-y", "-loglevel", "error",
     "-i", video, "-i", voice,
-    "-c:v", "copy", "-c:a", "libopus", "-b:a", "96k", "-shortest", out]);
+    "-vf", vf, "-af", af, "-t", dur.toFixed(2),
+    "-c:v", "libvpx-vp9", "-crf", "33", "-b:v", "0",
+    "-cpu-used", "5", "-row-mt", "1", "-deadline", "good",
+    "-c:a", "libopus", "-b:a", "96k", out]);
 }
