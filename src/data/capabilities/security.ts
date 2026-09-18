@@ -7,11 +7,29 @@
  *  is not used by anything: every consumer takes a length or filters by
  *  domain.
  */
-import { Activity, Binary, Blocks, Bug, FileCode2, Fingerprint, KeyRound, Keyboard, ListChecks, LockKeyhole, MailCheck, MailWarning, MessageSquareWarning, Network, PackageSearch, Palette, Puzzle, QrCode, Radar, ScanEye, ShieldAlert, UserX } from "lucide-react";
+import { Activity, Binary, Blocks, Bug, FileCode2, Fingerprint, KeyRound, Keyboard, ListChecks, LockKeyhole, MailCheck, MailWarning, MessageSquareWarning, Network, PackageSearch, Palette, Puzzle, QrCode, Radar, ScanEye, ScanSearch, ShieldAlert, UserX } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 
 const securityTrust: Capability[] = [
+  {
+    id: "secret-scanner",
+    domain: "Security & Trust",
+    title: "Secret & PII Leak Scanner",
+    subtitle: "Client-Side · No Upload",
+    description:
+      "Paste code, config, logs or any text and it flags leaked secrets and personal data — AWS access keys, GitHub and Google and Stripe and Slack tokens, private-key blocks, JWTs, passwords in URLs, hardcoded secret assignments, plus high-entropy strings that look like custom keys. It also finds PII: emails, phone numbers, IPs, US SSNs and credit-card numbers (Luhn-checked so random digits don't false-positive). A curated pattern + entropy demo detector, not exhaustive DLP — every finding shows its line and a masked preview. Everything runs in your browser; the text never leaves the page and is never logged.",
+    accent: "#3d8f8f",
+    icon: ScanSearch,
+    stat: "20+",
+    statLabel: "Detectors",
+    model: "Regex + Shannon entropy + Luhn (client-side)",
+    input: "Pasted code / config / logs / text",
+    tags: ["Security", "Secrets", "PII", "Client-Side"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/secret-scanner",
+  },
   {
     id: "jwt-analyzer",
     domain: "Security & Trust",
