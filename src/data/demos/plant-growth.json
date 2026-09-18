@@ -1,0 +1,50 @@
+{
+  "toolId": "plant-growth",
+  "chapter": "ch-26-plant-growth-quantification",
+  "route": "/tools/plant-growth",
+  "title": "Plant Growth Quantification",
+  "blurb": "Measures how much a plant grows between photos by counting leaf pixels with a local green-hue threshold — no ML model, no API cost — and is honest that it measures relative area, not real-world size.",
+  "steps": [
+    {
+      "say": "This measures how much a plant grows from one photo to the next. No neural network and no paid API — just a green-hue threshold in HSV colour space, counting how many pixels are leaf.",
+      "at": "pg-choose",
+      "settle": 2400
+    },
+    {
+      "say": "Three frames of the same plant, framed the same way each time. It is an illustration, so you can see plainly what gets counted — the measurement underneath is the real thing.",
+      "at": "pg-choose",
+      "act": "file",
+      "file": ["/samples/plant-day0.png", "/samples/plant-day14.png", "/samples/plant-day28.png"],
+      "settle": 1100
+    },
+    {
+      "say": "One plant per photo, taken from a fixed spot, so I switch off multi-plant detection. That measures leaf area against the whole frame — which is exactly what a fixed-camera time series wants, and it avoids a trap where cropping to each plant hides the growth.",
+      "at": "pg-autodetect",
+      "act": "click",
+      "settle": 1200
+    },
+    {
+      "say": "Measure growth.",
+      "at": "pg-measure",
+      "act": "click",
+      "waitFor": "pg-chart",
+      "expect": "relative to the first photo",
+      "settle": 1600
+    },
+    {
+      "say": "The chart reads leaf area against the first photo: up about 170 percent by the second frame, and over 400 percent by the third. The plant genuinely has far more green in it, and the count reflects that.",
+      "at": "pg-chart",
+      "settle": 3600
+    },
+    {
+      "say": "And here is the check that it measured the plant and not the room: the magenta overlay on each thumbnail is exactly the pixels counted as leaf. The pot and the wall are left out.",
+      "at": "pg-thumbs",
+      "settle": 3600
+    },
+    {
+      "say": "One caveat the tool states plainly: these percentages are relative leaf area, not a real-world size in centimetres, and they only hold up if every photo is framed the same way. Consistent framing matters here far more than a fancy camera.",
+      "at": "pg-chart",
+      "settle": 3600
+    }
+  ]
+}

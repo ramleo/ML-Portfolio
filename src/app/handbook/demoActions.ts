@@ -119,10 +119,15 @@ export async function performStep(s: DemoStep, d: Document, w: Frame): Promise<v
   }
 
   if (s.act === "file" && s.file) {
-    const buf = await (await fetch(s.file)).arrayBuffer();
-    const name = s.file.split("/").pop() ?? "sample";
+    // One path or several — a `multiple` input whose handler replaces its list
+    // on each change (Plant Growth) needs every file set in one change event.
+    const paths = Array.isArray(s.file) ? s.file : [s.file];
     const dt = new w.DataTransfer();
-    dt.items.add(new w.File([buf], name, { type: mimeOf(name) }));
+    for (const p of paths) {
+      const buf = await (await fetch(p)).arrayBuffer();
+      const name = p.split("/").pop() ?? "sample";
+      dt.items.add(new w.File([buf], name, { type: mimeOf(name) }));
+    }
     const input = (el?.querySelector("input[type=file]") ??
       d.querySelector("input[type=file]")) as HTMLInputElement | null;
     if (!input) return;

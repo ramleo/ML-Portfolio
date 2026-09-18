@@ -19,6 +19,7 @@ import malwareImageTriage from "./malware-image-triage.json";
 import multimodalRag from "./multimodal-rag.json";
 import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
+import plantGrowth from "./plant-growth.json";
 import preprocessing from "./preprocessing.json";
 import ppeCompliance from "./ppe-compliance-check.json";
 import promptInjection from "./prompt-injection-playground.json";
@@ -69,8 +70,10 @@ export interface DemoStep {
   /** How long the pointer motion should take. Long enough to read as motion,
    *  short enough not to outlast the narration. */
   overMs?: number;
-  /** For act: "file" — a path under /public, dropped into the nearest file input. */
-  file?: string;
+  /** For act: "file" — a path under /public, dropped into the nearest file
+   *  input. An array uploads several at once, for a `multiple` input whose
+   *  handler replaces its list on each pick (Plant Growth's growth mode). */
+  file?: string | string[];
   /** A second anchor to include in the spotlight, so the ring encloses both.
    *  For a step that drives a control whose whole point is its effect on
    *  something else: everything outside the ring is dimmed, so spotlighting a
@@ -134,6 +137,7 @@ export const DEMOS: Demo[] = [
   malwareImageTriage,
   optuna,
   passwordAudit,
+  plantGrowth,
   preprocessing,
   pipelineBuilder,
   pipelineCinema,

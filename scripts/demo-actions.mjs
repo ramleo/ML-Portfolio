@@ -117,11 +117,16 @@ export async function runAction(page, s, { must, root }) {
         .selectOption(s.value, { timeout: 15000 })
     );
 
-  if (s.act === "file" && s.file)
-    await must(`upload ${s.file}`, () =>
-      page.locator("input[type=file]").first()
-        .setInputFiles(path.join(root, "public", s.file.replace(/^\//, "")), { timeout: 15000 })
+  if (s.act === "file" && s.file) {
+    // s.file may be one path or several: a `multiple` input whose handler
+    // replaces its list on each pick (Plant Growth) needs every frame in a
+    // single setInputFiles call, not one per step, or only the last survives.
+    const files = (Array.isArray(s.file) ? s.file : [s.file])
+      .map((f) => path.join(root, "public", f.replace(/^\//, "")));
+    await must(`upload ${files.length > 1 ? `${files.length} files` : s.file}`, () =>
+      page.locator("input[type=file]").first().setInputFiles(files, { timeout: 15000 })
     );
+  }
 
   if (s.act === "hover" && s.at)
     await must(`hover across [data-wt="${s.at}"]`, () => hover(page, s));

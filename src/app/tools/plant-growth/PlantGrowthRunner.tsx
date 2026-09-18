@@ -156,7 +156,7 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
         </p>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => fileInputRef.current?.click()} disabled={measuring}
+          <button onClick={() => fileInputRef.current?.click()} disabled={measuring} data-wt="pg-choose"
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff", opacity: measuring ? 0.5 : 1 }}>
             Choose photos
@@ -169,13 +169,13 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             Take photo
           </button>
           {pending.length > 0 && (
-            <button onClick={onMeasure} disabled={measuring || pending.length < MIN_FRAMES}
+            <button onClick={onMeasure} disabled={measuring || pending.length < MIN_FRAMES} data-wt="pg-measure"
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors border"
               style={{ borderColor: accent, color: accent, opacity: measuring || pending.length < MIN_FRAMES ? 0.5 : 1 }}>
               {measuring ? "Measuring…" : pending.length === 1 ? "Compare plants (1)" : `Measure growth (${pending.length})`}
             </button>
           )}
-          <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: "var(--text3)" }}>
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer" data-wt="pg-autodetect" style={{ color: "var(--text3)" }}>
             <input type="checkbox" checked={autoDetect} onChange={e => setAutoDetect(e.target.checked)} />
             Auto-detect multiple plants
           </label>
@@ -272,17 +272,21 @@ export default function PlantGrowthRunner({ accent }: { accent: string }) {
             </p>
           )}
 
-          <GrowthChart frames={frames} accent={accent} projectedPct={projectedPct} />
+          <div data-wt="pg-chart">
+            <GrowthChart frames={frames} accent={accent} projectedPct={projectedPct} />
+          </div>
 
           <ProjectionControl frames={frames} stepsAhead={projectionSteps} onStepsAheadChange={setProjectionSteps} projectedPct={projectedPct} accent={accent} />
 
-          <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
+          <div data-wt="pg-thumbs">
+            <FrameThumbnails frames={frames} accent={accent} onImageClick={(src, alt) => setLightbox({ src, alt })} cmPerPixel={calibration?.cmPerPixel} />
+          </div>
 
           <div className="self-center">
             <ExportCsvButton onClick={() => downloadCsv(`plant-${selectedPlant + 1}-growth.csv`, growthFramesToRows(frames, calibration?.cmPerPixel))} />
           </div>
 
-          <p className="text-xs text-center max-w-2xl mx-auto" style={{ color: "var(--text3)" }}>
+          <p className="text-xs text-center max-w-2xl mx-auto" data-wt="pg-note" style={{ color: "var(--text3)" }}>
             Growth is leaf-pixel area relative to the first photo, not a real-world measurement — it only
             holds up if every photo is framed the same way. The magenta overlay above each thumbnail shows
             exactly what was counted as plant. Hover a thumbnail for its greenness index and leaf count.
