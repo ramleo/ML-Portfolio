@@ -7,11 +7,29 @@
  *  is not used by anything: every consumer takes a length or filters by
  *  domain.
  */
-import { Binary, Blocks, Bug, FileCode2, Fingerprint, KeyRound, Keyboard, ListChecks, LockKeyhole, MailCheck, MailWarning, MessageSquareWarning, Network, PackageSearch, Palette, Puzzle, QrCode, Radar, ScanEye, ShieldAlert, UserX } from "lucide-react";
+import { Activity, Binary, Blocks, Bug, FileCode2, Fingerprint, KeyRound, Keyboard, ListChecks, LockKeyhole, MailCheck, MailWarning, MessageSquareWarning, Network, PackageSearch, Palette, Puzzle, QrCode, Radar, ScanEye, ShieldAlert, UserX } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 
 const securityTrust: Capability[] = [
+  {
+    id: "anomaly-detection",
+    domain: "Security & Trust",
+    title: "Log Anomaly Detector",
+    subtitle: "Live Engine · Isolation Forest",
+    description:
+      "A live security-log monitor. A real scikit-learn Isolation Forest learns what normal web traffic looks like from a baseline, then flags the requests that don't fit — brute-force login floods, scrapers walking random URLs, oversized payloads, error-heavy bursts at 3am — in a rolling feed where anomalies flash red. The traffic is simulated and labelled (a live serverless site can't stream its own logs into a public page), and the model is scored honestly against ground truth it never sees, so it can be caught missing an attack or raising a false alarm.",
+    accent: "#4f8fb0",
+    icon: Activity,
+    stat: "5",
+    statLabel: "Traffic Features",
+    model: "scikit-learn IsolationForest",
+    input: "Simulated request-log stream",
+    tags: ["Security", "Anomaly Detection", "Unsupervised ML", "Live Engine"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/anomaly-detection",
+  },
   {
     id: "yara-file-scanner",
     domain: "Security & Trust",
