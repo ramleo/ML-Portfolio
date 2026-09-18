@@ -1,0 +1,44 @@
+{
+  "toolId": "ppe-compliance-check",
+  "chapter": "ch-24-ppe-compliance-check",
+  "route": "/tools/ppe-compliance-check",
+  "title": "PPE Compliance Check",
+  "blurb": "Detects each person in a site photo and checks whether a hard hat and safety vest are actually visible on them, with a dedicated PPE model — and says 'unclear' rather than guess.",
+  "steps": [
+    {
+      "say": "On a real site the question is simple: is each person wearing their hard hat and safety vest? This checks a photo for exactly that, using a dedicated PPE-detection model — the site's general object detector has no safety-vest class at all.",
+      "at": "ppe-choose",
+      "settle": 2400
+    },
+    {
+      "say": "Here is a single worker inspecting a window frame — hard hat on, hi-vis vest on.",
+      "at": "ppe-choose",
+      "act": "file",
+      "file": "/samples/ppe-worker-window.jpg",
+      "settle": 900
+    },
+    {
+      "say": "Check compliance. It detects the person first, then looks for a hard hat and a vest in the head and torso regions that belong to them.",
+      "at": "ppe-check",
+      "act": "click",
+      "waitFor": "ppe-results",
+      "expect": "Present",
+      "settle": 1600
+    },
+    {
+      "say": "One person found and boxed, with the verdict drawn straight on the image: hard hat present, vest present, both read with high confidence.",
+      "at": "ppe-results",
+      "settle": 3200
+    },
+    {
+      "say": "The per-person breakdown, and the third state the tool insists on: an item is only called present or missing when the model actually detects it either way. A person it cannot read confidently is labeled unclear — never quietly counted as compliant.",
+      "at": "ppe-people",
+      "settle": 3600
+    },
+    {
+      "say": "And the honest limits: this is not a certified safety system. Per-person attribution is a spatial heuristic, not real tracking, so a crowded photo with overlapping people can hand an item to the wrong person. It points you at candidates to eyeball — it does not sign off on them.",
+      "at": "ppe-limits",
+      "settle": 3400
+    }
+  ]
+}

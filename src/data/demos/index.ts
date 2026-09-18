@@ -20,6 +20,7 @@ import multimodalRag from "./multimodal-rag.json";
 import optuna from "./optuna.json";
 import passwordAudit from "./password-audit.json";
 import preprocessing from "./preprocessing.json";
+import ppeCompliance from "./ppe-compliance-check.json";
 import promptInjection from "./prompt-injection-playground.json";
 import qrPhishing from "./qr-phishing-detector.json";
 import pipelineBuilder from "./pipeline-builder.json";
@@ -140,6 +141,7 @@ export const DEMOS: Demo[] = [
   shap,
   siemAlertTriage,
   phishingEmail,
+  ppeCompliance,
   promptInjection,
   qrPhishing,
   tlsHeaders,

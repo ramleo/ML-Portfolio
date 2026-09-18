@@ -56,7 +56,7 @@ export default function PpeComplianceRunner({ accent }: { accent: string }) {
         </p>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => inputRef.current?.click()}
+          <button onClick={() => inputRef.current?.click()} data-wt="ppe-choose"
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
             style={{ background: accent, color: "#fff" }}>
             Choose photo
@@ -72,7 +72,7 @@ export default function PpeComplianceRunner({ accent }: { accent: string }) {
           <div className="flex items-center gap-4 mt-3 flex-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element -- local object-URL preview, not a static asset */}
             <img src={preview} alt="Upload" className="rounded-lg max-w-[160px]" style={{ aspectRatio: "1 / 1", objectFit: "cover" }} />
-            <button onClick={run} disabled={running}
+            <button onClick={run} disabled={running} data-wt="ppe-check"
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors"
               style={{ background: accent, color: "#fff", opacity: running ? 0.6 : 1 }}>
               {running ? "Checking…" : "Check compliance"}
@@ -84,7 +84,7 @@ export default function PpeComplianceRunner({ accent }: { accent: string }) {
       {error && <p className="text-xs px-1" style={{ color: "#f87171" }}>{error}</p>}
 
       {result && (
-        <div style={cardStyle} className="p-5 flex flex-col gap-4">
+        <div style={cardStyle} className="p-5 flex flex-col gap-4" data-wt="ppe-results">
           {result.warnings.length > 0 && (
             <ul className="flex flex-col gap-1">
               {result.warnings.map((w, i) => (
@@ -97,7 +97,7 @@ export default function PpeComplianceRunner({ accent }: { accent: string }) {
           <img src={`data:image/jpeg;base64,${result.annotated_image}`} alt="Annotated result" className="w-full rounded-lg" style={{ background: "#000" }} />
 
           {result.people.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" data-wt="ppe-people">
               {result.people.map((p, i) => (
                 <div key={i} className="flex items-center gap-4 p-3 rounded-lg flex-wrap" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                   <span className="text-xs font-semibold" style={{ color: "var(--text2)" }}>
@@ -120,7 +120,7 @@ export default function PpeComplianceRunner({ accent }: { accent: string }) {
         </div>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div className="text-xs leading-relaxed rounded-xl p-4" data-wt="ppe-limits" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> this is not a
         certified safety-compliance system. Per-person item attribution is a spatial heuristic (head/torso
         region overlap with each detected person), not real tracking — a crowded or overlapping-people

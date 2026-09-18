@@ -1,0 +1,26 @@
+[
+  {
+    "start": 4.9,
+    "say": "On a real site the question is simple: is each person wearing their hard hat and safety vest? This checks a photo for exactly that, using a dedicated PPE-detection model — the site's general object detector has no safety-vest class at all."
+  },
+  {
+    "start": 21.49,
+    "say": "Here is a single worker inspecting a window frame — hard hat on, hi-vis vest on."
+  },
+  {
+    "start": 27.43,
+    "say": "Check compliance. It detects the person first, then looks for a hard hat and a vest in the head and torso regions that belong to them."
+  },
+  {
+    "start": 36.28,
+    "say": "One person found and boxed, with the verdict drawn straight on the image: hard hat present, vest present, both read with high confidence."
+  },
+  {
+    "start": 47.48,
+    "say": "The per-person breakdown, and the third state the tool insists on: an item is only called present or missing when the model actually detects it either way. A person it cannot read confidently is labeled unclear — never quietly counted as compliant."
+  },
+  {
+    "start": 64.67,
+    "say": "And the honest limits: this is not a certified safety system. Per-person attribution is a spatial heuristic, not real tracking, so a crowded photo with overlapping people can hand an item to the wrong person. It points you at candidates to eyeball — it does not sign off on them."
+  }
+]
