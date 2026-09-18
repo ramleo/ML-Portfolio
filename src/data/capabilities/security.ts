@@ -13,6 +13,24 @@ import { GITHUB, type Capability } from "./_types";
 
 const securityTrust: Capability[] = [
   {
+    id: "jwt-analyzer",
+    domain: "Security & Trust",
+    title: "JWT / Token Security Analyzer",
+    subtitle: "Client-Side · Real Web Crypto",
+    description:
+      "Paste a JSON Web Token and it decodes the header and payload and audits them for the mistakes that cause real token breaches: alg:none, missing or over-long expiry, missing issuer/audience, and sensitive data sitting in the (unencrypted) payload. For HMAC tokens it runs a genuine weak-secret test in your browser with the Web Crypto API, trying a built-in list of default and common secrets plus any wordlist you paste — it catches guessable secrets but, honestly, cannot crack a strong random one. Everything runs locally; the token never leaves the page.",
+    accent: "#8b6fc9",
+    icon: KeyRound,
+    stat: "0",
+    statLabel: "Data Uploaded",
+    model: "Web Crypto HMAC (client-side)",
+    input: "A JWT + optional wordlist",
+    tags: ["Security", "JWT", "Authentication", "Client-Side"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/jwt-analyzer",
+  },
+  {
     id: "anomaly-detection",
     domain: "Security & Trust",
     title: "Log Anomaly Detector",
