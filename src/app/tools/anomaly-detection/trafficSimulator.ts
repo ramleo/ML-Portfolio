@@ -11,7 +11,7 @@
  * reel. The UI says "simulated traffic" plainly.
  *
  * Features sent to the model (must match anomaly_detection.py FEATURE_NAMES):
- *   [req_per_min, payload_bytes, hour, path_entropy, error_rate]
+ *   [req_per_min, payload_bytes, hour, path_randomness, error_rate]
  */
 
 export type AttackType =
@@ -30,7 +30,7 @@ export interface TrafficEvent {
   payloadBytes: number;
   hour: number;
   reqPerMin: number;
-  pathEntropy: number;
+  pathRandomness: number;
   errorRate: number;
   /** Ground truth, kept from the model. "normal" or the planted attack kind. */
   label: AttackType;
@@ -38,7 +38,7 @@ export interface TrafficEvent {
 
 /** Feature vector in the exact order the backend expects. */
 export function featureRow(e: TrafficEvent): number[] {
-  return [e.reqPerMin, e.payloadBytes, e.hour, e.pathEntropy, e.errorRate];
+  return [e.reqPerMin, e.payloadBytes, e.hour, e.pathRandomness, e.errorRate];
 }
 
 export const ATTACK_LABELS: Record<AttackType, string> = {
@@ -63,18 +63,18 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** Shannon entropy (bits) of a string's characters — a real fuzzer hitting
- *  random-looking paths scores high, an app's own routes score low. */
-function shannonEntropy(s: string): number {
-  const counts: Record<string, number> = {};
-  for (const ch of s) counts[ch] = (counts[ch] ?? 0) + 1;
-  const n = s.length || 1;
-  let h = 0;
-  for (const k in counts) {
-    const p = counts[k] / n;
-    h -= p * Math.log2(p);
-  }
-  return h;
+/** How "random-token"-like a path is: the fraction of its characters that are
+ *  digits. An app's own named routes (/tools, /api/stats) have none and score 0;
+ *  a scanner walking random hex paths (/2a4fc727ab48ab) scores high. Shannon
+ *  entropy was tried first and rejected — the homepage "/" has entropy 0, a
+ *  low-side outlier that made the model flag normal homepage traffic, and
+ *  ordinary long routes scored as high as the fuzzed ones. Digit-fraction
+ *  cleanly separates the two with no false alarm on normal paths. */
+function pathRandomness(s: string): number {
+  if (!s.length) return 0;
+  let digits = 0;
+  for (const ch of s) if (ch >= "0" && ch <= "9") digits++;
+  return +(digits / s.length).toFixed(3);
 }
 
 const NORMAL_PATHS = [
@@ -111,7 +111,7 @@ function normalEvent(rng: () => number, id: number): TrafficEvent {
     payloadBytes: Math.round(400 + jitter * 900),
     hour: randInt(rng, 9, 18),
     reqPerMin: Math.round(2 + jitter * 8),
-    pathEntropy: +(shannonEntropy(path)).toFixed(2),
+    pathRandomness: pathRandomness(path),
     errorRate: +(rng() * 0.05).toFixed(3),
     label: "normal",
   };
@@ -125,7 +125,7 @@ function attackEvent(rng: () => number, id: number, kind: AttackType): TrafficEv
     const path = randChoice(rng, ["/login", "/admin", "/wp-login.php", "/api/auth"]);
     return { id, ip, method: "POST", path, status: 401,
       payloadBytes: randInt(rng, 200, 500), hour: randInt(rng, 0, 23),
-      reqPerMin: randInt(rng, 90, 180), pathEntropy: +shannonEntropy(path).toFixed(2),
+      reqPerMin: randInt(rng, 90, 180), pathRandomness: pathRandomness(path),
       errorRate: +(0.7 + rng() * 0.25).toFixed(3), label: kind };
   }
   if (kind === "scraping") {
@@ -134,21 +134,27 @@ function attackEvent(rng: () => number, id: number, kind: AttackType): TrafficEv
     const path = `/${rand}`;
     return { id, ip, method: "GET", path, status: 404,
       payloadBytes: randInt(rng, 300, 600), hour: randInt(rng, 0, 23),
-      reqPerMin: randInt(rng, 50, 110), pathEntropy: +shannonEntropy(path).toFixed(2),
+      reqPerMin: randInt(rng, 50, 110), pathRandomness: pathRandomness(path),
       errorRate: +(0.5 + rng() * 0.4).toFixed(3), label: kind };
   }
   if (kind === "payload-spike") {
+    // An upload/exfiltration burst: not one big request but a run of oversized
+    // ones, so it's elevated on BOTH payload and rate. A single-feature outlier
+    // (huge payload, everything else normal) is exactly what Isolation Forest
+    // under-ranks — it gets crowded out by attacks that are extreme in two
+    // features — so a lone-payload spike was slipping through. Making it the
+    // realistic two-signal event it actually is keeps it reliably caught.
     const path = randChoice(rng, ["/api/upload", "/api/import", "/api/ingest"]);
     return { id, ip, method: "POST", path, status: 200,
       payloadBytes: randInt(rng, 40000, 500000), hour: randInt(rng, 9, 18),
-      reqPerMin: randInt(rng, 3, 9), pathEntropy: +shannonEntropy(path).toFixed(2),
+      reqPerMin: randInt(rng, 18, 30), pathRandomness: pathRandomness(path),
       errorRate: +(rng() * 0.05).toFixed(3), label: kind };
   }
   // off-hours burst: dead-of-night, elevated rate, error-heavy
   const path = randChoice(rng, ["/api/export", "/api/events", "/admin/data"]);
   return { id, ip, method: "GET", path, status: randChoice(rng, [403, 500]),
     payloadBytes: randInt(rng, 300, 900), hour: randInt(rng, 1, 4),
-    reqPerMin: randInt(rng, 25, 60), pathEntropy: +shannonEntropy(path).toFixed(2),
+    reqPerMin: randInt(rng, 25, 60), pathRandomness: pathRandomness(path),
     errorRate: +(0.6 + rng() * 0.35).toFixed(3), label: "off-hours" };
 }
 

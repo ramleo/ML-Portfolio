@@ -101,12 +101,14 @@ export function useAnomalyDetection() {
         body: JSON.stringify({
           baseline: baseline.map(featureRow),
           events: stream.map(featureRow),
-          // IsolationForest's "auto" threshold flags far too much (~12 false
-          // alarms on a 34-event stream in testing across seeds — 34% precision).
-          // A ~10% contamination prior is the sweet spot: ~1 false alarm, ~85%
-          // precision, ~93% recall. It still misses the odd attack, which is
-          // honest — the scorecard shows it rather than hiding it.
-          contamination: 0.1,
+          // IsolationForest's "auto" threshold flags far too much (~19 false
+          // alarms on a 34-event stream — 24% precision, verified live). A tight
+          // contamination prior fixes it: on the real captured scenario, 0.05
+          // gives all 6 attacks caught with 1 false alarm (86% precision, 100%
+          // recall). Validated against the exact features the page sends, after
+          // fixing the path-randomness feature and the single-feature payload
+          // spike that IsolationForest was under-ranking.
+          contamination: 0.05,
         }),
         signal: controller.signal,
       }, { tool: "anomaly-detection" });

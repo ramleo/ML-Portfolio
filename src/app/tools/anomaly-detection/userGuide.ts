@@ -38,8 +38,9 @@ already has:
 - **Payload size** — an unusually large body can mean an exfiltration or
   upload abuse.
 - **Time of day** — human traffic clusters in daytime; 3am bursts are odd.
-- **Path randomness** — Shannon entropy of the URL; fuzzers and scanners
-  hit random-looking paths.
+- **Path randomness** — how token-like the URL looks (its share of digits);
+  fuzzers and scanners hit random hex-ish paths, an app's own named routes
+  don't.
 - **Error rate** — a spike of 401/403/500 from one IP suggests probing.
 
 ## What it is and isn't

@@ -9,7 +9,7 @@ const FEATURE_LABEL: Record<string, string> = {
   req_per_min: "Requests/min",
   payload_bytes: "Payload size",
   hour: "Time of day",
-  path_entropy: "Path randomness",
+  path_randomness: "Path randomness",
   error_rate: "Error rate",
 };
 
