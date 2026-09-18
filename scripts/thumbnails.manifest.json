@@ -13,6 +13,13 @@
   "pexels": 374559,
   "url": "https://images.pexels.com/photos/374559/pexels-photo-374559.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
+ "anomaly-detection": {
+  "alt": "Detailed image of a server rack with glowing lights in a modern data center.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 1148820,
+  "url": "https://images.pexels.com/photos/1148820/pexels-photo-1148820.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
  "asl-fingerspelling-recognition": {
   "alt": "A close-up of a hand making an OK gesture, with a light background and soft lighting.",
   "domain": "Computer Vision",
@@ -105,6 +112,13 @@
   "pexels": 4513448,
   "url": "https://images.pexels.com/photos/4513448/pexels-photo-4513448.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
+ "exploit-payload-detector": {
+  "alt": "Close-up of colorful programming code displayed on a computer monitor with a dark background.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 6424583,
+  "url": "https://images.pexels.com/photos/6424583/pexels-photo-6424583.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
  "exploratory-data-analysis": {
   "alt": "Close-up of layered sandstone formations in an arid landscape, showcasing natural erosion patterns.",
   "domain": "ML Pipeline",
@@ -161,6 +175,20 @@
   "mode": "photo",
   "pexels": 11692911,
   "url": "https://images.pexels.com/photos/11692911/pexels-photo-11692911.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "intrusion-detection": {
+  "alt": "Blue plastic wires with white tips connected to server and provide access to information",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 4716292,
+  "url": "https://images.pexels.com/photos/4716292/pexels-photo-4716292.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "jwt-analyzer": {
+  "alt": "Detailed shot of keys hanging in a door lock on a wooden surface, warm tones.",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 12496893,
+  "url": "https://images.pexels.com/photos/12496893/pexels-photo-12496893.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
  "keystroke-biometric-auth-risk": {
   "alt": "Closeup of a hand with polka dot nails typing on a vintage keyboard, emphasizing retro technology.",
@@ -287,6 +315,13 @@
   "mode": "photo",
   "pexels": 38808473,
   "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "secret-scanner": {
+  "alt": "System with various wires managing access to centralized resource of server in data center",
+  "domain": "Security & Trust",
+  "mode": "photo",
+  "pexels": 5480781,
+  "url": "https://images.pexels.com/photos/5480781/pexels-photo-5480781.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
  "shap": {
   "alt": "A person closely examines postage stamps with a magnifying glass, revealing intricate details.",
