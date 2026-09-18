@@ -4,6 +4,7 @@ import astrophotography from "./astrophotography-anomaly-detector.json";
 import attackSurfaceScanner from "./attack-surface-scanner.json";
 import automl from "./automl.json";
 import contractInvoiceReconciliation from "./contract-invoice-reconciliation.json";
+import crimeSceneReconstruction from "./crime-scene-reconstruction.json";
 import depthParallax from "./depth-parallax.json";
 import documentIntelligence from "./document-intelligence.json";
 import exploratoryDataAnalysis from "./exploratory-data-analysis.json";
@@ -123,6 +124,7 @@ export const DEMOS: Demo[] = [
   automl,
   textToSql,
   contractInvoiceReconciliation,
+  crimeSceneReconstruction,
   documentIntelligence,
   exploratoryDataAnalysis,
   depthParallax,

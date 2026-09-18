@@ -1,0 +1,41 @@
+{
+  "toolId": "crime-scene-reconstruction",
+  "chapter": "ch-19-crime-scene-reconstruction",
+  "route": "/tools/crime-scene-reconstruction",
+  "title": "Crime Scene Reconstruction",
+  "blurb": "Rebuilds a scene in 3D from a handful of ordinary 2D photos — structure-from-motion with SIFT features, essential-matrix geometry and triangulation, the same technique behind photogrammetry tools like COLMAP.",
+  "steps": [
+    {
+      "say": "This rebuilds a scene in 3D from ordinary flat photos — structure from motion, the technique behind photogrammetry. You walk around a scene taking overlapping photos, and the shared detail between them is enough to recover both the scene's shape and where each photo was shot from.",
+      "at": "cs-add",
+      "settle": 2600
+    },
+    {
+      "say": "Four rendered views of a simple scene — three blocks on a patterned floor — each shot from a different position, the way you'd circle a real one. Nothing here carries depth; it is all flat pixels.",
+      "at": "cs-add",
+      "act": "file",
+      "file": ["/samples/crime-scene-1.png", "/samples/crime-scene-2.png", "/samples/crime-scene-3.png", "/samples/crime-scene-4.png"],
+      "settle": 1200
+    },
+    {
+      "say": "Reconstruct. It finds SIFT keypoints in every photo, matches them across pairs, solves the camera geometry from those matches, and triangulates each matched point into 3D.",
+      "at": "cs-reconstruct",
+      "act": "click",
+      "waitFor": "cs-cloud",
+      "expect": "camera positions recovered",
+      "settle": 2000
+    },
+    {
+      "say": "And the flat photos become a scene in space: a sparse point cloud of the blocks and floor, with a cone marking each recovered camera position. Drag to orbit it — the depth is real, solved purely from where features shifted between shots.",
+      "at": "cs-cloud",
+      "act": "drag",
+      "overMs": 2600,
+      "settle": 3200
+    },
+    {
+      "say": "The honest limits: this is sparse structure-from-motion, not a dense model — matched keypoints only, no bundle adjustment and no camera calibration, so shape and scale are approximate. It is an educational demonstration of the real photogrammetry pipeline, not a forensic-grade measurement.",
+      "at": "cs-limits",
+      "settle": 3600
+    }
+  ]
+}

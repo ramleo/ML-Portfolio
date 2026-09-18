@@ -71,7 +71,7 @@ export default function CrimeSceneReconstructionRunner({ accent }: { accent: str
             </div>
           ))}
           {photos.length < 6 && (
-            <button onClick={() => inputRef.current?.click()}
+            <button onClick={() => inputRef.current?.click()} data-wt="cs-add"
               className="rounded-lg flex items-center justify-center text-xs font-semibold"
               style={{ aspectRatio: "1 / 1", background: "var(--surface2)", border: "1px dashed var(--border)", color: "var(--text3)" }}>
               + Add photo
@@ -82,7 +82,7 @@ export default function CrimeSceneReconstructionRunner({ accent }: { accent: str
           onChange={e => e.target.files && onFilesSelected(e.target.files)} />
 
         <div className="flex flex-wrap items-center gap-3 mt-4">
-          <button onClick={reconstruct} disabled={running || photos.length < 2}
+          <button onClick={reconstruct} disabled={running || photos.length < 2} data-wt="cs-reconstruct"
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {running ? "Matching features + estimating poses…" : "Reconstruct scene"}
@@ -136,7 +136,9 @@ export default function CrimeSceneReconstructionRunner({ accent }: { accent: str
           )}
           {result.points.length > 0 ? (
             <Section title={`Sparse point cloud (${result.points.length} points, ${result.camera_poses.length} camera positions recovered)${result.scale_applied ? " — approximate real-world scale applied" : " — arbitrary relative units"}`}>
-              <PointCloudViewer points={result.points} cameraPoses={result.camera_poses} accent={accent} />
+              <div data-wt="cs-cloud">
+                <PointCloudViewer points={result.points} cameraPoses={result.camera_poses} accent={accent} />
+              </div>
               <p className="text-xs mt-2" style={{ color: "var(--text3)" }}>Drag to rotate, scroll to zoom. Cones mark recovered camera positions.</p>
             </Section>
           ) : (
@@ -147,7 +149,7 @@ export default function CrimeSceneReconstructionRunner({ accent }: { accent: str
         </>
       )}
 
-      <div className="text-xs leading-relaxed rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+      <div className="text-xs leading-relaxed rounded-xl p-4" data-wt="cs-limits" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
         <strong style={{ color: "var(--text2)" }}>What this doesn&apos;t do:</strong> this is sparse structure-from-motion, not a dense 3D model —
         it reconstructs matched keypoints only. There is no bundle adjustment or loop closure, so pose accuracy degrades with more photos, and no camera
         calibration is performed, so shape and scale are approximate even with the optional distance calibration. This is an educational demonstration

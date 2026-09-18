@@ -1,0 +1,22 @@
+[
+  {
+    "start": 4.9,
+    "say": "This rebuilds a scene in 3D from ordinary flat photos — structure from motion, the technique behind photogrammetry. You walk around a scene taking overlapping photos, and the shared detail between them is enough to recover both the scene's shape and where each photo was shot from."
+  },
+  {
+    "start": 22.9,
+    "say": "Four rendered views of a simple scene — three blocks on a patterned floor — each shot from a different position, the way you'd circle a real one. Nothing here carries depth; it is all flat pixels."
+  },
+  {
+    "start": 35.06,
+    "say": "Reconstruct. It finds SIFT keypoints in every photo, matches them across pairs, solves the camera geometry from those matches, and triangulates each matched point into 3D."
+  },
+  {
+    "start": 47.79,
+    "say": "And the flat photos become a scene in space: a sparse point cloud of the blocks and floor, with a cone marking each recovered camera position. Drag to orbit it — the depth is real, solved purely from where features shifted between shots."
+  },
+  {
+    "start": 64.31,
+    "say": "The honest limits: this is sparse structure-from-motion, not a dense model — matched keypoints only, no bundle adjustment and no camera calibration, so shape and scale are approximate. It is an educational demonstration of the real photogrammetry pipeline, not a forensic-grade measurement."
+  }
+]
