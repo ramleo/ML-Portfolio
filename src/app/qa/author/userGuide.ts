@@ -1,19 +1,18 @@
 export const QA_GUIDE = `
-# QA Test Author — User Guide
+# Author — User Guide
 
-## What this tool does
+## What this stage does
 You describe a browser test in **plain English** and it writes a complete,
 runnable **Playwright** test in **TypeScript**. A free LLM turns your steps into
 a test file you can drop straight into a Playwright project.
 
-This is **Phase 1: generation only.** The tool writes the test — it does **not
-run** anything. There is no execution against your site here, so there is no
-risk of it touching a real page. Running generated tests (against this project's
-own site, bounded and sandboxed) is a later phase.
+This is the **Author** stage of Testwright: it writes the test. It does **not
+run** anything here — running against the site (bounded, sandboxed) is the
+**Run** stage, next on the roadmap.
 
 ## How to use it
 1. Optionally set the **Base URL** of the site the test targets (defaults to a
-   \`localhost\` placeholder you can change in the code).
+   placeholder you can change in the code).
 2. Optionally give the test a **name** (used for the \`describe\` block).
 3. Type what to test in plain English, e.g.
    *"Open the pricing page, click Sign up, check the email field is required."*
@@ -35,8 +34,8 @@ own site, bounded and sandboxed) is a later phase.
   Selectors depend on your actual markup — check the names match your page.
 - It uses **free LLM providers** (Cohere / Mistral). On a bad response the tool
   says so rather than showing broken code; just try again.
-- **Nothing is executed.** Copy the code into your own Playwright setup
-  (\`npm init playwright@latest\`) to run it.
+- **Nothing is executed here.** Copy the code into your own Playwright setup
+  (\`npm init playwright@latest\`) to run it, until the Run stage lands.
 
 ## Why it matters
 Writing good end-to-end tests is slow, and most hand-written selectors are

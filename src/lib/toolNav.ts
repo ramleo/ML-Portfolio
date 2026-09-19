@@ -56,7 +56,6 @@ const AREA_OF: Record<string, string> = {
   "ppe-compliance-check": "computer-vision",
   "preprocessing": "ml-pipeline",
   "prompt-injection-playground": "security-trust",
-  "qa-test-author": "developer-tools",
   "qr-phishing-detector": "security-trust",
   "realtime-analytics": "ml-pipeline",
   "secret-scanner": "security-trust",
@@ -74,7 +73,6 @@ const AREA_OF: Record<string, string> = {
 
 const AREA_NAME: Record<string, string> = {
   "computer-vision": "Computer Vision",
-  "developer-tools": "Developer Tools",
   "language-documents": "Language & Documents",
   "ml-pipeline": "ML Pipeline",
   "security-trust": "Security & Trust",

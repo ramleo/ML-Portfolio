@@ -12,7 +12,6 @@ import mlPipeline from "./pipeline";
 import computerVision from "./vision";
 import languageDocuments from "./documents";
 import securityTrust from "./security";
-import developerTools from "./developer";
 
 export type { Capability } from "./_types";
 export { GITHUB } from "./_types";
@@ -22,7 +21,6 @@ const capabilities = [
   ...languageDocuments,
   ...computerVision,
   ...securityTrust,
-  ...developerTools,
 ];
 
 export default capabilities;

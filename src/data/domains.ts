@@ -75,17 +75,6 @@ const domains: Domain[] = [
     colorDim: "#7f273e",
     colorDimLight: "#d47891",
   },
-  {
-    slug: "developer-tools",
-    name: "Developer Tools",
-    blurb: "Tools for building and testing software itself — starting with plain-English test authoring for the browser.",
-    // Amber, chosen apart from the four hues above. #b45309 (amber-700) clears
-    // 3:1 on the light theme's near-white; #f59e0b reads on the dark ground.
-    color: "#f59e0b",
-    colorLight: "#b45309",
-    colorDim: "#7a5a1e",
-    colorDimLight: "#c9945a",
-  },
 ];
 
 const FALLBACK_COLOR = "#94a3b8";

@@ -46,5 +46,23 @@
     "url": "https://wram1708-ml-unified.hf.space/?mode=vision",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#a78bfa"
+  },
+  {
+    "id": "testwright",
+    "title": "Testwright",
+    "description": "The QA-automation world. Describe a browser test in plain English and get a runnable Playwright test in TypeScript with resilient locators — then run and heal it. A full workspace (Author, Run, Discover, Heal), free and open-source, native to this site.",
+    "model": "Playwright · Free LLM",
+    "task": "QA Automation",
+    "dataset": "Your own site",
+    "metric": "4",
+    "metricLabel": "Stages",
+    "features": 0,
+    "classes": null,
+    "tags": ["QA", "Playwright", "TypeScript", "Native", "Free"],
+    "internal": true,
+    "href": "/qa",
+    "url": "/qa",
+    "github": "https://github.com/ramleo/ML-Unified",
+    "accent": "#14b8a6"
   }
 ]

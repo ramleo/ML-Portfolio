@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface Project {
   id: string;
@@ -17,10 +18,15 @@ interface Project {
   url: string;
   github: string;
   accent: string;
+  // A native platform (a world served by this Next app, not an external HF
+  // Space) shows "Enter" and navigates client-side to `href` instead of
+  // opening `url` in a new tab.
+  internal?: boolean;
+  href?: string;
 }
 
 export default function ProjectCard({ project }: { project: Project }) {
-  const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent } = project;
+  const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent, internal, href } = project;
   const isClassification = task === "Classification";
   const [expanded, setExpanded] = useState(false);
 
@@ -145,15 +151,8 @@ export default function ProjectCard({ project }: { project: Project }) {
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-          <button
-            onClick={() => {
-              const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
-              let palette = "cosmic";
-              try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
-              const sep = url.includes("?") ? "&" : "?";
-              window.open(`${url}${sep}theme=${theme}&palette=${palette}`, "_blank");
-            }}
-            style={{
+          {(() => {
+            const actionStyle: React.CSSProperties = {
               flex: 1,
               display: "flex",
               alignItems: "center",
@@ -167,24 +166,51 @@ export default function ProjectCard({ project }: { project: Project }) {
               fontWeight: 600,
               fontSize: "0.82rem",
               cursor: "pointer",
+              textDecoration: "none",
               transition: "background 0.15s, border-color 0.15s, transform 0.15s",
-            }}
-            onMouseEnter={(e) => {
+            };
+            const hoverIn = (e: React.MouseEvent<HTMLElement>) => {
               e.currentTarget.style.background = `${accent}22`;
               e.currentTarget.style.borderColor = `${accent}70`;
               e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
+            };
+            const hoverOut = (e: React.MouseEvent<HTMLElement>) => {
               e.currentTarget.style.background = `${accent}14`;
               e.currentTarget.style.borderColor = `${accent}40`;
               e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            Launch App
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+            };
+            // Native platform: navigate client-side, label "Enter".
+            if (internal) {
+              return (
+                <Link href={href ?? "/"} style={actionStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
+                  Enter
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 6h8M6 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+              );
+            }
+            // External HF Space app: open in a new tab, carrying theme + palette.
+            return (
+              <button
+                onClick={() => {
+                  const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
+                  let palette = "cosmic";
+                  try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}
+                  const sep = url.includes("?") ? "&" : "?";
+                  window.open(`${url}${sep}theme=${theme}&palette=${palette}`, "_blank");
+                }}
+                style={actionStyle}
+                onMouseEnter={hoverIn}
+                onMouseLeave={hoverOut}
+              >
+                Launch App
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            );
+          })()}
           <a
             href={github}
             target="_blank"

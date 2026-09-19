@@ -31,8 +31,8 @@ export default function ProjectsSection() {
           Deployed Platforms
         </p>
         <h2 className="section-heading" style={{ marginBottom: 0 }}>
-          Three full apps —{" "}
-          <span className="heading-accent">click to predict</span>
+          {registry.length} full platforms —{" "}
+          <span className="heading-accent">enter and use</span>
         </h2>
         {/* This section and the tool grid below it are different things — full
             multi-model applications here, single-purpose tools there — but
@@ -134,8 +134,8 @@ export default function ProjectsSection() {
             wram1708-ml-unified.hf.space, not Render. The cold-start caveat is
             still real (a free Space sleeps when idle), so it stays — the
             specific "~15s" figure was dropped as it was never measured. */}
-        All three run on a free Hugging Face Space — if it has gone idle, the first load
-        takes a few seconds to wake up.
+        The three model apps run on a free Hugging Face Space — if it has gone idle, the first
+        load takes a few seconds to wake up. Testwright is native to this site.
       </p>
       </div>
     </section>

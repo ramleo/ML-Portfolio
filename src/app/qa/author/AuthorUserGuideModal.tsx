@@ -4,15 +4,14 @@ import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { QA_GUIDE } from "./userGuide";
 
-const ACCENT = "#c47d1a";
+const ACCENT = "#14b8a6";
 
 const MD = {
   h1: ({ children }: React.PropsWithChildren) => (
     <h1 className="text-lg font-bold mb-4" style={{ color: ACCENT }}>{children}</h1>
   ),
   h2: ({ children }: React.PropsWithChildren) => (
-    <h2 className="text-[13px] font-bold uppercase tracking-wide mt-6 mb-2"
-      style={{ color: `${ACCENT}cc` }}>{children}</h2>
+    <h2 className="text-[13px] font-bold uppercase tracking-wide mt-6 mb-2" style={{ color: `${ACCENT}cc` }}>{children}</h2>
   ),
   h3: ({ children }: React.PropsWithChildren) => (
     <h3 className="text-[12px] font-bold mt-4 mb-1" style={{ color: "var(--text)" }}>{children}</h3>
@@ -37,7 +36,7 @@ const MD = {
   ),
 };
 
-export default function QaTestAuthorUserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AuthorUserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -49,20 +48,12 @@ export default function QaTestAuthorUserGuideModal({ open, onClose }: { open: bo
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}>
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
-        style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30` }}
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3 border-b shrink-0"
-          style={{ borderColor: "var(--border)" }}>
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>
-            User Guide — QA Test Author
-          </span>
-          <button onClick={onClose} aria-label="Close guide"
-            className="text-lg leading-none px-1" style={{ color: "var(--text3)" }}>
-            ×
-          </button>
+        style={{ background: "var(--bg-card)", border: `1px solid ${ACCENT}30` }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor: "var(--border)" }}>
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>User Guide — Author</span>
+          <button onClick={onClose} aria-label="Close guide" className="text-lg leading-none px-1" style={{ color: "var(--text3)" }}>×</button>
         </div>
         <div className="overflow-y-auto px-6 py-4">
           <ReactMarkdown components={MD}>{QA_GUIDE}</ReactMarkdown>
