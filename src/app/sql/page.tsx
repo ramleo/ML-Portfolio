@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ToolsAIChat from "@/components/ToolsAIChat";
-import WorldUserGuideModal from "@/components/world/WorldUserGuideModal";
 import { SQL_ACCENT, SQL_ACCENT2, TOOL_HREF } from "./theme";
-// The platform reuses the tool's own comprehensive user guide — one source of
-// truth, kept in sync with the tool's modal.
+// The platform opens the tool's OWN comprehensive user-guide modal verbatim —
+// the exact same component shown inside the Text-to-SQL tool, one source of
+// truth. The AI chat uses the text distillation of the same guide.
+import UserGuideModal from "@/app/tools/text-to-sql/UserGuideModal";
 import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "@/app/tools/text-to-sql/userGuide";
 import SqlCapabilities from "./sections/SqlCapabilities";
 import SqlHowScope from "./sections/SqlHowScope";
@@ -32,7 +33,7 @@ export default function SqlLandingPage() {
         guide: TEXT_TO_SQL_GUIDE,
         suggestions: TEXT_TO_SQL_SUGGESTIONS,
       }} />
-      <WorldUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} title="Text-to-SQL" accent={SQL_ACCENT} guide={TEXT_TO_SQL_GUIDE} />
+      {guideOpen && <UserGuideModal onClose={() => setGuideOpen(false)} />}
 
       {/* HERO */}
       <header className="max-w-6xl mx-auto px-4 pt-12 pb-6">
