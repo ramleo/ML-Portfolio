@@ -17,7 +17,8 @@ aimed first at this site itself.
   test case) and get a runnable Playwright TypeScript test back.
 - **Run** *(live)* — execute a Playwright test against our own site on an isolated,
   ephemeral CI runner (GitHub Actions), and get pass/fail, a summary, and a failure
-  screenshot back — with video and a full trace on the linked run.
+  screenshot back — with video and a full trace on the linked run. When a locator
+  fails, **Heal & re-run** re-resolves it from the page snapshot and runs the fix.
 - **Discover** *(Phase 3)* — give an own-site URL; a bounded crawl proposes
   candidate test cases, you confirm the list, and it generates and runs them.
 - **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
@@ -50,9 +51,14 @@ aimed first at this site itself.
    Actions runner** — nothing runs in your browser or on the app server — and the
    page shows a **Queued → Running → Results** stepper while it executes.
 4. On completion you get a **Passed/Failed** banner, a **summary** (passed /
-   failed / flaky / skipped), and, on failure, the **screenshot** inline. The
-   **Full run** link opens the CI run with the **video** and **trace** to download
-   or open in the Playwright trace viewer.
+   failed / flaky / skipped), a **step timeline**, and, on failure, the
+   **screenshot** and **video** inline plus a **trace** download. The **Full run**
+   link opens the CI run on GitHub.
+5. **Self-healing** — if a test failed on a locator, click **Heal & re-run**. A
+   free LLM reads the accessibility snapshot of the page at failure, rewrites the
+   broken locator to one that matches, shows the change (old → new), and re-runs
+   the corrected test. It repairs *locators* — a genuine bug (a correctly-failing
+   assertion) will still fail on the re-run, which is the honest result.
 
 ## Reading and running the output
 - The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
@@ -95,6 +101,11 @@ aimed first at this site itself.
 - **Where does the test actually run?** On an isolated, ephemeral GitHub Actions
   runner — never in your browser or on the app server — so a misbehaving test
   can't affect the live site.
+- **What is self-healing?** When a locator breaks (an element moved or was
+  renamed), **Heal & re-run** asks a free LLM to re-resolve it from the page's
+  accessibility snapshot and re-runs the fixed test — the maintenance-killer idea
+  testRigor and Katalon sell, here on a free stack. It fixes locators, not real
+  bugs.
 - **Can it test any website?** Execution is scoped to our own site for safety
   (running arbitrary third-party URLs is an SSRF risk). Other sites come later,
   gated by ownership verification.
@@ -114,7 +125,7 @@ honestly on a free stack.
 
 export const QA_WORLD_SUGGESTIONS = [
   "How do I run a test in the Run stage?",
+  "How does self-healing fix a broken locator?",
   "Where does the test actually execute?",
-  "What makes a Playwright locator resilient?",
   "What can Testwright do today versus on the roadmap?",
 ];

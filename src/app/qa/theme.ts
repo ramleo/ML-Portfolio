@@ -32,8 +32,8 @@ export const STAGES: Stage[] = [
     href: "/qa/run",
     status: "live",
     statusLabel: "Live",
-    blurb: "Execute against our own site on an isolated CI runner. Pass/fail, a summary, and a failure screenshot, with video and a trace on the full run.",
-    analog: "≈ Katalon TestCloud / TestOps",
+    blurb: "Execute against our own site on an isolated CI runner — pass/fail, a summary, video, trace and a step timeline. When a locator breaks, self-heal it from the page snapshot and re-run.",
+    analog: "≈ Katalon TestCloud / TestOps · testRigor self-healing",
   },
   {
     key: "discover",
