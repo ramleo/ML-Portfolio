@@ -64,5 +64,23 @@
     "url": "/qa",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#14b8a6"
+  },
+  {
+    "id": "text-to-sql",
+    "title": "Text-to-SQL Agent",
+    "description": "Ask a question in plain English and get SQL, run live against a real database — with pagination, filtering, and an LLM explanation of both the query and the results. Its own FastAPI + LLM backend.",
+    "model": "Groq · Mistral · Cohere",
+    "task": "Text to SQL",
+    "dataset": "Live SQL database",
+    "metric": "SQL",
+    "metricLabel": "Live queries",
+    "features": 0,
+    "classes": null,
+    "tags": ["Text-to-SQL", "LLM", "FastAPI", "Live DB", "Explainer"],
+    "internal": true,
+    "href": "/tools/text-to-sql",
+    "url": "/tools/text-to-sql",
+    "github": "https://github.com/ramleo/ML-Unified",
+    "accent": "#6366f1"
   }
 ]
