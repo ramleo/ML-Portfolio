@@ -39,9 +39,9 @@ export const STAGES: Stage[] = [
     key: "discover",
     label: "Discover",
     href: "/qa/discover",
-    status: "planned",
-    statusLabel: "Phase 3",
-    blurb: "Give an own-site URL → a bounded crawl proposes candidate test cases → you confirm the list → it generates and runs them.",
+    status: "live",
+    statusLabel: "Live",
+    blurb: "Give an own-site URL → it renders the page, reads the accessibility snapshot, and proposes candidate test cases → pick some → it drafts each to send to Run.",
     analog: "≈ testRigor auto-discovery",
   },
   {

@@ -6,8 +6,9 @@ Testwright is the QA-automation platform inside AIRaML. It turns a plain-English
 description of a browser test into a real, runnable **Playwright** test in
 **TypeScript**, using resilient locators and real assertions. It is a full
 workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal** —
-that hand off to each other. **Author** and **Run** are live today; **Discover**
-and **Heal** are on the roadmap and are shown so the shape of the platform is clear.
+that hand off to each other. **Author**, **Run** and **Discover** are live today;
+the suite-level **Heal** stage is on the roadmap and is shown so the shape of the
+platform is clear.
 
 Everything is **free** to run (free LLM providers + open-source Playwright) and
 aimed first at this site itself.
@@ -19,8 +20,9 @@ aimed first at this site itself.
   ephemeral CI runner (GitHub Actions), and get pass/fail, a summary, and a failure
   screenshot back — with video and a full trace on the linked run. When a locator
   fails, **Heal & re-run** re-resolves it from the page snapshot and runs the fix.
-- **Discover** *(Phase 3)* — give an own-site URL; a bounded crawl proposes
-  candidate test cases, you confirm the list, and it generates and runs them.
+- **Discover** *(live)* — give an own-site URL; it renders the page on the runner,
+  reads the accessibility snapshot, and proposes candidate test cases. Pick the
+  ones you want and it drafts each as a Playwright test to send to Run.
 - **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
   them by root cause ("1 issue, 12 tests") and fix them all in one click, or one
   by one.
@@ -59,6 +61,17 @@ aimed first at this site itself.
    broken locator to one that matches, shows the change (old → new), and re-runs
    the corrected test. It repairs *locators* — a genuine bug (a correctly-failing
    assertion) will still fail on the re-run, which is the honest result.
+
+## Using the Discover stage (step by step)
+1. Open **Discover** and enter an **own-site URL** (it defaults to this portfolio).
+2. Click **Discover test cases** — it renders the page on the isolated runner and
+   captures its accessibility snapshot (about a minute, same infra as Run).
+3. You get up to **6 proposed test cases** (title + plain-English steps), based only
+   on what's actually on the page. Tick the ones worth writing.
+4. Click **Generate selected** — each proposal is drafted into a full Playwright
+   test (the Author stage under the hood).
+5. **Send to Run** on any draft to execute it, then save or heal it like any other
+   run. Discover reads only the URL you give (own-site, one page for now).
 
 ## Reading and running the output
 - The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
@@ -126,6 +139,6 @@ honestly on a free stack.
 export const QA_WORLD_SUGGESTIONS = [
   "How do I run a test in the Run stage?",
   "How does self-healing fix a broken locator?",
-  "Where does the test actually execute?",
+  "How does Discover propose test cases?",
   "What can Testwright do today versus on the roadmap?",
 ];
