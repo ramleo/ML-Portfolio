@@ -44,8 +44,9 @@ export default function QaLandingPage() {
         </h1>
         <p className="text-[15px] leading-relaxed mt-4 max-w-2xl" style={{ color: "var(--text2)" }}>
           Testwright is the QA-automation world inside AIRaML — a full workspace, not a single tool.
-          Describe what to check the way you&apos;d tell a teammate; it writes a runnable Playwright test
-          in TypeScript with resilient locators. Free, open-source engine, aimed first at this site itself.
+          Describe a test in plain English and it writes runnable Playwright TypeScript; then run it on
+          isolated CI with video and a trace, discover new cases from a page, and heal a break across the
+          whole suite. Free and open-source.
         </p>
         <div className="flex gap-2.5 flex-wrap mt-6">
           <Link href="/qa/author" className="inline-flex items-center gap-2 font-semibold text-sm px-[18px] py-2.5 rounded-full"
@@ -97,23 +98,30 @@ export default function QaLandingPage() {
           </div>
         </div>
         <p className="text-[12px] mt-3" style={{ color: "var(--text3)" }}>
-          A real generation, shown as an example. The Author writes the draft — you review and run it.
+          A real generation, shown as an example. It writes the draft; run it on isolated CI and,
+          if a locator breaks, self-heal it — all here.
         </p>
       </header>
 
       <QaLifecycle />
       <QaHowScope />
 
-      {/* Home integration note */}
+      {/* Closing CTA */}
       <section className="max-w-6xl mx-auto px-4 py-14">
         <div className="rounded-2xl p-8 text-center" style={{ background: `linear-gradient(120deg, ${QA_ACCENT}14, transparent)`, border: `1px solid ${QA_ACCENT}30` }}>
-          <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Approve the shape, and the world grows.</h2>
+          <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>The whole loop, in one workspace.</h2>
           <p className="text-[15px] mt-2.5 mb-5 max-w-xl mx-auto" style={{ color: "var(--text2)" }}>
-            The Author stage runs live today. Next is the Run stage — executing tests against this site and showing pass/fail.
+            Author, Run, Discover and Heal are all live — plain English to a passing, self-healing test,
+            free and on real browsers.
           </p>
-          <Link href="/qa/author" className="inline-flex items-center gap-2 font-semibold text-sm px-[18px] py-2.5 rounded-full mx-auto" style={{ background: GRAD, color: "#fff" }}>
-            Open the Author
-          </Link>
+          <div className="flex gap-2.5 flex-wrap justify-center">
+            <Link href="/qa/author" className="inline-flex items-center gap-2 font-semibold text-sm px-[18px] py-2.5 rounded-full" style={{ background: GRAD, color: "#fff" }}>
+              Start with the Author
+            </Link>
+            <a href="#lifecycle" className="inline-flex items-center font-semibold text-sm px-[18px] py-2.5 rounded-full" style={{ border: "1px solid var(--border2)", color: "var(--text)" }}>
+              Explore the four stages
+            </a>
+          </div>
         </div>
       </section>
 

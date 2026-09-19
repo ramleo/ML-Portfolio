@@ -9,7 +9,7 @@ workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal
 that hand off to each other. All four are live today.
 
 Everything is **free** to run (free LLM providers + open-source Playwright) and
-aimed first at this site itself.
+executes on real browsers against any public site.
 
 ## The four stages
 - **Author** *(live)* — describe a test in plain English (or paste a written
