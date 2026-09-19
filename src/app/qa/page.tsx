@@ -15,8 +15,8 @@ const GRAD = `linear-gradient(120deg, ${QA_ACCENT}, ${QA_ACCENT2})`;
 const TOOL_SUMMARY =
   "Testwright is the QA-automation platform inside AIRaML — a full workspace, not a single tool. " +
   "It turns plain-English descriptions into real Playwright TypeScript tests with resilient locators, " +
-  "and on the roadmap runs and heals them. Four stages: Author (live), Run, Discover, Heal. Free, " +
-  "own-site first.";
+  "runs them on isolated CI, self-heals broken locators, and discovers new cases from a page. " +
+  "Four stages: Author, Run, Discover (all live) and Heal (roadmap). Free, on real browsers.";
 
 export default function QaLandingPage() {
   useToolTracking("qa-world");
@@ -68,7 +68,7 @@ export default function QaLandingPage() {
           </button>
         </div>
         <div className="flex gap-4 flex-wrap mt-5 text-[13px]" style={{ color: "var(--text3)" }}>
-          {["Free to run", "Playwright · TypeScript", "Resilient locators", "Your own site first"].map((t) => (
+          {["Free to run", "Playwright · TypeScript", "Runs & self-heals", "Any public site"].map((t) => (
             <span key={t} className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: QA_ACCENT }} />{t}
             </span>

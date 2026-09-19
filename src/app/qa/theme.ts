@@ -24,7 +24,7 @@ export const STAGES: Stage[] = [
     status: "live",
     statusLabel: "Live",
     blurb: "Plain English, a recorded click-through, or an imported case → a Playwright TS test with resilient locators and real assertions.",
-    analog: "≈ testRigor plain-English · Katalon Studio",
+    analog: "Plain-English & recorded authoring",
   },
   {
     key: "run",
@@ -32,8 +32,8 @@ export const STAGES: Stage[] = [
     href: "/qa/run",
     status: "live",
     statusLabel: "Live",
-    blurb: "Execute against our own site on an isolated CI runner — pass/fail, a summary, video, trace and a step timeline. When a locator breaks, self-heal it from the page snapshot and re-run.",
-    analog: "≈ Katalon TestCloud / TestOps · testRigor self-healing",
+    blurb: "Execute against a live site on an isolated CI runner — pass/fail, a summary, video, trace and a step timeline. When a locator breaks, self-heal it from the page snapshot and re-run.",
+    analog: "Cloud execution, artifacts & self-healing",
   },
   {
     key: "discover",
@@ -41,8 +41,8 @@ export const STAGES: Stage[] = [
     href: "/qa/discover",
     status: "live",
     statusLabel: "Live",
-    blurb: "Give an own-site URL → it renders the page, reads the accessibility snapshot, and proposes candidate test cases → pick some → it drafts each to send to Run.",
-    analog: "≈ testRigor auto-discovery",
+    blurb: "Give a URL → it renders the page, reads the accessibility snapshot, and proposes candidate test cases → pick some → it drafts each to send to Run.",
+    analog: "Automated test discovery",
   },
   {
     key: "heal",
@@ -51,7 +51,7 @@ export const STAGES: Stage[] = [
     status: "planned",
     statusLabel: "Phase 5",
     blurb: "When many tests fail on one broken thing, group them by root cause — \"1 issue, 12 tests\" — and fix all in one click, or one by one.",
-    analog: "≈ testRigor grouping · self-healing",
+    analog: "Root-cause failure grouping",
   },
 ];
 

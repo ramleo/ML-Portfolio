@@ -106,7 +106,7 @@ export default function RunRunner({ accent }: { accent: string }) {
         style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
         <span className="font-semibold" style={{ color: "var(--text)" }}>Runs on isolated CI.</span>{" "}
         Paste a Playwright test (or send one over from Author) and it executes on an ephemeral GitHub
-        Actions runner against our own site — never in your browser or on the app server. You get
+        Actions runner against a live site — never in your browser or on the app server. You get
         pass/fail, a summary, video, a trace, and self-healing back.
       </div>
 

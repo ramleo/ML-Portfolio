@@ -10,7 +10,7 @@ import { QA_WORLD_GUIDE, QA_WORLD_SUGGESTIONS } from "../worldGuide";
 const ACCENT = "#14b8a6";
 
 const TOOL_SUMMARY =
-  "The Discover stage of Testwright: give an own-site URL and it renders the page on an isolated CI " +
+  "The Discover stage of Testwright: give a URL and it renders the page on an isolated CI " +
   "runner, reads the accessibility snapshot, and proposes candidate end-to-end test cases. Pick the " +
   "ones you want and it drafts each as a Playwright test to send to Run.";
 

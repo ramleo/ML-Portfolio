@@ -20,9 +20,9 @@ export default function QaLifecycle() {
         The QA lifecycle, end to end
       </h2>
       <p className="text-[15px] max-w-2xl" style={{ color: "var(--text2)" }}>
-        Like Katalon&apos;s four modules or testRigor&apos;s author-then-run flow, Testwright is one world
-        made of stages that hand off to each other. The first is live today; the rest are the honest,
-        phased roadmap — shown so the shape of the world is clear from day one.
+        One world made of stages that hand off to each other — author a test, run it on isolated CI,
+        heal it when a locator breaks, and discover new cases from a page. Author, Run and Discover are
+        live today; the suite-level Heal stage is the honest, phased roadmap.
       </p>
 
       <div className="grid gap-4 mt-7" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(240px,100%),1fr))" }}>

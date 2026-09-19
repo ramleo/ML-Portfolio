@@ -67,7 +67,6 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
         <span className="font-semibold" style={{ color: "var(--text)" }}>Point it at a page.</span>{" "}
         Discover renders the URL on the isolated runner, reads its accessibility snapshot, and proposes
         test cases. Pick the ones you want and it drafts each as a Playwright test to send to Run.
-        Own-site only.
       </div>
 
       <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>

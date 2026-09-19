@@ -11,7 +11,7 @@ const ACCENT = "#14b8a6";
 
 const TOOL_SUMMARY =
   "The Run stage of Testwright: execute a generated Playwright test on an isolated, ephemeral GitHub " +
-  "Actions runner against our own site — never in the browser or on the app server. Returns pass/fail, " +
+  "Actions runner against a live site — never in the browser or on the app server. Returns pass/fail, " +
   "a summary, and a failure screenshot, with a link to the full run's video and trace.";
 
 export default function RunPage() {

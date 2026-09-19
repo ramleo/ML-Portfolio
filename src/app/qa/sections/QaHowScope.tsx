@@ -3,27 +3,26 @@
 import { QA_ACCENT } from "../theme";
 
 const STEPS = [
-  { n: "01", h: "Describe the scenario", p: "Type the steps in plain English, paste a written test case, or (soon) record a click-through. Point it at our own site." },
-  { n: "02", h: "Generate the test", p: "A free LLM (Cohere → Mistral, budget-capped) returns one runnable Playwright TypeScript file — role/text/label locators, real assertions, comments on each choice." },
-  { n: "03", h: "Review, copy, run", p: "Read the annotated draft, copy it into a Playwright project, and run it. Execution inside the workspace arrives in Phase 2." },
+  { n: "01", h: "Describe or discover", p: "Type the steps in plain English, paste a written test case, or let Discover render a page and propose test cases for you." },
+  { n: "02", h: "Generate the test", p: "A free LLM (Cohere → Mistral, budget-capped) returns one runnable Playwright TypeScript file — role/text/label locators, real assertions, a comment on each choice." },
+  { n: "03", h: "Run, then heal", p: "Execute on an isolated CI runner for pass/fail with video and a full trace. If a locator breaks, self-healing re-resolves it from the page and re-runs." },
 ];
 
 const CAN = [
-  "Plain-English, recorded, or imported → Playwright TypeScript",
-  "Resilient role / text / accessible-name locators, with assertions",
-  "Bounded execution against our own site: screenshots, video, trace",
-  "Crawl → propose → confirm → run (own site)",
-  "Root-cause failure grouping + one-click / one-by-one bulk fix",
-  "Data-driven runs, visual + accessibility checks, CI via GitHub Actions",
+  "Plain-English or imported description → Playwright TypeScript",
+  "Resilient role / text / accessible-name locators, with real assertions",
+  "Execute on isolated CI (GitHub Actions): screenshots, video, trace, step timeline",
+  "AI self-healing — re-resolve a broken locator from the page and re-run",
+  "Discover — render a URL, read its structure, and propose test cases",
+  "Saved tests and run history with a pass-rate, all in the browser",
 ];
 
 const CANT = [
-  "3,000+ browser / OS / device combinations on a paid device farm",
-  "Native mobile, desktop and mainframe testing",
-  "Email deliverability, SMS and phone-call flows",
-  "Arbitrary third-party URLs (SSRF risk) — own site / verified only",
-  "Full-fleet parallelism and \"regression in under 15 minutes\"",
-  "SOC 2 / HIPAA / ISO compliance certifications",
+  "Native mobile, desktop or mainframe apps",
+  "Email deliverability, SMS or phone-call flows",
+  "Massive parallel browser / OS / device matrices (one free runner at a time)",
+  "Private or internal (non-public) addresses",
+  "Instant results — a run queues and spins up a runner, so expect about a minute",
 ];
 
 export default function QaHowScope() {
@@ -32,10 +31,10 @@ export default function QaHowScope() {
       <section style={{ background: "var(--bg-soft, var(--bg-card))", borderBlock: "1px solid var(--border)" }}>
         <div className="max-w-6xl mx-auto px-4 py-16">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text3)" }}>
-            How the Author works today
+            How it works
           </p>
           <h2 className="text-2xl font-extrabold tracking-tight mt-2 mb-6" style={{ color: "var(--text)" }}>
-            Describe → generate → review
+            Describe → generate → run → heal
           </h2>
           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(260px,100%),1fr))" }}>
             {STEPS.map((s) => (
@@ -50,17 +49,17 @@ export default function QaHowScope() {
       </section>
 
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text3)" }}>Honest scope</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text3)" }}>Scope</p>
         <h2 className="text-2xl font-extrabold tracking-tight mt-2 mb-1.5" style={{ color: "var(--text)" }}>
-          A real workspace — not a device farm
+          What it does, and what it doesn&apos;t
         </h2>
         <p className="text-[15px] max-w-2xl" style={{ color: "var(--text2)" }}>
-          testRigor and Katalon are proven over millions of runs across web, mobile, desktop and mainframe
-          on paid infrastructure. We build the core value free, for our own site, and say plainly where the line is.
+          The full authoring-to-healing loop, free and running real browsers on isolated CI. Here is
+          what is in scope and what is out — stated plainly.
         </p>
         <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(300px,100%),1fr))" }}>
-          <ScopeCard title="What Testwright does" tag="Free stack" tagColor="#34d399" items={CAN} mark="✓" markColor="#34d399" />
-          <ScopeCard title="What needs scale we don't have" tag="Out of scope" tagColor="#94a3b8" items={CANT} mark="—" markColor="#94a3b8" />
+          <ScopeCard title="What Testwright does" tag="In scope" tagColor="#34d399" items={CAN} mark="✓" markColor="#34d399" />
+          <ScopeCard title="What it doesn't do" tag="Out of scope" tagColor="#94a3b8" items={CANT} mark="—" markColor="#94a3b8" />
         </div>
       </section>
     </>

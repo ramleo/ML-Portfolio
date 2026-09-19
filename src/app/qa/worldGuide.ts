@@ -16,11 +16,11 @@ aimed first at this site itself.
 ## The four stages
 - **Author** *(live)* — describe a test in plain English (or paste a written
   test case) and get a runnable Playwright TypeScript test back.
-- **Run** *(live)* — execute a Playwright test against our own site on an isolated,
+- **Run** *(live)* — execute a Playwright test against a live site on an isolated,
   ephemeral CI runner (GitHub Actions), and get pass/fail, a summary, and a failure
   screenshot back — with video and a full trace on the linked run. When a locator
   fails, **Heal & re-run** re-resolves it from the page snapshot and runs the fix.
-- **Discover** *(live)* — give an own-site URL; it renders the page on the runner,
+- **Discover** *(live)* — give a URL; it renders the page on the runner,
   reads the accessibility snapshot, and proposes candidate test cases. Pick the
   ones you want and it drafts each as a Playwright test to send to Run.
 - **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
@@ -46,9 +46,9 @@ aimed first at this site itself.
 1. Open **Run** — via **Send to Run** on an Author result (it carries the test and
    name over), the Run tab in the sub-nav, or paste a \`@playwright/test\` file in
    directly. **Use a sample** loads a known-good test.
-2. **Base URL** *(optional)* — the target site. It must be on our own-site
-   allowlist; a third-party host is rejected (running arbitrary URLs is an SSRF
-   risk). **Test name** *(optional)* is a label.
+2. **Base URL** *(optional)* — the target site. Any public URL works; private or
+   internal addresses (localhost, LAN IPs) are rejected. **Test name** *(optional)*
+   is a label.
 3. Click **Run test**. The test is dispatched to an **isolated, ephemeral GitHub
    Actions runner** — nothing runs in your browser or on the app server — and the
    page shows a **Queued → Running → Results** stepper while it executes.
@@ -63,7 +63,7 @@ aimed first at this site itself.
    assertion) will still fail on the re-run, which is the honest result.
 
 ## Using the Discover stage (step by step)
-1. Open **Discover** and enter an **own-site URL** (it defaults to this portfolio).
+1. Open **Discover** and enter a **URL** (it defaults to this portfolio).
 2. Click **Discover test cases** — it renders the page on the isolated runner and
    captures its accessibility snapshot (about a minute, same infra as Run).
 3. You get up to **6 proposed test cases** (title + plain-English steps), based only
@@ -71,7 +71,7 @@ aimed first at this site itself.
 4. Click **Generate selected** — each proposal is drafted into a full Playwright
    test (the Author stage under the hood).
 5. **Send to Run** on any draft to execute it, then save or heal it like any other
-   run. Discover reads only the URL you give (own-site, one page for now).
+   run. Discover reads only the URL you give (one page for now).
 
 ## Reading and running the output
 - The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
@@ -99,13 +99,12 @@ aimed first at this site itself.
   guessed match your page, and adjust if not.
 - It uses **free LLM providers**; on a bad response the tool says so plainly
   rather than showing broken code — just generate again.
-- **Execution runs on isolated CI**, single-worker with a hard timeout, against
-  our own site only. It is not instant — a run queues, spins up a runner and
-  executes, so expect roughly a minute end to end. Crawling (Discover) and healing
-  (Heal) are still on the roadmap.
-- Testwright is **not** a paid device farm: no 3,000-browser matrix, no native
-  mobile/desktop/mainframe, no email/SMS flows. It builds the core value free,
-  for our own site.
+- **Execution runs on isolated CI**, single-worker with a hard timeout. It is not
+  instant — a run queues, spins up a runner and executes, so expect roughly a
+  minute end to end.
+- It runs real browsers on public web pages: no native mobile/desktop/mainframe
+  apps, no email/SMS flows, and no massive parallel device matrices (one free
+  runner at a time). The suite-level Heal stage is still on the roadmap.
 
 ## FAQ
 - **Do I need to know Playwright?** No — you describe the test in English, and the
@@ -116,12 +115,11 @@ aimed first at this site itself.
   can't affect the live site.
 - **What is self-healing?** When a locator breaks (an element moved or was
   renamed), **Heal & re-run** asks a free LLM to re-resolve it from the page's
-  accessibility snapshot and re-runs the fixed test — the maintenance-killer idea
-  testRigor and Katalon sell, here on a free stack. It fixes locators, not real
-  bugs.
-- **Can it test any website?** Execution is scoped to our own site for safety
-  (running arbitrary third-party URLs is an SSRF risk). Other sites come later,
-  gated by ownership verification.
+  accessibility snapshot and re-runs the fixed test — so a UI change that renamed or
+  moved an element doesn't break the test. It fixes locators, not real bugs.
+- **Can it test any website?** Yes — give any public URL. Private or internal
+  addresses (localhost, LAN IPs) are blocked, and runs are behind a daily budget
+  cap.
 - **Is it really free?** Yes — free LLM tiers and open-source Playwright, behind a
   daily budget cap.
 - **Why Playwright and not Selenium?** Playwright's role/text locators and
@@ -132,8 +130,8 @@ aimed first at this site itself.
 Writing good end-to-end tests is slow, and most hand-written selectors are
 brittle. Turning a plain-English description into a Playwright test with stable
 locators removes the tedious first draft and pushes toward tests that survive the
-next redesign — the idea tools like testRigor and Katalon are built on, done
-honestly on a free stack.
+next redesign — the same idea the commercial QA-automation tools are built on,
+done here on a free, open stack.
 `;
 
 export const QA_WORLD_SUGGESTIONS = [
