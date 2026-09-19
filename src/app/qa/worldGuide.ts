@@ -6,9 +6,7 @@ Testwright is the QA-automation platform inside AIRaML. It turns a plain-English
 description of a browser test into a real, runnable **Playwright** test in
 **TypeScript**, using resilient locators and real assertions. It is a full
 workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal** —
-that hand off to each other. **Author**, **Run** and **Discover** are live today;
-the suite-level **Heal** stage is on the roadmap and is shown so the shape of the
-platform is clear.
+that hand off to each other. All four are live today.
 
 Everything is **free** to run (free LLM providers + open-source Playwright) and
 aimed first at this site itself.
@@ -23,9 +21,8 @@ aimed first at this site itself.
 - **Discover** *(live)* — give a URL; it renders the page on the runner,
   reads the accessibility snapshot, and proposes candidate test cases. Pick the
   ones you want and it drafts each as a Playwright test to send to Run.
-- **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
-  them by root cause ("1 issue, 12 tests") and fix them all in one click, or one
-  by one.
+- **Heal** *(live)* — run your saved tests as a suite, group the failures by root
+  cause ("1 issue · N tests"), and self-heal each group in one click.
 
 ## Using the Author (step by step)
 1. Open **Author** (the button on this page, or the Author tab in the sub-nav).
@@ -73,6 +70,16 @@ aimed first at this site itself.
 5. **Send to Run** on any draft to execute it, then save or heal it like any other
    run. Discover reads only the URL you give (one page for now).
 
+## Using the Heal stage (step by step)
+1. Save the tests you care about from **Run** (they live in this browser).
+2. Open **Heal** and click **Run suite** — each saved test runs on the CI runner,
+   one at a time.
+3. Failures are **grouped by root cause** — tests that broke on the same locator
+   show as one issue ("1 issue · N tests").
+4. Click **Heal all** on a group — every test in it is re-resolved from its page
+   snapshot and re-run. Green means healed; "still failing" means it's a real bug,
+   not a locator.
+
 ## Reading and running the output
 - The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
   '@playwright/test'\`, a \`test.describe(...)\` block, and one or more \`test(...)\`
@@ -104,7 +111,7 @@ aimed first at this site itself.
   minute end to end.
 - It runs real browsers on public web pages: no native mobile/desktop/mainframe
   apps, no email/SMS flows, and no massive parallel device matrices (one free
-  runner at a time). The suite-level Heal stage is still on the roadmap.
+  runner at a time).
 
 ## FAQ
 - **Do I need to know Playwright?** No — you describe the test in English, and the

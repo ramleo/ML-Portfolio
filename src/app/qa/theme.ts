@@ -48,9 +48,9 @@ export const STAGES: Stage[] = [
     key: "heal",
     label: "Heal",
     href: "/qa/heal",
-    status: "planned",
-    statusLabel: "Phase 5",
-    blurb: "When many tests fail on one broken thing, group them by root cause — \"1 issue, 12 tests\" — and fix all in one click, or one by one.",
+    status: "live",
+    statusLabel: "Live",
+    blurb: "Run your saved tests as a suite, group the failures by root cause — \"1 issue · N tests\" — and self-heal each group in one click.",
     analog: "Root-cause failure grouping",
   },
 ];

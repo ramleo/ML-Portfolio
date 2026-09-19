@@ -21,8 +21,8 @@ export default function QaLifecycle() {
       </h2>
       <p className="text-[15px] max-w-2xl" style={{ color: "var(--text2)" }}>
         One world made of stages that hand off to each other — author a test, run it on isolated CI,
-        heal it when a locator breaks, and discover new cases from a page. Author, Run and Discover are
-        live today; the suite-level Heal stage is the honest, phased roadmap.
+        discover new cases from a page, and heal a break across the whole suite. All four stages are
+        live today.
       </p>
 
       <div className="grid gap-4 mt-7" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(240px,100%),1fr))" }}>
