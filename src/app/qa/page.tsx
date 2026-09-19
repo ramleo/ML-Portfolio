@@ -1,18 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useToolTracking } from "@/hooks/useAnalytics";
+import ToolsAIChat from "@/components/ToolsAIChat";
+import WorldUserGuideModal from "@/components/world/WorldUserGuideModal";
 import { QA_ACCENT, QA_ACCENT2 } from "./theme";
+import { QA_WORLD_GUIDE, QA_WORLD_SUGGESTIONS } from "./worldGuide";
 import QaLifecycle from "./sections/QaLifecycle";
 import QaHowScope from "./sections/QaHowScope";
 
 const GRAD = `linear-gradient(120deg, ${QA_ACCENT}, ${QA_ACCENT2})`;
 
+const TOOL_SUMMARY =
+  "Testwright is the QA-automation platform inside AIRaML — a full workspace, not a single tool. " +
+  "It turns plain-English descriptions into real Playwright TypeScript tests with resilient locators, " +
+  "and on the roadmap runs and heals them. Four stages: Author (live), Run, Discover, Heal. Free, " +
+  "own-site first.";
+
 export default function QaLandingPage() {
   useToolTracking("qa-world");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="pb-16">
+      <ToolsAIChat context={{
+        accent: QA_ACCENT,
+        tool: "Testwright",
+        summary: TOOL_SUMMARY,
+        guide: QA_WORLD_GUIDE,
+        suggestions: QA_WORLD_SUGGESTIONS,
+      }} />
+      <WorldUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} title="Testwright" accent={QA_ACCENT} guide={QA_WORLD_GUIDE} />
       {/* HERO */}
       <header className="max-w-6xl mx-auto px-4 pt-12 pb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-3" style={{ color: "var(--text3)" }}>
@@ -38,6 +57,15 @@ export default function QaLandingPage() {
             style={{ border: "1px solid var(--border2)", color: "var(--text)" }}>
             See how it works
           </a>
+          <button onClick={() => setGuideOpen(true)}
+            className="inline-flex items-center gap-1.5 font-semibold text-sm px-[18px] py-2.5 rounded-full"
+            style={{ border: `1px solid ${QA_ACCENT}45`, color: QA_ACCENT, background: "transparent" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            User Guide
+          </button>
         </div>
         <div className="flex gap-4 flex-wrap mt-5 text-[13px]" style={{ color: "var(--text3)" }}>
           {["Free to run", "Playwright · TypeScript", "Resilient locators", "Your own site first"].map((t) => (

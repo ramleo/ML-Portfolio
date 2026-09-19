@@ -47,7 +47,7 @@ export default function PlatformTile({ platform, size }: { platform: Platform; s
       </span>
       <span className="dom-cap">
         <span className="dom-name">{title}</span>
-        <span className="dom-count">{task}{internal ? " · Enter" : " · Launch"}</span>
+        <span className="dom-count">{task} · Enter</span>
         {size === "big" && <span className="dom-blurb">{description}</span>}
       </span>
     </>

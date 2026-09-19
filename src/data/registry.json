@@ -78,8 +78,8 @@
     "classes": null,
     "tags": ["Text-to-SQL", "LLM", "FastAPI", "Live DB", "Explainer"],
     "internal": true,
-    "href": "/tools/text-to-sql",
-    "url": "/tools/text-to-sql",
+    "href": "/sql",
+    "url": "/sql",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#6366f1"
   }
