@@ -37,3 +37,20 @@ export async function qaPost<T>(path: string, body: unknown, opts: QaFetchOpts):
     clearTimeout(timeout);
   }
 }
+
+/** GET JSON from a /qa endpoint. Used for status polling — not a "run", so it is
+ *  not run-logged, but still goes through QA_API so the microservice seam holds. */
+export async function qaGet<T>(path: string, timeoutMs = 15_000): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${QA_API}${path}`, { signal: controller.signal });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(data?.detail?.[0]?.msg || data?.detail || "Request failed.");
+    }
+    return data as T;
+  } finally {
+    clearTimeout(timeout);
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthor } from "./useAuthor";
 
 const DEFAULT_BASE_URL = "https://ml-portfolio-rho.vercel.app";
@@ -13,11 +14,21 @@ const SAMPLE =
 const MAX_CHARS = 4000;
 
 export default function AuthorRunner({ accent }: { accent: string }) {
+  const router = useRouter();
   const { generate, running, result, error, reset } = useAuthor();
   const [steps, setSteps] = useState("");
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const onSendToRun = () => {
+    if (!result?.code) return;
+    try {
+      sessionStorage.setItem("qa_run_code", result.code);
+      if (testName.trim()) sessionStorage.setItem("qa_run_name", testName.trim());
+    } catch { /* sessionStorage unavailable — Run page just starts empty */ }
+    router.push("/qa/run");
+  };
 
   const canRun = steps.trim().length > 0 && !running;
 
@@ -42,9 +53,10 @@ export default function AuthorRunner({ accent }: { accent: string }) {
     <div className="flex flex-col gap-5">
       <div className="rounded-xl px-4 py-3 text-[12px] leading-relaxed"
         style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
-        <span className="font-semibold" style={{ color: "var(--text)" }}>Generation only.</span>{" "}
-        This writes a Playwright test in TypeScript from your description — it does not run anything.
-        Copy the code into your own Playwright project to execute it. Running inside the workspace is the next stage.
+        <span className="font-semibold" style={{ color: "var(--text)" }}>Authoring.</span>{" "}
+        This writes a Playwright test in TypeScript from your description. When it&apos;s ready,
+        hit <span className="font-semibold" style={{ color: "var(--text)" }}>Send to Run</span> to
+        execute it here on isolated CI, or copy it into your own Playwright project.
       </div>
 
       <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
@@ -117,8 +129,12 @@ export default function AuthorRunner({ accent }: { accent: string }) {
                   style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}35` }}>{result.provider}</span>
               )}
             </div>
-            <button onClick={onCopy} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
-              style={{ borderColor: `${accent}45`, color: accent }}>{copied ? "Copied" : "Copy"}</button>
+            <div className="flex items-center gap-2">
+              <button onClick={onSendToRun} className="text-[11px] px-3 py-1.5 rounded-lg font-semibold transition-opacity hover:opacity-90"
+                style={{ background: accent, color: "#fff" }}>Send to Run →</button>
+              <button onClick={onCopy} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
+                style={{ borderColor: `${accent}45`, color: accent }}>{copied ? "Copied" : "Copy"}</button>
+            </div>
           </div>
           <pre className="text-[12px] leading-relaxed overflow-x-auto px-4 py-3.5 m-0" style={{ color: "var(--text2)" }}>
             <code>{result.code}</code>

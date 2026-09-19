@@ -6,8 +6,8 @@ Testwright is the QA-automation platform inside AIRaML. It turns a plain-English
 description of a browser test into a real, runnable **Playwright** test in
 **TypeScript**, using resilient locators and real assertions. It is a full
 workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal** —
-that hand off to each other. The **Author** stage is live today; the others are
-on the roadmap and are shown so the shape of the platform is clear.
+that hand off to each other. **Author** and **Run** are live today; **Discover**
+and **Heal** are on the roadmap and are shown so the shape of the platform is clear.
 
 Everything is **free** to run (free LLM providers + open-source Playwright) and
 aimed first at this site itself.
@@ -15,8 +15,9 @@ aimed first at this site itself.
 ## The four stages
 - **Author** *(live)* — describe a test in plain English (or paste a written
   test case) and get a runnable Playwright TypeScript test back.
-- **Run** *(Phase 2)* — execute the generated tests against our own site in a
-  bounded, sandboxed runner, with pass/fail, screenshots, video and a trace.
+- **Run** *(live)* — execute a Playwright test against our own site on an isolated,
+  ephemeral CI runner (GitHub Actions), and get pass/fail, a summary, and a failure
+  screenshot back — with video and a full trace on the linked run.
 - **Discover** *(Phase 3)* — give an own-site URL; a bounded crawl proposes
   candidate test cases, you confirm the list, and it generates and runs them.
 - **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
@@ -35,15 +36,31 @@ aimed first at this site itself.
    check the email field is required."* Up to 4,000 characters.
 5. Click **Generate test** (or **Use a sample** to load an example first). A free
    LLM (Cohere → Mistral, budget-capped) returns one complete test file.
-6. Read the result, click **Copy**, and paste it into a Playwright project.
+6. Read the result, then either **Send to Run** to execute it here, click **Copy**
+   to paste it into your own project, or both.
+
+## Using the Run stage (step by step)
+1. Open **Run** — via **Send to Run** on an Author result (it carries the test and
+   name over), the Run tab in the sub-nav, or paste a \`@playwright/test\` file in
+   directly. **Use a sample** loads a known-good test.
+2. **Base URL** *(optional)* — the target site. It must be on our own-site
+   allowlist; a third-party host is rejected (running arbitrary URLs is an SSRF
+   risk). **Test name** *(optional)* is a label.
+3. Click **Run test**. The test is dispatched to an **isolated, ephemeral GitHub
+   Actions runner** — nothing runs in your browser or on the app server — and the
+   page shows a **Queued → Running → Results** stepper while it executes.
+4. On completion you get a **Passed/Failed** banner, a **summary** (passed /
+   failed / flaky / skipped), and, on failure, the **screenshot** inline. The
+   **Full run** link opens the CI run with the **video** and **trace** to download
+   or open in the Playwright trace viewer.
 
 ## Reading and running the output
 - The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
   '@playwright/test'\`, a \`test.describe(...)\` block, and one or more \`test(...)\`
   cases.
-- To run it locally: \`npm init playwright@latest\` in a project, drop the file in
-  \`tests/\`, then \`npx playwright test\`. (In-workspace execution is the Run stage,
-  coming next — nothing runs from this page yet.)
+- Run it **here** with **Send to Run** / the Run stage, or locally: \`npm init
+  playwright@latest\` in a project, drop the file in \`tests/\`, then
+  \`npx playwright test\`.
 - The provider that generated the test is shown as a chip (e.g. \`cohere\`).
 
 ## What makes the generated tests good
@@ -63,18 +80,24 @@ aimed first at this site itself.
   guessed match your page, and adjust if not.
 - It uses **free LLM providers**; on a bad response the tool says so plainly
   rather than showing broken code — just generate again.
-- **Nothing executes here** yet. Author is generation-only; running, crawling and
-  healing arrive in the later stages.
+- **Execution runs on isolated CI**, single-worker with a hard timeout, against
+  our own site only. It is not instant — a run queues, spins up a runner and
+  executes, so expect roughly a minute end to end. Crawling (Discover) and healing
+  (Heal) are still on the roadmap.
 - Testwright is **not** a paid device farm: no 3,000-browser matrix, no native
   mobile/desktop/mainframe, no email/SMS flows. It builds the core value free,
   for our own site.
 
 ## FAQ
-- **Do I need to know Playwright?** No to author — you describe the test in
-  English. Yes to run it today, until the Run stage lands (then it runs here).
-- **Can it test any website?** For now it generates against the URL you give, but
-  execution is scoped to our own site for safety (running arbitrary third-party
-  URLs is an SSRF risk). Other sites come later, gated by ownership verification.
+- **Do I need to know Playwright?** No — you describe the test in English, and the
+  Run stage executes it for you here. Reading the generated code helps but isn't
+  required.
+- **Where does the test actually run?** On an isolated, ephemeral GitHub Actions
+  runner — never in your browser or on the app server — so a misbehaving test
+  can't affect the live site.
+- **Can it test any website?** Execution is scoped to our own site for safety
+  (running arbitrary third-party URLs is an SSRF risk). Other sites come later,
+  gated by ownership verification.
 - **Is it really free?** Yes — free LLM tiers and open-source Playwright, behind a
   daily budget cap.
 - **Why Playwright and not Selenium?** Playwright's role/text locators and
@@ -90,8 +113,8 @@ honestly on a free stack.
 `;
 
 export const QA_WORLD_SUGGESTIONS = [
-  "How do I use the Author stage step by step?",
+  "How do I run a test in the Run stage?",
+  "Where does the test actually execute?",
   "What makes a Playwright locator resilient?",
-  "How do I run the generated test locally?",
   "What can Testwright do today versus on the roadmap?",
 ];

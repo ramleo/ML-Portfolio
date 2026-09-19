@@ -30,9 +30,9 @@ export const STAGES: Stage[] = [
     key: "run",
     label: "Run",
     href: "/qa/run",
-    status: "next",
-    statusLabel: "Phase 2",
-    blurb: "Execute against our own site in a bounded, sandboxed runner. Pass/fail, screenshots, video and a trace for every run.",
+    status: "live",
+    statusLabel: "Live",
+    blurb: "Execute against our own site on an isolated CI runner. Pass/fail, a summary, and a failure screenshot, with video and a trace on the full run.",
     analog: "≈ Katalon TestCloud / TestOps",
   },
   {

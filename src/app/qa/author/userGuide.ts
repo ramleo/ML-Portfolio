@@ -6,9 +6,9 @@ You describe a browser test in **plain English** and it writes a complete,
 runnable **Playwright** test in **TypeScript**. A free LLM turns your steps into
 a test file you can drop straight into a Playwright project.
 
-This is the **Author** stage of Testwright: it writes the test. It does **not
-run** anything here — running against the site (bounded, sandboxed) is the
-**Run** stage, next on the roadmap.
+This is the **Author** stage of Testwright: it writes the test. To execute it,
+use **Send to Run** — the **Run** stage runs it on an isolated CI runner and
+returns pass/fail, a summary, and a failure screenshot.
 
 ## How to use it
 1. Optionally set the **Base URL** of the site the test targets (defaults to a
@@ -34,8 +34,9 @@ run** anything here — running against the site (bounded, sandboxed) is the
   Selectors depend on your actual markup — check the names match your page.
 - It uses **free LLM providers** (Cohere / Mistral). On a bad response the tool
   says so rather than showing broken code; just try again.
-- **Nothing is executed here.** Copy the code into your own Playwright setup
-  (\`npm init playwright@latest\`) to run it, until the Run stage lands.
+- **Authoring only on this page.** Use **Send to Run** to execute it here on
+  isolated CI, or copy it into your own Playwright setup (\`npm init
+  playwright@latest\`) to run it locally.
 
 ## Why it matters
 Writing good end-to-end tests is slow, and most hand-written selectors are
