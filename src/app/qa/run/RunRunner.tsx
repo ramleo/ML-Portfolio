@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRun } from "./useRun";
-import { qaUrl } from "../lib/qaClient";
+import { qaUrl, qaPost } from "../lib/qaClient";
+
+type HealResp = { healed_code?: string; provider?: string | null; detail?: string | null };
+type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string };
+
+function lineDiff(oldCode: string, newCode: string): { removed: string[]; added: string[] } {
+  const a = oldCode.split("\n"), b = newCode.split("\n");
+  const setA = new Set(a), setB = new Set(b);
+  const removed = a.filter((l) => l.trim() && !setB.has(l)).slice(0, 6);
+  const added = b.filter((l) => l.trim() && !setA.has(l)).slice(0, 6);
+  return { removed, added };
+}
 
 const DEFAULT_BASE_URL = "https://ml-portfolio-rho.vercel.app";
 const MAX_CHARS = 60000;
@@ -32,6 +43,34 @@ export default function RunRunner({ accent }: { accent: string }) {
   const [code, setCode] = useState("");
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
+  const [healing, setHealing] = useState(false);
+  const [healInfo, setHealInfo] = useState<HealInfo | null>(null);
+
+  const onHeal = async () => {
+    if (!state.correlationId || healing) return;
+    const original = code;
+    setHealing(true);
+    setHealInfo(null);
+    try {
+      const resp = await qaPost<HealResp>(
+        "/qa/run/heal",
+        { correlation_id: state.correlationId, code: original },
+        { tool: "qa-heal" },
+      );
+      if (!resp.healed_code) {
+        setHealInfo({ removed: [], added: [], error: resp.detail || "Could not heal this failure." });
+        return;
+      }
+      const { removed, added } = lineDiff(original, resp.healed_code);
+      setHealInfo({ provider: resp.provider ?? null, removed, added });
+      setCode(resp.healed_code);
+      run(resp.healed_code, baseUrl, testName); // re-run the corrected test
+    } catch (err) {
+      setHealInfo({ removed: [], added: [], error: (err as Error).message || "Heal failed." });
+    } finally {
+      setHealing(false);
+    }
+  };
 
   // Carry a test over from the Author stage ("Send to Run").
   useEffect(() => {
@@ -107,13 +146,15 @@ export default function RunRunner({ accent }: { accent: string }) {
             {busy ? "Running…" : "Run test"}
           </button>
           {(state.phase === "completed" || state.phase === "error") && (
-            <button onClick={reset}
+            <button onClick={() => { reset(); setHealInfo(null); }}
               className="text-[12px] px-3 py-2 rounded-lg border" style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
               Clear
             </button>
           )}
         </div>
       </div>
+
+      {healInfo && <HealBanner info={healInfo} accent={accent} />}
 
       {activeStep >= 0 && <Stepper active={activeStep} phase={state.phase} accent={accent} />}
 
@@ -125,7 +166,43 @@ export default function RunRunner({ accent }: { accent: string }) {
         </div>
       )}
 
-      {state.phase === "completed" && <Result state={state} accent={accent} />}
+      {state.phase === "completed" && (
+        <Result state={state} accent={accent} onHeal={onHeal} healing={healing} healed={!!healInfo && !healInfo.error} />
+      )}
+    </div>
+  );
+}
+
+function HealBanner({ info, accent }: { info: HealInfo; accent: string }) {
+  if (info.error) {
+    return (
+      <div className="rounded-xl px-4 py-3 text-[12px]"
+        style={{ background: "rgba(245,158,11,0.10)", border: "1px solid rgba(245,158,11,0.35)", color: "var(--text2)" }}>
+        <span className="font-semibold" style={{ color: "var(--text)" }}>Couldn&apos;t heal.</span> {info.error}
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: `${accent}0d`, border: `1px solid ${accent}30` }}>
+      <div className="px-4 py-2.5 flex items-center gap-2 border-b" style={{ borderColor: `${accent}22` }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8">
+          <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" strokeLinecap="round" />
+        </svg>
+        <span className="text-[12px] font-semibold" style={{ color: "var(--text)" }}>
+          Self-healed the locator{info.provider ? ` · ${info.provider}` : ""}
+        </span>
+        <span className="text-[11px]" style={{ color: "var(--text3)" }}>— re-running the corrected test</span>
+      </div>
+      {(info.removed.length > 0 || info.added.length > 0) && (
+        <pre className="text-[11px] font-mono overflow-x-auto px-4 py-2.5 m-0 leading-relaxed">
+          {info.removed.map((l, i) => (
+            <div key={`r${i}`} style={{ color: "#f43f5e" }}>- {l.trim()}</div>
+          ))}
+          {info.added.map((l, i) => (
+            <div key={`a${i}`} style={{ color: "#34d399" }}>+ {l.trim()}</div>
+          ))}
+        </pre>
+      )}
     </div>
   );
 }
@@ -163,7 +240,13 @@ function fmtMs(ms?: number | null): string {
   return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
 }
 
-function Result({ state, accent }: { state: ReturnType<typeof useRun>["state"]; accent: string }) {
+function Result({ state, accent, onHeal, healing, healed }: {
+  state: ReturnType<typeof useRun>["state"];
+  accent: string;
+  onHeal: () => void;
+  healing: boolean;
+  healed: boolean;
+}) {
   const passed = state.passed === true;
   const color = passed ? "#34d399" : "#f43f5e";
   const s = state.summary;
@@ -183,13 +266,22 @@ function Result({ state, accent }: { state: ReturnType<typeof useRun>["state"]; 
             </span>
           )}
         </div>
-        {state.runUrl && (
-          <a href={state.runUrl} target="_blank" rel="noopener noreferrer"
-            className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
-            style={{ borderColor: `${accent}45`, color: accent }}>
-            Open on GitHub
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          {!passed && !healed && (
+            <button onClick={onHeal} disabled={healing}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
+              style={{ background: accent, color: "#fff" }}>
+              {healing ? "Healing…" : "Heal & re-run"}
+            </button>
+          )}
+          {state.runUrl && (
+            <a href={state.runUrl} target="_blank" rel="noopener noreferrer"
+              className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
+              style={{ borderColor: `${accent}45`, color: accent }}>
+              Open on GitHub
+            </a>
+          )}
+        </div>
       </div>
 
       {cid && state.hasVideo && (
