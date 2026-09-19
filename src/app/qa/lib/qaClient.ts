@@ -9,6 +9,12 @@
 import { QA_API } from "@/config/urls";
 import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 
+/** Absolute URL for a /qa endpoint — for direct browser use (e.g. <video src>,
+ *  a download link) so QA_API stays the one place the base is defined. */
+export function qaUrl(path: string): string {
+  return `${QA_API}${path}`;
+}
+
 export type QaFetchOpts = {
   tool: string;
   timeoutMs?: number;

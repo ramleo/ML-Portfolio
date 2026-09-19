@@ -9,12 +9,18 @@ export type RunPhase = "idle" | "queued" | "in_progress" | "completed" | "error"
 
 export type RunSummary = { expected: number; unexpected: number; flaky: number; skipped: number };
 
+export type RunStep = { title: string; category?: string | null; duration?: number | null; ok: boolean };
+
 export type RunState = {
   phase: RunPhase;
   passed: boolean | null;
   conclusion: string | null;
   summary: RunSummary | null;
   screenshot: string | null; // base64 png
+  steps: RunStep[];
+  hasVideo: boolean;
+  hasTrace: boolean;
+  correlationId: string | null;
   runUrl: string | null;
   error: string | null;
 };
@@ -25,13 +31,18 @@ type StatusResp = {
   conclusion?: string | null;
   summary?: RunSummary | null;
   screenshot_base64?: string | null;
+  steps?: RunStep[];
+  has_video?: boolean;
+  has_trace?: boolean;
+  correlation_id?: string | null;
   run_url?: string | null;
   detail?: string | null;
 };
 
 const IDLE: RunState = {
   phase: "idle", passed: null, conclusion: null, summary: null,
-  screenshot: null, runUrl: null, error: null,
+  screenshot: null, steps: [], hasVideo: false, hasTrace: false,
+  correlationId: null, runUrl: null, error: null,
 };
 
 export function useRun() {
@@ -82,6 +93,10 @@ export function useRun() {
           conclusion: s.conclusion ?? null,
           summary: s.summary ?? null,
           screenshot: s.screenshot_base64 ?? null,
+          steps: s.steps ?? [],
+          hasVideo: !!s.has_video,
+          hasTrace: !!s.has_trace,
+          correlationId: s.correlation_id ?? correlationId,
           runUrl: s.run_url ?? null,
           error: null,
         });

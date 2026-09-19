@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRun } from "./useRun";
+import { qaUrl } from "../lib/qaClient";
 
 const DEFAULT_BASE_URL = "https://ml-portfolio-rho.vercel.app";
 const MAX_CHARS = 60000;
@@ -157,13 +158,22 @@ function Stepper({ active, phase, accent }: { active: number; phase: string; acc
   );
 }
 
+function fmtMs(ms?: number | null): string {
+  if (ms == null) return "";
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+}
+
 function Result({ state, accent }: { state: ReturnType<typeof useRun>["state"]; accent: string }) {
   const passed = state.passed === true;
   const color = passed ? "#34d399" : "#f43f5e";
   const s = state.summary;
+  const cid = state.correlationId;
+  const sectionBorder = { borderColor: "var(--border)" };
+  const label = "text-[11px] font-semibold uppercase tracking-wide mb-2";
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={sectionBorder}>
         <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
           <span className="text-sm font-bold" style={{ color: "var(--text)" }}>{passed ? "Passed" : "Failed"}</span>
@@ -177,23 +187,54 @@ function Result({ state, accent }: { state: ReturnType<typeof useRun>["state"]; 
           <a href={state.runUrl} target="_blank" rel="noopener noreferrer"
             className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
             style={{ borderColor: `${accent}45`, color: accent }}>
-            Full run · video &amp; trace
+            Open on GitHub
           </a>
         )}
       </div>
-      {state.screenshot ? (
-        <div className="p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--text3)" }}>
-            Failure screenshot
-          </p>
+
+      {cid && state.hasVideo && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>Run video</p>
+          <video controls preload="metadata" className="w-full rounded-lg"
+            style={{ border: "1px solid var(--border)", maxHeight: 440, background: "#000" }}
+            src={qaUrl(`/qa/run/artifact/${cid}/video`)} />
+        </div>
+      )}
+
+      {state.screenshot && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>Failure screenshot</p>
           <img alt="Failure screenshot" src={`data:image/png;base64,${state.screenshot}`}
             className="w-full rounded-lg" style={{ border: "1px solid var(--border)" }} />
         </div>
-      ) : (
-        <div className="px-4 py-5 text-[12px]" style={{ color: "var(--text3)" }}>
-          {passed
-            ? "No screenshot — the test passed. Open the full run for the video and trace."
-            : "No screenshot was captured for this failure."}
+      )}
+
+      {state.steps.length > 0 && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>Steps ({state.steps.length})</p>
+          <ol className="flex flex-col">
+            {state.steps.map((st, i) => (
+              <li key={i} className="flex items-center gap-2.5 text-[12px] py-1.5 border-b last:border-0" style={sectionBorder}>
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: st.ok ? "#34d399" : "#f43f5e" }} />
+                <span className="flex-1 truncate font-mono" style={{ color: "var(--text2)" }}>{st.title}</span>
+                <span className="tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{fmtMs(st.duration)}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {cid && state.hasTrace && (
+        <div className="px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+          <a href={qaUrl(`/qa/run/artifact/${cid}/trace`)}
+            className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
+            style={{ borderColor: `${accent}45`, color: accent }}>
+            Download trace (.zip)
+          </a>
+          <span className="text-[11px]" style={{ color: "var(--text3)" }}>
+            Open it at{" "}
+            <a href="https://trace.playwright.dev" target="_blank" rel="noopener noreferrer" className="underline">trace.playwright.dev</a>
+          </span>
         </div>
       )}
     </div>
