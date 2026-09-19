@@ -64,7 +64,6 @@ const AREA_OF: Record<string, string> = {
   "style-cloak": "security-trust",
   "text-prompted-video-tracking": "computer-vision",
   "text-to-image": "computer-vision",
-  "text-to-sql": "language-documents",
   "tls-security-headers-scanner": "security-trust",
   "video-keystroke-inference": "security-trust",
   "wildlife-reidentification": "computer-vision",
@@ -78,14 +77,26 @@ const AREA_NAME: Record<string, string> = {
   "security-trust": "Security & Trust",
 };
 
+/**
+ * A tool that belongs to a platform world rather than a toolkit area: its back
+ * link points at the platform landing, not a `/tools/<area>` page. Text-to-SQL
+ * is a platform (see src/app/sql), so its tool page breadcrumbs to /sql, not to
+ * "Language & Documents".
+ */
+const PLATFORM_OF: Record<string, { href: string; label: string }> = {
+  "text-to-sql": { href: "/sql", label: "Text-to-SQL" },
+};
+
 /** Where a tool page's back link should go. */
 export function toolBackHref(toolId: string): string {
+  if (PLATFORM_OF[toolId]) return PLATFORM_OF[toolId].href;
   const slug = AREA_OF[toolId];
   return slug ? `/tools/${slug}` : "/#capabilities";
 }
 
-/** What that link should say — the area's name, or "Home" if it is unknown. */
+/** What that link should say — the platform/area name, or "Home" if unknown. */
 export function toolBackLabel(toolId: string): string {
+  if (PLATFORM_OF[toolId]) return PLATFORM_OF[toolId].label;
   const slug = AREA_OF[toolId];
   return slug ? AREA_NAME[slug] : "Home";
 }

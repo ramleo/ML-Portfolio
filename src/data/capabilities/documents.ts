@@ -7,30 +7,15 @@
  *  is not used by anything: every consumer takes a length or filters by
  *  domain.
  */
-import { BookOpenCheck, FileSearch, Scale, Terminal } from "lucide-react";
+import { BookOpenCheck, FileSearch, Scale } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 
+// Text-to-SQL is no longer a toolkit card here — it graduated to its own
+// platform world at /sql (see registry.json + src/app/sql). It is a full app
+// with its own backend, so it lives in the "Deployed Platforms" tier, not the
+// single-purpose toolkit.
 const languageDocuments: Capability[] = [
-  {
-    id: "text-to-sql",
-    featured: 5,
-    domain: "Language & Documents",
-    title: "Text-to-SQL Agent",
-    subtitle: "Natural Language → Database Queries",
-    description:
-      "Ask a question in plain English and get SQL you can actually run. The agent writes the query, executes it against a real database, explains what came back, and retries itself if the query errors. Bring your own SQLite file or a PostgreSQL connection, or try it on the Chinook demo database.",
-    accent: "#6a6cc8",
-    icon: Terminal,
-    stat: "3",
-    statLabel: "LLM Providers",
-    model: "Groq / Gemini / Cohere",
-    input: "Natural language question",
-    tags: ["SQL", "LLM", "Agent", "Database", "NLP"],
-    link: "/?mode=ml",
-    github: GITHUB,
-    internalLink: "/tools/text-to-sql",
-  },
   {
     id: "document-intelligence",
     domain: "Language & Documents",

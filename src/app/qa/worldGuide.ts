@@ -1,45 +1,97 @@
 export const QA_WORLD_GUIDE = `
-# Testwright — Platform Guide
+# Testwright — User Guide
 
 ## What Testwright is
-Testwright is the **QA-automation platform** inside AIRaML — a full workspace for
-building and running browser tests, not a single tool. It turns plain-English
-descriptions into real **Playwright** tests, and (on the roadmap) runs and heals
-them. Free, open-source engine, aimed first at this site itself.
+Testwright is the QA-automation platform inside AIRaML. It turns a plain-English
+description of a browser test into a real, runnable **Playwright** test in
+**TypeScript**, using resilient locators and real assertions. It is a full
+workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal** —
+that hand off to each other. The **Author** stage is live today; the others are
+on the roadmap and are shown so the shape of the platform is clear.
+
+Everything is **free** to run (free LLM providers + open-source Playwright) and
+aimed first at this site itself.
 
 ## The four stages
-One workspace, four stages that hand off to each other:
-- **Author** *(live)* — describe a test in plain English (or paste a case) →
-  a runnable Playwright TypeScript test with resilient role/text locators and
-  real assertions.
-- **Run** *(Phase 2)* — execute tests against our own site in a bounded runner,
-  with pass/fail, screenshots, video and a trace.
-- **Discover** *(Phase 3)* — give an own-site URL → a crawl proposes candidate
-  test cases → you confirm → it generates and runs them.
-- **Heal** *(Phase 5)* — when many tests fail on one broken thing, group them by
-  root cause and fix all in one click, or one by one.
+- **Author** *(live)* — describe a test in plain English (or paste a written
+  test case) and get a runnable Playwright TypeScript test back.
+- **Run** *(Phase 2)* — execute the generated tests against our own site in a
+  bounded, sandboxed runner, with pass/fail, screenshots, video and a trace.
+- **Discover** *(Phase 3)* — give an own-site URL; a bounded crawl proposes
+  candidate test cases, you confirm the list, and it generates and runs them.
+- **Heal** *(Phase 5)* — when many tests fail because of one broken thing, group
+  them by root cause ("1 issue, 12 tests") and fix them all in one click, or one
+  by one.
 
-## How to use it now
-Open **Author**, describe what to check, and copy the generated Playwright test
-into your own project. Everything is generation-only today — nothing runs against
-a live site until the Run stage lands.
+## Using the Author (step by step)
+1. Open **Author** (the button on this page, or the Author tab in the sub-nav).
+2. **Base URL** *(optional)* — the site the test targets. It defaults to this
+   portfolio's URL; change it to point the generated test elsewhere. It becomes a
+   \`BASE_URL\` constant at the top of the test.
+3. **Test name** *(optional)* — used as the \`describe(...)\` block title. Leave it
+   blank and a title is derived from your description.
+4. **What should the test check?** — type the steps in plain English, the way
+   you'd tell a teammate. Example: *"Open the pricing page, click Sign up, and
+   check the email field is required."* Up to 4,000 characters.
+5. Click **Generate test** (or **Use a sample** to load an example first). A free
+   LLM (Cohere → Mistral, budget-capped) returns one complete test file.
+6. Read the result, click **Copy**, and paste it into a Playwright project.
 
-## Honest scope
-Testwright builds the core value **free, for our own site**: plain-English
-authoring, resilient locators, bounded execution, visual + accessibility checks,
-and root-cause grouping. It is **not** a paid device farm — no 3,000-browser
-matrix, no native mobile/desktop/mainframe, no SMS/email flows.
+## Reading and running the output
+- The output is a complete \`*.spec.ts\` file: \`import { test, expect } from
+  '@playwright/test'\`, a \`test.describe(...)\` block, and one or more \`test(...)\`
+  cases.
+- To run it locally: \`npm init playwright@latest\` in a project, drop the file in
+  \`tests/\`, then \`npx playwright test\`. (In-workspace execution is the Run stage,
+  coming next — nothing runs from this page yet.)
+- The provider that generated the test is shown as a chip (e.g. \`cohere\`).
 
-## Why it exists
-Writing good end-to-end tests is slow and most hand-written selectors are
-brittle. Testwright removes the tedious first draft and pushes toward tests that
-survive a redesign — the same idea tools like testRigor and Katalon are built on,
-done honestly on a free stack.
+## What makes the generated tests good
+- **Resilient locators.** It prefers \`getByRole\`, \`getByLabel\`, \`getByText\`,
+  \`getByPlaceholder\` and \`getByTestId\` — locators tied to what a user sees
+  (accessible role, name, label) rather than brittle CSS paths or positional
+  \`.nth()\` indices that break on the smallest layout change. A short comment on
+  each locator says why it is stable.
+- **Real assertions.** Every scenario ends in at least one \`expect(...)\`
+  (\`toBeVisible\`, \`toHaveURL\`, \`toHaveText\`, \`toHaveCount\`, …). A test with no
+  assertion passes even when the page is broken, so Testwright never emits one.
+- **One runnable file.** No pseudo-code, no fragments — a file you can run as-is.
+
+## Honest limits
+- The generated test is a **draft to review**, not a guaranteed-passing test. The
+  selectors depend on your actual markup — check that the role/name/label it
+  guessed match your page, and adjust if not.
+- It uses **free LLM providers**; on a bad response the tool says so plainly
+  rather than showing broken code — just generate again.
+- **Nothing executes here** yet. Author is generation-only; running, crawling and
+  healing arrive in the later stages.
+- Testwright is **not** a paid device farm: no 3,000-browser matrix, no native
+  mobile/desktop/mainframe, no email/SMS flows. It builds the core value free,
+  for our own site.
+
+## FAQ
+- **Do I need to know Playwright?** No to author — you describe the test in
+  English. Yes to run it today, until the Run stage lands (then it runs here).
+- **Can it test any website?** For now it generates against the URL you give, but
+  execution is scoped to our own site for safety (running arbitrary third-party
+  URLs is an SSRF risk). Other sites come later, gated by ownership verification.
+- **Is it really free?** Yes — free LLM tiers and open-source Playwright, behind a
+  daily budget cap.
+- **Why Playwright and not Selenium?** Playwright's role/text locators and
+  built-in waiting make far more stable tests, and it is already the framework
+  this site uses.
+
+## Why it matters
+Writing good end-to-end tests is slow, and most hand-written selectors are
+brittle. Turning a plain-English description into a Playwright test with stable
+locators removes the tedious first draft and pushes toward tests that survive the
+next redesign — the idea tools like testRigor and Katalon are built on, done
+honestly on a free stack.
 `;
 
 export const QA_WORLD_SUGGESTIONS = [
-  "What can Testwright do today versus on the roadmap?",
+  "How do I use the Author stage step by step?",
   "What makes a Playwright locator resilient?",
-  "How is Testwright different from testRigor or Katalon?",
-  "Take me to the Author stage.",
+  "How do I run the generated test locally?",
+  "What can Testwright do today versus on the roadmap?",
 ];

@@ -6,7 +6,9 @@ import { useToolTracking } from "@/hooks/useAnalytics";
 import ToolsAIChat from "@/components/ToolsAIChat";
 import WorldUserGuideModal from "@/components/world/WorldUserGuideModal";
 import { SQL_ACCENT, SQL_ACCENT2, TOOL_HREF } from "./theme";
-import { SQL_WORLD_GUIDE, SQL_WORLD_SUGGESTIONS } from "./worldGuide";
+// The platform reuses the tool's own comprehensive user guide — one source of
+// truth, kept in sync with the tool's modal.
+import { TEXT_TO_SQL_GUIDE, TEXT_TO_SQL_SUGGESTIONS } from "@/app/tools/text-to-sql/userGuide";
 import SqlCapabilities from "./sections/SqlCapabilities";
 import SqlHowScope from "./sections/SqlHowScope";
 
@@ -27,10 +29,10 @@ export default function SqlLandingPage() {
         accent: SQL_ACCENT,
         tool: "Text-to-SQL",
         summary: TOOL_SUMMARY,
-        guide: SQL_WORLD_GUIDE,
-        suggestions: SQL_WORLD_SUGGESTIONS,
+        guide: TEXT_TO_SQL_GUIDE,
+        suggestions: TEXT_TO_SQL_SUGGESTIONS,
       }} />
-      <WorldUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} title="Text-to-SQL" accent={SQL_ACCENT} guide={SQL_WORLD_GUIDE} />
+      <WorldUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} title="Text-to-SQL" accent={SQL_ACCENT} guide={TEXT_TO_SQL_GUIDE} />
 
       {/* HERO */}
       <header className="max-w-6xl mx-auto px-4 pt-12 pb-6">

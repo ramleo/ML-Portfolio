@@ -51,7 +51,7 @@ const domains: Domain[] = [
   {
     slug: "language-documents",
     name: "Language & Documents",
-    blurb: "Reading and reasoning over text: questions answered from your own files, plain English turned into SQL.",
+    blurb: "Reading and reasoning over text: questions answered from your own files, contracts reconciled, documents turned into structured data.",
     color: "#6366f1",
     colorLight: "#4338ca",
     colorDim: "#363a88",
