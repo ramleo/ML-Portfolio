@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ToolsAIChat from "@/components/ToolsAIChat";
+import WorldUserGuideModal from "@/components/world/WorldUserGuideModal";
 import RunRunner from "./RunRunner";
 import { QA_WORLD_GUIDE, QA_WORLD_SUGGESTIONS } from "../worldGuide";
 
@@ -14,6 +16,7 @@ const TOOL_SUMMARY =
 
 export default function RunPage() {
   useToolTracking("qa-run");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 w-full">
@@ -24,6 +27,7 @@ export default function RunPage() {
         guide: QA_WORLD_GUIDE,
         suggestions: QA_WORLD_SUGGESTIONS,
       }} />
+      <WorldUserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} title="Testwright — Run" accent={ACCENT} guide={QA_WORLD_GUIDE} />
 
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -42,6 +46,15 @@ export default function RunPage() {
             Execute a Playwright test on isolated CI — pass/fail, summary, and a failure screenshot
           </p>
         </div>
+        <button onClick={() => setGuideOpen(true)}
+          className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+          style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          User Guide
+        </button>
       </div>
 
       <RunRunner accent={ACCENT} />
