@@ -29,7 +29,9 @@
     "features": 0,
     "classes": null,
     "tags": ["EDA", "Statistics", "Correlation", "Distributions", "Data Profiling"],
-    "url": "https://wram1708-ml-unified.hf.space/?mode=eda",
+    "internal": true,
+    "href": "/eda",
+    "url": "/eda",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#34d399"
   },
@@ -45,7 +47,9 @@
     "features": 3,
     "classes": null,
     "tags": ["Vision", "ONNX", "Segmentation", "Detection", "Classification"],
-    "url": "https://wram1708-ml-unified.hf.space/?mode=vision",
+    "internal": true,
+    "href": "/vision",
+    "url": "/vision",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#a78bfa"
   },
