@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type WorldNavItem = { label: string; href: string; dot?: string };
+export type WorldNavItem = { label: string; href: string; dot?: string; external?: boolean };
 
 /** The in-world sub-nav, persistent under the global navbar on every page of a
  *  platform world. Config-driven so each world (Testwright, Text-to-SQL) gets
@@ -34,13 +34,13 @@ export default function WorldNav({
         <nav className="flex items-center gap-1 overflow-x-auto">
           {items.map((it) => {
             const active = pathname === it.href;
-            return (
-              <Link key={it.href} href={it.href}
-                className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap transition-colors"
-                style={{ color: active ? "var(--text)" : "var(--text3)", background: active ? "rgba(var(--fg-rgb),0.06)" : "transparent" }}>
-                {it.dot && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: it.dot }} />}
-                {it.label}
-              </Link>
+            const cls = "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap transition-colors";
+            const st = { color: active ? "var(--text)" : "var(--text3)", background: active ? "rgba(var(--fg-rgb),0.06)" : "transparent" };
+            const inner = <>{it.dot && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: it.dot }} />}{it.label}</>;
+            return it.external ? (
+              <a key={it.href} href={it.href} target="_blank" rel="noopener noreferrer" className={cls} style={st}>{inner}</a>
+            ) : (
+              <Link key={it.href} href={it.href} className={cls} style={st}>{inner}</Link>
             );
           })}
         </nav>

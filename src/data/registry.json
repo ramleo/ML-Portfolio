@@ -11,7 +11,9 @@
     "features": 26,
     "classes": null,
     "tags": ["Platform", "FastAPI", "Schema-Driven", "Classification", "Regression"],
-    "url": "https://wram1708-ml-unified.hf.space/?mode=ml",
+    "internal": true,
+    "href": "/ml",
+    "url": "/ml",
     "github": "https://github.com/ramleo/ML-Unified",
     "accent": "#e879f9"
   },
