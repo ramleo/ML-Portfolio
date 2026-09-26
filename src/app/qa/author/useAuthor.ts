@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { qaPost } from "../lib/qaClient";
 
 export type GenerateResult = { code: string; provider: string | null };
+export type AssertSuggestion = { title: string; code: string; why: string };
 
 // Analytics/budget id kept as the original for continuity across the move.
 const TOOL_ID = "qa-test-author";
@@ -10,6 +11,9 @@ export function useAuthor() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<AssertSuggestion[] | null>(null);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const generate = useCallback(async (
     instructions: string,
@@ -44,10 +48,39 @@ export function useAuthor() {
     }
   }, []);
 
+  const suggestAssertions = useCallback(async (code: string) => {
+    const src = code.trim();
+    if (!src) return;
+    setSuggesting(true);
+    setSuggestError(null);
+    setSuggestions(null);
+    try {
+      const data = await qaPost<{ suggestions?: AssertSuggestion[] }>(
+        "/qa/author/assertions",
+        { code: src },
+        { tool: "qa-assertions", meta: { chars: src.length } },
+      );
+      const list = data?.suggestions ?? [];
+      if (!list.length) {
+        throw new Error("No new assertions to suggest — the test already covers what it does.");
+      }
+      setSuggestions(list);
+    } catch (err) {
+      setSuggestError((err as Error).message || "Could not suggest assertions.");
+    } finally {
+      setSuggesting(false);
+    }
+  }, []);
+
   const reset = useCallback(() => {
     setResult(null);
     setError(null);
+    setSuggestions(null);
+    setSuggestError(null);
   }, []);
 
-  return { generate, running, result, error, reset };
+  return {
+    generate, running, result, error, reset,
+    suggestAssertions, suggesting, suggestions, suggestError,
+  };
 }

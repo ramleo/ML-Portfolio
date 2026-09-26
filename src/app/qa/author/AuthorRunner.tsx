@@ -15,7 +15,8 @@ const MAX_CHARS = 4000;
 
 export default function AuthorRunner({ accent }: { accent: string }) {
   const router = useRouter();
-  const { generate, running, result, error, reset } = useAuthor();
+  const { generate, running, result, error, reset,
+    suggestAssertions, suggesting, suggestions, suggestError } = useAuthor();
   const [steps, setSteps] = useState("");
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
@@ -132,6 +133,11 @@ export default function AuthorRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-2">
               <button onClick={onSendToRun} className="text-[11px] px-3 py-1.5 rounded-lg font-semibold transition-opacity hover:opacity-90"
                 style={{ background: accent, color: "#fff" }}>Send to Run →</button>
+              <button onClick={() => suggestAssertions(result.code)} disabled={suggesting}
+                className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50"
+                style={{ borderColor: `${accent}45`, color: accent }}>
+                {suggesting ? "Suggesting…" : "Suggest assertions"}
+              </button>
               <button onClick={onCopy} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
                 style={{ borderColor: `${accent}45`, color: accent }}>{copied ? "Copied" : "Copy"}</button>
             </div>
@@ -139,6 +145,43 @@ export default function AuthorRunner({ accent }: { accent: string }) {
           <pre className="text-[12px] leading-relaxed overflow-x-auto px-4 py-3.5 m-0" style={{ color: "var(--text2)" }}>
             <code>{result.code}</code>
           </pre>
+        </div>
+      )}
+
+      {suggestError && (
+        <div className="rounded-xl px-4 py-3 text-[12px]"
+          style={{ background: `${accent}0d`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
+          {suggestError}
+        </div>
+      )}
+
+      {suggestions && suggestions.length > 0 && (
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div className="px-4 py-2.5 border-b" style={{ borderColor: "var(--border)" }}>
+            <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
+              Suggested assertions ({suggestions.length})
+            </span>
+            <p className="text-[11px] mt-1" style={{ color: "var(--text3)" }}>
+              Checks this test is missing. Copy any into your test before running.
+            </p>
+          </div>
+          <ul className="flex flex-col">
+            {suggestions.map((sug, i) => (
+              <li key={i} className="px-4 py-3 border-b last:border-0 flex flex-col gap-1.5" style={{ borderColor: "var(--border)" }}>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[12px] font-semibold" style={{ color: "var(--text)" }}>{sug.title}</span>
+                  <button onClick={() => { navigator.clipboard?.writeText(sug.code).catch(() => {}); }}
+                    className="text-[10px] px-2 py-1 rounded-md border shrink-0 transition-colors"
+                    style={{ borderColor: `${accent}45`, color: accent }}>Copy</button>
+                </div>
+                <pre className="text-[11px] font-mono overflow-x-auto m-0 px-3 py-2 rounded-lg"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text2)" }}>
+                  <code>{sug.code}</code>
+                </pre>
+                {sug.why && <span className="text-[11px]" style={{ color: "var(--text3)" }}>{sug.why}</span>}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
