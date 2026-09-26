@@ -4,6 +4,7 @@ import { qaPost, qaGet } from "../lib/qaClient";
 const TOOL_ID = "qa-run";
 const POLL_MS = 4000;
 const MAX_POLLS = 90; // ~6 min ceiling (dispatch + queue + run)
+const MAX_POLLS_FLAKY = 200; // ~13 min — a repeat run (up to 10×) takes longer
 
 export type RunPhase = "idle" | "queued" | "in_progress" | "completed" | "error";
 
@@ -23,6 +24,12 @@ export type RunState = {
   correlationId: string | null;
   runUrl: string | null;
   error: string | null;
+  // Flakiness (populated only when the test ran more than once)
+  runs: number | null;
+  passedRuns: number | null;
+  failedRuns: number | null;
+  passRate: number | null;
+  flaky: boolean | null;
 };
 
 type StatusResp = {
@@ -37,12 +44,18 @@ type StatusResp = {
   correlation_id?: string | null;
   run_url?: string | null;
   detail?: string | null;
+  runs?: number | null;
+  passed_runs?: number | null;
+  failed_runs?: number | null;
+  pass_rate?: number | null;
+  flaky?: boolean | null;
 };
 
 const IDLE: RunState = {
   phase: "idle", passed: null, conclusion: null, summary: null,
   screenshot: null, steps: [], hasVideo: false, hasTrace: false,
   correlationId: null, runUrl: null, error: null,
+  runs: null, passedRuns: null, failedRuns: null, passRate: null, flaky: null,
 };
 
 export function useRun() {
@@ -54,18 +67,19 @@ export function useRun() {
     setState(IDLE);
   }, []);
 
-  const run = useCallback(async (code: string, baseUrl: string, testName: string) => {
+  const run = useCallback(async (code: string, baseUrl: string, testName: string, runs = 1) => {
     const src = code.trim();
     if (!src) return;
     cancelled.current = false;
     setState({ ...IDLE, phase: "queued" });
+    const maxPolls = runs > 1 ? MAX_POLLS_FLAKY : MAX_POLLS;
 
     let correlationId: string;
     try {
       const acc = await qaPost<{ correlation_id: string }>(
         "/qa/run/execute",
-        { code: src, base_url: baseUrl.trim(), test_name: testName.trim() },
-        { tool: TOOL_ID, meta: { chars: src.length } },
+        { code: src, base_url: baseUrl.trim(), test_name: testName.trim(), runs },
+        { tool: TOOL_ID, meta: { chars: src.length, runs } },
       );
       correlationId = acc?.correlation_id;
       if (!correlationId) throw new Error("The run could not be started.");
@@ -74,7 +88,7 @@ export function useRun() {
       return;
     }
 
-    for (let i = 0; i < MAX_POLLS; i++) {
+    for (let i = 0; i < maxPolls; i++) {
       if (cancelled.current) return;
       await new Promise((r) => setTimeout(r, POLL_MS));
       if (cancelled.current) return;
@@ -99,6 +113,11 @@ export function useRun() {
           correlationId: s.correlation_id ?? correlationId,
           runUrl: s.run_url ?? null,
           error: null,
+          runs: s.runs ?? null,
+          passedRuns: s.passed_runs ?? null,
+          failedRuns: s.failed_runs ?? null,
+          passRate: s.pass_rate ?? null,
+          flaky: s.flaky ?? null,
         });
         return;
       }

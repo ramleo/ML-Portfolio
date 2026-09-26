@@ -28,6 +28,7 @@ export default function RunRunner({ accent }: { accent: string }) {
   const [code, setCode] = useState("");
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
+  const [runs, setRuns] = useState(1);
   const [healing, setHealing] = useState(false);
   const [healInfo, setHealInfo] = useState<HealInfo | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -149,12 +150,23 @@ export default function RunRunner({ accent }: { accent: string }) {
           </div>
         </label>
 
-        <div className="flex items-center gap-3">
-          <button onClick={() => run(code, baseUrl, testName)} disabled={!canRun}
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={() => run(code, baseUrl, testName, runs)} disabled={!canRun}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg transition-opacity disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
-            {busy ? "Running…" : "Run test"}
+            {busy ? "Running…" : runs > 1 ? `Check flakiness (${runs}×)` : "Run test"}
           </button>
+          <label className="flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text3)" }}>
+            <span className="uppercase tracking-wide font-semibold text-[11px]">Runs</span>
+            <select value={runs} onChange={e => setRuns(Number(e.target.value))} disabled={busy}
+              className="text-[12px] px-2 py-1.5 rounded-lg outline-none disabled:opacity-40"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}>
+              <option value={1}>1 (normal)</option>
+              <option value={3}>3×</option>
+              <option value={5}>5×</option>
+              <option value={10}>10×</option>
+            </select>
+          </label>
           <button onClick={onSave} disabled={!code.trim()}
             className="text-[12px] px-3 py-2 rounded-lg border transition-opacity disabled:opacity-40"
             style={{ borderColor: "var(--border)", color: "var(--text2)" }}>

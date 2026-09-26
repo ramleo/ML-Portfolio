@@ -98,8 +98,10 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
   healed: boolean;
   onSave: () => void;
 }) {
+  const flaky = state.flaky === true;
   const passed = state.passed === true;
-  const color = passed ? "#34d399" : "#f43f5e";
+  const color = flaky ? "#f59e0b" : passed ? "#34d399" : "#f43f5e";
+  const verdict = flaky ? "Flaky" : passed ? "Passed" : "Failed";
   const s = state.summary;
   const cid = state.correlationId;
   const sectionBorder = { borderColor: "var(--border)" };
@@ -110,7 +112,7 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
       <div className="flex items-center justify-between px-4 py-3 border-b flex-wrap gap-2" style={sectionBorder}>
         <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-          <span className="text-sm font-bold" style={{ color: "var(--text)" }}>{passed ? "Passed" : "Failed"}</span>
+          <span className="text-sm font-bold" style={{ color: "var(--text)" }}>{verdict}</span>
           {s && (
             <span className="text-[11px]" style={{ color: "var(--text3)" }}>
               {s.expected} passed · {s.unexpected} failed{s.flaky ? ` · ${s.flaky} flaky` : ""}{s.skipped ? ` · ${s.skipped} skipped` : ""}
@@ -139,6 +141,34 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
           )}
         </div>
       </div>
+
+      {state.runs != null && state.runs > 1 && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>Flakiness check — {state.runs} runs</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[13px] font-bold" style={{ color }}>
+              {flaky ? "Flaky" : passed ? "Stable" : "Consistently failing"}
+            </span>
+            <span className="text-[12px] tabular-nums" style={{ color: "var(--text2)" }}>
+              {state.passedRuns}/{state.runs} passed
+              {state.passRate != null ? ` · ${Math.round(state.passRate * 100)}% pass rate` : ""}
+            </span>
+          </div>
+          <div className="flex gap-1 mt-2.5" aria-hidden="true">
+            {Array.from({ length: state.runs }).map((_, i) => (
+              <span key={i} className="h-2 flex-1 rounded-full"
+                style={{ background: i < (state.passedRuns ?? 0) ? "#34d399" : "#f43f5e", minWidth: 6 }} />
+            ))}
+          </div>
+          <p className="text-[11px] mt-2" style={{ color: "var(--text3)" }}>
+            {flaky
+              ? "Same test, same page — results disagreed across runs. That is flakiness, not a real pass or fail."
+              : passed
+                ? "Passed every run — no flakiness detected."
+                : "Failed every run — a consistent failure, not flakiness."}
+          </p>
+        </div>
+      )}
 
       {cid && state.hasVideo && (
         <div className="p-4 border-b" style={sectionBorder}>
