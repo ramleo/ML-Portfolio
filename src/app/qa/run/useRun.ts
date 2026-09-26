@@ -67,7 +67,7 @@ export function useRun() {
     setState(IDLE);
   }, []);
 
-  const run = useCallback(async (code: string, baseUrl: string, testName: string, runs = 1) => {
+  const run = useCallback(async (code: string, baseUrl: string, testName: string, runs = 1, authorized = false) => {
     const src = code.trim();
     if (!src) return;
     cancelled.current = false;
@@ -78,7 +78,7 @@ export function useRun() {
     try {
       const acc = await qaPost<{ correlation_id: string }>(
         "/qa/run/execute",
-        { code: src, base_url: baseUrl.trim(), test_name: testName.trim(), runs },
+        { code: src, base_url: baseUrl.trim(), test_name: testName.trim(), runs, authorized },
         { tool: TOOL_ID, meta: { chars: src.length, runs } },
       );
       correlationId = acc?.correlation_id;

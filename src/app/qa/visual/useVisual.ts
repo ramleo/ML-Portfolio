@@ -65,7 +65,7 @@ export function useVisual() {
     setState((prev) => ({ ...prev, hasBaseline: false, diff: null, savedBaseline: false }));
   }, []);
 
-  const capture = useCallback(async (url: string, mode: CaptureMode, threshold: number) => {
+  const capture = useCallback(async (url: string, mode: CaptureMode, threshold: number, authorized = false) => {
     const target = url.trim();
     if (!target) return;
     cancelled.current = false;
@@ -76,7 +76,7 @@ export function useVisual() {
     try {
       const acc = await qaPost<{ correlation_id: string }>(
         "/qa/run/execute",
-        { code: captureSpec(target), base_url: target, test_name: "visual capture" },
+        { code: captureSpec(target), base_url: target, test_name: "visual capture", authorized },
         { tool: TOOL_ID, meta: { mode } },
       );
       correlationId = acc?.correlation_id;

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDiscover, type Proposal } from "./useDiscover";
 import { qaPost } from "../lib/qaClient";
+import { isFirstParty } from "../lib/ownership";
+import OwnershipGate from "../lib/OwnershipGate";
 
 const DEFAULT_URL = "https://ml-portfolio-rho.vercel.app";
 
@@ -16,14 +18,16 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const [selected, setSelected] = useState<Record<number, boolean>>({});
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<Generated[] | null>(null);
+  const [authorized, setAuthorized] = useState(false);
 
   const busy = state.phase === "queued" || state.phase === "in_progress";
   const proposals = state.proposals;
+  const thirdParty = !isFirstParty(url);
 
   const onDiscover = () => {
     setSelected({});
     setGenerated(null);
-    discover(url);
+    discover(url, authorized);
   };
 
   const toggle = (i: number) => setSelected((s) => ({ ...s, [i]: !s[i] }));
@@ -76,8 +80,9 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
             className="text-[13px] px-3 py-2 rounded-lg outline-none"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }} />
         </label>
+        <OwnershipGate show={thirdParty} checked={authorized} onChange={setAuthorized} accent={accent} />
         <div className="flex items-center gap-3">
-          <button onClick={onDiscover} disabled={!url.trim() || busy}
+          <button onClick={onDiscover} disabled={!url.trim() || busy || (thirdParty && !authorized)}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg transition-opacity disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {busy ? "Exploring…" : "Discover test cases"}

@@ -30,7 +30,7 @@ export function useDiscover() {
 
   const reset = useCallback(() => { cancelled.current = true; setState(IDLE); }, []);
 
-  const discover = useCallback(async (url: string) => {
+  const discover = useCallback(async (url: string, authorized = false) => {
     const u = url.trim();
     if (!u) return;
     cancelled.current = false;
@@ -39,7 +39,7 @@ export function useDiscover() {
     let cid: string;
     try {
       const acc = await qaPost<{ correlation_id: string }>(
-        "/qa/discover/start", { url: u }, { tool: TOOL_ID },
+        "/qa/discover/start", { url: u, authorized }, { tool: TOOL_ID },
       );
       cid = acc?.correlation_id;
       if (!cid) throw new Error("Discovery could not be started.");

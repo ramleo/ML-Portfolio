@@ -6,6 +6,8 @@ import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
 import { saveTest, addHistory } from "./storage";
+import { isFirstParty } from "../lib/ownership";
+import OwnershipGate from "../lib/OwnershipGate";
 
 type HealResp = { healed_code?: string; provider?: string | null; detail?: string | null };
 
@@ -29,6 +31,7 @@ export default function RunRunner({ accent }: { accent: string }) {
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
   const [runs, setRuns] = useState(1);
+  const [authorized, setAuthorized] = useState(false);
   const [healing, setHealing] = useState(false);
   const [healInfo, setHealInfo] = useState<HealInfo | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -66,7 +69,7 @@ export default function RunRunner({ accent }: { accent: string }) {
       const { removed, added } = lineDiff(original, resp.healed_code);
       setHealInfo({ provider: resp.provider ?? null, removed, added });
       setCode(resp.healed_code);
-      run(resp.healed_code, baseUrl, testName); // re-run the corrected test
+      run(resp.healed_code, baseUrl, testName, 1, authorized); // re-run the corrected test
     } catch (err) {
       setHealInfo({ removed: [], added: [], error: (err as Error).message || "Heal failed." });
     } finally {
@@ -81,7 +84,7 @@ export default function RunRunner({ accent }: { accent: string }) {
   };
 
   const onLoad = (c: string, n: string) => { setCode(c); setTestName(n); reset(); setHealInfo(null); };
-  const onRunSaved = (c: string, n: string) => { setCode(c); setTestName(n); setHealInfo(null); run(c, baseUrl, n); };
+  const onRunSaved = (c: string, n: string) => { setCode(c); setTestName(n); setHealInfo(null); run(c, baseUrl, n, 1, authorized); };
 
   // Carry a test over from the Author stage ("Send to Run").
   useEffect(() => {
@@ -98,7 +101,8 @@ export default function RunRunner({ accent }: { accent: string }) {
   }, []);
 
   const busy = state.phase === "queued" || state.phase === "in_progress";
-  const canRun = code.trim().length > 0 && !busy;
+  const thirdParty = !isFirstParty(baseUrl);
+  const canRun = code.trim().length > 0 && !busy && (!thirdParty || authorized);
   const activeStep = stepIndex(state.phase);
 
   return (
@@ -150,8 +154,10 @@ export default function RunRunner({ accent }: { accent: string }) {
           </div>
         </label>
 
+        <OwnershipGate show={thirdParty} checked={authorized} onChange={setAuthorized} accent={accent} />
+
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => run(code, baseUrl, testName, runs)} disabled={!canRun}
+          <button onClick={() => run(code, baseUrl, testName, runs, authorized)} disabled={!canRun}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg transition-opacity disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {busy ? "Running…" : runs > 1 ? `Check flakiness (${runs}×)` : "Run test"}

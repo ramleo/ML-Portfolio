@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useVisual } from "./useVisual";
+import { isFirstParty } from "../lib/ownership";
+import OwnershipGate from "../lib/OwnershipGate";
 
 const DEFAULT_URL = "https://ml-portfolio-rho.vercel.app";
 const PER_PIXEL_TOL = 0.1; // fixed anti-aliasing/compression tolerance per pixel
@@ -19,11 +21,13 @@ export default function VisualRunner({ accent }: { accent: string }) {
   const { state, capture, reset, refreshBaseline, clearBaseline } = useVisual();
   const [url, setUrl] = useState(DEFAULT_URL);
   const [passPct, setPassPct] = useState(0.5);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => { refreshBaseline(url); }, [url, refreshBaseline, state.savedBaseline]);
 
   const busy = state.phase === "capturing" || state.phase === "diffing";
-  const canCapture = url.trim().length > 0 && !busy;
+  const thirdParty = !isFirstParty(url);
+  const canCapture = url.trim().length > 0 && !busy && (!thirdParty || authorized);
   const passed = state.diff ? state.diff.percent <= passPct : null;
 
   return (
@@ -45,13 +49,15 @@ export default function VisualRunner({ accent }: { accent: string }) {
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }} />
         </label>
 
+        <OwnershipGate show={thirdParty} checked={authorized} onChange={setAuthorized} accent={accent} />
+
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => capture(url, "baseline", PER_PIXEL_TOL)} disabled={!canCapture}
+          <button onClick={() => capture(url, "baseline", PER_PIXEL_TOL, authorized)} disabled={!canCapture}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg transition-opacity disabled:opacity-40"
             style={{ background: accent, color: "#fff" }}>
             {busy && state.mode === "baseline" ? "Capturing…" : "Capture baseline"}
           </button>
-          <button onClick={() => capture(url, "compare", PER_PIXEL_TOL)} disabled={!canCapture || !state.hasBaseline}
+          <button onClick={() => capture(url, "compare", PER_PIXEL_TOL, authorized)} disabled={!canCapture || !state.hasBaseline}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg border transition-opacity disabled:opacity-40"
             style={{ borderColor: `${accent}55`, color: accent }}>
             {busy && state.mode === "compare" ? "Comparing…" : "Compare to baseline"}
