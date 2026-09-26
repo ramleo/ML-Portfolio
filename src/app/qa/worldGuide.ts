@@ -5,13 +5,13 @@ export const QA_WORLD_GUIDE = `
 Testwright is the QA-automation platform inside AIRaML. It turns a plain-English
 description of a browser test into a real, runnable **Playwright** test in
 **TypeScript**, using resilient locators and real assertions. It is a full
-workspace organised as four stages — **Author**, **Run**, **Discover**, **Heal** —
-that hand off to each other. All four are live today.
+workspace organised as five stages — **Author**, **Run**, **Discover**, **Heal**,
+**Visual** — that hand off to each other. All five are live today.
 
 Everything is **free** to run (free LLM providers + open-source Playwright) and
 executes on real browsers against any public site.
 
-## The four stages
+## The five stages
 - **Author** *(live)* — describe a test in plain English (or paste a written
   test case) and get a runnable Playwright TypeScript test back.
 - **Run** *(live)* — execute a Playwright test against a live site on an isolated,
@@ -23,6 +23,10 @@ executes on real browsers against any public site.
   ones you want and it drafts each as a Playwright test to send to Run.
 - **Heal** *(live)* — run your saved tests as a suite, group the failures by root
   cause ("1 issue · N tests"), and self-heal each group in one click.
+- **Visual** *(live)* — screenshot a page on the runner, save it as a baseline in
+  your browser, then re-shoot later and diff the two pixel-for-pixel. A red overlay
+  and a % changed flag catch unintended visual regressions. Best on static pages;
+  animated/WebGL sections read as changed.
 
 ## Using the Author (step by step)
 1. Open **Author** (the button on this page, or the Author tab in the sub-nav).

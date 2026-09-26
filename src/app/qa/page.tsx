@@ -119,7 +119,7 @@ export default function QaLandingPage() {
               Start with the Author
             </Link>
             <a href="#lifecycle" className="inline-flex items-center font-semibold text-sm px-[18px] py-2.5 rounded-full" style={{ border: "1px solid var(--border2)", color: "var(--text)" }}>
-              Explore the four stages
+              Explore the five stages
             </a>
           </div>
         </div>

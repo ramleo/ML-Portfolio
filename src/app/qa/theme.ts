@@ -53,6 +53,15 @@ export const STAGES: Stage[] = [
     blurb: "Run your saved tests as a suite, group the failures by root cause — \"1 issue · N tests\" — and self-heal each group in one click.",
     analog: "Root-cause failure grouping",
   },
+  {
+    key: "visual",
+    label: "Visual",
+    href: "/qa/visual",
+    status: "live",
+    statusLabel: "Live",
+    blurb: "Screenshot a page on isolated CI, save it as a baseline in your browser, then re-shoot later and diff the two pixel-for-pixel — a red overlay and a % changed flag catch unintended visual regressions.",
+    analog: "Visual regression testing",
+  },
 ];
 
 export const STATUS_COLOR: Record<StageStatus, string> = {

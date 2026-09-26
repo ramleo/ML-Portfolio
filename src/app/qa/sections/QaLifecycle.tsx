@@ -14,15 +14,15 @@ export default function QaLifecycle() {
   return (
     <section className="max-w-6xl mx-auto px-4 py-16" id="lifecycle">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text3)" }}>
-        One workspace, four stages
+        One workspace, five stages
       </p>
       <h2 className="text-2xl font-extrabold tracking-tight mt-2 mb-1.5" style={{ color: "var(--text)" }}>
         The QA lifecycle, end to end
       </h2>
       <p className="text-[15px] max-w-2xl" style={{ color: "var(--text2)" }}>
         One world made of stages that hand off to each other — author a test, run it on isolated CI,
-        discover new cases from a page, and heal a break across the whole suite. All four stages are
-        live today.
+        discover new cases from a page, heal a break across the whole suite, and catch visual
+        regressions. All five stages are live today.
       </p>
 
       <div className="grid gap-4 mt-7" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(240px,100%),1fr))" }}>
