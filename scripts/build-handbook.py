@@ -24,10 +24,10 @@ says so rather than padding.
 Run after changing any of those sources; CI fails if the committed file is
 stale.
 """
-import json, pathlib, re, sys
+import pathlib, re, sys
 
 from handbook_sources import (
-    read_capabilities, read_domains, read_guide, read_deep,
+    read_capabilities, read_domains, read_guide, read_deep, read_platforms,
 )
 
 # When the first edition was set, stated once. It used to be date.today(),
@@ -36,7 +36,7 @@ from handbook_sources import (
 # of every month. CI regenerates and diffs, and it went red on 1 September
 # 2026 with nobody having changed a thing. A new edition gets a new date here,
 # deliberately.
-EDITION = "August 2026"
+EDITION = "September 2026"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "public" / "handbook.md"
@@ -93,7 +93,7 @@ def slugify(s):
 def main():
     caps = read_capabilities()
     domains = read_domains()
-    platforms = json.loads((ROOT / "src" / "data" / "registry.json").read_text())
+    platforms = read_platforms()
     L, toc = [], []
     add, toc_add = L.append, toc.append
 
@@ -125,6 +125,10 @@ def main():
         "quietly drift from the software it describes; if a chapter and a tool "
         "disagree, the build fails.")
     add("")
+    add("The book opens with the deployed platforms — the whole worlds — each "
+        "quoting the guide it ships inside its own interface. The parts that "
+        "follow are the tool areas.")
+    add("")
     add("A chapter is given to any tool that ships a written guide inside "
         "its own interface, a deep chapter written for this book, or both. "
         "Where a tool has both, the guide comes first and explains how to "
@@ -139,6 +143,73 @@ def main():
     body = []
     part = 0
     part_no: dict = {}          # area name -> its part number, for the appendix
+
+    # ── Part 1 · Platforms ──
+    # The deployed worlds come first: they are whole apps rather than cards, and
+    # each carries its own authored source (an in-app world guide, or a deep
+    # chapter for Text-to-SQL). This keeps a tool that has graduated to a platform
+    # — it left capabilities.ts, so the tool loop below can no longer see it —
+    # from silently losing the chapter it already had.
+    part += 1
+    part_no["Platforms"] = part
+    pslug = f"part-{part}"
+    toc_add(("part", f"Part {part} · Platforms", pslug))
+    body.append(f'<div class="bk-part bk-part-{part}">')
+    body.append("")
+    body.append(f'<div class="bk-partpage" id="{pslug}">')
+    body.append("")
+    body.append(f"# Part {part}")
+    body.append("")
+    body.append("## Platforms")
+    body.append("")
+    body.append("The deployed worlds — each a full application in its own right, "
+                "not a single-purpose card. Each chapter is drawn from the "
+                "platform's own authored material — the guide it ships inside its "
+                "interface, or a chapter written for this book — rather than a "
+                "second account that could drift from it.")
+    body.append("")
+    body.append(f"All {len(platforms)} platforms have a chapter here, and are "
+                f"listed again in the appendix.")
+    body.append("")
+    body.append("</div>")
+    body.append("")
+    for p in platforms:
+        chapter += 1
+        cslug = f"ch-{chapter}-{slugify(p['title'])[:40]}"
+        toc_add(("chapter", f"{chapter}. {p['title']}", cslug))
+        body.append(f'<h1 class="bk-chapter" id="{cslug}">'
+                    f'<span class="bk-chnum">Chapter {chapter}</span>{p["title"]}</h1>')
+        body.append("")
+        body.append(f"> {p['description']}")
+        body.append("")
+        body.append("## At a glance")
+        body.append("")
+        body.append('<div class="bk-facts">')
+        body.append("")
+        body.append("| | |")
+        body.append("|---|---|")
+        body.append(f"| **Model or method** | {p.get('model') or '—'} |")
+        body.append(f"| **What it does** | {p.get('task') or '—'} |")
+        body.append(f"| **Works on** | {p.get('dataset') or '—'} |")
+        if p.get("metric"):
+            body.append(f"| **{p.get('metricLabel') or 'Figure'}** | {p['metric']} |")
+        body.append(f"| **Find it at** | `{p.get('href') or ''}` |")
+        body.append("")
+        body.append("</div>")
+        body.append("")
+        guide, deep = p.get("guide"), p.get("deep")
+        if guide:
+            if deep:
+                body.append("## Using the platform")
+                body.append("")
+            body.append(guide)
+            body.append("")
+        if deep:
+            body.append(wrap_sections(deep))
+            body.append("")
+    body.append("</div>")
+    body.append("")
+
     for d in detailed:
         mine = sorted([c for c in caps if c["domain"] == d["name"]], key=lambda x: x["title"])
         documented = [c for c in mine if has_chapter(c)]

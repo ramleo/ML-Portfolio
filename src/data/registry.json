@@ -56,11 +56,11 @@
   {
     "id": "testwright",
     "title": "Testwright",
-    "description": "The QA-automation world. Describe a browser test in plain English and get a runnable Playwright test in TypeScript with resilient locators — then run and heal it. A full workspace (Author, Run, Discover, Heal), free and open-source, native to this site.",
+    "description": "The QA-automation world. Describe a browser test in plain English and get a runnable Playwright test in TypeScript with resilient locators — then run and heal it. A full workspace (Author, Run, Discover, Heal, Visual), free and open-source, native to this site.",
     "model": "Playwright · Free LLM",
     "task": "QA Automation",
     "dataset": "Your own site",
-    "metric": "4",
+    "metric": "5",
     "metricLabel": "Stages",
     "features": 0,
     "classes": null,

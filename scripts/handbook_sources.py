@@ -9,11 +9,18 @@ hand-written deep chapter — and none of it knows anything about the shape of
 the book. build-handbook.py does the assembling and owns every decision about
 parts, chapters, contents and appendix.
 """
-import json, pathlib, re
+import json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TOOLS = ROOT / "src" / "app" / "tools"
 CHAPTERS = ROOT / "docs" / "chapters"
+APP = ROOT / "src" / "app"
+
+# A deployed platform is a whole world, not a card, so its guide does not live
+# under src/app/tools/. Each one ships a single template-literal export in one of
+# these files at src/app/<route>/ (route taken from the platform's href), and the
+# reader below quotes it exactly as it quotes a tool's userGuide.ts.
+PLATFORM_GUIDE_NAMES = ("guide.ts", "worldGuide.ts")
 
 
 def field(block, name):
@@ -56,8 +63,18 @@ def read_domains():
 
 def read_guide(tool_id):
     """The tool's own in-app guide, unwrapped from its TypeScript template literal."""
-    f = TOOLS / tool_id / "userGuide.ts"
-    if not f.exists():
+    return _read_guide_from(TOOLS / tool_id / "userGuide.ts", tool_id)
+
+
+def _read_guide_from(f, label):
+    """Extract and normalise a `..._GUIDE = \\`...\\`` template literal from `f`.
+
+    Shared by tool guides (userGuide.ts) and platform guides (guide.ts /
+    worldGuide.ts): the extraction, sibling-interpolation and heading-lift rules
+    are identical, only the file's location differs. `label` names the source in
+    error messages. Returns None when the file is absent or holds no guide.
+    """
+    if f is None or not f.exists():
         return None
     src = f.read_text()
     # Guides close in two ways — `; and `.trim(); — and every one is followed by
@@ -112,13 +129,13 @@ def read_guide(tool_id):
                 continue
             v = constant(n)
             if v is None:
-                missing.append((tool_id, expr, n))
+                missing.append((label, expr, n))
                 return mm.group(0)
             env[n] = v
         try:
             return str(eval(expr.replace("Math.round", "round"), {"round": round}, env))
         except Exception:
-            missing.append((tool_id, expr, "evaluation"))
+            missing.append((label, expr, "evaluation"))
             return mm.group(0)
 
     for _ in range(4):                      # nested interpolation, bounded
@@ -157,3 +174,39 @@ def read_deep(tool_id):
     body = f.read_text().strip()
     body = re.sub(r"^\s*#\s+.*?\n", "", body, count=1)   # a stray H1, if any
     return body.strip() or None
+
+
+def _platform_guide_file(route):
+    """The one guide file a platform ships under src/app/<route>/, or None.
+
+    A platform's route is its href (/ml, /qa, …); some ship guide.ts, one ships
+    worldGuide.ts, and one (Text-to-SQL) ships neither and carries a deep chapter
+    instead. The first name that exists wins.
+    """
+    base = APP / route.strip("/")
+    for name in PLATFORM_GUIDE_NAMES:
+        p = base / name
+        if p.exists():
+            return p
+    return None
+
+
+def read_platforms():
+    """The deployed platforms from registry.json, each with its authored source.
+
+    Same shape as a registry entry, plus two resolved fields: `guide` (the
+    platform's own in-app world guide, quoted like a tool's) and `deep` (a
+    hand-written chapter under docs/chapters/<id>.md). Every current platform has
+    exactly one of the two; a platform with neither still returns, with both None,
+    so the appendix and the chapter builder can decide what to render.
+    """
+    reg = json.loads((ROOT / "src" / "data" / "registry.json").read_text())
+    out = []
+    for p in reg:
+        route = p.get("href") or p.get("url") or ""
+        out.append({
+            **p,
+            "guide": _read_guide_from(_platform_guide_file(route), p["id"]),
+            "deep": read_deep(p["id"]),
+        })
+    return out

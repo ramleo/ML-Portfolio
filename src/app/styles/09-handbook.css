@@ -110,10 +110,12 @@
 .hb-body .bk-part-2, .bk-toc-part.bk-part-2 { --hb-hue: #818cf8; }
 .hb-body .bk-part-3, .bk-toc-part.bk-part-3 { --hb-hue: #38bdf8; }
 .hb-body .bk-part-4, .bk-toc-part.bk-part-4 { --hb-hue: #fb7185; }
+.hb-body .bk-part-5, .bk-toc-part.bk-part-5 { --hb-hue: #c084fc; }
 html.light .hb-body .bk-part-1 { --hb-hue: #047857; }
 html.light .hb-body .bk-part-2 { --hb-hue: #4338ca; }
 html.light .hb-body .bk-part-3 { --hb-hue: #0369a1; }
 html.light .hb-body .bk-part-4 { --hb-hue: #be123c; }
+html.light .hb-body .bk-part-5 { --hb-hue: #7c3aed; }
 
 /* Contents: the part rows carry their colour, the chapters under them stay
    quiet so the four groups read as four groups at a glance. */
