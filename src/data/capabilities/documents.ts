@@ -7,7 +7,7 @@
  *  is not used by anything: every consumer takes a length or filters by
  *  domain.
  */
-import { BookOpenCheck, FileSearch, Scale } from "lucide-react";
+import { AudioLines, BookOpenCheck, FileSearch, Scale } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 
@@ -70,6 +70,24 @@ const languageDocuments: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/contract-invoice-reconciliation",
+  },
+  {
+    id: "meeting-intelligence",
+    domain: "Language & Documents",
+    title: "Meeting Intelligence",
+    subtitle: "Notes From a Recording",
+    description:
+      "Upload a meeting or call recording — audio or video — and get structured notes back: a short summary, the decisions that were made, the action items with owners and due dates when stated, an agenda of topics with timestamps, and how long each speaker talked, plus the full speaker-labelled transcript. The audio is transcribed with Whisper, speakers are diarized, and one language-model pass extracts the notes — instructed to only include a decision or action item that was actually said, never to invent one. Best on clips up to about ten minutes; nothing is stored after the response.",
+    accent: "#8b5cf6",
+    icon: AudioLines,
+    stat: "ASR",
+    statLabel: "+ Diarize + LLM",
+    model: "Whisper · Gemini diarization · Cohere/Mistral",
+    input: "One meeting/call recording (audio or video)",
+    tags: ["Speech-to-Text", "Diarization", "Summarization", "LLM", "Meetings"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/meeting-intelligence",
   },
 ];
 

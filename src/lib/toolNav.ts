@@ -43,6 +43,7 @@ const AREA_OF: Record<string, string> = {
   "keystroke-biometric-auth-risk": "security-trust",
   "malicious-package-scanner": "security-trust",
   "malware-image-triage": "security-trust",
+  "meeting-intelligence": "language-documents",
   "movement-form-comparison": "computer-vision",
   "multimodal-rag": "language-documents",
   "optuna": "ml-pipeline",

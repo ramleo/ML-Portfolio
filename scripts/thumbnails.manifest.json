@@ -408,5 +408,13 @@
   "pexels": 20062955,
   "url": "https://images.pexels.com/photos/20062955/pexels-photo-20062955.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
   "note": "stopgap: shares document-intelligence's photo; run thumbnails.py add scan-descreen <query> for a unique CV-hued thumb"
+ },
+ "meeting-intelligence": {
+  "alt": "A detailed close-up of an audio mixer with vibrant, glowing controls in a studio setting.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 10960357,
+  "url": "https://images.pexels.com/photos/10960357/pexels-photo-10960357.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+  "note": "stopgap: shares optuna's audio-mixer photo; run thumbnails.py add meeting-intelligence <query> for a unique L&D-hued thumb"
  }
 }
