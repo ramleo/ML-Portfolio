@@ -265,6 +265,24 @@ const computerVision: Capability[] = [
     github: GITHUB,
     internalLink: "/tools/movement-form-comparison",
   },
+  {
+    id: "scan-descreen",
+    domain: "Computer Vision",
+    title: "Scan Descreen",
+    subtitle: "Remove Screen Patterns",
+    description:
+      "Upload a scanned page or a photo of print or a screen and remove the periodic halftone/moire ripple that scanning leaves behind. A 2D Fast Fourier Transform finds the sharp periodic spikes in the image's frequency spectrum — the tell of a print screen — notches them out with a soft filter, and transforms back. Non-generative: it only subtracts periodic energy that is genuinely present, so it cannot invent detail, and an image with no screen pattern comes back unchanged. Shows the before and after and the spectrum with the removed peaks circled.",
+    accent: "#3b82f6",
+    icon: ScanSearch,
+    stat: "FFT",
+    statLabel: "Notch Filter",
+    model: "2D FFT · soft notch filter (numpy)",
+    input: "One scanned or screen-photographed image",
+    tags: ["Computer Vision", "FFT", "Fourier", "Descreen", "Non-Generative"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/scan-descreen",
+  },
 ];
 
 export default computerVision;

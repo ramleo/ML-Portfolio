@@ -400,5 +400,13 @@
   "pexels": 38808473,
   "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
   "note": "stopgap: shares realtime-analytics's photo; replace via thumbnails.py add periodicity-finder <query>"
+ },
+ "scan-descreen": {
+  "alt": "Artistic close-up of stacked white paper sheets creating geometric shadows and patterns in soft light.",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 20062955,
+  "url": "https://images.pexels.com/photos/20062955/pexels-photo-20062955.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+  "note": "stopgap: shares document-intelligence's photo; run thumbnails.py add scan-descreen <query> for a unique CV-hued thumb"
  }
 }

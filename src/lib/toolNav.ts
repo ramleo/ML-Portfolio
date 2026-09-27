@@ -59,6 +59,7 @@ const AREA_OF: Record<string, string> = {
   "prompt-injection-playground": "security-trust",
   "qr-phishing-detector": "security-trust",
   "realtime-analytics": "ml-pipeline",
+  "scan-descreen": "computer-vision",
   "secret-scanner": "security-trust",
   "shap": "ml-pipeline",
   "siem-alert-triage": "security-trust",
