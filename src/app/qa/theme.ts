@@ -1,4 +1,4 @@
-/** Testwright world — shared signature colors and the four-stage definition.
+/** Testwright world — shared signature colors and the five-stage definition.
  *  One source of truth for the in-world nav, the landing and the stage pages. */
 
 export const QA_ACCENT = "#14b8a6";   // teal — solid accent, reads on both themes
@@ -23,8 +23,8 @@ export const STAGES: Stage[] = [
     href: "/qa/author",
     status: "live",
     statusLabel: "Live",
-    blurb: "Plain English, a recorded click-through, or an imported case → a Playwright TS test with resilient locators and real assertions.",
-    analog: "Plain-English & recorded authoring",
+    blurb: "Plain English or an imported test case → a Playwright TS test with resilient locators and real assertions.",
+    analog: "Plain-English authoring",
   },
   {
     key: "run",

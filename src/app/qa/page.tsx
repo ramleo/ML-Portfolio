@@ -16,7 +16,7 @@ const TOOL_SUMMARY =
   "Testwright is the QA-automation platform inside AIRaML — a full workspace, not a single tool. " +
   "It turns plain-English descriptions into real Playwright TypeScript tests with resilient locators, " +
   "runs them on isolated CI, self-heals broken locators, and discovers new cases from a page. " +
-  "Four stages: Author, Run, Discover (all live) and Heal (roadmap). Free, on real browsers.";
+  "Five stages, all live: Author, Run, Discover, Heal and Visual. Free, on real browsers.";
 
 export default function QaLandingPage() {
   useToolTracking("qa-world");
@@ -111,7 +111,7 @@ export default function QaLandingPage() {
         <div className="rounded-2xl p-8 text-center" style={{ background: `linear-gradient(120deg, ${QA_ACCENT}14, transparent)`, border: `1px solid ${QA_ACCENT}30` }}>
           <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>The whole loop, in one workspace.</h2>
           <p className="text-[15px] mt-2.5 mb-5 max-w-xl mx-auto" style={{ color: "var(--text2)" }}>
-            Author, Run, Discover and Heal are all live — plain English to a passing, self-healing test,
+            Author, Run, Discover, Heal and Visual are all live — plain English to a passing, self-healing test,
             free and on real browsers.
           </p>
           <div className="flex gap-2.5 flex-wrap justify-center">
