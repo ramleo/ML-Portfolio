@@ -392,5 +392,13 @@
   "mode": "photo",
   "pexels": 4792285,
   "url": "https://images.pexels.com/photos/4792285/pexels-photo-4792285.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "periodicity-finder": {
+  "alt": "Colorful data visualization of stock market trends with financial charts.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 38808473,
+  "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+  "note": "stopgap: shares realtime-analytics's photo; replace via thumbnails.py add periodicity-finder <query>"
  }
 }

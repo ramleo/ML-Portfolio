@@ -7,7 +7,7 @@
  *  is not used by anything: every consumer takes a length or filters by
  *  domain.
  */
-import { Activity, BarChartBig, Clapperboard, Filter, GitCompare, Layers, PieChart, SlidersHorizontal, Sparkles, Trophy, Wand2, Workflow } from "lucide-react";
+import { Activity, BarChartBig, Clapperboard, Filter, GitCompare, Layers, PieChart, SlidersHorizontal, Sparkles, Trophy, Wand2, Waves, Workflow } from "lucide-react";
 
 import { GITHUB, type Capability } from "./_types";
 
@@ -231,6 +231,24 @@ const mlPipeline: Capability[] = [
     link: "/?mode=ml",
     github: GITHUB,
     internalLink: "/tools/realtime-analytics",
+  },
+  {
+    id: "periodicity-finder",
+    domain: "ML Pipeline",
+    title: "Periodicity Finder",
+    subtitle: "Find the Hidden Cycle",
+    description:
+      "Paste a numeric series or a list of event timestamps and it finds the strongest repeating cycle — the 'every 7 days', 'every 24 hours', 'every 12 steps' pattern hidden in the data. A Fast Fourier Transform, run after detrending and a Hann window, turns the series into a spectrum; the dominant peaks are the cycles, each with a strength above the noise floor. Numeric series report cycle length in samples, timestamps in real time units. Nothing is uploaded — it runs entirely in your browser.",
+    accent: "#0ea5e9",
+    icon: Waves,
+    stat: "FFT",
+    statLabel: "Spectrum",
+    model: "Radix-2 FFT · Hann window (no library)",
+    input: "A numeric series or a list of event timestamps",
+    tags: ["Client-Side", "FFT", "Seasonality", "Time Series", "Fourier"],
+    link: "/?mode=ml",
+    github: GITHUB,
+    internalLink: "/tools/periodicity-finder",
   },
 ];
 

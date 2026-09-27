@@ -47,6 +47,7 @@ const AREA_OF: Record<string, string> = {
   "multimodal-rag": "language-documents",
   "optuna": "ml-pipeline",
   "password-audit": "security-trust",
+  "periodicity-finder": "ml-pipeline",
   "phishing-email-classifier": "security-trust",
   "photo-search": "computer-vision",
   "pipeline-builder": "ml-pipeline",
