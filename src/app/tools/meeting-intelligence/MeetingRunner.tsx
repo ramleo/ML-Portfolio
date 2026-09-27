@@ -117,7 +117,7 @@ function Results({ r, accent }: { r: MeetingResult; accent: string }) {
 }
 
 export default function MeetingRunner({ accent }: { accent: string }) {
-  const { file, setFile, reset, run, running, result, error } = useMeeting();
+  const { file, setFile, reset, run, running, progress, result, error } = useMeeting();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -148,9 +148,10 @@ export default function MeetingRunner({ accent }: { accent: string }) {
           {file && <span className="text-[11px]" style={{ color: "var(--text3)" }}>{file.name}</span>}
         </div>
         {running && (
-          <p className="text-[12px]" style={{ color: "var(--text3)" }}>
-            Transcribing, labelling speakers and extracting notes on the server — this can take up to a couple of minutes for a longer clip.
-          </p>
+          <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--text2)" }}>
+            <span className="inline-block w-3 h-3 rounded-full animate-pulse" style={{ background: accent }} />
+            <span>{progress ?? "Working…"}</span>
+          </div>
         )}
       </div>
 
