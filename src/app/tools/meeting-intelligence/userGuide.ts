@@ -31,7 +31,9 @@ Video files work too — only the audio track is used.
 2. Click **Analyze meeting**. It runs on the server and can take up to a couple
    of minutes for a longer clip.
 3. Read the summary, decisions, action items, agenda and talk-time; expand the
-   transcript to check anything against the source.
+   transcript to check anything against the source. The recording plays back in
+   the tool — **click any timestamp (in the agenda or the transcript) to jump the
+   player to that moment**.
 4. **Ask about the meeting** — use the question box under the results to ask
    anything about what was said ("What did each person commit to?"). Answers come
    strictly from this meeting's transcript; if something wasn't said, it says so.
