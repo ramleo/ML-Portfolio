@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useMeeting, type MeetingResult } from "./useMeeting";
+import MeetingQA from "./MeetingQA";
 
 function mmss(sec: number): string {
   const s = Math.max(0, Math.round(sec));
@@ -109,6 +110,8 @@ function Results({ r, accent }: { r: MeetingResult; accent: string }) {
           )}
         </div>
       </Section>
+
+      {r.transcript && <MeetingQA transcript={r.transcript} accent={accent} />}
     </div>
   );
 }

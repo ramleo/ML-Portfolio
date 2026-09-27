@@ -32,6 +32,9 @@ Video files work too — only the audio track is used.
    of minutes for a longer clip.
 3. Read the summary, decisions, action items, agenda and talk-time; expand the
    transcript to check anything against the source.
+4. **Ask about the meeting** — use the question box under the results to ask
+   anything about what was said ("What did each person commit to?"). Answers come
+   strictly from this meeting's transcript; if something wasn't said, it says so.
 
 ## What this is (and isn't)
 - **Lean tool — best on clips up to ~10 minutes.** A very long recording may
