@@ -7,6 +7,8 @@ import RagTableView from "./RagTableView";
 import RagSourceFlags from "./RagSourceFlags";
 import RagRetrievalTrace from "./RagRetrievalTrace";
 import { trackedFetch } from "@/lib/trackedFetch";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 
 type Props = {
   source: string;
@@ -175,7 +177,13 @@ export default function RagSourceCard({ source, text, score, rawScore, accent, c
   return (
     <div
       ref={cardRef}
-      onClick={() => { setOpen(o => !o); onSelect?.(); }}
+      onClick={() => {
+        // Log only on open (expand-to-read), not on collapse. Enumerated facts
+        // only — citation index and chunk kind, never the cited text (§6).
+        if (!open) track(EV.CITATION_CLICK, { meta: { tool: "multimodal-rag", index, kind: chunkType ?? undefined } });
+        setOpen(o => !o);
+        onSelect?.();
+      }}
       role="button"
       tabIndex={0}
       aria-label={`Citation ${index}${page ? `, page ${page}` : ""}`}
