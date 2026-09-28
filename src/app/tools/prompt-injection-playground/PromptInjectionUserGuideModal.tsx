@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { PROMPT_INJECTION_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function PromptInjectionUserGuideModal({ open, onClose }: { open:
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("prompt-injection-playground", open);
+
 
   if (!open) return null;
 

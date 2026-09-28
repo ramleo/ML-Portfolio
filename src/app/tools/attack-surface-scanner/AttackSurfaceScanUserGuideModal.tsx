@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { ATTACK_SURFACE_GUIDE } from "./userGuide";
 
@@ -44,6 +45,9 @@ export default function AttackSurfaceScanUserGuideModal({ open, onClose }: { ope
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("attack-surface-scanner", open);
+
 
   if (!open) return null;
 

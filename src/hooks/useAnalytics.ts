@@ -65,6 +65,16 @@ export function useAnalytics(type: string, meta?: Record<string, unknown>) {
   }, []);
 }
 
+/** Emit `guide_open` each time a tool's User-Guide modal opens. Call it
+ * unconditionally inside the modal component (before any early return), passing
+ * the modal's own `open` prop. One call per modal covers that tool.
+ * LOGGING_SPEC.md §12 step 2. */
+export function useGuideOpenTracking(toolId: string, open: boolean) {
+  useEffect(() => {
+    if (open) track(EV.GUIDE_OPEN, { meta: { tool: toolId } });
+  }, [open, toolId]);
+}
+
 export function useToolTracking(toolName: string) {
   const countRef = useRef(0);
   useEffect(() => {

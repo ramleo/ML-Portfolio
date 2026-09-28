@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import GuideContent, { ACCENT } from "./guideContent";
 
 interface Props { onClose: () => void; }
@@ -9,6 +10,8 @@ export default function UserGuideModal({ onClose }: Props) {
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // This modal is mounted only while open, so opening === mount.
+  useGuideOpenTracking("text-to-sql", true);
 
   // Close on Esc.
   useEffect(() => {

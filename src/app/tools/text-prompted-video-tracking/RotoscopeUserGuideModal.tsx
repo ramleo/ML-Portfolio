@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { ROTOSCOPE_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function RotoscopeUserGuideModal({ open, onClose }: { open: boole
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("text-prompted-video-tracking", open);
+
 
   if (!open) return null;
 

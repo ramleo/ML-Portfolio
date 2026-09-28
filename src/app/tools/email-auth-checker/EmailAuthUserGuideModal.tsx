@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { EMAIL_AUTH_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function EmailAuthUserGuideModal({ open, onClose }: { open: boole
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("email-auth-checker", open);
+
 
   if (!open) return null;
 

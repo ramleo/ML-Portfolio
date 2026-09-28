@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { PPE_COMPLIANCE_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function PpeComplianceUserGuideModal({ open, onClose }: { open: b
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("ppe-compliance-check", open);
+
 
   if (!open) return null;
 

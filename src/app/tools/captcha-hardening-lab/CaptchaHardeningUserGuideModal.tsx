@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { CAPTCHA_HARDENING_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function CaptchaHardeningUserGuideModal({ open, onClose }: { open
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("captcha-hardening-lab", open);
+
 
   if (!open) return null;
 

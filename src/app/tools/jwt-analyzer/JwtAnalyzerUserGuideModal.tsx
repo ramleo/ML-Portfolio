@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { JWT_GUIDE } from "./userGuide";
 
@@ -44,6 +45,9 @@ export default function JwtAnalyzerUserGuideModal({ open, onClose }: { open: boo
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("jwt-analyzer", open);
+
 
   if (!open) return null;
 

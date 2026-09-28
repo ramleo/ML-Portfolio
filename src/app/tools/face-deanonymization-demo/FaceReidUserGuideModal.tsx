@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { FACE_REID_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function FaceReidUserGuideModal({ open, onClose }: { open: boolea
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("face-deanonymization-demo", open);
+
 
   if (!open) return null;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { DOC_INTEL_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function DocUserGuideModal({ open, onClose }: { open: boolean; on
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("document-intelligence", open);
+
 
   if (!open) return null;
 

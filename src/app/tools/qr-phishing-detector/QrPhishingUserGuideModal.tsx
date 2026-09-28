@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { QR_PHISHING_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function QrPhishingUserGuideModal({ open, onClose }: { open: bool
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("qr-phishing-detector", open);
+
 
   if (!open) return null;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { MEETING_GUIDE } from "./userGuide";
 
@@ -41,6 +42,9 @@ export default function MeetingUserGuideModal({ open, onClose }: { open: boolean
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("meeting-intelligence", open);
+
 
   if (!open) return null;
 

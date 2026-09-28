@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { MM_RAG_GUIDE } from "./userGuide";
@@ -129,6 +130,9 @@ export default function MmRagUserGuideModal({ open, onClose }: { open: boolean; 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("multimodal-rag", open);
+
 
   if (!open) return null;
 

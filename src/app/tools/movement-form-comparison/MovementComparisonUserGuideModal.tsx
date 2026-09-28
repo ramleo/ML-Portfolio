@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { MOVEMENT_COMPARISON_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function MovementComparisonUserGuideModal({ open, onClose }: { op
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("movement-form-comparison", open);
+
 
   if (!open) return null;
 

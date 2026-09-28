@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { ASTRO_ANOMALY_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function AstroAnomalyUserGuideModal({ open, onClose }: { open: bo
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("astrophotography-anomaly-detector", open);
+
 
   if (!open) return null;
 

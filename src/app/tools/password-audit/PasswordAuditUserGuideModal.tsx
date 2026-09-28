@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { PASSWORD_AUDIT_GUIDE } from "./userGuide";
 
@@ -41,6 +42,9 @@ export default function PasswordAuditUserGuideModal({ open, onClose }: { open: b
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("password-audit", open);
+
 
   if (!open) return null;
 

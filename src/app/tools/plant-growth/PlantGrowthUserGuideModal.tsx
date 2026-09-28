@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { PLANT_GROWTH_GUIDE } from "./userGuide";
 
@@ -38,6 +39,9 @@ export default function PlantGrowthUserGuideModal({ open, onClose }: { open: boo
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("plant-growth", open);
+
 
   if (!open) return null;
 

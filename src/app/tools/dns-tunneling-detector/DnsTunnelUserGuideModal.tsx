@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 import ReactMarkdown from "react-markdown";
 import { DNS_TUNNEL_GUIDE } from "./userGuide";
 
@@ -41,6 +42,9 @@ export default function DnsTunnelUserGuideModal({ open, onClose }: { open: boole
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
+
+  useGuideOpenTracking("dns-tunneling-detector", open);
+
 
   if (!open) return null;
 
