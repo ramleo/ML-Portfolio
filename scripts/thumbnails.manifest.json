@@ -211,6 +211,13 @@
   "pexels": 5474025,
   "url": "https://images.pexels.com/photos/5474025/pexels-photo-5474025.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
+ "meeting-intelligence": {
+  "alt": "Three women in a modern office engaged in a business meeting with laptops.",
+  "domain": "Language & Documents",
+  "mode": "photo",
+  "pexels": 1181358,
+  "url": "https://images.pexels.com/photos/1181358/pexels-photo-1181358.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
  "movement-form-comparison": {
   "alt": "A man performing dynamic stretching exercises in a gym setting with fitness equipment in the background.",
   "domain": "Computer Vision",
@@ -238,6 +245,13 @@
   "mode": "photo",
   "pexels": 267469,
   "url": "https://images.pexels.com/photos/267469/pexels-photo-267469.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
+ "periodicity-finder": {
+  "alt": "A colorful abstract 3D rendering of a musical note with soft gradient colors.",
+  "domain": "ML Pipeline",
+  "mode": "photo",
+  "pexels": 13807426,
+  "url": "https://images.pexels.com/photos/13807426/pexels-photo-13807426.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
  "phishing-email-classifier": {
   "alt": "Person using a laptop to read an email indoors beside a potted plant.",
@@ -316,6 +330,13 @@
   "pexels": 38808473,
   "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
  },
+ "scan-descreen": {
+  "alt": "Serious African American employee taking wooden wheel of paper rolling machine while standing in workshop near paper roll in sunlight",
+  "domain": "Computer Vision",
+  "mode": "photo",
+  "pexels": 3872380,
+  "url": "https://images.pexels.com/photos/3872380/pexels-photo-3872380.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+ },
  "secret-scanner": {
   "alt": "System with various wires managing access to centralized resource of server in data center",
   "domain": "Security & Trust",
@@ -392,29 +413,5 @@
   "mode": "photo",
   "pexels": 4792285,
   "url": "https://images.pexels.com/photos/4792285/pexels-photo-4792285.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
- },
- "periodicity-finder": {
-  "alt": "Colorful data visualization of stock market trends with financial charts.",
-  "domain": "ML Pipeline",
-  "mode": "photo",
-  "pexels": 38808473,
-  "url": "https://images.pexels.com/photos/38808473/pexels-photo-38808473.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-  "note": "stopgap: shares realtime-analytics's photo; replace via thumbnails.py add periodicity-finder <query>"
- },
- "scan-descreen": {
-  "alt": "Artistic close-up of stacked white paper sheets creating geometric shadows and patterns in soft light.",
-  "domain": "Computer Vision",
-  "mode": "photo",
-  "pexels": 20062955,
-  "url": "https://images.pexels.com/photos/20062955/pexels-photo-20062955.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-  "note": "stopgap: shares document-intelligence's photo; run thumbnails.py add scan-descreen <query> for a unique CV-hued thumb"
- },
- "meeting-intelligence": {
-  "alt": "A detailed close-up of an audio mixer with vibrant, glowing controls in a studio setting.",
-  "domain": "Language & Documents",
-  "mode": "photo",
-  "pexels": 10960357,
-  "url": "https://images.pexels.com/photos/10960357/pexels-photo-10960357.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-  "note": "stopgap: shares optuna's audio-mixer photo; run thumbnails.py add meeting-intelligence <query> for a unique L&D-hued thumb"
  }
 }
