@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { usePoseVideoExtraction } from "../movement-form-comparison/usePoseVideoExtraction";
 import { computeGaitSignature, compareGaitSignatures, type GaitSignature, type GaitComparisonResult } from "./gaitAnalysis";
 
@@ -45,6 +46,7 @@ export function useGaitComparison() {
     setError(null);
     setProgress(0);
     setSignatureA(null); setSignatureB(null); setComparison(null);
+    trackToolRun("gait-pattern-comparison");
     try {
       const framesA = await extract(elA, pct => setProgress(Math.round(pct / 2)));
       const framesB = await extract(elB, pct => setProgress(50 + Math.round(pct / 2)));

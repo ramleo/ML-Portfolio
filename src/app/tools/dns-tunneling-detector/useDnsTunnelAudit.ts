@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { analyzeLog, analyzeSingleHost, type LogAnalysisResult, type SingleHostResult } from "./dnsTunnelHeuristics";
 
 /** Pure client-side heuristic analysis — no network calls, no ML model.
@@ -9,11 +10,15 @@ export function useDnsTunnelAudit() {
   const [hostResult, setHostResult] = useState<SingleHostResult | null>(null);
 
   const runLog = useCallback((text: string) => {
-    setLogResult(text.trim() ? analyzeLog(text) : null);
+    if (!text.trim()) { setLogResult(null); return; }
+    setLogResult(analyzeLog(text));
+    trackToolRun("dns-tunneling-detector", { mode: "log" });
   }, []);
 
   const runHost = useCallback((host: string) => {
-    setHostResult(host.trim() ? analyzeSingleHost(host.trim()) : null);
+    if (!host.trim()) { setHostResult(null); return; }
+    setHostResult(analyzeSingleHost(host.trim()));
+    trackToolRun("dns-tunneling-detector", { mode: "host" });
   }, []);
 
   const reset = useCallback(() => {

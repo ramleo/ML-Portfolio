@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { analyzeManifest, type ManifestAnalysis, type RiskLevel } from "./permissionRisk";
 
 const SAMPLE_MANIFEST = `{
@@ -47,7 +48,9 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
     setError(null);
     setResult(null);
     try {
-      setResult(analyzeManifest(raw));
+      const r = analyzeManifest(raw);
+      setResult(r);
+      trackToolRun("extension-permission-analyzer", { risk: r.overallRisk });
     } catch (err) {
       setError((err as Error).message);
     }

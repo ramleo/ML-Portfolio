@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import * as zxcvbnCommonPackage from "@zxcvbn-ts/language-common";
 import * as zxcvbnEnPackage from "@zxcvbn-ts/language-en";
@@ -72,6 +73,9 @@ export function usePasswordAudit() {
   const checkBreach = useCallback(async () => {
     if (!password) return;
     setBreach({ status: "checking" });
+    // Content-free: records only that a breach check ran — never the password
+    // nor its breach outcome, which is a fact about what was typed (§5b/§6).
+    trackToolRun("password-audit");
     try {
       const hash = await sha1Hex(password);
       const prefix = hash.slice(0, 5);

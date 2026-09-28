@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import {
   detectTapEvents, mergeNearbyEvents, segmentWordBoundaries, estimateWpm, rhythmConsistency,
   type FingerSeries, type KeystrokeEvent, type WordSegment,
@@ -64,6 +65,7 @@ export function useVideoKeystrokeExtraction() {
     setRunning(true);
     setError(null);
     setProgress(0);
+    trackToolRun("video-keystroke-inference");
 
     let landmarker: import("@mediapipe/tasks-vision").HandLandmarker | null = null;
     try {

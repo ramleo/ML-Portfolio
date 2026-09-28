@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 
 /** Same shape as pose-vj-visuals/useWebcam.ts — kept as its own copy per
  * this codebase's convention that camera hooks aren't shared across tool
@@ -20,6 +21,9 @@ export function useAslWebcam() {
         await videoRef.current.play();
       }
       setActive(true);
+      // One run per recognition session (this is a live loop with no discrete
+      // "run"); no camera/biometric data is logged (LOGGING_SPEC.md §12, §6).
+      trackToolRun("asl-fingerspelling-recognition");
     } catch {
       setError("Couldn't access the camera — check browser permissions.");
     }

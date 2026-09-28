@@ -19,6 +19,15 @@ export function incrementQueryCount(toolName: string) {
   _queryCounters[toolName] = (_queryCounters[toolName] ?? 0) + 1;
 }
 
+/** Emit a "run" for a client-side tool that makes no backend call, so its runs
+ * are counted the way `trackedFetch` counts backend tools (LOGGING_SPEC.md §12,
+ * step 1). `meta` carries enumerated facts only — counts, category, algorithm —
+ * NEVER the user's typed/pasted/uploaded content (§6 rule 1). */
+export function trackToolRun(toolId: string, meta: Record<string, unknown> = {}) {
+  incrementQueryCount(toolId);
+  track(EV.QUERY_RUN, { meta: { tool: toolId, ...meta } });
+}
+
 export function track(type: string, extra: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
   let enrichedMeta: Record<string, unknown> = typeof extra.meta === "object" && extra.meta ? { ...extra.meta as Record<string, unknown> } : {};

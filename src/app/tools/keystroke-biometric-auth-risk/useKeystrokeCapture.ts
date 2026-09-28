@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import {
   extractDwellFlight, buildProfile, scaledManhattanScore, riskBand,
   type KeyEvent, type AttemptFeatures, type Profile, type RiskBand,
@@ -73,7 +74,9 @@ export function useKeystrokeCapture() {
       }
     } else if (stage === "ready" && profile) {
       const score = scaledManhattanScore(profile, attempt);
-      setResult({ score, band: riskBand(score), attempt });
+      const band = riskBand(score);
+      setResult({ score, band, attempt });
+      trackToolRun("keystroke-biometric-auth-risk", { band });
       setStage("scored");
     }
     resetTyping();

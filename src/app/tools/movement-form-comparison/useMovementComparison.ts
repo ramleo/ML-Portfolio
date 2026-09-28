@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { usePoseVideoExtraction } from "./usePoseVideoExtraction";
 import { extractAngleSeries, compareMovements, type JointDeviation } from "./jointAngles";
 
@@ -45,6 +46,7 @@ export function useMovementComparison() {
     setRunning(true);
     setError(null);
     setProgress(0);
+    trackToolRun("movement-form-comparison");
     try {
       const userFrames = await extract(userVideo, pct => setProgress(Math.round(pct / 2)));
       const refFrames = await extract(refVideo, pct => setProgress(50 + Math.round(pct / 2)));

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { scanManifest, scanSourceCode, type ManifestScanResult, type SourceScanResult } from "./packageScanHeuristics";
 
 const SAMPLE_MANIFEST = `{
@@ -35,6 +36,11 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
   const [sourceResult, setSourceResult] = useState<SourceScanResult | null>(null);
   const [parseError, setParseError] = useState(false);
 
+  // Scanning is live (fires on every keystroke) and fully client-side. Count a
+  // "run" once typing settles, not per character, and log only the mode — an
+  // enumerated fact, never the pasted code (LOGGING_SPEC.md §12, §6).
+  const logTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const run = (value: string, activeMode: Mode) => {
     setText(value);
     setParseError(false);
@@ -45,6 +51,10 @@ export default function PackageScannerRunner({ accent }: { accent: string }) {
       setParseError(result === null && value.trim().startsWith("{"));
     } else {
       setSourceResult(value.trim() ? scanSourceCode(value) : null);
+    }
+    if (logTimer.current) clearTimeout(logTimer.current);
+    if (value.trim()) {
+      logTimer.current = setTimeout(() => trackToolRun("malicious-package-scanner", { mode: activeMode }), 1200);
     }
   };
 

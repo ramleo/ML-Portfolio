@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { trackToolRun } from "@/hooks/useAnalytics";
 import { classifyEmailBody, checkRuleBasedFlags, MEASURED_HELD_OUT_ACCURACY, type ClassifyResult, type RuleFlags } from "./emailBodyClassifier";
 import { SAMPLE_PHISHING_EMAIL, SAMPLE_SAFE_EMAIL } from "./sampleEmails";
 
@@ -14,10 +15,21 @@ export default function PhishingEmailRunner({ accent }: { accent: string }) {
   const [result, setResult] = useState<ClassifyResult | null | undefined>(undefined);
   const [flags, setFlags] = useState<RuleFlags | null>(null);
 
+  // Classification is live (fires on every keystroke). Count a "run" once the
+  // typing settles rather than per character, so analytics reflect analyses,
+  // not keystrokes (LOGGING_SPEC.md §12). Only the verdict — an enumerated
+  // fact — is logged, never the email text (§6).
+  const logTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const run = (value: string) => {
     setText(value);
-    setResult(classifyEmailBody(value));
+    const r = classifyEmailBody(value);
+    setResult(r);
     setFlags(value.trim() ? checkRuleBasedFlags(value) : null);
+    if (logTimer.current) clearTimeout(logTimer.current);
+    if (value.trim() && r) {
+      logTimer.current = setTimeout(() => trackToolRun("phishing-email-classifier", { verdict: r.verdict }), 1200);
+    }
   };
 
   const reset = () => {
