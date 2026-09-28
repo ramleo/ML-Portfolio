@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Capability } from "@/data/capabilities";
 import { ML_UNIFIED_API } from "@/config/urls";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 
 /**
  * One tool card. Lifted out of MLCapabilities.tsx when the front face grew a
@@ -53,6 +55,12 @@ export default function ToolCard({ cap, onRunHere }: { cap: Capability; onRunHer
   }, []);
 
   const handleNavigate = () => {
+    // One choke point for every card click (card body, title button, "Try it").
+    // Enumerated facts only — the tool id, a coarse source, and whether it opens
+    // in-app or launches externally. No content (LOGGING_SPEC.md §12 step 3).
+    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    const source = path === "/" ? "home" : path.startsWith("/tools/") ? "category" : "other";
+    track(EV.TOOL_CARD_CLICK, { meta: { tool: cap.id, source, opens: opensHere ? "here" : "external" } });
     if (cap.internalLink) {
       router.push(cap.internalLink);
     } else if (cap.modalEnabled && onRunHere) {
