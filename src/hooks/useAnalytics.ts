@@ -36,6 +36,12 @@ export function trackSampleLoad(toolId: string, meta: Record<string, unknown> = 
   track(EV.SAMPLE_LOAD, { meta: { tool: toolId, ...meta } });
 }
 
+/** Emit `feedback` when a user rates an answer (thumbs up/down). Enumerated only —
+ * the rating and tool, NEVER the answer or the user's reason. */
+export function trackFeedback(toolId: string, rating: "up" | "down", meta: Record<string, unknown> = {}) {
+  track(EV.FEEDBACK, { meta: { tool: toolId, rating, ...meta } });
+}
+
 /** Last terminal run outcome per tool, this page-load, for `run_retry` detection
  * (LOGGING_SPEC.md §12 step 5). A run event for a tool whose previous run errored
  * means the user re-ran after a failure — derived centrally so no button needs
@@ -153,6 +159,36 @@ export function usePasteInput() {
     document.addEventListener("paste", onPaste, true);
     return () => document.removeEventListener("paste", onPaste, true);
   }, [pathname]);
+}
+
+/** Emit `error` for uncaught JS errors and unhandled promise rejections, globally
+ * (LOGGING_SPEC.md §3 stage 7). Content-free: only the error's class name and source
+ * — NEVER the message or stack, which can contain user content or secrets. Mounted
+ * once in AnalyticsTracker. This is what makes a page that crashes show up in the
+ * log instead of failing silently; run failures are already covered by `run_error`. */
+export function useErrorTracking() {
+  useEffect(() => {
+    let last = 0;
+    function emit(source: string, name: string) {
+      const now = Date.now();
+      if (now - last < 1000) return; // coalesce error storms
+      last = now;
+      track(EV.ERROR, { meta: { source, name: name || "Error" } });
+    }
+    function onError(e: ErrorEvent) {
+      emit("window", (e.error && (e.error as { name?: string }).name) || "Error");
+    }
+    function onRejection(e: PromiseRejectionEvent) {
+      const r = e.reason as { name?: string } | undefined;
+      emit("promise", (r && r.name) || "UnhandledRejection");
+    }
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
 }
 
 export function useToolTracking(toolName: string) {

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { QA_GUIDE } from "./userGuide";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 
 const ACCENT = "#14b8a6";
 
@@ -37,6 +38,7 @@ const MD = {
 };
 
 export default function AuthorUserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useGuideOpenTracking("world-qa-author", open);
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };

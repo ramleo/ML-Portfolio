@@ -45,6 +45,7 @@ export const EV = {
   RESULT_VIEW: "result_view",
   RESULT_EXPAND: "result_expand",
   CITATION_CLICK: "citation_click",
+  FEEDBACK: "feedback",             // answer-quality rating (thumbs up/down)
   EXPORT: "export",
   COPY: "copy",
   DOWNLOAD: "download",

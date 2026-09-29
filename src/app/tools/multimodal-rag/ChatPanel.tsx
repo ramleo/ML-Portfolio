@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRagChat } from "@/components/useRagChat";
+import { trackFeedback } from "@/hooks/useAnalytics";
 import GroundednessBadge from "@/components/GroundednessBadge";
 import ToolsAIChatSettings from "@/components/ToolsAIChatSettings";
 import { PROVIDERS } from "@/components/toolsAiProviders";
@@ -133,7 +134,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
                     {showFeedback && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         {(["up", "down"] as const).map(dir => (
-                          <button key={dir} onClick={() => setFeedback(f => ({ ...f, [i]: dir }))}
+                          <button key={dir} onClick={() => { if (feedback[i] !== dir) trackFeedback("multimodal-rag", dir); setFeedback(f => ({ ...f, [i]: dir })); }}
                             title={dir === "up" ? "Good answer" : "Bad answer"}
                             aria-label={dir === "up" ? "Good answer" : "Bad answer"}
                             className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"

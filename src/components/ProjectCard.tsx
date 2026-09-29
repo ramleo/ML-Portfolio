@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { track } from "@/hooks/useAnalytics";
+import { EV } from "@/lib/logEvents";
 
 interface Project {
   id: string;
@@ -26,9 +28,12 @@ interface Project {
 }
 
 export default function ProjectCard({ project }: { project: Project }) {
-  const { title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent, internal, href } = project;
+  const { id, title, description, model, task, dataset, metric, metricLabel, features, classes, tags, url, github, accent, internal, href } = project;
   const isClassification = task === "Classification";
   const [expanded, setExpanded] = useState(false);
+  // Platform-tier card click (parallels ToolCard.handleNavigate for tools).
+  const emitCardClick = (opens: "here" | "external") =>
+    track(EV.TOOL_CARD_CLICK, { meta: { tool: id, source: "platform", opens } });
 
   return (
     <div className="subtle-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%", ["--acc-glow" as string]: `${accent}14` }}>
@@ -182,7 +187,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             // Native platform: navigate client-side, label "Enter".
             if (internal) {
               return (
-                <Link href={href ?? "/"} style={actionStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
+                <Link href={href ?? "/"} onClick={() => emitCardClick("here")} style={actionStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
                   Enter
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M2 6h8M6 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
@@ -194,6 +199,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             return (
               <button
                 onClick={() => {
+                  emitCardClick("external");
                   const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
                   let palette = "cosmic";
                   try { palette = localStorage.getItem("palette") ?? "cosmic"; } catch {}

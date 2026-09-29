@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { useGuideOpenTracking } from "@/hooks/useAnalytics";
 
 /** Generic user-guide modal for a platform world, themed by an accent.
  *  Reused by the Testwright and Text-to-SQL landings. */
@@ -14,6 +15,8 @@ export default function WorldUserGuideModal({
   accent: string;
   guide: string;
 }) {
+  useGuideOpenTracking(`world-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`, open);
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
