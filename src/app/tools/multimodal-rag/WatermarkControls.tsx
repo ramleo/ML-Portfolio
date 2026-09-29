@@ -31,12 +31,12 @@ export default function WatermarkControls({ img, source, page }: Props) {
 
   return (
     <div className="flex items-center gap-1.5">
-      <button onClick={handleEmbed} disabled={embedding}
+      <button onClick={handleEmbed} disabled={embedding} data-ev="watermark-embed"
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={{ borderColor: `${ACCENT_WM}40`, color: ACCENT_WM, opacity: embedding ? 0.5 : 1 }}>
         {embedding ? "Embedding…" : "Embed watermark"}
       </button>
-      <button onClick={() => verify(img)} disabled={verifying}
+      <button onClick={() => verify(img)} disabled={verifying} data-ev="watermark-verify"
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={{ borderColor: `${ACCENT_WM}40`, color: ACCENT_WM, opacity: verifying ? 0.5 : 1 }}>
         {verifying ? "Checking…" : "Verify watermark"}

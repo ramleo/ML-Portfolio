@@ -340,6 +340,7 @@ export default function MmRagRunner() {
                 style={{ borderColor: "var(--border2)" }}>
                 {(["concise", "normal", "detailed"] as const).map(len => (
                   <button key={len} onClick={() => chat.regenerateLastAnswer(len)}
+                    data-ev="answer-length" data-ev-value={len}
                     disabled={chat.messages.length === 0}
                     title={len === "concise" ? "1-3 sentences, no extra context"
                          : len === "detailed" ? "Thorough — includes reasoning and related details"

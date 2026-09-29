@@ -78,6 +78,8 @@ export default function EdaSectionNav({ result }: { result: EdaResult }) {
           <a
             key={item.id}
             href={`#${item.id}`}
+            data-ev="eda-section"
+            data-ev-value={item.id}
             style={{
               fontSize: "0.74rem", padding: "0.25rem 0.6rem", borderRadius: 9999,
               textDecoration: "none",

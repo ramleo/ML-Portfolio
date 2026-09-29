@@ -42,7 +42,7 @@ type ButtonsProps = {
 export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setViewSharpened, regionMode, setRegionMode, setDrawMode, onExitZoneMode, onSharpenWhole, onCancel }: ButtonsProps) {
   if (sharpening) {
     return (
-      <button onClick={onCancel}
+      <button onClick={onCancel} data-ev="sharpen-cancel"
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={{ borderColor: `${WARNING_COLOR}55`, color: WARNING_COLOR }}>
         Cancel sharpening
@@ -51,12 +51,12 @@ export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setVie
   }
   return (
     <>
-      <button onClick={onSharpenWhole} disabled={regionMode}
+      <button onClick={onSharpenWhole} disabled={regionMode} data-ev="sharpen-whole"
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: regionMode ? 0.5 : 1 }}>
         {sharpenedImg ? "Re-sharpen (whole)" : "Sharpen image (AI)"}
       </button>
-      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); onExitZoneMode?.(); }}
+      <button onClick={() => { setRegionMode(v => !v); setDrawMode(false); onExitZoneMode?.(); }} data-ev="sharpen-region"
         className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
         style={regionMode
           ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
@@ -64,7 +64,7 @@ export function SharpenButtons({ sharpening, sharpenedImg, viewSharpened, setVie
         {regionMode ? "Cancel region" : "Sharpen region…"}
       </button>
       {sharpenedImg && (
-        <button onClick={() => setViewSharpened(v => !v)}
+        <button onClick={() => setViewSharpened(v => !v)} data-ev="sharpen-view-toggle"
           className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
           style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
           {viewSharpened ? "View original" : "View sharpened"}

@@ -70,7 +70,7 @@ export default function ChatPanel({ chat, documents, accent: ACCENT, cardStyle, 
               </span>
             )
           )}
-          <button onClick={() => setSettingsOpen(o => !o)}
+          <button onClick={() => setSettingsOpen(o => !o)} data-ev="provider-settings"
             title="Provider & API key settings"
             className="text-[11px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={settingsOpen

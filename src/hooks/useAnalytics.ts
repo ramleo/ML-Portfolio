@@ -201,18 +201,18 @@ export function useFeatureCapture() {
   const pathname = usePathname();
   useEffect(() => {
     const toolFromPath = pathname.startsWith("/tools/") ? (pathname.split("/")[2] || "") : "";
-    const controlId = (el: Element | null): string | null => {
-      const m = el?.closest<HTMLElement>("[data-ev],[data-wt]");
-      return m ? (m.dataset.ev || m.dataset.wt || null) : null;
-    };
     const toolFor = (el: Element | null): string =>
       toolFromPath || el?.closest<HTMLElement>("[data-ev-tool]")?.dataset.evTool || "";
     const emit = (el: Element | null, action: string, value?: string) => {
-      const control = controlId(el);
-      if (!control) return;
+      const m = el?.closest<HTMLElement>("[data-ev],[data-wt]");
+      const control = m ? (m.dataset.ev || m.dataset.wt) : undefined;
+      if (!m || !control) return;
       const tool = toolFor(el);
       if (!tool || tool === "password-audit") return; // §5b
-      track(EV.FEATURE_USE, { meta: { tool, control, action, ...(value !== undefined ? { value } : {}) } });
+      // A click can carry an enumerated choice via data-ev-value (e.g. a button
+      // group), keeping the control id stable. Still enumerated, never content.
+      const v = value !== undefined ? value : m.dataset.evValue;
+      track(EV.FEATURE_USE, { meta: { tool, control, action, ...(v !== undefined ? { value: v } : {}) } });
     };
 
     const onClick = (e: MouseEvent) => {

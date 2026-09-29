@@ -89,6 +89,7 @@ export default function CitationToolbar({
               if (v === "similar") onFindSimilar();
             }}
             aria-label="Choose a detection or edit action"
+            data-ev="visual-action"
             className="text-[9px] rounded border"
             style={{ background: "var(--bg-glass)", border: "1px solid var(--border2)", borderRadius: 7, color: ACCENT, padding: "2px 4px" }}>
             <option value="">Choose an action…</option>
@@ -131,7 +132,7 @@ export default function CitationToolbar({
           </select>
         ) : null}
         {canEdit && (
-          <button onClick={onToggleDraw}
+          <button onClick={onToggleDraw} data-ev="draw-region"
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={drawMode
               ? { borderColor: `${ACCENT}55`, background: `${ACCENT}22`, color: ACCENT }
@@ -146,7 +147,7 @@ export default function CitationToolbar({
             onSharpenWhole={onSharpenWhole} onCancel={onCancelSharpen} />
         )}
         {plates.length > 0 && (
-          <button onClick={zoneMode ? onToggleZone : hasZone ? onClearZone : onToggleZone}
+          <button onClick={zoneMode ? onToggleZone : hasZone ? onClearZone : onToggleZone} data-ev="restricted-zone"
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={zoneMode || hasZone
               ? { borderColor: "#c084fc55", background: "#c084fc22", color: "#c084fc" }
@@ -155,14 +156,14 @@ export default function CitationToolbar({
           </button>
         )}
         {canEdit && downloadTarget && (
-          <button onClick={onDownload}
+          <button onClick={onDownload} data-ev="download-edit"
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
             Download
           </button>
         )}
         {canEdit && resultImg && (
-          <button onClick={onReset}
+          <button onClick={onReset} data-ev="reset-edit"
             className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
             style={{ borderColor: `${ACCENT}40`, color: ACCENT }}>
             Reset
@@ -172,7 +173,7 @@ export default function CitationToolbar({
         {!isImageOrVideoOnly && (
           <>
             {faces.length > 0 && (
-              <button onClick={() => setShowFaces(v => !v)}
+              <button onClick={() => setShowFaces(v => !v)} data-ev="detect-faces"
                 className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={showFaces
                   ? { borderColor: `${FACE_COLOR}55`, background: `${FACE_COLOR}22`, color: FACE_COLOR }
@@ -181,7 +182,7 @@ export default function CitationToolbar({
               </button>
             )}
             {canFindSimilar && (chunkType === "figure" || chunkType === "image") && (
-              <button onClick={onFindSimilar} disabled={loadingSimilar}
+              <button onClick={onFindSimilar} disabled={loadingSimilar} data-ev="find-similar"
                 className="text-[9px] px-2 py-0.5 rounded border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)]"
                 style={{ borderColor: `${ACCENT}40`, color: ACCENT, opacity: loadingSimilar ? 0.5 : 1 }}>
                 {loadingSimilar ? "Checking…" : "Find similar figures"}
