@@ -37,7 +37,7 @@ function GalleryGrid({
               <img src={photo.preview} alt={`Gallery ${i + 1}`}
                 className="rounded-lg object-cover w-full" style={{ aspectRatio: "1 / 1" }} />
               {onRemove && (
-                <button onClick={() => onRemove(i)} aria-label={`Remove gallery photo ${i + 1}`}
+                <button onClick={() => onRemove(i)} aria-label={`Remove gallery photo ${i + 1}`} data-ev="gallery-remove"
                   className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs"
                   style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}>
                   ✕
@@ -190,7 +190,7 @@ export default function FaceReidDemoRunner({ accent }: { accent: string }) {
           <GalleryGrid photos={gallery} results={result.gallery} />
 
           <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-            <button onClick={protectAndRetest} disabled={protecting}
+            <button onClick={protectAndRetest} disabled={protecting} data-ev="protect-retest"
               className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors border"
               style={{ borderColor: `${accent}50`, color: accent, opacity: protecting ? 0.5 : 1 }}>
               {protecting ? "Protecting…" : "Protect target & re-test"}

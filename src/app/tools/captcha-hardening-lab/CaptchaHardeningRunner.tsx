@@ -89,7 +89,7 @@ export default function CaptchaHardeningRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Hardening intensity: {intensity}
-                <input type="range" min={0} max={100} step={5} value={intensity}
+                <input type="range" min={0} max={100} step={5} value={intensity} data-ev="captcha-intensity"
                   onChange={e => setIntensity(Number(e.target.value))} className="w-32" />
               </label>
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
