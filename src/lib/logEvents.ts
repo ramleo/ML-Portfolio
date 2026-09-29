@@ -33,6 +33,10 @@ export const EV = {
   SAMPLE_LOAD: "sample_load",
   CONFIG_CHANGE: "config_change",
   PASTE_INPUT: "paste_input",
+  /** Per-tool control interaction (draw-region, sharpen, provider switch, …).
+   * ONE event; the control id is a property, never a new event name. See
+   * ML-Unified/docs/FEATURE_TRACKING_SPEC.md. */
+  FEATURE_USE: "feature_use",
 
   // ── Stage 5: running ──────────────────────────────────────────────────
   TOOL_OPEN: "tool_open",            // EXISTS

@@ -191,6 +191,72 @@ export function useErrorTracking() {
   }, []);
 }
 
+/** Feature-level (per-control) tracking via ONE delegated listener — see
+ * ML-Unified/docs/FEATURE_TRACKING_SPEC.md. A control opts in with `data-ev="id"`
+ * (or reuses an existing `data-wt` anchor). Emits `feature_use { tool, control,
+ * action, value? }`. Content-free (§6): NEVER reads text/textarea values; `value`
+ * is logged only for enumerated controls (select option, checkbox/radio state,
+ * slider bucket). Mounted once in AnalyticsTracker. */
+export function useFeatureCapture() {
+  const pathname = usePathname();
+  useEffect(() => {
+    const toolFromPath = pathname.startsWith("/tools/") ? (pathname.split("/")[2] || "") : "";
+    const controlId = (el: Element | null): string | null => {
+      const m = el?.closest<HTMLElement>("[data-ev],[data-wt]");
+      return m ? (m.dataset.ev || m.dataset.wt || null) : null;
+    };
+    const toolFor = (el: Element | null): string =>
+      toolFromPath || el?.closest<HTMLElement>("[data-ev-tool]")?.dataset.evTool || "";
+    const emit = (el: Element | null, action: string, value?: string) => {
+      const control = controlId(el);
+      if (!control) return;
+      const tool = toolFor(el);
+      if (!tool || tool === "password-audit") return; // §5b
+      track(EV.FEATURE_USE, { meta: { tool, control, action, ...(value !== undefined ? { value } : {}) } });
+    };
+
+    const onClick = (e: MouseEvent) => {
+      const el = e.target as Element | null;
+      // Form controls are handled by change/input below — skip to avoid double counts.
+      if (el?.closest("input,select,textarea")) return;
+      emit(el, "click");
+    };
+    const onChange = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      let value: string | undefined;
+      if (t.tagName === "SELECT") value = (t as HTMLSelectElement).value;
+      else if (t.tagName === "INPUT") {
+        const inp = t as HTMLInputElement;
+        if (inp.type === "checkbox") value = inp.checked ? "on" : "off";
+        else if (inp.type === "radio") value = inp.value; // radio values are enumerated options
+        else return; // text/number/etc: never log the value (range handled below)
+      } else return;
+      emit(t, "change", value);
+    };
+    let sliderTimer: ReturnType<typeof setTimeout> | null = null;
+    const onInput = (e: Event) => {
+      const t = e.target as HTMLInputElement | null;
+      if (!t || t.tagName !== "INPUT" || t.type !== "range") return;
+      const min = Number(t.min || 0), max = Number(t.max || 100), val = Number(t.value);
+      const pct = max > min ? (val - min) / (max - min) : 0;
+      const bucket = pct <= 0.25 ? "q1" : pct <= 0.5 ? "q2" : pct <= 0.75 ? "q3" : "q4";
+      if (sliderTimer) clearTimeout(sliderTimer);
+      sliderTimer = setTimeout(() => emit(t, "slider", bucket), 400); // fire on settle
+    };
+
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("change", onChange, true);
+    document.addEventListener("input", onInput, true);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("change", onChange, true);
+      document.removeEventListener("input", onInput, true);
+      if (sliderTimer) clearTimeout(sliderTimer);
+    };
+  }, [pathname]);
+}
+
 export function useToolTracking(toolName: string) {
   const countRef = useRef(0);
   useEffect(() => {

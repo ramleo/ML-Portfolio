@@ -139,6 +139,12 @@ export default function PrivacyPage() {
             a random id so a click can be matched to its outcome.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
+            Within a tool, the <strong>name</strong> of a control you use is recorded — for
+            example that you opened the region selector, switched the model provider, or moved
+            a slider — so we can see which features are actually used. The control&apos;s name
+            only, never anything you typed into it, and never for the password tool.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
             <strong>None of it contains what you typed or uploaded.</strong> Document text, prompt text
             and search terms are never written to the analytics store. Where the length of something is
             useful, the length is recorded and the text is not.
