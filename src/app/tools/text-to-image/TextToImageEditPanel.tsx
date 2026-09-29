@@ -57,7 +57,7 @@ export default function TextToImageEditPanel({
       )}
 
       <div className="flex items-center gap-2">
-        <button type="button" onClick={sharpenImage} disabled={sharpening} style={pillBtnStyle(accent, sharpening)}>
+        <button type="button" data-ev="edit-sharpen" onClick={sharpenImage} disabled={sharpening} style={pillBtnStyle(accent, sharpening)}>
           {sharpening ? "Sharpening…" : "Sharpen"}
         </button>
         <span style={{ fontSize: "0.68rem", color: "var(--text3)" }}>Uses the shared image-edit budget.</span>
@@ -76,6 +76,7 @@ export default function TextToImageEditPanel({
           />
           <button
             type="button"
+            data-ev="apply-edit"
             onClick={applyEdit}
             disabled={editing || !editPrompt.trim()}
             style={pillBtnStyle(accent, editing || !editPrompt.trim())}

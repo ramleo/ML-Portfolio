@@ -56,6 +56,7 @@ function ChipRow({ options, value, onChange, accent }: {
           <button
             key={opt.key}
             type="button"
+            data-ev="style-option" data-ev-value={opt.key}
             onClick={() => onChange(active ? null : opt.key)}
             style={{
               fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.02em",
@@ -167,6 +168,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            data-ev="enhance-prompt"
             onClick={enhancePrompt}
             disabled={enhancing || generating || !prompt.trim()}
             style={{
@@ -240,6 +242,7 @@ const TextToImageRunner = forwardRef<TextToImageRunnerHandle, { accent: string }
                 <button
                   key={n}
                   type="button"
+                  data-ev="variation-count" data-ev-value={String(n)}
                   onClick={() => setVariationCount(n as VariationCount)}
                   disabled={generating}
                   style={{

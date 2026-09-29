@@ -108,7 +108,7 @@ function Results({ r, accent, file }: { r: MeetingResult; accent: string; file: 
             <ul>
               {r.topics!.map((t, i) => (
                 <li key={i} className="flex gap-3 px-4 py-2.5 text-[13px] border-b last:border-0" style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
-                  <button onClick={() => seek(t.timestamp)} disabled={!mediaUrl} title="Jump to this point"
+                  <button onClick={() => seek(t.timestamp)} disabled={!mediaUrl} title="Jump to this point" data-ev="transcript-seek"
                     className="font-mono text-[11px] shrink-0 underline decoration-dotted underline-offset-2 disabled:no-underline disabled:cursor-default"
                     style={{ color: accent }}>{mmss(t.timestamp)}</button>
                   <span>{t.title}</span>
@@ -137,7 +137,7 @@ function Results({ r, accent, file }: { r: MeetingResult; accent: string; file: 
 
       <Section title="Transcript">
         <div className="px-4 py-3">
-          <button onClick={() => setShowTranscript((v) => !v)} className="text-[12px] font-semibold" style={{ color: accent }}>
+          <button onClick={() => setShowTranscript((v) => !v)} data-ev="toggle-transcript" className="text-[12px] font-semibold" style={{ color: accent }}>
             {showTranscript ? "Hide" : "Show"} full transcript
           </button>
           {showTranscript && (
@@ -150,7 +150,7 @@ function Results({ r, accent, file }: { r: MeetingResult; accent: string; file: 
                 const t = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
                 return (
                   <p key={i} className="text-[12px] leading-relaxed m-0" style={{ color: "var(--text2)" }}>
-                    <button onClick={() => seek(t)} disabled={!mediaUrl} title="Jump to this point"
+                    <button onClick={() => seek(t)} disabled={!mediaUrl} title="Jump to this point" data-ev="transcript-seek"
                       className="font-mono text-[11px] mr-2 underline decoration-dotted underline-offset-2 disabled:no-underline disabled:cursor-default"
                       style={{ color: accent }}>{m[1]}:{m[2]}</button>
                     {m[3]}
