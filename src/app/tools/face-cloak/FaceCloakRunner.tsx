@@ -75,7 +75,7 @@ export default function FaceCloakRunner({ accent }: { accent: string }) {
             <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text3)" }}>
                 Strength (epsilon): {epsilon.toFixed(3)}
-                <input type="range" min={0.01} max={0.1} step={0.005} value={epsilon}
+                <input type="range" min={0.01} max={0.1} step={0.005} value={epsilon} data-ev="cloak-strength"
                   onChange={e => setEpsilon(Number(e.target.value))} className="w-32" />
               </label>
               <button onClick={run} disabled={running}

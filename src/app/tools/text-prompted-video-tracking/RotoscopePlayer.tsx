@@ -53,12 +53,12 @@ export default function RotoscopePlayer({ frames, fps, accent }: { frames: strin
     <div className="flex flex-col gap-2">
       <canvas ref={canvasRef} className="rounded-lg w-full" style={{ background: "#000" }} />
       <div className="flex items-center gap-3">
-        <button onClick={() => setPlaying(p => !p)}
+        <button onClick={() => setPlaying(p => !p)} data-ev="video-playpause"
           className="px-3 py-1.5 rounded-lg text-xs font-semibold"
           style={{ background: accent, color: "#fff" }}>
           {playing ? "Pause" : "Play"}
         </button>
-        <input type="range" min={0} max={frames.length - 1} value={index}
+        <input type="range" min={0} max={frames.length - 1} value={index} data-ev="frame-scrub"
           onChange={e => { setPlaying(false); setIndex(Number(e.target.value)); }}
           className="flex-1" />
         <span className="text-[10px] tabular-nums" style={{ color: "var(--text3)" }}>
