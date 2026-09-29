@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { trackToolRun } from "@/hooks/useAnalytics";
+import { trackToolRun, trackSampleLoad } from "@/hooks/useAnalytics";
 import { findPeriodicity, type PeriodicityResult, type Peak } from "./periodicityMath";
 
 /** Deterministic sample: 8 weeks of event timestamps with a clear weekly rhythm
@@ -76,7 +76,7 @@ export default function PeriodicityRunner({ accent }: { accent: string }) {
   const lineCount = useMemo(() => raw.split(/[\n,]+/).filter((s) => s.trim()).length, [raw]);
 
   const onAnalyze = () => { setResult(findPeriodicity(raw)); trackToolRun("periodicity-finder", { points: lineCount }); };
-  const onSample = () => { setRaw(sampleTimestamps()); setResult(null); };
+  const onSample = () => { trackSampleLoad("periodicity-finder"); setRaw(sampleTimestamps()); setResult(null); };
   const onClear = () => { setRaw(""); setResult(null); };
 
   return (

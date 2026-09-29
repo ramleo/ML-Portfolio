@@ -1,5 +1,6 @@
 "use client";
 
+import { trackSampleLoad } from "@/hooks/useAnalytics";
 import { useEmailAuthCheck, type DkimSignature } from "./useEmailAuthCheck";
 
 const SAMPLE_HEADERS = `Delivered-To: you@example.org
@@ -97,7 +98,7 @@ export default function EmailAuthCheckerRunner({ accent }: { accent: string }) {
             style={{ background: accent, color: "#fff" }}>
             {running ? "Checking DNS records…" : "Check authentication"}
           </button>
-          <button onClick={() => setRawHeaders(SAMPLE_HEADERS)} disabled={running} data-wt="eauth-sample"
+          <button onClick={() => { trackSampleLoad("email-auth-checker"); setRawHeaders(SAMPLE_HEADERS); }} disabled={running} data-wt="eauth-sample"
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
             style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
             Load sample headers

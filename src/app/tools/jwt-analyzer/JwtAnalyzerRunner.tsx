@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackSampleLoad } from "@/hooks/useAnalytics";
 import { useJwtAnalyzer } from "./useJwtAnalyzer";
 import type { Finding, Severity } from "./jwtChecks";
 
@@ -77,8 +78,8 @@ export default function JwtAnalyzerRunner({ accent }: { accent: string }) {
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40" style={{ background: accent, color: "#fff" }}>
             {crack.status === "running" ? "Analyzing…" : "Analyze"}
           </button>
-          <button onClick={() => run(SAMPLE_WEAK)} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a weak token</button>
-          <button onClick={() => run(SAMPLE_STRONG)} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a strong token</button>
+          <button onClick={() => { trackSampleLoad("jwt-analyzer", { variant: "weak" }); run(SAMPLE_WEAK); }} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a weak token</button>
+          <button onClick={() => { trackSampleLoad("jwt-analyzer", { variant: "strong" }); run(SAMPLE_STRONG); }} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a strong token</button>
           {(decoded || error) && <button onClick={clear} className="text-xs underline ml-auto" style={{ color: "var(--text3)" }}>Clear</button>}
         </div>
 

@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { ML_UNIFIED_API } from "@/config/urls";
 import { trackedFetch } from "@/lib/trackedFetch";
+import { trackSampleLoad } from "@/hooks/useAnalytics";
 import EdaOverview from "./EdaOverview";
 import EdaReadiness from "./EdaReadiness";
 import EdaStatistics from "./EdaStatistics";
@@ -85,6 +86,7 @@ export default function EdaRunner({ onResult }: { onResult: (r: EdaResult | null
   }
 
   function useSample() {
+    trackSampleLoad("exploratory-data-analysis");
     const sample = new File([SAMPLE_CSV], "sample-sales.csv", { type: "text/csv" });
     choose(sample);
   }

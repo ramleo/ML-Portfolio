@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { trackToolRun } from "@/hooks/useAnalytics";
+import { trackToolRun, trackSampleLoad } from "@/hooks/useAnalytics";
 import { analyzeManifest, type ManifestAnalysis, type RiskLevel } from "./permissionRisk";
 
 const SAMPLE_MANIFEST = `{
@@ -83,7 +83,7 @@ export default function ExtensionAnalyzerRunner({ accent }: { accent: string }) 
             style={{ background: accent, color: "#fff" }}>
             Analyze permissions
           </button>
-          <button onClick={() => setRaw(SAMPLE_MANIFEST)} data-wt="ext-sample"
+          <button onClick={() => { trackSampleLoad("extension-permission-analyzer"); setRaw(SAMPLE_MANIFEST); }} data-wt="ext-sample"
             className="px-4 py-2 rounded-lg text-sm font-semibold"
             style={{ background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)" }}>
             Load sample manifest

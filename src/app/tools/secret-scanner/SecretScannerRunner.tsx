@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackSampleLoad } from "@/hooks/useAnalytics";
 import { useSecretScanner } from "./useSecretScanner";
 import type { Category, Match, Severity } from "./detectors";
 
@@ -72,7 +73,7 @@ export default function SecretScannerRunner({ accent }: { accent: string }) {
         <div className="flex flex-wrap items-center gap-3">
           <button onClick={() => run(text)} disabled={!text.trim()}
             className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40" style={{ background: accent, color: "#fff" }}>Scan</button>
-          <button onClick={() => run(SAMPLE)} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a sample</button>
+          <button onClick={() => { trackSampleLoad("secret-scanner"); run(SAMPLE); }} className="text-xs underline" style={{ color: "var(--text3)" }}>Try a sample</button>
           {(result || text) && <button onClick={clear} className="text-xs underline ml-auto" style={{ color: "var(--text3)" }}>Clear</button>}
         </div>
         <p className="text-[10px] leading-relaxed" style={{ color: "var(--text3)" }}>
