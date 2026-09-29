@@ -15,6 +15,7 @@ import { RANGE_LABELS, type Range, type Stats } from "./analyticsTypes";
 import AnalyticsUserGuide from "./AnalyticsUserGuide";
 import AnalyticsHFTools from "./AnalyticsHFTools";
 import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
+import AnalyticsFeatureUsage from "./AnalyticsFeatureUsage";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
@@ -252,6 +253,9 @@ export default function AnalyticsDashboard() {
 
       {/* Per-tool Query Success Rate */}
       <AnalyticsQueryByTool data={stats?.query_by_tool ?? []} rangeLabel={rangeLabel} />
+
+      {/* Per-tool feature/control usage (FEATURE_TRACKING_SPEC.md phase 3) */}
+      <AnalyticsFeatureUsage range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
