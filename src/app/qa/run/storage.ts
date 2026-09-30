@@ -38,12 +38,21 @@ function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+/** Best-effort human name from the test source — the first `test.describe(...)`
+ * suite title, else the first `test(...)` title — so a run/save is named even
+ * when the Test name field is left blank. Falls back to "Untitled test". */
+export function deriveTestName(code: string): string {
+  const m = code.match(/test\.describe\s*\(\s*(['"`])([^'"`]+?)\1/)
+        || code.match(/\btest(?:\.(?:only|skip|fixme))?\s*\(\s*(['"`])([^'"`]+?)\1/);
+  return (m?.[2]?.trim()) || "Untitled test";
+}
+
 export function getSavedTests(): SavedTest[] {
   return read<SavedTest>(SAVED_KEY).sort((a, b) => b.savedAt - a.savedAt);
 }
 
 export function saveTest(name: string, code: string): SavedTest {
-  const entry: SavedTest = { id: uid(), name: name.trim() || "Untitled test", code, savedAt: Date.now() };
+  const entry: SavedTest = { id: uid(), name: name.trim() || deriveTestName(code), code, savedAt: Date.now() };
   const next = [entry, ...read<SavedTest>(SAVED_KEY).filter((t) => t.code !== code)].slice(0, MAX_SAVED);
   write(SAVED_KEY, next);
   return entry;

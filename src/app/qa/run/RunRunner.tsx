@@ -5,7 +5,7 @@ import { useRun } from "./useRun";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
-import { saveTest, addHistory } from "./storage";
+import { saveTest, addHistory, deriveTestName } from "./storage";
 import { isFirstParty } from "../lib/ownership";
 import OwnershipGate from "../lib/OwnershipGate";
 
@@ -47,7 +47,7 @@ export default function RunRunner({ accent }: { accent: string }) {
     if ((state.phase === "completed" || state.phase === "error") && !recorded.current) {
       recorded.current = true;
       const status = state.phase === "error" ? "error" : state.passed ? "passed" : "failed";
-      addHistory({ name: nameRef.current.trim() || "Untitled test", status, correlationId: state.correlationId, code: codeRef.current });
+      addHistory({ name: nameRef.current.trim() || deriveTestName(codeRef.current), status, correlationId: state.correlationId, code: codeRef.current });
       setRefreshKey((k) => k + 1);
     }
   }, [state.phase, state.passed, state.correlationId]);
