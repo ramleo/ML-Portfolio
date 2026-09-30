@@ -157,7 +157,7 @@ export function useRun() {
         runUrl: s.run_url ?? prev.runUrl,
       }));
     }
-    setState((prev) => ({ ...prev, phase: "error", error: "Timed out waiting for the run to finish." }));
+    setState((prev) => ({ ...prev, phase: "error", error: "Stopped waiting after the time limit — the run may still be finishing on GitHub. Open it to check, or Stop it." }));
   }, []);
 
   return { state, run, reset, stop };

@@ -34,6 +34,7 @@ export default function RunRunner({ accent }: { accent: string }) {
   const [authorized, setAuthorized] = useState(false);
   const [healing, setHealing] = useState(false);
   const [healInfo, setHealInfo] = useState<HealInfo | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const codeRef = useRef(code); codeRef.current = code;
@@ -99,6 +100,16 @@ export default function RunRunner({ accent }: { accent: string }) {
       }
     } catch { /* sessionStorage unavailable */ }
   }, []);
+
+  // Live elapsed timer while a run is in flight (approximate; the result shows
+  // the authoritative total). Resets whenever the run is not active.
+  useEffect(() => {
+    const running = state.phase === "queued" || state.phase === "in_progress";
+    if (!running) { setElapsed(0); return; }
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [state.phase]);
 
   const busy = state.phase === "queued" || state.phase === "in_progress";
   const thirdParty = !isFirstParty(baseUrl);
@@ -197,6 +208,19 @@ export default function RunRunner({ accent }: { accent: string }) {
       {healInfo && <HealBanner info={healInfo} accent={accent} />}
 
       {activeStep >= 0 && <Stepper active={activeStep} phase={state.phase} accent={accent} />}
+
+      {busy && (
+        <div className="flex items-center gap-2 flex-wrap text-[11px]" style={{ color: "var(--text3)" }}>
+          <span className="tabular-nums">
+            {state.phase === "in_progress" ? "Running the test on GitHub CI" : "Queued on GitHub CI"} · {elapsed}s
+          </span>
+          <span>· first-run setup on a fresh CI runner takes ~40–60s</span>
+          {state.runUrl && (
+            <a href={state.runUrl} target="_blank" rel="noopener noreferrer" className="underline"
+              style={{ color: accent }}>Open on GitHub</a>
+          )}
+        </div>
+      )}
 
       {state.phase === "error" && (
         <div className="rounded-xl px-4 py-3 text-[12px]"
