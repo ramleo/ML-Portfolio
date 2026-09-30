@@ -164,8 +164,9 @@ export default function PrivacyPage() {
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
             The backend separately logs security events — a blocked origin, a rate-limit hit, an
-            oversized request, a file that matched a malware-scanning rule, or uploaded document text
-            that resembled instructions aimed at the AI. Those entries do include the
+            oversized request, a file that matched a malware-scanning rule, an archive that would
+            expand to an unsafe size, or uploaded document text that resembled instructions aimed at
+            the AI. Those entries do include the
             requesting IP address, because that is the point of them. They are operational logs on the
             Space and are not combined with the analytics above.
           </p>
