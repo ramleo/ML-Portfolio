@@ -49,8 +49,10 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       // Most likely the RPC isn't installed yet — see supabase/feature_usage.sql.
-      const needsSetup = /function .*feature_usage.* does not exist/i.test(error.message)
-        || error.message.includes("PGRST202");
+      // Supabase reports a missing function as PGRST202 / "Could not find … in the
+      // schema cache" — match code AND message to be robust.
+      const needsSetup = error.code === "PGRST202"
+        || /schema cache/i.test(error.message) || /could not find/i.test(error.message) || /does not exist/i.test(error.message);
       return NextResponse.json({ rows: [], error: error.message, needs_setup: needsSetup });
     }
 

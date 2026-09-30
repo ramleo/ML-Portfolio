@@ -26,6 +26,17 @@ function getClient() {
 const clip = (s: unknown, n: number) => (typeof s === "string" ? s.slice(0, n) : null);
 const stripQuery = (s: unknown) => (typeof s === "string" ? s.split(/[?#]/)[0].slice(0, 300) : "");
 
+/** True when the table/RPC hasn't been created yet (errors.sql not run). Supabase
+ * reports this as PGRST205 (table) / PGRST202 (function) with a "Could not find …
+ * in the schema cache" message — match code AND message to be robust. */
+function isMissingSchema(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false;
+  const code = err.code ?? "";
+  const msg = err.message ?? "";
+  return code === "PGRST205" || code === "PGRST202"
+    || /schema cache/i.test(msg) || /could not find/i.test(msg) || /does not exist/i.test(msg);
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
@@ -50,7 +61,7 @@ export async function POST(req: NextRequest) {
       source, level: "error", kind, message, route, fingerprint, stack, session_id, meta,
     });
     if (error) {
-      const needsSetup = /relation .*errors.* does not exist/i.test(error.message) || error.message.includes("PGRST205");
+      const needsSetup = isMissingSchema(error);
       return NextResponse.json({ error: error.message, needs_setup: needsSetup }, { status: needsSetup ? 200 : 500, headers: CORS });
     }
     return NextResponse.json({ ok: true }, { headers: CORS });
@@ -87,7 +98,7 @@ export async function GET(req: NextRequest) {
     const supabase = getClient();
     const { data, error } = await supabase.rpc("error_groups", { p_start: start, p_end: end });
     if (error) {
-      const needsSetup = /function .*error_groups.* does not exist/i.test(error.message) || error.message.includes("PGRST202");
+      const needsSetup = isMissingSchema(error);
       return NextResponse.json({ rows: [], error: error.message, needs_setup: needsSetup }, { headers: CORS });
     }
     return NextResponse.json({ rows: (data ?? []) as Group[] }, { headers: CORS });
