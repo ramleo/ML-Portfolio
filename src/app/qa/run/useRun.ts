@@ -6,7 +6,7 @@ const POLL_MS = 4000;
 const MAX_POLLS = 90; // ~6 min ceiling (dispatch + queue + run)
 const MAX_POLLS_FLAKY = 200; // ~13 min — a repeat run (up to 10×) takes longer
 
-export type RunPhase = "idle" | "queued" | "in_progress" | "completed" | "error";
+export type RunPhase = "idle" | "queued" | "in_progress" | "completed" | "error" | "cancelled";
 
 export type RunSummary = { expected: number; unexpected: number; flaky: number; skipped: number };
 
@@ -30,6 +30,10 @@ export type RunState = {
   failedRuns: number | null;
   passRate: number | null;
   flaky: boolean | null;
+  // Timing: totalMs = wall-clock from dispatch to completion (incl. CI overhead);
+  // testMs = sum of the test's own step durations.
+  totalMs: number | null;
+  testMs: number | null;
 };
 
 type StatusResp = {
@@ -56,21 +60,37 @@ const IDLE: RunState = {
   screenshot: null, steps: [], hasVideo: false, hasTrace: false,
   correlationId: null, runUrl: null, error: null,
   runs: null, passedRuns: null, failedRuns: null, passRate: null, flaky: null,
+  totalMs: null, testMs: null,
 };
 
 export function useRun() {
   const [state, setState] = useState<RunState>(IDLE);
   const cancelled = useRef(false);
+  const startedAt = useRef(0);
+  const corrRef = useRef<string | null>(null);
 
   const reset = useCallback(() => {
     cancelled.current = true;
     setState(IDLE);
   }, []);
 
+  // Stop an in-flight run: cancel the GitHub job server-side (frees the runner,
+  // not just the client poll) and stop polling.
+  const stop = useCallback(async () => {
+    cancelled.current = true;
+    const cid = corrRef.current;
+    setState((prev) => ({ ...prev, phase: "cancelled" }));
+    if (cid) {
+      try { await qaPost(`/qa/run/cancel/${cid}`, {}, { tool: TOOL_ID }); } catch { /* best-effort */ }
+    }
+  }, []);
+
   const run = useCallback(async (code: string, baseUrl: string, testName: string, runs = 1, authorized = false) => {
     const src = code.trim();
     if (!src) return;
     cancelled.current = false;
+    startedAt.current = Date.now();
+    corrRef.current = null;
     setState({ ...IDLE, phase: "queued" });
     const maxPolls = runs > 1 ? MAX_POLLS_FLAKY : MAX_POLLS;
 
@@ -83,6 +103,7 @@ export function useRun() {
       );
       correlationId = acc?.correlation_id;
       if (!correlationId) throw new Error("The run could not be started.");
+      corrRef.current = correlationId;
     } catch (err) {
       setState({ ...IDLE, phase: "error", error: (err as Error).message || "Could not start the run." });
       return;
@@ -101,13 +122,15 @@ export function useRun() {
       }
 
       if (s.status === "completed") {
+        const steps = s.steps ?? [];
+        const testMs = steps.reduce((a, st) => a + (st.duration || 0), 0);
         setState({
           phase: "completed",
           passed: s.passed ?? null,
           conclusion: s.conclusion ?? null,
           summary: s.summary ?? null,
           screenshot: s.screenshot_base64 ?? null,
-          steps: s.steps ?? [],
+          steps,
           hasVideo: !!s.has_video,
           hasTrace: !!s.has_trace,
           correlationId: s.correlation_id ?? correlationId,
@@ -118,6 +141,8 @@ export function useRun() {
           failedRuns: s.failed_runs ?? null,
           passRate: s.pass_rate ?? null,
           flaky: s.flaky ?? null,
+          totalMs: Date.now() - startedAt.current,
+          testMs: testMs || null,
         });
         return;
       }
@@ -135,5 +160,5 @@ export function useRun() {
     setState((prev) => ({ ...prev, phase: "error", error: "Timed out waiting for the run to finish." }));
   }, []);
 
-  return { state, run, reset };
+  return { state, run, reset, stop };
 }

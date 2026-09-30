@@ -118,6 +118,12 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
               {s.expected} passed · {s.unexpected} failed{s.flaky ? ` · ${s.flaky} flaky` : ""}{s.skipped ? ` · ${s.skipped} skipped` : ""}
             </span>
           )}
+          {(state.testMs != null || state.totalMs != null) && (
+            <span className="text-[11px] tabular-nums" style={{ color: "var(--text3)" }}>
+              {state.testMs != null && <>· test {fmtMs(state.testMs)}</>}
+              {state.totalMs != null && <> · total {fmtMs(state.totalMs)}</>}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {!passed && !healed && (

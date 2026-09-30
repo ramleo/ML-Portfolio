@@ -26,7 +26,7 @@ test.describe('home page smoke', () => {
 `;
 
 export default function RunRunner({ accent }: { accent: string }) {
-  const { state, run, reset } = useRun();
+  const { state, run, reset, stop } = useRun();
   const [code, setCode] = useState("");
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
@@ -162,6 +162,13 @@ export default function RunRunner({ accent }: { accent: string }) {
             style={{ background: accent, color: "#fff" }}>
             {busy ? "Running…" : runs > 1 ? `Check flakiness (${runs}×)` : "Run test"}
           </button>
+          {busy && (
+            <button onClick={stop} type="button"
+              className="text-[13px] font-semibold px-4 py-2 rounded-lg border transition-opacity"
+              style={{ borderColor: "#dc2626", color: "#dc2626" }}>
+              Stop
+            </button>
+          )}
           <label className="flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text3)" }}>
             <span className="uppercase tracking-wide font-semibold text-[11px]">Runs</span>
             <select value={runs} onChange={e => setRuns(Number(e.target.value))} disabled={busy}
@@ -178,7 +185,7 @@ export default function RunRunner({ accent }: { accent: string }) {
             style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
             Save test
           </button>
-          {(state.phase === "completed" || state.phase === "error") && (
+          {(state.phase === "completed" || state.phase === "error" || state.phase === "cancelled") && (
             <button onClick={() => { reset(); setHealInfo(null); }}
               className="text-[12px] px-3 py-2 rounded-lg border" style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
               Clear
@@ -195,6 +202,14 @@ export default function RunRunner({ accent }: { accent: string }) {
         <div className="rounded-xl px-4 py-3 text-[12px]"
           style={{ background: "rgba(220,38,38,0.10)", border: "1px solid rgba(220,38,38,0.35)", color: "#dc2626" }}>
           {state.error}
+          {state.runUrl && <> · <a href={state.runUrl} target="_blank" rel="noopener noreferrer" className="underline">view run</a></>}
+        </div>
+      )}
+
+      {state.phase === "cancelled" && (
+        <div className="rounded-xl px-4 py-3 text-[12px]"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>
+          Run stopped — the GitHub job was asked to cancel.
           {state.runUrl && <> · <a href={state.runUrl} target="_blank" rel="noopener noreferrer" className="underline">view run</a></>}
         </div>
       )}
