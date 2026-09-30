@@ -169,18 +169,42 @@ export function usePasteInput() {
 export function useErrorTracking() {
   useEffect(() => {
     let last = 0;
-    function emit(source: string, name: string) {
+    function emit(source: string, name: string, err?: unknown) {
       const now = Date.now();
       if (now - last < 1000) return; // coalesce error storms
       last = now;
+      // Content-free volume metric in the events table (unchanged).
       track(EV.ERROR, { meta: { source, name: name || "Error" } });
+      // Rich, durable capture in the DIY error store (supabase/errors.sql).
+      // Password-audit is excluded everywhere; strip the query string from the route.
+      const route = typeof location !== "undefined" ? location.pathname : "";
+      if (route.includes("password")) return;
+      const e = err as { message?: string; stack?: string } | undefined;
+      try {
+        fetch("/api/error", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            source: "frontend",
+            kind: name || "Error",
+            message: e && typeof e.message === "string" ? e.message : undefined,
+            stack: e && typeof e.stack === "string" ? e.stack : undefined,
+            route,
+            session_id: getOrCreateSession(),
+            meta: { ua: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 200) : "" },
+          }),
+        }).catch(() => {});
+      } catch {
+        // never let error reporting throw
+      }
     }
     function onError(e: ErrorEvent) {
-      emit("window", (e.error && (e.error as { name?: string }).name) || "Error");
+      emit("window", (e.error && (e.error as { name?: string }).name) || "Error", e.error);
     }
     function onRejection(e: PromiseRejectionEvent) {
       const r = e.reason as { name?: string } | undefined;
-      emit("promise", (r && r.name) || "UnhandledRejection");
+      emit("promise", (r && r.name) || "UnhandledRejection", e.reason);
     }
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);

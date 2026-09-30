@@ -169,6 +169,15 @@ export default function PrivacyPage() {
             Space and are not combined with the analytics above.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
+            When something breaks unexpectedly, a diagnostic record is also stored in this site&rsquo;s
+            own database so the fault can be found and fixed: the error and where it happened in the
+            code, the page you were on, and your browser. <strong>It never contains what you typed,
+            pasted or uploaded</strong>, no request contents, and no IP address; the page address has
+            any query part removed first, and the password tool is excluded entirely. This is the same
+            information sent to Sentry above — kept here too so it survives even when the third-party
+            service is not used.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
             <strong>When you upload a file, a short record of it is kept for 30 days</strong> so that
             abuse can be investigated: the filename, its type and size, and a SHA-256 fingerprint of its
             contents. <strong>The file itself is not kept</strong> — it is discarded once the tool has

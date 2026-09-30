@@ -16,6 +16,7 @@ import AnalyticsUserGuide from "./AnalyticsUserGuide";
 import AnalyticsHFTools from "./AnalyticsHFTools";
 import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
 import AnalyticsFeatureUsage from "./AnalyticsFeatureUsage";
+import AnalyticsErrors from "./AnalyticsErrors";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
@@ -256,6 +257,9 @@ export default function AnalyticsDashboard() {
 
       {/* Per-tool feature/control usage (FEATURE_TRACKING_SPEC.md phase 3) */}
       <AnalyticsFeatureUsage range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      {/* DIY error store — grouped faults (docs/ERROR_TRACKING.md) */}
+      <AnalyticsErrors range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
