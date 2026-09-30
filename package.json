@@ -19,6 +19,7 @@
     "@mediapipe/tasks-vision": "^1.0.1",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.6.1",
+    "@sentry/nextjs": "^11.1.0",
     "@supabase/supabase-js": "^2.110.2",
     "@types/three": "^0.184.1",
     "@zxcvbn-ts/core": "^4.2.0",

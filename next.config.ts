@@ -53,4 +53,8 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Sentry runtime error capture is wired via Next's native instrumentation
+// hooks (src/instrumentation.ts, src/instrumentation-client.ts) — no build
+// wrapper needed. Source-map upload (which needs SENTRY_AUTH_TOKEN + the
+// withSentryConfig wrapper) can be added later once Sentry is provisioned.
 export default nextConfig;

@@ -117,10 +117,18 @@ export default function PrivacyPage() {
             providers used are <strong style={{ color: "var(--text)" }}>Mistral, Google Gemini, Groq and
             Cohere</strong>.
           </p>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: "0 0 0.75rem" }}>
             Where a tool can avoid sending your raw input it does. The SIEM Alert Triage tool, for
             example, groups and deduplicates your log in the browser first and sends only the summarised
             groups onward — never the raw log.
+          </p>
+          <p style={{ margin: 0 }}>
+            Separately, when something breaks unexpectedly a diagnostic report is sent to{" "}
+            <strong style={{ color: "var(--text)" }}>Sentry</strong>, a third-party error-monitoring
+            service, so the fault can be found and fixed. That report contains the error and where it
+            happened in the code, the page you were on, and your browser — <strong>never anything you
+            typed, pasted or uploaded, no request contents, no IP address, and no recording of your
+            screen.</strong> It is sent only when an error actually occurs, not on a normal visit.
           </p>
         </Section>
 
