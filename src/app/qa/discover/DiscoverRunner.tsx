@@ -66,6 +66,8 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
     try {
       sessionStorage.setItem("qa_run_code", g.code);
       sessionStorage.setItem("qa_run_name", g.title);
+      // Flag the handoff so Run can offer a way back to the proposals.
+      sessionStorage.setItem("qa_run_from_discover", "1");
     } catch { /* ignore */ }
     router.push("/qa/run");
   };

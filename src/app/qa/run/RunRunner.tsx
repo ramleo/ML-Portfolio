@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useRun } from "./useRun";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
@@ -26,8 +27,10 @@ test.describe('home page smoke', () => {
 `;
 
 export default function RunRunner({ accent }: { accent: string }) {
+  const router = useRouter();
   const { state, run, reset, stop } = useRun();
   const [code, setCode] = useState("");
+  const [fromDiscover, setFromDiscover] = useState(false);
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [testName, setTestName] = useState("");
   const [runs, setRuns] = useState(1);
@@ -114,6 +117,11 @@ export default function RunRunner({ accent }: { accent: string }) {
         sessionStorage.removeItem("qa_run_code");
         sessionStorage.removeItem("qa_run_name");
       }
+      // Arrived via "Send to Run" from Discover? Show a way back to the proposals.
+      if (sessionStorage.getItem("qa_run_from_discover")) {
+        setFromDiscover(true);
+        sessionStorage.removeItem("qa_run_from_discover");
+      }
     } catch { /* sessionStorage unavailable */ }
   }, []);
 
@@ -134,6 +142,18 @@ export default function RunRunner({ accent }: { accent: string }) {
 
   return (
     <div className="flex flex-col gap-5">
+      {fromDiscover && (
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap text-[12px]"
+          style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
+          <span>Sent from <span className="font-semibold" style={{ color: "var(--text)" }}>Discover</span> — your other proposals are still there.</span>
+          <button type="button" onClick={() => router.push("/qa/discover")}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-lg border shrink-0 transition-opacity"
+            style={{ borderColor: `${accent}55`, color: accent }}>
+            ← Back to Discover
+          </button>
+        </div>
+      )}
+
       <div className="rounded-xl px-4 py-3 text-[12px] leading-relaxed"
         style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
         <span className="font-semibold" style={{ color: "var(--text)" }}>Runs on isolated CI.</span>{" "}

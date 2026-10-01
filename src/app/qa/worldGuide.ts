@@ -99,7 +99,9 @@ cap so one can't drain another.
 4. Click **Generate selected (N)** — each proposal is drafted into a full Playwright
    test (the Author stage under the hood).
 5. **Send to Run** on any draft to execute it, then save or heal it like any other
-   run. Discover reads only the URL you give (one page for now).
+   run. Your proposals are **kept** — after Run, use the **← Back to Discover**
+   button (or the Discover tab) to return and send more, without re-discovering.
+   Discover reads only the URL you give (one page for now).
 
 ## Using the Heal stage (step by step)
 1. Save the tests you care about from **Run** (they live in this browser).
