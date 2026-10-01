@@ -13,6 +13,9 @@ export type DiscoverState = {
   proposals: Proposal[];
   runUrl: string | null;
   error: string | null;
+  // Real page context (ARIA snapshot + link map) from the explore run, passed
+  // into code generation so locators and URLs are grounded, not guessed.
+  pageContext: string | null;
 };
 
 type StatusResp = {
@@ -20,9 +23,10 @@ type StatusResp = {
   proposals?: Proposal[];
   run_url?: string | null;
   detail?: string | null;
+  page_context?: string | null;
 };
 
-const IDLE: DiscoverState = { phase: "idle", proposals: [], runUrl: null, error: null };
+const IDLE: DiscoverState = { phase: "idle", proposals: [], runUrl: null, error: null, pageContext: null };
 
 export function useDiscover() {
   const [state, setState] = useState<DiscoverState>(IDLE);
@@ -61,7 +65,8 @@ export function useDiscover() {
       }
 
       if (s.status === "completed") {
-        setState({ phase: "completed", proposals: s.proposals ?? [], runUrl: s.run_url ?? null, error: null });
+        setState({ phase: "completed", proposals: s.proposals ?? [], runUrl: s.run_url ?? null,
+          error: null, pageContext: s.page_context ?? null });
         return;
       }
       if (s.status === "error") {

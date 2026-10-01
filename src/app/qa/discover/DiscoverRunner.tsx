@@ -43,7 +43,8 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
       try {
         const resp = await qaPost<{ code?: string; provider?: string | null }>(
           "/qa/author/generate",
-          { instructions: p.steps, base_url: url.trim(), test_name: p.title },
+          { instructions: p.steps, base_url: url.trim(), test_name: p.title,
+            page_context: state.pageContext ?? "" },
           { tool: "qa-test-author", meta: { via: "discover" } },
         );
         setGenerated((g) => [...(g ?? []), { title: p.title, steps: p.steps, code: resp?.code || "", error: resp?.code ? undefined : "No test returned." }]);
