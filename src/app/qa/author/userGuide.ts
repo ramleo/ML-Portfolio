@@ -16,7 +16,11 @@ returns pass/fail, a summary, and a failure screenshot.
 2. Optionally give the test a **name** (used for the \`describe\` block).
 3. Type what to test in plain English, e.g.
    *"Open the pricing page, click Sign up, check the email field is required."*
-4. Press **Generate test** and copy the resulting TypeScript.
+4. Press **Generate test**. The provider that answered shows as a chip (e.g.
+   \`cohere\`).
+5. On the result, **Send to Run** to execute it here, **Suggest assertions** to
+   get up to six extra checks the draft is missing (copy any in), or **Copy** the
+   file into your own Playwright project. **Clear** starts over.
 
 ## What makes the output good
 - **Resilient locators.** It prefers \`getByRole\`, \`getByLabel\`,
