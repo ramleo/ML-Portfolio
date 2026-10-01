@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { qaPost, qaGet } from "../lib/qaClient";
 
 const TOOL_ID = "qa-discover";
@@ -28,11 +28,43 @@ type StatusResp = {
 
 const IDLE: DiscoverState = { phase: "idle", proposals: [], runUrl: null, error: null, pageContext: null };
 
+// Cache the last completed discovery for this tab, so returning to /qa/discover
+// after sending a draft to Run restores the proposals + page context instead of
+// forcing another ~1-min explore run.
+const CACHE_KEY = "qa_discover_cache";
+type DiscoverCache = { url: string; proposals: Proposal[]; pageContext: string | null; runUrl: string | null };
+
+function readCache(): DiscoverCache | null {
+  try { const r = sessionStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function writeCache(c: DiscoverCache): void {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch { /* quota / unavailable */ }
+}
+function clearCache(): void {
+  try { sessionStorage.removeItem(CACHE_KEY); } catch { /* unavailable */ }
+}
+
+/** The URL of the last completed discovery (to restore the input field). */
+export function readDiscoverCachedUrl(): string | null {
+  return readCache()?.url ?? null;
+}
+
 export function useDiscover() {
   const [state, setState] = useState<DiscoverState>(IDLE);
   const cancelled = useRef(false);
 
-  const reset = useCallback(() => { cancelled.current = true; setState(IDLE); }, []);
+  // Restore the last completed discovery after mount (client-only, so no SSR
+  // hydration mismatch). Skipped once a run is already in flight/complete.
+  useEffect(() => {
+    const c = readCache();
+    if (c && c.proposals?.length) {
+      setState((prev) => prev.phase === "idle"
+        ? { phase: "completed", proposals: c.proposals, runUrl: c.runUrl ?? null, error: null, pageContext: c.pageContext ?? null }
+        : prev);
+    }
+  }, []);
+
+  const reset = useCallback(() => { cancelled.current = true; clearCache(); setState(IDLE); }, []);
 
   const discover = useCallback(async (url: string, authorized = false) => {
     const u = url.trim();
@@ -65,8 +97,11 @@ export function useDiscover() {
       }
 
       if (s.status === "completed") {
-        setState({ phase: "completed", proposals: s.proposals ?? [], runUrl: s.run_url ?? null,
-          error: null, pageContext: s.page_context ?? null });
+        const proposals = s.proposals ?? [];
+        const pageContext = s.page_context ?? null;
+        const runUrl = s.run_url ?? null;
+        setState({ phase: "completed", proposals, runUrl, error: null, pageContext });
+        writeCache({ url: u, proposals, pageContext, runUrl });
         return;
       }
       if (s.status === "error") {

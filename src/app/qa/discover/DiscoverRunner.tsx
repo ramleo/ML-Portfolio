@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useDiscover, type Proposal } from "./useDiscover";
+import { useDiscover, readDiscoverCachedUrl, type Proposal } from "./useDiscover";
 import { qaPost } from "../lib/qaClient";
 import { isFirstParty } from "../lib/ownership";
 import OwnershipGate from "../lib/OwnershipGate";
@@ -15,6 +15,13 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const router = useRouter();
   const { state, discover, reset } = useDiscover();
   const [url, setUrl] = useState(DEFAULT_URL);
+
+  // Restore the URL of a cached discovery after mount, so the field matches the
+  // restored proposals (client-only — avoids an SSR hydration mismatch).
+  useEffect(() => {
+    const cached = readDiscoverCachedUrl();
+    if (cached) setUrl(cached);
+  }, []);
   const [selected, setSelected] = useState<Record<number, boolean>>({});
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<Generated[] | null>(null);
