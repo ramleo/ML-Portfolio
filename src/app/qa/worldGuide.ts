@@ -80,7 +80,11 @@ cap so one can't drain another.
    then **Re-run healed test** (a fresh ~40–60s CI run) or **Discard** to revert.
    It repairs *locators* — a genuine bug (a correctly-failing assertion) will still
    fail on the re-run, which is the honest result.
-8. **Recent runs** and **Saved tests** live at the bottom (in this browser).
+8. **Correct it yourself any time.** The Playwright code box is fully editable —
+   hand-edit the staged fix (or any generated test) before running, then **Save
+   test** to keep your version. A re-run of a *saved* test always uses your edits;
+   regenerating from scratch starts fresh (it doesn't remember past edits).
+9. **Recent runs** and **Saved tests** live at the bottom (in this browser).
    Recent runs shows each run's status, a running pass-rate, and a **Re-run**
    button; Saved tests lets you **Load** a test back into the editor, **Run** it
    again, or delete it.
