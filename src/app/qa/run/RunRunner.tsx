@@ -34,6 +34,7 @@ export default function RunRunner({ accent }: { accent: string }) {
   const [authorized, setAuthorized] = useState(false);
   const [healing, setHealing] = useState(false);
   const [healInfo, setHealInfo] = useState<HealInfo | null>(null);
+  const [preHealCode, setPreHealCode] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -68,14 +69,29 @@ export default function RunRunner({ accent }: { accent: string }) {
         return;
       }
       const { removed, added } = lineDiff(original, resp.healed_code);
-      setHealInfo({ provider: resp.provider ?? null, removed, added });
+      // Stage the fix into the editor and show the diff, but DON'T auto-run —
+      // a bad heal would otherwise silently spend a fresh ~50s CI cycle. The
+      // user reviews the change, then confirms or discards (P4b).
+      setPreHealCode(original);
+      setHealInfo({ provider: resp.provider ?? null, removed, added, pending: true });
       setCode(resp.healed_code);
-      run(resp.healed_code, baseUrl, testName, 1, authorized); // re-run the corrected test
     } catch (err) {
       setHealInfo({ removed: [], added: [], error: (err as Error).message || "Heal failed." });
     } finally {
       setHealing(false);
     }
+  };
+
+  const onConfirmHeal = () => {
+    setHealInfo((h) => (h ? { ...h, pending: false } : h));
+    setPreHealCode(null);
+    run(codeRef.current, baseUrl, testName, 1, authorized); // re-run the corrected test
+  };
+
+  const onDiscardHeal = () => {
+    if (preHealCode != null) setCode(preHealCode);
+    setPreHealCode(null);
+    setHealInfo(null);
   };
 
   const onSave = () => {
@@ -84,7 +100,7 @@ export default function RunRunner({ accent }: { accent: string }) {
     setRefreshKey((k) => k + 1);
   };
 
-  const onLoad = (c: string, n: string) => { setCode(c); setTestName(n); reset(); setHealInfo(null); };
+  const onLoad = (c: string, n: string) => { setCode(c); setTestName(n); reset(); setHealInfo(null); setPreHealCode(null); };
   const onRunSaved = (c: string, n: string) => { setCode(c); setTestName(n); setHealInfo(null); run(c, baseUrl, n, 1, authorized); };
 
   // Carry a test over from the Author stage ("Send to Run").
@@ -197,7 +213,7 @@ export default function RunRunner({ accent }: { accent: string }) {
             Save test
           </button>
           {(state.phase === "completed" || state.phase === "error" || state.phase === "cancelled") && (
-            <button onClick={() => { reset(); setHealInfo(null); }}
+            <button onClick={() => { reset(); setHealInfo(null); setPreHealCode(null); }}
               className="text-[12px] px-3 py-2 rounded-lg border" style={{ borderColor: "var(--border)", color: "var(--text3)" }}>
               Clear
             </button>
@@ -205,7 +221,7 @@ export default function RunRunner({ accent }: { accent: string }) {
         </div>
       </div>
 
-      {healInfo && <HealBanner info={healInfo} accent={accent} />}
+      {healInfo && <HealBanner info={healInfo} accent={accent} onConfirm={onConfirmHeal} onDiscard={onDiscardHeal} />}
 
       {activeStep >= 0 && <Stepper active={activeStep} phase={state.phase} accent={accent} />}
 

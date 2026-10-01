@@ -3,7 +3,7 @@
 import { qaUrl } from "../lib/qaClient";
 import type { RunState } from "./useRun";
 
-export type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string };
+export type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string; pending?: boolean };
 
 /** Lines present in one version but not the other — a cheap locator diff. */
 export function lineDiff(oldCode: string, newCode: string): { removed: string[]; added: string[] } {
@@ -56,7 +56,12 @@ export function Stepper({ active, phase, accent }: { active: number; phase: stri
   );
 }
 
-export function HealBanner({ info, accent }: { info: HealInfo; accent: string }) {
+export function HealBanner({ info, accent, onConfirm, onDiscard }: {
+  info: HealInfo;
+  accent: string;
+  onConfirm?: () => void;
+  onDiscard?: () => void;
+}) {
   if (info.error) {
     return (
       <div className="rounded-xl px-4 py-3 text-[12px]"
@@ -65,6 +70,7 @@ export function HealBanner({ info, accent }: { info: HealInfo; accent: string })
       </div>
     );
   }
+  const awaiting = info.pending && !!onConfirm;
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: `${accent}0d`, border: `1px solid ${accent}30` }}>
       <div className="px-4 py-2.5 flex items-center gap-2 border-b" style={{ borderColor: `${accent}22` }}>
@@ -72,9 +78,11 @@ export function HealBanner({ info, accent }: { info: HealInfo; accent: string })
           <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" strokeLinecap="round" />
         </svg>
         <span className="text-[12px] font-semibold" style={{ color: "var(--text)" }}>
-          Self-healed the locator{info.provider ? ` · ${info.provider}` : ""}
+          Suggested a fix{info.provider ? ` · ${info.provider}` : ""}
         </span>
-        <span className="text-[11px]" style={{ color: "var(--text3)" }}>— re-running the corrected test</span>
+        <span className="text-[11px]" style={{ color: "var(--text3)" }}>
+          {awaiting ? "— review the change below, then re-run" : "— applied to the test above"}
+        </span>
       </div>
       {(info.removed.length > 0 || info.added.length > 0) && (
         <pre className="text-[11px] font-mono overflow-x-auto px-4 py-2.5 m-0 leading-relaxed">
@@ -85,6 +93,21 @@ export function HealBanner({ info, accent }: { info: HealInfo; accent: string })
             <div key={`a${i}`} style={{ color: "#34d399" }}>+ {l.trim()}</div>
           ))}
         </pre>
+      )}
+      {awaiting && (
+        <div className="px-4 py-2.5 flex items-center gap-2 border-t" style={{ borderColor: `${accent}22` }}>
+          <button onClick={onConfirm}
+            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity"
+            style={{ background: accent, color: "#fff" }}>
+            Re-run healed test
+          </button>
+          <button onClick={onDiscard}
+            className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
+            style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+            Discard
+          </button>
+          <span className="text-[11px]" style={{ color: "var(--text3)" }}>— re-running starts a fresh ~40–60s CI run</span>
+        </div>
       )}
     </div>
   );
@@ -130,7 +153,7 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
             <button onClick={onHeal} disabled={healing}
               className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
               style={{ background: accent, color: "#fff" }}>
-              {healing ? "Healing…" : "Heal & re-run"}
+              {healing ? "Healing…" : "Suggest a fix"}
             </button>
           )}
           <button onClick={onSave}
