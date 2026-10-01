@@ -138,7 +138,7 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
           <span className="text-sm font-bold" style={{ color: "var(--text)" }}>{verdict}</span>
           {s && (
             <span className="text-[11px]" style={{ color: "var(--text3)" }}>
-              {s.expected} passed · {s.unexpected} failed{s.flaky ? ` · ${s.flaky} flaky` : ""}{s.skipped ? ` · ${s.skipped} skipped` : ""}
+              {s.expected + s.unexpected + s.flaky + s.skipped} total · {s.expected} passed · {s.unexpected} failed{s.flaky ? ` · ${s.flaky} flaky` : ""}{s.skipped ? ` · ${s.skipped} skipped` : ""}
             </span>
           )}
           {(state.testMs != null || state.totalMs != null) && (
@@ -170,6 +170,16 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
           )}
         </div>
       </div>
+
+      {!passed && state.errorMessage && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>Why it failed</p>
+          <pre className="text-[11px] font-mono whitespace-pre-wrap m-0 px-3 py-2.5 rounded-lg"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "#f43f5e", maxHeight: 220, overflowY: "auto" }}>
+            {state.errorMessage}
+          </pre>
+        </div>
+      )}
 
       {state.runs != null && state.runs > 1 && (
         <div className="p-4 border-b" style={sectionBorder}>

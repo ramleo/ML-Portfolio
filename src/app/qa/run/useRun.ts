@@ -24,6 +24,9 @@ export type RunState = {
   correlationId: string | null;
   runUrl: string | null;
   error: string | null;
+  // The failure reason (Playwright error of the first failing test), shown when
+  // a run fails so the result explains itself.
+  errorMessage: string | null;
   // Flakiness (populated only when the test ran more than once)
   runs: number | null;
   passedRuns: number | null;
@@ -48,6 +51,7 @@ type StatusResp = {
   correlation_id?: string | null;
   run_url?: string | null;
   detail?: string | null;
+  error_message?: string | null;
   runs?: number | null;
   passed_runs?: number | null;
   failed_runs?: number | null;
@@ -58,7 +62,7 @@ type StatusResp = {
 const IDLE: RunState = {
   phase: "idle", passed: null, conclusion: null, summary: null,
   screenshot: null, steps: [], hasVideo: false, hasTrace: false,
-  correlationId: null, runUrl: null, error: null,
+  correlationId: null, runUrl: null, error: null, errorMessage: null,
   runs: null, passedRuns: null, failedRuns: null, passRate: null, flaky: null,
   totalMs: null, testMs: null,
 };
@@ -136,6 +140,7 @@ export function useRun() {
           correlationId: s.correlation_id ?? correlationId,
           runUrl: s.run_url ?? null,
           error: null,
+          errorMessage: s.error_message ?? null,
           runs: s.runs ?? null,
           passedRuns: s.passed_runs ?? null,
           failedRuns: s.failed_runs ?? null,
