@@ -11,6 +11,28 @@ const DEFAULT_URL = "https://ml-portfolio-rho.vercel.app";
 
 type Generated = { title: string; steps: string; code: string; error?: string };
 
+/** Merge several generated test files into ONE runnable file: a single import and
+ *  a single BASE_URL const, followed by every file's describe/test blocks. Naive
+ *  concatenation would redeclare the import and BASE_URL and fail to compile. */
+function mergeTests(drafts: Generated[]): string {
+  let baseUrl = "";
+  const bodies: string[] = [];
+  for (const d of drafts) {
+    if (!d.code) continue;
+    const m = d.code.match(/const\s+BASE_URL\s*=\s*(['"`])(.*?)\1/);
+    if (m && !baseUrl) baseUrl = m[2];
+    const body = d.code
+      .split("\n")
+      .filter((l) => !/^\s*import\s.+@playwright\/test/.test(l) && !/^\s*const\s+BASE_URL\s*=/.test(l))
+      .join("\n")
+      .trim();
+    if (body) bodies.push(body);
+  }
+  const header = "import { test, expect } from '@playwright/test';\n" +
+    (baseUrl ? `\nconst BASE_URL = '${baseUrl}';\n` : "");
+  return `${header}\n${bodies.join("\n\n")}\n`;
+}
+
 export default function DiscoverRunner({ accent }: { accent: string }) {
   const router = useRouter();
   const { state, discover, reset } = useDiscover();
@@ -67,6 +89,18 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
       sessionStorage.setItem("qa_run_code", g.code);
       sessionStorage.setItem("qa_run_name", g.title);
       // Flag the handoff so Run can offer a way back to the proposals.
+      sessionStorage.setItem("qa_run_from_discover", "1");
+    } catch { /* ignore */ }
+    router.push("/qa/run");
+  };
+
+  // Send every generated draft to Run as ONE merged test file (one run, many tests).
+  const sendAllToRun = () => {
+    const withCode = (generated ?? []).filter((g) => g.code);
+    if (withCode.length < 2) return;
+    try {
+      sessionStorage.setItem("qa_run_code", mergeTests(withCode));
+      sessionStorage.setItem("qa_run_name", `Discovered suite (${withCode.length})`);
       sessionStorage.setItem("qa_run_from_discover", "1");
     } catch { /* ignore */ }
     router.push("/qa/run");
@@ -140,6 +174,18 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {generated && generated.filter((g) => g.code).length > 1 && (
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap text-[12px]"
+          style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
+          <span>{generated.filter((g) => g.code).length} drafts generated — run them together as one suite.</span>
+          <button onClick={sendAllToRun}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-lg shrink-0"
+            style={{ background: accent, color: "#fff" }}>
+            Send all {generated.filter((g) => g.code).length} to Run →
+          </button>
         </div>
       )}
 
