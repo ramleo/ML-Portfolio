@@ -69,7 +69,7 @@ cap so one can't drain another.
    failed / flaky / skipped), **timing** (\`test\` time vs \`total\` wall-clock), a
    **step timeline**, and, on failure, the **screenshot** and **video** inline plus
    a **trace** download. **Save test** keeps it in this browser.
-6. **Check flakiness** — set **Runs** to 3×, 5×, or 10× before running. The same
+6. **Check flakiness** — set **Runs** to 3× before running. The same
    test repeats that many times on one dispatch and you get a pass-rate and a
    stable / flaky / consistently-failing verdict — results that disagree across
    identical runs are flakiness, not a real pass or fail.
@@ -175,7 +175,7 @@ cap so one can't drain another.
   re-run or discard — it fixes locators, not real bugs.
 - **Can I stop a run?** Yes — the **Stop** button cancels the GitHub job itself, not
   just the page's polling, so it frees the runner.
-- **What's the flakiness check?** Running the same test 3–10× in one go; if
+- **What's the flakiness check?** Running the same test 3× in one go; if
   identical runs disagree, the test is flaky (timing/animation-sensitive) rather
   than genuinely passing or failing.
 - **Can it test any website?** Yes — give any public URL. Private or internal
