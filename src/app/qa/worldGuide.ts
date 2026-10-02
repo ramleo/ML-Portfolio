@@ -73,13 +73,16 @@ cap so one can't drain another.
    test repeats that many times on one dispatch and you get a pass-rate and a
    stable / flaky / consistently-failing verdict — results that disagree across
    identical runs are flakiness, not a real pass or fail.
-7. **Self-healing** — if a test failed on a locator, click **Suggest a fix**. A
-   free LLM reads the accessibility snapshot of the page at failure and rewrites the
-   broken locator to one that matches. The fix is **staged into the editor and the
-   change is shown (old → new)** — it does **not** run automatically. Review it,
-   then **Re-run healed test** (a fresh ~40–60s CI run) or **Discard** to revert.
-   It repairs *locators* — a genuine bug (a correctly-failing assertion) will still
-   fail on the re-run, which is the honest result.
+7. **Self-healing** — if a test failed on a **locator or a timing/wait** problem,
+   click **Suggest a fix**. A free LLM reads the accessibility snapshot of the page
+   at failure and rewrites the broken locator to one that matches, or adds a
+   web-first wait (never a fixed sleep) for a timing failure. The fix is **staged
+   into the editor and the change is shown (old → new)** — it does **not** run
+   automatically. Review it, then **Re-run healed test** (a fresh ~40–60s CI run) or
+   **Discard** to revert. It repairs *locators and timing only* — if the failure is
+   an **assertion mismatch** (the page's real value differs from what the test
+   expects), it **refuses and tells you**, because rewriting the assertion would hide
+   a real bug. Fix those yourself from the "Why it failed" panel.
 8. **Correct it yourself any time.** The Playwright code box is fully editable —
    hand-edit the staged fix (or any generated test) before running, then **Save
    test** to keep your version. A re-run of a *saved* test always uses your edits;
@@ -169,10 +172,12 @@ cap so one can't drain another.
 - **Where does the test actually run?** On an isolated, ephemeral GitHub Actions
   runner — never in your browser or on the app server — so a misbehaving test
   can't affect the live site.
-- **What is self-healing?** When a locator breaks (an element moved or was
-  renamed), **Suggest a fix** asks a free LLM to re-resolve it from the page's
-  accessibility snapshot. It stages the change for you to review, then you choose to
-  re-run or discard — it fixes locators, not real bugs.
+- **What is self-healing?** When a locator breaks (an element moved or was renamed)
+  or a step times out waiting for the page, **Suggest a fix** asks a free LLM to
+  re-resolve the locator, or add a web-first wait, from the page's accessibility
+  snapshot. It stages the change for you to review, then you choose to re-run or
+  discard — it fixes locators and timing, and refuses to rewrite a failing assertion
+  (that's a real bug for you to fix, not something to heal away).
 - **Can I stop a run?** Yes — the **Stop** button cancels the GitHub job itself, not
   just the page's polling, so it frees the runner.
 - **What's the flakiness check?** Running the same test 3× in one go; if
