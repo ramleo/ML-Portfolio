@@ -5,7 +5,7 @@ import { loadDashboard, type DashboardData, type Status } from "./dashboardData"
 import { clearHistory } from "../run/storage";
 import {
   Gauge, TrendChart, useCountUp, useReducedMotion,
-  PASS, FAIL, ERR, PASS_TEXT, FAIL_TEXT,
+  PASS, FAIL, ERR, PASS_TEXT, FAIL_TEXT, ERR_TEXT,
 } from "./dashboardCharts";
 
 const statusColor = (s: Status) => (s === "passed" ? PASS : s === "failed" ? FAIL : ERR);
@@ -51,6 +51,27 @@ function LegendDot({ color, label }: { color: string; label: string }) {
     </span>
   );
 }
+
+/** A small accent-tinted icon badge + uppercase title, shared by every panel so the
+ *  dashboard reads as one designed system rather than a stack of plain boxes. */
+function SectionHeader({ title, accent, icon, right }: { title: string; accent: string; icon: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
+      <div className="flex items-center gap-2.5">
+        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: `${accent}18`, border: `1px solid ${accent}33`, color: accent }}>
+          {icon}
+        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--text2)" }}>{title}</span>
+      </div>
+      {right}
+    </div>
+  );
+}
+
+const IconStrip = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="10" width="4" height="10" rx="1" /><rect x="10" y="4" width="4" height="16" rx="1" /><rect x="17" y="13" width="4" height="7" rx="1" /></svg>;
+const IconFail = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>;
+const IconFlaky = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>;
 
 export default function RunDashboard({ accent }: { accent: string }) {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -143,12 +164,8 @@ export default function RunDashboard({ accent }: { accent: string }) {
 
       {/* Per-run outcome strip */}
       <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-          <p className={label} style={{ color: "var(--text3)" }}>Outcomes over time</p>
-          <div className="flex items-center gap-3">
-            <LegendDot color={PASS} label="passed" /><LegendDot color={FAIL} label="failed" /><LegendDot color={ERR} label="error" />
-          </div>
-        </div>
+        <SectionHeader title="Outcomes over time" accent={accent} icon={IconStrip}
+          right={<div className="flex items-center gap-3"><LegendDot color={PASS} label="passed" /><LegendDot color={FAIL} label="failed" /><LegendDot color={ERR} label="error" /></div>} />
         <div className="flex items-end gap-[3px]" style={{ height: 44 }}>
           {data.sequence.map((p, i) => (
             <div key={i} title={`${p.name} — ${statusLabel(p.status)} — ${fmtDate(p.at)}`}
@@ -163,18 +180,25 @@ export default function RunDashboard({ accent }: { accent: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top failing tests */}
         <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
-          <p className={label + " mb-3"} style={{ color: "var(--text3)" }}>Top failing tests</p>
+          <SectionHeader title="Top failing tests" accent={accent} icon={IconFail}
+            right={data.topFailing.length > 0 ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${FAIL}1f`, color: FAIL_TEXT }}>{data.topFailing.length} test{data.topFailing.length === 1 ? "" : "s"}</span> : undefined} />
           {data.topFailing.length === 0 ? (
             <p className="text-[12px]" style={{ color: "var(--text3)" }}>No failures recorded — every run passed.</p>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3.5">
               {data.topFailing.map((r, i) => (
                 <div key={r.name} className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-[12px] truncate" style={{ color: "var(--text2)" }} title={r.name}>{r.name}</span>
-                    <span className="text-[11px] tabular-nums shrink-0 font-semibold" style={{ color: FAIL_TEXT }}>{r.fails}<span style={{ color: "var(--text3)" }}>/{r.total}</span></span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center shrink-0 tabular-nums"
+                      style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text3)" }}>{i + 1}</span>
+                    <span className="text-[12px] truncate flex-1" style={{ color: "var(--text2)" }} title={r.name}>{r.name}</span>
+                    <span className="text-[11px] tabular-nums shrink-0 font-bold px-1.5 py-0.5 rounded" style={{ background: `${FAIL}14`, color: FAIL_TEXT }}>
+                      {r.fails}<span style={{ color: "var(--text3)", fontWeight: 500 }}>/{r.total} fail</span>
+                    </span>
                   </div>
-                  <FailBar pct={(r.fails / maxFails) * 100} delay={i * 60} />
+                  <div className="h-2.5 rounded-full overflow-hidden ml-[30px]" style={{ background: "var(--surface)" }}>
+                    <FailBar pct={(r.fails / maxFails) * 100} delay={i * 60} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -183,24 +207,32 @@ export default function RunDashboard({ accent }: { accent: string }) {
 
         {/* Flakiness */}
         <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
-          <p className={label + " mb-3"} style={{ color: "var(--text3)" }}>Flaky tests</p>
+          <SectionHeader title="Flaky tests" accent={ERR} icon={IconFlaky}
+            right={data.flaky.length > 0 ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${ERR}1f`, color: ERR_TEXT }}>{data.flaky.length} flaky</span> : undefined} />
           {data.flaky.length === 0 ? (
-            <p className="text-[12px]" style={{ color: "var(--text3)" }}>None detected — no test both passed and failed.</p>
+            <div className="flex items-center gap-2.5 text-[12px] rounded-xl px-3.5 py-3" style={{ background: "var(--surface)", color: "var(--text3)" }}>
+              <span style={{ color: PASS_TEXT }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              </span>
+              No flakiness detected — no test both passed and failed across runs.
+            </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3.5">
               {data.flaky.map((r) => {
                 const tot = r.passed + r.failed;
+                const stable = Math.round((r.passed / tot) * 100);
                 return (
                   <div key={r.name} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-[12px] truncate" style={{ color: "var(--text2)" }} title={r.name}>{r.name}</span>
-                      <span className="text-[11px] tabular-nums shrink-0">
-                        <span style={{ color: PASS_TEXT }}>{r.passed}P</span> · <span style={{ color: FAIL_TEXT }}>{r.failed}F</span>
+                      <span className="text-[11px] tabular-nums shrink-0 font-semibold">
+                        <span style={{ color: PASS_TEXT }}>{r.passed}P</span> <span style={{ color: "var(--text3)" }}>·</span> <span style={{ color: FAIL_TEXT }}>{r.failed}F</span>
+                        <span className="ml-1.5" style={{ color: "var(--text3)", fontWeight: 500 }}>{stable}% pass</span>
                       </span>
                     </div>
-                    <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "var(--surface)" }}>
-                      <div style={{ width: `${(r.passed / tot) * 100}%`, background: PASS }} />
-                      <div style={{ width: `${(r.failed / tot) * 100}%`, background: FAIL }} />
+                    <div className="flex h-2.5 rounded-full overflow-hidden gap-[2px]" style={{ background: "var(--surface)" }}>
+                      <div className="rounded-l-full" style={{ width: `${(r.passed / tot) * 100}%`, background: PASS }} />
+                      <div className="rounded-r-full" style={{ width: `${(r.failed / tot) * 100}%`, background: FAIL }} />
                     </div>
                   </div>
                 );
