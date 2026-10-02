@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   getSavedTests, deleteSavedTest, getHistory, clearHistory,
   type SavedTest, type HistoryEntry,
@@ -44,6 +45,7 @@ export default function SavedAndHistory({ accent, refreshKey, onLoad, onRun }: {
           {history.length > 0 && (
             <div className="flex items-center gap-2.5">
               <span className="text-[11px] tabular-nums" style={{ color: "var(--text3)" }}>{history.length} runs · {passRate}% passed</span>
+              <Link href="/qa/dashboard" className="text-[11px] font-semibold" style={{ color: accent }}>Dashboard →</Link>
               <button onClick={() => { clearHistory(); refresh(); }} className="text-[11px]" style={{ color: "var(--text3)" }}>Clear</button>
             </div>
           )}

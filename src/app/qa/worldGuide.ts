@@ -90,7 +90,10 @@ cap so one can't drain another.
 9. **Recent runs** and **Saved tests** live at the bottom (in this browser).
    Recent runs shows each run's status, a running pass-rate, and a **Re-run**
    button; Saved tests lets you **Load** a test back into the editor, **Run** it
-   again, or delete it.
+   again, or delete it. A **Dashboard →** link there opens a trends view — pass
+   rate, top failing tests and flakiness across your recent runs.
+10. **Export a result** — on any finished run, **Excel** and **PDF** buttons
+   download the report (summary, timing, failure reason and the step timeline).
 
 ## Using the Discover stage (step by step)
 1. Open **Discover** and enter a **URL** (it defaults to this portfolio). A
