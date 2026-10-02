@@ -112,8 +112,10 @@ export default function RunDashboard({ accent }: { accent: string }) {
 
   const maxFails = Math.max(1, ...data.topFailing.map((r) => r.fails));
   const label = "text-[11px] font-semibold uppercase tracking-wider";
-  const ratePct = data.passRate == null ? null : Math.round(data.passRate * 100);
-  const rateTone = ratePct == null ? "var(--text3)" : ratePct >= 80 ? PASS_TEXT : ratePct >= 50 ? ERR : FAIL_TEXT;
+  // Headline = TEST-CASE pass rate (how many individual tests pass). The per-run rate
+  // reads far lower because one red test fails the whole run — keep that for the trend.
+  const runPct = data.passRate == null ? null : Math.round(data.passRate * 100);
+  const runTone = runPct == null ? "var(--text3)" : runPct >= 80 ? PASS_TEXT : runPct >= 50 ? ERR : FAIL_TEXT;
 
   return (
     <div className="flex flex-col gap-5">
@@ -134,13 +136,14 @@ export default function RunDashboard({ accent }: { accent: string }) {
       {/* Hero: pass-rate gauge + KPI tiles, on an accent-tinted surface with depth */}
       <div className="rounded-2xl p-5 sm:p-6 flex items-center gap-6 lg:gap-8 flex-wrap"
         style={{ ...CARD, background: `radial-gradient(120% 140% at 0% 0%, ${accent}12, transparent 55%), var(--bg-card)` }}>
-        <div className="shrink-0 mx-auto sm:mx-0">
-          <Gauge rate={data.passRate} caption={`${data.passed}/${data.passed + data.failed} runs`} />
+        <div className="shrink-0 mx-auto sm:mx-0 text-center">
+          <Gauge rate={data.testPassRate} caption={`${data.passedTests}/${data.totalTests} tests passed`} />
+          <p className="text-[10.5px] font-semibold uppercase tracking-wider mt-1" style={{ color: "var(--text3)" }}>test-case pass rate</p>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 flex-1 min-w-[260px]">
-          <KpiTile label="Total runs" value={data.total} sub={`${data.totalTests} test cases`} />
-          <KpiTile label="Passed" value={data.passed} sub="runs" dot={PASS} />
-          <KpiTile label="Failed" value={data.failed} sub={`${data.failedTests} failed tests`} dot={FAIL} />
+          <KpiTile label="Total runs" value={data.total} sub={`${data.passed} all-green · ${data.failed} with a failure`} />
+          <KpiTile label="Tests passed" value={data.passedTests} sub={`of ${data.totalTests} test cases`} dot={PASS} />
+          <KpiTile label="Tests failed" value={data.failedTests} sub={data.failed ? `across ${data.failed} run${data.failed === 1 ? "" : "s"}` : "none"} dot={FAIL} />
           <KpiTile label="Named tests" value={data.distinctTests} sub={data.errored ? `${data.errored} infra error${data.errored === 1 ? "" : "s"}` : "unique"} dot={accent} />
         </div>
       </div>
@@ -149,12 +152,12 @@ export default function RunDashboard({ accent }: { accent: string }) {
       <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
         <div className="flex items-end justify-between flex-wrap gap-2 mb-3">
           <div>
-            <p className={label} style={{ color: "var(--text3)" }}>Pass-rate trend</p>
-            <p className="text-[11px] mt-0.5" style={{ color: "var(--text3)" }}>Cumulative, oldest → newest</p>
+            <p className={label} style={{ color: "var(--text3)" }}>All-green run rate</p>
+            <p className="text-[11px] mt-0.5" style={{ color: "var(--text3)" }}>Runs with zero failures · cumulative, oldest → newest</p>
           </div>
-          {ratePct != null && (
-            <p className="text-[26px] font-extrabold tabular-nums leading-none" style={{ color: rateTone, letterSpacing: "-0.02em" }}>
-              {ratePct}<span className="text-[15px] font-bold">%</span>
+          {runPct != null && (
+            <p className="text-[26px] font-extrabold tabular-nums leading-none" style={{ color: runTone, letterSpacing: "-0.02em" }}>
+              {runPct}<span className="text-[15px] font-bold">%</span>
               <span className="text-[11px] font-semibold ml-1.5" style={{ color: "var(--text3)" }}>now</span>
             </p>
           )}

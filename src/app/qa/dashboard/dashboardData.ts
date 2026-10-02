@@ -14,13 +14,20 @@ export type DashboardData = {
   passed: number;
   failed: number;
   errored: number;
-  /** passed / (passed + failed), excluding infra errors; null when nothing ran. */
+  /** RUN pass rate: passed / (passed + failed) runs, excluding infra errors; null when
+   *  nothing ran. A run counts as failed if ANY test in it failed — use for the per-run
+   *  trend/strip, NOT as the headline (it reads far lower than the test-case rate). */
   passRate: number | null;
   distinctTests: number;
   /** Test CASES aggregated across runs (a merged suite = 1 run, many tests). Falls
    *  back to 1 per run for older entries that didn't record per-test counts. */
   totalTests: number;
+  passedTests: number;
   failedTests: number;
+  /** HEADLINE pass rate, at the test-case level: passedTests / totalTests. Reflects
+   *  "most individual tests pass" even when few whole runs are all-green; null when
+   *  nothing ran. This is what the gauge shows. */
+  testPassRate: number | null;
   /** Oldest → newest, for a left-to-right outcome strip. */
   sequence: SeqPoint[];
   /** Tests with ≥1 failure, most failures first (capped). */
@@ -61,6 +68,7 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
   // Test CASES across runs — use recorded per-test counts, else count the run as 1.
   const totalTests = history.reduce((n, h) => n + (h.tests ?? 1), 0);
   const failedTests = history.reduce((n, h) => n + (h.failedTests ?? (h.status === "failed" ? 1 : 0)), 0);
+  const passedTests = Math.max(0, totalTests - failedTests);
 
   // getHistory() is newest-first; the strip reads oldest → newest.
   const sequence: SeqPoint[] = [...history]
@@ -71,7 +79,8 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
     total, passed, failed, errored,
     passRate: decided > 0 ? passed / decided : null,
     distinctTests: byName.size,
-    totalTests, failedTests,
+    totalTests, passedTests, failedTests,
+    testPassRate: totalTests > 0 ? passedTests / totalTests : null,
     sequence, topFailing, flaky,
   };
 }
