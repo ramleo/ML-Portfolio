@@ -180,6 +180,16 @@ export default function PrivacyPage() {
             service is not used.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>In Testwright (the QA tools), if you choose to &ldquo;Share&rdquo; a test run,</strong>{" "}
+            a read-only report of that run is stored so anyone with the link can open it: the test name,
+            whether it passed or failed, the failure reason, the step list with timings, and a link to the
+            GitHub run. <strong>The test&rsquo;s code is stored only if you tick the &ldquo;include the
+            test code&rdquo; box</strong> on the Share action; it is off by default. Nothing else from
+            your browsing is included. The link is unguessable and anyone who has it can read the report;
+            shared reports are deleted automatically after 90 days. If you never use Share, nothing is
+            stored &mdash; every run otherwise stays only in your own browser.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
             <strong>When you upload a file, a short record of it is kept for 30 days</strong> so that
             abuse can be investigated: the filename, its type and size, and a SHA-256 fingerprint of its
             contents. <strong>The file itself is not kept</strong> — it is discarded once the tool has

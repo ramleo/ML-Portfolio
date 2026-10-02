@@ -4,6 +4,7 @@ import { useState } from "react";
 import { qaUrl } from "../lib/qaClient";
 import type { RunState } from "./useRun";
 import { downloadExcel, downloadPdf } from "./reportExport";
+import { ShareButton } from "./ShareButton";
 
 export type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string; pending?: boolean };
 
@@ -115,16 +116,20 @@ export function HealBanner({ info, accent, onConfirm, onDiscard }: {
   );
 }
 
-export function Result({ state, accent, onHeal, healing, healed, onSave, name, onAutoFix, autoFixing }: {
+export function Result({ state, accent, onHeal, healing, healed, onSave, name, onAutoFix, autoFixing, readOnly, code }: {
   state: RunState;
   accent: string;
-  onHeal: () => void;
-  healing: boolean;
-  healed: boolean;
-  onSave: () => void;
+  onHeal?: () => void;
+  healing?: boolean;
+  healed?: boolean;
+  onSave?: () => void;
   name: string;
   onAutoFix?: () => void;
   autoFixing?: boolean;
+  // Read-only mode (the shared-report page): hide Heal / Auto-fix / Save / Share;
+  // keep the report, Export and Open-on-GitHub.
+  readOnly?: boolean;
+  code?: string;
 }) {
   const [exporting, setExporting] = useState<null | "xlsx" | "pdf">(null);
   const doExport = async (kind: "xlsx" | "pdf") => {
@@ -163,7 +168,7 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name, o
           )}
         </div>
         <div className="flex items-center gap-2">
-          {!passed && !healed && (
+          {!readOnly && !passed && !healed && (
             <>
               {onAutoFix && (
                 <button onClick={onAutoFix} disabled={healing || autoFixing}
@@ -179,11 +184,16 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name, o
               </button>
             </>
           )}
-          <button onClick={onSave}
-            className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
-            style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
-            Save test
-          </button>
+          {!readOnly && (
+            <>
+              <button onClick={onSave}
+                className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
+                style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+                Save test
+              </button>
+              <ShareButton state={state} name={name} code={code ?? ""} accent={accent} />
+            </>
+          )}
           <button onClick={() => doExport("xlsx")} disabled={!!exporting}
             className="text-[11px] px-3 py-1.5 rounded-lg border transition-opacity disabled:opacity-50 inline-flex items-center gap-1.5"
             style={{ borderColor: "var(--border)", color: "var(--text2)" }}>

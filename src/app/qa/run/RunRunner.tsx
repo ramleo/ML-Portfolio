@@ -321,6 +321,7 @@ export default function RunRunner({ accent }: { accent: string }) {
         <Result state={state} accent={accent} onHeal={onHeal} healing={healing}
           healed={!!healInfo && !healInfo.error} onSave={onSave}
           name={testName.trim() || deriveTestName(code)}
+          code={code}
           onAutoFix={onAutoFix} autoFixing={auto} />
       )}
 
