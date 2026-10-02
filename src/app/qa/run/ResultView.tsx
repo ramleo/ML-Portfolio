@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { qaUrl } from "../lib/qaClient";
 import type { RunState } from "./useRun";
+import { downloadExcel, downloadPdf } from "./reportExport";
 
 export type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string; pending?: boolean };
 
@@ -113,14 +115,24 @@ export function HealBanner({ info, accent, onConfirm, onDiscard }: {
   );
 }
 
-export function Result({ state, accent, onHeal, healing, healed, onSave }: {
+export function Result({ state, accent, onHeal, healing, healed, onSave, name }: {
   state: RunState;
   accent: string;
   onHeal: () => void;
   healing: boolean;
   healed: boolean;
   onSave: () => void;
+  name: string;
 }) {
+  const [exporting, setExporting] = useState<null | "xlsx" | "pdf">(null);
+  const doExport = async (kind: "xlsx" | "pdf") => {
+    if (exporting) return;
+    setExporting(kind);
+    try {
+      await (kind === "xlsx" ? downloadExcel(state, name) : downloadPdf(state, name));
+    } catch { /* a failed export must not break the result view */ }
+    finally { setExporting(null); }
+  };
   const flaky = state.flaky === true;
   const passed = state.passed === true;
   const color = flaky ? "#f59e0b" : passed ? "#34d399" : "#f43f5e";
@@ -160,6 +172,22 @@ export function Result({ state, accent, onHeal, healing, healed, onSave }: {
             className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
             style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
             Save test
+          </button>
+          <button onClick={() => doExport("xlsx")} disabled={!!exporting}
+            className="text-[11px] px-3 py-1.5 rounded-lg border transition-opacity disabled:opacity-50 inline-flex items-center gap-1.5"
+            style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {exporting === "xlsx" ? "Excel…" : "Excel"}
+          </button>
+          <button onClick={() => doExport("pdf")} disabled={!!exporting}
+            className="text-[11px] px-3 py-1.5 rounded-lg border transition-opacity disabled:opacity-50 inline-flex items-center gap-1.5"
+            style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {exporting === "pdf" ? "PDF…" : "PDF"}
           </button>
           {state.runUrl && (
             <a href={state.runUrl} target="_blank" rel="noopener noreferrer"

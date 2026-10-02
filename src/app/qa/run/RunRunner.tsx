@@ -274,7 +274,8 @@ export default function RunRunner({ accent }: { accent: string }) {
 
       {state.phase === "completed" && (
         <Result state={state} accent={accent} onHeal={onHeal} healing={healing}
-          healed={!!healInfo && !healInfo.error} onSave={onSave} />
+          healed={!!healInfo && !healInfo.error} onSave={onSave}
+          name={testName.trim() || deriveTestName(code)} />
       )}
 
       <SavedAndHistory accent={accent} refreshKey={refreshKey} onLoad={onLoad} onRun={onRunSaved} />
