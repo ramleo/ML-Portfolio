@@ -48,6 +48,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<Generated[] | null>(null);
   const [authorized, setAuthorized] = useState(false);
+  const [deep, setDeep] = useState(false);
 
   const busy = state.phase === "queued" || state.phase === "in_progress";
   const proposals = state.proposals;
@@ -56,7 +57,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const onDiscover = () => {
     setSelected({});
     setGenerated(null);
-    discover(url, authorized);
+    discover(url, authorized, deep);
   };
 
   const toggle = (i: number) => setSelected((s) => ({ ...s, [i]: !s[i] }));
@@ -125,6 +126,11 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }} />
         </label>
         <OwnershipGate show={thirdParty} checked={authorized} onChange={setAuthorized} accent={accent} />
+        <label className="flex items-start gap-2 text-[12px] cursor-pointer" style={{ color: "var(--text2)" }}>
+          <input type="checkbox" checked={deep} onChange={(e) => setDeep(e.target.checked)} disabled={busy}
+            className="mt-0.5 shrink-0" style={{ accentColor: accent }} />
+          <span>Also explore a few linked pages (one hop) — slower, but proposes cases across the site, not just this page.</span>
+        </label>
         <div className="flex items-center gap-3">
           <button onClick={onDiscover} disabled={!url.trim() || busy || (thirdParty && !authorized)}
             className="text-[13px] font-semibold px-4 py-2 rounded-lg transition-opacity disabled:opacity-40"

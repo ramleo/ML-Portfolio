@@ -96,7 +96,10 @@ cap so one can't drain another.
 1. Open **Discover** and enter a **URL** (it defaults to this portfolio). A
    third-party URL shows the same ownership checkbox as Run.
 2. Click **Discover test cases** — it renders the page on the isolated runner and
-   captures its accessibility snapshot (about a minute, same infra as Run).
+   captures its accessibility snapshot (about a minute, same infra as Run). Tick
+   **Also explore linked pages (one hop)** first to additionally visit a few
+   same-origin links from the page in the *same* run, so the proposals can span
+   linked pages rather than just this one — a bit slower, no extra cost.
 3. You get up to **6 proposed test cases** (title + plain-English steps), based only
    on what's actually on the page. Tick the ones worth writing.
 4. Click **Generate selected (N)** — each proposal is drafted into a full Playwright
@@ -104,7 +107,8 @@ cap so one can't drain another.
 5. **Send to Run** on any draft to execute it, then save or heal it like any other
    run. Your proposals are **kept** — after Run, use the **← Back to Discover**
    button (or the Discover tab) to return and send more, without re-discovering.
-   Discover reads only the URL you give (one page for now).
+   Discover reads the URL you give — plus a few pages it links to when the one-hop
+   option is ticked.
 
 ## Using the Heal stage (step by step)
 1. Save the tests you care about from **Run** (they live in this browser).
