@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useRun, type RunState } from "./useRun";
+import { useAutoFix } from "./useAutoFix";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
@@ -119,6 +120,9 @@ export default function RunRunner({ accent }: { accent: string }) {
     setPreHealCode(null);
     setHealInfo(null);
   };
+
+  // Auto-fix loop (run → heal → re-run, ≤2×) extracted to a hook to keep this file lean.
+  const { auto, onAutoFix } = useAutoFix({ state, healInfo, healing, onHeal, onConfirmHeal });
 
   const onSave = () => {
     if (!code.trim()) return;
@@ -305,10 +309,19 @@ export default function RunRunner({ accent }: { accent: string }) {
         </div>
       )}
 
+      {auto && (
+        <div className="rounded-xl px-4 py-2.5 text-[12px] flex items-center gap-2"
+          style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: "var(--text2)" }}>
+          <span className="w-3.5 h-3.5 rounded-full border-2 animate-spin" style={{ borderColor: `${accent} transparent ${accent} ${accent}` }} />
+          Auto-fix: running on CI, repairing what fails, and re-running — up to 2 passes.
+        </div>
+      )}
+
       {state.phase === "completed" && (
         <Result state={state} accent={accent} onHeal={onHeal} healing={healing}
           healed={!!healInfo && !healInfo.error} onSave={onSave}
-          name={testName.trim() || deriveTestName(code)} />
+          name={testName.trim() || deriveTestName(code)}
+          onAutoFix={onAutoFix} autoFixing={auto} />
       )}
 
       <SavedAndHistory accent={accent} refreshKey={refreshKey} onLoad={onLoad} onRun={onRunSaved} />

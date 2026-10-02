@@ -115,7 +115,7 @@ export function HealBanner({ info, accent, onConfirm, onDiscard }: {
   );
 }
 
-export function Result({ state, accent, onHeal, healing, healed, onSave, name }: {
+export function Result({ state, accent, onHeal, healing, healed, onSave, name, onAutoFix, autoFixing }: {
   state: RunState;
   accent: string;
   onHeal: () => void;
@@ -123,6 +123,8 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name }:
   healed: boolean;
   onSave: () => void;
   name: string;
+  onAutoFix?: () => void;
+  autoFixing?: boolean;
 }) {
   const [exporting, setExporting] = useState<null | "xlsx" | "pdf">(null);
   const doExport = async (kind: "xlsx" | "pdf") => {
@@ -162,11 +164,20 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name }:
         </div>
         <div className="flex items-center gap-2">
           {!passed && !healed && (
-            <button onClick={onHeal} disabled={healing}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
-              style={{ background: accent, color: "#fff" }}>
-              {healing ? "Healing…" : "Suggest a fix"}
-            </button>
+            <>
+              {onAutoFix && (
+                <button onClick={onAutoFix} disabled={healing || autoFixing}
+                  className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
+                  style={{ background: accent, color: "#fff" }}>
+                  {autoFixing ? "Auto-fixing…" : "Auto-fix & re-run"}
+                </button>
+              )}
+              <button onClick={onHeal} disabled={healing || autoFixing}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-opacity disabled:opacity-50"
+                style={{ borderColor: `${accent}55`, color: accent }}>
+                {healing ? "Healing…" : "Suggest a fix"}
+              </button>
+            </>
           )}
           <button onClick={onSave}
             className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors"
