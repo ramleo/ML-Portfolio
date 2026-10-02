@@ -48,7 +48,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<Generated[] | null>(null);
   const [authorized, setAuthorized] = useState(false);
-  const [deep, setDeep] = useState(false);
+  const [deep, setDeep] = useState(true);
   const [elapsed, setElapsed] = useState(0);        // discover timer (seconds)
   const [genTotal, setGenTotal] = useState(0);      // drafts requested this generate
   const [genElapsed, setGenElapsed] = useState(0);  // generate timer (seconds)
@@ -152,7 +152,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
         <label className="flex items-start gap-2 text-[12px] cursor-pointer" style={{ color: "var(--text2)" }}>
           <input type="checkbox" checked={deep} onChange={(e) => setDeep(e.target.checked)} disabled={busy}
             className="mt-0.5 shrink-0" style={{ accentColor: accent }} />
-          <span>Also explore a few linked pages (one hop) — slower, but proposes cases across the site, not just this page.</span>
+          <span>Visit linked pages so generated tests are grounded in their real content, not guesses (recommended). Uncheck for a faster, single-page scan.</span>
         </label>
         <div className="flex items-center gap-3">
           <button onClick={onDiscover} disabled={!url.trim() || busy || (thirdParty && !authorized)}
