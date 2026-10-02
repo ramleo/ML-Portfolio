@@ -49,10 +49,21 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   const [generated, setGenerated] = useState<Generated[] | null>(null);
   const [authorized, setAuthorized] = useState(false);
   const [deep, setDeep] = useState(false);
+  const [elapsed, setElapsed] = useState(0);        // discover timer (seconds)
+  const [genTotal, setGenTotal] = useState(0);      // drafts requested this generate
+  const [genElapsed, setGenElapsed] = useState(0);  // generate timer (seconds)
 
   const busy = state.phase === "queued" || state.phase === "in_progress";
   const proposals = state.proposals;
   const thirdParty = !isFirstParty(url);
+
+  // Live elapsed timer while exploring on CI (same style as the Run stage).
+  useEffect(() => {
+    if (!busy) { setElapsed(0); return; }
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [busy]);
 
   const onDiscover = () => {
     setSelected({});
@@ -64,10 +75,19 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
 
   const chosen = (): Proposal[] => proposals.filter((_, i) => selected[i]);
 
+  // Live elapsed timer while drafting tests (LLM calls, one per selected proposal).
+  useEffect(() => {
+    if (!generating) { setGenElapsed(0); return; }
+    const start = Date.now();
+    const id = setInterval(() => setGenElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [generating]);
+
   const onGenerate = async () => {
     const picks = chosen();
     if (!picks.length || generating) return;
     setGenerating(true);
+    setGenTotal(picks.length);
     setGenerated([]);
     for (const p of picks) {
       try {
@@ -108,6 +128,9 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
   };
 
   const selectedCount = Object.values(selected).filter(Boolean).length;
+  const allSelected = proposals.length > 0 && selectedCount === proposals.length;
+  const toggleAll = () => setSelected(allSelected ? {} : Object.fromEntries(proposals.map((_, i) => [i, true])));
+  const genDone = generated?.length ?? 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -147,9 +170,30 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
       </div>
 
       {busy && (
-        <p className="text-[12px]" style={{ color: "var(--text3)" }}>
-          Rendering the page and reading its structure on the runner — about a minute.
-        </p>
+        <div className="rounded-2xl p-4 flex flex-col gap-2.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2">
+            {["Queued", "Exploring", "Proposals"].map((lbl, i) => {
+              const active = i === (state.phase === "in_progress" ? 1 : 0);
+              const on = i <= (state.phase === "in_progress" ? 1 : 0);
+              return (
+                <div key={lbl} className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                    style={{ background: on ? `${accent}18` : "var(--surface)", color: on ? accent : "var(--text3)", border: `1px solid ${on ? `${accent}45` : "var(--border)"}` }}>
+                    {active
+                      ? <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: accent }} />
+                      : <span className="w-1.5 h-1.5 rounded-full" style={{ background: on ? accent : "var(--text3)" }} />}
+                    {lbl}
+                  </span>
+                  {i < 2 && <span className="w-5 h-px" style={{ background: "var(--border)" }} />}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[12px] tabular-nums" style={{ color: "var(--text3)" }}>
+            Exploring the page on GitHub CI · {elapsed}s · first-run setup on a fresh CI runner takes ~40–60s
+            {state.runUrl && <>{" · "}<a href={state.runUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: accent }}>Open on GitHub</a></>}
+          </p>
+        </div>
       )}
 
       {state.phase === "error" && (
@@ -161,13 +205,20 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
 
       {state.phase === "completed" && proposals.length > 0 && (
         <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b flex-wrap" style={{ borderColor: "var(--border)" }}>
             <span className="text-[12px] font-bold" style={{ color: "var(--text)" }}>Proposed test cases ({proposals.length})</span>
-            <button onClick={onGenerate} disabled={!selectedCount || generating}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
-              style={{ background: accent, color: "#fff" }}>
-              {generating ? "Drafting…" : `Generate selected (${selectedCount})`}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={toggleAll} disabled={generating}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-opacity disabled:opacity-40"
+                style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+                {allSelected ? "Clear all" : "Select all"}
+              </button>
+              <button onClick={onGenerate} disabled={!selectedCount || generating}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
+                style={{ background: accent, color: "#fff" }}>
+                {generating ? `Drafting ${genDone}/${genTotal}…` : `Generate selected (${selectedCount})`}
+              </button>
+            </div>
           </div>
           <ul>
             {proposals.map((p, i) => (
@@ -211,7 +262,11 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
           )}
         </div>
       ))}
-      {generating && <p className="text-[12px]" style={{ color: "var(--text3)" }}>Drafting tests…</p>}
+      {generating && (
+        <p className="text-[12px] tabular-nums" style={{ color: "var(--text3)" }}>
+          Drafting test {Math.min(genDone + 1, genTotal)} of {genTotal} · {genElapsed}s
+        </p>
+      )}
     </div>
   );
 }
