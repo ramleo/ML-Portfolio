@@ -1,0 +1,12 @@
+# gitleaks allowlist — fingerprints of KNOWN-SAFE, non-secret sample data.
+# Each entry is a <commit>:<file>:<rule>:<line> fingerprint from `gitleaks git`.
+# These are deliberately secret-SHAPED demo strings baked into the security tools'
+# own UIs (the tools exist to detect/analyze such strings, so they need a sample).
+# None is a live credential. Verified with a redacted scan on 2026-10-03.
+
+# Secret Scanner tool — a made-up "api_secret" inside its sample "leaked log" input.
+a27c04c8939bbabdd06c292601f4fe42b9594382:src/app/tools/secret-scanner/SecretScannerRunner.tsx:generic-api-key:25
+
+# JWT Analyzer tool — SAMPLE_WEAK / SAMPLE_STRONG demo tokens (Alice/Bob @ example.com).
+e761c23c8a3ce3ce5fc7fcf85d40c7049d506a46:src/app/tools/jwt-analyzer/JwtAnalyzerRunner.tsx:jwt:7
+e761c23c8a3ce3ce5fc7fcf85d40c7049d506a46:src/app/tools/jwt-analyzer/JwtAnalyzerRunner.tsx:jwt:8
