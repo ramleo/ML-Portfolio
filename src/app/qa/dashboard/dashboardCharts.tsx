@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { SeqPoint } from "./dashboardData";
 
+// Status palette (reserved + always labelled). Vivid shades for fills; darker shades
+// for inline numeric TEXT, which needs WCAG contrast on a light surface.
 export const PASS = "#34d399", FAIL = "#f43f5e", ERR = "#f59e0b";
+export const PASS_TEXT = "#059669", FAIL_TEXT = "#e11d48", ERR_TEXT = "#d97706";
 
 /** Respect the viewer's reduced-motion preference — animations become instant. */
 export function useReducedMotion(): boolean {
@@ -19,7 +22,7 @@ export function useReducedMotion(): boolean {
 }
 
 /** Animate a number from 0 to `value` with requestAnimationFrame (ease-out). */
-export function useCountUp(value: number, ms = 700): number {
+export function useCountUp(value: number, ms = 800): number {
   const reduced = useReducedMotion();
   const [n, setN] = useState(0);
   const from = useRef(0);
@@ -39,34 +42,66 @@ export function useCountUp(value: number, ms = 700): number {
   return n;
 }
 
-/** Animated pass-rate donut. rate is 0..1 or null (nothing decided). */
-export function Ring({ rate, label }: { rate: number | null; label?: string }) {
+/** Hero pass-rate gauge: a thick 270° arc with a gradient stroke and a soft glow,
+ *  over a recessive track. rate is 0..1 or null (nothing decided yet). */
+export function Gauge({ rate, caption }: { rate: number | null; caption?: string }) {
   const reduced = useReducedMotion();
-  const R = 54, C = 2 * Math.PI * R;
-  const target = (rate ?? 0) * C;
+  const R = 58, CX = 80, CY = 80;
+  const SWEEP = 270; // degrees of arc (gap at the bottom)
+  const START = 135; // start angle (bottom-left), going clockwise
+  const full = (SWEEP / 360) * 2 * Math.PI * R; // arc length of the full track
+  const target = (rate ?? 0) * full;
   const [dash, setDash] = useState(0);
   useEffect(() => { const id = requestAnimationFrame(() => setDash(target)); return () => cancelAnimationFrame(id); }, [target]);
   const pct = useCountUp(rate == null ? 0 : Math.round(rate * 100));
+
+  // Arc path from START, sweeping SWEEP degrees clockwise.
+  const pt = (ang: number) => {
+    const r = (ang * Math.PI) / 180;
+    return [CX + R * Math.cos(r), CY + R * Math.sin(r)];
+  };
+  const [x0, y0] = pt(START);
+  const [x1, y1] = pt(START + SWEEP);
+  const large = SWEEP > 180 ? 1 : 0;
+  const arc = `M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${R} ${R} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  const tone = rate == null ? "var(--text3)" : rate >= 0.8 ? PASS_TEXT : rate >= 0.5 ? ERR_TEXT : FAIL_TEXT;
+
   return (
-    <svg viewBox="0 0 140 140" width="132" height="132" role="img"
-      aria-label={`${label ?? "Pass rate"} ${rate == null ? "n/a" : Math.round(rate * 100) + "%"}`}>
-      <circle cx="70" cy="70" r={R} fill="none" stroke="var(--surface)" strokeWidth="12" />
-      <circle cx="70" cy="70" r={R} fill="none" stroke={PASS} strokeWidth="12" strokeLinecap="round"
-        strokeDasharray={`${dash} ${C}`} transform="rotate(-90 70 70)"
-        style={{ transition: reduced ? undefined : "stroke-dasharray 900ms cubic-bezier(.22,1,.36,1)" }} />
-      <text x="70" y="66" textAnchor="middle" fontSize="30" fontWeight="700" fill="var(--text)">
-        {rate == null ? "—" : `${Math.round(pct)}%`}
+    <svg viewBox="0 0 160 160" width="168" height="168" role="img"
+      aria-label={`Pass rate ${rate == null ? "not available" : Math.round(rate * 100) + " percent"}`}>
+      <defs>
+        <linearGradient id="gaugeStroke" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stopColor={FAIL} />
+          <stop offset="55%" stopColor={ERR} />
+          <stop offset="100%" stopColor={PASS} />
+        </linearGradient>
+        <filter id="gaugeGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3.2" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+      {/* recessive track */}
+      <path d={arc} fill="none" stroke="var(--surface)" strokeWidth="13" strokeLinecap="round" />
+      {/* value arc, drawn in */}
+      <path d={arc} fill="none" stroke="url(#gaugeStroke)" strokeWidth="13" strokeLinecap="round"
+        filter="url(#gaugeGlow)" strokeDasharray={`${dash} ${full * 2}`}
+        style={{ transition: reduced ? undefined : "stroke-dasharray 1000ms cubic-bezier(.22,1,.36,1)" }} />
+      <text x={CX} y={CY - 2} textAnchor="middle" fontSize="36" fontWeight="800" fill={tone}
+        style={{ letterSpacing: "-0.02em" }}>
+        {rate == null ? "—" : `${Math.round(pct)}`}
+        {rate != null && <tspan fontSize="18" fontWeight="700" dy="-1">%</tspan>}
       </text>
-      <text x="70" y="88" textAnchor="middle" fontSize="11" fill="var(--text3)">pass rate</text>
+      <text x={CX} y={CY + 20} textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--text3)"
+        style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>pass rate</text>
+      {caption && <text x={CX} y={CY + 40} textAnchor="middle" fontSize="11" fill="var(--text3)">{caption}</text>}
     </svg>
   );
 }
 
-/** Cumulative pass-rate trend over runs (oldest→newest), drawn in on mount, with
- *  hover dots (native tooltips). One series → no legend; the title names it. */
+/** Cumulative pass-rate trend over runs (oldest→newest): gradient area + line drawn
+ *  in on mount, y-axis % ticks, an emphasized current point. One series → no legend. */
 export function TrendChart({ sequence, accent }: { sequence: SeqPoint[]; accent: string }) {
   const reduced = useReducedMotion();
-  const pathRef = useRef<SVGPathElement>(null);
   const [drawn, setDrawn] = useState(reduced);
   useEffect(() => {
     if (reduced) { setDrawn(true); return; }
@@ -74,47 +109,57 @@ export function TrendChart({ sequence, accent }: { sequence: SeqPoint[]; accent:
     return () => cancelAnimationFrame(id);
   }, [reduced]);
 
-  // cumulative pass rate per run (errors excluded from the ratio)
+  const W = 720, H = 180, padL = 34, padR = 12, padY = 16;
   const pts: { x: number; y: number; rate: number; label: string }[] = [];
   let pass = 0, decided = 0;
-  const W = 720, H = 140, padX = 8, padY = 14;
   const n = sequence.length;
   sequence.forEach((s, i) => {
     if (s.status === "passed") { pass++; decided++; }
     else if (s.status === "failed") { decided++; }
     const rate = decided ? pass / decided : 0;
-    const x = n <= 1 ? padX : padX + (i * (W - 2 * padX)) / (n - 1);
+    const x = n <= 1 ? padL : padL + (i * (W - padL - padR)) / (n - 1);
     const y = padY + (1 - rate) * (H - 2 * padY);
     pts.push({ x, y, rate, label: `${new Date(s.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${Math.round(rate * 100)}%` });
   });
   const line = pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
   const area = pts.length ? `${line} L${pts[pts.length - 1].x.toFixed(1)} ${H - padY} L${pts[0].x.toFixed(1)} ${H - padY} Z` : "";
-  const len = 2000; // generous upper bound for stroke-dash draw-in
+  const last = pts[pts.length - 1];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="150" preserveAspectRatio="none"
-      role="img" aria-label="Pass-rate trend over runs">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="190" role="img" aria-label="Pass-rate trend over runs">
       <defs>
         <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={accent} stopOpacity="0.28" />
+          <stop offset="0%" stopColor={accent} stopOpacity="0.30" />
           <stop offset="100%" stopColor={accent} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[0, 0.5, 1].map((g) => (
-        <line key={g} x1={padX} x2={W - padX} y1={padY + g * (H - 2 * padY)} y2={padY + g * (H - 2 * padY)}
-          stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" opacity="0.6" />
-      ))}
+      {[1, 0.5, 0].map((g) => {
+        const y = padY + (1 - g) * (H - 2 * padY);
+        return (
+          <g key={g}>
+            <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" opacity="0.55" />
+            <text x={padL - 8} y={y + 3} textAnchor="end" fontSize="10" fill="var(--text3)" style={{ fontVariantNumeric: "tabular-nums" }}>{g * 100}%</text>
+          </g>
+        );
+      })}
       {area && <path d={area} fill="url(#trendFill)" opacity={drawn ? 1 : 0}
         style={{ transition: reduced ? undefined : "opacity 700ms ease-out 300ms" }} />}
-      <path ref={pathRef} d={line} fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray={len} strokeDashoffset={drawn ? 0 : len}
+      <path d={line} fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray={2000} strokeDashoffset={drawn ? 0 : 2000}
         style={{ transition: reduced ? undefined : "stroke-dashoffset 1100ms cubic-bezier(.22,1,.36,1)" }} />
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="4.5" fill={accent} stroke="var(--bg-card)" strokeWidth="2"
-          opacity={drawn ? 1 : 0} style={{ transition: reduced ? undefined : `opacity 300ms ease-out ${300 + i * 40}ms` }}>
+        <circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5.5 : 3.5}
+          fill={i === pts.length - 1 ? accent : "var(--bg-card)"} stroke={accent} strokeWidth="2"
+          opacity={drawn ? 1 : 0} style={{ transition: reduced ? undefined : `opacity 300ms ease-out ${300 + i * 35}ms` }}>
           <title>{p.label}</title>
         </circle>
       ))}
+      {last && drawn && (
+        <circle cx={last.x} cy={last.y} r="5.5" fill="none" stroke={accent} strokeWidth="2" opacity="0.5">
+          {!reduced && <animate attributeName="r" values="5.5;11;5.5" dur="2.4s" repeatCount="indefinite" />}
+          {!reduced && <animate attributeName="opacity" values="0.5;0;0.5" dur="2.4s" repeatCount="indefinite" />}
+        </circle>
+      )}
     </svg>
   );
 }
