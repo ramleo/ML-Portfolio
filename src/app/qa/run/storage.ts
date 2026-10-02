@@ -11,6 +11,11 @@ export type HistoryEntry = {
   at: number;
   correlationId: string | null;
   code: string;
+  // Per-test counts for the run (a merged suite is ONE run but many tests), so the
+  // dashboard can report test cases, not just runs. Optional: older entries lack them.
+  tests?: number;
+  passedTests?: number;
+  failedTests?: number;
 };
 
 const SAVED_KEY = "qa_saved_tests";

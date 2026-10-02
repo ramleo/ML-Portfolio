@@ -17,6 +17,10 @@ export type DashboardData = {
   /** passed / (passed + failed), excluding infra errors; null when nothing ran. */
   passRate: number | null;
   distinctTests: number;
+  /** Test CASES aggregated across runs (a merged suite = 1 run, many tests). Falls
+   *  back to 1 per run for older entries that didn't record per-test counts. */
+  totalTests: number;
+  failedTests: number;
   /** Oldest → newest, for a left-to-right outcome strip. */
   sequence: SeqPoint[];
   /** Tests with ≥1 failure, most failures first (capped). */
@@ -54,6 +58,10 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
     .map(([name, r]) => ({ name, passed: r.passed, failed: r.failed }))
     .sort((a, b) => b.failed - a.failed);
 
+  // Test CASES across runs — use recorded per-test counts, else count the run as 1.
+  const totalTests = history.reduce((n, h) => n + (h.tests ?? 1), 0);
+  const failedTests = history.reduce((n, h) => n + (h.failedTests ?? (h.status === "failed" ? 1 : 0)), 0);
+
   // getHistory() is newest-first; the strip reads oldest → newest.
   const sequence: SeqPoint[] = [...history]
     .sort((a, b) => a.at - b.at)
@@ -63,6 +71,7 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
     total, passed, failed, errored,
     passRate: decided > 0 ? passed / decided : null,
     distinctTests: byName.size,
+    totalTests, failedTests,
     sequence, topFailing, flaky,
   };
 }

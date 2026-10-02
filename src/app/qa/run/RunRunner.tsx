@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useRun } from "./useRun";
+import { useRun, type RunState } from "./useRun";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
@@ -28,7 +28,7 @@ test.describe('home page smoke', () => {
 
 export default function RunRunner({ accent }: { accent: string }) {
   const router = useRouter();
-  const { state, run, reset, stop } = useRun();
+  const { state, run, reset, stop, hydrate } = useRun();
   const [code, setCode] = useState("");
   const [fromDiscover, setFromDiscover] = useState(false);
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
@@ -45,13 +45,36 @@ export default function RunRunner({ accent }: { accent: string }) {
   const nameRef = useRef(testName); nameRef.current = testName;
   const recorded = useRef(false);
 
-  // Record every finished run into the browser-local history (once per run).
+  // Persist the last completed result so it survives leaving the page (e.g. to the
+  // Dashboard) and coming back. The screenshot is dropped — it can be MBs and would
+  // blow the sessionStorage quota; everything else (verdict, summary, steps, reason,
+  // timing, video/trace flags) is small.
+  const persistLastRun = (s: RunState) => {
+    try {
+      const slim = { ...s, screenshot: null };
+      sessionStorage.setItem("qa_run_last", JSON.stringify({ state: slim, code: codeRef.current, name: nameRef.current }));
+    } catch { /* quota / unavailable */ }
+  };
+
+  // Record every finished run into the browser-local history (once per run), and
+  // persist the completed result so it survives navigating away (e.g. to the
+  // Dashboard) and back.
   useEffect(() => {
     if (state.phase === "queued") { recorded.current = false; return; }
     if ((state.phase === "completed" || state.phase === "error") && !recorded.current) {
       recorded.current = true;
       const status = state.phase === "error" ? "error" : state.passed ? "passed" : "failed";
-      addHistory({ name: nameRef.current.trim() || deriveTestName(codeRef.current), status, correlationId: state.correlationId, code: codeRef.current });
+      // #8: store the per-test summary too, so the dashboard can count test cases,
+      // not just runs (a merged suite is one run but many tests).
+      const s = state.summary;
+      addHistory({
+        name: nameRef.current.trim() || deriveTestName(codeRef.current), status,
+        correlationId: state.correlationId, code: codeRef.current,
+        tests: s ? s.expected + s.unexpected + s.flaky + s.skipped : undefined,
+        passedTests: s ? s.expected : undefined,
+        failedTests: s ? s.unexpected : undefined,
+      });
+      if (state.phase === "completed") persistLastRun(state);
       setRefreshKey((k) => k + 1);
     }
   }, [state.phase, state.passed, state.correlationId]);
@@ -116,6 +139,16 @@ export default function RunRunner({ accent }: { accent: string }) {
         if (name) setTestName(name);
         sessionStorage.removeItem("qa_run_code");
         sessionStorage.removeItem("qa_run_name");
+      } else {
+        // No fresh hand-off — restore the last completed run so results aren't lost
+        // after navigating to the Dashboard and back.
+        const last = sessionStorage.getItem("qa_run_last");
+        if (last) {
+          const parsed = JSON.parse(last);
+          if (parsed?.code) setCode(parsed.code);
+          if (parsed?.name) setTestName(parsed.name);
+          if (parsed?.state) { recorded.current = true; hydrate(parsed.state as RunState); }
+        }
       }
       // Arrived via "Send to Run" from Discover? Show a way back to the proposals.
       if (sessionStorage.getItem("qa_run_from_discover")) {

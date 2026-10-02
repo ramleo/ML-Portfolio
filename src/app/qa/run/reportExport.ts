@@ -115,7 +115,9 @@ export async function downloadPdf(state: RunState, name: string): Promise<void> 
     startY: 32,
     head: [["Field", "Value"]],
     body: metaRows(state, name),
-    styles: { fontSize: 9, cellWidth: "wrap" },
+    margin: { left: 14, right: 14 },
+    tableWidth: "auto",
+    styles: { fontSize: 9, overflow: "linebreak" },
     headStyles: { fillColor: [31, 41, 55] },
     columnStyles: { 0: { cellWidth: 38, fontStyle: "bold" } },
   });
@@ -127,9 +129,13 @@ export async function downloadPdf(state: RunState, name: string): Promise<void> 
       startY: y,
       head: [["#", "Step", "Category", "ms", "Result"]],
       body: stepRows(state),
-      styles: { fontSize: 8, cellWidth: "wrap" },
+      margin: { left: 14, right: 14 },
+      tableWidth: "auto",
+      styles: { fontSize: 8, overflow: "linebreak" },
       headStyles: { fillColor: [31, 41, 55] },
-      columnStyles: { 0: { cellWidth: 8 }, 3: { cellWidth: 14 }, 4: { cellWidth: 16 } },
+      // Fixed widths for the small columns; "Step" (col 1) auto-takes the rest and
+      // wraps, so nothing runs off the right edge.
+      columnStyles: { 0: { cellWidth: 10 }, 2: { cellWidth: 24 }, 3: { cellWidth: 14 }, 4: { cellWidth: 16 } },
     });
   }
 

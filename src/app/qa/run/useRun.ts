@@ -78,6 +78,9 @@ export function useRun() {
     setState(IDLE);
   }, []);
 
+  // Restore a previously completed result (e.g. after navigating away and back).
+  const hydrate = useCallback((s: RunState) => { setState(s); }, []);
+
   // Stop an in-flight run: cancel the GitHub job server-side (frees the runner,
   // not just the client poll) and stop polling.
   const stop = useCallback(async () => {
@@ -165,5 +168,5 @@ export function useRun() {
     setState((prev) => ({ ...prev, phase: "error", error: "Stopped waiting after the time limit — the run may still be finishing on GitHub. Open it to check, or Stop it." }));
   }, []);
 
-  return { state, run, reset, stop };
+  return { state, run, reset, stop, hydrate };
 }

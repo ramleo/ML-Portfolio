@@ -68,11 +68,12 @@ export default function RunDashboard({ accent }: { accent: string }) {
 
       {/* Headline tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Tile label="Total runs" value={String(data.total)} />
-        <Tile label="Pass rate" value={data.passRate == null ? "—" : `${Math.round(data.passRate * 100)}%`}
+        <Tile label="Total runs" value={String(data.total)} sub={`${data.totalTests} test case${data.totalTests === 1 ? "" : "s"}`} />
+        <Tile label="Pass rate (by run)" value={data.passRate == null ? "—" : `${Math.round(data.passRate * 100)}%`}
           sub={data.passRate == null ? "no decided runs" : `${data.passed} passed · ${data.failed} failed`} />
-        <Tile label="Failures" value={String(data.failed)} sub={data.errored ? `${data.errored} infra error${data.errored === 1 ? "" : "s"}` : undefined} />
-        <Tile label="Distinct tests" value={String(data.distinctTests)} />
+        <Tile label="Failures (runs)" value={String(data.failed)}
+          sub={`${data.failedTests} failed test${data.failedTests === 1 ? "" : "s"}${data.errored ? ` · ${data.errored} infra error${data.errored === 1 ? "" : "s"}` : ""}`} />
+        <Tile label="Named tests" value={String(data.distinctTests)} />
       </div>
 
       {/* Outcome over time (oldest -> newest) */}
