@@ -7,7 +7,7 @@ import { useAutoFix } from "./useAutoFix";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
-import { saveTest, addHistory, deriveTestName } from "./storage";
+import { saveTest, addHistory, deriveTestName, logDurableRun } from "./storage";
 import { trackEdit } from "./corrections";
 import { isFirstParty } from "../lib/ownership";
 import OwnershipGate from "../lib/OwnershipGate";
@@ -73,12 +73,18 @@ export default function RunRunner({ accent }: { accent: string }) {
       // #8: store the per-test summary too, so the dashboard can count test cases,
       // not just runs (a merged suite is one run but many tests).
       const s = state.summary;
+      const nm = nameRef.current.trim() || deriveTestName(codeRef.current);
+      const tests = s ? s.expected + s.unexpected + s.flaky + s.skipped : undefined;
       addHistory({
-        name: nameRef.current.trim() || deriveTestName(codeRef.current), status,
-        correlationId: state.correlationId, code: codeRef.current,
-        tests: s ? s.expected + s.unexpected + s.flaky + s.skipped : undefined,
-        passedTests: s ? s.expected : undefined,
-        failedTests: s ? s.unexpected : undefined,
+        name: nm, status, correlationId: state.correlationId, code: codeRef.current,
+        tests, passedTests: s ? s.expected : undefined, failedTests: s ? s.unexpected : undefined,
+      });
+      // Durable, cross-device history (R7 Dashboard-B) — content-light, best-effort.
+      logDurableRun({
+        name: nm, status, tests, passed_tests: s ? s.expected : undefined,
+        failed_tests: s ? s.unexpected : undefined, flaky: state.flaky,
+        duration_ms: state.totalMs, correlation_id: state.correlationId,
+        run_url: state.runUrl, error_message: state.errorMessage,
       });
       if (state.phase === "completed") persistLastRun(state);
       setRefreshKey((k) => k + 1);

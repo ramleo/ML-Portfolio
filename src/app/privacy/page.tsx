@@ -186,8 +186,15 @@ export default function PrivacyPage() {
             GitHub run. <strong>The test&rsquo;s code is stored only if you tick the &ldquo;include the
             test code&rdquo; box</strong> on the Share action; it is off by default. Nothing else from
             your browsing is included. The link is unguessable and anyone who has it can read the report;
-            shared reports are deleted automatically after 90 days. If you never use Share, nothing is
-            stored &mdash; every run otherwise stays only in your own browser.
+            shared reports are deleted automatically after 90 days.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>In Testwright, when a test run finishes, a content-light record of it is logged</strong>{" "}
+            so the Run dashboard can show your history across devices, not just the current browser: the
+            test name, whether it passed or failed, the per-test counts, whether it was flaky, the run
+            timing, the failure reason, and a link to the GitHub run. <strong>The test&rsquo;s code is
+            never included, and no screenshot, video or trace is stored.</strong> These records are not
+            readable by anything on this site and exist only to power your own dashboard.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
             <strong>When you upload a file, a short record of it is kept for 30 days</strong> so that

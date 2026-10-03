@@ -79,3 +79,29 @@ export function addHistory(e: Omit<HistoryEntry, "id" | "at">): void {
 export function clearHistory(): void {
   write(HISTORY_KEY, []);
 }
+
+/** Fire-and-forget: log one completed run to the durable, cross-device history
+ *  (R7 Dashboard-B, Supabase qa_runs). Content-light — no code/screenshot. Never
+ *  throws and never blocks the UI; the write route gates out local-dev traffic and
+ *  returns needs_setup until the migration is run. */
+export function logDurableRun(r: {
+  name: string;
+  status: HistoryEntry["status"];
+  tests?: number;
+  passed_tests?: number;
+  failed_tests?: number;
+  flaky?: boolean | null;
+  duration_ms?: number | null;
+  correlation_id?: string | null;
+  run_url?: string | null;
+  error_message?: string | null;
+}): void {
+  try {
+    void fetch("/api/qa-run/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(r),
+      keepalive: true,
+    }).catch(() => { /* best-effort */ });
+  } catch { /* fetch unavailable */ }
+}

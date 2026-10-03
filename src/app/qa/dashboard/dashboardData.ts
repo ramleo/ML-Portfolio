@@ -88,3 +88,20 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
 export function loadDashboard(): DashboardData {
   return computeDashboard(getHistory());
 }
+
+/** Durable, cross-device dashboard (R7 Option B): fetch recent runs logged to Supabase
+ *  and run them through the SAME aggregation as the local view. Returns { needs_setup }
+ *  when the qa_runs migration hasn't been run yet, or null on a transient error. */
+export async function loadDurableDashboard():
+    Promise<DashboardData | { needs_setup: true } | null> {
+  try {
+    const res = await fetch("/api/qa-run/stats?limit=1000", { cache: "no-store" });
+    const json = await res.json().catch(() => null);
+    if (!res.ok || !json) return null;
+    if (json.needs_setup) return { needs_setup: true };
+    const rows = Array.isArray(json.rows) ? (json.rows as HistoryEntry[]) : [];
+    return computeDashboard(rows);
+  } catch {
+    return null;
+  }
+}

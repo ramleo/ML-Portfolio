@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { loadDashboard, type DashboardData, type Status } from "./dashboardData";
+import { useCallback, useEffect, useState } from "react";
+import { loadDashboard, loadDurableDashboard, type DashboardData, type Status } from "./dashboardData";
 import { clearHistory } from "../run/storage";
 import {
   Gauge, TrendChart, useCountUp, useReducedMotion,
@@ -73,39 +73,116 @@ const IconStrip = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const IconFail = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>;
 const IconFlaky = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>;
 
+/** This-device ↔ all-runs source switch. */
+function SourceToggle({ source, setSource, accent }: { source: Source; setSource: (s: Source) => void; accent: string }) {
+  const opt = (v: Source, label: string) => (
+    <button key={v} onClick={() => setSource(v)} className="text-[11px] px-2.5 py-1 rounded-md transition-colors font-semibold"
+      style={source === v ? { background: accent, color: "#fff" } : { color: "var(--text2)" }}>{label}</button>
+  );
+  return (
+    <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+      {opt("local", "This device")}{opt("all", "All runs")}
+    </div>
+  );
+}
+
+/** Header shown in every state so the source toggle is always reachable. */
+function HeaderBar({ source, setSource, accent, reduced, total, onRefresh, onClear }: {
+  source: Source; setSource: (s: Source) => void; accent: string; reduced: boolean;
+  total: number; onRefresh: () => void; onClear: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      <p className="text-[12px] inline-flex items-center gap-2" style={{ color: "var(--text3)" }}>
+        <span className="relative inline-flex w-2 h-2">
+          <span className="absolute inline-flex w-full h-full rounded-full" style={{ background: PASS, animation: reduced ? undefined : "ping 2s cubic-bezier(0,0,.2,1) infinite" }} />
+          <span className="relative inline-flex w-2 h-2 rounded-full" style={{ background: PASS }} />
+        </span>
+        {source === "local"
+          ? <>Live · this browser&apos;s last {total} run{total === 1 ? "" : "s"}</>
+          : <>Durable · all runs across devices ({total})</>}
+      </p>
+      <div className="flex items-center gap-2">
+        <SourceToggle source={source} setSource={setSource} accent={accent} />
+        <button onClick={onRefresh} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors" style={{ borderColor: "var(--border)", color: "var(--text2)" }}>Refresh</button>
+        {source === "local" && (
+          <button onClick={onClear} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors" style={{ borderColor: "var(--border)", color: "var(--text2)" }}>Clear history</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type Source = "local" | "all";
+
 export default function RunDashboard({ accent }: { accent: string }) {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [source, setSource] = useState<Source>("local");
+  const [needsSetup, setNeedsSetup] = useState(false);
   const reduced = useReducedMotion();
-  const refresh = () => setData(loadDashboard());
 
-  // Live: re-read local history on mount, when another tab writes it, on focus, and
-  // on a gentle interval — so new runs appear without a manual refresh.
+  const refresh = useCallback(async () => {
+    if (source === "local") {
+      setNeedsSetup(false);
+      setData(loadDashboard());
+      return;
+    }
+    const res = await loadDurableDashboard();
+    if (res && "needs_setup" in res) { setNeedsSetup(true); setData(null); }
+    else { setNeedsSetup(false); setData(res); }
+  }, [source]);
+
+  // Reload on mount and whenever the source toggles.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  // Live: refresh when another tab writes local history, on focus, and on an interval.
   useEffect(() => {
-    // Load on mount only — localStorage can't be read during SSR, so this can't be a
-    // lazy useState initializer without a hydration mismatch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh();
-    const onStorage = (e: StorageEvent) => { if (!e.key || e.key === "qa_run_history") refresh(); };
-    const onVis = () => { if (!document.hidden) refresh(); };
+    const onStorage = (e: StorageEvent) => { if (!e.key || e.key === "qa_run_history") void refresh(); };
+    const onVis = () => { if (!document.hidden) void refresh(); };
     window.addEventListener("storage", onStorage);
     document.addEventListener("visibilitychange", onVis);
-    const id = setInterval(refresh, 5000);
+    const id = setInterval(() => void refresh(), 5000);
     return () => {
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVis);
       clearInterval(id);
     };
-  }, []);
+  }, [refresh]);
 
-  if (!data) return null;
+  const header = (
+    <HeaderBar source={source} setSource={setSource} accent={accent} reduced={reduced}
+      total={data?.total ?? 0} onRefresh={() => void refresh()}
+      onClear={() => { clearHistory(); void refresh(); }} />
+  );
+
+  if (source === "all" && needsSetup) {
+    return (
+      <div className="flex flex-col gap-5">
+        {header}
+        <div className="rounded-2xl px-5 py-12 text-center" style={CARD}>
+          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Durable history not set up yet</p>
+          <p className="text-[12px] mt-1 max-w-md mx-auto" style={{ color: "var(--text3)" }}>
+            Run the one-time migration <code>supabase/qa_runs.sql</code> in the Supabase SQL editor to enable the cross-device dashboard. Until then, use <span className="font-semibold">This device</span>.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return <div className="flex flex-col gap-5">{header}</div>;
 
   if (data.total === 0) {
     return (
-      <div className="rounded-2xl px-5 py-12 text-center" style={CARD}>
-        <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>No runs yet</p>
-        <p className="text-[12px] mt-1" style={{ color: "var(--text3)" }}>
-          Run a test in the Run stage and your history rolls up here — live. (Reads runs saved in this browser.)
-        </p>
+      <div className="flex flex-col gap-5">
+        {header}
+        <div className="rounded-2xl px-5 py-12 text-center" style={CARD}>
+          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>No runs yet</p>
+          <p className="text-[12px] mt-1" style={{ color: "var(--text3)" }}>
+            Run a test in the Run stage and your history rolls up here — live.
+            {source === "local" ? " (Reads runs saved in this browser.)" : " (Across all devices.)"}
+          </p>
+        </div>
       </div>
     );
   }
@@ -119,19 +196,7 @@ export default function RunDashboard({ accent }: { accent: string }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[12px] inline-flex items-center gap-2" style={{ color: "var(--text3)" }}>
-          <span className="relative inline-flex w-2 h-2">
-            <span className="absolute inline-flex w-full h-full rounded-full" style={{ background: PASS, animation: reduced ? undefined : "ping 2s cubic-bezier(0,0,.2,1) infinite" }} />
-            <span className="relative inline-flex w-2 h-2 rounded-full" style={{ background: PASS }} />
-          </span>
-          Live · this browser&apos;s last {data.total} run{data.total === 1 ? "" : "s"}
-        </p>
-        <div className="flex items-center gap-2">
-          <button onClick={refresh} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors" style={{ borderColor: "var(--border)", color: "var(--text2)" }}>Refresh</button>
-          <button onClick={() => { clearHistory(); refresh(); }} className="text-[11px] px-3 py-1.5 rounded-lg border transition-colors" style={{ borderColor: "var(--border)", color: "var(--text2)" }}>Clear history</button>
-        </div>
-      </div>
+      {header}
 
       {/* Hero: pass-rate gauge + KPI tiles, on an accent-tinted surface with depth */}
       <div className="rounded-2xl p-5 sm:p-6 flex items-center gap-6 lg:gap-8 flex-wrap"
