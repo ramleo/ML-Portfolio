@@ -3,6 +3,8 @@
 // Text-to-SQL tool's saved queries. Every access is guarded: storage can be
 // unavailable (private window, blocked) or throw.
 
+import type { RunTest, RunSummary } from "./useRun";
+
 export type SavedTest = { id: string; name: string; code: string; savedAt: number };
 export type HistoryEntry = {
   id: string;
@@ -16,6 +18,9 @@ export type HistoryEntry = {
   tests?: number;
   passedTests?: number;
   failedTests?: number;
+  // Full per-test breakdown (title/status/duration/error) for the dashboard drill-down.
+  // Recent runs only — older entries predate it; the dashboard falls back to counts.
+  testDetail?: RunTest[];
 };
 
 const SAVED_KEY = "qa_saved_tests";
@@ -104,4 +109,29 @@ export function logDurableRun(r: {
       keepalive: true,
     }).catch(() => { /* best-effort */ });
   } catch { /* fetch unavailable */ }
+}
+
+/** Record ONE completed run: into local history (with per-test detail for the
+ *  dashboard drill-down) AND the durable cross-device log. One call so the Run stage
+ *  stays lean and both sinks always get the same data. */
+export function recordRun(r: {
+  name: string; status: HistoryEntry["status"]; code: string;
+  correlationId: string | null; summary: RunSummary | null; tests: RunTest[];
+  flaky: boolean | null; durationMs: number | null;
+  runUrl: string | null; errorMessage: string | null;
+}): void {
+  const s = r.summary;
+  const total = s ? s.expected + s.unexpected + s.flaky + s.skipped : undefined;
+  const passed = s ? s.expected : undefined;
+  const failed = s ? s.unexpected : undefined;
+  addHistory({
+    name: r.name, status: r.status, correlationId: r.correlationId, code: r.code,
+    tests: total, passedTests: passed, failedTests: failed,
+    testDetail: r.tests && r.tests.length ? r.tests.slice(0, 40) : undefined,
+  });
+  logDurableRun({
+    name: r.name, status: r.status, tests: total, passed_tests: passed, failed_tests: failed,
+    flaky: r.flaky, duration_ms: r.durationMs, correlation_id: r.correlationId,
+    run_url: r.runUrl, error_message: r.errorMessage,
+  });
 }

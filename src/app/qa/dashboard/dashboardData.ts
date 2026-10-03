@@ -2,10 +2,18 @@
 // history (run/storage.ts) into the numbers the charts render. No I/O here except the
 // one loadDashboard() convenience; everything else is a pure function so it is testable.
 import { getHistory, type HistoryEntry } from "../run/storage";
+import type { RunTest } from "../run/useRun";
 
 export type Status = HistoryEntry["status"];
 
-export type SeqPoint = { status: Status; at: number; name: string };
+/** One RUN in the outcome strip — carries its per-test counts and (for recent runs)
+ *  the full per-test breakdown, so clicking a bar can drill into what passed/failed. */
+export type SeqPoint = {
+  id: string; status: Status; at: number; name: string;
+  passedTests: number; failedTests: number; detail?: RunTest[];
+};
+/** One individual TEST CASE across runs, for the per-test view of the strip. */
+export type TestPoint = { passed: boolean; title: string; runName: string; at: number };
 export type FailRow = { name: string; fails: number; total: number };
 export type FlakyRow = { name: string; passed: number; failed: number };
 
@@ -28,8 +36,10 @@ export type DashboardData = {
    *  "most individual tests pass" even when few whole runs are all-green; null when
    *  nothing ran. This is what the gauge shows. */
   testPassRate: number | null;
-  /** Oldest → newest, for a left-to-right outcome strip. */
+  /** Oldest → newest, for a left-to-right outcome strip (one entry per RUN). */
   sequence: SeqPoint[];
+  /** Oldest → newest, one entry per individual TEST CASE (the per-test view). */
+  testSequence: TestPoint[];
   /** Tests with ≥1 failure, most failures first (capped). */
   topFailing: FailRow[];
   /** Tests that both passed and failed in history — real flakiness. */
@@ -71,9 +81,28 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
   const passedTests = Math.max(0, totalTests - failedTests);
 
   // getHistory() is newest-first; the strip reads oldest → newest.
-  const sequence: SeqPoint[] = [...history]
-    .sort((a, b) => a.at - b.at)
-    .map((h) => ({ status: h.status, at: h.at, name: h.name }));
+  const sorted = [...history].sort((a, b) => a.at - b.at);
+  const pOf = (h: HistoryEntry) => h.passedTests ?? (h.status === "passed" ? (h.tests ?? 1) : 0);
+  const fOf = (h: HistoryEntry) => h.failedTests ?? (h.status === "failed" ? (h.tests ?? 1) : 0);
+
+  const sequence: SeqPoint[] = sorted.map((h) => ({
+    id: h.id, status: h.status, at: h.at, name: h.name,
+    passedTests: pOf(h), failedTests: fOf(h), detail: h.testDetail,
+  }));
+
+  // Per-test view: use the real per-test breakdown when we have it, else synthesise
+  // one entry per passed/failed count (older runs that predate testDetail).
+  const testSequence: TestPoint[] = [];
+  for (const h of sorted) {
+    if (h.testDetail && h.testDetail.length) {
+      for (const t of h.testDetail) {
+        testSequence.push({ passed: t.status === "passed", title: t.title, runName: h.name, at: h.at });
+      }
+    } else {
+      for (let i = 0; i < pOf(h); i++) testSequence.push({ passed: true, title: h.name, runName: h.name, at: h.at });
+      for (let i = 0; i < fOf(h); i++) testSequence.push({ passed: false, title: h.name, runName: h.name, at: h.at });
+    }
+  }
 
   return {
     total, passed, failed, errored,
@@ -81,7 +110,7 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
     distinctTests: byName.size,
     totalTests, passedTests, failedTests,
     testPassRate: totalTests > 0 ? passedTests / totalTests : null,
-    sequence, topFailing, flaky,
+    sequence, testSequence, topFailing, flaky,
   };
 }
 

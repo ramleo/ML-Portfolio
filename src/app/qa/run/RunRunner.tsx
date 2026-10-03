@@ -7,7 +7,7 @@ import { useAutoFix } from "./useAutoFix";
 import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
-import { saveTest, addHistory, deriveTestName, logDurableRun } from "./storage";
+import { saveTest, deriveTestName, recordRun } from "./storage";
 import { trackEdit } from "./corrections";
 import { isFirstParty } from "../lib/ownership";
 import OwnershipGate from "../lib/OwnershipGate";
@@ -70,21 +70,13 @@ export default function RunRunner({ accent }: { accent: string }) {
     if ((state.phase === "completed" || state.phase === "error") && !recorded.current) {
       recorded.current = true;
       const status = state.phase === "error" ? "error" : state.passed ? "passed" : "failed";
-      // #8: store the per-test summary too, so the dashboard can count test cases,
-      // not just runs (a merged suite is one run but many tests).
-      const s = state.summary;
-      const nm = nameRef.current.trim() || deriveTestName(codeRef.current);
-      const tests = s ? s.expected + s.unexpected + s.flaky + s.skipped : undefined;
-      addHistory({
-        name: nm, status, correlationId: state.correlationId, code: codeRef.current,
-        tests, passedTests: s ? s.expected : undefined, failedTests: s ? s.unexpected : undefined,
-      });
-      // Durable, cross-device history (R7 Dashboard-B) — content-light, best-effort.
-      logDurableRun({
-        name: nm, status, tests, passed_tests: s ? s.expected : undefined,
-        failed_tests: s ? s.unexpected : undefined, flaky: state.flaky,
-        duration_ms: state.totalMs, correlation_id: state.correlationId,
-        run_url: state.runUrl, error_message: state.errorMessage,
+      // Record the run: local history (with per-test detail for the dashboard
+      // drill-down) AND the durable cross-device log (R7 Dashboard-B).
+      recordRun({
+        name: nameRef.current.trim() || deriveTestName(codeRef.current), status,
+        code: codeRef.current, correlationId: state.correlationId, summary: state.summary,
+        tests: state.tests, flaky: state.flaky, durationMs: state.totalMs,
+        runUrl: state.runUrl, errorMessage: state.errorMessage,
       });
       if (state.phase === "completed") persistLastRun(state);
       setRefreshKey((k) => k + 1);

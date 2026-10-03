@@ -1,16 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { loadDashboard, loadDurableDashboard, type DashboardData, type Status } from "./dashboardData";
+import { loadDashboard, loadDurableDashboard, type DashboardData } from "./dashboardData";
 import { clearHistory } from "../run/storage";
+import OutcomesPanel from "./OutcomesPanel";
 import {
   Gauge, TrendChart, useCountUp, useReducedMotion,
   PASS, FAIL, ERR, PASS_TEXT, FAIL_TEXT, ERR_TEXT,
 } from "./dashboardCharts";
 
-const statusColor = (s: Status) => (s === "passed" ? PASS : s === "failed" ? FAIL : ERR);
-const statusLabel = (s: Status) => (s === "passed" ? "passed" : s === "failed" ? "failed" : "error");
-const fmtDate = (ms: number) => new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
 const CARD: React.CSSProperties = {
   background: "var(--bg-card)",
@@ -44,14 +42,6 @@ function FailBar({ pct, delay }: { pct: number; delay: number }) {
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text3)" }}>
-      <span className="w-2.5 h-2.5 rounded-sm" style={{ background: color }} /> {label}
-    </span>
-  );
-}
-
 /** A small accent-tinted icon badge + uppercase title, shared by every panel so the
  *  dashboard reads as one designed system rather than a stack of plain boxes. */
 function SectionHeader({ title, accent, icon, right }: { title: string; accent: string; icon: React.ReactNode; right?: React.ReactNode }) {
@@ -69,7 +59,6 @@ function SectionHeader({ title, accent, icon, right }: { title: string; accent: 
   );
 }
 
-const IconStrip = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="10" width="4" height="10" rx="1" /><rect x="10" y="4" width="4" height="16" rx="1" /><rect x="17" y="13" width="4" height="7" rx="1" /></svg>;
 const IconFail = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>;
 const IconFlaky = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>;
 
@@ -230,20 +219,8 @@ export default function RunDashboard({ accent }: { accent: string }) {
         <TrendChart sequence={data.sequence} accent={accent} />
       </div>
 
-      {/* Per-run outcome strip */}
-      <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
-        <SectionHeader title="Outcomes over time" accent={accent} icon={IconStrip}
-          right={<div className="flex items-center gap-3"><LegendDot color={PASS} label="passed" /><LegendDot color={FAIL} label="failed" /><LegendDot color={ERR} label="error" /></div>} />
-        <div className="flex items-end gap-[3px]" style={{ height: 44 }}>
-          {data.sequence.map((p, i) => (
-            <div key={i} title={`${p.name} — ${statusLabel(p.status)} — ${fmtDate(p.at)}`}
-              className="flex-1 rounded-md" style={{
-                background: statusColor(p.status), minWidth: 5, height: "100%",
-                opacity: reduced ? 1 : 0, animation: reduced ? undefined : `rise 440ms ease-out ${i * 40}ms forwards`,
-              }} />
-          ))}
-        </div>
-      </div>
+      {/* Interactive outcome strip — Runs ↔ Tests toggle + click-to-drill breakdown */}
+      <OutcomesPanel sequence={data.sequence} testSequence={data.testSequence} accent={accent} reduced={reduced} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Top failing tests */}
