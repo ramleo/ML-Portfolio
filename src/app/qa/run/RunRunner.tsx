@@ -8,6 +8,7 @@ import { qaPost } from "../lib/qaClient";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
 import { saveTest, addHistory, deriveTestName } from "./storage";
+import { trackEdit } from "./corrections";
 import { isFirstParty } from "../lib/ownership";
 import OwnershipGate from "../lib/OwnershipGate";
 
@@ -45,6 +46,10 @@ export default function RunRunner({ accent }: { accent: string }) {
   const codeRef = useRef(code); codeRef.current = code;
   const nameRef = useRef(testName); nameRef.current = testName;
   const recorded = useRef(false);
+  // The test AS GENERATED (carried in from Author/Discover). On Save we diff this
+  // against the saved code to measure corrections (Phase 0 of learn-from-edits).
+  // Null when the code wasn't freshly generated (typed, loaded, or restored).
+  const baselineRef = useRef<string | null>(null);
 
   // Persist the last completed result so it survives leaving the page (e.g. to the
   // Dashboard) and coming back. The screenshot is dropped — it can be MBs and would
@@ -128,10 +133,16 @@ export default function RunRunner({ accent }: { accent: string }) {
     if (!code.trim()) return;
     saveTest(testName, code);
     setRefreshKey((k) => k + 1);
+    // Measure corrections to generated tests (content-free): if this code was
+    // generated and the user changed it, log WHAT kind of line they changed.
+    const base = baselineRef.current;
+    if (base && trackEdit(base, code, { via: fromDiscover ? "discover" : "author", healed: !!healInfo })) {
+      baselineRef.current = code; // don't re-log the same correction on re-save
+    }
   };
 
-  const onLoad = (c: string, n: string) => { setCode(c); setTestName(n); reset(); setHealInfo(null); setPreHealCode(null); };
-  const onRunSaved = (c: string, n: string) => { setCode(c); setTestName(n); setHealInfo(null); run(c, baseUrl, n, 1, authorized); };
+  const onLoad = (c: string, n: string) => { baselineRef.current = null; setCode(c); setTestName(n); reset(); setHealInfo(null); setPreHealCode(null); };
+  const onRunSaved = (c: string, n: string) => { baselineRef.current = null; setCode(c); setTestName(n); setHealInfo(null); run(c, baseUrl, n, 1, authorized); };
 
   // Carry a test over from the Author stage ("Send to Run").
   useEffect(() => {
@@ -139,6 +150,7 @@ export default function RunRunner({ accent }: { accent: string }) {
       const carried = sessionStorage.getItem("qa_run_code");
       if (carried) {
         setCode(carried);
+        baselineRef.current = carried; // the as-generated baseline for correction measurement
         const name = sessionStorage.getItem("qa_run_name");
         if (name) setTestName(name);
         sessionStorage.removeItem("qa_run_code");

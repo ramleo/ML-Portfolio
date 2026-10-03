@@ -56,6 +56,11 @@ export const EV = {
   /** Live in the table before this file existed — kept under its original
    * spelling so existing rows stay countable. */
   SQL_EDITED: "sql_edited",
+  /** A user hand-corrected a GENERATED Playwright test before saving it. Mirrors
+   * SQL_EDITED. Content-free meta (counts + locator/assertion/other flags) so we
+   * can measure whether corrections are still frequent now that locators are
+   * grounded — the gate for the full "learn from edits" feature. */
+  TEST_EDITED: "test_edited",
 
   // ── Stage 7: failure ──────────────────────────────────────────────────
   ERROR: "error",                    // EXISTS
