@@ -220,7 +220,39 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name, o
         </div>
       </div>
 
-      {!passed && state.errorMessage && (
+      {state.tests.length > 0 && (
+        <div className="p-4 border-b" style={sectionBorder}>
+          <p className={label} style={{ color: "var(--text3)" }}>
+            Tests ({state.tests.length}) — {state.tests.filter((t) => t.status === "passed").length} passed · {state.tests.filter((t) => t.status !== "passed" && t.status !== "skipped").length} failed
+          </p>
+          <ol className="flex flex-col gap-1.5">
+            {state.tests.map((t, i) => {
+              const ok = t.status === "passed";
+              const tone = t.status === "passed" ? "#34d399" : t.status === "skipped" ? "#8aa0c6" : t.status === "timedOut" ? "#f59e0b" : "#f43f5e";
+              const kind = t.status === "passed" ? "passed" : t.status === "skipped" ? "skipped" : t.status === "timedOut" ? "timed out" : t.status === "interrupted" ? "interrupted" : "failed";
+              return (
+                <li key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+                  <div className="flex items-center gap-2.5 px-3 py-2 text-[12px]">
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: tone }} />
+                    <span className="flex-1 truncate font-mono" style={{ color: "var(--text2)" }} title={t.title}>{t.title || "(untitled test)"}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide shrink-0" style={{ color: tone }}>{kind}</span>
+                    {t.duration != null && <span className="text-[11px] tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{fmtMs(t.duration)}</span>}
+                  </div>
+                  {!ok && t.error && (
+                    <pre className="text-[11px] font-mono whitespace-pre-wrap m-0 px-3 py-2 border-t"
+                      style={{ borderColor: "var(--border)", color: "#f43f5e", maxHeight: 180, overflowY: "auto" }}>
+                      {t.error}
+                    </pre>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      {/* Fallback for older runs captured before per-test results existed. */}
+      {!passed && state.errorMessage && state.tests.length === 0 && (
         <div className="p-4 border-b" style={sectionBorder}>
           <p className={label} style={{ color: "var(--text3)" }}>Why it failed</p>
           <pre className="text-[11px] font-mono whitespace-pre-wrap m-0 px-3 py-2.5 rounded-lg"

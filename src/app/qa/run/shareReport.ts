@@ -3,7 +3,7 @@
 // a permalink. reconstruct: turn a fetched share row back into a RunState so the
 // read-only share page can reuse the existing <Result> component.
 // These routes live on the SITE origin (not the QA/HF backend), so we use plain fetch.
-import type { RunState, RunStep, RunSummary } from "./useRun";
+import type { RunState, RunStep, RunSummary, RunTest } from "./useRun";
 
 export function verdictStatus(s: RunState): "passed" | "failed" | "flaky" {
   if (s.flaky === true) return "flaky";
@@ -19,6 +19,7 @@ export type SharedRunRow = {
   summary: RunSummary | null;
   error_message: string | null;
   steps: RunStep[] | null;
+  tests?: RunTest[] | null;
   test_ms: number | null;
   total_ms: number | null;
   run_url: string | null;
@@ -91,6 +92,7 @@ export function rowToRunState(row: SharedRunRow): RunState {
     summary: row.summary ?? null,
     screenshot: null,
     steps: Array.isArray(row.steps) ? row.steps : [],
+    tests: Array.isArray(row.tests) ? row.tests : [],
     hasVideo: false,
     hasTrace: false,
     correlationId: null,

@@ -12,6 +12,11 @@ export type RunSummary = { expected: number; unexpected: number; flaky: number; 
 
 export type RunStep = { title: string; category?: string | null; duration?: number | null; ok: boolean };
 
+export type TestStatus = "passed" | "failed" | "timedOut" | "interrupted" | "skipped";
+/** One test CASE in the run (a merged suite has many) — so the result can show
+ *  WHICH tests failed and each failure's own error, not just a count. */
+export type RunTest = { title: string; status: TestStatus; duration?: number | null; error?: string | null };
+
 export type RunState = {
   phase: RunPhase;
   passed: boolean | null;
@@ -19,6 +24,7 @@ export type RunState = {
   summary: RunSummary | null;
   screenshot: string | null; // base64 png
   steps: RunStep[];
+  tests: RunTest[];
   hasVideo: boolean;
   hasTrace: boolean;
   correlationId: string | null;
@@ -46,6 +52,7 @@ type StatusResp = {
   summary?: RunSummary | null;
   screenshot_base64?: string | null;
   steps?: RunStep[];
+  tests?: RunTest[];
   has_video?: boolean;
   has_trace?: boolean;
   correlation_id?: string | null;
@@ -61,7 +68,7 @@ type StatusResp = {
 
 const IDLE: RunState = {
   phase: "idle", passed: null, conclusion: null, summary: null,
-  screenshot: null, steps: [], hasVideo: false, hasTrace: false,
+  screenshot: null, steps: [], tests: [], hasVideo: false, hasTrace: false,
   correlationId: null, runUrl: null, error: null, errorMessage: null,
   runs: null, passedRuns: null, failedRuns: null, passRate: null, flaky: null,
   totalMs: null, testMs: null,
@@ -138,6 +145,7 @@ export function useRun() {
           summary: s.summary ?? null,
           screenshot: s.screenshot_base64 ?? null,
           steps,
+          tests: s.tests ?? [],
           hasVideo: !!s.has_video,
           hasTrace: !!s.has_trace,
           correlationId: s.correlation_id ?? correlationId,
