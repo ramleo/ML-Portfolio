@@ -44,17 +44,20 @@ function FailBar({ pct, delay }: { pct: number; delay: number }) {
 
 /** A small accent-tinted icon badge + uppercase title, shared by every panel so the
  *  dashboard reads as one designed system rather than a stack of plain boxes. */
-function SectionHeader({ title, accent, icon, right }: { title: string; accent: string; icon: React.ReactNode; right?: React.ReactNode }) {
+function SectionHeader({ title, accent, icon, right, sub }: { title: string; accent: string; icon: React.ReactNode; right?: React.ReactNode; sub?: string }) {
   return (
-    <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
-      <div className="flex items-center gap-2.5">
-        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: `${accent}18`, border: `1px solid ${accent}33`, color: accent }}>
-          {icon}
-        </span>
-        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--text2)" }}>{title}</span>
+    <div className="mb-3.5">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: `${accent}18`, border: `1px solid ${accent}33`, color: accent }}>
+            {icon}
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--text2)" }}>{title}</span>
+        </div>
+        {right}
       </div>
-      {right}
+      {sub && <p className="text-[11px] mt-1.5" style={{ color: "var(--text3)" }}>{sub}</p>}
     </div>
   );
 }
@@ -226,6 +229,7 @@ export default function RunDashboard({ accent }: { accent: string }) {
         {/* Top failing tests */}
         <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
           <SectionHeader title="Top failing tests" accent={accent} icon={IconFail}
+            sub="Ranked across all runs in view — not the bar you selected above."
             right={data.topFailing.length > 0 ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${FAIL}1f`, color: FAIL_TEXT }}>{data.topFailing.length} test{data.topFailing.length === 1 ? "" : "s"}</span> : undefined} />
           {data.topFailing.length === 0 ? (
             <p className="text-[12px]" style={{ color: "var(--text3)" }}>No failures recorded — every run passed.</p>
@@ -253,6 +257,7 @@ export default function RunDashboard({ accent }: { accent: string }) {
         {/* Flakiness */}
         <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
           <SectionHeader title="Flaky tests" accent={ERR} icon={IconFlaky}
+            sub="Tests that both passed and failed across all runs in view."
             right={data.flaky.length > 0 ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${ERR}1f`, color: ERR_TEXT }}>{data.flaky.length} flaky</span> : undefined} />
           {data.flaky.length === 0 ? (
             <div className="flex items-center gap-2.5 text-[12px] rounded-xl px-3.5 py-3" style={{ background: "var(--surface)", color: "var(--text3)" }}>

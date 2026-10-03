@@ -99,8 +99,15 @@ export function computeDashboard(history: HistoryEntry[]): DashboardData {
         testSequence.push({ passed: t.status === "passed", title: t.title, runName: h.name, at: h.at });
       }
     } else {
-      for (let i = 0; i < pOf(h); i++) testSequence.push({ passed: true, title: h.name, runName: h.name, at: h.at });
-      for (let i = 0; i < fOf(h); i++) testSequence.push({ passed: false, title: h.name, runName: h.name, at: h.at });
+      // No per-test detail (durable "All runs" rows and older local runs): we don't
+      // know each test's real title, so NUMBER them within the run instead of repeating
+      // the run name — which otherwise read as "Untitled test · Untitled test" on every
+      // bar. The run name still shows as the bar's `runName` for context.
+      const total = pOf(h) + fOf(h);
+      let k = 0;
+      const tLabel = () => (total > 1 ? `Test ${++k}` : (++k, "Test"));
+      for (let i = 0; i < pOf(h); i++) testSequence.push({ passed: true, title: tLabel(), runName: h.name, at: h.at });
+      for (let i = 0; i < fOf(h); i++) testSequence.push({ passed: false, title: tLabel(), runName: h.name, at: h.at });
     }
   }
 

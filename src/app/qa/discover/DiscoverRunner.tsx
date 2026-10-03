@@ -97,7 +97,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
             page_context: state.pageContext ?? "" },
           { tool: "qa-test-author", meta: { via: "discover" } },
         );
-        setGenerated((g) => [...(g ?? []), { title: p.title, steps: p.steps, code: resp?.code || "", error: resp?.code ? undefined : "No test returned." }]);
+        setGenerated((g) => [...(g ?? []), { title: p.title, steps: p.steps, code: resp?.code || "", error: resp?.code ? undefined : "No test generated — the page has no element this scenario needs (e.g. no contact form), so nothing could be grounded. Skipped rather than inventing a test that would fail." }]);
       } catch (err) {
         setGenerated((g) => [...(g ?? []), { title: p.title, steps: p.steps, code: "", error: (err as Error).message || "Failed." }]);
       }
