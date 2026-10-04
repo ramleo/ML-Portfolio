@@ -1669,6 +1669,44 @@ monitoring tool nobody visits is not monitoring.
 
 </div>
 
+## Using the tool
+
+### What this tool does
+Clean a messy CSV before you train on it. **Deduplicate** rows, **fill missing values**
+with 8 numeric strategies (mean, median, KNN, MICE, forward or backward fill, a constant,
+or drop the row) or 5 categorical ones, **strip outliers** with the 1.5 × IQR rule, and
+**correct skew** with a log transform. It all runs in your browser — download the cleaned
+file, or send it straight through to AutoML.
+
+### Purpose
+Real data arrives dirty: duplicates, blanks, extreme values, lopsided distributions.
+Models trained on that learn the mess. Cleaning first is the unglamorous step that most
+decides whether a model is any good — this makes it a few clicks.
+
+### How to use it
+1. **Upload a CSV.**
+2. Apply fixes in order: **deduplicate** → **impute** missing values (pick a strategy per
+   column type) → **outliers** (1.5 × IQR) → **skew** (log) as needed.
+3. Preview the cleaned data, then **download** it or **send to AutoML**.
+
+### A worked example
+A CSV has duplicate rows, blank \`income\` cells, and a few extreme \`age\` values. Dedup
+removes the repeats; impute \`income\` with **KNN** (uses similar rows) instead of a flat
+mean; the **1.5 × IQR** rule flags the impossible ages; a **log** transform tames the
+skewed \`income\`. The cleaned file is ready to train on.
+
+### Reading the result
+- **Imputation strategy matters:** mean/median are quick; **KNN/MICE** estimate a missing
+  value from related columns and are usually more faithful.
+- **1.5 × IQR** marks points far outside the middle 50% of a column as outliers.
+- **Log transform** pulls in a long right tail so a skewed column behaves better.
+
+### Notes & limits
+- **Clean, then split** for a strict benchmark — imputing on the whole file before
+  splitting can leak test information into training.
+- **Dropping rows loses data** — prefer imputing unless a row is mostly empty.
+- **Tabular CSV only**, runs in your browser.
+
 ## What problem it solves
 
 Real spreadsheets are messy. Blank cells, duplicated rows, a column where 3% of
@@ -3075,6 +3113,43 @@ because of that.
 | **Find it at** | `/tools/optuna` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Squeeze more out of the model AutoML picked. A **TPE sampler** runs up to **30 trials**
+searching for better hyperparameters, scored by **5-fold cross-validation**. It runs
+**after** model selection, not before — so tuning can never inflate the score that won
+the competition in the first place.
+
+### Purpose
+Every model has dials (tree depth, learning rate, regularisation) that change its
+accuracy. Trying combinations by hand is slow and biased; Optuna searches them
+intelligently — each trial informed by the last — to find a stronger setting than the
+defaults.
+
+### How to use it
+1. Start from the **AutoML winner** (tuning runs on whichever model won).
+2. Launch **Optuna tuning** — it runs up to 30 cross-validated trials.
+3. Compare the **tuned score** to the untuned winner and keep it if it's better.
+
+### A worked example
+AutoML picks LightGBM at F1 0.82. Optuna runs 30 trials varying \`num_leaves\`,
+\`learning_rate\` and \`min_child_samples\`, each scored by 5-fold CV, and lands on a
+setting at F1 0.85. Because it ran after selection, that 0.85 is an honest improvement,
+not a number that was tuned *to* win.
+
+### Reading the result
+- **Best trial** — the hyperparameters that scored highest on cross-validation.
+- **Tuned vs untuned** — the gain over the default winner; small or zero gains are
+  normal and still honest.
+- **TPE sampler** — focuses trials on promising regions instead of random guessing.
+
+### Notes & limits
+- **Runs after model selection on purpose** — tuning before choosing would let a model
+  "win" just because it was tuned, which this avoids.
+- **Up to 30 trials** — more would cost more time for diminishing returns on a demo.
+- **Cross-validated** — the reported gain reflects generalisation, not one lucky split.
 
 ## What problem it solves
 
