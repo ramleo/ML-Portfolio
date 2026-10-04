@@ -37,16 +37,28 @@ export default function MonitorsPanel({ accent }: { accent: string }) {
   const token = ownerToken();
   const [monitors, setMonitors] = useState<Monitor[] | null>(null);
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
+    setBusy(true);
     try {
       const r = await fetch("/api/qa-run/monitor", { headers: { "x-qa-owner-token": token }, cache: "no-store" });
       const d = await r.json().catch(() => null);
       if (d?.needs_setup) { setNeedsSetup(true); setMonitors([]); return; }
       setMonitors(Array.isArray(d?.monitors) ? d.monitors : []);
     } catch { setMonitors([]); }
+    finally { setBusy(false); }
   }, [token]);
+
+  // Manual refresh: re-fetch, then briefly flash "Updated" so an unchanged list
+  // still gives feedback (an empty list looks identical before and after).
+  const refresh = async () => {
+    await load();
+    setFlash(true);
+    setTimeout(() => setFlash(false), 1400);
+  };
 
   // Fetch the monitors once on mount (and when the token changes); the setState
   // happens asynchronously after the request, which is the intended use of an effect.
@@ -68,8 +80,14 @@ export default function MonitorsPanel({ accent }: { accent: string }) {
     <div className="rounded-2xl p-4 sm:p-5" style={CARD}>
       <div className="flex items-center justify-between gap-2 mb-3">
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--text2)" }}>Monitors</span>
-        <button onClick={() => void load()} className="text-[11px] px-2.5 py-1 rounded-md border"
-          style={{ borderColor: "var(--border)", color: "var(--text2)" }}>Refresh</button>
+        <div className="flex items-center gap-2">
+          {flash && <span className="text-[11px]" style={{ color: accent }}>Updated</span>}
+          <button onClick={() => void refresh()} disabled={busy}
+            className="text-[11px] px-2.5 py-1 rounded-md border disabled:opacity-50"
+            style={{ borderColor: "var(--border)", color: "var(--text2)" }}>
+            {busy ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
       </div>
 
       {needsSetup && (
