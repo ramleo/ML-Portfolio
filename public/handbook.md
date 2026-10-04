@@ -7361,6 +7361,50 @@ result a measurement.
 
 </div>
 
+## Using the tool
+
+### What this tool does
+Upload one photo and get a **per-pixel depth map** — how near or far each pixel is —
+then watch it become a **parallax diorama**: near objects shift more than far ones as
+you move your pointer. The depth model runs on this project's own server (not a
+third-party AI provider); your photo is sent there to build the depth map, processed in
+memory, and **not stored**. The visual effects then render in your browser with WebGL.
+
+### Purpose
+Monocular depth estimation — guessing 3D structure from a single flat photo — is one of
+the more striking things a vision model can do. This tool makes it tangible: it turns
+the raw depth map into several effects you can actually see and move.
+
+### How to use it
+1. **Upload a photo** (one with clear near and far elements — a person in front of a
+   background — shows the effect best).
+2. Wait for the **depth map** to be built on the server.
+3. Pick a **mode** and move your pointer over the image:
+   - **Parallax** — near things shift more than far things as you move.
+   - **Depth map** — the raw near→far map itself.
+   - **Bokeh** — far regions blurred, near kept sharp (depth-of-field).
+   - **AR occlusion** — a placed object sits correctly in front of/behind scene depth.
+   - **3D relief** — the image pushed into a depth-shaded surface.
+
+### A worked example
+Upload a portrait with a background a few metres back. In **Parallax**, moving the
+pointer makes the subject glide against the background like a diorama. Switch to
+**Bokeh** and the background softens while the face stays sharp — the classic
+portrait-mode look, produced from the single photo's depth.
+
+### Reading the result
+- Brighter/closer vs darker/farther in the **depth map** shows what the model inferred.
+- Clean subject/background separation = a good depth estimate; fuzzy edges or haloing
+  around the subject = the model was unsure there.
+
+### Notes & limits
+- **Single-image depth is an estimate, not a measurement.** Thin objects, reflections,
+  glass and flat textureless walls are the usual trouble spots.
+- **Effects run in your browser (WebGL).** Only the depth map is computed on the
+  server; the parallax/bokeh/relief rendering is client-side.
+- **Privacy.** Your photo is used only to build the depth map, processed in memory, and
+  not retained.
+
 ## What problem it solves
 
 A photograph is flat. It records where light landed on a sensor and throws away
@@ -7642,6 +7686,48 @@ project.
 | **Find it at** | `/tools/face-liveness` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Show your face to the camera, or upload a photo, and see whether it reads as a
+**genuinely present face** or a **spoof** — a printed photo or a screen replay. This
+is the same category of check that gates face-unlock and identity verification. The
+model runs on this project's own server (not a third-party AI provider); your image is
+sent there for the check, processed in memory, and **not stored**.
+
+### Purpose
+"Is there a real, live person in front of the camera?" is the first question any
+biometric system must answer, because a face match alone can be fooled by a photo of
+the person. This tool demonstrates that liveness check — and is honest about how hard
+it is in a browser under uncontrolled lighting.
+
+### How to use it
+1. Allow **camera** access and position your face in frame, or **upload a photo**.
+2. Capture — the tool checks the image and, for the webcam, averages several frames
+   for a steadier read.
+3. Read the verdict: **Real**, **Spoof**, or **Uncertain**.
+
+### A worked example
+Point the webcam at your own face in good, even light → it reads **Real**. Now hold up
+a photo of a face on your phone screen to the camera → it should read **Spoof** (screen
+replay). In poor or uneven lighting, a genuine face can come back **Uncertain** — that
+is the tool refusing to guess, not a failure.
+
+### Reading the result
+- **Real** — the signals are consistent with a live, present face.
+- **Spoof** — patterns consistent with a printed photo or a screen (moiré, flatness,
+  reflections).
+- **Uncertain** — not enough confidence either way; try better, even lighting and a
+  face that fills the frame.
+
+### Notes & limits
+- **Lighting-sensitive by design.** Anti-spoofing is genuinely finicky under bad
+  lighting; the honest **Uncertain** state exists so the tool doesn't over-claim.
+- **Small, fast model.** It runs a compact on-server model (MiniFASNetV2-SE, ONNX,
+  ~600KB) — a demonstration, not a production identity gate.
+- **Privacy.** Your image is sent to this project's server only for the check,
+  processed in memory, and not retained.
 
 ## What problem it solves
 
@@ -10257,6 +10343,48 @@ frame strip.
 | **Find it at** | `/tools/text-to-image` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Type a description and get an image back — no input photo needed, just a prompt.
+It generates on Gemini's paid image model, so a small **daily generation budget**
+applies to keep the API cost predictable. You can refine a result with a follow-up
+edit instruction, compare versions side by side, and browse what you've made.
+
+### Purpose
+Most of this site's vision tools transform a photo you upload; this one is the
+pure-generation counterpart — it makes an image from words alone. It shows what a
+modern text-to-image model produces, with honest guardrails: a visible budget so a
+public tool can't run up an open-ended bill.
+
+### How to use it
+1. Type a **prompt** describing the image you want (be specific — subject, style,
+   lighting, composition).
+2. Pick any **options** offered (e.g. aspect ratio) and click **Generate**.
+3. To refine, give a short **edit instruction** (e.g. "make it night-time") — it
+   generates a new version from your current one rather than starting over.
+4. Use the **comparison grid** to see versions together, and the **history panel**
+   to revisit earlier generations.
+
+### A worked example
+Prompt: *"a cozy reading nook by a rain-streaked window, warm lamp light, watercolor
+style."* Generate, then edit with *"add a sleeping cat on the chair"* — the follow-up
+keeps the scene and adds the cat. Open the comparison grid to put the two side by side.
+
+### Reading the result
+- The returned image is a **JPEG** (the model returns JPEG for pure generation, not
+  PNG) — expected, not a bug.
+- Each generation and edit is a separate entry in **history**, so you can step back to
+  any earlier version.
+
+### Notes & limits
+- **Paid model, daily budget.** Generation uses a paid Gemini image model, so there
+  is a per-day cap shared across visitors; when it's reached, try again the next day.
+- **Prompt quality drives output.** Vague prompts give generic results; specific
+  subject + style + lighting cues help a lot.
+- **Generative, not factual.** It invents pixels — it is for creative imagery, not for
+  producing accurate diagrams, text, or real people.
 
 ## What problem it solves
 
