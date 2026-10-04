@@ -3514,6 +3514,45 @@ means no single cycle dominated — not that the data is definitely random.
 
 </div>
 
+## Using the tool
+
+### What this tool does
+Run the whole ML pipeline as **one sequence** instead of tool by tool. A visual canvas
+chains all seven stages together — **preprocessing → feature engineering → feature
+selection → AutoML → Optuna tuning → SHAP explanation → ensembling** — so a labelled CSV
+goes in one end and a **trained, explained model** comes out the other.
+
+### Purpose
+Each stage exists as its own tool, but real modelling runs them in order and hands one
+stage's output to the next. This stitches them into a single flow so you see the end-to-end
+path — and get the final model — without manually carrying a CSV between seven tools.
+
+### How to use it
+1. **Upload a labelled CSV** and pick the **target** column.
+2. The canvas shows the **seven stages** in order; run the pipeline.
+3. Each stage hands its output to the next: clean → engineer → select → train → tune →
+   explain → ensemble.
+4. Read the final model's score and its **SHAP** explanation at the end.
+
+### A worked example
+Feed a churn CSV in: preprocessing fills blanks and drops duplicates, feature engineering
+adds a tenure×charges interaction, selection prunes to the top features, AutoML picks
+LightGBM, Optuna tunes it, SHAP explains it, and ensembling combines the top models — one
+run, from raw file to an explained, tuned ensemble.
+
+### Reading the result
+- Follow the **canvas** left to right — each node is a stage, and its output feeds the
+  next.
+- The end carries the **winning/ensembled model**, its score, and the **SHAP** feature
+  story.
+
+### Notes & limits
+- **Tabular CSV only** (classification or regression), the same scope as the individual
+  stage tools.
+- **It's the stages combined**, so the same caveats apply (e.g. fit transforms on
+  training data for a strict benchmark).
+- **Longer than one tool** — it runs seven steps, including optional Optuna trials.
+
 ## What problem it solves
 
 Every other tool in this part of the book does one job. Clean the file. Build
@@ -3788,6 +3827,42 @@ pipeline should be; the export is how that decision leaves the tool.
 | **Find it at** | `/tools/pipeline-cinema` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Watch the **seven ML stages play out as an animation** rather than reading about them.
+Illustrated characters carry data through each step of the pipeline in turn —
+preprocessing, feature engineering, feature selection, AutoML, Optuna tuning, SHAP
+explanation and ensembling. **Nothing to upload** — it's a visual walkthrough of how the
+stages fit together.
+
+### Purpose
+The pipeline is easier to *get* when you can see data move through it. This is the
+explain-it-visually companion to Pipeline Builder: same seven stages, but as a narrated
+animation for understanding the flow, not for processing your own data.
+
+### How to use it
+1. Open the tool — it starts the animation; there's nothing to configure.
+2. Watch each stage hand its data to the next, in order.
+3. When you want to run the real thing on your own CSV, go to **Pipeline Builder** (or the
+   individual stage tools).
+
+### A worked example
+Press play: a character brings in a messy dataset, another scrubs it clean
+(preprocessing), the next crafts new columns (feature engineering), the pile is trimmed
+(selection), models race (AutoML), the winner is fine-tuned (Optuna), its reasons are
+shown (SHAP), and finally several models team up (ensembling) — the whole journey in one
+animated pass.
+
+### Reading the result
+- Each scene = **one stage**; the order is the real pipeline order.
+- It's **conceptual** — the point is the sequence and hand-offs, not real numbers.
+
+### Notes & limits
+- **No data in, no model out** — it's a demonstration, not a processing tool.
+- For real work on your data, use **Pipeline Builder** (end-to-end) or the per-stage
+  tools.
 
 ## What problem it solves
 
@@ -9923,6 +9998,41 @@ not a fallback.
 | **Find it at** | `/tools/pose-vj-visuals` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Turn on your camera and **drive a live generative particle visual with your hand
+movements**. Hand landmarks are tracked **in your browser** by MediaPipe, so **no video
+frame leaves your device**. Switch the microphone on as well and particle **size and
+density react to live volume** — raw loudness, not beat or genre detection.
+
+### Purpose
+It's a playful, privacy-first demo of real-time, on-device vision: your hand becomes the
+controller for a visual, with nothing streamed to a server. A "VJ" (video-jockey) toy that
+shows how capable in-browser ML has become.
+
+### How to use it
+1. Allow **camera** access; raise a hand into frame.
+2. Move your hand — the particles follow your hand's position and gestures.
+3. Optionally allow the **microphone** — louder sound makes particles bigger/denser.
+
+### A worked example
+Hold your hand up and sweep it across the frame — the particle cloud trails your palm.
+Open and close your hand to change the effect. Turn on the mic and talk or play music:
+the particles swell with volume and settle in quiet — a hand-and-sound-driven light show,
+all computed locally.
+
+### Reading the result
+- The visual responds to **where your hand is** and its landmarks (MediaPipe
+  HandLandmarker).
+- With the mic on, **loudness** (not rhythm) maps to particle size/density.
+
+### Notes & limits
+- **Fully client-side** — hand tracking runs as WebAssembly in your browser; **no camera
+  or mic data is uploaded** or stored.
+- **Needs a camera** and decent light for reliable hand tracking.
+- **Volume only** — it reacts to raw loudness, not beat, pitch or genre.
 
 ## What problem it solves
 
