@@ -979,6 +979,46 @@ Everything between a raw CSV and a trained, explained model — cleaning, featur
 
 </div>
 
+## Using the tool
+
+### What this tool does
+Upload a CSV and get a **trained model without writing any code**. Four algorithms —
+**Random Forest, XGBoost, LightGBM and CatBoost** — compete on 5-fold cross-validation,
+and the winner is chosen automatically (on **F1** for classification, **MAE** for
+regression). Optional **Optuna** tuning and a **SHAP** explanation then run on whichever
+model won.
+
+### Purpose
+Picking an algorithm and tuning it is the slow part of a first model. This runs the
+bake-off for you and shows the scoreboard, so you see which model actually fits your
+data — and why — instead of guessing.
+
+### How to use it
+1. **Upload a CSV** (a header row + the column you want to predict).
+2. Choose the **target column**; the tool detects **classification vs regression** from
+   it.
+3. Run — the four models train and are scored by cross-validation.
+4. Review the **leaderboard**, then optionally enable **Optuna tuning** and view the
+   **SHAP** explanation of the winner.
+
+### A worked example
+Upload a customer-churn CSV with a \`churned\` (yes/no) target. The tool detects
+classification, trains all four models, and ranks them by F1 — say LightGBM wins. Turn
+on Optuna to squeeze out a better score, then open SHAP to see that "contract length"
+and "monthly charges" drove most predictions.
+
+### Reading the result
+- **Leaderboard** — each model's cross-validated score; the winner is highlighted.
+- **F1 (classification) / MAE (regression)** — the single metric used to pick, so the
+  comparison is apples to apples.
+- **SHAP** — which features pushed the winner's predictions, and by how much.
+
+### Notes & limits
+- **Tabular CSV only** — not images, text or time series.
+- **Cross-validation picks the winner**, so the ranking reflects generalisation, not a
+  single lucky split.
+- **Optuna tuning takes longer** — it's optional; the untuned bake-off is quick.
+
 ## What problem it solves
 
 Somebody has a spreadsheet and a question about it. *Which customers will cancel?
@@ -1273,6 +1313,45 @@ someone else's benchmark.
 | **Find it at** | `/tools/drift` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Check whether **live data has drifted** away from what your model was trained on. Upload
+a new production batch and compare it against the training baseline: **PSI**, the **KS
+test** and distribution histograms for numeric columns, and **category-frequency shifts**
+for categoricals. A **trend sparkline** tracks the drift score across successive batches.
+
+### Purpose
+A model silently gets worse when the world it sees stops matching the world it was
+trained on — more than a bad metric, that is the single most common cause of production
+decay. This tool catches that shift early, before it shows up as bad predictions.
+
+### How to use it
+1. Provide the **training baseline** data and a **new production batch** (CSV).
+2. Run the comparison.
+3. Review per-column drift (PSI / KS, histograms, category shifts) and the overall
+   **drift score**; upload later batches to extend the **trend sparkline**.
+
+### A worked example
+Your model trained on last year's signups. Upload this month's batch: the **age**
+histogram has shifted younger (high PSI) and a new **referral source** category appeared
+that wasn't in training. The drift score rises — a signal to retrain before accuracy
+slips, even though no accuracy metric has dropped yet.
+
+### Reading the result
+- **PSI** — Population Stability Index; higher = more shifted (rule of thumb: >0.2 is
+  notable, >0.25 significant).
+- **KS test** — whether two numeric distributions differ significantly.
+- **Category shifts** — new/disappeared categories and changed frequencies.
+- **Trend sparkline** — drift over successive batches, so you see it building.
+
+### Notes & limits
+- **Drift ≠ worse accuracy by itself** — it's an early warning that inputs changed; pair
+  it with real outcome metrics when you have labels.
+- **Compare like with like** — the production batch should have the same columns as the
+  baseline.
+- **Statistical tests only** — no model is trained here; it's a distribution comparison.
 
 ## What problem it solves
 
@@ -1896,6 +1975,46 @@ that is how the AutoML tool in this app is built.
 | **Find it at** | `/tools/ensemble` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+Combine the strongest models instead of betting on one. It builds a **Voting**
+(VotingClassifier / VotingRegressor) or **Stacking** ensemble with a meta-learner on top
+of the AutoML winners — which typically **reduces variance** and generalises better than
+any single model on its own.
+
+### Purpose
+Different models make different mistakes. Averaging or stacking them cancels out some of
+those independent errors, so the ensemble is usually steadier than its best single
+member — the standard way competitions and production systems squeeze out the last bit of
+reliable performance.
+
+### How to use it
+1. Start from the trained models (the AutoML bake-off winners).
+2. Pick **Voting** (combine predictions directly) or **Stacking** (train a meta-learner
+   on their outputs).
+3. Build the ensemble and compare its score against the best single model.
+
+### A worked example
+AutoML leaves you with LightGBM, XGBoost and Random Forest at similar scores. A **Voting**
+ensemble of all three often edges past the best one, because where XGBoost slips on a row,
+the other two outvote it. **Stacking** can do better still by learning *how much* to trust
+each model per case.
+
+### Reading the result
+- **Voting** — equal (or weighted) say per model; simple and robust.
+- **Stacking** — a meta-learner decides how to weight each base model's output; more
+  powerful, slightly more prone to overfitting.
+- **Compare to the best single model** — the ensemble is worth it only if it actually
+  beats that baseline.
+
+### Notes & limits
+- **Not always better.** If one model dominates or the models are highly correlated, an
+  ensemble adds cost for little gain — check it against the single-model score.
+- **Slower to train and predict** than one model (it runs several).
+- **Builds on the AutoML winners** — it combines existing strong models rather than
+  training from scratch.
 
 ## What problem it solves
 
@@ -4096,6 +4215,45 @@ conversion rate look worse than it is.
 | **Find it at** | `/tools/shap` |
 
 </div>
+
+## Using the tool
+
+### What this tool does
+See **why** a model made a particular prediction, not just what it predicted. Every
+result comes with a **SHAP bar chart** showing which features pushed the prediction and
+by how much. Engineered columns are **grouped back to the original feature** they came
+from, so you read source influence rather than transform noise.
+
+### Purpose
+A score with no reason is hard to trust or act on. SHAP assigns each feature a signed
+contribution to a specific prediction — the standard, math-grounded way to answer "what
+drove this result?" — turning a black-box output into something you can explain.
+
+### How to use it
+1. Have a trained model + a row to explain (this pairs with the AutoML/prediction flow).
+2. Open the **SHAP** view for a prediction.
+3. Read the bar chart: bars to one side **pushed the prediction up**, to the other
+   **pulled it down**; longer bar = bigger impact.
+
+### A worked example
+For a loan-approval prediction, SHAP might show **income (+)** and **clean credit
+history (+)** pushing toward approval, while **high existing debt (−)** pulls against
+it. If you one-hot-encoded "region," the pieces are grouped back so you see "region"
+as one influence, not five noisy fragments.
+
+### Reading the result
+- **Direction** — which side of zero a feature's bar sits on (toward / against the
+  predicted outcome).
+- **Magnitude** — bar length = how much that feature moved this prediction.
+- **Grouped features** — engineered/encoded columns are rolled up to their source
+  feature so the story is readable.
+
+### Notes & limits
+- **Per-prediction, not global.** It explains one result; the same feature can matter
+  differently for a different row.
+- **Explains the model, not the world.** SHAP shows what the model used — if the model
+  learned a spurious pattern, SHAP will faithfully show that too.
+- **Tree models** use the exact, fast TreeExplainer.
 
 ## What problem it solves
 
