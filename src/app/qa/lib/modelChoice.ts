@@ -90,6 +90,12 @@ export function modelFields(): Record<string, string> {
   return {};
 }
 
+/** The owner token stored in this browser (set in the Model picker's owner mode),
+ *  reused to authorize owner-only actions like R8 monitoring. "" when unset. */
+export function ownerToken(): string {
+  return loadChoice().ownerToken.trim();
+}
+
 /** Short label for the current choice, for an at-a-glance badge. */
 export function choiceLabel(c: ModelChoiceState = loadChoice()): string {
   if (c.mode === "byok" && c.userKey.trim()) {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { loadDashboard, loadDurableDashboard, type DashboardData } from "./dashboardData";
 import { clearHistory } from "../run/storage";
 import OutcomesPanel from "./OutcomesPanel";
+import MonitorsPanel from "./MonitorsPanel";
 import {
   Gauge, TrendChart, useCountUp, useReducedMotion,
   PASS, FAIL, ERR, PASS_TEXT, FAIL_TEXT, ERR_TEXT,
@@ -189,6 +190,9 @@ export default function RunDashboard({ accent }: { accent: string }) {
   return (
     <div className="flex flex-col gap-5">
       {header}
+
+      {/* R8 — the owner's scheduled monitors (renders nothing without an owner token) */}
+      <MonitorsPanel accent={accent} />
 
       {/* Hero: pass-rate gauge + KPI tiles, on an accent-tinted surface with depth */}
       <div className="rounded-2xl p-5 sm:p-6 flex items-center gap-6 lg:gap-8 flex-wrap"

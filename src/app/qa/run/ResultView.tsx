@@ -5,6 +5,7 @@ import { qaUrl } from "../lib/qaClient";
 import type { RunState } from "./useRun";
 import { downloadExcel, downloadPdf } from "./reportExport";
 import { ShareButton } from "./ShareButton";
+import { MonitorButton } from "./MonitorButton";
 
 export type HealInfo = { provider?: string | null; removed: string[]; added: string[]; error?: string; pending?: boolean };
 
@@ -192,6 +193,7 @@ export function Result({ state, accent, onHeal, healing, healed, onSave, name, o
                 Save test
               </button>
               <ShareButton state={state} name={name} code={code ?? ""} accent={accent} />
+              <MonitorButton name={name} code={code ?? ""} accent={accent} />
             </>
           )}
           <button onClick={() => doExport("xlsx")} disabled={!!exporting}
