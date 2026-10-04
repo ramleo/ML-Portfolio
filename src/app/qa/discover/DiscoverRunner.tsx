@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDiscover, readDiscoverCachedUrl, type Proposal } from "./useDiscover";
 import { qaPost } from "../lib/qaClient";
 import { isFirstParty } from "../lib/ownership";
+import { modelFields } from "../lib/modelChoice";
 import OwnershipGate from "../lib/OwnershipGate";
 
 const DEFAULT_URL = "https://ml-portfolio-rho.vercel.app";
@@ -94,7 +95,7 @@ export default function DiscoverRunner({ accent }: { accent: string }) {
         const resp = await qaPost<{ code?: string; provider?: string | null }>(
           "/qa/author/generate",
           { instructions: p.steps, base_url: url.trim(), test_name: p.title,
-            page_context: state.pageContext ?? "" },
+            page_context: state.pageContext ?? "", ...modelFields() },
           { tool: "qa-test-author", meta: { via: "discover" } },
         );
         setGenerated((g) => [...(g ?? []), { title: p.title, steps: p.steps, code: resp?.code || "", error: resp?.code ? undefined : "No test generated — the page has no element this scenario needs (e.g. no contact form), so nothing could be grounded. Skipped rather than inventing a test that would fail." }]);

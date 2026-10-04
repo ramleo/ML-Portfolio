@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRun, type RunState } from "./useRun";
 import { useAutoFix } from "./useAutoFix";
 import { qaPost } from "../lib/qaClient";
+import { modelFields } from "../lib/modelChoice";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
 import { saveTest, deriveTestName, recordRun } from "./storage";
@@ -91,7 +92,7 @@ export default function RunRunner({ accent }: { accent: string }) {
     try {
       const resp = await qaPost<HealResp>(
         "/qa/run/heal",
-        { correlation_id: state.correlationId, code: original },
+        { correlation_id: state.correlationId, code: original, ...modelFields() },
         { tool: "qa-heal" },
       );
       if (!resp.healed_code) {

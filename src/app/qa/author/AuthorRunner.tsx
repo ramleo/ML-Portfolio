@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthor } from "./useAuthor";
+import ModelPicker from "../lib/ModelPicker";
 
 const DEFAULT_BASE_URL = "https://ml-portfolio-rho.vercel.app";
 
@@ -97,6 +98,8 @@ export default function AuthorRunner({ accent }: { accent: string }) {
             <span className="text-[11px]" style={{ color: "var(--text3)" }}>{steps.length}/{MAX_CHARS}</span>
           </div>
         </label>
+
+        <ModelPicker accent={accent} />
 
         <div className="flex items-center gap-3">
           <button onClick={onGenerate} disabled={!canRun}

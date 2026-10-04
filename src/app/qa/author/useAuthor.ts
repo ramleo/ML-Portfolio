@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { qaPost } from "../lib/qaClient";
+import { modelFields } from "../lib/modelChoice";
 
 export type GenerateResult = { code: string; provider: string | null };
 export type AssertSuggestion = { title: string; code: string; why: string };
@@ -29,7 +30,7 @@ export function useAuthor() {
     try {
       const data = await qaPost<{ code?: string; provider?: string | null }>(
         "/qa/author/generate",
-        { instructions: steps, base_url: baseUrl.trim(), test_name: testName.trim() },
+        { instructions: steps, base_url: baseUrl.trim(), test_name: testName.trim(), ...modelFields() },
         { tool: TOOL_ID, meta: { chars: steps.length } },
       );
       const code = data?.code ?? "";
@@ -57,7 +58,7 @@ export function useAuthor() {
     try {
       const data = await qaPost<{ suggestions?: AssertSuggestion[] }>(
         "/qa/author/assertions",
-        { code: src },
+        { code: src, ...modelFields() },
         { tool: "qa-assertions", meta: { chars: src.length } },
       );
       const list = data?.suggestions ?? [];

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { qaPost, qaGet } from "../lib/qaClient";
+import { modelFields } from "../lib/modelChoice";
 
 const TOOL_ID = "qa-heal-suite";
 const POLL_MS = 4000;
@@ -96,7 +97,7 @@ export function useHealSuite() {
       patchMember(gi, mi, { healing: true, note: undefined });
       try {
         const resp = await qaPost<{ healed_code?: string }>(
-          "/qa/run/heal", { correlation_id: m.correlationId, code: m.code }, { tool: TOOL_ID });
+          "/qa/run/heal", { correlation_id: m.correlationId, code: m.code, ...modelFields() }, { tool: TOOL_ID });
         if (!resp.healed_code) { patchMember(gi, mi, { healing: false, note: "Couldn't heal" }); continue; }
         const { passed } = await executeAndWait(resp.healed_code, m.name);
         patchMember(gi, mi, { healing: false, healed: true, passedAfter: passed, code: resp.healed_code });
