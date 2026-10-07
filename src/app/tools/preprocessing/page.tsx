@@ -18,6 +18,8 @@ import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { PREPROCESSING_GUIDE } from "./userGuide";
 import { buildPreprocessingContext } from "./preprocessingContext";
 import { EV } from "@/lib/logEvents";
 
@@ -28,6 +30,7 @@ function PreprocessingPageInner() {
   const router = useRouter();
 
   const [step, setStep]           = useState<Step>("upload");
+  const [guideOpen, setGuideOpen] = useState(false);
   const [file, setFile]           = useState<File | null>(null);
   const [dragging, setDragging]   = useState(false);
   const [analyzed, setAnalyzed]   = useState<AnalyzeResult | null>(null);
@@ -197,10 +200,22 @@ function PreprocessingPageInner() {
             <div data-wt="prep-steps">
               <StepIndicator labels={STEP_LABELS} currentIndex={STEP_KEYS.indexOf(step)} accent={ACCENT} />
             </div>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
             <ThemeToggle />
           </div>
         </div>
       </div>
+
+      <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+        guide={PREPROCESSING_GUIDE} title="Preprocessing" accent={ACCENT} toolId="preprocessing" />
 
       {/* Main content */}
       <div role="main" style={{

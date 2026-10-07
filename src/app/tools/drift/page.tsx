@@ -7,7 +7,11 @@ import ToolsAIChat from "@/components/ToolsAIChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import DriftRunner from "./DriftRunner";
 import { DriftResult, FeatureDrift } from "./driftTypes";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { DRIFT_GUIDE } from "./userGuide";
 import ToolBackNav from "@/components/ToolBackNav";
+
+const ACCENT = "#a9652d";
 
 function buildDriftContext(result: DriftResult | null): string {
   if (!result) {
@@ -43,6 +47,7 @@ function buildDriftContext(result: DriftResult | null): string {
 export default function DriftPage() {
   useToolTracking("drift");
   const [driftResult, setDriftResult] = useState<DriftResult | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
@@ -61,11 +66,23 @@ export default function DriftPage() {
             <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#fb923c", textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: "#fb923c14", border: "1px solid #fb923c30" }}>Monitor</span>
             <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Data Drift Detection</h1>
           </div>
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
             <ThemeToggle />
           </div>
         </div>
       </div>
+
+      <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+        guide={DRIFT_GUIDE} title="Data Drift Detection" accent={ACCENT} toolId="drift" />
 
       <div role="main" style={{ maxWidth: 1280, margin: "0 auto", padding: "2.5rem 1.5rem 5rem" }}>
         <DriftRunner onResult={setDriftResult} />

@@ -12,6 +12,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { StepIndicator } from "@/components/StepIndicator";
 import type { Step as AutoMLStep } from "@/lib/automlUtils";
 import { toolBackHref } from "@/lib/toolNav";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { AUTOML_GUIDE } from "./userGuide";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#3f8358";
@@ -27,6 +29,7 @@ function AutoMLPageInner() {
   const [fileLoaded, setFileLoaded]         = useState(false);
   const [trainResult, setTrainResult]       = useState<TrainResult | null>(null);
   const [modalStep, setModalStep]           = useState<AutoMLStep>("upload");
+  const [guideOpen, setGuideOpen]           = useState(false);
 
   const handleReady = useCallback((trigger: (f: File) => void) => {
     triggerRef.current = trigger;
@@ -93,10 +96,22 @@ function AutoMLPageInner() {
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <span data-wt="automl-steps"><StepIndicator labels={AUTOML_STEP_LABELS} currentIndex={AUTOML_STEP_KEYS.indexOf(modalStep)} accent={ACCENT} /></span>
+            <button onClick={() => setGuideOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+              style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              User Guide
+            </button>
             <ThemeToggle />
           </div>
         </div>
       </div>
+
+      <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+        guide={AUTOML_GUIDE} title="AutoML Pipeline" accent={ACCENT} toolId="automl" />
 
       <div role="main" style={{ maxWidth: 900, margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
         {ctxB64 && !fileLoaded && (

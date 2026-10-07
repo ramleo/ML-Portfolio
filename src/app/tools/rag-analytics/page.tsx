@@ -1,13 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ThemeToggle from "@/components/ThemeToggle";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { RAG_ANALYTICS_GUIDE } from "./userGuide";
 import AnalyticsContent from "./AnalyticsContent";
+
+const ACCENT = "#38bdf8";
 
 export default function RagAnalyticsPage() {
   useToolTracking("rag-analytics");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -31,8 +37,23 @@ export default function RagAnalyticsPage() {
 
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>RAG Usage Analytics</h1>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <button onClick={() => setGuideOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+                style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                User Guide
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
+
+          <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+            guide={RAG_ANALYTICS_GUIDE} title="RAG Usage Analytics" accent={ACCENT} toolId="rag-analytics" />
+
           <AnalyticsContent />
         </div>
       </div>

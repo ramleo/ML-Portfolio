@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useToolTracking } from "@/hooks/useAnalytics";
 import ConstellationBackground from "@/components/ConstellationBackground";
 import ToolsAIChat from "@/components/ToolsAIChat";
@@ -9,6 +9,8 @@ import TextToImageRunner, { type TextToImageRunnerHandle } from "./TextToImageRu
 import { STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from "./useTextToImageRunner";
 import { extractImagePrompt } from "@/components/chatImageIntent";
 import { extractStyleComparison } from "./chatCompareIntent";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { TEXT_TO_IMAGE_GUIDE } from "./userGuide";
 import ToolBackNav from "@/components/ToolBackNav";
 
 const ACCENT = "#b65384";
@@ -47,6 +49,7 @@ const TOOL_SUMMARY =
 export default function TextToImagePage() {
   useToolTracking("text-to-image");
   const runnerRef = useRef<TextToImageRunnerHandle>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ color: "var(--text)" }}>
@@ -103,10 +106,22 @@ export default function TextToImagePage() {
                 Type a prompt, get a generated image back — no input photo needed
               </p>
             </div>
-            <div style={{ marginLeft: "auto" }}>
+            <div className="flex items-center gap-2" style={{ marginLeft: "auto" }}>
+              <button onClick={() => setGuideOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+                style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                User Guide
+              </button>
               <ThemeToggle />
             </div>
           </div>
+
+          <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+            guide={TEXT_TO_IMAGE_GUIDE} title="Text-to-Image Generator" accent={ACCENT} toolId="text-to-image" />
 
           <TextToImageRunner ref={runnerRef} accent={ACCENT} />
         </div>

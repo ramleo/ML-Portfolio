@@ -28,19 +28,10 @@ import { buildTabs, TAB_CATEGORIES, type TabId } from "@/components/FSPanels/fsT
 import { toolBackHref } from "@/lib/toolNav";
 
 import { DEFAULT_OPTS } from "./defaultOpts";
+import { ACCENT, CARD } from "./fsConstants";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { FEATURE_SELECTION_GUIDE } from "./userGuide";
 import { EV } from "@/lib/logEvents";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const ACCENT = "#a9652d";
-
-const CARD: React.CSSProperties = {
-  background: "var(--bg-glass)",
-  backdropFilter: "blur(14px)",
-  border: "1px solid var(--border)",
-  borderRadius: 16,
-  padding: "1.25rem 1.4rem",
-};
 
 // ── Inner Page ────────────────────────────────────────────────────────────────
 
@@ -62,6 +53,7 @@ function FeatureSelectionPageInner() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [excludedCols, setExcludedCols] = useState<string[]>([]);
   const [excludeOpen, setExcludeOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
@@ -178,7 +170,9 @@ function FeatureSelectionPageInner() {
     <div style={{ minHeight: "100vh", color: "var(--text)" }}>
       <ConstellationBackground />
 
-      <FSPageHeader accent={ACCENT} onHome={() => router.push(toolBackHref("feature-selection"))} currentStep={runnerStep} />
+      <FSPageHeader accent={ACCENT} onHome={() => router.push(toolBackHref("feature-selection"))} currentStep={runnerStep} onGuideOpen={() => setGuideOpen(true)} />
+      <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+        guide={FEATURE_SELECTION_GUIDE} title="Feature Selection" accent={ACCENT} toolId="feature-selection" />
 
       <div role="main" style={{
         maxWidth: 960, margin: "0 auto",

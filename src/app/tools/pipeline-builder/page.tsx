@@ -23,12 +23,32 @@ type PipelineMode = "guided" | "express" | "ab" | null;
 import { ICONS, STAGES, fmtM, getStageCsv, type StageId } from "./stages";
 import { runExpressPipeline } from "./runExpressPipeline";
 import { trackedFetch } from "@/lib/trackedFetch";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { PIPELINE_BUILDER_GUIDE } from "./userGuide";
+
+const ACCENT = "#2f9e5e";
+
+// A compact "User Guide" header button, shared by both header variants below.
+function GuideButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+      style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      User Guide
+    </button>
+  );
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PipelineBuilderPage() {
   useToolTracking("pipeline-builder");
   const [mode, setMode] = useState<PipelineMode>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [csvB64, setCsvB64] = useState<string | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
   const [target, setTarget] = useState("");
@@ -179,7 +199,8 @@ export default function PipelineBuilderPage() {
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ padding: "1rem 1.5rem", display: "flex", alignItems: "center" }}>
             <ToolBackNav toolId="pipeline-builder" flush />
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <GuideButton onClick={() => setGuideOpen(true)} />
               <ThemeToggle />
             </div>
           </div>
@@ -187,6 +208,8 @@ export default function PipelineBuilderPage() {
             <ModeSelector onSelect={setMode} />
           </div>
         </div>
+        <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+          guide={PIPELINE_BUILDER_GUIDE} title="ML Pipeline Builder" accent={ACCENT} toolId="pipeline-builder" />
       </div>
     );
   }
@@ -208,8 +231,12 @@ export default function PipelineBuilderPage() {
           {mode === "guided" ? "Guided" : mode === "express" ? "Express" : "A/B Compare"}
         </span>
         <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "#4ade80", fontWeight: 600 }}>{doneCount}/{STAGES.length}</span>
+        <GuideButton onClick={() => setGuideOpen(true)} />
         <ThemeToggle />
       </header>
+
+      <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+        guide={PIPELINE_BUILDER_GUIDE} title="ML Pipeline Builder" accent={ACCENT} toolId="pipeline-builder" />
 
       <div role="main" style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem 1.5rem 5rem", position: "relative", zIndex: 2 }}>
         {/* Progress bar */}

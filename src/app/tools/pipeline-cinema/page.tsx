@@ -10,50 +10,15 @@ import CinemaScene from "@/components/pipeline-cinema/CinemaScene";
 import CsvUploadBar from "@/components/pipeline-cinema/CsvUploadBar";
 import { usePipelineRunner, STAGES, STAGE_META } from "./usePipelineRunner";
 import ToolBackNav from "@/components/ToolBackNav";
+import ToolGuideModal from "@/components/ToolGuideModal";
+import { PIPELINE_CINEMA_GUIDE } from "./userGuide";
+import { parseCsvB64, parseCsvPreview, PlayIcon, PauseIcon, StopIcon } from "./cinemaHelpers";
 
-function parseCsvB64(b64: string): string[] {
-  try {
-    const text = atob(b64);
-    return text
-      .split("\n")[0]
-      .split(",")
-      .map((c) => c.trim().replace(/^"|"$/g, ""))
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-function parseCsvPreview(b64: string, maxRows = 5): { columns: string[]; rows: string[][] } {
-  try {
-    const text = atob(b64);
-    const lines = text.split("\n").filter(Boolean);
-    const columns = lines[0].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
-    const rows = lines.slice(1, maxRows + 1).map((line) =>
-      line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""))
-    );
-    return { columns, rows };
-  } catch {
-    return { columns: [], rows: [] };
-  }
-}
-
-/* Transport icons. Inline SVG rather than the play, pause and stop glyphs these
-   buttons used to carry: those render as full-colour emoji on some platforms
-   and as bare typographic marks on others, and neither takes the button's own
-   colour. */
-const Icon = ({ d }: { d: string }) => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
-       aria-hidden="true" style={{ flexShrink: 0 }}>
-    <path d={d} />
-  </svg>
-);
-const PlayIcon = () => <Icon d="M6 4l14 8-14 8z" />;
-const PauseIcon = () => <Icon d="M7 4h4v16H7zM13 4h4v16h-4z" />;
-const StopIcon = () => <Icon d="M5 5h14v14H5z" />;
+const ACCENT = "#c2693f";
 
 export default function PipelineCinemaPage() {
   useToolTracking("pipeline-cinema");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   // CSV / config state
   const [csvB64, setCsvB64] = useState<string | null>(null);
@@ -129,10 +94,21 @@ export default function PipelineCinemaPage() {
             >
               ← Pipeline Builder
             </Link>
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <button onClick={() => setGuideOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border transition-colors hover:bg-[rgba(var(--fg-rgb),0.05)] shrink-0"
+                style={{ borderColor: `${ACCENT}35`, color: ACCENT }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"
+                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                User Guide
+              </button>
               <ThemeToggle />
             </div>
           </div>
+          <ToolGuideModal open={guideOpen} onClose={() => setGuideOpen(false)}
+            guide={PIPELINE_CINEMA_GUIDE} title="Pipeline Cinema" accent={ACCENT} toolId="pipeline-cinema" />
           <h1 style={{ color: "var(--text)", fontSize: "2rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
             Pipeline Cinema
           </h1>
