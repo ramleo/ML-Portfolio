@@ -101,6 +101,19 @@ jobs:
             git diff --stat -- public/handbook.md
             exit 1
           fi
+  # The handbook job proves the generated book is in sync with its sources; this
+  # proves the sources exist. A new tool with no card, or a guide authored but
+  # never wired into its page (handbook-only, invisible where the user is), both
+  # regenerate a consistent handbook that is silently missing the feature. This
+  # fails on that structural omission. It cannot catch a pure behavior change in
+  # an existing file (no footprint to enumerate) — see the script's header.
+  doc-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check documentation coverage
+        run: python3 scripts/check-doc-coverage.py
+
   build:
     runs-on: ubuntu-latest
     steps:
