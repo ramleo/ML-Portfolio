@@ -3,6 +3,9 @@ import * as Sentry from "@sentry/nextjs";
 import { clientIp, turnstileOk } from "@/lib/turnstileVerify";
 import { isAuthFailure, recordProviderAuthFailure } from "@/lib/providerAlert";
 import { traceIdFrom } from "@/lib/trace";
+import { extractUsage, recordLlmCall, type Usage } from "@/lib/llmTelemetry";
+
+type LlmResult = { text: string; usage: Usage; model: string };
 
 function buildPrompt(stats: unknown, rangeLabel: string): string {
   return `You are a data analyst reviewing a real-time analytics dashboard for an ML portfolio website (ml-portfolio — a portfolio of machine learning tools and demos).
@@ -22,7 +25,7 @@ Dashboard stats:
 ${JSON.stringify(stats, null, 2)}`;
 }
 
-async function callClaude(key: string, prompt: string): Promise<string> {
+async function callClaude(key: string, prompt: string): Promise<LlmResult> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
@@ -34,10 +37,10 @@ async function callClaude(key: string, prompt: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Claude ${res.status}`);
   const data = await res.json();
-  return data.content?.[0]?.text ?? "";
+  return { text: data.content?.[0]?.text ?? "", usage: extractUsage("claude", data), model: "claude-haiku-4-5-20251001" };
 }
 
-async function callGemini(key: string, prompt: string): Promise<string> {
+async function callGemini(key: string, prompt: string): Promise<LlmResult> {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
     {
@@ -51,10 +54,10 @@ async function callGemini(key: string, prompt: string): Promise<string> {
   );
   if (!res.ok) throw new Error(`Gemini ${res.status}`);
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? "", usage: extractUsage("gemini", data), model: "gemini-2.5-flash" };
 }
 
-async function callGroq(key: string, prompt: string): Promise<string> {
+async function callGroq(key: string, prompt: string): Promise<LlmResult> {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
@@ -71,11 +74,11 @@ async function callGroq(key: string, prompt: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Groq ${res.status}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  return { text: data.choices?.[0]?.message?.content ?? "", usage: extractUsage("groq", data), model: "qwen/qwen3.8-27b" };
 }
 
 // Same model and v2 reply shape as /api/chat's Cohere call.
-async function callCohere(key: string, prompt: string): Promise<string> {
+async function callCohere(key: string, prompt: string): Promise<LlmResult> {
   const res = await fetch("https://api.cohere.com/v2/chat", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
@@ -88,11 +91,11 @@ async function callCohere(key: string, prompt: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Cohere ${res.status}`);
   const data = await res.json();
-  return data.message?.content?.[0]?.text ?? "";
+  return { text: data.message?.content?.[0]?.text ?? "", usage: extractUsage("cohere", data), model: "command-a-03-2025" };
 }
 
 // Same model as /api/ai-tools' Mistral default.
-async function callMistral(key: string, prompt: string): Promise<string> {
+async function callMistral(key: string, prompt: string): Promise<LlmResult> {
   const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
@@ -105,7 +108,7 @@ async function callMistral(key: string, prompt: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Mistral ${res.status}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  return { text: data.choices?.[0]?.message?.content ?? "", usage: extractUsage("mistral", data), model: "mistral-small-latest" };
 }
 
 // Real /api/stats payloads are 2–4 KB; 20k leaves room for a busy month
@@ -136,7 +139,7 @@ export async function POST(req: NextRequest) {
   // the billed ones last. Providers without a key are skipped; one that fails
   // or answers empty hands over to the next, so Gemini and Claude are only
   // spent when every free provider before them could not answer.
-  const chain: [string, string | undefined, (key: string, prompt: string) => Promise<string>][] = [
+  const chain: [string, string | undefined, (key: string, prompt: string) => Promise<LlmResult>][] = [
     ["groq",    process.env.GROQ_API_KEY,      callGroq],
     ["cohere",  process.env.COHERE_API_KEY,    callCohere],
     ["mistral", process.env.MISTRAL_API_KEY,   callMistral],
@@ -149,13 +152,25 @@ export async function POST(req: NextRequest) {
   }
 
   for (const [name, key, call] of configured) {
+    const t0 = Date.now();
     try {
-      const explanation = (await call(key!, prompt)).trim();
-      if (explanation) return NextResponse.json({ explanation, provider: name });
+      const r = await call(key!, prompt);
+      const explanation = r.text.trim();
+      if (explanation) {
+        // O3: one row per call — the chain stops at the first provider that answers.
+        await recordLlmCall({ tool: "ai-explain", provider: name, model: r.model, status: "ok",
+          latencyMs: Date.now() - t0, usage: r.usage, runId: traceId, operation: "text_completion" });
+        return NextResponse.json({ explanation, provider: name });
+      }
       console.error(`[ai-explain] ${name}: empty reply`);
+      await recordLlmCall({ tool: "ai-explain", provider: name, model: r.model, status: "error",
+        errorCode: "empty_reply", latencyMs: Date.now() - t0, usage: r.usage, runId: traceId, operation: "text_completion" });
     } catch (e) {
       // Provider detail stays in the server log, not in the response.
       console.error(`[ai-explain] ${name}:`, `trace=${traceId}`, e instanceof Error ? e.message : String(e));
+      await recordLlmCall({ tool: "ai-explain", provider: name, status: "error", latencyMs: Date.now() - t0,
+        httpStatus: (e as { status?: number })?.status ?? null,
+        errorMessage: e instanceof Error ? e.message : String(e), runId: traceId, operation: "text_completion" });
       // E3: every provider here runs on a server key, so a 401/403 is a stale
       // key that silently hands over to the billed provider next in the chain —
       // record it rather than swallowing it.

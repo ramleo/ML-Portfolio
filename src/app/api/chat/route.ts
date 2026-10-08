@@ -3,6 +3,9 @@ import * as Sentry from '@sentry/nextjs';
 import { boundConversation } from '@/lib/chatLimits';
 import { isAuthFailure, recordProviderAuthFailure } from '@/lib/providerAlert';
 import { traceIdFrom } from '@/lib/trace';
+import { extractUsage, recordLlmCall, type Usage } from '@/lib/llmTelemetry';
+
+type LlmResult = { text: string; usage: Usage; model: string };
 
 const SECTION_CONTEXT: Record<string, string> = {
   hero:     "The visitor is on the hero/intro section — overview of who Ramakrishnasai is and what he builds.",
@@ -42,7 +45,7 @@ function stripThinking(text: string | undefined): string | undefined {
   return rest || undefined;
 }
 
-async function callCohere(key: string, systemPrompt: string, messages: ChatMessage[]) {
+async function callCohere(key: string, systemPrompt: string, messages: ChatMessage[]): Promise<LlmResult> {
   // Matches the shape the ML-Unified backend already uses for Cohere
   // (routers/rag/llm.py, routers/document/_llm.py): v2/chat, system as the
   // first message, and the reply at message.content[0].text — NOT the v1
@@ -70,10 +73,11 @@ async function callCohere(key: string, systemPrompt: string, messages: ChatMessa
     throw new Error(`Cohere ${res.status}: ${err.slice(0, 120)}`);
   }
   const data = await res.json();
-  return data.message?.content?.[0]?.text ?? "No response received.";
+  return { text: data.message?.content?.[0]?.text ?? "No response received.",
+           usage: extractUsage("cohere", data), model: "command-a-03-2025" };
 }
 
-async function callGemini(key: string, systemPrompt: string, messages: ChatMessage[]) {
+async function callGemini(key: string, systemPrompt: string, messages: ChatMessage[]): Promise<LlmResult> {
   const contents = messages.map((m) => ({
     role: m.role === "user" ? "user" : "model",
     parts: [{ text: m.content }],
@@ -96,10 +100,11 @@ async function callGemini(key: string, systemPrompt: string, messages: ChatMessa
     throw new Error(`Gemini ${res.status}: ${err.slice(0, 120)}`);
   }
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.";
+  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response received.",
+           usage: extractUsage("gemini", data), model: "gemini-2.5-flash" };
 }
 
-async function callClaude(key: string, systemPrompt: string, messages: ChatMessage[]) {
+async function callClaude(key: string, systemPrompt: string, messages: ChatMessage[]): Promise<LlmResult> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
@@ -117,10 +122,11 @@ async function callClaude(key: string, systemPrompt: string, messages: ChatMessa
     throw new Error(`Claude ${res.status}`);
   }
   const data = await res.json();
-  return data.content?.[0]?.text ?? "No response received.";
+  return { text: data.content?.[0]?.text ?? "No response received.",
+           usage: extractUsage("claude", data), model: "claude-haiku-4-5-20251001" };
 }
 
-async function callGroq(key: string, systemPrompt: string, messages: ChatMessage[]) {
+async function callGroq(key: string, systemPrompt: string, messages: ChatMessage[]): Promise<LlmResult> {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${key}`, 'content-type': 'application/json' },
@@ -152,7 +158,8 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
     throw new Error(`Groq ${res.status}`);
   }
   const data = await res.json();
-  return stripThinking(data.choices?.[0]?.message?.content) ?? "No response received.";
+  return { text: stripThinking(data.choices?.[0]?.message?.content) ?? "No response received.",
+           usage: extractUsage("groq", data), model: "qwen/qwen3.6-27b" };
 }
 
 export async function POST(req: NextRequest) {
@@ -169,35 +176,44 @@ export async function POST(req: NextRequest) {
 
   const systemPrompt = buildSystemPrompt(section ?? 'hero');
 
+  const t0 = Date.now();
   try {
-    let reply: string;
+    let result: LlmResult;
 
     if (provider === 'claude') {
       const key = process.env.ANTHROPIC_API_KEY;
       if (!key) return NextResponse.json({ reply: "Claude is not configured yet. Try Cohere or Groq!" });
-      reply = await callClaude(key, systemPrompt, messages);
+      result = await callClaude(key, systemPrompt, messages);
 
     } else if (provider === 'groq') {
       const key = process.env.GROQ_API_KEY;
       if (!key) return NextResponse.json({ reply: "Groq is not configured yet. Try Cohere or Claude!" });
-      reply = await callGroq(key, systemPrompt, messages);
+      result = await callGroq(key, systemPrompt, messages);
 
     } else if (provider === 'gemini') {
       const key = process.env.GEMINI_API_KEY;
       if (!key) return NextResponse.json({ reply: "Gemini is not configured yet. Try Cohere or Groq!" });
-      reply = await callGemini(key, systemPrompt, messages);
+      result = await callGemini(key, systemPrompt, messages);
 
     } else {
       // Default. Gemini is the one paid provider here, so it is no longer what
       // an unspecified request gets — it stays available as an explicit pick.
       const key = process.env.COHERE_API_KEY;
       if (!key) return NextResponse.json({ reply: "Cohere is not configured yet. Try Groq, or use the contact form to get in touch!" });
-      reply = await callCohere(key, systemPrompt, messages);
+      result = await callCohere(key, systemPrompt, messages);
     }
 
-    return NextResponse.json({ reply });
+    // O3: one row per call — provider/model/tokens/cost/latency, joined to the
+    // action by run_id (= trace id).
+    await recordLlmCall({ tool: "chat", provider, model: result.model, status: "ok",
+      latencyMs: Date.now() - t0, usage: result.usage, runId: traceId, operation: "chat" });
+    return NextResponse.json({ reply: result.text });
   } catch (e) {
     console.error('[chat] unhandled error:', `trace=${traceId}`, e);
+    const http = (e as { status?: number })?.status ?? null;
+    await recordLlmCall({ tool: "chat", provider, status: "error", latencyMs: Date.now() - t0,
+      httpStatus: http, errorMessage: e instanceof Error ? e.message : String(e),
+      runId: traceId, operation: "chat" });
     // E3: chat always uses the site's server keys, so a 401/403 is a stale key.
     if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "chat", provider, error: e, traceId });
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
