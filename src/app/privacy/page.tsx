@@ -130,6 +130,12 @@ export default function PrivacyPage() {
             typed, pasted or uploaded, no request contents, no IP address, and no recording of your
             screen.</strong> It is sent only when an error actually occurs, not on a normal visit.
           </p>
+          <p style={{ margin: 0 }}>
+            On a small sample of visits (about one in ten), Sentry also records anonymous page-speed
+            measurements — how long the page took to load and become interactive, and which page —{" "}
+            <strong>numbers only, with the same limits: nothing you typed or uploaded, no request
+            contents, no IP address, and still no recording of your screen.</strong>
+          </p>
         </Section>
 
         <Section id="logging" heading="What is recorded about your visit">
