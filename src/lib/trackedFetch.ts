@@ -14,6 +14,7 @@
  */
 import { track } from "@/hooks/useAnalytics";
 import { EV, ERR, STAGE, classifyStatus, classifyThrown, type Stage } from "@/lib/logEvents";
+import { TRACE_HEADER } from "@/lib/trace";
 
 export type TrackedFetchOptions = {
   /** Which tool made the call — the field every query starts from. */
@@ -58,8 +59,17 @@ export async function trackedFetch(
   const t0 = Date.now();
   const base = { tool, run_id: runId, ...meta };
 
+  // O1: send the run id on the wire as the trace id (unless the caller already
+  // set one), so the backend's record of this same work shares the key. This is
+  // the single chokepoint — every trackedFetch caller gets correlation for free.
+  // x-trace-id is a custom header → it triggers a CORS preflight; the Spaces
+  // allow it (allow_headers: ["*"]). Never overwrites a caller-supplied header.
+  const headers = new Headers(init?.headers);
+  if (!headers.has(TRACE_HEADER)) headers.set(TRACE_HEADER, runId);
+  const tracedInit: RequestInit = { ...init, headers };
+
   try {
-    const res = await fetch(input, init);
+    const res = await fetch(input, tracedInit);
     const latency = Date.now() - t0;
     if (res.ok) {
       // 204/205/304 must not be given a body, and a null body has nothing to
