@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { clientIp, turnstileOk } from "@/lib/turnstileVerify";
 import { isAuthFailure, recordProviderAuthFailure } from "@/lib/providerAlert";
+import { traceIdFrom } from "@/lib/trace";
 
 function buildPrompt(stats: unknown, rangeLabel: string): string {
   return `You are a data analyst reviewing a real-time analytics dashboard for an ML portfolio website (ml-portfolio — a portfolio of machine learning tools and demos).
@@ -112,6 +114,9 @@ const MAX_STATS_CHARS = 20_000;
 const MAX_RANGE_LABEL_CHARS = 60;
 
 export async function POST(req: NextRequest) {
+  const traceId = traceIdFrom(req);   // O1: correlate this action across tiers
+  Sentry.setTag("trace_id", traceId);
+
   const { stats, rangeLabel, turnstile_token } = await req.json();
 
   // This spends the site's keys on a public page, so it needs a real browser:
@@ -150,11 +155,11 @@ export async function POST(req: NextRequest) {
       console.error(`[ai-explain] ${name}: empty reply`);
     } catch (e) {
       // Provider detail stays in the server log, not in the response.
-      console.error(`[ai-explain] ${name}:`, e instanceof Error ? e.message : String(e));
+      console.error(`[ai-explain] ${name}:`, `trace=${traceId}`, e instanceof Error ? e.message : String(e));
       // E3: every provider here runs on a server key, so a 401/403 is a stale
       // key that silently hands over to the billed provider next in the chain —
       // record it rather than swallowing it.
-      if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-explain", provider: name, error: e });
+      if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-explain", provider: name, error: e, traceId });
     }
   }
   return NextResponse.json({ error: "The AI provider could not answer. Try again in a moment." }, { status: 502 });

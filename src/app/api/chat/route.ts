@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { boundConversation } from '@/lib/chatLimits';
 import { isAuthFailure, recordProviderAuthFailure } from '@/lib/providerAlert';
+import { traceIdFrom } from '@/lib/trace';
 
 const SECTION_CONTEXT: Record<string, string> = {
   hero:     "The visitor is on the hero/intro section — overview of who Ramakrishnasai is and what he builds.",
@@ -154,6 +156,11 @@ async function callGroq(key: string, systemPrompt: string, messages: ChatMessage
 }
 
 export async function POST(req: NextRequest) {
+  // O1: the id the frontend minted for this action; tag Sentry so any captured
+  // exception carries it, and thread it into the auth-failure record below.
+  const traceId = traceIdFrom(req);
+  Sentry.setTag('trace_id', traceId);
+
   const { messages: rawMessages, section, provider = 'cohere' } = await req.json();
 
   const bounded = boundConversation(rawMessages);
@@ -190,9 +197,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply });
   } catch (e) {
-    console.error('[chat] unhandled error:', e);
+    console.error('[chat] unhandled error:', `trace=${traceId}`, e);
     // E3: chat always uses the site's server keys, so a 401/403 is a stale key.
-    if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "chat", provider, error: e });
+    if (isAuthFailure(e)) await recordProviderAuthFailure({ route: "chat", provider, error: e, traceId });
     return NextResponse.json({ reply: "Something went wrong. Please try again." });
   }
 }

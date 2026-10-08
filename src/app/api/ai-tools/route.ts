@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { checkAiToolsRequest, type ChatMessage } from "@/lib/aiToolsLimits";
 import { isAuthFailure, recordProviderAuthFailure } from "@/lib/providerAlert";
+import { traceIdFrom } from "@/lib/trace";
 
 export const maxDuration = 30;
 
@@ -186,6 +188,9 @@ ${toolContext ?? "No dataset loaded yet."}`;
 }
 
 export async function POST(req: NextRequest) {
+  const traceId = traceIdFrom(req);   // O1: correlate this action across tiers
+  Sentry.setTag("trace_id", traceId);
+
   // Cohere by default: Gemini is the one billed key, so it is only ever an
   // explicit pick. Every caller in the site names its provider anyway.
   const body = await req.json();
@@ -245,10 +250,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply });
   } catch (e) {
-    console.error("[ai-tools]", e);
+    console.error("[ai-tools]", `trace=${traceId}`, e);
     // E3: only a SERVER key failing with 401/403 is the alert-worthy case — a
     // user-supplied key (userKey or the custom baseUrl path) is the caller's own.
-    if (!userKey && isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-tools", provider, error: e });
+    if (!userKey && isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-tools", provider, error: e, traceId });
     const msg = (e as Error).message ?? "Unknown error";
     return NextResponse.json({ error: msg.slice(0, 200) }, { status: 502 });
   }

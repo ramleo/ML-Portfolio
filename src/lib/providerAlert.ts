@@ -45,15 +45,17 @@ const THROTTLE_MS = 10 * 60_000;
  * a logging problem must not become a visitor-facing error.
  */
 export async function recordProviderAuthFailure(opts: {
-  route: string; provider: string; error: unknown;
+  route: string; provider: string; error: unknown; traceId?: string;
 }): Promise<void> {
-  const { route, provider, error } = opts;
+  const { route, provider, error, traceId } = opts;
   const http = authStatusOf(error);
   const message = error instanceof Error ? error.message : String(error);
 
   // Distinct, greppable tag in the server log every time, whether or not the DB
-  // write runs (e.g. locally, where analytics writes are gated off).
-  console.error(`PROVIDER_AUTH_FAIL route=${route} provider=${provider} status=${http ?? "?"} — likely a stale/dead server key`);
+  // write runs (e.g. locally, where analytics writes are gated off). trace= ties
+  // the line to the frontend action in a Vercel log search (O1); the dashboard
+  // row gets a trace_id column in O3, which is when llm_calls grows per-call.
+  console.error(`PROVIDER_AUTH_FAIL route=${route} provider=${provider} status=${http ?? "?"} trace=${traceId ?? "-"} — likely a stale/dead server key`);
 
   // Local runs are not visitors — see analyticsWrites.ts.
   if (!analyticsWritesEnabled()) return;

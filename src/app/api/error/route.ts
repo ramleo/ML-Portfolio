@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { analyticsWritesEnabled } from "@/lib/analyticsWrites";
+import { TRACE_HEADER } from "@/lib/trace";
 
 /** DIY error store (see supabase/errors.sql) — our own durable, first-party
  * error tracking alongside hosted Sentry.
@@ -50,7 +51,12 @@ export async function POST(req: NextRequest) {
     const message = clip(body.message, 1000);
     const stack = clip(body.stack, 6000);
     const session_id = clip(body.session_id, 100);
-    const meta = body.meta && typeof body.meta === "object" ? body.meta : {};
+    const meta = body.meta && typeof body.meta === "object" ? { ...body.meta } : {};
+    // O1: correlate this error to the action that caused it. The backend already
+    // sends meta.trace_id in the body; this is the fallback for any poster that
+    // carried the header but not the field. Lands in errors.meta — no migration.
+    const headerTrace = (req.headers.get(TRACE_HEADER) || "").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 64);
+    if (headerTrace && !meta.trace_id) meta.trace_id = headerTrace;
 
     // Local runs are not real errors worth storing — same gate as /api/track.
     if (!analyticsWritesEnabled()) return NextResponse.json({ ok: true, skipped: "local" }, { headers: CORS });
