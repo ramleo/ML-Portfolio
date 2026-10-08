@@ -3,6 +3,9 @@ import * as Sentry from "@sentry/nextjs";
 import { checkAiToolsRequest, type ChatMessage } from "@/lib/aiToolsLimits";
 import { isAuthFailure, recordProviderAuthFailure } from "@/lib/providerAlert";
 import { traceIdFrom } from "@/lib/trace";
+import { extractUsage, recordLlmCall, type Usage } from "@/lib/llmTelemetry";
+
+type AiToolResult = { text: string; usage: Usage };
 
 export const maxDuration = 30;
 
@@ -74,7 +77,7 @@ async function callGemini(key: string, model: string, system: string, messages: 
     throw Object.assign(new Error(friendlyGeminiError(status, body)), { status, body });
   }
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response.";
+  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response.", usage: extractUsage("gemini", data) };
 }
 
 async function callOpenAICompat(
@@ -110,7 +113,7 @@ async function callOpenAICompat(
     throw new Error(`${res.status}: ${body.slice(0, 120)}`);
   }
   const data = await res.json();
-  return stripThinking(data.choices?.[0]?.message?.content) ?? "No response.";
+  return { text: stripThinking(data.choices?.[0]?.message?.content) ?? "No response.", usage: extractUsage(providerLabel || "openai", data) };
 }
 
 async function callCohere(key: string, model: string, system: string, messages: ChatMessage[], jsonMode = false, maxTokens = 800) {
@@ -135,7 +138,7 @@ async function callCohere(key: string, model: string, system: string, messages: 
     throw new Error(`Cohere ${res.status}: ${errBody.slice(0, 120)}`);
   }
   const data = await res.json();
-  return data.message?.content?.[0]?.text ?? "No response.";
+  return { text: data.message?.content?.[0]?.text ?? "No response.", usage: extractUsage("cohere", data) };
 }
 
 async function callClaude(key: string, model: string, system: string, messages: ChatMessage[]) {
@@ -150,7 +153,7 @@ async function callClaude(key: string, model: string, system: string, messages: 
   });
   if (!res.ok) throw new Error(`Claude ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
-  return data.content?.[0]?.text ?? "No response.";
+  return { text: data.content?.[0]?.text ?? "No response.", usage: extractUsage("claude", data) };
 }
 
 function resolveKey(provider: string, userKey?: string): string {
@@ -208,8 +211,15 @@ export async function POST(req: NextRequest) {
 
   const system = buildSystem(toolContext);
 
+  // O3: record a telemetry row only for SERVER-key calls — a BYOK call (userKey
+  // or a custom baseUrl) is the caller's own spend, not ours (same scoping as
+  // the E3 auth alert below). modelUsed is tracked so the row names the real model.
+  const onServerKey = !userKey && !baseUrl;
+  const t0 = Date.now();
+  let modelUsed: string | null = model ?? null;
+
   try {
-    let reply: string;
+    let result: AiToolResult;
 
     // If caller supplied a baseUrl, use it directly (user's own provider — any OpenAI-compat endpoint)
     if (baseUrl) {
@@ -218,17 +228,19 @@ export async function POST(req: NextRequest) {
       // Bearer token to an arbitrary host hands it to whoever runs the host.
       if (!userKey?.trim()) return NextResponse.json({ error: "API key required when using a custom base URL." }, { status: 401 });
       if (!/^https:\/\//i.test(String(baseUrl))) return NextResponse.json({ error: "Custom base URL must start with https://." }, { status: 400 });
-      reply = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, "custom");
+      result = await callOpenAICompat(baseUrl, key, model ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, "custom");
     } else if (provider === "gemini") {
-      const chosenModel = model ?? "gemini-2.5-flash";
+      const chosen = model ?? "gemini-2.5-flash";
+      modelUsed = chosen;
       try {
-        reply = await callGemini(key, chosenModel, system, messages, jsonMode, maxTokens);
+        result = await callGemini(key, chosen, system, messages, jsonMode, maxTokens);
       } catch (e) {
         // Auto-retry with gemini-3.5-flash on 503 (overload only — not 429 rate limit)
         const status = (e as { status?: number }).status;
-        if (status === 503 && chosenModel !== "gemini-2.0-flash") {
+        if (status === 503 && chosen !== "gemini-2.0-flash") {
           try {
-            reply = await callGemini(key, "gemini-2.0-flash", system, messages, jsonMode, maxTokens);
+            modelUsed = "gemini-2.0-flash";
+            result = await callGemini(key, "gemini-2.0-flash", system, messages, jsonMode, maxTokens);
           } catch (e2) {
             // Both models overloaded — show the "both overloaded" message
             const s2 = (e2 as { status?: number; body?: string });
@@ -239,18 +251,33 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (provider === "claude") {
-      reply = await callClaude(key, model ?? "claude-haiku-4-5-20251001", system, messages);
+      const chosen = model ?? "claude-haiku-4-5-20251001";
+      modelUsed = chosen;
+      result = await callClaude(key, chosen, system, messages);
     } else if (provider === "cohere") {
-      reply = await callCohere(key, model ?? "command-a-03-2025", system, messages, jsonMode, maxTokens);
+      const chosen = model ?? "command-a-03-2025";
+      modelUsed = chosen;
+      result = await callCohere(key, chosen, system, messages, jsonMode, maxTokens);
     } else {
       const base = OPENAI_COMPAT[provider];
       if (!base) return NextResponse.json({ error: `Unknown provider: ${provider}` }, { status: 400 });
-      reply = await callOpenAICompat(base, key!, model ?? DEFAULT_MODELS[provider] ?? "gpt-4o-mini", system, messages, jsonMode, maxTokens, provider);
+      const chosen = model ?? DEFAULT_MODELS[provider] ?? "gpt-4o-mini";
+      modelUsed = chosen;
+      result = await callOpenAICompat(base, key!, chosen, system, messages, jsonMode, maxTokens, provider);
     }
 
-    return NextResponse.json({ reply });
+    if (onServerKey) {
+      await recordLlmCall({ tool: "ai-tools", provider, model: modelUsed, status: "ok",
+        latencyMs: Date.now() - t0, usage: result.usage, runId: traceId, operation: "chat" });
+    }
+    return NextResponse.json({ reply: result.text });
   } catch (e) {
     console.error("[ai-tools]", `trace=${traceId}`, e);
+    if (onServerKey) {
+      await recordLlmCall({ tool: "ai-tools", provider, model: modelUsed, status: "error",
+        latencyMs: Date.now() - t0, httpStatus: (e as { status?: number })?.status ?? null,
+        errorMessage: e instanceof Error ? e.message : String(e), runId: traceId, operation: "chat" });
+    }
     // E3: only a SERVER key failing with 401/403 is the alert-worthy case — a
     // user-supplied key (userKey or the custom baseUrl path) is the caller's own.
     if (!userKey && isAuthFailure(e)) await recordProviderAuthFailure({ route: "ai-tools", provider, error: e, traceId });
