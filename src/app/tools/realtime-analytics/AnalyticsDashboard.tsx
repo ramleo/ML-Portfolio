@@ -17,6 +17,7 @@ import AnalyticsHFTools from "./AnalyticsHFTools";
 import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
 import AnalyticsFeatureUsage from "./AnalyticsFeatureUsage";
 import AnalyticsErrors from "./AnalyticsErrors";
+import AnalyticsLLMPanel from "./AnalyticsLLMPanel";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
@@ -260,6 +261,9 @@ export default function AnalyticsDashboard() {
 
       {/* DIY error store — grouped faults (docs/ERROR_TRACKING.md) */}
       <AnalyticsErrors range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      {/* LLM-call telemetry — cost/tokens/latency per provider (OBSERVABILITY_PLAN.md O3) */}
+      <AnalyticsLLMPanel range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
