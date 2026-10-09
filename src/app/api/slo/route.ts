@@ -95,13 +95,22 @@ export async function GET(req: NextRequest) {
     // 1–2: LLM success rate + p95 latency
     // NB: llm_calls' timestamp column is `ts`, the errors table's is `created_at`.
     const llm = await supabase.from("llm_calls")
-      .select("status,latency_ms").gte("ts", start).lte("ts", end).limit(5000);
+      .select("status,latency_ms,http_status").gte("ts", start).lte("ts", end).limit(5000);
     if (llm.error && isMissingSchema(llm.error)) needsSetup = true;
-    const llmRows = (llm.data ?? []) as { status: string | null; latency_ms: number | null }[];
-    const total = llmRows.length;
-    const ok = llmRows.filter(r => r.status === "ok").length;
+    const llmRows = (llm.data ?? []) as { status: string | null; latency_ms: number | null; http_status: number | null }[];
+    // Exclude rate-limit 429s from the success + latency SLOs. On free-tier
+    // providers (Mistral) a 429 is an expected throttle the provider cascade
+    // recovers from — the user still gets an answer — so counting it as a failure
+    // measures provider contention, not user-facing success. Surfaced separately
+    // as rate_limited_excluded so the signal isn't hidden, just not an SLO breach.
+    const isRateLimited = (r: { status: string | null; http_status: number | null }) =>
+      r.status !== "ok" && r.http_status === 429;
+    const considered = llmRows.filter(r => !isRateLimited(r));
+    const rateLimited = llmRows.length - considered.length;
+    const total = considered.length;
+    const ok = considered.filter(r => r.status === "ok").length;
     const successRate = total ? ok / total : null;
-    const p95 = percentile(llmRows.map(r => r.latency_ms).filter((n): n is number => typeof n === "number"), 0.95);
+    const p95 = percentile(considered.map(r => r.latency_ms).filter((n): n is number => typeof n === "number"), 0.95);
 
     // 3–4: backend / frontend error counts
     const errs = await supabase.from("errors")
@@ -140,7 +149,7 @@ export async function GET(req: NextRequest) {
     ];
 
     const breached = slos.filter(s => s.status === "breach").map(s => s.id);
-    return NextResponse.json({ needs_setup: needsSetup, window_seconds: Math.round(seconds), slos, breached });
+    return NextResponse.json({ needs_setup: needsSetup, window_seconds: Math.round(seconds), slos, breached, rate_limited_excluded: rateLimited });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message, slos: [], breached: [] }, { status: 500 });
   }

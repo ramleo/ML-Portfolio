@@ -21,7 +21,7 @@ type Slo = {
   id: string; label: string; type: "ratio" | "latency" | "count";
   value: number | null; target: number; unit: string; sample: number; status: Status;
 };
-type Data = { slos: Slo[]; breached: string[]; needs_setup?: boolean };
+type Data = { slos: Slo[]; breached: string[]; needs_setup?: boolean; rate_limited_excluded?: number };
 
 interface Props {
   range: string;
@@ -102,6 +102,7 @@ export default function AnalyticsSLO({ range, customRange, rangeLabel }: Props) 
       )}
       <p className="text-[9.5px] mt-3" style={{ color: "var(--text3)" }}>
         Fast-burn signal — the slo-watch job polls this and emails on a breach. Ratio SLOs stay “—” until enough calls to judge.
+        {!!data?.rate_limited_excluded && ` ${data.rate_limited_excluded} rate-limited (429) call${data.rate_limited_excluded === 1 ? "" : "s"} excluded — expected free-tier throttling the cascade recovers from.`}
       </p>
     </div>
   );
