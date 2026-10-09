@@ -30,7 +30,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
     useJina, jinaStatus, lowConfidence,
     cacheHit, latencyMs, confirmClear, setConfirmClear,
     deepSearch, setDeepSearch, forceWeb, setForceWeb,
-    agentStep, agentDoneSteps, agentLoops, agentRewritten,
+    agentStep, agentDoneSteps, agentSpans, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence, groundedness,
     model, setModel, userKey, setUserKey, sessionId, setSessionId,
@@ -174,7 +174,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
 
           {deepSearch && (
             <div style={{ padding: "0 0.75rem", borderTop: "1px solid var(--border)", overflowY: "auto", maxHeight: 220 }}>
-              <AgentGraphDiagram activeStep={agentStep} completedSteps={agentDoneSteps} loops={agentLoops} accent={accentColor} />
+              <AgentGraphDiagram activeStep={agentStep} completedSteps={agentDoneSteps} loops={agentLoops} accent={accentColor} spans={agentSpans} />
             </div>
           )}
 

@@ -1,6 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import type { AgentSpan } from "./ragSseHandlers";
+
+// Pretty label for each backend span node name (O6). Covers the nodes that have
+// no box in the 5-node diagram (websearch, decompose) so the breakdown names them.
+const SPAN_LABEL: Record<string, string> = {
+  routing: "Route",
+  decomposing: "Decompose",
+  retrieving: "Retrieve",
+  websearch: "Web search",
+  grading: "Grade",
+  rewriting: "Rewrite",
+  generate: "Generate",
+};
 
 const NW = 178;  // node width
 const NH = 38;   // node height
@@ -27,10 +40,14 @@ interface Props {
   completedSteps: string[];
   loops:          number;
   accent:         string;
+  spans?:         AgentSpan[];
 }
 
-export default function AgentGraphDiagram({ activeStep, completedSteps, loops, accent }: Props) {
+export default function AgentGraphDiagram({ activeStep, completedSteps, loops, accent, spans }: Props) {
   const [isOpen, setIsOpen] = useState(true);
+
+  // O6: total pipeline time across all measured nodes, for the header badge.
+  const totalMs = (spans ?? []).reduce((sum, s) => sum + s.ms, 0);
 
   function statusOf(id: string): NodeStatus {
     if (activeStep === id)           return "active";
@@ -64,6 +81,12 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
         <span style={{ fontSize: "0.58rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", flex: 1 }}>
           Agent Graph
         </span>
+        {totalMs > 0 && (
+          <span style={{ fontSize: "0.55rem", fontWeight: 700, color: accent,
+            fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", marginRight: "0.4rem" }}>
+            {totalMs}ms
+          </span>
+        )}
         <button onClick={() => setIsOpen(o => !o)}
           style={{ background: "transparent", border: "none", cursor: "pointer", padding: "1px 3px", color: "var(--text3)", display: "flex", alignItems: "center" }}>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"
@@ -167,6 +190,20 @@ export default function AgentGraphDiagram({ activeStep, completedSteps, loops, a
           {!activeStep && completedSteps.length === 0 && (
             <div style={{ fontSize: "0.57rem", color: "var(--text3)", lineHeight: 1.4, marginTop: "0.25rem" }}>
               Nodes highlight live as your query flows through the graph.
+            </div>
+          )}
+
+          {/* O6: per-node timing breakdown — where the time actually went */}
+          {spans && spans.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.2rem 0.55rem", marginTop: "0.4rem",
+              paddingTop: "0.35rem", borderTop: "1px solid rgba(255,255,255,0.07)",
+              fontSize: "0.56rem", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace" }}>
+              {spans.map((s, i) => (
+                <span key={i} style={{ color: "var(--text3)" }}>
+                  <span style={{ color: "var(--text2)" }}>{SPAN_LABEL[s.node] ?? s.node}</span>{" "}
+                  {s.ms}ms
+                </span>
+              ))}
             </div>
           )}
         </div>

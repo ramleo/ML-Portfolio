@@ -4,11 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { type IngestStatus } from "./RagIngestButton";
 import { PROVIDERS } from "./toolsAiProviders";
 import { ML_UNIFIED_API } from "@/config/urls";
-import { trackedFetch, trackRunStart, trackRunError, newRunId } from "@/lib/trackedFetch";
-import { STAGE, ERR } from "@/lib/logEvents";
+import { trackedFetch, trackRunStart, newRunId } from "@/lib/trackedFetch";
 import { STEP_LABELS } from "./ToolsAIChatIcons";
 import { isImageGenerationIntent } from "./chatImageIntent";
 import { buildToolContext, sanitizeHistory, type ToolChatContext, type Message, type RagSource, type Groundedness } from "./chatContext";
+import { handleRagSseEvent, type AgentSpan, type RagSseCtx } from "./ragSseHandlers";
 
 export type { ToolChatContext, Message, RagSource, Groundedness };
 
@@ -36,6 +36,7 @@ export function useRagChat(context: ToolChatContext) {
   const [forceWeb, setForceWeb]       = useState(false);
   const [agentStep, setAgentStep]     = useState<string | null>(null);
   const [agentDoneSteps, setAgentDoneSteps] = useState<string[]>([]);
+  const [agentSpans, setAgentSpans]   = useState<AgentSpan[]>([]);
   const [agentLoops, setAgentLoops]   = useState(0);
   const [agentRewritten, setAgentRewritten] = useState(false);
   const [expandedQueries, setExpandedQueries] = useState<string[]>([]);
@@ -142,7 +143,7 @@ export function useRagChat(context: ToolChatContext) {
     setMessages([]); setSources([]); setSourcesOpen(false);
     setLowConfidence(false); setCacheHit(false); setLatencyMs(null);
     setAgentRewritten(false); setAgentLoops(0); setAgentStep(null);
-    setAgentDoneSteps([]); setExpandedQueries([]); setCandidatesRetrieved(null);
+    setAgentDoneSteps([]); setAgentSpans([]); setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
     setPrimaryProvider(null); setPrimaryFailure(null);
@@ -160,7 +161,7 @@ export function useRagChat(context: ToolChatContext) {
     setLoading(true);
     setSources([]); setSourcesOpen(false); setLowConfidence(false);
     setCacheHit(false); setLatencyMs(null); setAgentStep(null);
-    setAgentDoneSteps([]); setAgentLoops(0); setAgentRewritten(false);
+    setAgentDoneSteps([]); setAgentSpans([]); setAgentLoops(0); setAgentRewritten(false);
     setExpandedQueries([]); setCandidatesRetrieved(null);
     setAnswerSource(null); setConfidence(null);
     setServedProvider(null); setServedModel(null);
@@ -205,10 +206,18 @@ export function useRagChat(context: ToolChatContext) {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let assistantText = "";
-      let hadError = false;
-      const collectedSources: RagSource[] = [];
-      let prevStep: string | null = null;
+      const ctx: RagSseCtx = { assistantText: "", hadError: false, prevStep: null, collectedSources: [] };
+      // The dispatch for each event lives in ragSseHandlers.ts (keeps this hook
+      // under the line cap); it reads/writes `ctx` and pushes through these setters.
+      const sseDeps = {
+        runId, provider, model, useJina,
+        setAgentDoneSteps, setAgentStep, setSources, setMessages,
+        setAgentLoops, setAgentRewritten, setLowConfidence, setJinaStatus, setCacheHit,
+        setLatencyMs, setExpandedQueries, setCandidatesRetrieved, setAnswerSource,
+        setConfidence, setServedProvider, setServedModel, setPrimaryProvider,
+        setPrimaryFailure, setLikelyUsedSources, setGroundedness, setSelfCorrected,
+        setAgentSpans,
+      };
       let sseBuffer = "";
 
       while (true) {
@@ -219,64 +228,11 @@ export function useRagChat(context: ToolChatContext) {
         sseBuffer = parts.pop() ?? "";
         for (const line of parts.filter(Boolean)) {
           try {
-            const evt = JSON.parse(line.replace(/^data:\s*/, ""));
-            if (evt.type === "agent_step") {
-              const snap = prevStep; if (snap) setAgentDoneSteps(s => [...s, snap]);
-              setAgentStep(evt.step); prevStep = evt.step;
-            } else if (evt.type === "retry") {
-              // Backend is regenerating after the first answer scored low on
-              // groundedness — drop the first (weakly-grounded) attempt's
-              // bubble and sources so the retry's tokens start a clean
-              // answer instead of appending onto the discarded one.
-              assistantText = "";
-              collectedSources.length = 0;
-              setSources([]);
-              setMessages(m => (m[m.length - 1]?.role === "assistant" ? m.slice(0, -1) : m));
-            } else if (evt.type === "source") {
-              collectedSources.push(evt.doc); setSources([...collectedSources]);
-            } else if (evt.type === "done") {
-              const snap = prevStep; if (snap) setAgentDoneSteps(s => [...s, snap]);
-              setAgentStep(null);
-              if (evt.loops)     setAgentLoops(evt.loops);
-              if (evt.rewritten) setAgentRewritten(true);
-              setLowConfidence(!!evt.low_confidence && !useJina);
-              if (evt.jina_status === "ready") setJinaStatus("ready");
-              setCacheHit(!!evt.cache_hit);
-              if (typeof evt.latency_ms === "number") setLatencyMs(evt.latency_ms);
-              if (Array.isArray(evt.expanded_queries)) setExpandedQueries(evt.expanded_queries);
-              if (typeof evt.candidates_retrieved === "number") setCandidatesRetrieved(evt.candidates_retrieved);
-              if (evt.answer_source) setAnswerSource(evt.answer_source);
-              if (evt.confidence) setConfidence(evt.confidence);
-              if (evt.served_provider) setServedProvider(evt.served_provider);
-              if (evt.served_model) setServedModel(evt.served_model);
-              setPrimaryProvider(evt.primary_provider ?? null);
-              setPrimaryFailure(evt.primary_failure ?? null);
-              if (Array.isArray(evt.likely_used_sources)) setLikelyUsedSources(evt.likely_used_sources);
-              setGroundedness(evt.groundedness ?? null);
-              setSelfCorrected(!!evt.self_corrected);
-            } else if (evt.type === "token") {
-              assistantText += evt.text;
-              setMessages(m => {
-                const last = m[m.length - 1];
-                return last?.role === "assistant"
-                  ? [...m.slice(0, -1), { role: "assistant", content: assistantText }]
-                  : [...m, { role: "assistant", content: assistantText }];
-              });
-            } else if (evt.type === "error") {
-              hadError = true;
-              setMessages(m => [...m, { role: "assistant", content: `Error: ${evt.message}` }]);
-              // Delivered inside a 200 stream that then closes cleanly, so the
-              // stream wrapper would record a success while the visitor is
-              // reading an error message.
-              trackRunError("rag-chat", runId, STAGE.RUN,
-                /429|rate limit/i.test(String(evt.message ?? "")) ? ERR.RATE_LIMITED : ERR.UNKNOWN,
-                { provider, model, reason: "in_band_stream_error",
-                  message: String(evt.message ?? "").slice(0, 120) });
-            }
+            handleRagSseEvent(JSON.parse(line.replace(/^data:\s*/, "")), ctx, sseDeps);
           } catch { /* skip malformed lines */ }
         }
       }
-      if (!assistantText && !hadError)
+      if (!ctx.assistantText && !ctx.hadError)
         setMessages(m => [...m, { role: "assistant", content: "No response." }]);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
@@ -353,7 +309,7 @@ export function useRagChat(context: ToolChatContext) {
     useJina, jinaStatus, setJinaStatus, lowConfidence,
     cacheHit, latencyMs, confirmClear, setConfirmClear,
     deepSearch, setDeepSearch, forceWeb, setForceWeb,
-    agentStep, agentDoneSteps, agentLoops, agentRewritten,
+    agentStep, agentDoneSteps, agentSpans, agentLoops, agentRewritten,
     expandedQueries, candidatesRetrieved,
     answerSource, confidence, servedProvider, servedModel, primaryProvider, primaryFailure,
     likelyUsedSources, groundedness, selfCorrected,
