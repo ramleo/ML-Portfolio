@@ -17,6 +17,7 @@ import AnalyticsHFTools from "./AnalyticsHFTools";
 import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
 import AnalyticsFeatureUsage from "./AnalyticsFeatureUsage";
 import AnalyticsErrors from "./AnalyticsErrors";
+import AnalyticsPageInspector from "./AnalyticsPageInspector";
 import AnalyticsLLMPanel from "./AnalyticsLLMPanel";
 import AnalyticsSLO from "./AnalyticsSLO";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
@@ -262,6 +263,9 @@ export default function AnalyticsDashboard() {
 
       {/* DIY error store — grouped faults (docs/ERROR_TRACKING.md) */}
       <AnalyticsErrors range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      {/* Page Inspector — per-page error occurrences, drill-in log tail (OBSERVABILITY_PLAN.md A) */}
+      <AnalyticsPageInspector range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* LLM-call telemetry — cost/tokens/latency per provider (OBSERVABILITY_PLAN.md O3) */}
       <AnalyticsLLMPanel range={range} customRange={customRange} rangeLabel={rangeLabel} />
