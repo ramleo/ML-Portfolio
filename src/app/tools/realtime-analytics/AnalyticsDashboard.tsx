@@ -18,6 +18,7 @@ import AnalyticsQueryByTool from "./AnalyticsQueryByTool";
 import AnalyticsFeatureUsage from "./AnalyticsFeatureUsage";
 import AnalyticsErrors from "./AnalyticsErrors";
 import AnalyticsLLMPanel from "./AnalyticsLLMPanel";
+import AnalyticsSLO from "./AnalyticsSLO";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
@@ -264,6 +265,9 @@ export default function AnalyticsDashboard() {
 
       {/* LLM-call telemetry — cost/tokens/latency per provider (OBSERVABILITY_PLAN.md O3) */}
       <AnalyticsLLMPanel range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      {/* SLO scorecard — objectives vs targets, burn alerting (OBSERVABILITY_PLAN.md O5) */}
+      <AnalyticsSLO range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (

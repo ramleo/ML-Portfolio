@@ -1,0 +1,55 @@
+name: SLO Watch
+
+# Free burn alerting for the deployed site. Mirrors ML-Unified's security-watch.yml:
+# polls the content-free /api/slo scorecard every 30 minutes and fails this job if
+# any SLO is in "breach". A failed scheduled run triggers GitHub's own built-in
+# failure-notification email to the repo owner — zero new paid infrastructure, no
+# webhook/Slack setup. /api/slo is ungated (counts and timings only), so no secret
+# is needed. Swap-in later: point a paid alerting backend at the same endpoint.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check-slos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poll /api/slo and fail on any breach
+        env:
+          SITE_URL: "https://ml-portfolio-rho.vercel.app"
+        run: |
+          set -e
+          response=$(curl -s -w "\n%{http_code}" --max-time 60 \
+            "$SITE_URL/api/slo?window_seconds=1800")
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          if [ "$status_code" != "200" ]; then
+            echo "Could not reach /api/slo (HTTP $status_code) — the site may be redeploying or cold this cycle. Not failing the job for a single missed poll."
+            echo "$body"
+            exit 0
+          fi
+
+          echo "SLO scorecard (last 30 min): $body"
+
+          python3 - "$body" << 'PYEOF'
+          import json, sys
+          body = json.loads(sys.argv[1])
+
+          # A missing table means a migration has not run — a setup gap, not a
+          # live breach. Don't page for it; the dashboard already surfaces it.
+          if body.get("needs_setup"):
+              print("SLO tables not provisioned yet (needs_setup) — not failing.")
+              sys.exit(0)
+
+          breached = body.get("breached", [])
+          if breached:
+              detail = {s["id"]: {"value": s.get("value"), "target": s.get("target"), "status": s.get("status")}
+                        for s in body.get("slos", []) if s["id"] in breached}
+              print("SLO BREACH:", breached)
+              print("Detail:", json.dumps(detail))
+              sys.exit(1)
+          print("All SLOs within target.")
+          PYEOF
