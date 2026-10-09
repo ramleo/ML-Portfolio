@@ -24,6 +24,12 @@ const int = (v: unknown) => {
   return Number.isFinite(n) ? Math.trunc(n) : null;
 };
 
+/** cost_usd is fractional (e.g. $0.0003) — keep it as a float, not truncated. */
+const num = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 export async function POST(req: NextRequest) {
   const expected = process.env.AIRAML_LOG_TOKEN ?? "";
   if (!expected) return notFound();
@@ -55,6 +61,10 @@ export async function POST(req: NextRequest) {
       latency_ms:    int(b.latency_ms),
       session_id:    trunc(b.session_id, 80),
       run_id:        trunc(b.run_id, 80),
+      input_tokens:  int(b.input_tokens),   // O3b: backend token/cost telemetry
+      output_tokens: int(b.output_tokens),
+      cost_usd:      num(b.cost_usd),
+      operation:     trunc(b.operation, 40),
     });
     if (error) {
       console.error("llm-log: insert failed", error.message);
