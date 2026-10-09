@@ -93,8 +93,9 @@ export async function GET(req: NextRequest) {
     let needsSetup = false;
 
     // 1–2: LLM success rate + p95 latency
+    // NB: llm_calls' timestamp column is `ts`, the errors table's is `created_at`.
     const llm = await supabase.from("llm_calls")
-      .select("status,latency_ms").gte("created_at", start).lte("created_at", end).limit(5000);
+      .select("status,latency_ms").gte("ts", start).lte("ts", end).limit(5000);
     if (llm.error && isMissingSchema(llm.error)) needsSetup = true;
     const llmRows = (llm.data ?? []) as { status: string | null; latency_ms: number | null }[];
     const total = llmRows.length;

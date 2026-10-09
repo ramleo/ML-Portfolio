@@ -91,8 +91,8 @@ export async function GET(req: NextRequest) {
     const { data, error } = await getClient()
       .from("llm_calls")
       .select("provider,status,latency_ms,cost_usd,input_tokens,output_tokens")
-      .gte("created_at", start).lte("created_at", end)
-      .order("created_at", { ascending: false })
+      .gte("ts", start).lte("ts", end)
+      .order("ts", { ascending: false })
       .limit(5000);
     if (error) {
       return NextResponse.json({ needs_setup: isMissingSchema(error), error: error.message, ...summarize([]) });
