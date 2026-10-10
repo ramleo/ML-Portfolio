@@ -8,6 +8,7 @@ import { qaPost } from "../lib/qaClient";
 import { modelFields } from "../lib/modelChoice";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
+import RunLiveButton from "./RunLiveButton";
 import { saveTest, deriveTestName, recordRun } from "./storage";
 import { trackEdit } from "./corrections";
 import { isFirstParty } from "../lib/ownership";
@@ -285,6 +286,9 @@ export default function RunRunner({ accent }: { accent: string }) {
             </button>
           )}
         </div>
+
+        {/* Phase-2: run the same test on your own machine, headed, to watch it live. */}
+        <RunLiveButton code={code} baseUrl={baseUrl} testName={testName} accent={accent} />
       </div>
 
       {healInfo && <HealBanner info={healInfo} accent={accent} onConfirm={onConfirmHeal} onDiscard={onDiscardHeal} />}
