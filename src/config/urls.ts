@@ -4,7 +4,6 @@ if (!process.env.NEXT_PUBLIC_ML_UNIFIED_URL) {
 
 export const ML_UNIFIED_API    = (process.env.NEXT_PUBLIC_ML_UNIFIED_URL    ?? "").replace(/\/$/, "");
 export const ML_SQL_API        = (process.env.NEXT_PUBLIC_ML_SQL_URL        ?? "").replace(/\/$/, "");
-export const ML_ANALYTICS_API  = (process.env.NEXT_PUBLIC_ML_ANALYTICS_URL  ?? "").replace(/\/$/, "");
 
 // The Testwright QA platform. Defaults to the shared ML-Unified backend today;
 // when the /qa/* API is extracted into its own microservice, point the whole

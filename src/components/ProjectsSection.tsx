@@ -56,10 +56,11 @@ export default function ProjectsSection() {
             textAlign: "center",
           }}
         >
-          {/* The three model apps run on a free Hugging Face Space; the native
-              platforms (Testwright, Text-to-SQL) are part of this site. */}
-          The hosted model apps run on a free Hugging Face Space — if it has gone idle, the first
-          load takes a few seconds to wake up. The native platforms are part of this site.
+          {/* Every platform has a native landing page on this site. The ML /
+              EDA / Vision apps themselves run on a free Hugging Face Space
+              (entered via ?mode=); Testwright and Text-to-SQL run on this site. */}
+          The ML, EDA and Vision apps run on a free Hugging Face Space — if it has gone idle, the
+          first load takes a few seconds to wake up. Testwright and Text-to-SQL are part of this site.
         </p>
       </div>
     </section>
