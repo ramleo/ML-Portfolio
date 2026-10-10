@@ -20,6 +20,7 @@ import AnalyticsErrors from "./AnalyticsErrors";
 import AnalyticsPageInspector from "./AnalyticsPageInspector";
 import AnalyticsLLMPanel from "./AnalyticsLLMPanel";
 import AnalyticsSLO from "./AnalyticsSLO";
+import AnalyticsActivityLog from "./AnalyticsActivityLog";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
@@ -272,6 +273,9 @@ export default function AnalyticsDashboard() {
 
       {/* SLO scorecard — objectives vs targets, burn alerting (OBSERVABILITY_PLAN.md O5) */}
       <AnalyticsSLO range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      {/* Activity Log — HF-style chronological feed of every call & error (ok/warn/429/error), clickable */}
+      <AnalyticsActivityLog range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
