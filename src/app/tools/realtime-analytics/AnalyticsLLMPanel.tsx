@@ -98,7 +98,10 @@ export default function AnalyticsLLMPanel({ range, customRange, rangeLabel }: Pr
                   <span className="text-[11px] font-semibold truncate" style={{ color: "var(--text)" }}>
                     {p.provider}
                     {p.errors > 0 && (
-                      <span className="text-[10px] font-semibold ml-1.5" style={{ color: BAD }}>· {p.errors} err</span>
+                      <button type="button" title="Show these in the Activity Log"
+                        onClick={() => window.dispatchEvent(new CustomEvent("airaml:activity-focus", { detail: { filter: "warn" } }))}
+                        className="text-[10px] font-semibold ml-1.5 cursor-pointer underline-offset-2 hover:underline"
+                        style={{ color: BAD }}>· {p.errors} err</button>
                     )}
                   </span>
                   <span className="text-[10px] font-semibold tabular-nums shrink-0" style={{ color: "var(--text3)" }}>
