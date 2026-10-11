@@ -176,61 +176,18 @@ export function ModelBreakdownBar({ data }: { data: ModelStat[] }) {
     data={data.map(d => ({ label: d.model, value: d.count, display: fmt(d.count), title: d.model }))} />;
 }
 
-// ── Geo map (equirectangular, country dots) ───────────────────────────────────
-const CENTROIDS: Record<string, [number, number]> = {
-  US:[37,-95],IN:[20,78],CN:[35,104],GB:[55,-3],DE:[51,10],FR:[46,2],JP:[36,138],
-  BR:[-14,-51],AU:[-25,133],CA:[56,-106],RU:[61,105],KR:[35,127],IT:[41,12],
-  ES:[40,-3],MX:[23,-102],ID:[-0,113],NL:[52,5],SA:[23,45],TR:[38,35],PL:[51,19],
-  SE:[60,18],SG:[1,103],ZA:[-30,22],PK:[30,69],NG:[9,8],AR:[-38,-63],UA:[48,31],
-  BD:[23,90],EG:[26,30],TH:[15,100],VN:[14,108],MY:[4,101],RO:[45,24],CZ:[49,15],
-  PT:[39,-8],GR:[39,21],HU:[47,19],AT:[47,14],CH:[46,8],BE:[50,4],FI:[61,25],
-  NO:[60,8],DK:[56,9],IL:[31,34],PH:[12,121],NZ:[-40,174],HK:[22,114],TW:[23,120],
-  CL:[-35,-71],CO:[4,-74],PE:[-9,-75],VE:[6,-66],
-};
+// ── Visitors by country — row-fill bars ───────────────────────────────────────
+// A bare dot-grid without landmasses did not read as a map, and the approved
+// mockup uses ranked bars here, so this matches it. Country code -> name via the
+// platform's Intl.DisplayNames (no lookup table to maintain).
+const REGION = (() => { try { return new Intl.DisplayNames(["en"], { type: "region" }); } catch { return null; } })();
+function countryName(code: string): string {
+  try { return (REGION && REGION.of(code)) || code; } catch { return code; }
+}
 
 export function GeoMap({ data }: { data: Country[] }) {
-  const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
-  const W = 480, H = 130;
-  const toX = (lon: number) => ((lon + 180) / 360) * W;
-  const toY = (lat: number) => ((90 - lat) / 180) * H;
-  const max = Math.max(...data.map(d => d.count), 1);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setTip(null)}>
-      <rect width={W} height={H} fill="var(--bg)" rx="6"/>
-      {[-60,-30,0,30,60].map(lat => (
-        <line key={lat} x1={0} y1={toY(lat)} x2={W} y2={toY(lat)} stroke="var(--border)" strokeWidth="0.5"/>
-      ))}
-      {[-120,-60,0,60,120].map(lon => (
-        <line key={lon} x1={toX(lon)} y1={0} x2={toX(lon)} y2={H} stroke="var(--border)" strokeWidth="0.5"/>
-      ))}
-      {data.map(d => {
-        const c = CENTROIDS[d.country];
-        if (!c) return null;
-        const r = 3 + (d.count / max) * 8;
-        const cx = toX(c[1]), cy = toY(c[0]);
-        return (
-          <g key={d.country}
-            onMouseEnter={() => setTip({ x: cx, y: cy - r - 4, label: `${d.country} · ${d.count}` })}
-            className="cursor-default">
-            <circle cx={cx} cy={cy} r={r} fill="#10b981" fillOpacity="0.6" stroke="#10b981" strokeWidth="0.5" strokeOpacity="0.4"/>
-            <text x={cx} y={cy - r - 2} textAnchor="middle" fontSize="6" fill="var(--text3)">{d.country}</text>
-          </g>
-        );
-      })}
-      {data.length === 0 && (
-        <text x={W/2} y={H/2} textAnchor="middle" fontSize="10" fill="var(--text3)">No geo data yet</text>
-      )}
-      {tip && (() => {
-        const TW = 70, TH = 16;
-        const tx = Math.min(Math.max(tip.x - TW / 2, 2), W - TW - 2);
-        const ty = Math.max(tip.y - TH, 2);
-        return (
-          <g pointerEvents="none">
-            <rect x={tx} y={ty} width={TW} height={TH} rx="3" fill="var(--bg-card)" stroke="var(--border2)" strokeWidth="0.5"/>
-            <text x={tx + TW / 2} y={ty + 11} textAnchor="middle" fontSize="8" fill="var(--text)">{tip.label}</text>
-          </g>
-        );
-      })()}
-    </svg>
+    <RowBars empty="No geo data yet"
+      data={data.map(d => ({ label: countryName(d.country), value: d.count, display: fmt(d.count), title: d.country }))} />
   );
 }
