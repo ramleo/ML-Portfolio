@@ -55,7 +55,6 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
       style={{
         background: "var(--bg-glass)",
         border: "1px solid var(--border)",
-        borderLeft: `4px solid ${color}`,
       }}
     >
       {/* Header with color tint */}

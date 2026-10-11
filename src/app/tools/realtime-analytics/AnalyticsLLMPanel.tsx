@@ -91,26 +91,23 @@ export default function AnalyticsLLMPanel({ range, customRange, rangeLabel }: Pr
             <Tile label="p95 latency" value={fmtMs(stats.p95_ms)} />
           </div>
 
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             {stats.providers.map(p => (
-              <div key={p.provider}>
-                <div className="flex justify-between items-center gap-2 mb-1">
-                  <span className="text-[11px] font-semibold truncate" style={{ color: "var(--text)" }}>
-                    {p.provider}
-                    {p.errors > 0 && (
-                      <button type="button" title="Show these in the Activity Log"
-                        onClick={() => window.dispatchEvent(new CustomEvent("airaml:activity-focus", { detail: { filter: "warn" } }))}
-                        className="text-[10px] font-semibold ml-1.5 cursor-pointer underline-offset-2 hover:underline"
-                        style={{ color: BAD }}>· {p.errors} err</button>
-                    )}
-                  </span>
-                  <span className="text-[10px] font-semibold tabular-nums shrink-0" style={{ color: "var(--text3)" }}>
-                    {fmtInt(p.calls)} · {fmtCost(p.cost_usd)} · {fmtMs(p.p95_ms)}
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full" style={{ background: "var(--border)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${(p.calls / maxCalls) * 100}%`, background: ACCENT }} />
-                </div>
+              // row-fill bar: provider + err on the left, calls · cost · p95 on the right
+              <div key={p.provider} className="relative flex items-center justify-between gap-3 px-3 py-2.5 rounded-[9px] overflow-hidden" style={{ background: "var(--border)" }}>
+                <span className="absolute left-0 top-0 bottom-0 rounded-[9px]" style={{ width: `${Math.max((p.calls / maxCalls) * 100, 2)}%`, background: "rgba(129,140,248,0.26)" }} />
+                <span className="relative z-[1] text-[12px] font-semibold truncate" style={{ color: "var(--text)" }}>
+                  {p.provider}
+                  {p.errors > 0 && (
+                    <button type="button" title="Show these in the Activity Log"
+                      onClick={() => window.dispatchEvent(new CustomEvent("airaml:activity-focus", { detail: { filter: "warn" } }))}
+                      className="text-[10px] font-semibold ml-1.5 cursor-pointer underline-offset-2 hover:underline"
+                      style={{ color: BAD }}>· {p.errors} err</button>
+                  )}
+                </span>
+                <span className="relative z-[1] text-[10.5px] font-semibold tabular-nums font-mono shrink-0" style={{ color: "var(--text2)" }}>
+                  {fmtInt(p.calls)} · {fmtCost(p.cost_usd)} · {fmtMs(p.p95_ms)}
+                </span>
               </div>
             ))}
           </div>

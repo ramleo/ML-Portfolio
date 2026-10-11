@@ -24,6 +24,7 @@ import AnalyticsActivityLog from "./AnalyticsActivityLog";
 import AnalyticsPortfolioTools from "./AnalyticsPortfolioTools";
 import AnalyticsSummaryCard from "./AnalyticsSummaryCard";
 import AnalyticsAIPanel from "./AnalyticsAIPanel";
+import { SectionDivider } from "./AnalyticsBars";
 import { generateMarkdownReport } from "@/lib/analyticsReport";
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
@@ -152,6 +153,8 @@ export default function AnalyticsDashboard() {
 
       {showGuide && <AnalyticsUserGuide onClose={() => setShowGuide(false)}/>}
 
+      <SectionDivider label="Overview" />
+
       {/* Summary card + Stat cards */}
       <div data-wt="ra-cards" className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
         <AnalyticsSummaryCard
@@ -194,6 +197,8 @@ export default function AnalyticsDashboard() {
       {/* AI Explanation panel — manually triggered */}
       {showAI && <AnalyticsAIPanel stats={stats} rangeLabel={rangeLabel} />}
 
+      <SectionDivider label="Trends" />
+
       {/* Sparkline + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div data-wt="ra-sparkline" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
@@ -218,9 +223,13 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
+      <SectionDivider label="Tool Usage" />
+
       {/* HF Space Tools breakdown */}
       <AnalyticsHFTools hfTools={stats?.hf_tools ?? {}} />
       <AnalyticsPortfolioTools portfolioTools={stats?.portfolio_tools ?? {}} />
+
+      <SectionDivider label="Audience" />
 
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -262,11 +271,15 @@ export default function AnalyticsDashboard() {
       {/* Per-tool feature/control usage (FEATURE_TRACKING_SPEC.md phase 3) */}
       <AnalyticsFeatureUsage range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
+      <SectionDivider label="Quality & Errors" />
+
       {/* DIY error store — grouped faults (docs/ERROR_TRACKING.md) */}
       <AnalyticsErrors range={range} customRange={customRange} rangeLabel={rangeLabel} />
 
       {/* Page Inspector — per-page error occurrences, drill-in log tail (OBSERVABILITY_PLAN.md A) */}
       <AnalyticsPageInspector range={range} customRange={customRange} rangeLabel={rangeLabel} />
+
+      <SectionDivider label="LLM Observability" />
 
       {/* LLM-call telemetry — cost/tokens/latency per provider (OBSERVABILITY_PLAN.md O3) */}
       <AnalyticsLLMPanel range={range} customRange={customRange} rangeLabel={rangeLabel} />
@@ -300,6 +313,8 @@ export default function AnalyticsDashboard() {
           )}
         </div>
       )}
+
+      <SectionDivider label="Engagement" />
 
       {/* Error Rate + User Actions */}
       <EngagementRow

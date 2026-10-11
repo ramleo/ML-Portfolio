@@ -99,20 +99,19 @@ export default function AnalyticsFeatureUsage({ range, customRange, rangeLabel }
         </select>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         {controls.map(c => {
           const valueChips = Object.entries(c.values).sort(([, a], [, b]) => b - a);
           return (
             <div key={c.control}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-semibold" style={{ color: "var(--text)" }}>{c.control}</span>
-                <span className="text-[10px] font-semibold tabular-nums" style={{ color: ACCENT }}>{c.total}</span>
-              </div>
-              <div className="h-2 rounded-full" style={{ background: "var(--border)" }}>
-                <div className="h-full rounded-full transition-all" style={{ width: `${(c.total / max) * 100}%`, background: ACCENT }} />
+              {/* row-fill bar: the row IS the bar (flat accent = raw count) */}
+              <div className="relative flex items-center justify-between gap-3 px-3 py-2.5 rounded-[9px] overflow-hidden" style={{ background: "var(--border)" }}>
+                <span className="absolute left-0 top-0 bottom-0 rounded-[9px]" style={{ width: `${Math.max((c.total / max) * 100, 2)}%`, background: "rgba(129,140,248,0.26)" }} />
+                <span className="relative z-[1] text-[12.5px] truncate" style={{ color: "var(--text)" }}>{c.control}</span>
+                <span className="relative z-[1] text-[12.5px] font-semibold tabular-nums font-mono shrink-0" style={{ color: "var(--text)" }}>{c.total}</span>
               </div>
               {valueChips.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
+                <div className="flex flex-wrap gap-1 mt-1.5 pl-1">
                   {valueChips.map(([v, n]) => (
                     <span key={v} className="text-[8px] tabular-nums px-1.5 py-[1px] rounded-full"
                       style={{ background: `${ACCENT}18`, color: "var(--text2)", border: "1px solid var(--border)" }}>

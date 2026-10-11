@@ -13,6 +13,17 @@
 const COUNT_FILL = "rgba(129,140,248,0.26)";
 const SCORE_FILL = "linear-gradient(90deg,rgba(129,140,248,.55),rgba(56,189,248,.45) 55%,rgba(52,211,153,.6))";
 
+/** A labelled section divider — groups the dashboard into a readable scroll-story
+ * (Overview · Trends · Tool Usage · Audience · Quality · LLM Observability · Engagement). */
+export function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mt-3">
+      <h2 className="text-[11px] font-bold font-mono uppercase tracking-[0.16em] m-0" style={{ color: "var(--text2)" }}>{label}</h2>
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, var(--border2), transparent)" }} />
+    </div>
+  );
+}
+
 export interface BarRow { label: string; value: number; display?: string; title?: string; }
 
 export function RowBars({
