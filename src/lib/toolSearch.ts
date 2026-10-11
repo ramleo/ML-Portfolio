@@ -11,11 +11,15 @@ import type { Capability } from "@/data/capabilities";
  * `includes` over the description lights up almost every card on one common
  * letter) but wrong about the fix: the answer is ranking, not a narrower field.
  *
- * So: match across title, tags, subtitle and description, score each field
- * differently, and sort by score. The single-letter problem is handled by
- * DEEP_MATCH_MIN_LENGTH — one- and two-character queries only match at the
- * start of a word in a title or tag, which preserves the "type P" behaviour the
- * placeholder promises, while "malware" reaches the description.
+ * So: match across title, tags and subtitle, score each field differently, and
+ * sort by score. The single-letter problem is handled by DEEP_MATCH_MIN_LENGTH —
+ * one- and two-character queries only match at the start of a word in a title or
+ * tag, which preserves the "type P" behaviour the placeholder promises.
+ *
+ * Description prose is deliberately NOT searched: a word buried in a sentence
+ * (e.g. "timestamps in real time units") made unrelated tools surface for common
+ * words like "real". Keywords that should be findable belong in `tags`, not only
+ * in the description.
  */
 
 /** Below this length a term only matches word-starts, never a substring. */
@@ -31,7 +35,6 @@ const SCORE = {
   titleContains: 150,
   tagContains: 100,
   subtitleContains: 60,
-  descriptionContains: 20,
 } as const;
 
 /** True if any whitespace/punctuation-delimited word in `haystack` starts with `term`. */
@@ -59,7 +62,6 @@ function scoreTerm(cap: Capability, term: string): number {
     if (title.includes(term)) bump(SCORE.titleContains);
     if (cap.tags.some((t) => t.toLowerCase().includes(term))) bump(SCORE.tagContains);
     if (cap.subtitle.toLowerCase().includes(term)) bump(SCORE.subtitleContains);
-    if (cap.description.toLowerCase().includes(term)) bump(SCORE.descriptionContains);
   }
 
   return best;
