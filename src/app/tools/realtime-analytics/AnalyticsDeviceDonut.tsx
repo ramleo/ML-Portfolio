@@ -21,7 +21,9 @@ export function DeviceDonut({ data }: { data: { device: string; count: number }[
     );
   }
 
-  const CX = 50, CY = 50, R = 38, r = 22;
+  // Same geometry + font sizes as TypeDonut (AnalyticsCharts) so the two donuts in
+  // this card render at identical scale — both share a 360x140 viewBox at w-full.
+  const CX = 70, CY = 70, R = 54, r = 30;
   let angle = -Math.PI / 2;
   const slices = data.map((d, i) => {
     const frac = d.count / total;
@@ -39,17 +41,17 @@ export function DeviceDonut({ data }: { data: { device: string; count: number }[
     };
   });
   return (
-    <svg viewBox="0 0 200 100" className="w-full">
+    <svg viewBox="0 0 360 140" className="w-full">
       {slices.map((s, i) => <path key={i} d={s.d} fill={s.color} opacity="0.85"/>)}
-      {slices.map((s, i) => s.pct >= 10 && (
-        <text key={i} x={s.lx} y={s.ly + 3.5} textAnchor="middle" fontSize="7" fill="#fff" fontWeight="700" opacity="0.9">{s.pct}%</text>
+      {slices.map((s, i) => s.pct >= 8 && (
+        <text key={i} x={s.lx} y={s.ly + 3.5} textAnchor="middle" fontSize="8.5" fill="#fff" fontWeight="700" opacity="0.9" pointerEvents="none">{s.pct}%</text>
       ))}
-      <text x={CX} y={CY + 4} textAnchor="middle" fontSize="9" fill="var(--text)" fontWeight="600">{total}</text>
-      <text x={CX} y={CY + 13} textAnchor="middle" fontSize="6" fill="var(--text3)">sessions</text>
+      <text x={CX} y={CY + 4} textAnchor="middle" fontSize="11" fill="var(--text)" fontWeight="600">{total.toLocaleString()}</text>
+      <text x={CX} y={CY + 15} textAnchor="middle" fontSize="7" fill="var(--text3)">sessions</text>
       {slices.map((s, i) => (
-        <g key={i} transform={`translate(108, ${28 + i * 18})`}>
-          <rect width="7" height="7" rx="1.5" fill={s.color} opacity="0.85"/>
-          <text x="11" y="7" fontSize="8" fill="var(--text2)" className="capitalize">{s.label} — {s.pct}%</text>
+        <g key={i} transform={`translate(155, ${10 + i * 16})`}>
+          <rect width="8" height="8" rx="2" fill={s.color} opacity="0.85"/>
+          <text x="12" y="8" fontSize="9" fill="var(--text2)" className="capitalize">{s.label} — {s.pct}%</text>
         </g>
       ))}
     </svg>
