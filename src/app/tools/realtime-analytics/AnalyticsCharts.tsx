@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { pathLabel } from "./AnalyticsQueryByTool";
+import { RowBars } from "./AnalyticsBars";
 
 export interface PerMinute    { minute: string; count: number; }
 export interface TopPage      { path: string;   count: number; }
@@ -89,62 +90,15 @@ export function Sparkline({ data, color = "#10b981" }: { data: PerMinute[]; colo
   );
 }
 
-// ── Horizontal bar (top pages) ────────────────────────────────────────────────
+// ── Horizontal bars (row-fill) — top pages / referrers ────────────────────────
 export function TopPagesBar({ data }: { data: TopPage[] }) {
-  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No data yet</div>;
-  const shown = data.slice(0, 8);
-  const max = Math.max(...shown.map(d => d.count), 1);
-  const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
-  const svgH = PT + shown.length * ROW;
-  return (
-    <div className="max-h-52 overflow-y-auto">
-      <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
-        {shown.map((d, i) => {
-          const y = PT + i * ROW;
-          const bW = Math.max(((d.count / max) * (W - PL - PR)), 4);
-          const name = pathLabel(d.path);
-          const label = name.length > 22 ? name.slice(0, 21) + "…" : name;
-          return (
-            <g key={i}>
-              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
-              <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#10b981" opacity="0.75"/>
-              <text x={PL+bW+4} y={y+13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
-// ── Horizontal bar (top referrers) ───────────────────────────────────────────
-function truncateRef(ref: string): string {
-  return ref.length > 32 ? ref.slice(0, 31) + "…" : ref;
+  return <RowBars empty="No data yet"
+    data={data.map(d => ({ label: pathLabel(d.path), value: d.count, display: fmt(d.count), title: d.path }))} />;
 }
 
 export function TopReferrersBar({ data }: { data: Referrer[] }) {
-  if (!data.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No referrer data yet</div>;
-  const shown = data.slice(0, 8);
-  const max = Math.max(...shown.map(d => d.count), 1);
-  const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
-  const svgH = PT + shown.length * ROW;
-  return (
-    <div className="max-h-52 overflow-y-auto">
-      <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
-        {shown.map((d, i) => {
-          const y = PT + i * ROW;
-          const bW = Math.max(((d.count / max) * (W - PL - PR)), 4);
-          return (
-            <g key={i}>
-              <text x={PL-6} y={y+13} textAnchor="end" fontSize="9" fill="var(--text2)">{truncateRef(d.referrer)}</text>
-              <rect x={PL} y={y+3} width={bW} height={13} rx="3" fill="#6366f1" opacity="0.75"/>
-              <text x={PL+bW+4} y={y+13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
+  return <RowBars empty="No referrer data yet"
+    data={data.map(d => ({ label: d.referrer, value: d.count, display: fmt(d.count), title: d.referrer }))} />;
 }
 
 // ── Donut (by type) ───────────────────────────────────────────────────────────
@@ -191,127 +145,35 @@ export function TypeDonut({ data }: { data: ByType[] }) {
   );
 }
 
-// ── Funnel chart ──────────────────────────────────────────────────────────────
+// ── Funnel chart — row-fill, gradient (conversion % = a score) ────────────────
 export function FunnelChart({ data }: { data: Funnel }) {
   const steps = [
-    { label: "page_view", value: data.page_view, color: "#6366f1" },
-    { label: "tool_open", value: data.tool_open, color: "#10b981" },
-    { label: "query_run", value: data.query_run, color: "#f59e0b" },
+    { label: "page_view", value: data.page_view },
+    { label: "tool_open", value: data.tool_open },
+    { label: "query_run", value: data.query_run },
   ];
-  const max = Math.max(steps[0].value, 1);
-  const W = 420, BAR_H = 18, GAP = 14, PT = 4;
-  const svgH = PT + steps.length * (BAR_H + GAP);
+  const top = Math.max(steps[0].value, 1);
   return (
-    <svg viewBox={`0 0 ${W} ${svgH}`} className="w-full">
-      {steps.map((s, i) => {
-        const bW = Math.max((s.value / max) * (W - 140), 4);
-        const y = PT + i * (BAR_H + GAP);
-        const pct = i > 0 && steps[i - 1].value > 0
-          ? Math.round((s.value / steps[i - 1].value) * 100) : null;
-        return (
-          <g key={i}>
-            <text x="95" y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{s.label}</text>
-            <rect x="100" y={y} width={bW} height={BAR_H} rx="4" fill={s.color} opacity="0.75"/>
-            <text x={105 + bW} y={y + 13} fontSize="9" fill="var(--text3)">
-              {fmt(s.value)}{pct !== null ? `  (${pct}%)` : ""}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <RowBars score scroll={false} max={top}
+      data={steps.map(s => ({ label: s.label, value: s.value, display: `${fmt(s.value)} · ${Math.round((s.value / top) * 100)}%` }))} />
   );
 }
 
-// ── Tool comparison bar ───────────────────────────────────────────────────────
+// ── Tool comparison / provider / model — row-fill count bars ──────────────────
 export function ToolComparisonBar({ data }: { data: TopPage[] }) {
-  const tools = data.filter(d => d.path.startsWith("/tools/")).slice(0, 6);
-  if (!tools.length) return <div className="h-20 flex items-center justify-center text-xs text-[var(--text3)]">No tool data yet</div>;
-  const COLORS = ["#10b981","#6366f1","#f59e0b","#ec4899","#8b5cf6","#14b8a6"];
-  const max = Math.max(...tools.map(d => d.count), 1);
-  const ROW = 24, W = 480, PL = 110, PR = 48, PT = 4;
-  const svgH = PT + tools.length * ROW;
-  return (
-    <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
-      {tools.map((d, i) => {
-        const y = PT + i * ROW;
-        const bW = Math.max((d.count / max) * (W - PL - PR), 4);
-        const label = d.path.replace("/tools/", "");
-        return (
-          <g key={i}>
-            <text x={PL - 6} y={y + 15} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
-            <rect x={PL} y={y + 4} width={bW} height={15} rx="3" fill={COLORS[i % COLORS.length]} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 15} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+  const tools = data.filter(d => d.path.startsWith("/tools/"));
+  return <RowBars maxRows={6} empty="No tool data yet"
+    data={tools.map(d => ({ label: d.path.replace("/tools/", ""), value: d.count, display: fmt(d.count) }))} />;
 }
-
-// ── Provider breakdown bar ────────────────────────────────────────────────────
-const PROVIDER_COLORS: Record<string, string> = {
-  groq: "#10b981", openai: "#6366f1", anthropic: "#f59e0b",
-  cohere: "#ec4899", mistral: "#8b5cf6",
-};
 
 export function ProviderBreakdownBar({ data }: { data: ProviderStat[] }) {
-  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-[var(--text3)]">No query data yet</div>;
-  const max = Math.max(...data.map(d => d.count), 1);
-  const ROW = 22, W = 480, PL = 80, PR = 48, PT = 4;
-  const svgH = PT + data.length * ROW;
-  return (
-    <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
-      {data.map((d, i) => {
-        const y = PT + i * ROW;
-        const bW = Math.max((d.count / max) * (W - PL - PR), 4);
-        const color = PROVIDER_COLORS[d.provider.toLowerCase()] ?? "#6b7280";
-        return (
-          <g key={i}>
-            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{d.provider}</text>
-            <rect x={PL} y={y + 3} width={bW} height={13} rx="3" fill={color} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+  return <RowBars empty="No query data yet"
+    data={data.map(d => ({ label: d.provider, value: d.count, display: fmt(d.count) }))} />;
 }
 
-// ── Model breakdown bar ───────────────────────────────────────────────────────
-const MODEL_COLORS: Record<string, string> = {
-  // llama-* were retired by Groq; the keys stay so historical rows keep their
-  // colour, with the models actually in use added alongside.
-  "llama-3.3-70b-versatile": "#10b981",
-  "qwen/qwen3.8-27b": "#a78bfa",
-  "groq/compound": "#10b981",
-  "qwen/qwen3.6-27b": "#c4b5fd",
-  "command-a-03-2025": "#fb923c",
-  "gpt-4o-mini": "#6366f1",
-  "claude-haiku-4-5": "#f59e0b",
-};
-
 export function ModelBreakdownBar({ data }: { data: ModelStat[] }) {
-  if (!data.length) return <div className="h-10 flex items-center justify-center text-xs text-[var(--text3)]">No model data yet</div>;
-  const max = Math.max(...data.map(d => d.count), 1);
-  const ROW = 22, W = 480, PL = 130, PR = 48, PT = 4;
-  const svgH = PT + data.length * ROW;
-  return (
-    <svg viewBox={`0 0 ${W} ${svgH}`} style={{ height: svgH }} className="w-full">
-      {data.map((d, i) => {
-        const y = PT + i * ROW;
-        const bW = Math.max((d.count / max) * (W - PL - PR), 4);
-        const color = MODEL_COLORS[d.model] ?? "#6b7280";
-        const label = d.model.length > 20 ? d.model.slice(0, 19) + "…" : d.model;
-        return (
-          <g key={i}>
-            <text x={PL - 6} y={y + 13} textAnchor="end" fontSize="9" fill="var(--text2)">{label}</text>
-            <rect x={PL} y={y + 3} width={bW} height={13} rx="3" fill={color} opacity="0.8"/>
-            <text x={PL + bW + 5} y={y + 13} fontSize="9" fill="var(--text3)">{fmt(d.count)}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+  return <RowBars empty="No model data yet"
+    data={data.map(d => ({ label: d.model, value: d.count, display: fmt(d.count), title: d.model }))} />;
 }
 
 // ── Geo map (equirectangular, country dots) ───────────────────────────────────

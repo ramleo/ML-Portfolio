@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 
 /** Unified Activity Log — a HuggingFace-Space-style chronological feed of EVERYTHING
  * that happened: every LLM call (ok / warning / 429 / error / in-band failure) merged
- * with app errors, newest first. Warnings and errors show their reason INLINE (no
- * click needed); the row still carries http / tool / trace for joining to raw logs.
- * The list sits in a fixed-height scroller so switching filters never resizes the
- * card (which used to jump the page). Another panel can focus this log via the
- * "airaml:activity-focus" window event (sets a filter + scrolls here). */
+ * with app errors, newest first.
+ *
+ * Design: a PLAIN log — no per-row boxes, stripes or fills. Colour alone differentiates
+ * level (yellow text = warning, red text = error, everything else = ok), explained by a
+ * legend. Warnings and errors show their reason INLINE (no click). The list sits in a
+ * fixed-height scroller so switching filters never resizes the card. Another panel can
+ * focus this log via the "airaml:activity-focus" window event (sets a filter + scrolls). */
 
 type Level = "ok" | "warn" | "error";
 type Row = {
@@ -18,7 +20,6 @@ type Row = {
 type Counts = { ok: number; warn: number; error: number };
 
 const COLOR: Record<Level, string> = { ok: "#34d399", warn: "#f59e0b", error: "#f87171" };
-const WORD: Record<Level, string> = { ok: "OK", warn: "WARN", error: "ERROR" };
 
 interface Props { range: string; customRange: { start: string; end: string } | null; rangeLabel: string; }
 
@@ -36,8 +37,8 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
   const [filter, setFilter] = useState<"all" | "warn" | "error">("all");
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Let another panel (e.g. the LLM breakdown's "23 err") focus this log: set a
-  // filter and scroll it into view. Cross-component, no shared store needed.
+  // Let another panel (e.g. the LLM breakdown's "N err") focus this log: set a filter
+  // and scroll it into view. Cross-component, no shared store needed.
   useEffect(() => {
     const onFocus = (e: Event) => {
       const d = (e as CustomEvent).detail as { filter?: "all" | "warn" | "error" } | undefined;
@@ -48,9 +49,8 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
     return () => window.removeEventListener("airaml:activity-focus", onFocus);
   }, []);
 
-  // NOTE: we do NOT clear rows on a filter/range change — the previous list stays
-  // until the new one lands, so the fixed-height scroller never collapses and the
-  // page does not jump.
+  // We do NOT clear rows on a filter/range change — the previous list stays until the
+  // new one lands, so the fixed-height scroller never collapses and the page doesn't jump.
   useEffect(() => {
     let cancelled = false;
     const lvl = filter === "all" ? "" : `&level=${filter}`;
@@ -75,8 +75,10 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
     </button>
   );
 
+  const sumColor = (lvl: Level) => (lvl === "ok" ? "var(--text2)" : COLOR[lvl]);
+
   return (
-    <div ref={rootRef} id="activity-log" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5 scroll-mt-4">
+    <div ref={rootRef} id="activity-log" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5 scroll-mt-4">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">Activity Log — {rangeLabel}</p>
         <div className="flex items-center gap-1.5">
@@ -86,27 +88,32 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
         </div>
       </div>
 
-      <div className="h-[440px] overflow-y-auto flex flex-col gap-1 font-mono">
+      {/* legend — colour alone differentiates level, so say what the colours mean */}
+      <div className="flex flex-wrap gap-x-5 gap-y-1.5 mb-3 pb-3 border-b border-[var(--border)] text-[11px] font-mono" style={{ color: "var(--text3)" }}>
+        <span className="inline-flex items-center gap-1.5"><i className="w-[9px] h-[9px] rounded-[3px] shrink-0" style={{ background: COLOR.warn }} /> yellow text = warning (429 / recovered)</span>
+        <span className="inline-flex items-center gap-1.5"><i className="w-[9px] h-[9px] rounded-[3px] shrink-0" style={{ background: COLOR.error }} /> red text = error (failed or rejected output)</span>
+        <span>everything else = ok</span>
+      </div>
+
+      <div className="h-[440px] overflow-y-auto font-mono">
         {rows === null ? (
           <p className="text-[12px]" style={{ color: "var(--text3)" }}>Loading…</p>
         ) : rows.length === 0 ? (
           <p className="text-[12px]" style={{ color: "var(--text3)" }}>No activity in this range.</p>
         ) : (
           rows.map((r, i) => {
-            const showDetail = r.level !== "ok";   // warnings + errors reveal their reason inline
+            const showDetail = r.level !== "ok";
             return (
-              <div key={i} className="rounded-md border border-[var(--border)]" style={{ background: "var(--bg)" }}>
-                <div className="flex items-center gap-2 px-2.5 py-1.5">
-                  <span className="text-[9px] font-bold rounded px-1.5 py-0.5 shrink-0"
-                    style={{ color: COLOR[r.level], border: `1px solid ${COLOR[r.level]}` }}>{WORD[r.level]}</span>
-                  <span className="text-[10px] tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{fmt(r.ts)}</span>
-                  <span className="text-[11px] truncate flex-1" style={{ color: showDetail ? COLOR[r.level] : "var(--text2)" }}>{r.summary}</span>
-                  {r.latency_ms != null && <span className="text-[10px] tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{r.latency_ms}ms</span>}
+              <div key={i} className={`py-1.5 ${i > 0 ? "border-t border-[var(--border)]" : ""}`}>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-[10.5px] tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{fmt(r.ts)}</span>
+                  <span className="text-[12px] truncate flex-1" style={{ color: sumColor(r.level) }}>{r.summary}</span>
+                  {r.latency_ms != null && <span className="text-[10.5px] tabular-nums shrink-0" style={{ color: "var(--text3)" }}>{r.latency_ms}ms</span>}
                 </div>
                 {showDetail && (
-                  <div className="px-2.5 pb-2 -mt-0.5 text-[10.5px] flex flex-col gap-1" style={{ color: "var(--text2)" }}>
-                    {r.detail && <p className="break-words whitespace-pre-wrap" style={{ color: COLOR[r.level] }}>{r.detail}</p>}
-                    <div className="flex flex-wrap gap-x-4 gap-y-0.5" style={{ color: "var(--text3)" }}>
+                  <div className="pl-[14px] pt-1 flex flex-col gap-1">
+                    {r.detail && <p className="text-[11px] leading-[1.55] break-words whitespace-pre-wrap" style={{ color: COLOR[r.level] }}>{r.detail}</p>}
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px]" style={{ color: "var(--text3)" }}>
                       {r.http_status != null && <span>http: {r.http_status}</span>}
                       {r.tool && <span>tool: {r.tool}</span>}
                       {r.source && <span>source: {r.source}</span>}
@@ -120,7 +127,7 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
         )}
       </div>
       <p className="text-[9.5px] mt-3" style={{ color: "var(--text3)" }}>
-        Every call & error, newest first — OK, warnings and 429s included (not just crashes). Warnings and errors show their reason inline. Raw request logs: Vercel / HF Space, joined by trace id.
+        Every call &amp; error, newest first — OK, warnings and 429s included (not just crashes). Warnings and errors show their reason inline. Raw request logs: Vercel / HF Space, joined by trace id.
       </p>
     </div>
   );

@@ -15,18 +15,20 @@ const CARD_STYLE = {
   padding: "1.1rem 1.25rem",
 } as const;
 
-export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }: {
+/* `accent` is accepted for API compatibility but no longer tints the number — the
+ * approved redesign uses clean monochrome cards (hero number in --text, no left rail,
+ * no divider). Colour is reserved for things that carry meaning (trend chip, live dot). */
+export function StatCard({ label, value, live, suffix, raw, sub, trend }: {
   label: string; value: string | number; live?: boolean;
   suffix?: string; raw?: string; sub?: string; trend?: number | null;
   accent?: string;
 }) {
   const displayVal = raw ?? (typeof value === "number" ? value.toLocaleString() : value);
-  const color = accent ?? "var(--text)";
 
   return (
-    <div style={{ ...CARD_STYLE }}>
+    <div style={{ ...CARD_STYLE }} className="transition-transform duration-200 hover:-translate-y-[2px]">
       {/* Label row */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--text3)" }}>{label}</p>
         {live && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
         {trend != null && (
@@ -41,11 +43,8 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }
         )}
       </div>
 
-      {/* Divider */}
-      <div className="mb-2.5" style={{ height: 1, background: "var(--border)" }} />
-
-      {/* Hero number */}
-      <p className="font-bold tabular-nums leading-none" style={{ fontSize: "2rem", color }}>
+      {/* Hero number — monochrome */}
+      <p className="font-bold tabular-nums leading-none" style={{ fontSize: "2rem", color: "var(--text)" }}>
         {displayVal}
         {suffix && (
           <span className="text-sm font-normal ml-1.5" style={{ color: "var(--text3)" }}>
@@ -55,7 +54,7 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend, accent }
       </p>
 
       {sub && (
-        <p className="text-[10px] mt-2 tabular-nums" style={{ color: "var(--text3)" }}>
+        <p className="text-[10px] mt-2 tabular-nums leading-relaxed" style={{ color: "var(--text3)" }}>
           {sub}
         </p>
       )}
