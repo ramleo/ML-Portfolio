@@ -17,6 +17,23 @@ const CMD = "npx @airaml/testwright-companion";
 
 type LiveResult = { passed: boolean | null; total?: number; failed?: number; output?: string; error?: string };
 
+/** Pull the useful failure out of the companion's raw Playwright output: drop the Node
+ *  deprecation noise and ANSI codes, and prefer the error block (the "N) …" failure
+ *  through the "Error:/Timed out/Call log" lines). Falls back to the trimmed tail. */
+function extractFailure(raw: string): string {
+  const clean = raw
+    // eslint-disable-next-line no-control-regex
+    .replace(/\u001b\[[0-9;]*m/g, "")
+    .split("\n")
+    .filter((l) => !/DeprecationWarning|--trace-deprecation|^\(node:/.test(l))
+    .join("\n")
+    .trim();
+  const start = clean.search(/\n\s*\d+\)\s|\bError:|\bTimed out|\bexpect\(/);
+  const body = start > 0 ? clean.slice(start) : clean;
+  const lines = body.split("\n").filter((l) => l.trim());
+  return lines.slice(0, 40).join("\n") || clean.slice(-1500);
+}
+
 async function ping(path: string, init?: RequestInit, ms = 2500): Promise<Response> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -105,6 +122,18 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
                 ? `Passed locally ✓ (${result.total ?? 1} test${(result.total ?? 1) === 1 ? "" : "s"})`
                 : `Failed locally ✗ (${result.failed ?? 1} of ${result.total ?? 1})`}
         </div>
+      )}
+
+      {/* On a failure, show WHY — the companion returns the Playwright output; without
+          this the user only sees "Failed" and has to dig in the companion terminal. */}
+      {result && !result.error && result.passed === false && result.output && (
+        <details className="text-[11px]" open>
+          <summary className="cursor-pointer" style={{ color: "var(--text3)" }}>why it failed</summary>
+          <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded p-2 font-mono text-[10px] leading-relaxed"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text2)" }}>
+            {extractFailure(result.output)}
+          </pre>
+        </details>
       )}
     </div>
   );
