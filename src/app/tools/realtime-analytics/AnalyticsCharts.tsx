@@ -176,18 +176,4 @@ export function ModelBreakdownBar({ data }: { data: ModelStat[] }) {
     data={data.map(d => ({ label: d.model, value: d.count, display: fmt(d.count), title: d.model }))} />;
 }
 
-// ── Visitors by country — row-fill bars ───────────────────────────────────────
-// A bare dot-grid without landmasses did not read as a map, and the approved
-// mockup uses ranked bars here, so this matches it. Country code -> name via the
-// platform's Intl.DisplayNames (no lookup table to maintain).
-const REGION = (() => { try { return new Intl.DisplayNames(["en"], { type: "region" }); } catch { return null; } })();
-function countryName(code: string): string {
-  try { return (REGION && REGION.of(code)) || code; } catch { return code; }
-}
-
-export function GeoMap({ data }: { data: Country[] }) {
-  return (
-    <RowBars empty="No geo data yet"
-      data={data.map(d => ({ label: countryName(d.country), value: d.count, display: fmt(d.count), title: d.country }))} />
-  );
-}
+// Visitors-by-country (bars + map toggle) now lives in AnalyticsGeoPanel.tsx.

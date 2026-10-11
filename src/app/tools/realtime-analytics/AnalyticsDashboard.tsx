@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, GeoMap, ToolComparisonBar, ProviderBreakdownBar, ModelBreakdownBar } from "./AnalyticsCharts";
+import { Sparkline, TopPagesBar, TopReferrersBar, TypeDonut, FunnelChart, ToolComparisonBar, ProviderBreakdownBar, ModelBreakdownBar } from "./AnalyticsCharts";
+import AnalyticsGeoPanel from "./AnalyticsGeoPanel";
 import { DeviceDonut } from "./AnalyticsDeviceDonut";
 import { useRealtimeFeed } from "./useRealtimeFeed";
 import AnalyticsHeatmap from "./AnalyticsHeatmap";
@@ -237,10 +238,7 @@ export default function AnalyticsDashboard() {
           <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Top Pages — {rangeLabel}</p>
           <TopPagesBar data={stats?.top_pages ?? []}/>
         </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Visitors by Country</p>
-          <GeoMap data={stats?.top_countries ?? []}/>
-        </div>
+        <AnalyticsGeoPanel data={stats?.top_countries ?? []} rangeLabel={rangeLabel} />
       </div>
 
       {/* Top Referrers */}
