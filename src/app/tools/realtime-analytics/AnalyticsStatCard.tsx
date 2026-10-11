@@ -29,7 +29,7 @@ export function StatCard({ label, value, live, suffix, raw, sub, trend }: {
     <div style={{ ...CARD_STYLE }} className="transition-transform duration-200 hover:-translate-y-[2px]">
       {/* Label row */}
       <div className="flex items-center gap-2 mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--text3)" }}>{label}</p>
+        <p className="text-[10.5px] font-bold font-mono uppercase tracking-[0.1em]" style={{ color: "var(--text3)" }}>{label}</p>
         {live && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
         {trend != null && (
           <span

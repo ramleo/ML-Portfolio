@@ -63,7 +63,7 @@ export default function SessionPathPanel({ selectedSid, sessionEvs, sessLoading,
         <div className="flex items-center gap-2 px-4 py-3 shrink-0"
           style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>
-          <p className="text-[10px] font-semibold text-[var(--text3)] uppercase tracking-widest">Session</p>
+          <p className="text-[11px] font-semibold font-mono text-[var(--text3)] uppercase tracking-widest">Session</p>
           <code className="text-[9px] text-emerald-400/70 font-mono ml-1">{selectedSid.slice(0, 12)}…</code>
           <button onClick={onClose}
             className="ml-auto text-[var(--text3)] hover:text-[var(--text2)] text-[11px] transition-colors">

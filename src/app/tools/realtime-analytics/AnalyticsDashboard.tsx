@@ -203,7 +203,7 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div data-wt="ra-sparkline" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">{sparklineLabel}</p>
+            <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">{sparklineLabel}</p>
             {peakHour && (
               <span className="ml-auto text-[9px] px-2 py-[2px] rounded-full"
                 style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
@@ -218,7 +218,7 @@ export default function AnalyticsDashboard() {
           </>}
         </div>
         <div data-wt="ra-funnel" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Conversion Funnel — {rangeLabel}</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Conversion Funnel — {rangeLabel}</p>
           <FunnelChart data={stats?.funnel ?? { page_view: 0, tool_open: 0, query_run: 0 }}/>
         </div>
       </div>
@@ -234,25 +234,25 @@ export default function AnalyticsDashboard() {
       {/* Top pages + Geo map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Top Pages — {rangeLabel}</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Top Pages — {rangeLabel}</p>
           <TopPagesBar data={stats?.top_pages ?? []}/>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Visitors by Country</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Visitors by Country</p>
           <GeoMap data={stats?.top_countries ?? []}/>
         </div>
       </div>
 
       {/* Top Referrers */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Top Referrers — {rangeLabel}</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Top Referrers — {rangeLabel}</p>
         <TopReferrersBar data={stats?.top_referrers ?? []}/>
       </div>
 
       {/* Hourly heatmap — last 7 days */}
       {(stats?.heatmap ?? []).length > 0 && (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Activity Heatmap — Last 7 Days</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Activity Heatmap — Last 7 Days</p>
           <AnalyticsHeatmap data={stats!.heatmap}/>
         </div>
       )}
@@ -260,7 +260,7 @@ export default function AnalyticsDashboard() {
       {/* Tool comparison */}
       {(stats?.top_pages ?? []).some(p => p.path.startsWith("/tools/")) && (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Tool Usage Comparison — {rangeLabel}</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Tool Usage Comparison — {rangeLabel}</p>
           <ToolComparisonBar data={stats?.top_pages ?? []}/>
         </div>
       )}
@@ -293,7 +293,7 @@ export default function AnalyticsDashboard() {
       {/* AI Provider + Model usage — only shown when there is data */}
       {((stats?.provider_breakdown ?? []).length > 0 || (stats?.model_breakdown ?? []).length > 0) && (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">AI Model Usage — {rangeLabel}</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">AI Model Usage — {rangeLabel}</p>
           {(stats?.provider_breakdown ?? []).length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
@@ -327,9 +327,9 @@ export default function AnalyticsDashboard() {
       {/* Donuts + Live feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">Events by Type</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">Events by Type</p>
           <TypeDonut data={stats?.by_type ?? []}/>
-          <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mt-4 mb-2">Visitors by Device</p>
+          <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mt-4 mb-2">Visitors by Device</p>
           <DeviceDonut data={stats?.device_breakdown ?? []}/>
         </div>
         <div data-wt="ra-feed">

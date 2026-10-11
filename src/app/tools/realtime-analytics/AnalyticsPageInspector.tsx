@@ -71,7 +71,7 @@ export default function AnalyticsPageInspector({ range, customRange, rangeLabel 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">Page Inspector — {rangeLabel}</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">Page Inspector — {rangeLabel}</p>
         {routes.length > 0 && (
           <select
             value={selected}

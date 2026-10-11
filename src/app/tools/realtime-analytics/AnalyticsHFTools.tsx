@@ -60,7 +60,7 @@ function ToolCard({ tool, actions, isTop }: { tool: string; actions: Record<stri
       {/* Header with color tint */}
       <div className="px-4 pt-4 pb-3" style={{ background: `${color}08` }}>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: `${color}cc` }}>
+          <span className="text-[10px] font-bold font-mono uppercase tracking-[0.12em]" style={{ color: `${color}cc` }}>
             {name}
           </span>
           {isTop && (
@@ -133,7 +133,7 @@ export default function AnalyticsHFTools({ hfTools }: HFToolsProps) {
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-4">
-      <p className="text-[10px] font-semibold text-[var(--text3)] uppercase tracking-widest mb-3">
+      <p className="text-[11px] font-semibold font-mono text-[var(--text3)] uppercase tracking-widest mb-3">
         HF Space Tools
       </p>
 

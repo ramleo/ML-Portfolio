@@ -60,7 +60,7 @@ export default function AnalyticsErrors({ range, customRange, rangeLabel }: Prop
   if (needsSetup) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-2">Errors</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-2">Errors</p>
         <p className="text-[12px]" style={{ color: "var(--text3)" }}>
           Run <code style={{ color: ACCENT }}>supabase/errors.sql</code> in the Supabase SQL editor to enable durable error tracking.
         </p>
@@ -71,7 +71,7 @@ export default function AnalyticsErrors({ range, customRange, rangeLabel }: Prop
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">
           Errors — {rangeLabel}
         </p>
         <span className="text-[11px] font-semibold tabular-nums" style={{ color: rows.length ? ACCENT : "var(--text3)" }}>

@@ -18,7 +18,7 @@ const SCORE_FILL = "linear-gradient(90deg,rgba(129,140,248,.55),rgba(56,189,248,
 export function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mt-3">
-      <h2 className="text-[11px] font-bold font-mono uppercase tracking-[0.16em] m-0" style={{ color: "var(--text2)" }}>{label}</h2>
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] m-0" style={{ color: "var(--text2)", fontFamily: "var(--font-mono)" }}>{label}</h2>
       <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, var(--border2), transparent)" }} />
     </div>
   );

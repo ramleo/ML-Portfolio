@@ -38,8 +38,8 @@ const DIVIDER: React.CSSProperties = { height: 1, background: "var(--border)" };
 function KVRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[10px] text-[var(--text3)]">{label}</span>
-      <span className="text-[10px] font-semibold text-[var(--text)] tabular-nums">{value}</span>
+      <span className="text-[10px] font-mono text-[var(--text3)]">{label}</span>
+      <span className="text-[10px] font-mono font-semibold text-[var(--text)] tabular-nums">{value}</span>
     </div>
   );
 }
@@ -58,20 +58,20 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
     <div style={CARD}>
       {/* Eyebrow + title */}
       <div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color: "rgba(16,185,129,0.5)" }}>
+        <p className="text-[10px] font-bold font-mono uppercase tracking-[0.14em] mb-2" style={{ color: "var(--text3)" }}>
           Real-Time Analytics
         </p>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-[1.4rem] font-bold leading-none" style={{ color: "#10b981" }}>
+            <p className="text-[1.4rem] font-bold leading-none" style={{ color: "var(--text)" }}>
               {(stats?.today_count ?? 0).toLocaleString()}
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "var(--text3)" }}>
+            <p className="text-[10px] font-mono mt-0.5" style={{ color: "var(--text3)" }}>
               events · {rangeLabel}
             </p>
           </div>
-          <span className="flex items-center gap-1 text-[9px] px-1.5 py-[2px] rounded-full"
-            style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
+          <span className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-[2px] rounded-full"
+            style={{ background: "var(--border)", color: "var(--text3)" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
             Live
           </span>
@@ -81,7 +81,7 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
       {/* 3 mini chips */}
       <div className="grid grid-cols-3 gap-1.5">
         {[
-          { label: "Active", value: String(stats?.active_now ?? 0), color: "#10b981" },
+          { label: "Active", value: String(stats?.active_now ?? 0), color: "#818cf8" },
           {
             label: "Duration",
             value: stats?.avg_session_duration_ms != null ? formatDuration(stats.avg_session_duration_ms) : "—",
@@ -105,7 +105,7 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
 
       {/* Period summary key-value table */}
       <div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.12em] mb-2" style={{ color: "rgba(16,185,129,0.6)" }}>
+        <p className="text-[10px] font-bold font-mono uppercase tracking-[0.12em] mb-2" style={{ color: "var(--text3)" }}>
           Period Summary
         </p>
         <div className="flex flex-col gap-1.5">
@@ -127,10 +127,10 @@ export default function AnalyticsSummaryCard({ stats, rangeLabel, showAI, onGene
           ↓ Generate Report
         </button>
         <button onClick={onToggleAI}
-          className="w-full text-[10px] font-semibold py-1.5 rounded-lg transition-colors"
+          className="w-full text-[10px] font-semibold py-1.5 rounded-lg border transition-colors hover:bg-[var(--border)]"
           style={showAI
-            ? { background: "rgba(16,185,129,0.15)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)" }
-            : { background: "rgba(16,185,129,0.08)", color: "#10b981", border: "1px solid rgba(16,185,129,0.18)" }}>
+            ? { borderColor: "var(--text3)", color: "var(--text)", background: "var(--border)" }
+            : { borderColor: "var(--border2)", color: "var(--text2)" }}>
           ✦ AI Explain {showAI ? "▲" : "▼"}
         </button>
       </div>

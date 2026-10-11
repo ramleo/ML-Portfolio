@@ -60,7 +60,7 @@ export default function AnalyticsSLO({ range, customRange, rangeLabel }: Props) 
   if (data?.needs_setup) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-2">SLOs</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-2">SLOs</p>
         <p className="text-[12px]" style={{ color: "var(--text3)" }}>
           Needs the <code style={{ color: ACCENT }}>llm_calls</code> and <code style={{ color: ACCENT }}>errors</code> tables — run their migrations to enable the SLO scorecard.
         </p>
@@ -74,7 +74,7 @@ export default function AnalyticsSLO({ range, customRange, rangeLabel }: Props) 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">SLOs — {rangeLabel}</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">SLOs — {rangeLabel}</p>
         <span className="text-[11px] font-semibold tabular-nums"
           style={{ color: breaches ? COLOR.breach : COLOR.ok }}>
           {breaches ? `${breaches} breaching` : "all within target"}

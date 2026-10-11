@@ -80,7 +80,7 @@ export default function AnalyticsActivityLog({ range, customRange, rangeLabel }:
   return (
     <div ref={rootRef} id="activity-log" className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5 scroll-mt-4">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">Activity Log — {rangeLabel}</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">Activity Log — {rangeLabel}</p>
         <div className="flex items-center gap-1.5">
           <Chip id="all" label="All" />
           <Chip id="warn" label="Warnings" n={counts.warn} color={COLOR.warn} />

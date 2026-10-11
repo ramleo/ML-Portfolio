@@ -32,7 +32,7 @@ const fmtMs = (n: number | null) => (n === null ? "—" : n >= 1000 ? `${(n / 10
 function Tile({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="rounded-lg border border-[var(--border)] px-3 py-2" style={{ background: "var(--bg)" }}>
-      <p className="text-[9px] font-bold uppercase tracking-[0.1em] mb-0.5" style={{ color: "var(--text3)" }}>{label}</p>
+      <p className="text-[10px] font-bold font-mono uppercase tracking-[0.1em] mb-0.5" style={{ color: "var(--text3)" }}>{label}</p>
       <p className="text-[15px] font-bold tabular-nums" style={{ color: color ?? "var(--text)" }}>{value}</p>
     </div>
   );
@@ -59,7 +59,7 @@ export default function AnalyticsLLMPanel({ range, customRange, rangeLabel }: Pr
   if (stats?.needs_setup) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-2">LLM calls</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-2">LLM calls</p>
         <p className="text-[12px]" style={{ color: "var(--text3)" }}>
           Run <code style={{ color: ACCENT }}>supabase/llm_calls_o3.sql</code> in the Supabase SQL editor to enable per-call cost &amp; token telemetry.
         </p>
@@ -74,7 +74,7 @@ export default function AnalyticsLLMPanel({ range, customRange, rangeLabel }: Pr
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] p-5">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em]">LLM calls — {rangeLabel}</p>
+        <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em]">LLM calls — {rangeLabel}</p>
         <span className="text-[11px] font-semibold tabular-nums" style={{ color: stats?.total ? ACCENT : "var(--text3)" }}>
           {fmtInt(stats?.total ?? 0)} calls
         </span>

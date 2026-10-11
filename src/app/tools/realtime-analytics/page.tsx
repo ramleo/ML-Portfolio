@@ -39,7 +39,9 @@ export default function RealtimeAnalyticsPage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold">Real-Time Analytics</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Real-Time{" "}
+                  <span style={{ background: "linear-gradient(100deg,#818cf8,#38bdf8 55%,#34d399)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>Analytics</span>
+                </h1>
                 <p className="text-xs text-[var(--text2)]">Live event stream from this portfolio — powered by Supabase Realtime</p>
               </div>
               <div style={{ marginLeft: "auto" }}>

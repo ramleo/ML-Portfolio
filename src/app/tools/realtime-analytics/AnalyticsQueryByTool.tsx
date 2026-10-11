@@ -43,7 +43,7 @@ export default function AnalyticsQueryByTool({ data, rangeLabel }: Props) {
   // green = higher), matching the Conversion Funnel. The n/total is on hover.
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-glass)] backdrop-blur-[14px] p-5">
-      <p className="text-[11px] font-bold text-[var(--text2)] uppercase tracking-[0.1em] mb-3">
+      <p className="text-[11px] font-bold font-mono text-[var(--text2)] uppercase tracking-[0.12em] mb-3">
         Query Success by Tool — {rangeLabel}
       </p>
       <RowBars score max={100} maxRows={data.length}
