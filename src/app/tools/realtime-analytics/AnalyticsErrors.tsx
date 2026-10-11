@@ -82,25 +82,24 @@ export default function AnalyticsErrors({ range, customRange, rangeLabel }: Prop
       {rows.length === 0 ? (
         <p className="text-[12px]" style={{ color: "var(--text3)" }}>No errors in this range. Clean run.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           {rows.map(g => (
             <div key={g.fingerprint}>
-              <div className="flex justify-between items-center gap-2 mb-1">
-                <span className="flex items-center gap-1.5 min-w-0">
+              {/* row-fill: the header row IS the bar (fill width = occurrence count) */}
+              <div className="relative flex justify-between items-center gap-2 px-3 py-2.5 rounded-[9px] overflow-hidden" style={{ background: "var(--border)" }}>
+                <span className="absolute left-0 top-0 bottom-0 rounded-[9px]" style={{ width: `${Math.max((g.n / max) * 100, 2)}%`, background: "rgba(129,140,248,0.26)" }} />
+                <span className="relative z-[1] flex items-center gap-1.5 min-w-0">
                   <span className="text-[10px] font-semibold px-1.5 py-[1px] rounded-full shrink-0"
                     style={{ background: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}40` }}>
                     {g.source}
                   </span>
                   <span className="text-[11px] font-semibold truncate" style={{ color: "var(--text)" }}>{g.kind}</span>
                 </span>
-                <span className="text-[10px] font-semibold tabular-nums shrink-0" style={{ color: ACCENT }}>
+                <span className="relative z-[1] text-[10px] font-semibold tabular-nums shrink-0 font-mono" style={{ color: "var(--text2)" }}>
                   {g.n} · {ago(g.last_seen)}
                 </span>
               </div>
-              <div className="h-1.5 rounded-full mb-1" style={{ background: "var(--border)" }}>
-                <div className="h-full rounded-full" style={{ width: `${(g.n / max) * 100}%`, background: ACCENT }} />
-              </div>
-              <div className="text-[10px] truncate" style={{ color: "var(--text3)" }}>
+              <div className="text-[10px] truncate mt-1 pl-1" style={{ color: "var(--text3)" }}>
                 {g.route ? pathLabel(g.route) : "—"}
                 {g.sample_message ? <span style={{ color: "var(--text2)" }}> · {g.sample_message}</span> : null}
               </div>
