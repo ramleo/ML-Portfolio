@@ -31,6 +31,7 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<LiveResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [slow, setSlow] = useState(false); // slow-mo so a short test is watchable
 
   const check = useCallback(async () => {
     try { const r = await ping("/health"); setUp(r.ok); }
@@ -46,7 +47,7 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
       const r = await ping("/run", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code, base_url: baseUrl, test_name: testName }),
+        body: JSON.stringify({ code, base_url: baseUrl, test_name: testName, mode: slow ? "slow" : "normal" }),
       }, 180000); // a headed run can take a while
       const j: LiveResult = await r.json();
       setResult(j); setUp(true);
@@ -54,7 +55,7 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
       setUp(false);
       setResult({ passed: null, error: "Couldn't reach the companion — is it still running?" });
     } finally { setRunning(false); }
-  }, [code, baseUrl, testName]);
+  }, [code, baseUrl, testName, slow]);
 
   const copy = () => { navigator.clipboard?.writeText(CMD).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {}); };
 
@@ -77,6 +78,13 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
         {up === false && (
           <button onClick={check} className="text-[11px] underline" style={{ color: "var(--text3)" }}>recheck</button>
         )}
+        <label className="flex items-center gap-1 text-[11px] cursor-pointer select-none ml-auto"
+          title="Slow motion — adds a pause between steps so a short test is easy to watch"
+          style={{ color: "var(--text3)" }}>
+          <input type="checkbox" checked={slow} disabled={running}
+            onChange={(e) => setSlow(e.target.checked)} className="accent-current" />
+          Slow
+        </label>
       </div>
 
       {up === false && (
