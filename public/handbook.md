@@ -4278,6 +4278,75 @@ The trade is that nothing validates its shape.
 - **Switch ranges and the statistics stop moving.** That is the range guard,
   not a stall.
 
+
+<div class="bk-sec bk-sec-limits">
+
+## Limits
+
+- **Session identity is a client-generated id.** Cleared site data is a new
+  visitor; two browsers are two visitors.
+- **No bot filtering.** Crawlers count as page views.
+- **The `meta` column is unvalidated.** Whatever a tool sent is what is stored.
+- **Optimistic updates can drift** from the database — a dropped WebSocket
+  message is not reconciled until reload.
+- **`/api/track` has no authentication or rate limiting.** Anyone who finds the
+  endpoint can post events; the write is confined to one table with a fixed
+  shape, but the numbers are not tamper-proof.
+- **The service-role key bypasses row-level security**, so the route's
+  validation is the only thing standing between a request and the table.
+- **Only three event types** feed the funnel.
+- **Realtime is per-table `INSERT`.** No aggregation server-side; the browser
+  does the arithmetic.
+- **This is product analytics, not a data warehouse.** No sessionisation, no
+  retention cohorts, no attribution.
+
+
+</div>
+
+
+<div class="bk-sec bk-sec-qa">
+
+## Likely interview questions
+
+**"How does the dashboard update without polling?"**
+Postgres already writes every change to its write-ahead log for durability.
+Logical decoding turns that log into a stream of change events; Supabase
+Realtime reads the stream and pushes matching rows to clients over WebSockets
+based on what they subscribed to. So the dashboard is driven by the database's
+own durability mechanism — the row reaches the browser because it was committed,
+not because anything asked.
+
+**"Why can't the browser insert directly into the database?"**
+Because the insert needs the service-role key, which bypasses row-level
+security. Any credential in client JavaScript is public. So the write goes
+through a server route that holds the key in a server-only environment variable,
+and the browser reads with the anon key, which is read-only. Two credentials
+with two power levels, and the powerful one never reaches a client.
+
+**"Why recompute the statistics in the browser instead of re-fetching?"**
+A re-fetch per event turns a push architecture back into request-per-event,
+which is worse than polling once traffic picks up. The client already holds the
+aggregate and the new row is a delta, so incrementing is both correct and free.
+The cost is that the client's numbers can drift from the database if a message
+is dropped, and a reload reconciles it.
+
+**"What's the subtle bug in live-updating a filtered dashboard?"**
+Applying a live event to statistics for a range it does not belong to. If
+someone is looking at last week and today's events keep incrementing those
+totals, the view quietly becomes wrong. There is an explicit guard — the event
+still joins the feed, but the statistics only update when the selected range is
+today. Any live view over a filtered dataset has this problem.
+
+**"What would you fix first?"**
+The tracking endpoint. It is unauthenticated and unrate-limited, so the numbers
+are not tamper-proof — I would add rate limiting by IP and a shared secret or
+signed payload from the known callers. After that, bot filtering, because
+crawler traffic inflates page views without touching the funnel and makes the
+conversion rate look worse than it is.
+
+
+</div>
+
 ## The observability layer
 
 The dashboard above answers *what are visitors doing*. A healthy system needs a
@@ -4375,72 +4444,6 @@ carries no payload to reproduce from, and the free tiers keep only weeks of
 history — durable analysis still means rolling up summary rows, exactly as the
 dashboard above already does.
 
-
-<div class="bk-sec bk-sec-limits">
-
-## Limits
-
-- **Session identity is a client-generated id.** Cleared site data is a new
-  visitor; two browsers are two visitors.
-- **No bot filtering.** Crawlers count as page views.
-- **The `meta` column is unvalidated.** Whatever a tool sent is what is stored.
-- **Optimistic updates can drift** from the database — a dropped WebSocket
-  message is not reconciled until reload.
-- **`/api/track` has no authentication or rate limiting.** Anyone who finds the
-  endpoint can post events; the write is confined to one table with a fixed
-  shape, but the numbers are not tamper-proof.
-- **The service-role key bypasses row-level security**, so the route's
-  validation is the only thing standing between a request and the table.
-- **Only three event types** feed the funnel.
-- **Realtime is per-table `INSERT`.** No aggregation server-side; the browser
-  does the arithmetic.
-- **This is product analytics, not a data warehouse.** No sessionisation, no
-  retention cohorts, no attribution.
-
-
-</div>
-
-
-<div class="bk-sec bk-sec-qa">
-
-## Likely interview questions
-
-**"How does the dashboard update without polling?"**
-Postgres already writes every change to its write-ahead log for durability.
-Logical decoding turns that log into a stream of change events; Supabase
-Realtime reads the stream and pushes matching rows to clients over WebSockets
-based on what they subscribed to. So the dashboard is driven by the database's
-own durability mechanism — the row reaches the browser because it was committed,
-not because anything asked.
-
-**"Why can't the browser insert directly into the database?"**
-Because the insert needs the service-role key, which bypasses row-level
-security. Any credential in client JavaScript is public. So the write goes
-through a server route that holds the key in a server-only environment variable,
-and the browser reads with the anon key, which is read-only. Two credentials
-with two power levels, and the powerful one never reaches a client.
-
-**"Why recompute the statistics in the browser instead of re-fetching?"**
-A re-fetch per event turns a push architecture back into request-per-event,
-which is worse than polling once traffic picks up. The client already holds the
-aggregate and the new row is a delta, so incrementing is both correct and free.
-The cost is that the client's numbers can drift from the database if a message
-is dropped, and a reload reconciles it.
-
-**"What's the subtle bug in live-updating a filtered dashboard?"**
-Applying a live event to statistics for a range it does not belong to. If
-someone is looking at last week and today's events keep incrementing those
-totals, the view quietly becomes wrong. There is an explicit guard — the event
-still joins the feed, but the statistics only update when the selected range is
-today. Any live view over a filtered dataset has this problem.
-
-**"What would you fix first?"**
-The tracking endpoint. It is unauthenticated and unrate-limited, so the numbers
-are not tamper-proof — I would add rate limiting by IP and a shared secret or
-signed payload from the known callers. After that, bot filtering, because
-crawler traffic inflates page views without touching the funnel and makes the
-conversion rate look worse than it is.
-
 **"How do you follow one user action across four services?"**
 A single trace id. The browser mints one per action and sends it as a header;
 every tier reads it, holds it in request-scoped state, and stamps it on whatever
@@ -4456,9 +4459,6 @@ visitor still got an answer. The SLO was measuring provider contention, not
 user-facing success. Excluding recovered throttles from the denominator moved it
 to a truthful 99.0%, with the throttle count surfaced separately. An objective has
 to measure the right thing before its threshold is worth alerting on.
-
-</div>
-
 
 <h1 class="bk-chapter" id="ch-18-shap-explainability"><span class="bk-chnum">Chapter 18</span>SHAP Explainability</h1>
 
