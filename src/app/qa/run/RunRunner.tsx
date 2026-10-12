@@ -9,6 +9,7 @@ import { modelFields } from "../lib/modelChoice";
 import { Result, Stepper, HealBanner, lineDiff, stepIndex, type HealInfo } from "./ResultView";
 import SavedAndHistory from "./SavedAndHistory";
 import RunLiveButton from "./RunLiveButton";
+import CodeEditor from "./CodeEditor";
 import { saveTest, deriveTestName, recordRun } from "./storage";
 import { trackEdit } from "./corrections";
 import { isFirstParty } from "../lib/ownership";
@@ -236,11 +237,8 @@ export default function RunRunner({ accent }: { accent: string }) {
           <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--text3)" }}>
             Playwright test (TypeScript)
           </span>
-          <textarea value={code} onChange={e => setCode(e.target.value.slice(0, MAX_CHARS))}
-            placeholder="Paste a @playwright/test file, or click 'Use a sample'."
-            rows={12} spellCheck={false}
-            className="text-[12px] font-mono px-3 py-2.5 rounded-lg outline-none resize-y leading-relaxed"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }} />
+          <CodeEditor value={code} onChange={v => setCode(v.slice(0, MAX_CHARS))}
+            placeholder="Paste a @playwright/test file, or click 'Use a sample'." rows={12} />
           <div className="flex items-center justify-between">
             <button type="button" onClick={() => { setCode(SAMPLE); reset(); }}
               className="text-[11px] underline underline-offset-2" style={{ color: "var(--text3)" }}>

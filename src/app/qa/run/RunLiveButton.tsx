@@ -124,11 +124,15 @@ export default function RunLiveButton({ code, baseUrl, testName, accent }: {
         </div>
       )}
 
-      {/* On a failure, show WHY — the companion returns the Playwright output; without
-          this the user only sees "Failed" and has to dig in the companion terminal. */}
-      {result && !result.error && result.passed === false && result.output && (
+      {/* Show the Playwright output WHENEVER something went wrong — a real failure
+          (passed === false) OR a crash that produced no results at all (passed === null,
+          e.g. the config failed to load). Previously only the `false` case was shown, so
+          a no-result crash left the user with "check the output" and nothing to see. */}
+      {result && !result.error && result.passed !== true && result.output && (
         <details className="text-[11px]" open>
-          <summary className="cursor-pointer" style={{ color: "var(--text3)" }}>why it failed</summary>
+          <summary className="cursor-pointer" style={{ color: "var(--text3)" }}>
+            {result.passed === null ? "run output (no result)" : "why it failed"}
+          </summary>
           <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded p-2 font-mono text-[10px] leading-relaxed"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text2)" }}>
             {extractFailure(result.output)}
