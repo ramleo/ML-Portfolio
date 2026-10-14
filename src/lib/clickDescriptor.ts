@@ -8,9 +8,12 @@
  *   - plus structural fields for display (tag, role, type, aria-label, id, testid,
  *     name, path).
  *
- * It deliberately never reads the element's VISIBLE TEXT, which can contain user
- * content (a row labelled with a person's name). `aria-label` is an author-set
- * attribute, kept for readability; everything else is tag/role/attribute/position.
+ * For readability it also captures a human `label` — the element's aria-label or
+ * its trimmed visible text (e.g. "Generate selected (3)"), length-capped — so the
+ * audit log can show WHICH control was clicked, not just a css path. Note: for
+ * text-labelled links/rows this label can include user content; it is length-capped
+ * and disclosed on the privacy page. The stable `control` id stays purely
+ * structural (tag/role/attribute/position), so it never depends on the label.
  */
 
 // What counts as an interactive target. A click is attributed to the nearest such
@@ -69,7 +72,15 @@ export function describeClick(target: Element | null): ClickDescriptor | null {
   const tag = el.tagName.toLowerCase();
   const role = el.getAttribute("role") || undefined;
   const type = el.getAttribute("type") || undefined;
-  const label = el.getAttribute("aria-label") || undefined;
+  // Human-readable name: aria-label first, else the element's visible text,
+  // whitespace-collapsed and length-capped (so the log reads "Generate selected
+  // (3)" instead of a bare css path). Can include user content for text-labelled
+  // controls — capped and disclosed on the privacy page.
+  const label =
+    (el.getAttribute("aria-label") || el.textContent || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || undefined;
   const id = el.id || undefined;
   const testid = el.dataset?.testid || undefined;
   const name = el.getAttribute("name") || undefined;

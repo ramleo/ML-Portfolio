@@ -161,13 +161,14 @@ export default function PrivacyPage() {
           <p style={{ margin: "0 0 0.75rem" }}>
             <strong>Clicks on interactive controls are recorded as a durable audit entry</strong> — a button,
             link, or form control, so that whether an action was taken can be confirmed later. Each entry
-            identifies the control by its structure only — its type (for example &ldquo;button&rdquo;), its
-            role, any fixed label set by the developer, and its position on the page — together with the page,
-            the random session id, and the time. <strong>It never records the control&rsquo;s visible text or
-            anything you typed</strong>, and clicks on plain text or empty space are not recorded. The record
-            is written in your browser first and then sent, so it survives a crash or a closed tab, and each
-            entry has a unique id so it is never counted twice. On a signed-in application this entry is tied
-            to the signed-in account; here, with no sign-in, it is tied only to the random session id.
+            records the control&rsquo;s type (for example &ldquo;button&rdquo;), its role and position on the
+            page, and its <strong>label</strong> — the text shown on the control, such as
+            &ldquo;Export CSV&rdquo; — so the record is readable; the label is shortened and clicks on plain
+            text or empty space are not recorded. <strong>It never records anything you typed, pasted or
+            uploaded into a field</strong> — only the label of the control itself. The record is written in
+            your browser first and then sent, so it survives a crash or a closed tab, and each entry has a
+            unique id so it is never counted twice. On a signed-in application this entry is tied to the
+            signed-in account; here, with no sign-in, it is tied only to the random session id.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
             <strong>None of it contains what you typed or uploaded.</strong> Document text, prompt text
