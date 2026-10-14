@@ -50,6 +50,3 @@ scripts/__pycache__/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-# Next.js auto-generates this agent-rules file on `next dev`; keep it out of git
-AGENTS.md

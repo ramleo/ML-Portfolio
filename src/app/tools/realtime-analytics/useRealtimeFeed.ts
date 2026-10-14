@@ -29,7 +29,10 @@ export function useRealtimeFeed({ configured, sbUrl, sbKey, range, setFeed, setS
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "events" },
         (payload) => {
           const ev = payload.new as FeedEvent;
-          setFeed(prev => [ev, ...prev].slice(0, 50));
+          // Dedupe by id: an event can already be present from the initial
+          // /api/events/recent fetch, or be redelivered on a realtime reconnect.
+          // Prepending it again produced duplicate React keys in the feed.
+          setFeed(prev => (prev.some(e => e.id === ev.id) ? prev : [ev, ...prev].slice(0, 50)));
           if (range !== "today") return;
           setStats(prev => {
             if (!prev) return prev;
