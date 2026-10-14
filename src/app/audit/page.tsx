@@ -122,12 +122,12 @@ export default function AuditViewerPage() {
   }
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto", padding: "2.5rem 1rem 4rem", color: "var(--fg, #e5e7eb)" }}>
-      <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, opacity: 0.6, margin: "0 0 0.4rem" }}>
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: "2.5rem 1rem 4rem", color: "var(--text)" }}>
+      <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: "0 0 0.4rem" }}>
         Internal · Click audit
       </p>
-      <h1 style={{ fontSize: "1.9rem", fontWeight: 700, margin: "0 0 0.5rem" }}>Did they click it?</h1>
-      <p style={{ opacity: 0.75, margin: "0 0 1.75rem", lineHeight: 1.5 }}>
+      <h1 style={{ fontSize: "1.9rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--text)" }}>Did they click it?</h1>
+      <p style={{ color: "var(--text2)", margin: "0 0 1.75rem", lineHeight: 1.5 }}>
         Look up whether an actor clicked a specific control in a time window. Empty means
         no such click was recorded. On this site the actor is the random session id; in a
         signed-in app it is the user id.
@@ -157,7 +157,7 @@ export default function AuditViewerPage() {
         <button type="submit" disabled={loading}
           style={{
             marginTop: "0.4rem", padding: "0.7rem 1rem", borderRadius: 10, border: "none",
-            background: "var(--accent, #6366f1)", color: "#fff", fontWeight: 600,
+            background: "var(--accent)", color: "#fff", fontWeight: 600,
             cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1,
           }}>
           {loading ? "Looking up…" : "Look up"}
@@ -166,7 +166,7 @@ export default function AuditViewerPage() {
 
       {error && (
         <p role="alert" style={{ marginTop: "1.5rem", padding: "0.8rem 1rem", borderRadius: 10,
-          background: "rgba(239,68,68,0.12)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.35)" }}>
+          background: "rgba(239,68,68,0.14)", color: "var(--text)", border: "1px solid rgba(239,68,68,0.5)" }}>
           {error}
         </p>
       )}
@@ -175,10 +175,10 @@ export default function AuditViewerPage() {
         <div style={{ marginTop: "1.75rem" }}>
           <div style={{
             padding: "1rem 1.1rem", borderRadius: 12,
-            background: result.clicked ? "rgba(16,185,129,0.12)" : "rgba(148,163,184,0.12)",
-            border: `1px solid ${result.clicked ? "rgba(16,185,129,0.4)" : "rgba(148,163,184,0.35)"}`,
+            background: result.clicked ? "rgba(16,185,129,0.14)" : "var(--bg-glass)",
+            border: `1px solid ${result.clicked ? "rgba(16,185,129,0.5)" : "var(--border)"}`,
           }}>
-            <strong style={{ fontSize: "1.05rem", color: result.clicked ? "#6ee7b7" : "#cbd5e1" }}>
+            <strong style={{ fontSize: "1.05rem", color: "var(--text)" }}>
               {result.mode === "control"
                 ? (result.clicked
                     ? `Yes — ${result.control} was clicked ${result.count} time${result.count === 1 ? "" : "s"}.`
@@ -187,16 +187,16 @@ export default function AuditViewerPage() {
                     ? `${result.count} click${result.count === 1 ? "" : "s"} recorded for this actor in the window.`
                     : `No clicks recorded for this actor in this window.`)}
             </strong>
-            <div style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--text3)", marginTop: 4 }}>
               actor {result.actor} · {new Date(result.window.start).toLocaleString()} → {new Date(result.window.end).toLocaleString()}
             </div>
           </div>
 
           {result.rows.length > 0 && (
             <div style={{ overflowX: "auto", marginTop: "1rem" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, color: "var(--text)" }}>
                 <thead>
-                  <tr style={{ textAlign: "left", opacity: 0.6 }}>
+                  <tr style={{ textAlign: "left", color: "var(--text3)" }}>
                     <th style={th}>Clicked at (browser)</th>
                     <th style={th}>What was clicked</th>
                     <th style={th}>Control id</th>
@@ -205,11 +205,11 @@ export default function AuditViewerPage() {
                 </thead>
                 <tbody>
                   {result.rows.map((r) => (
-                    <tr key={r.event_uuid} style={{ borderTop: "1px solid var(--border, rgba(148,163,184,0.2))" }}>
+                    <tr key={r.event_uuid} style={{ borderTop: "1px solid var(--border)" }}>
                       <td style={td}>{new Date(r.client_ts).toLocaleString()}</td>
                       <td style={td}>{describeRow(r)}</td>
-                      <td style={{ ...td, fontFamily: "monospace", opacity: 0.7, maxWidth: 240, overflowWrap: "anywhere" }}>{r.control}</td>
-                      <td style={td}>{r.path}</td>
+                      <td style={{ ...td, fontFamily: "monospace", color: "var(--text2)", maxWidth: 240, overflowWrap: "anywhere" }}>{r.control}</td>
+                      <td style={{ ...td, color: "var(--text2)" }}>{r.path}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -224,8 +224,8 @@ export default function AuditViewerPage() {
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "0.6rem 0.75rem", borderRadius: 9,
-  border: "1px solid var(--border, rgba(148,163,184,0.3))",
-  background: "var(--bg2, rgba(255,255,255,0.04))", color: "inherit", fontSize: 14,
+  border: "1px solid var(--border)",
+  background: "var(--bg-glass)", color: "var(--text)", fontSize: 14,
 };
 const th: React.CSSProperties = { padding: "0.5rem 0.6rem", fontWeight: 600 };
 const td: React.CSSProperties = { padding: "0.5rem 0.6rem", verticalAlign: "top" };
@@ -233,7 +233,7 @@ const td: React.CSSProperties = { padding: "0.5rem 0.6rem", verticalAlign: "top"
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "block" }}>
-      <span style={{ display: "block", fontSize: 13, opacity: 0.7, marginBottom: 4 }}>{label}</span>
+      <span style={{ display: "block", fontSize: 13, color: "var(--text2)", marginBottom: 4 }}>{label}</span>
       {children}
     </label>
   );
