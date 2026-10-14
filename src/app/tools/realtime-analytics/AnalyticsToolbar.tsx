@@ -56,6 +56,7 @@ export default function AnalyticsToolbar({
           that puts a row into the very table the feed below is watching. */}
       <a
         data-wt="ra-export"
+        data-audit="export-csv"
         href={exportHref}
         download
         onClick={() => {

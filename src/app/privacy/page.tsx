@@ -159,6 +159,17 @@ export default function PrivacyPage() {
             only, never anything you typed into it, and never for the password tool.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>
+            <strong>Clicks on interactive controls are recorded as a durable audit entry</strong> — a button,
+            link, or form control, so that whether an action was taken can be confirmed later. Each entry
+            identifies the control by its structure only — its type (for example &ldquo;button&rdquo;), its
+            role, any fixed label set by the developer, and its position on the page — together with the page,
+            the random session id, and the time. <strong>It never records the control&rsquo;s visible text or
+            anything you typed</strong>, and clicks on plain text or empty space are not recorded. The record
+            is written in your browser first and then sent, so it survives a crash or a closed tab, and each
+            entry has a unique id so it is never counted twice. On a signed-in application this entry is tied
+            to the signed-in account; here, with no sign-in, it is tied only to the random session id.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
             <strong>None of it contains what you typed or uploaded.</strong> Document text, prompt text
             and search terms are never written to the analytics store. Where the length of something is
             useful, the length is recorded and the text is not.
