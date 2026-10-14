@@ -62,12 +62,17 @@ function localInput(d: Date): string {
 export default function AuditViewerPage() {
   const now = new Date();
   const dayAgo = new Date(now.getTime() - 24 * 3600 * 1000);
+  // Default the end to the END of today, not page-load time: otherwise a click
+  // made after the page loads (common when you're testing) falls just outside the
+  // window and shows as "no clicks".
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 0, 0);
 
   const [key, setKey] = useState("");
   const [actor, setActor] = useState("");
   const [control, setControl] = useState("");
   const [start, setStart] = useState(localInput(dayAgo));
-  const [end, setEnd] = useState(localInput(now));
+  const [end, setEnd] = useState(localInput(endOfToday));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
