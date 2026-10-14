@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 /** Click-audit viewer (Plan #2) — the dispute UI.
  *
@@ -123,9 +124,12 @@ export default function AuditViewerPage() {
 
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "2.5rem 1rem 4rem", color: "var(--text)" }}>
-      <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: "0 0 0.4rem" }}>
-        Internal · Click audit
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.4rem" }}>
+        <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: 0 }}>
+          Internal · Click audit
+        </p>
+        <ThemeToggle />
+      </div>
       <h1 style={{ fontSize: "1.9rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--text)" }}>Did they click it?</h1>
       <p style={{ color: "var(--text2)", margin: "0 0 1.75rem", lineHeight: 1.5 }}>
         Look up whether an actor clicked a specific control in a time window. Empty means
