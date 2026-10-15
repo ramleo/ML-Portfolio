@@ -1,17 +1,15 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
-import { StatTile, BarList, TimeSeries, RecentFeed, card } from "./Panels";
-import type { BarRow, SeriesPoint, RecentRow } from "./Panels";
+import { AreaChart, type SeriesPoint } from "./charts";
+import { StatCard, BarList, RecentFeed, SectionLabel, card } from "./Panels";
+import type { BarRow, RecentRow } from "./Panels";
 
-/** Internal click-audit dashboard (aggregate bird's-eye view).
- *
- * The forensic sibling is /audit (one actor's clicks). This is the opposite shape:
- * counts across all actors in a window — totals, top controls/paths/actors, clicks
- * over time, by country, and a recent feed. It is a thin client over the gated
- * /api/audit/stats; the data stays behind AUDIT_ADMIN_KEY on the endpoint. The key
- * is shared with /audit via the same sessionStorage slot. Not in any public nav.
- */
+/** Internal click-audit dashboard — aggregate bird's-eye view (counts across all
+ * actors in a window), the complement to the per-actor /audit lookup. Thin client
+ * over the gated /api/audit/stats; data stays behind AUDIT_ADMIN_KEY on the server.
+ * Fetches the current window AND the immediately-preceding equal window so every
+ * KPI shows a baseline (delta vs prev). Not in any public nav. */
 
 interface Stats {
   total: number; actors: number; sessions: number; controls: number; paths: number;
@@ -23,16 +21,20 @@ interface Stats {
   recent: RecentRow[];
 }
 interface StatsResult { window: { start: string; end: string }; bucket: "hour" | "day"; stats: Stats }
+type Prev = { total: number; actors: number; sessions: number; controls: number; paths: number } | null;
 
 const DAY = 24 * 3600 * 1000;
+const errMap: Record<number, string> = {
+  401: "Unauthorized — wrong admin key.",
+  503: "Stats not configured on the server (set AUDIT_ADMIN_KEY), or the click_audit_stats function is missing — re-run supabase/click_audit.sql.",
+};
 
 function localInput(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-/** Fill gaps between the first and last populated bucket with zeros, so the line
- * shows quiet stretches instead of connecting across them. */
+/** Fill gaps between the first and last populated bucket with zeros. */
 function densify(series: { bucket: string; count: number }[], bucket: "hour" | "day"): SeriesPoint[] {
   if (series.length === 0) return [];
   const step = bucket === "day" ? DAY : 3600 * 1000;
@@ -44,6 +46,15 @@ function densify(series: { bucket: string; count: number }[], bucket: "hour" | "
   return out;
 }
 
+async function fetchStats(key: string, startISO: string, endISO: string): Promise<StatsResult> {
+  const bucket = new Date(endISO).getTime() - new Date(startISO).getTime() > 2 * DAY ? "day" : "hour";
+  const qs = new URLSearchParams({ start: startISO, end: endISO, bucket });
+  const res = await fetch(`/api/audit/stats?${qs.toString()}`, { headers: { "x-audit-key": key } });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(errMap[res.status] ?? (body.error || `Request failed (${res.status}).`));
+  return body as StatsResult;
+}
+
 export default function AuditDashboardPage() {
   const now = new Date();
   const [key, setKey] = useState("");
@@ -52,6 +63,7 @@ export default function AuditDashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<StatsResult | null>(null);
+  const [prev, setPrev] = useState<Prev>(null);
 
   useEffect(() => {
     try {
@@ -63,25 +75,20 @@ export default function AuditDashboardPage() {
   const load = useCallback(async (adminKey: string, startISO: string, endISO: string) => {
     if (!adminKey) { setError("Enter the admin key."); return; }
     try { sessionStorage.setItem("_ml_audit_key", adminKey); } catch { /* storage blocked */ }
-    const widthMs = new Date(endISO).getTime() - new Date(startISO).getTime();
-    const bucket = widthMs > 2 * DAY ? "day" : "hour";
+    const width = new Date(endISO).getTime() - new Date(startISO).getTime();
+    const prevStart = new Date(new Date(startISO).getTime() - width).toISOString();
     setLoading(true); setError(null);
     try {
-      const qs = new URLSearchParams({ start: startISO, end: endISO, bucket });
-      const res = await fetch(`/api/audit/stats?${qs.toString()}`, { headers: { "x-audit-key": adminKey } });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const map: Record<number, string> = {
-          401: "Unauthorized — wrong admin key.",
-          503: "Stats not configured on the server (set AUDIT_ADMIN_KEY), or the click_audit_stats function is missing — re-run supabase/click_audit.sql.",
-        };
-        setError(map[res.status] ?? (body.error || `Request failed (${res.status}).`));
-        setData(null);
-        return;
-      }
-      setData(body as StatsResult);
+      // Current + previous equal window in parallel, so KPIs get a baseline.
+      const [cur, pre] = await Promise.all([
+        fetchStats(adminKey, startISO, endISO),
+        fetchStats(adminKey, prevStart, startISO).catch(() => null),
+      ]);
+      setData(cur);
+      setPrev(pre ? { total: pre.stats.total, actors: pre.stats.actors, sessions: pre.stats.sessions, controls: pre.stats.controls, paths: pre.stats.paths } : null);
     } catch (err) {
-      setError(String(err));
+      setError(String(err instanceof Error ? err.message : err));
+      setData(null); setPrev(null);
     } finally {
       setLoading(false);
     }
@@ -91,7 +98,6 @@ export default function AuditDashboardPage() {
     e.preventDefault();
     load(key, new Date(start).toISOString(), new Date(end).toISOString());
   }
-
   function quickRange(days: number) {
     const to = new Date();
     const from = new Date(to.getTime() - days * DAY);
@@ -107,74 +113,86 @@ export default function AuditDashboardPage() {
   const countryRows: BarRow[] = s ? s.by_country.map((c) => ({ label: c.country, count: c.count })) : [];
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2.5rem 1rem 4rem", color: "var(--text)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.4rem" }}>
-        <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: 0 }}>
-          Internal · Click audit · Dashboard
-        </p>
+    <div style={{ maxWidth: 1180, margin: "0 auto", padding: "2.25rem 1rem 4rem", color: "var(--text)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.3rem" }}>
+        <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: 0 }}>Internal · Click audit · Dashboard</p>
         <ThemeToggle />
       </div>
-      <h1 style={{ fontSize: "1.9rem", fontWeight: 700, margin: "0 0 0.4rem", color: "var(--text)" }}>Click activity overview</h1>
-      <p style={{ color: "var(--text2)", margin: "0 0 1.5rem", lineHeight: 1.5 }}>
+      <h1 style={{ fontSize: "2rem", fontWeight: 700, margin: "0 0 0.35rem", color: "var(--text)", letterSpacing: "-0.02em" }}>Click activity overview</h1>
+      <p style={{ color: "var(--text2)", margin: "0 0 1.4rem", lineHeight: 1.5, maxWidth: 680 }}>
         Aggregate view of every recorded interactive click across all actors in a window. For one
         actor&apos;s row-by-row clicks, use the <a href="/audit" style={{ color: "var(--accent)" }}>lookup tool</a>.
       </p>
 
-      <form onSubmit={submit} style={{ ...card, display: "grid", gap: "0.8rem", marginBottom: "1.25rem" }}>
+      <form onSubmit={submit} style={{ ...card, display: "grid", gap: "0.8rem", marginBottom: "1.4rem", position: "sticky", top: 12, zIndex: 5 }}>
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: "0.8rem", alignItems: "end" }}>
-          <Field label="Admin key">
-            <input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="AUDIT_ADMIN_KEY" autoComplete="off" style={inputStyle} />
-          </Field>
+          <Field label="Admin key"><input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="AUDIT_ADMIN_KEY" autoComplete="off" style={inputStyle} /></Field>
           <Field label="From"><input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} style={inputStyle} /></Field>
           <Field label="To"><input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} style={inputStyle} /></Field>
-          <button type="submit" disabled={loading} style={{ padding: "0.6rem 1.1rem", borderRadius: 9, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1 }}>
+          <button type="submit" disabled={loading} style={{ padding: "0.6rem 1.2rem", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1 }}>
             {loading ? "Loading…" : "Load"}
           </button>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {[["24h", 1], ["7 days", 7], ["30 days", 30]].map(([lbl, d]) => (
-            <button key={lbl} type="button" onClick={() => quickRange(d as number)} style={chip}>{lbl}</button>
+          {([["24h", 1], ["7 days", 7], ["30 days", 30]] as const).map(([lbl, d]) => (
+            <button key={lbl} type="button" onClick={() => quickRange(d)} style={chip}>{lbl}</button>
           ))}
         </div>
       </form>
 
-      {error && (
-        <p role="alert" style={{ padding: "0.8rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.14)", color: "var(--text)", border: "1px solid rgba(239,68,68,0.5)" }}>{error}</p>
-      )}
+      {error && <p role="alert" style={{ padding: "0.8rem 1rem", borderRadius: 10, background: "rgba(239,68,68,0.14)", color: "var(--text)", border: "1px solid rgba(239,68,68,0.5)" }}>{error}</p>}
+
+      {loading && !s && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}>{Array.from({ length: 5 }).map((_, i) => <div key={i} style={{ ...card, height: 110, opacity: 0.5 }} />)}</div>}
 
       {s && (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            <StatTile label="Total clicks" value={s.total} />
-            <StatTile label="Distinct actors" value={s.actors} />
-            <StatTile label="Sessions" value={s.sessions} />
-            <StatTile label="Controls" value={s.controls} />
-            <StatTile label="Pages" value={s.paths} />
-          </div>
-          <TimeSeries title={`Clicks over time (by ${data!.bucket})`} points={series} bucket={data!.bucket} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
-            <BarList title="Top controls" rows={controlRows} />
-            <BarList title="Top pages" rows={pathRows} />
-            <BarList title="Most active actors" rows={actorRows} />
-            <BarList title="By country" rows={countryRows} />
-          </div>
-          <RecentFeed rows={s.recent} />
+        <div style={{ display: "grid", gap: "1.25rem" }}>
+          <section style={{ display: "grid", gap: "0.6rem" }}>
+            <SectionLabel>Overview</SectionLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}>
+              <StatCard label="Total clicks" value={s.total} prev={prev?.total ?? null} icon="clicks" featured spark={series} bucket={data!.bucket} />
+              <StatCard label="Distinct actors" value={s.actors} prev={prev?.actors ?? null} icon="actors" />
+              <StatCard label="Sessions" value={s.sessions} prev={prev?.sessions ?? null} icon="sessions" />
+              <StatCard label="Controls" value={s.controls} prev={prev?.controls ?? null} icon="controls" />
+              <StatCard label="Pages" value={s.paths} prev={prev?.paths ?? null} icon="pages" />
+            </div>
+          </section>
+
+          <section style={{ display: "grid", gap: "0.6rem" }}>
+            <SectionLabel>Trend</SectionLabel>
+            <div style={card}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", margin: "0 0 0.3rem" }}>Clicks over time (by {data!.bucket})</h2>
+              <AreaChart points={series} bucket={data!.bucket} />
+            </div>
+          </section>
+
+          <section style={{ display: "grid", gap: "0.6rem" }}>
+            <SectionLabel>Breakdown</SectionLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
+              <BarList title="Top controls" rows={controlRows} />
+              <BarList title="Top pages" rows={pathRows} />
+              <BarList title="Most active actors" rows={actorRows} />
+              <BarList title="By country" rows={countryRows} />
+            </div>
+          </section>
+
+          <section style={{ display: "grid", gap: "0.6rem" }}>
+            <SectionLabel>Activity</SectionLabel>
+            <RecentFeed rows={s.recent} />
+          </section>
         </div>
       )}
 
-      {!s && !error && !loading && (
-        <p style={{ color: "var(--text3)" }}>Enter the admin key and pick a window to load the dashboard.</p>
-      )}
+      {!s && !error && !loading && <p style={{ color: "var(--text3)" }}>Enter the admin key and pick a window to load the dashboard.</p>}
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "0.6rem 0.75rem", borderRadius: 9,
-  border: "1px solid var(--border)", background: "var(--bg-glass)", color: "var(--text)", fontSize: 14,
+  border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: 14,
 };
 const chip: React.CSSProperties = {
-  padding: "0.35rem 0.8rem", borderRadius: 999, border: "1px solid var(--border2)",
+  padding: "0.35rem 0.85rem", borderRadius: 999, border: "1px solid var(--border2)",
   background: "var(--border)", color: "var(--text2)", fontSize: 13, cursor: "pointer",
 };
 
