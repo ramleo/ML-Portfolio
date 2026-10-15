@@ -69,7 +69,7 @@ export function StatCard({ label, value, prev, icon, featured, spark, bucket }: 
   );
 }
 
-export interface BarRow { label: string; count: number; sub?: string }
+export interface BarRow { label: string; count: number; title?: string }
 
 export function BarList({ title, rows, empty }: { title: string; rows: BarRow[]; empty?: string }) {
   const max = rows.reduce((m, r) => Math.max(m, r.count), 0) || 1;
@@ -79,18 +79,19 @@ export function BarList({ title, rows, empty }: { title: string; rows: BarRow[];
       {rows.length === 0 ? (
         <p style={{ color: "var(--text3)", fontSize: 13, margin: "0.5rem 0 0" }}>{empty || "No data in this window."}</p>
       ) : (
-        <div style={{ display: "grid", gap: 9, marginTop: "0.7rem" }}>
+        // flex column stretches each row to the card width, so the clamped label
+        // below actually has a bounded width (nested auto grids do not)
+        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: "0.7rem" }}>
           {rows.map((r, i) => (
-            <div key={i} title={`${r.label} — ${r.count.toLocaleString()}`} style={{ display: "grid", gap: 4 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13, alignItems: "baseline" }}>
-                <span style={{ color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-                  <span style={{ color: "var(--text3)", fontVariantNumeric: "tabular-nums", marginRight: 8 }}>{i + 1}</span>
-                  {r.label}
-                  {r.sub && <span style={{ color: "var(--text3)", marginLeft: 6, fontSize: 11.5 }}>{r.sub}</span>}
-                </span>
+            <div key={i} title={r.title || `${r.label} — ${r.count.toLocaleString()}`}>
+              {/* index + label + count on one baseline; label is the only flexible,
+                  clamped item so a long structural id never bleeds past the card. */}
+              <div style={{ display: "flex", gap: 8, fontSize: 13, alignItems: "baseline" }}>
+                <span style={{ color: "var(--text3)", fontVariantNumeric: "tabular-nums", flexShrink: 0, width: 18, textAlign: "right" }}>{i + 1}</span>
+                <span style={{ color: "var(--text)", flex: "1 1 0", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
                 <span style={{ color: "var(--text)", fontWeight: 600, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>{r.count.toLocaleString()}</span>
               </div>
-              <div style={{ height: 7, background: "var(--border)", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: 7, background: "var(--border)", borderRadius: 4, overflow: "hidden", marginTop: 4 }}>
                 <div style={{ width: `${Math.max(3, (r.count / max) * 100)}%`, height: "100%", background: "linear-gradient(90deg, color-mix(in srgb, var(--accent) 70%, transparent), var(--accent))", borderRadius: 4 }} />
               </div>
             </div>

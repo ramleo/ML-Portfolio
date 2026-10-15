@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
-import { AreaChart, type SeriesPoint } from "./charts";
+import { AreaChart, Donut, type SeriesPoint } from "./charts";
 import { StatCard, BarList, RecentFeed, SectionLabel, card } from "./Panels";
 import type { BarRow, RecentRow } from "./Panels";
 
@@ -107,13 +107,22 @@ export default function AuditDashboardPage() {
 
   const s = data?.stats;
   const series = s ? densify(s.series, data!.bucket) : [];
-  const controlRows: BarRow[] = s ? s.top_controls.map((c) => ({ label: c.label || c.control, sub: c.label ? c.control : undefined, count: c.count })) : [];
+  // Readable label is the hero; the full structural id moves to the hover title.
+  const controlRows: BarRow[] = s ? s.top_controls.map((c) => ({ label: c.label || c.control, title: c.control, count: c.count })) : [];
   const pathRows: BarRow[] = s ? s.top_paths.map((p) => ({ label: p.path, count: p.count })) : [];
   const actorRows: BarRow[] = s ? s.top_actors.map((a) => ({ label: a.actor, count: a.count })) : [];
-  const countryRows: BarRow[] = s ? s.by_country.map((c) => ({ label: c.country, count: c.count })) : [];
+  const countryData = s ? s.by_country.map((c) => ({ label: c.country, count: c.count })) : [];
 
   return (
     <div style={{ maxWidth: 1180, margin: "0 auto", padding: "2.25rem 1rem 4rem", color: "var(--text)" }}>
+      <style>{`
+        .auditKpis { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); }
+        .auditTrend { display:grid; gap:1rem; grid-template-columns:1fr; }
+        .auditBars { display:grid; gap:1rem; grid-template-columns:1fr; }
+        @media (min-width:900px){ .auditTrend{ grid-template-columns:minmax(0,2.1fr) minmax(250px,1fr); } }
+        @media (min-width:720px){ .auditBars{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (min-width:720px) and (max-width:1060px){ .auditBars{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      `}</style>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.3rem" }}>
         <p style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 12, color: "var(--text3)", margin: 0 }}>Internal · Click audit · Dashboard</p>
         <ThemeToggle />
@@ -148,7 +157,7 @@ export default function AuditDashboardPage() {
         <div style={{ display: "grid", gap: "1.25rem" }}>
           <section style={{ display: "grid", gap: "0.6rem" }}>
             <SectionLabel>Overview</SectionLabel>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}>
+            <div className="auditKpis">
               <StatCard label="Total clicks" value={s.total} prev={prev?.total ?? null} icon="clicks" featured spark={series} bucket={data!.bucket} />
               <StatCard label="Distinct actors" value={s.actors} prev={prev?.actors ?? null} icon="actors" />
               <StatCard label="Sessions" value={s.sessions} prev={prev?.sessions ?? null} icon="sessions" />
@@ -158,20 +167,25 @@ export default function AuditDashboardPage() {
           </section>
 
           <section style={{ display: "grid", gap: "0.6rem" }}>
-            <SectionLabel>Trend</SectionLabel>
-            <div style={card}>
-              <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", margin: "0 0 0.3rem" }}>Clicks over time (by {data!.bucket})</h2>
-              <AreaChart points={series} bucket={data!.bucket} />
+            <SectionLabel>Trend &amp; distribution</SectionLabel>
+            <div className="auditTrend">
+              <div style={card}>
+                <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", margin: "0 0 0.3rem" }}>Clicks over time (by {data!.bucket})</h2>
+                <AreaChart points={series} bucket={data!.bucket} />
+              </div>
+              <div style={card}>
+                <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", margin: 0 }}>By country</h2>
+                <Donut rows={countryData} total={s.total} />
+              </div>
             </div>
           </section>
 
           <section style={{ display: "grid", gap: "0.6rem" }}>
             <SectionLabel>Breakdown</SectionLabel>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
+            <div className="auditBars">
               <BarList title="Top controls" rows={controlRows} />
               <BarList title="Top pages" rows={pathRows} />
               <BarList title="Most active actors" rows={actorRows} />
-              <BarList title="By country" rows={countryRows} />
             </div>
           </section>
 

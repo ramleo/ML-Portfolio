@@ -30,6 +30,43 @@ export function Sparkline({ points, width = 150, height = 40 }: { points: Series
   );
 }
 
+/** Share-of-total donut. Single hue (the accent) stepped light→dark by rank —
+ * sequential, so no categorical palette to validate; the legend gives identity. */
+export function Donut({ rows, total }: { rows: { label: string; count: number }[]; total: number }) {
+  const R = 54, SW = 18, C = 2 * Math.PI * R, cx = 70, cy = 70, gap = 2;
+  const shade = (i: number) => [1, 0.62, 0.4, 0.26, 0.16][i] ?? 0.12;
+  let acc = 0;
+  return (
+    <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", flexWrap: "wrap", marginTop: "0.7rem" }}>
+      <svg viewBox="0 0 140 140" width={140} height={140} role="img" aria-label={`By country, ${total} clicks total`} style={{ flexShrink: 0 }}>
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--border)" strokeWidth={SW} />
+        {rows.map((r, i) => {
+          const frac = total ? r.count / total : 0;
+          const dash = Math.max(0, frac * C - gap);
+          const el = (
+            <circle key={i} cx={cx} cy={cy} r={R} fill="none" stroke="var(--accent)" strokeOpacity={shade(i)}
+              strokeWidth={SW} strokeDasharray={`${dash} ${C - dash}`} strokeDashoffset={-acc} transform={`rotate(-90 ${cx} ${cy})`} />
+          );
+          acc += frac * C;
+          return el;
+        })}
+        <text x={cx} y={cy - 1} textAnchor="middle" fontSize={22} fontWeight={700} fill="var(--text)">{total}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fontSize={10} fill="var(--text3)">clicks</text>
+      </svg>
+      <div style={{ display: "grid", gap: 7, flex: 1, minWidth: 130 }}>
+        {rows.map((r, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+            <span style={{ width: 11, height: 11, borderRadius: 3, background: "var(--accent)", opacity: shade(i), flexShrink: 0 }} />
+            <span style={{ color: "var(--text)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
+            <span style={{ color: "var(--text)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{r.count}</span>
+            <span style={{ color: "var(--text3)", fontVariantNumeric: "tabular-nums", width: 42, textAlign: "right" }}>{total ? Math.round((r.count / total) * 100) : 0}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** The main trend: single-series area+line with gridlines and a hover crosshair. */
 export function AreaChart({ points, bucket }: { points: SeriesPoint[]; bucket: "hour" | "day" }) {
   const [hover, setHover] = useState<number | null>(null);
