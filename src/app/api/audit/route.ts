@@ -19,6 +19,28 @@ const CORS = {
 
 const MAX_BATCH = 500;
 
+/** First-pass per-IP flood guard (per warm instance). This write path is public
+ * by necessity (every visitor's browser posts its own clicks), so cap request
+ * volume to stop someone scripting junk rows in. The limit is generous because a
+ * single request carries a whole batch and an active user flushes in bursts; the
+ * durable client outbox retries anything we 429, so a limited request is delayed,
+ * never lost. */
+const HITS = new Map<string, { n: number; resetAt: number }>();
+const WINDOW_MS = 60_000;
+const MAX_PER_WINDOW = 120;
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const cur = HITS.get(ip);
+  if (!cur || now > cur.resetAt) {
+    HITS.set(ip, { n: 1, resetAt: now + WINDOW_MS });
+    if (HITS.size > 5_000) HITS.clear(); // crude bound on memory growth
+    return false;
+  }
+  cur.n += 1;
+  return cur.n > MAX_PER_WINDOW;
+}
+
 function getClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,6 +82,10 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+    if (rateLimited(ip))
+      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: CORS });
+
     const body = await req.json().catch(() => ({}));
     const inRecords: InRecord[] = Array.isArray(body?.records) ? body.records : [];
     if (inRecords.length === 0)
