@@ -67,7 +67,7 @@ export default function DocSidebar({
           ))}
         </div>
         <p className="text-[9px] mt-2" style={{ color: "var(--text3)" }}>
-          Max 10 MB per file
+          Max 50 MB per file
         </p>
       </div>
 

@@ -251,7 +251,7 @@ export default function DocIntelRunner({ docTypes }: { docTypes: DocTypeInfo[] }
                 {isDragging ? "Drop to analyze" : "Drag & drop or click to upload"}
               </p>
               <p className="text-xs mt-1" style={{ color: "var(--text3)" }}>
-                PDF, DOCX, PNG, JPG, WEBP · Max 10 MB
+                PDF, DOCX, PNG, JPG, WEBP · Max 50 MB
               </p>
             </div>
           </div>

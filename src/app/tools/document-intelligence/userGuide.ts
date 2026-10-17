@@ -12,7 +12,7 @@ structured data. Fields stream in live with confidence scores, validation
 checks, and bounding boxes that highlight where each value sits in the document.
 
 ## Supported formats
-PDF, DOCX (Word), PNG, JPG, JPEG, WEBP. Max 10 MB per file.
+PDF, DOCX (Word), PNG, JPG, JPEG, WEBP. Max 50 MB per file.
 - Digital PDFs: text is read directly; fastest and most accurate path.
 - Scanned PDFs and images: converted to text by AI OCR first, then processed
   like a digital document.
