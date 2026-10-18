@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import PalettePicker from "./PalettePicker";
+import NavAuth from "./NavAuth";
 
 // Seven links plus the logo, resume, theme and palette controls made for a
 // crowded bar with no clear priority. Trimmed to the five a visitor actually
@@ -34,10 +35,11 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [scrolled,  setScrolled]  = useState(false);
   const [menuOpen,  setMenuOpen]  = useState(false);
-  // A resume download in the global header is the loudest "this is a CV"
-  // signal there is, so it belongs on the personal page only — not above a
-  // page of tools someone came to use.
-  const onAboutPage = usePathname() === "/about";
+  // A resume download in the global header is the loudest "this is a CV" signal
+  // there is, so it belongs only where the private portfolio is shown — the
+  // owner's /portfolio and a recruiter's /r/<token> — never on the public pages.
+  const pathname = usePathname();
+  const showResume = pathname === "/portfolio" || pathname.startsWith("/r/");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -88,7 +90,7 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          {onAboutPage && (
+          {showResume && (
             <a
               href="/Resume_W_Ramakrishnasai.pdf"
               download
@@ -103,6 +105,9 @@ export default function Navbar() {
             </a>
           )}
         </div>
+
+        {/* Sign in / account — always visible */}
+        <NavAuth />
 
         {/* Theme toggle — always visible on both desktop and mobile */}
         <PalettePicker />
@@ -150,7 +155,7 @@ export default function Navbar() {
             </a>
           ))}
           {/* Resume in dropdown — personal page only, same reasoning as desktop */}
-          {onAboutPage && (
+          {showResume && (
             <a
               href="/Resume_W_Ramakrishnasai.pdf"
               download

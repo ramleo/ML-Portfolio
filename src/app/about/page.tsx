@@ -1,31 +1,26 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
-import About from "@/components/About";
-import Skills from "@/components/Skills";
-import Timeline from "@/components/Timeline";
-import Contact from "@/components/Contact";
+import AboutSite from "@/components/AboutSite";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
 
 /**
- * The personal half of the site.
+ * Public "About" — about the WEBSITE/product, not the owner.
  *
- * The root page used to carry both: a product (50 working ML tools) and a CV
- * (bio, degrees, GPA, career timeline, "available for ML roles", a resume
- * download). Those two jobs pull in opposite directions — the résumé layer is
- * exactly what a recruiter needs and exactly what makes a tool site read as a
- * student showcase. Splitting them lets each be written for its own reader
- * instead of one page doing both badly. Nothing was dropped; every section
- * that used to sit on the homepage lives here unchanged.
+ * The personal portfolio (bio, degrees, career timeline, contact, resume) used
+ * to live here and was world-readable. It is now PRIVATE: shown only to the
+ * signed-in owner at /portfolio and to invited recruiters via a share-link at
+ * /r/<token>. This page tells any visitor what AIRaML is and how it treats their
+ * data — no personal information.
  */
-const title = "About Ramakrishnasai Wuppalapati | AIRaML";
+const title = "About AIRaML — the platform";
 const description =
-  "ML engineer and data scientist — the person behind AIRaML. Background, skills, career history and how to get in touch.";
+  "AIRaML is a free collection of 50+ machine-learning and security tools that run in your browser: AutoML, computer vision, document intelligence and more. What it is, how it works, and how it handles your data.";
 
 export const metadata: Metadata = {
   title,
   description,
-  openGraph: { title, description, type: "profile" },
+  openGraph: { title, description, type: "website" },
   twitter: { card: "summary_large_image", title, description },
 };
 
@@ -34,10 +29,7 @@ export default function AboutPage() {
     <>
       <ParticleGridClient />
       <Navbar />
-      <About />
-      <Skills />
-      <Timeline />
-      <Contact />
+      <AboutSite />
       <Footer />
     </>
   );

@@ -4,12 +4,13 @@ import { createMiddlewareClient } from "@/lib/supabase/middleware";
 /** Edge gate (Next 16 `proxy` convention — the renamed `middleware`). Two jobs:
  *
  * 1. AUTH (Supabase) — refresh the session cookie on every matched request and
- *    guard the two signed-in surfaces:
+ *    guard the signed-in surfaces:
  *      /app/*        → any authenticated user
- *      /recruiter/*  → authenticated AND role = 'recruiter'
- *    Not signed in → redirect to /login?next=<path>. Signed in but wrong role →
- *    redirect to their own home. The role is read from the `profiles` row under
- *    the user's own RLS policy (profiles_self_read in supabase/auth.sql).
+ *      /portfolio/*  → authenticated (the page itself then requires the OWNER
+ *                      identity and sends anyone else to /app)
+ *    Not signed in → redirect to /login?next=<path>. Recruiters do NOT sign in:
+ *    they view the private portfolio via a share-link at /r/<token>, which is
+ *    public (unmatched here) and validated server-side.
  *
  * 2. BASIC-AUTH (unchanged) — the internal click-audit pages (/audit,
  *    /audit/dashboard) stay behind HTTP Basic auth, enforced only when
@@ -50,25 +51,12 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  if (pathname.startsWith("/recruiter")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role !== "recruiter") {
-      const home = req.nextUrl.clone();
-      home.pathname = "/app";
-      home.search = "";
-      return NextResponse.redirect(home);
-    }
-  }
-
   return response;
 }
 
-// Matched routes: the audit shells (Basic auth) and the two signed-in surfaces.
-// Everything else — the public showcase, APIs, the capture endpoint — is untouched.
+// Matched routes: the audit shells (Basic auth) and the signed-in surfaces.
+// Everything else — the public showcase, the recruiter share-link /r/<token>,
+// APIs, the capture endpoint — is untouched.
 export const config = {
-  matcher: ["/audit", "/audit/:path*", "/app", "/app/:path*", "/recruiter", "/recruiter/:path*"],
+  matcher: ["/audit", "/audit/:path*", "/app", "/app/:path*", "/portfolio", "/portfolio/:path*"],
 };
