@@ -153,6 +153,31 @@ export default function DocsPage() {
           </p>
         </Section>
 
+        <Section heading="MCP (for AI clients)" id="mcp">
+          <p style={{ margin: "0 0 0.75rem" }}>
+            The same curated tools are available over the{" "}
+            <strong style={{ color: "var(--text)" }}>Model Context Protocol</strong>, so AI clients
+            (Claude Desktop, Cursor, …) can call them directly. The server speaks Streamable HTTP at:
+          </p>
+          <Code>{`${API}/mcp/`}</Code>
+          <p style={{ margin: "0.75rem 0 0.75rem" }}>
+            Authenticate with the <strong style={{ color: "var(--text)" }}>same API key</strong> as a
+            bearer token — one key works for both REST and MCP. Example client config:
+          </p>
+          <Code>{`{
+  "mcpServers": {
+    "airaml": {
+      "url": "${API}/mcp/",
+      "headers": { "Authorization": "Bearer ak_live_…" }
+    }
+  }
+}`}</Code>
+          <p style={{ margin: "0.75rem 0 0" }}>
+            The tools exposed match the Public API above: a TLS/header scan, an email-auth check, and
+            anomaly scoring. More will be added over time.
+          </p>
+        </Section>
+
         <Section heading="Full endpoint reference">
           <p style={{ margin: "0 0 0.75rem" }}>
             FastAPI publishes an interactive reference with every route, its request schema and its

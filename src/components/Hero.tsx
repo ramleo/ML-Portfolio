@@ -347,6 +347,15 @@ export default function Hero() {
           </a>
           </MagneticButton>
         </div>
+
+        {/* Developer pointer — public API + MCP */}
+        <p style={{ marginTop: "1rem", fontSize: "0.82rem", color: "var(--text3)", textAlign: "center" }}>
+          Developers: call the tools via the{" "}
+          <a href="/docs" style={{ color: "var(--text2)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+            public API &amp; MCP
+          </a>
+          .
+        </p>
       </div>
 
       {/* Dark gradient at bottom — prevents hard edge blending into page */}

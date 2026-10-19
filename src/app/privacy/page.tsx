@@ -244,9 +244,26 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
+        <Section id="accounts" heading="If you create an account">
+          <p style={{ margin: "0 0 0.75rem" }}>
+            The public tools need <strong>no account</strong>. Signing in is optional. If you do create an
+            account, authentication is handled by Supabase: your <strong>email</strong> and a{" "}
+            <strong>securely hashed password</strong> (bcrypt — the plain password is never stored, and we
+            never see it) are kept in the authentication store. A small profile row holds your email, a
+            role, and, if you set one, a link to your <strong>profile picture</strong> (stored in a
+            file bucket). You can change your password or remove your picture at any time.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong>API keys.</strong> If an API key is issued to you, only a one-way{" "}
+            <strong>hash</strong> of the key is stored — never the key itself — alongside a label you choose
+            and counters for how many requests it has made and how much budget it has used, so usage can be
+            metered and the key can be revoked. No request content is stored with these counters.
+          </p>
+        </Section>
+
         <Section id="terms" heading="Terms of use">
           <p style={{ margin: "0 0 0.75rem" }}>
-            Everything here is free to use, with no account and no payment. There is no uptime guarantee:
+            The tools are free to use and need no account (signing in is optional). There is no uptime guarantee:
             this runs on free hosting, the backend sleeps when idle, and it can be unavailable or slow.
           </p>
           <p style={{ margin: "0 0 0.75rem" }}>

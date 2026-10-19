@@ -27,6 +27,32 @@ const KIND_COLOR: Record<Entry["kind"], string> = {
 
 const ENTRIES: Entry[] = [
   {
+    date: "2026-10-19",
+    kind: "Added",
+    title: "MCP support for AI clients",
+    body:
+      "AI clients like Claude Desktop and Cursor can now use the tools over the Model Context " +
+      "Protocol, authenticated with the same API key. Connection details are on the Docs page.",
+  },
+  {
+    date: "2026-10-19",
+    kind: "Added",
+    title: "A public API you can call with a key",
+    body:
+      "A stable, versioned API (under /v1) lets others build on the tools programmatically — starting " +
+      "with a TLS/security-header scan, an email-authentication (SPF/DKIM/DMARC) check, and anomaly " +
+      "scoring. Each key has a monthly request quota and a spend budget. See the Docs page to get started.",
+  },
+  {
+    date: "2026-10-19",
+    kind: "Added",
+    title: "Accounts, sign-in and profile pictures",
+    body:
+      "You can now create an account and sign in. Signed-in users get a profile menu with Account and " +
+      "Settings and can set a profile picture (cropped to a circle). The public tools still need no " +
+      "account — this is opt-in.",
+  },
+  {
     date: "2026-08-29",
     kind: "Added",
     title: "Docs, changelog and a privacy page",

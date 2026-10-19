@@ -10,6 +10,11 @@ The models are not here. Every tool calls a FastAPI backend hosted on Hugging
 Face Spaces, which is a separate project:
 [ramleo/ML-Unified](https://github.com/ramleo/ML-Unified).
 
+**Accounts & public API.** Sign-in is optional (the public tools need no account).
+Signed-in users get a profile menu, Account/Settings, and a profile picture; the
+owner can issue **API keys** (`/portfolio/keys`) that grant access to the public
+`/v1` REST API and the **MCP** server — see the site's `/docs` page.
+
 ## Layout
 
 | Path | What lives there |
