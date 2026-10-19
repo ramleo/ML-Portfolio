@@ -29,9 +29,9 @@ export const metadata: Metadata = {
 
 const link = { color: "var(--accent-from)", textDecoration: "none" } as const;
 
-function Section({ heading, children }: { heading: string; children: React.ReactNode }) {
+function Section({ heading, children, id }: { heading: string; children: React.ReactNode; id?: string }) {
   return (
-    <section style={{ marginBottom: "2.75rem" }}>
+    <section id={id} style={{ marginBottom: "2.75rem", scrollMarginTop: "80px" }}>
       <h2 style={{ fontFamily: "var(--type-display)", fontSize: "1.15rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.75rem" }}>
         {heading}
       </h2>
@@ -93,7 +93,10 @@ export default function DocsPage() {
 
         <Section heading="Calling the API">
           <p style={{ margin: "0 0 0.25rem" }}>
-            There is no API key and no account. The base URL is:
+            Two ways in. The <strong style={{ color: "var(--text)" }}>direct backend</strong> below
+            needs no key (it is origin-locked for browsers, open to server-side calls); the
+            stable, versioned <a href="#public-api" style={link}>Public API (<code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>/v1</code>)</a>{" "}
+            is key-authenticated and meant for third parties. The base URL is:
           </p>
           <Code>{API}</Code>
           <p style={{ margin: "0.75rem 0 0.25rem" }}>
@@ -108,6 +111,45 @@ export default function DocsPage() {
             and take either JSON with a base64-encoded file or a multipart upload. Rather than list all
             116 here and let the list rot, use the generated reference below — it is produced from the
             running code, so it cannot drift.
+          </p>
+        </Section>
+
+        <Section heading="Public API (v1)" id="public-api">
+          <p style={{ margin: "0 0 0.75rem" }}>
+            A stable, versioned subset of the tools, authenticated with an API key — made for
+            other people to build on. It lives under{" "}
+            <code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>/v1</code> and will not
+            change shape without a version bump, unlike the raw backend above.
+          </p>
+          <p style={{ margin: "0 0 0.75rem" }}>
+            <strong style={{ color: "var(--text)" }}>Getting a key.</strong> Keys are issued on
+            request — contact the site owner. You send it on every call in the{" "}
+            <code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>X-API-Key</code> header:
+          </p>
+          <Code>{`curl -X POST ${API}/v1/tls-headers/check \\
+  -H "X-API-Key: ak_live_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{"host":"example.com"}'`}</Code>
+          <p style={{ margin: "0.75rem 0 0.4rem" }}>The endpoints available today (all{" "}
+            <code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>POST</code>, JSON in/out):
+          </p>
+          <ul style={{ margin: "0 0 0.75rem", paddingLeft: "1.1rem" }}>
+            <li style={{ marginBottom: "0.3rem" }}><code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>/v1/tls-headers/check</code> — TLS &amp; security-header scan of a host <code style={{ fontFamily: "var(--type-data)", fontSize: "0.82em" }}>{`{ host }`}</code></li>
+            <li style={{ marginBottom: "0.3rem" }}><code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>/v1/email-auth/check</code> — SPF/DKIM/DMARC analysis of email headers <code style={{ fontFamily: "var(--type-data)", fontSize: "0.82em" }}>{`{ headers }`}</code></li>
+            <li><code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>/v1/anomaly-detection/score</code> — anomaly scores for event rows <code style={{ fontFamily: "var(--type-data)", fontSize: "0.82em" }}>{`{ baseline, events }`}</code></li>
+          </ul>
+          <p style={{ margin: "0 0 0.4rem" }}>
+            <a href={`${API}/v1/openapi.json`} target="_blank" rel="noopener noreferrer" style={{ ...link, fontWeight: 600 }}>
+              Public OpenAPI schema (/v1) →
+            </a>{" "}
+            — import it into Postman or a client generator.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--text)" }}>Limits.</strong> Each key has a monthly request quota
+            and a spend budget. Missing or invalid key →{" "}
+            <code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>401</code>; over quota or
+            rate →{" "}
+            <code style={{ fontFamily: "var(--type-data)", fontSize: "0.85em" }}>429</code>.
           </p>
         </Section>
 
