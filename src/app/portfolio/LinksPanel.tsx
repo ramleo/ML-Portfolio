@@ -44,6 +44,8 @@ export default function LinksPanel() {
   const [days, setDays] = useState("14");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [pending, setPending] = useState<string | null>(null); // token being revoked/deleted
+  const [showRevoked, setShowRevoked] = useState(false);
   const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
 
   const load = useCallback(async () => {
@@ -73,12 +75,21 @@ export default function LinksPanel() {
   }
 
   async function revoke(token: string) {
+    setPending(token);
     await fetch("/api/recruiter-links/revoke", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     });
     await load();
+    setPending(null);
+  }
+
+  async function del(token: string) {
+    setPending(token);
+    await fetch(`/api/recruiter-links?token=${encodeURIComponent(token)}`, { method: "DELETE" });
+    await load();
+    setPending(null);
   }
 
   function copy(token: string) {
@@ -115,44 +126,70 @@ export default function LinksPanel() {
         </button>
       </div>
 
-      {links.length === 0 ? (
-        <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No links yet.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {links.map((l) => {
-            const st = status(l);
-            return (
-              <div
-                key={l.token}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-                  padding: "10px 12px", border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-sm)", background: "var(--bg)",
-                }}
-              >
-                <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-                  <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 500 }}>
-                    {l.label || "(no label)"}
-                  </div>
-                  <div style={{ fontSize: 12, color: st.color, fontFamily: "var(--type-data)" }}>
-                    /r/{l.token.slice(0, 8)}… · {st.text}
-                  </div>
+      {(() => {
+        const active = links.filter((l) => !l.revoked);
+        const revoked = links.filter((l) => l.revoked);
+
+        const Row = (l: Link) => {
+          const st = status(l);
+          return (
+            <div
+              key={l.token}
+              style={{
+                display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                padding: "10px 12px", border: "1px solid var(--border)",
+                borderRadius: "var(--radius-sm)", background: "var(--bg)",
+                opacity: l.revoked ? 0.6 : 1,
+              }}
+            >
+              <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 500 }}>
+                  {l.label || "(no label)"}
                 </div>
-                {!l.revoked && (
-                  <>
-                    <button style={{ ...btn, background: "transparent", color: "var(--text)", border: "1px solid var(--border2)" }} onClick={() => copy(l.token)}>
-                      {copied === l.token ? "Copied" : "Copy link"}
-                    </button>
-                    <button style={{ ...btn, background: "transparent", color: "#f87171", border: "1px solid rgba(248,113,113,0.4)" }} onClick={() => revoke(l.token)}>
-                      Revoke
-                    </button>
-                  </>
-                )}
+                <div style={{ fontSize: 12, color: st.color, fontFamily: "var(--type-data)" }}>
+                  /r/{l.token.slice(0, 8)}… · {st.text}
+                </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+              {l.revoked ? (
+                <button style={{ ...btn, background: "transparent", color: "var(--text2)", border: "1px solid var(--border2)" }} onClick={() => del(l.token)} disabled={pending === l.token}>
+                  {pending === l.token ? "Deleting…" : "Delete"}
+                </button>
+              ) : (
+                <>
+                  <button style={{ ...btn, background: "transparent", color: "var(--text)", border: "1px solid var(--border2)" }} onClick={() => copy(l.token)}>
+                    {copied === l.token ? "Copied" : "Copy link"}
+                  </button>
+                  <button style={{ ...btn, background: "transparent", color: "#f87171", border: "1px solid rgba(248,113,113,0.4)" }} onClick={() => revoke(l.token)} disabled={pending === l.token}>
+                    {pending === l.token ? "Revoking…" : "Revoke"}
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        };
+
+        if (links.length === 0)
+          return <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No links yet.</p>;
+
+        return (
+          <div style={{ display: "grid", gap: 10 }}>
+            {active.length === 0 && (
+              <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No active links.</p>
+            )}
+            {active.map(Row)}
+
+            {revoked.length > 0 && (
+              <button
+                onClick={() => setShowRevoked((s) => !s)}
+                style={{ alignSelf: "flex-start", marginTop: 4, padding: 0, background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "var(--text2)" }}
+              >
+                {showRevoked ? "Hide" : "Show"} revoked ({revoked.length})
+              </button>
+            )}
+            {showRevoked && revoked.map(Row)}
+          </div>
+        );
+      })()}
     </div>
   );
 }

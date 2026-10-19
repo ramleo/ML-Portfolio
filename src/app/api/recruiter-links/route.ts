@@ -5,8 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isOwnerEmail } from "@/lib/auth/owner";
 
 /** Owner-only API for recruiter share-links.
- *   GET  → list all links
- *   POST → create one { label?, expiresInDays? } (0/absent = never expires)
+ *   GET    → list all links
+ *   POST   → create one { label?, expiresInDays? } (0/absent = never expires)
+ *   DELETE → ?token=… permanently remove one (for tidying revoked links)
  * The owner identity is checked from the signed-in session; writes use the
  * service-role key (recruiter_links has RLS on with no policies). */
 
@@ -52,4 +53,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   return NextResponse.json({ token, label, expires_at, revoked: false });
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!(await requireOwner()))
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const token = req.nextUrl.searchParams.get("token");
+  if (!token) return NextResponse.json({ error: "missing token" }, { status: 400 });
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("recruiter_links").delete().eq("token", token);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
