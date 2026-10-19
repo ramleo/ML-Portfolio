@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 /** Navbar auth control.
@@ -17,6 +18,12 @@ interface Me {
   isOwner?: boolean;
   avatarUrl?: string | null;
 }
+
+/** Client-only cache of the last-known identity. On an in-app navigation the
+ * navbar remounts; seeding state from this (instead of `undefined`) keeps the
+ * avatar painted instead of blanking while /api/me re-validates. Only written
+ * from the client effect, so it never holds cross-request data on the server. */
+let cachedMe: Me | null | undefined;
 
 function initials(email: string): string {
   const local = email.split("@")[0].replace(/[^a-zA-Z]/g, "");
@@ -58,22 +65,25 @@ const linkStyle: React.CSSProperties = {
   transition: "background 0.12s, color 0.12s",
 };
 
-function Item({ href, children }: { href: string; children: React.ReactNode }) {
+function Item({ href, onNavigate, children }: { href: string; onNavigate: () => void; children: React.ReactNode }) {
   return (
-    <a
+    <Link
       href={href}
       role="menuitem"
+      onClick={onNavigate}
       style={linkStyle}
       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text2)"; }}
     >
       {children}
-    </a>
+    </Link>
   );
 }
 
 export default function NavAuth() {
-  const [me, setMe] = useState<Me | null | undefined>(undefined); // undefined = resolving
+  // Seed from the client cache so an in-app nav repaints the avatar immediately
+  // (SSR keeps cachedMe undefined, so the server render is unchanged).
+  const [me, setMe] = useState<Me | null | undefined>(cachedMe);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -81,8 +91,11 @@ export default function NavAuth() {
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/me", { cache: "no-store" });
-      setMe(res.ok ? await res.json() : { email: null });
+      const data: Me = res.ok ? await res.json() : { email: null };
+      cachedMe = data;
+      setMe(data);
     } catch {
+      cachedMe = { email: null };
       setMe({ email: null });
     }
   }, []);
@@ -120,14 +133,14 @@ export default function NavAuth() {
 
   if (!me || !me.email) {
     return (
-      <a
+      <Link
         href="/login"
         style={{ fontSize: "0.82rem", color: "var(--text2)", textDecoration: "none", fontWeight: 500 }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text2)")}
       >
         Sign in
-      </a>
+      </Link>
     );
   }
 
@@ -185,14 +198,14 @@ export default function NavAuth() {
 
           {me.isOwner && (
             <>
-              <Item href="/portfolio">My portfolio</Item>
-              <Item href="/portfolio/share">Share links</Item>
+              <Item href="/portfolio" onNavigate={() => setOpen(false)}>My portfolio</Item>
+              <Item href="/portfolio/share" onNavigate={() => setOpen(false)}>Share links</Item>
               <div style={{ height: 1, background: "var(--border)", margin: "0.3rem 0.4rem" }} />
             </>
           )}
 
-          <Item href="/account">Account</Item>
-          <Item href="/settings">Settings</Item>
+          <Item href="/account" onNavigate={() => setOpen(false)}>Account</Item>
+          <Item href="/settings" onNavigate={() => setOpen(false)}>Settings</Item>
 
           <div style={{ height: 1, background: "var(--border)", margin: "0.3rem 0.4rem" }} />
 
