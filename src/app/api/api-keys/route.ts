@@ -43,8 +43,12 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const label = typeof body.label === "string" ? body.label.slice(0, 120) : null;
   const tier = body.tier === "paid" ? "paid" : "free";
-  const monthly_quota = Math.max(0, Math.min(1_000_000, Number(body.monthlyQuota) || (tier === "paid" ? 100_000 : 1_000)));
-  const budget_usd = Math.max(0, Math.min(10_000, Number(body.budgetUsd) || (tier === "paid" ? 50 : 1)));
+  // Respect an explicit 0 (don't let `|| default` swallow it). Free spends nothing
+  // of the owner's wallet by default; paid gets a real budget.
+  const q = Number(body.monthlyQuota);
+  const monthly_quota = Math.max(0, Math.min(1_000_000, Number.isFinite(q) ? q : (tier === "paid" ? 100_000 : 1_000)));
+  const b = Number(body.budgetUsd);
+  const budget_usd = Math.max(0, Math.min(10_000, Number.isFinite(b) ? b : (tier === "paid" ? 50 : 0)));
   const days = Number(body.expiresInDays);
   const expires_at =
     Number.isFinite(days) && days > 0

@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
 
   if (request_count >= key.monthly_quota)
     return NextResponse.json({ valid: false, reason: "quota_exceeded", tier: key.tier });
-  if (Number(spend_usd) >= Number(key.budget_usd))
+  // A $0 budget doesn't block zero-cost calls — it just means "no spending
+  // endpoints". Spend enforcement for LLM tools happens per-call in M2.
+  if (Number(key.budget_usd) > 0 && Number(spend_usd) >= Number(key.budget_usd))
     return NextResponse.json({ valid: false, reason: "budget_exceeded", tier: key.tier });
 
   await admin

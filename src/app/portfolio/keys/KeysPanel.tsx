@@ -41,7 +41,7 @@ export default function KeysPanel() {
   const [label, setLabel] = useState("");
   const [tier, setTier] = useState("free");
   const [quota, setQuota] = useState("1000");
-  const [budget, setBudget] = useState("1");
+  const [budget, setBudget] = useState("0"); // free spends nothing of the owner's wallet
   const [days, setDays] = useState("0");
   const [busy, setBusy] = useState(false);
   const [fresh, setFresh] = useState<string | null>(null); // the just-created plaintext key
@@ -64,6 +64,13 @@ export default function KeysPanel() {
     })();
     return () => { active = false; };
   }, []);
+
+  // Switching tier resets quota + budget to that tier's sensible defaults.
+  function onTier(t: string) {
+    setTier(t);
+    if (t === "paid") { setQuota("100000"); setBudget("50"); }
+    else { setQuota("1000"); setBudget("0"); }
+  }
 
   async function create() {
     setBusy(true); setFresh(null);
@@ -89,6 +96,7 @@ export default function KeysPanel() {
   }
 
   async function revoke(id: string) {
+    setFresh(null); // the "copy this key" banner shouldn't linger past a revoke
     await fetch("/api/api-keys/revoke", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
@@ -131,7 +139,7 @@ export default function KeysPanel() {
         </label>
         <label style={{ fontSize: 12, color: "var(--text2)" }}>
           Tier
-          <select style={{ ...input, marginTop: 4 }} value={tier} onChange={(e) => setTier(e.target.value)}>
+          <select style={{ ...input, marginTop: 4 }} value={tier} onChange={(e) => onTier(e.target.value)}>
             <option value="free">free</option>
             <option value="paid">paid</option>
           </select>
