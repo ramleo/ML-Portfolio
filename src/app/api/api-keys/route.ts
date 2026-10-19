@@ -75,3 +75,16 @@ export async function POST(req: NextRequest) {
   // `key` is returned exactly once — it is never retrievable again.
   return NextResponse.json({ key, ...data });
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!(await requireOwner()))
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("api_keys").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

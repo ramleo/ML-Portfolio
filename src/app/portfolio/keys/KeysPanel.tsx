@@ -47,6 +47,8 @@ export default function KeysPanel() {
   const [fresh, setFresh] = useState<string | null>(null); // the just-created plaintext key
   const [copied, setCopied] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [pending, setPending] = useState<string | null>(null); // id being revoked/deleted
+  const [showRevoked, setShowRevoked] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/api-keys");
@@ -97,11 +99,20 @@ export default function KeysPanel() {
 
   async function revoke(id: string) {
     setFresh(null); // the "copy this key" banner shouldn't linger past a revoke
+    setPending(id);
     await fetch("/api/api-keys/revoke", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
     await load();
+    setPending(null);
+  }
+
+  async function del(id: string) {
+    setPending(id);
+    await fetch(`/api/api-keys?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    await load();
+    setPending(null);
   }
 
   function copyFresh() {
@@ -158,6 +169,11 @@ export default function KeysPanel() {
         </label>
         <button style={btn} onClick={create} disabled={busy}>{busy ? "Creating…" : "Create key"}</button>
       </div>
+      <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 16px" }}>
+        Quota and budget are independent caps: <strong>quota</strong> limits how many
+        requests per month; <strong>budget</strong> limits provider spend ($) on
+        LLM-backed tools. Free keys default to $0 (no-cost tools only).
+      </p>
 
       {/* Just-created key — shown once */}
       {fresh && (
@@ -174,31 +190,56 @@ export default function KeysPanel() {
         </div>
       )}
 
-      {/* List */}
-      {keys.length === 0 ? (
-        <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No keys yet.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {keys.map((k) => (
-            <div key={k.id} style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "var(--bg)", opacity: k.revoked ? 0.55 : 1 }}>
-              <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 500 }}>
-                  {k.label || "(no label)"} <span style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", fontWeight: 700 }}>· {k.tier}</span>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text2)", fontFamily: "var(--type-data)" }}>
-                  {k.key_prefix}…{"  ·  "}{k.request_count}/{k.monthly_quota} this mo{"  ·  "}
-                  {k.revoked ? "revoked" : k.expires_at ? `expires ${fmtDate(k.expires_at)}` : "no expiry"}
-                </div>
+      {/* List — active keys by default; revoked ones hidden behind a toggle */}
+      {(() => {
+        const active = keys.filter((k) => !k.revoked);
+        const revoked = keys.filter((k) => k.revoked);
+
+        const Row = (k: Key) => (
+          <div key={k.id} style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "var(--bg)", opacity: k.revoked ? 0.6 : 1 }}>
+            <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+              <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 500 }}>
+                {k.label || "(no label)"} <span style={{ fontSize: 11, color: "var(--accent)", textTransform: "uppercase", fontWeight: 700 }}>· {k.tier}</span>
               </div>
-              {!k.revoked && (
-                <button style={{ ...btn, background: "transparent", color: "#f87171", border: "1px solid rgba(248,113,113,0.4)" }} onClick={() => revoke(k.id)}>
-                  Revoke
-                </button>
-              )}
+              <div style={{ fontSize: 12, color: "var(--text2)", fontFamily: "var(--type-data)" }}>
+                {k.key_prefix}…{"  ·  "}{k.request_count}/{k.monthly_quota} this mo{"  ·  "}
+                {k.revoked ? "revoked" : k.expires_at ? `expires ${fmtDate(k.expires_at)}` : "no expiry"}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+            {k.revoked ? (
+              <button style={{ ...btn, background: "transparent", color: "var(--text2)", border: "1px solid var(--border2)" }} onClick={() => del(k.id)} disabled={pending === k.id}>
+                {pending === k.id ? "Deleting…" : "Delete"}
+              </button>
+            ) : (
+              <button style={{ ...btn, background: "transparent", color: "#f87171", border: "1px solid rgba(248,113,113,0.4)" }} onClick={() => revoke(k.id)} disabled={pending === k.id}>
+                {pending === k.id ? "Revoking…" : "Revoke"}
+              </button>
+            )}
+          </div>
+        );
+
+        if (keys.length === 0)
+          return <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No keys yet.</p>;
+
+        return (
+          <div style={{ display: "grid", gap: 10 }}>
+            {active.length === 0 && (
+              <p style={{ fontSize: 13.5, color: "var(--text3)", margin: 0 }}>No active keys.</p>
+            )}
+            {active.map(Row)}
+
+            {revoked.length > 0 && (
+              <button
+                onClick={() => setShowRevoked((s) => !s)}
+                style={{ alignSelf: "flex-start", marginTop: 4, padding: 0, background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "var(--text2)" }}
+              >
+                {showRevoked ? "Hide" : "Show"} revoked ({revoked.length})
+              </button>
+            )}
+            {showRevoked && revoked.map(Row)}
+          </div>
+        );
+      })()}
     </div>
   );
 }
