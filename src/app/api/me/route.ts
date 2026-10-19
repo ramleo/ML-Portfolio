@@ -15,13 +15,14 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
   return NextResponse.json({
     email: user.email,
     role: profile?.role ?? "user",
+    avatarUrl: profile?.avatar_url ?? null,
     isOwner: isOwnerEmail(user.email),
   });
 }

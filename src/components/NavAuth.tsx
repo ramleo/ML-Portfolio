@@ -15,11 +15,33 @@ interface Me {
   email: string | null;
   role?: string;
   isOwner?: boolean;
+  avatarUrl?: string | null;
 }
 
 function initials(email: string): string {
   const local = email.split("@")[0].replace(/[^a-zA-Z]/g, "");
   return (local.slice(0, 2) || email.slice(0, 2)).toUpperCase();
+}
+
+/** The round avatar face: the uploaded photo when set, otherwise gradient initials. */
+function AvatarFace({ me, size }: { me: Me; size: number }) {
+  if (me.avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- user upload, not a build asset
+      <img src={me.avatarUrl} alt="" width={size} height={size}
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", display: "block" }} />
+    );
+  }
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      width: size, height: size, borderRadius: "50%",
+      background: "var(--brand-gradient)", color: "#fff",
+      fontSize: Math.round(size * 0.42), fontWeight: 700,
+    }}>
+      {initials(me.email ?? "")}
+    </span>
+  );
 }
 
 function roleLabel(me: Me): string {
@@ -69,7 +91,12 @@ export default function NavAuth() {
     (async () => { await refresh(); })();
     const supabase = createClient();
     const { data: sub } = supabase.auth.onAuthStateChange(() => { void refresh(); });
-    return () => sub.subscription.unsubscribe();
+    const onAvatar = () => { void refresh(); };
+    window.addEventListener("airaml:avatar-changed", onAvatar);
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("airaml:avatar-changed", onAvatar);
+    };
   }, [refresh]);
 
   // Close on outside click or Escape.
@@ -114,14 +141,13 @@ export default function NavAuth() {
         aria-label="Account menu"
         style={{
           display: "flex", alignItems: "center", justifyContent: "center",
-          width: 32, height: 32, borderRadius: "50%", cursor: "pointer",
-          background: "var(--brand-gradient)", color: "#fff",
-          fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.02em",
+          width: 34, height: 34, borderRadius: "50%", cursor: "pointer",
+          background: "transparent", overflow: "hidden",
           border: open ? "2px solid var(--accent)" : "2px solid transparent",
           padding: 0, lineHeight: 1,
         }}
       >
-        {initials(me.email)}
+        <AvatarFace me={me} size={30} />
       </button>
 
       {open && (
@@ -137,12 +163,8 @@ export default function NavAuth() {
         >
           {/* Identity header */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.6rem 0.9rem 0.7rem" }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-              background: "var(--brand-gradient)", color: "#fff", fontSize: "0.75rem", fontWeight: 700,
-            }}>
-              {initials(me.email)}
+            <span style={{ flexShrink: 0, lineHeight: 0 }}>
+              <AvatarFace me={me} size={34} />
             </span>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

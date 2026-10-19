@@ -3,6 +3,7 @@ import { isOwnerEmail } from "@/lib/auth/owner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ParticleGridClient from "@/components/ParticleGridClient";
+import AvatarEditor from "@/components/AvatarEditor";
 
 export const metadata = {
   title: "Account — AIRaML",
@@ -26,7 +27,7 @@ export default async function AccountPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = user
-    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    ? await supabase.from("profiles").select("role, avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
 
   const email = user?.email ?? "";
@@ -47,26 +48,12 @@ export default async function AccountPage() {
 
         <div style={{ display: "grid", gap: 16 }}>
           <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-                background: "var(--brand-gradient)", color: "#fff", fontSize: 18, fontWeight: 700,
-              }}>
-                {(email.split("@")[0].replace(/[^a-zA-Z]/g, "").slice(0, 2) || email.slice(0, 2)).toUpperCase()}
-              </span>
-              <span>
-                <p style={{ ...value, fontWeight: 600 }}>{email}</p>
-                <span style={{
-                  display: "inline-block", marginTop: 5, padding: "0.1rem 0.5rem",
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
-                  color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 14%, transparent)",
-                  borderRadius: 9999,
-                }}>{role}</span>
-              </span>
-            </div>
-            <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+            <p style={{ ...label, margin: "0 0 12px" }}>Profile picture</p>
+            <AvatarEditor initialUrl={profile?.avatar_url ?? null} email={email} />
+            <div style={{ height: 1, background: "var(--border)", margin: "20px 0" }} />
+            <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
               <div><p style={label}>Email</p><p style={value}>{email}</p></div>
+              <div><p style={label}>Role</p><p style={value}>{role}</p></div>
               <div><p style={label}>Member since</p><p style={value}>{since}</p></div>
             </div>
           </div>
