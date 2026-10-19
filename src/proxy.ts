@@ -58,5 +58,5 @@ export async function proxy(req: NextRequest) {
 // Everything else — the public showcase, the recruiter share-link /r/<token>,
 // APIs, the capture endpoint — is untouched.
 export const config = {
-  matcher: ["/audit", "/audit/:path*", "/app", "/app/:path*", "/portfolio", "/portfolio/:path*"],
+  matcher: ["/audit", "/audit/:path*", "/app", "/app/:path*", "/portfolio", "/portfolio/:path*", "/account", "/account/:path*", "/settings", "/settings/:path*"],
 };

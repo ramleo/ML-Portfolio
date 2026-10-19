@@ -16,7 +16,7 @@ interface Link {
 
 const box: React.CSSProperties = {
   maxWidth: 820,
-  margin: "90px auto 0",
+  margin: "0 auto",
   padding: "22px",
   background: "var(--bg-card)",
   border: "1px solid var(--border2)",
