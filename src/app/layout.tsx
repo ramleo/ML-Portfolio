@@ -27,11 +27,11 @@ export const metadata: Metadata = {
   // and "ML Engineer Portfolio" framed the whole site as a CV. The personal
   // page sets its own title; this one describes the product.
   title: {
-    default: "AIRaML — 50 free machine-learning tools",
+    default: "AIRaML — Free machine learning & AI tools in your browser",
     template: "%s",
   },
   description:
-    "Run 50 machine-learning tools in your browser: AutoML pipelines, computer vision, document intelligence and security analysis. Free, no signup, nothing to install.",
+    "Run machine-learning and AI tools right in your browser: AutoML pipelines, computer vision, document intelligence and security analysis. Free, no signup, nothing to install.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
