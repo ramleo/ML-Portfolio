@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono, Archivo } from "next/font/google";
 import "./globals.css";
 import KeepAlive from "@/components/KeepAlive";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import IdentityProvider, { type Me } from "@/components/IdentityProvider";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -34,7 +36,15 @@ export const metadata: Metadata = {
     "Run machine-learning and AI tools right in your browser: AutoML pipelines, computer vision, document intelligence and security analysis. Free, no signup, nothing to install.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Seed the navbar identity from a non-sensitive cookie NavAuth keeps fresh, so
+  // the avatar is in the SSR HTML. Just a cookie read — no DB or auth round-trip.
+  let initialMe: Me | undefined;
+  try {
+    const raw = (await cookies()).get("airaml_me")?.value;
+    if (raw) initialMe = JSON.parse(decodeURIComponent(raw)) as Me;
+  } catch { initialMe = undefined; }
+
   return (
     <html
       lang="en"
@@ -52,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <KeepAlive />
         <AnalyticsTracker />
-        {children}
+        <IdentityProvider value={initialMe}>{children}</IdentityProvider>
       </body>
     </html>
   );

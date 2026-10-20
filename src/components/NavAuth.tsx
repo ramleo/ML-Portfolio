@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { IdentityContext, type Me } from "./IdentityProvider";
 
 /** Navbar auth control.
  *  - signed out → a "Sign in" link.
@@ -10,14 +11,9 @@ import { createClient } from "@/lib/supabase/client";
  *      identity header (email + role), the owner's private links, Account,
  *      Settings, then Sign out. Sign out is a menu item, not a separate chip,
  *      so it shares the menu's visual language.
- *  Owner-awareness comes from /api/me (OWNER_EMAIL stays server-side). */
-
-interface Me {
-  email: string | null;
-  role?: string;
-  isOwner?: boolean;
-  avatarUrl?: string | null;
-}
+ *  Owner-awareness comes from /api/me (OWNER_EMAIL stays server-side). The initial
+ *  value is seeded server-side from the `airaml_me` cookie (via IdentityContext),
+ *  so the avatar is already in the SSR HTML — no blank wait for JS + /api/me. */
 
 /** Client-only cache of the last-known identity. On an in-app navigation the
  * navbar remounts; seeding state from this (instead of `undefined`) keeps the
@@ -25,22 +21,21 @@ interface Me {
  * from the client effect, so it never holds cross-request data on the server. */
 let cachedMe: Me | null | undefined;
 
-/** A FULL page load resets `cachedMe`, so the avatar used to blank until the
- * client /api/me round-trip returned. Persisting the last-known identity lets a
- * returning visitor paint their avatar (or "Sign in") immediately on first load,
- * then /api/me revalidates in the background. Per-device convenience only, wrapped
- * in try/catch — a private window or blocked storage just falls back to the fetch. */
-const STORAGE_KEY = "airaml_me_v1";
+/** NavAuth keeps the `airaml_me` cookie fresh; the root layout reads it server-side
+ * to seed IdentityContext, so the avatar renders in the SSR HTML. Non-sensitive
+ * display fields only (the real auth is the httpOnly Supabase cookies), readable by
+ * JS so the client can update it. Wrapped in try/catch for safety. */
+const COOKIE = "airaml_me";
 
-function readStored(): Me | null | undefined {
+function writeMeCookie(me: Me): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Me) : undefined;
-  } catch { return undefined; }
+    const slim = { email: me.email, role: me.role, isOwner: me.isOwner, avatarUrl: me.avatarUrl };
+    document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(slim))}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+  } catch { /* ignore */ }
 }
 
-function writeStored(me: Me): void {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(me)); } catch { /* ignore */ }
+function clearMeCookie(): void {
+  try { document.cookie = `${COOKIE}=; path=/; max-age=0; samesite=lax`; } catch { /* ignore */ }
 }
 
 function initials(email: string): string {
@@ -99,9 +94,11 @@ function Item({ href, onNavigate, children }: { href: string; onNavigate: () => 
 }
 
 export default function NavAuth() {
-  // Seed from the client cache so an in-app nav repaints the avatar immediately
-  // (SSR keeps cachedMe undefined, so the server render is unchanged).
-  const [me, setMe] = useState<Me | null | undefined>(cachedMe);
+  // Seed from the server-provided identity (cookie → IdentityContext) so the avatar
+  // is in the SSR HTML; cachedMe (set by a prior refresh this session) wins for an
+  // in-app nav. Both are consistent across SSR/hydration, so no mismatch.
+  const initial = useContext(IdentityContext);
+  const [me, setMe] = useState<Me | null | undefined>(cachedMe ?? initial);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -111,7 +108,7 @@ export default function NavAuth() {
       const res = await fetch("/api/me", { cache: "no-store" });
       const data: Me = res.ok ? await res.json() : { email: null };
       cachedMe = data;
-      writeStored(data);
+      if (data.email) writeMeCookie(data); else clearMeCookie();
       setMe(data);
     } catch {
       cachedMe = { email: null };
@@ -120,15 +117,7 @@ export default function NavAuth() {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      // Seed from last-known identity so the avatar / "Sign in" paints at once on
-      // a fresh load, before /api/me returns. Then revalidate over the network.
-      if (cachedMe === undefined) {
-        const stored = readStored();
-        if (stored !== undefined) { cachedMe = stored; setMe(stored); }
-      }
-      await refresh();
-    })();
+    (async () => { await refresh(); })();
     const supabase = createClient();
     const { data: sub } = supabase.auth.onAuthStateChange(() => { void refresh(); });
     const onAvatar = () => { void refresh(); };
@@ -251,7 +240,7 @@ export default function NavAuth() {
             <button
               type="submit"
               role="menuitem"
-              onClick={() => { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}
+              onClick={clearMeCookie}
               style={linkStyle}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text2)"; }}
