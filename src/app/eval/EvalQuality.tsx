@@ -9,9 +9,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Run {
   id: string; ts: string; golden_version: string; judge_model: string | null;
+  gen_provider: string | null; gen_model: string | null;
   status: string; n: number; n_scored: number; pass_rate: number | null;
   avg_correct: number | null; avg_faithful: number | null; avg_relevant: number | null; error: string | null;
 }
+
+/** The app's generation models the eval can score (mirrors the server allowlist). */
+const MODELS = [
+  { key: "cohere/command-a-03-2025", label: "Cohere · command-a" },
+  { key: "gemini/gemini-3.6-flash", label: "Gemini · 3.6-flash" },
+  { key: "mistral/mistral-small-latest", label: "Mistral · small" },
+];
 interface Score {
   item_id: string; question: string; answer: string | null;
   correct: boolean | null; faithful: boolean | null; relevant: boolean | null;
@@ -50,6 +58,7 @@ export default function EvalQuality() {
   const [data, setData] = useState<Quality | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [model, setModel] = useState(MODELS[0].key);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
@@ -73,13 +82,23 @@ export default function EvalQuality() {
   const run = async () => {
     setBusy(true); setMsg(null);
     try {
-      const res = await fetch("/api/eval/run", { method: "POST" });
+      const res = await fetch("/api/eval/run", {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model }),
+      });
       const d = await res.json();
       if (!res.ok) setMsg(d.error ?? "Could not start the run.");
-      else { setMsg(`Run started — ${d.n} items. Scoring…`); await load(); }
+      else { setMsg(`Run started — ${d.n} items on ${d.gen_model}. Scoring…`); await load(); }
     } catch { setMsg("Could not reach the server."); }
     setBusy(false);
   };
+
+  // Latest completed pass-rate per generation model, for a quick comparison.
+  const byModel = (() => {
+    const seen = new Map<string, Run>();
+    for (const r of data?.runs ?? [])
+      if (r.status === "done" && r.gen_model && !seen.has(r.gen_model)) seen.set(r.gen_model, r);
+    return [...seen.values()];
+  })();
 
   const latest = data?.latest;
   const scores = (data?.scores ?? []).slice().sort((a, b) => Number(itemPass(a)) - Number(itemPass(b)));
@@ -90,10 +109,16 @@ export default function EvalQuality() {
     <div style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Answer quality <span style={{ color: "var(--text3)", fontWeight: 400 }}>· golden set + LLM judge</span></h3>
-        <button type="button" onClick={run} disabled={busy || running}
-          style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || running ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || running ? "var(--bg)" : ACCENT, color: busy || running ? "var(--text3)" : "#fff" }}>
-          {running ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <select value={model} onChange={(e) => setModel(e.target.value)} disabled={busy || running} aria-label="Model to evaluate"
+            style={{ padding: "0.35rem 0.6rem", fontSize: 13, borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: busy || running ? "default" : "pointer" }}>
+            {MODELS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+          </select>
+          <button type="button" onClick={run} disabled={busy || running}
+            style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || running ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || running ? "var(--bg)" : ACCENT, color: busy || running ? "var(--text3)" : "#fff" }}>
+            {running ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
+          </button>
+        </div>
       </div>
 
       {msg && <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "0 0 12px" }}>{msg}</p>}
@@ -111,12 +136,29 @@ export default function EvalQuality() {
               <div style={{ fontSize: 12.5, color: "var(--text2)", lineHeight: 1.7 }}>
                 <div>correct {pct(latest.avg_correct)} · faithful {pct(latest.avg_faithful)} · relevant {pct(latest.avg_relevant)}</div>
                 <div style={{ color: "var(--text3)" }}>
-                  {latest.status === "running" ? "running…" : `${latest.n_scored}/${latest.n} scored`} · {when(latest.ts)} · judge {latest.judge_model ?? "—"} · {latest.golden_version}
+                  model <strong style={{ color: "var(--text2)" }}>{latest.gen_model ?? "—"}</strong> · {latest.status === "running" ? "running…" : `${latest.n_scored}/${latest.n} scored`} · {when(latest.ts)} · judge {latest.judge_model ?? "—"} · {latest.golden_version}
                   {latest.status === "error" && <span style={{ color: ERR }}> · error: {latest.error}</span>}
                 </div>
               </div>
               <div style={{ marginLeft: "auto" }}><PassTrend runs={data.runs} /></div>
             </div>
+
+            {byModel.length >= 2 && (
+              <div style={{ margin: "0 0 16px", padding: "10px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "0 0 8px" }}>Latest pass rate by model</p>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {byModel.sort((a, b) => (b.pass_rate ?? 0) - (a.pass_rate ?? 0)).map((r) => (
+                    <div key={r.gen_model} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5 }}>
+                      <span style={{ width: 170, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.gen_model}</span>
+                      <span style={{ flex: 1, height: 8, background: "var(--bg-card)", borderRadius: 4, overflow: "hidden" }}>
+                        <span style={{ display: "block", width: `${Math.round((r.pass_rate ?? 0) * 100)}%`, height: "100%", background: ACCENT }} />
+                      </span>
+                      <span style={{ width: 42, textAlign: "right", color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>{pct(r.pass_rate)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {latest.status === "running" && (
               <div style={{ margin: "0 0 16px" }}>

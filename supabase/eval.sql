@@ -19,6 +19,8 @@ create table if not exists public.eval_runs (
   ts             timestamptz not null default now(),
   golden_version text not null,
   judge_model    text,
+  gen_provider   text,                               -- generation model under test
+  gen_model      text,
   status         text not null default 'running',   -- running | done | error
   n              int not null default 0,             -- items in the set
   n_scored       int not null default 0,             -- items judged so far
@@ -28,6 +30,10 @@ create table if not exists public.eval_runs (
   avg_relevant   float,
   error          text
 );
+
+-- Added after the first cut — safe to re-run.
+alter table public.eval_runs add column if not exists gen_provider text;
+alter table public.eval_runs add column if not exists gen_model text;
 
 alter table public.eval_runs enable row level security;
 -- No policies → service-role only.

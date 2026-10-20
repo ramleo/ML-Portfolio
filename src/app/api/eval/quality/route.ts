@@ -21,7 +21,7 @@ export async function GET() {
 
   const admin = createAdminClient();
   const { data: runs, error } = await admin.from("eval_runs")
-    .select("id,ts,golden_version,judge_model,status,n,n_scored,pass_rate,avg_correct,avg_faithful,avg_relevant,error")
+    .select("id,ts,golden_version,judge_model,gen_provider,gen_model,status,n,n_scored,pass_rate,avg_correct,avg_faithful,avg_relevant,error")
     .order("ts", { ascending: false }).limit(20);
 
   if (error) {
