@@ -118,6 +118,18 @@ export default function EvalQuality() {
               <div style={{ marginLeft: "auto" }}><PassTrend runs={data.runs} /></div>
             </div>
 
+            {latest.status === "running" && (
+              <div style={{ margin: "0 0 16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--text2)", marginBottom: 4 }}>
+                  <span>Scoring…</span>
+                  <span style={{ fontVariantNumeric: "tabular-nums" }}>{latest.n_scored}/{latest.n || "?"}</span>
+                </div>
+                <div style={{ height: 8, background: "var(--bg)", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ width: `${latest.n ? Math.round((latest.n_scored / latest.n) * 100) : 0}%`, height: "100%", background: ACCENT, transition: "width .4s ease" }} />
+                </div>
+              </div>
+            )}
+
             {scores.length > 0 && (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>

@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
     if (!b.run_id) return NextResponse.json({ error: "run_id required" }, { status: 400 });
     const admin = createClient(url, serviceKey);
 
+    // Lightweight progress ping during a run: just advance n_scored so the
+    // dashboard can draw a progress bar. Never touches status or scores.
+    if (b.kind === "progress") {
+      await admin.from("eval_runs").update({ n_scored: num(b.n_scored) }).eq("id", b.run_id);
+      return NextResponse.json({ ok: true });
+    }
+
     const scores: ScoreIn[] = Array.isArray(b.scores) ? b.scores : [];
     if (scores.length) {
       const { error } = await admin.from("eval_scores").insert(scores.map((s) => ({
