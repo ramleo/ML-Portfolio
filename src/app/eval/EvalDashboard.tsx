@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 
 /** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
- * Content-free: counts, timings, tokens, cost — never prompt text. */
+ * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
+ * and error clusters drill down into the individual calls (feature A). */
 
 interface Bucket { name: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
 interface Day { date: string; calls: number; errors: number; cost_usd: number }
+interface Cluster { provider: string; reason: string; count: number; lastTs: string | null; sample: string }
+type FilterKey = "tool" | "provider" | "model" | "status";
 interface Data {
   needs_setup?: boolean;
   total: number; ok: number; errors: number; success_rate: number | null;
   cost_usd: number; tokens: number; p50_ms: number | null; p95_ms: number | null;
   daily: Day[]; byTool: Bucket[]; byProvider: Bucket[]; byModel: Bucket[]; byStatus: Bucket[];
+  errorClusters: Cluster[];
 }
 
 const ACCENT = "var(--accent)";
@@ -37,7 +42,8 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-function Breakdown({ title, items }: { title: string; items: Bucket[] }) {
+function Breakdown({ title, items, filterKey, days, onPick }:
+  { title: string; items: Bucket[]; filterKey: FilterKey; days: number; onPick: (f: CallFilter) => void }) {
   const max = Math.max(1, ...items.map((i) => i.calls));
   return (
     <div style={card}>
@@ -47,7 +53,10 @@ function Breakdown({ title, items }: { title: string; items: Bucket[] }) {
       ) : (
         <div style={{ display: "grid", gap: 10 }}>
           {items.slice(0, 8).map((i) => (
-            <div key={i.name} title={`${i.name}: ${n(i.calls)} calls, ${i.errors} errors, p95 ${ms(i.p95_ms)}, ${usd(i.cost_usd)}`}>
+            <button key={i.name} type="button"
+              onClick={() => onPick({ key: filterKey, value: i.name, days, title: `${title}: ${i.name}` })}
+              title={`${i.name}: ${n(i.calls)} calls, ${i.errors} errors, p95 ${ms(i.p95_ms)}, ${usd(i.cost_usd)} — click to drill in`}
+              style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none", padding: 0, cursor: "pointer" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
                 <span style={{ color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "60%" }}>{i.name}</span>
                 <span style={{ color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>
@@ -59,7 +68,41 @@ function Breakdown({ title, items }: { title: string; items: Bucket[] }) {
                 <div style={{ width: `${((i.calls - i.errors) / max) * 100}%`, background: ACCENT, borderRadius: "4px 0 0 4px" }} />
                 {i.errors > 0 && <div style={{ width: `${(i.errors / max) * 100}%`, background: ERR, marginLeft: 2 }} />}
               </div>
-            </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopErrors({ clusters, days, onPick }:
+  { clusters: Cluster[]; days: number; onPick: (f: CallFilter) => void }) {
+  return (
+    <div style={{ ...card, borderColor: clusters.length ? ERR : "var(--border2)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+        <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Top errors</h3>
+        <button type="button" onClick={() => onPick({ onlyErrors: true, days, title: "All failures" })}
+          style={{ background: "transparent", border: "1px solid var(--border2)", borderRadius: 8, cursor: "pointer", color: "var(--text2)", padding: "3px 10px", fontSize: 12 }}>
+          View all failures
+        </button>
+      </div>
+      {clusters.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No failures in this window.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 8 }}>
+          {clusters.map((c) => (
+            <button key={`${c.provider}|${c.reason}`} type="button"
+              onClick={() => onPick({ key: "provider", value: c.provider, onlyErrors: true, days, title: `Errors: ${c.provider} · ${c.reason}` })}
+              title={c.sample || `${c.provider} ${c.reason}`}
+              style={{ display: "flex", justifyContent: "space-between", gap: 12, width: "100%", textAlign: "left", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 11px", cursor: "pointer" }}>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ color: "var(--text)", fontSize: 12.5, fontWeight: 600 }}>{c.provider}</span>
+                <span style={{ color: ERR, fontSize: 12.5 }}> · {c.reason}</span>
+                {c.sample && <div style={{ color: "var(--text3)", fontSize: 11.5, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.sample}</div>}
+              </span>
+              <span style={{ color: ERR, fontWeight: 700, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{n(c.count)}</span>
+            </button>
           ))}
         </div>
       )}
@@ -103,6 +146,7 @@ export default function EvalDashboard() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const [drawer, setDrawer] = useState<CallFilter | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -151,12 +195,16 @@ export default function EvalDashboard() {
 
       <DailyChart daily={data.daily} />
 
+      <TopErrors clusters={data.errorClusters ?? []} days={days} onPick={setDrawer} />
+
       <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-        <Breakdown title="By provider" items={data.byProvider} />
-        <Breakdown title="By model" items={data.byModel} />
-        <Breakdown title="By tool" items={data.byTool} />
-        <Breakdown title="By status" items={data.byStatus} />
+        <Breakdown title="By provider" items={data.byProvider} filterKey="provider" days={days} onPick={setDrawer} />
+        <Breakdown title="By model" items={data.byModel} filterKey="model" days={days} onPick={setDrawer} />
+        <Breakdown title="By tool" items={data.byTool} filterKey="tool" days={days} onPick={setDrawer} />
+        <Breakdown title="By status" items={data.byStatus} filterKey="status" days={days} onPick={setDrawer} />
       </div>
+
+      {drawer && <EvalCallDrawer filter={drawer} onClose={() => setDrawer(null)} />}
     </div>
   );
 }

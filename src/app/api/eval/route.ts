@@ -27,6 +27,27 @@ interface Row {
   ts: string | null; tool: string | null; provider: string | null; model: string | null;
   status: string | null; latency_ms: number | null; cost_usd: number | null;
   input_tokens: number | null; output_tokens: number | null;
+  http_status: number | null; error_code: string | null; error_message: string | null;
+}
+
+/** Cluster failures by provider + reason (error code, else HTTP status) so a
+ * recurring failure reads as one row with a count and a sample, not 44 lines.
+ * Content-free: the sample is the provider's own error envelope (already
+ * truncated at write time), never prompt or document text. */
+function errorClusters(rows: Row[]) {
+  const m = new Map<string, { provider: string; reason: string; count: number; lastTs: string | null; sample: string }>();
+  for (const r of rows) {
+    if (r.status === "ok") continue;
+    const provider = r.provider || "unknown";
+    const reason = r.error_code || (r.http_status ? `HTTP ${r.http_status}` : "error");
+    const key = `${provider}|${reason}`;
+    const a = m.get(key) ?? { provider, reason, count: 0, lastTs: null, sample: "" };
+    a.count += 1;
+    if (!a.lastTs || (r.ts && r.ts > a.lastTs)) { a.lastTs = r.ts; if (r.error_message) a.sample = r.error_message; }
+    if (!a.sample && r.error_message) a.sample = r.error_message;
+    m.set(key, a);
+  }
+  return [...m.values()].sort((a, b) => b.count - a.count).slice(0, 8);
 }
 
 function breakdown(rows: Row[], key: keyof Row) {
@@ -80,6 +101,7 @@ function summarize(rows: Row[], days: number) {
     byProvider: breakdown(rows, "provider"),
     byModel: breakdown(rows, "model"),
     byStatus: breakdown(rows, "status"),
+    errorClusters: errorClusters(rows),
   };
 }
 
@@ -95,7 +117,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("llm_calls")
-    .select("ts,tool,provider,model,status,latency_ms,cost_usd,input_tokens,output_tokens")
+    .select("ts,tool,provider,model,status,latency_ms,cost_usd,input_tokens,output_tokens,http_status,error_code,error_message")
     .gte("ts", start.toISOString())
     .order("ts", { ascending: false })
     .limit(5000);
