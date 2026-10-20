@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
+import EvalQuality from "./EvalQuality";
 
 /** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
  * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
@@ -223,6 +224,8 @@ export default function EvalDashboard() {
       <DailyChart daily={data.daily} />
 
       <EvalTrends daily={data.daily} />
+
+      <EvalQuality />
 
       <TopErrors clusters={data.errorClusters ?? []} days={days} onPick={setDrawer} />
 
