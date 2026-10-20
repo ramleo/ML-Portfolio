@@ -39,6 +39,29 @@ function Mark({ v }: { v: boolean | null }) {
   return <span style={{ color: v ? "var(--text2)" : ERR, fontWeight: 600 }}>{v ? "✓" : "✗"}</span>;
 }
 
+/** Shown the instant a run is in flight. Indeterminate (animated) until the first
+ * item is scored — a real item takes ~10s (RAG answer + judge), so a static 0%
+ * bar would look stuck; determinate (n_scored/n) once progress arrives. */
+function ScoringBar({ row }: { row: Run | undefined }) {
+  const total = row?.n ?? 0;
+  const done = row?.n_scored ?? 0;
+  const determinate = total > 0 && done > 0;
+  return (
+    <div style={{ margin: "0 0 16px" }}>
+      <style>{"@keyframes evalIndet{0%{left:-40%}100%{left:100%}}"}</style>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--text2)", marginBottom: 4 }}>
+        <span>Scoring…</span>
+        <span style={{ fontVariantNumeric: "tabular-nums" }}>{total > 0 ? `${done}/${total}` : "preparing…"}</span>
+      </div>
+      <div style={{ height: 8, background: "var(--bg)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+        {determinate
+          ? <div style={{ width: `${Math.round((done / total) * 100)}%`, height: "100%", background: ACCENT, transition: "width .4s ease" }} />
+          : <div style={{ position: "absolute", top: 0, bottom: 0, width: "40%", background: ACCENT, borderRadius: 4, animation: "evalIndet 1.1s ease-in-out infinite" }} />}
+      </div>
+    </div>
+  );
+}
+
 function PassTrend({ runs }: { runs: Run[] }) {
   // Only trend runs of the SAME golden version — different versions aren't
   // comparable, so connecting them would be a meaningless line. Need >=2 points.
@@ -102,7 +125,7 @@ export default function EvalQuality() {
   const active = running || inflight;
 
   useEffect(() => {
-    if (active && !poll.current) poll.current = setInterval(load, 5000);
+    if (active && !poll.current) poll.current = setInterval(load, 2500);
     if (!active && poll.current) { clearInterval(poll.current); poll.current = null; }
   }, [active, load]);
 
@@ -188,17 +211,7 @@ export default function EvalQuality() {
               </div>
             )}
 
-            {latest.status === "running" && (
-              <div style={{ margin: "0 0 16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--text2)", marginBottom: 4 }}>
-                  <span>Scoring…</span>
-                  <span style={{ fontVariantNumeric: "tabular-nums" }}>{latest.n_scored}/{latest.n || "?"}</span>
-                </div>
-                <div style={{ height: 8, background: "var(--bg)", borderRadius: 4, overflow: "hidden" }}>
-                  <div style={{ width: `${latest.n ? Math.round((latest.n_scored / latest.n) * 100) : 0}%`, height: "100%", background: ACCENT, transition: "width .4s ease" }} />
-                </div>
-              </div>
-            )}
+            {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 
             {scores.length > 0 && (
               <div style={{ overflowX: "auto" }}>
