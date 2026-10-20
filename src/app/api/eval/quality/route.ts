@@ -29,7 +29,9 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const latest = runs?.find((r) => r.status === "done") ?? runs?.[0] ?? null;
+  // The newest run — including one that's still running, so the dashboard shows
+  // its progress bar rather than an older completed run.
+  const latest = runs?.[0] ?? null;
   let scores: unknown[] = [];
   if (latest) {
     const { data: s } = await admin.from("eval_scores")
