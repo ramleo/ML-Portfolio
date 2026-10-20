@@ -7,6 +7,7 @@ import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
 import EvalBudget from "./EvalBudget";
+import EvalFeedback from "./EvalFeedback";
 import Eval3DBoundary from "./Eval3DBoundary";
 
 // three.js needs the browser — load the 3D explorer client-only.
@@ -278,6 +279,7 @@ export default function EvalDashboard() {
 
       <Section title="Answer quality" hint="golden set + LLM judge">
         <EvalQuality perf={data.byModel} />
+        <EvalFeedback days={days} />
       </Section>
 
       <Section title="Live RAG health" hint="per-query signals from the chat">

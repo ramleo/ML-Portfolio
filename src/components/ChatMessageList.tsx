@@ -27,6 +27,18 @@ interface Props {
   onSourcesToggle:   () => void;
   suggestions?:      string[];
   emptyHint?:        string;
+  /** When set, assistant answers show 👍/👎; a vote posts a content-free row to
+   * /api/feedback (rating + tool/provider/model/session), a live quality signal. */
+  feedback?:         { tool: string; provider: string; model: string; sessionId: string };
+}
+
+function ThumbIcon({ up }: { up: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: up ? "none" : "rotate(180deg)" }}>
+      <path d="M7 10v12" />
+      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+    </svg>
+  );
 }
 
 const MD_COMPONENTS = {
@@ -63,9 +75,22 @@ export default function ChatMessageList({
   expandedQueries = [], candidatesRetrieved,
   answerSource, confidence, groundedness,
   onSuggestion, onSourcesToggle,
-  suggestions, emptyHint,
+  suggestions, emptyHint, feedback,
 }: Props) {
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [rated, setRated] = useState<Record<number, number>>({});
+
+  const vote = (i: number, rating: 1 | -1) => {
+    if (!feedback || rated[i] != null) return;
+    setRated((r) => ({ ...r, [i]: rating }));
+    try {
+      fetch("/api/feedback", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rating, tool: feedback.tool, provider: feedback.provider, model: feedback.model, session_id: feedback.sessionId }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch { /* ignore */ }
+  };
 
   const hasInsights = expandedQueries.length > 0 || candidatesRetrieved != null || !!groundedness;
 
@@ -98,6 +123,20 @@ export default function ChatMessageList({
           {m.role === "assistant"
             ? <ReactMarkdown components={MD_COMPONENTS}>{m.content}</ReactMarkdown>
             : <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>}
+          {feedback && m.role === "assistant" && !m.content.startsWith("Error:") && m.content !== "No response." && (
+            <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
+              {rated[i] != null ? (
+                <span style={{ fontSize: "0.62rem", color: "var(--text3)" }}>Thanks for the feedback</span>
+              ) : (
+                <>
+                  <button onClick={() => vote(i, 1)} aria-label="Helpful" title="Helpful"
+                    style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text3)", padding: 2, display: "flex" }}><ThumbIcon up /></button>
+                  <button onClick={() => vote(i, -1)} aria-label="Not helpful" title="Not helpful"
+                    style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text3)", padding: 2, display: "flex" }}><ThumbIcon up={false} /></button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       ))}
 

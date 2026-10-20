@@ -170,6 +170,7 @@ export default function ToolsAIChat({ context }: { context: import("./useRagChat
             onSourcesToggle={() => setSourcesOpen(o => !o)}
             suggestions={context.suggestions}
             emptyHint={context.guide ? `Ask me anything about ${context.tool} or this website.` : undefined}
+            feedback={{ tool: context.tool, provider: providerConfig.id, model, sessionId }}
           />
 
           {deepSearch && (
