@@ -2,21 +2,23 @@
 
 import { useEffect, useState } from "react";
 import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
+import EvalTrends from "./EvalTrends";
 
 /** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
  * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
  * and error clusters drill down into the individual calls (feature A). */
 
 interface Bucket { name: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
-interface Day { date: string; calls: number; errors: number; cost_usd: number }
+interface Day { date: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
 interface Cluster { provider: string; reason: string; count: number; lastTs: string | null; sample: string }
+interface Prev { calls: number; success_rate: number | null; cost_usd: number; tokens: number; p95_ms: number | null }
 type FilterKey = "tool" | "provider" | "model" | "status";
 interface Data {
   needs_setup?: boolean;
   total: number; ok: number; errors: number; success_rate: number | null;
   cost_usd: number; tokens: number; p50_ms: number | null; p95_ms: number | null;
   daily: Day[]; byTool: Bucket[]; byProvider: Bucket[]; byModel: Bucket[]; byStatus: Bucket[];
-  errorClusters: Cluster[];
+  errorClusters: Cluster[]; prev?: Prev;
 }
 
 const ACCENT = "var(--accent)";
@@ -32,12 +34,32 @@ const card: React.CSSProperties = {
   borderRadius: "var(--radius-card)", padding: "18px 20px",
 };
 
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+/** Period-over-period chip. Neutral by design — a change here is informational,
+ * not good/bad, so it never borrows the error red (dataviz: reserve status color).
+ * `pp` shows a percentage-point difference (for rates); otherwise a % change. */
+function DeltaChip({ cur, prev, pp = false }: { cur: number | null; prev: number | null | undefined; pp?: boolean }) {
+  if (cur == null || prev == null) return null;
+  const diff = pp ? (cur - prev) * 100 : (prev === 0 ? null : ((cur - prev) / prev) * 100);
+  if (diff == null) return prev === 0 && cur > 0 ? <span style={{ color: "var(--text3)", fontSize: 12 }}>new</span> : null;
+  if (Math.abs(diff) < 0.05) return <span style={{ color: "var(--text3)", fontSize: 12 }}>· flat</span>;
+  const up = diff > 0;
+  const mag = pp ? `${Math.abs(diff).toFixed(1)}pp` : `${Math.abs(diff).toFixed(0)}%`;
+  return (
+    <span style={{ color: "var(--text3)", fontSize: 12, fontVariantNumeric: "tabular-nums" }} title="vs the previous equal period">
+      {up ? "↑" : "↓"}{mag}
+    </span>
+  );
+}
+
+function Tile({ label, value, sub, delta }: { label: string; value: string; sub?: string; delta?: React.ReactNode }) {
   return (
     <div style={card}>
       <p style={{ fontSize: 12, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text3)", margin: "0 0 6px" }}>{label}</p>
       <p style={{ fontFamily: "var(--type-display)", fontSize: 26, fontWeight: 700, color: "var(--text)", margin: 0, fontVariantNumeric: "tabular-nums" }}>{value}</p>
-      {sub && <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "4px 0 0" }}>{sub}</p>}
+      <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "4px 0 0", display: "flex", gap: 6, alignItems: "baseline" }}>
+        {sub && <span>{sub}</span>}
+        {delta}
+      </p>
     </div>
   );
 }
@@ -186,14 +208,21 @@ export default function EvalDashboard() {
 
       {/* Headline tiles */}
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
-        <Tile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`} />
-        <Tile label="Success rate" value={pct(data.success_rate)} />
-        <Tile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)}`} />
-        <Tile label="Cost" value={usd(data.cost_usd)} />
-        <Tile label="Tokens" value={n(data.tokens)} />
+        <Tile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`}
+          delta={<DeltaChip cur={data.total} prev={data.prev?.calls} />} />
+        <Tile label="Success rate" value={pct(data.success_rate)}
+          delta={<DeltaChip cur={data.success_rate} prev={data.prev?.success_rate} pp />} />
+        <Tile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)}`}
+          delta={<DeltaChip cur={data.p95_ms} prev={data.prev?.p95_ms} />} />
+        <Tile label="Cost" value={usd(data.cost_usd)}
+          delta={<DeltaChip cur={data.cost_usd} prev={data.prev?.cost_usd} />} />
+        <Tile label="Tokens" value={n(data.tokens)}
+          delta={<DeltaChip cur={data.tokens} prev={data.prev?.tokens} />} />
       </div>
 
       <DailyChart daily={data.daily} />
+
+      <EvalTrends daily={data.daily} />
 
       <TopErrors clusters={data.errorClusters ?? []} days={days} onPick={setDrawer} />
 

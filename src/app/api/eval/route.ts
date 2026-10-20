@@ -50,6 +50,20 @@ function errorClusters(rows: Row[]) {
   return [...m.values()].sort((a, b) => b.count - a.count).slice(0, 8);
 }
 
+/** Headline numbers for one window — used to compare the current window against
+ * the one immediately before it (period-over-period deltas, feature C). */
+function windowTotals(rows: Row[]) {
+  const lat = rows.map(r => r.latency_ms).filter((n): n is number => typeof n === "number");
+  const ok = rows.filter(r => r.status === "ok").length;
+  return {
+    calls: rows.length,
+    success_rate: rows.length ? ok / rows.length : null,
+    cost_usd: rows.reduce((s, r) => s + (r.cost_usd ?? 0), 0),
+    tokens: rows.reduce((s, r) => s + (r.input_tokens ?? 0) + (r.output_tokens ?? 0), 0),
+    p95_ms: percentile(lat, 0.95),
+  };
+}
+
 function breakdown(rows: Row[], key: keyof Row) {
   const m = new Map<string, { calls: number; errors: number; cost: number; lat: number[] }>();
   for (const r of rows) {
@@ -70,21 +84,23 @@ function summarize(rows: Row[], days: number) {
   const lat = rows.map(r => r.latency_ms).filter((n): n is number => typeof n === "number");
   const ok = rows.filter(r => r.status === "ok").length;
 
-  // Daily series (UTC), gap-filled for the whole window.
-  const byDay = new Map<string, { calls: number; errors: number; cost: number }>();
+  // Daily series (UTC), gap-filled for the whole window. p95 latency is kept
+  // per day too, so cost and latency can be drawn as trend lines (feature C).
+  const byDay = new Map<string, { calls: number; errors: number; cost: number; lat: number[] }>();
   for (const r of rows) {
     if (!r.ts) continue;
     const d = r.ts.slice(0, 10);
-    const a = byDay.get(d) ?? { calls: 0, errors: 0, cost: 0 };
+    const a = byDay.get(d) ?? { calls: 0, errors: 0, cost: 0, lat: [] };
     a.calls += 1; if (r.status !== "ok") a.errors += 1; a.cost += r.cost_usd ?? 0;
+    if (typeof r.latency_ms === "number") a.lat.push(r.latency_ms);
     byDay.set(d, a);
   }
-  const daily: { date: string; calls: number; errors: number; cost_usd: number }[] = [];
+  const daily: { date: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const dt = new Date(); dt.setUTCHours(0, 0, 0, 0); dt.setUTCDate(dt.getUTCDate() - i);
     const key = dt.toISOString().slice(0, 10);
-    const a = byDay.get(key) ?? { calls: 0, errors: 0, cost: 0 };
-    daily.push({ date: key, calls: a.calls, errors: a.errors, cost_usd: a.cost });
+    const a = byDay.get(key) ?? { calls: 0, errors: 0, cost: 0, lat: [] };
+    daily.push({ date: key, calls: a.calls, errors: a.errors, cost_usd: a.cost, p95_ms: percentile(a.lat, 0.95) });
   }
 
   return {
@@ -112,7 +128,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const days = Math.max(1, Math.min(90, Number(req.nextUrl.searchParams.get("days")) || 30));
-  const start = new Date(); start.setUTCDate(start.getUTCDate() - days);
+  const now = Date.now();
+  const cutoff = new Date(now - days * 86_400_000);          // current window starts here
+  const start = new Date(now - 2 * days * 86_400_000);        // fetch the previous window too
 
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -120,12 +138,24 @@ export async function GET(req: NextRequest) {
     .select("ts,tool,provider,model,status,latency_ms,cost_usd,input_tokens,output_tokens,http_status,error_code,error_message")
     .gte("ts", start.toISOString())
     .order("ts", { ascending: false })
-    .limit(5000);
+    .limit(10000);
 
   if (error) {
     if (isMissingSchema(error))
       return NextResponse.json({ needs_setup: true, days, ...summarize([], days) });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ needs_setup: false, days, ...summarize((data ?? []) as Row[], days) });
+
+  // Split into the current window and the one immediately before it. The
+  // breakdowns/daily series are computed on the current window only; `prev` just
+  // carries the previous window's headline totals for the delta chips.
+  const all = (data ?? []) as Row[];
+  const iso = cutoff.toISOString();
+  const current = all.filter(r => r.ts != null && r.ts >= iso);
+  const previous = all.filter(r => r.ts != null && r.ts < iso);
+  return NextResponse.json({
+    needs_setup: false, days,
+    ...summarize(current, days),
+    prev: windowTotals(previous),
+  });
 }
