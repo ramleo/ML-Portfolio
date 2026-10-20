@@ -274,7 +274,7 @@ export default function EvalDashboard() {
       </Section>
 
       <Section title="Answer quality" hint="golden set + LLM judge">
-        <EvalQuality />
+        <EvalQuality perf={data.byModel} />
       </Section>
 
       <Section title="Live RAG health" hint="per-query signals from the chat">

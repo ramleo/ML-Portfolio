@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import ModelCompare from "./ModelCompare";
+import ModelCompare, { type ModelPerf } from "./ModelCompare";
 
 /** Q4 M2 — quality scoring section: pass-rate trend over runs, the latest run's
  * per-item verdicts (worst-first), and an owner "Run evaluation" button that
@@ -96,7 +96,7 @@ function PassTrend({ runs }: { runs: Run[] }) {
   );
 }
 
-export default function EvalQuality() {
+export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   const [data, setData] = useState<Quality | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -188,7 +188,7 @@ export default function EvalQuality() {
             <PassTrend runs={data.runs} />
 
             <div style={{ margin: "0 0 16px" }}>
-              <ModelCompare runs={data.runs} />
+              <ModelCompare runs={data.runs} perf={perf} />
             </div>
 
             {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}

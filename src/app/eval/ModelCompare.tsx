@@ -12,6 +12,8 @@ interface Run {
   id: string; ts: string; gen_model: string | null; status: string;
   pass_rate: number | null; avg_correct: number | null; avg_faithful: number | null; avg_relevant: number | null;
 }
+/** Per-model perf/cost from /api/eval (llm_calls), passed down for the scatter. */
+export interface ModelPerf { name: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
 
 const COLORS: Record<string, string> = {
   "command-a-03-2025": "#6366f1", "gemini-3.6-flash": "#0ea5e9", "mistral-small-latest": "#f59e0b",
@@ -23,9 +25,9 @@ const METRICS: { key: keyof Run; label: string }[] = [
 ];
 const pct = (x: number | null) => (x == null ? "—" : `${Math.round(x * 100)}%`);
 
-type View = "lines" | "bars" | "radar";
+type View = "lines" | "bars" | "radar" | "scatter";
 
-export default function ModelCompare({ runs }: { runs: Run[] }) {
+export default function ModelCompare({ runs, perf = [] }: { runs: Run[]; perf?: ModelPerf[] }) {
   const [view, setView] = useState<View>("bars");
 
   const done = runs.filter((r) => r.status === "done" && r.gen_model && r.pass_rate != null);
@@ -43,10 +45,10 @@ export default function ModelCompare({ runs }: { runs: Run[] }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
         <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Model comparison</h3>
         <div style={{ display: "flex", gap: 4 }}>
-          {(["bars", "lines", "radar"] as View[]).map((v) => (
+          {(["bars", "lines", "radar", "scatter"] as View[]).map((v) => (
             <button key={v} type="button" onClick={() => setView(v)}
               style={{ padding: "0.25rem 0.7rem", fontSize: 12.5, fontWeight: 600, textTransform: "capitalize", cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: view === v ? "var(--accent)" : "transparent", color: view === v ? "#fff" : "var(--text2)" }}>
-              {v}
+              {v === "scatter" ? "quality vs speed" : v}
             </button>
           ))}
         </div>
@@ -64,6 +66,7 @@ export default function ModelCompare({ runs }: { runs: Run[] }) {
       {view === "bars" && <Bars models={models} latest={latest} colorOf={colorOf} />}
       {view === "radar" && <Radar models={models} latest={latest} colorOf={colorOf} />}
       {view === "lines" && <Lines done={done} models={models} colorOf={colorOf} />}
+      {view === "scatter" && <Scatter models={models} latest={latest} perf={perf} colorOf={colorOf} />}
     </div>
   );
 }
@@ -145,6 +148,50 @@ function Lines({ done, models, colorOf }: { done: Run[]; models: string[]; color
         })}
       </svg>
       {maxLen < 2 && <p style={{ fontSize: 12, color: "var(--text3)", margin: "6px 0 0" }}>One run per model so far — run a model again to draw its trend line.</p>}
+    </>
+  );
+}
+
+function Scatter({ models, latest, perf, colorOf }: { models: string[]; latest: Map<string, Run>; perf: ModelPerf[]; colorOf: (m: string, i: number) => string }) {
+  const pts = models.map((m, i) => {
+    const b = perf.find((x) => x.name === m);
+    return { m, color: colorOf(m, i), lat: b?.p95_ms ?? null, cost: b && b.calls ? b.cost_usd / b.calls : null, q: latest.get(m)?.pass_rate ?? null };
+  }).filter((p): p is { m: string; color: string; lat: number; cost: number | null; q: number } => p.lat != null && p.q != null);
+
+  if (pts.length === 0)
+    return <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No per-model latency yet — needs calls in <code>llm_calls</code> for these models.</p>;
+
+  const W = 520, H = 250, padL = 46, padR = 16, padB = 36, padT = 14;
+  const maxLat = Math.max(...pts.map((p) => p.lat)) * 1.12 || 1;
+  const x = (lat: number) => padL + (lat / maxLat) * (W - padL - padR);
+  const y = (q: number) => padT + (1 - q) * (H - padT - padB);
+  const ms = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)}s` : `${Math.round(v)}ms`);
+
+  return (
+    <>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Quality vs speed by model">
+        {/* y gridlines + labels (pass rate) */}
+        {[0, 0.25, 0.5, 0.75, 1].map((q) => (
+          <g key={q}>
+            <line x1={padL} y1={y(q)} x2={W - padR} y2={y(q)} stroke="var(--border)" strokeWidth={1} />
+            <text x={padL - 6} y={y(q)} fontSize={10} fill="var(--text3)" textAnchor="end" dominantBaseline="middle">{Math.round(q * 100)}%</text>
+          </g>
+        ))}
+        {/* x labels (latency) */}
+        {[0, maxLat / 2, maxLat].map((lat, i) => (
+          <text key={i} x={x(lat)} y={H - padB + 16} fontSize={10} fill="var(--text3)" textAnchor="middle">{ms(lat)}</text>
+        ))}
+        <text x={(padL + W - padR) / 2} y={H - 2} fontSize={10.5} fill="var(--text3)" textAnchor="middle">p95 latency → (faster is left)</text>
+        {pts.map((p) => (
+          <g key={p.m}>
+            <circle cx={x(p.lat)} cy={y(p.q)} r={6} fill={p.color} stroke="var(--bg)" strokeWidth={1.5}>
+              <title>{`${p.m}: ${Math.round(p.q * 100)}% pass · p95 ${ms(p.lat)}${p.cost != null ? ` · $${p.cost.toFixed(4)}/call` : ""}`}</title>
+            </circle>
+            <text x={x(p.lat)} y={y(p.q) - 10} fontSize={10.5} fill="var(--text2)" textAnchor="middle">{p.m.replace(/-latest$|-03-2025$/, "")}</text>
+          </g>
+        ))}
+      </svg>
+      <p style={{ fontSize: 12, color: "var(--text3)", margin: "6px 0 0" }}>Top-left is best: high pass rate, low latency. Hover a point for cost/call.</p>
     </>
   );
 }
