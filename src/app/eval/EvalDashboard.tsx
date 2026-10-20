@@ -6,6 +6,7 @@ import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
+import Eval3DBoundary from "./Eval3DBoundary";
 
 // three.js needs the browser — load the 3D explorer client-only.
 const Eval3D = dynamic(() => import("./Eval3D"), {
@@ -253,7 +254,7 @@ export default function EvalDashboard() {
       </Section>
 
       <Section title="3D call explorer" hint="latency × tokens × cost — rotate to find clusters & outliers">
-        {show3d ? <Eval3D days={days} /> : (
+        {show3d ? <Eval3DBoundary><Eval3D days={days} /></Eval3DBoundary> : (
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "22px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
             <span style={{ fontSize: 13, color: "var(--text2)" }}>An interactive 3D scatter of recent calls. It pulls in a ~1.6 MB 3D engine, so it loads only when you ask.</span>
             <button type="button" onClick={() => setShow3d(true)}

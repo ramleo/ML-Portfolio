@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Html, Line } from "@react-three/drei";
+import { OrbitControls, Html, Line, Instances, Instance } from "@react-three/drei";
 
 /** Q4 — interactive 3D scatter of recent LLM calls. Three continuous measures at
  * once (latency × tokens × cost) is exactly the case 3D earns its keep, and only
@@ -44,6 +44,12 @@ function Scene({ pts, axisLabels, ink }: { pts: Pt[]; axisLabels: Record<"x" | "
   const corner: Record<"x" | "y" | "z", [number, number, number]> = {
     x: [S, 0, 0], y: [0, S, 0], z: [0, 0, S],
   };
+  // Every drop-line (point → floor) packed into one position buffer.
+  const dropSegs = useMemo(() => {
+    const arr = new Float32Array(pts.length * 6);
+    pts.forEach((p, i) => arr.set([p.x, 0, p.z, p.x, p.y, p.z], i * 6));
+    return arr;
+  }, [pts]);
   return (
     <>
       <ambientLight intensity={0.9} />
@@ -59,18 +65,25 @@ function Scene({ pts, axisLabels, ink }: { pts: Pt[]; axisLabels: Record<"x" | "
           <div style={{ fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap", fontWeight: 600 }}>{axisLabels[a]}</div>
         </Html>
       ))}
-      {/* points + drop lines to the floor */}
-      {pts.map((p, i) => (
-        <group key={i}>
-          <Line points={[[p.x, 0, p.z], [p.x, p.y, p.z]]} color={p.color} lineWidth={0.6} transparent opacity={0.28} />
-          <mesh position={[p.x, p.y, p.z]}
+      {/* all drop-lines in ONE geometry (not N Line objects — that was the stall) */}
+      {dropSegs.length > 0 && (
+        <lineSegments>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" args={[dropSegs, 3]} />
+          </bufferGeometry>
+          <lineBasicMaterial color={ink} transparent opacity={0.22} />
+        </lineSegments>
+      )}
+      {/* all points in ONE instanced mesh — one draw call, per-instance colour */}
+      <Instances limit={pts.length} range={pts.length}>
+        <sphereGeometry args={[0.18, 12, 12]} />
+        <meshStandardMaterial />
+        {pts.map((p, i) => (
+          <Instance key={i} position={[p.x, p.y, p.z]} color={p.color}
             onPointerOver={(e) => { e.stopPropagation(); setHover(p); }}
-            onPointerOut={() => setHover(null)}>
-            <sphereGeometry args={[hover === p ? 0.28 : 0.17, 16, 16]} />
-            <meshStandardMaterial color={p.color} emissive={p.color} emissiveIntensity={hover === p ? 0.5 : 0.15} />
-          </mesh>
-        </group>
-      ))}
+            onPointerOut={() => setHover(null)} />
+        ))}
+      </Instances>
       {hover && (
         <Html position={[hover.x, hover.y + 0.4, hover.z]} center style={{ pointerEvents: "none" }}>
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: 8, padding: "6px 9px", fontSize: 11.5, whiteSpace: "nowrap", boxShadow: "0 6px 18px rgba(0,0,0,0.3)", color: "var(--text)" }}>
