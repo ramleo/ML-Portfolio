@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
+
+// three.js needs the browser — load the 3D explorer client-only.
+const Eval3D = dynamic(() => import("./Eval3D"), {
+  ssr: false,
+  loading: () => <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "18px 20px", fontSize: 13, color: "var(--text2)" }}>Loading 3D…</div>,
+});
 
 /** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
  * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
@@ -242,6 +249,10 @@ export default function EvalDashboard() {
       <Section title="Volume & cost">
         <DailyChart daily={data.daily} />
         <EvalTrends daily={data.daily} />
+      </Section>
+
+      <Section title="3D call explorer" hint="latency × tokens × cost — rotate to find clusters & outliers">
+        <Eval3D days={days} />
       </Section>
 
       <Section title="Breakdowns" hint="click a bar to drill into the calls">

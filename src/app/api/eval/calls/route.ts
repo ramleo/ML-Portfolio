@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   const sp = req.nextUrl.searchParams;
   const days = Math.max(1, Math.min(90, Number(sp.get("days")) || 30));
-  const limit = Math.max(1, Math.min(200, Number(sp.get("limit")) || 100));
+  const limit = Math.max(1, Math.min(500, Number(sp.get("limit")) || 100));
   const start = new Date(); start.setUTCDate(start.getUTCDate() - days);
 
   const admin = createAdminClient();
