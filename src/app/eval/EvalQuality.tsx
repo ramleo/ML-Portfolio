@@ -102,6 +102,8 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [model, setModel] = useState(MODELS[0].key);
   const [startedId, setStartedId] = useState<string | null>(null);
+  const [pickedModel, setPickedModel] = useState<string | null>(null); // which model's run the per-item table shows
+  const [extraScores, setExtraScores] = useState<Record<string, Score[]>>({});
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
@@ -144,7 +146,30 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   };
 
   const latest = data?.latest;
-  const scores = (data?.scores ?? []).slice().sort((a, b) => Number(itemPass(a)) - Number(itemPass(b)));
+
+  // Per-item table can show any model's latest run, not just the overall latest.
+  const doneRuns = (data?.runs ?? []).filter((r) => r.status === "done" && r.gen_model && r.pass_rate != null);
+  const latestRunByModel = new Map<string, Run>();
+  for (const r of doneRuns) if (!latestRunByModel.has(r.gen_model as string)) latestRunByModel.set(r.gen_model as string, r);
+  const modelsWithRuns = [...latestRunByModel.keys()];
+  const activeModel = (pickedModel && latestRunByModel.has(pickedModel) ? pickedModel : null) ?? latest?.gen_model ?? modelsWithRuns[0] ?? null;
+  const shownRun: Run | null = (activeModel ? latestRunByModel.get(activeModel) : undefined) ?? latest ?? null;
+  const usingLatest = !!shownRun && !!latest && shownRun.id === latest.id;
+
+  useEffect(() => {
+    if (shownRun && !usingLatest && !extraScores[shownRun.id]) {
+      const id = shownRun.id;
+      (async () => {
+        try {
+          const res = await fetch(`/api/eval/scores?run=${id}`, { cache: "no-store" });
+          if (res.ok) { const d = await res.json(); setExtraScores((s) => ({ ...s, [id]: d.scores as Score[] })); }
+        } catch { /* ignore */ }
+      })();
+    }
+  }, [shownRun, usingLatest, extraScores]);
+
+  const rawScores: Score[] | null = usingLatest ? (data?.scores ?? []) : (shownRun ? extraScores[shownRun.id] ?? null : null);
+  const scores = (rawScores ?? []).slice().sort((a, b) => Number(itemPass(a)) - Number(itemPass(b)));
   const th: React.CSSProperties = { textAlign: "left", padding: "6px 9px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)" };
   const td: React.CSSProperties = { padding: "6px 9px", fontSize: 12.5, borderTop: "1px solid var(--border)", verticalAlign: "top" };
 
@@ -193,12 +218,22 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
 
             {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 
-            {scores.length > 0 && (
+            {shownRun && (
               <div>
-                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "4px 0 8px" }}>
-                  Per-item results · <strong style={{ color: "var(--text2)", textTransform: "none" }}>{latest.gen_model ?? "—"}</strong> · {latest.golden_version} · {when(latest.ts)}
-                  <span style={{ textTransform: "none" }}> &nbsp;(C correct · F faithful · R relevant · Grnd groundedness)</span>
-                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", margin: "4px 0 8px" }}>
+                  <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)" }}>Per-item results</span>
+                  {modelsWithRuns.length > 1 ? (
+                    <select value={activeModel ?? ""} onChange={(e) => setPickedModel(e.target.value)} aria-label="Model to view per-item results for"
+                      style={{ fontSize: 12.5, fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: "pointer" }}>
+                      {modelsWithRuns.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  ) : (
+                    <strong style={{ fontSize: 12.5, color: "var(--text2)" }}>{shownRun.gen_model ?? "—"}</strong>
+                  )}
+                  <span style={{ fontSize: 11.5, color: "var(--text3)" }}>{shownRun.golden_version} · {when(shownRun.ts)} · C correct · F faithful · R relevant · Grnd groundedness</span>
+                </div>
+              {rawScores === null ? <p style={{ fontSize: 13, color: "var(--text2)", margin: "0 0 4px" }}>Loading {activeModel}…</p> :
+              scores.length === 0 ? <p style={{ fontSize: 13, color: "var(--text3)", margin: "0 0 4px" }}>No per-item scores for this run.</p> : (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead><tr><th style={th}>Question</th><th style={th} title="Correct">C</th><th style={th} title="Faithful">F</th><th style={th} title="Relevant">R</th><th style={th} title="Groundedness">Grnd</th><th style={th}>Judge note</th></tr></thead>
@@ -216,6 +251,7 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
                   </tbody>
                 </table>
               </div>
+              )}
               </div>
             )}
           </>

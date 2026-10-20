@@ -160,6 +160,14 @@ export default function Eval3D({ days }: { days: number }) {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>{sel("x")}{sel("y")}{sel("z")}</div>
       </div>
 
+      <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "0 0 12px", lineHeight: 1.5 }}>
+        Each dot is one LLM call, colored by provider (errors in red).
+        {" "}<strong>Left→right:</strong> {METRICS[ax.x].label.toLowerCase()}.
+        {" "}<strong>Bottom→top:</strong> {METRICS[ax.y].label.toLowerCase()}.
+        {" "}<strong>Near→far:</strong> {METRICS[ax.z].label.toLowerCase()}.
+        {" "}Dots toward the far-upper-right are high on all three; lone dots away from the pack are outliers. Hover a dot for its model.
+      </p>
+
       {failed ? <p style={{ fontSize: 13, color: ERR, margin: 0 }}>Couldn&apos;t load calls.</p>
         : !calls ? <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading…</p>
         : pts.length === 0 ? <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No calls with these three measures in the window.</p>
