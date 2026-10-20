@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import ModelCompare from "./ModelCompare";
 
 /** Q4 M2 — quality scoring section: pass-rate trend over runs, the latest run's
  * per-item verdicts (worst-first), and an owner "Run evaluation" button that
@@ -142,14 +143,6 @@ export default function EvalQuality() {
     setBusy(false);
   };
 
-  // Latest completed pass-rate per generation model, for a quick comparison.
-  const byModel = (() => {
-    const seen = new Map<string, Run>();
-    for (const r of data?.runs ?? [])
-      if (r.status === "done" && r.gen_model && !seen.has(r.gen_model)) seen.set(r.gen_model, r);
-    return [...seen.values()];
-  })();
-
   const latest = data?.latest;
   const scores = (data?.scores ?? []).slice().sort((a, b) => Number(itemPass(a)) - Number(itemPass(b)));
   const th: React.CSSProperties = { textAlign: "left", padding: "6px 9px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)" };
@@ -194,22 +187,9 @@ export default function EvalQuality() {
 
             <PassTrend runs={data.runs} />
 
-            {byModel.length >= 2 && (
-              <div style={{ margin: "0 0 16px", padding: "10px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
-                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "0 0 8px" }}>Latest pass rate by model</p>
-                <div style={{ display: "grid", gap: 6 }}>
-                  {byModel.sort((a, b) => (b.pass_rate ?? 0) - (a.pass_rate ?? 0)).map((r) => (
-                    <div key={r.gen_model} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5 }}>
-                      <span style={{ width: 170, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.gen_model}</span>
-                      <span style={{ flex: 1, height: 8, background: "var(--bg-card)", borderRadius: 4, overflow: "hidden" }}>
-                        <span style={{ display: "block", width: `${Math.round((r.pass_rate ?? 0) * 100)}%`, height: "100%", background: ACCENT }} />
-                      </span>
-                      <span style={{ width: 42, textAlign: "right", color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>{pct(r.pass_rate)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div style={{ margin: "0 0 16px" }}>
+              <ModelCompare runs={data.runs} />
+            </div>
 
             {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 

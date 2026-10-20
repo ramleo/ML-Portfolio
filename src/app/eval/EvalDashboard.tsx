@@ -194,6 +194,7 @@ export default function EvalDashboard() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawer, setDrawer] = useState<CallFilter | null>(null);
+  const [show3d, setShow3d] = useState(false); // three.js is ~1.6 MB — load on demand only
 
   useEffect(() => {
     let active = true;
@@ -252,7 +253,15 @@ export default function EvalDashboard() {
       </Section>
 
       <Section title="3D call explorer" hint="latency × tokens × cost — rotate to find clusters & outliers">
-        <Eval3D days={days} />
+        {show3d ? <Eval3D days={days} /> : (
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "22px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: "var(--text2)" }}>An interactive 3D scatter of recent calls. It pulls in a ~1.6 MB 3D engine, so it loads only when you ask.</span>
+            <button type="button" onClick={() => setShow3d(true)}
+              style={{ padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--accent)", color: "#fff", whiteSpace: "nowrap" }}>
+              Load 3D view
+            </button>
+          </div>
+        )}
       </Section>
 
       <Section title="Breakdowns" hint="click a bar to drill into the calls">
