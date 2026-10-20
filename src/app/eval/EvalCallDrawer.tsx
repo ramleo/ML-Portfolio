@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 /** Q4 M1 (feature A) — slide-over that lists the individual calls behind a
  * breakdown bar or an error cluster. Content-free: times, latency, cost, status
@@ -28,9 +28,26 @@ const ms = (x: number | null) => (x == null ? "—" : x >= 1000 ? `${(x / 1000).
 const usd = (x: number | null) => (x == null ? "—" : x < 0.01 ? `$${x.toFixed(4)}` : `$${x.toFixed(2)}`);
 const when = (ts: string | null) => (ts ? ts.slice(0, 16).replace("T", " ") : "—");
 
+interface TraceCall {
+  ts: string | null; tool: string | null; provider: string | null; model: string | null;
+  status: string | null; latency_ms: number | null; cost_usd: number | null; operation: string | null;
+  error_code: string | null; http_status: number | null;
+}
+
 export default function EvalCallDrawer({ filter, onClose }: { filter: CallFilter; onClose: () => void }) {
   const [rows, setRows] = useState<Call[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [openRun, setOpenRun] = useState<string | null>(null);
+  const [trace, setTrace] = useState<TraceCall[] | null>(null);
+
+  const toggleTrace = async (runId: string) => {
+    if (openRun === runId) { setOpenRun(null); return; }
+    setOpenRun(runId); setTrace(null);
+    try {
+      const res = await fetch(`/api/eval/trace?run=${runId}`, { cache: "no-store" });
+      setTrace(res.ok ? ((await res.json()).calls as TraceCall[]) : []);
+    } catch { setTrace([]); }
+  };
 
   useEffect(() => {
     const p = new URLSearchParams({ days: String(filter.days), limit: "100" });
@@ -79,13 +96,15 @@ export default function EvalCallDrawer({ filter, onClose }: { filter: CallFilter
             : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr><th style={th}>When (UTC)</th><th style={th}>Tool</th><th style={th}>Provider / model</th><th style={th}>Status</th><th style={th}>Latency</th><th style={th}>Cost</th></tr>
+                  <tr><th style={th}>When (UTC)</th><th style={th}>Tool</th><th style={th}>Provider / model</th><th style={th}>Status</th><th style={th}>Latency</th><th style={th}>Cost</th><th style={th}>Trace</th></tr>
                 </thead>
                 <tbody>
                   {rows.map((r, i) => {
                     const bad = r.status !== "ok";
+                    const open = !!r.run_id && openRun === r.run_id;
                     return (
-                      <tr key={i}>
+                      <Fragment key={i}>
+                      <tr>
                         <td style={{ ...td, whiteSpace: "nowrap", fontFamily: "var(--type-mono, monospace)" }}>{when(r.ts)}</td>
                         <td style={td}>{r.tool || "—"}</td>
                         <td style={td}>{r.provider || "—"}<br /><span style={{ color: "var(--text3)", fontSize: 11.5 }}>{r.model || ""}</span></td>
@@ -97,7 +116,35 @@ export default function EvalCallDrawer({ filter, onClose }: { filter: CallFilter
                         </td>
                         <td style={td}>{ms(r.latency_ms)}</td>
                         <td style={td}>{usd(r.cost_usd)}</td>
+                        <td style={td}>{r.run_id
+                          ? <button type="button" onClick={() => toggleTrace(r.run_id!)} style={{ background: "transparent", border: "1px solid var(--border2)", borderRadius: 6, cursor: "pointer", color: "var(--text2)", fontSize: 11, padding: "2px 7px" }}>{open ? "hide" : "trace"}</button>
+                          : <span style={{ color: "var(--text3)" }}>—</span>}</td>
                       </tr>
+                      {open && (
+                        <tr>
+                          <td colSpan={7} style={{ padding: "4px 9px 10px", background: "var(--bg)" }}>
+                            <div style={{ fontSize: 11, color: "var(--text3)", margin: "2px 0 6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Request trace — all LLM calls with this run id</div>
+                            {trace === null ? <span style={{ fontSize: 12, color: "var(--text2)" }}>Loading…</span>
+                              : trace.length === 0 ? <span style={{ fontSize: 12, color: "var(--text3)" }}>No linked calls.</span>
+                              : (
+                                <div style={{ display: "grid", gap: 4 }}>
+                                  {trace.map((t, j) => (
+                                    <div key={j} style={{ display: "flex", gap: 10, fontSize: 11.5, color: "var(--text2)", fontVariantNumeric: "tabular-nums", flexWrap: "wrap" }}>
+                                      <span style={{ color: "var(--text3)", width: 54 }}>{t.ts?.slice(11, 19)}</span>
+                                      <span style={{ width: 90 }}>{t.operation || "chat"}</span>
+                                      <span style={{ width: 150 }}>{t.provider}/{t.model}</span>
+                                      <span style={{ color: t.status === "ok" ? "var(--text2)" : ERR, width: 70 }}>{t.status === "ok" ? "ok" : (t.error_code || `HTTP ${t.http_status}`)}</span>
+                                      <span style={{ width: 56 }}>{ms(t.latency_ms)}</span>
+                                      <span>{usd(t.cost_usd)}</span>
+                                      {t.tool && <span style={{ color: "var(--text3)" }}>· {t.tool}</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
                     );
                   })}
                 </tbody>

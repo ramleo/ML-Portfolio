@@ -6,6 +6,7 @@ import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
+import EvalBudget from "./EvalBudget";
 import Eval3DBoundary from "./Eval3DBoundary";
 
 // three.js needs the browser — load the 3D explorer client-only.
@@ -249,6 +250,7 @@ export default function EvalDashboard() {
       </Section>
 
       <Section title="Volume & cost">
+        <EvalBudget />
         <DailyChart daily={data.daily} />
         <EvalTrends daily={data.daily} />
       </Section>
