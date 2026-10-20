@@ -46,8 +46,10 @@ const nextConfig: NextConfig = {
   // Standalone is for the Dockerfile only. Vercel never uses it, and on Next
   // 16.3.x standalone plus Vercel's build adapter crashes after the build
   // (ENOENT .next/next-server.js.nft.json) — reproducible locally with a
-  // no-op NEXT_ADAPTER_PATH. VERCEL is set in every Vercel build.
-  output: process.env.VERCEL ? undefined : "standalone",
+  // no-op NEXT_ADAPTER_PATH. VERCEL is set in every Vercel build. NEXT_E2E is
+  // set by the CI e2e job, whose Playwright web server uses `next start` —
+  // which does not serve a standalone build — so it opts out of standalone too.
+  output: process.env.VERCEL || process.env.NEXT_E2E ? undefined : "standalone",
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
