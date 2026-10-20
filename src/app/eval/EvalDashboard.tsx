@@ -8,6 +8,7 @@ import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
 import EvalBudget from "./EvalBudget";
 import EvalFeedback from "./EvalFeedback";
+import EvalGuide from "./EvalGuide";
 import Eval3DBoundary from "./Eval3DBoundary";
 
 // three.js needs the browser — load the 3D explorer client-only.
@@ -198,6 +199,7 @@ export default function EvalDashboard() {
   const [loading, setLoading] = useState(true);
   const [drawer, setDrawer] = useState<CallFilter | null>(null);
   const [show3d, setShow3d] = useState(false); // three.js is ~1.6 MB — load on demand only
+  const [guide, setGuide] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -220,8 +222,8 @@ export default function EvalDashboard() {
 
   return (
     <div style={{ display: "grid", gap: 28 }}>
-      {/* Range selector */}
-      <div style={{ display: "flex", gap: 6 }}>
+      {/* Range selector + guide */}
+      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
         {[7, 30, 90].map((d) => (
           <button key={d} onClick={() => setDays(d)}
             style={{
@@ -233,7 +235,12 @@ export default function EvalDashboard() {
             {d}d
           </button>
         ))}
+        <button onClick={() => setGuide(true)} title="How to read this dashboard"
+          style={{ marginLeft: "auto", padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: "transparent", color: "var(--text2)" }}>
+          Guide
+        </button>
       </div>
+      {guide && <EvalGuide onClose={() => setGuide(false)} />}
 
       <Section title="Overview" hint={`last ${days} days · vs previous ${days}`}>
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
