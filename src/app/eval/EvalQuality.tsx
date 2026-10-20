@@ -59,6 +59,7 @@ export default function EvalQuality() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [model, setModel] = useState(MODELS[0].key);
+  const [startedId, setStartedId] = useState<string | null>(null);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
@@ -73,11 +74,19 @@ export default function EvalQuality() {
     return () => { if (poll.current) clearInterval(poll.current); };
   }, [load]);
 
+  // A run I just started counts as in-flight until the data shows that run_id
+  // finished — this keeps the button/message honest during the gap before the
+  // first poll reflects the new row (otherwise the button says "Run evaluation"
+  // while the message says "Scoring…").
+  const startedRow = startedId ? data?.runs?.find((r) => r.id === startedId) : undefined;
+  const inflight = startedId !== null && startedRow?.status !== "done" && startedRow?.status !== "error";
   const running = data?.latest?.status === "running";
+  const active = running || inflight;
+
   useEffect(() => {
-    if (running && !poll.current) poll.current = setInterval(load, 5000);
-    if (!running && poll.current) { clearInterval(poll.current); poll.current = null; }
-  }, [running, load]);
+    if (active && !poll.current) poll.current = setInterval(load, 5000);
+    if (!active && poll.current) { clearInterval(poll.current); poll.current = null; }
+  }, [active, load]);
 
   const run = async () => {
     setBusy(true); setMsg(null);
@@ -87,7 +96,7 @@ export default function EvalQuality() {
       });
       const d = await res.json();
       if (!res.ok) setMsg(d.error ?? "Could not start the run.");
-      else { setMsg(`Run started — ${d.n} items on ${d.gen_model}. Scoring…`); await load(); }
+      else { setStartedId(d.run_id); setMsg(null); await load(); }
     } catch { setMsg("Could not reach the server."); }
     setBusy(false);
   };
@@ -110,13 +119,13 @@ export default function EvalQuality() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Answer quality <span style={{ color: "var(--text3)", fontWeight: 400 }}>· golden set + LLM judge</span></h3>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <select value={model} onChange={(e) => setModel(e.target.value)} disabled={busy || running} aria-label="Model to evaluate"
-            style={{ padding: "0.35rem 0.6rem", fontSize: 13, borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: busy || running ? "default" : "pointer" }}>
+          <select value={model} onChange={(e) => setModel(e.target.value)} disabled={busy || active} aria-label="Model to evaluate"
+            style={{ padding: "0.35rem 0.6rem", fontSize: 13, borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: busy || active ? "default" : "pointer" }}>
             {MODELS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
           </select>
-          <button type="button" onClick={run} disabled={busy || running}
-            style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || running ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || running ? "var(--bg)" : ACCENT, color: busy || running ? "var(--text3)" : "#fff" }}>
-            {running ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
+          <button type="button" onClick={run} disabled={busy || active}
+            style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || active ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || active ? "var(--bg)" : ACCENT, color: busy || active ? "var(--text3)" : "#fff" }}>
+            {active ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
           </button>
         </div>
       </div>
