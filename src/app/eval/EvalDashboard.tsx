@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
+import EvalRagHealth from "./EvalRagHealth";
 
 /** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
  * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
@@ -17,7 +18,8 @@ type FilterKey = "tool" | "provider" | "model" | "status";
 interface Data {
   needs_setup?: boolean;
   total: number; ok: number; errors: number; success_rate: number | null;
-  cost_usd: number; tokens: number; p50_ms: number | null; p95_ms: number | null;
+  cost_usd: number; tokens: number; tokens_in: number; tokens_out: number;
+  p50_ms: number | null; p95_ms: number | null; p99_ms: number | null;
   daily: Day[]; byTool: Bucket[]; byProvider: Bucket[]; byModel: Bucket[]; byStatus: Bucket[];
   errorClusters: Cluster[]; prev?: Prev;
 }
@@ -165,6 +167,21 @@ function DailyChart({ daily }: { daily: Day[] }) {
   );
 }
 
+/** A titled band of the dashboard — gives each group of panels room to breathe
+ * and a clear heading, instead of one long stack of cards. */
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <section style={{ display: "grid", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
+        <h2 style={{ fontFamily: "var(--type-display)", fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text3)", margin: 0 }}>{title}</h2>
+        {hint && <span style={{ fontSize: 12, color: "var(--text3)" }}>{hint}</span>}
+        <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function EvalDashboard() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Data | null>(null);
@@ -191,7 +208,7 @@ export default function EvalDashboard() {
   if (!data) return <p style={{ color: ERR, fontSize: 14 }}>Couldn&apos;t load metrics.</p>;
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 28 }}>
       {/* Range selector */}
       <div style={{ display: "flex", gap: 6 }}>
         {[7, 30, 90].map((d) => (
@@ -207,34 +224,46 @@ export default function EvalDashboard() {
         ))}
       </div>
 
-      {/* Headline tiles */}
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
-        <Tile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`}
-          delta={<DeltaChip cur={data.total} prev={data.prev?.calls} />} />
-        <Tile label="Success rate" value={pct(data.success_rate)}
-          delta={<DeltaChip cur={data.success_rate} prev={data.prev?.success_rate} pp />} />
-        <Tile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)}`}
-          delta={<DeltaChip cur={data.p95_ms} prev={data.prev?.p95_ms} />} />
-        <Tile label="Cost" value={usd(data.cost_usd)}
-          delta={<DeltaChip cur={data.cost_usd} prev={data.prev?.cost_usd} />} />
-        <Tile label="Tokens" value={n(data.tokens)}
-          delta={<DeltaChip cur={data.tokens} prev={data.prev?.tokens} />} />
-      </div>
+      <Section title="Overview" hint={`last ${days} days · vs previous ${days}`}>
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
+          <Tile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`}
+            delta={<DeltaChip cur={data.total} prev={data.prev?.calls} />} />
+          <Tile label="Success rate" value={pct(data.success_rate)}
+            delta={<DeltaChip cur={data.success_rate} prev={data.prev?.success_rate} pp />} />
+          <Tile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)} · p99 ${ms(data.p99_ms)}`}
+            delta={<DeltaChip cur={data.p95_ms} prev={data.prev?.p95_ms} />} />
+          <Tile label="Cost" value={usd(data.cost_usd)}
+            delta={<DeltaChip cur={data.cost_usd} prev={data.prev?.cost_usd} />} />
+          <Tile label="Tokens" value={n(data.tokens)} sub={`in ${n(data.tokens_in)} · out ${n(data.tokens_out)}`}
+            delta={<DeltaChip cur={data.tokens} prev={data.prev?.tokens} />} />
+        </div>
+      </Section>
 
-      <DailyChart daily={data.daily} />
+      <Section title="Volume & cost">
+        <DailyChart daily={data.daily} />
+        <EvalTrends daily={data.daily} />
+      </Section>
 
-      <EvalTrends daily={data.daily} />
+      <Section title="Breakdowns" hint="click a bar to drill into the calls">
+        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+          <Breakdown title="By provider" items={data.byProvider} filterKey="provider" days={days} onPick={setDrawer} />
+          <Breakdown title="By model" items={data.byModel} filterKey="model" days={days} onPick={setDrawer} />
+          <Breakdown title="By tool" items={data.byTool} filterKey="tool" days={days} onPick={setDrawer} />
+          <Breakdown title="By status" items={data.byStatus} filterKey="status" days={days} onPick={setDrawer} />
+        </div>
+      </Section>
 
-      <EvalQuality />
+      <Section title="Answer quality" hint="golden set + LLM judge">
+        <EvalQuality />
+      </Section>
 
-      <TopErrors clusters={data.errorClusters ?? []} days={days} onPick={setDrawer} />
+      <Section title="Live RAG health" hint="per-query signals from the chat">
+        <EvalRagHealth days={days} />
+      </Section>
 
-      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-        <Breakdown title="By provider" items={data.byProvider} filterKey="provider" days={days} onPick={setDrawer} />
-        <Breakdown title="By model" items={data.byModel} filterKey="model" days={days} onPick={setDrawer} />
-        <Breakdown title="By tool" items={data.byTool} filterKey="tool" days={days} onPick={setDrawer} />
-        <Breakdown title="By status" items={data.byStatus} filterKey="status" days={days} onPick={setDrawer} />
-      </div>
+      <Section title="Errors">
+        <TopErrors clusters={data.errorClusters ?? []} days={days} onPick={setDrawer} />
+      </Section>
 
       {drawer && <EvalCallDrawer filter={drawer} onClose={() => setDrawer(null)} />}
     </div>

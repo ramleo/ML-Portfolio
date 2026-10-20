@@ -216,7 +216,7 @@ export default function EvalQuality() {
             {scores.length > 0 && (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead><tr><th style={th}>Question</th><th style={th}>C</th><th style={th}>F</th><th style={th}>R</th><th style={th}>Judge note</th></tr></thead>
+                  <thead><tr><th style={th}>Question</th><th style={th} title="Correct">C</th><th style={th} title="Faithful">F</th><th style={th} title="Relevant">R</th><th style={th} title="Groundedness">Grnd</th><th style={th}>Judge note</th></tr></thead>
                   <tbody>
                     {scores.map((s) => (
                       <tr key={s.item_id} style={{ background: itemPass(s) ? "transparent" : "color-mix(in srgb, #f87171 7%, transparent)" }}>
@@ -224,6 +224,7 @@ export default function EvalQuality() {
                         <td style={td}><Mark v={s.correct} /></td>
                         <td style={td}><Mark v={s.faithful} /></td>
                         <td style={td}><Mark v={s.relevant} /></td>
+                        <td style={{ ...td, color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>{s.groundedness == null ? "—" : `${Math.round(s.groundedness * 100)}%`}</td>
                         <td style={{ ...td, color: "var(--text3)", maxWidth: 320 }}>{s.rationale}</td>
                       </tr>
                     ))}
