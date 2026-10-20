@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Billboard, Text, Html, Line } from "@react-three/drei";
+import { OrbitControls, Html, Line } from "@react-three/drei";
 
 /** Q4 — interactive 3D scatter of recent LLM calls. Three continuous measures at
  * once (latency × tokens × cost) is exactly the case 3D earns its keep, and only
@@ -55,9 +55,9 @@ function Scene({ pts, axisLabels, ink }: { pts: Pt[]; axisLabels: Record<"x" | "
         <Line key={a} points={[[0, 0, 0], corner[a]]} color={ink} lineWidth={1.5} />
       ))}
       {AXES.map((a) => (
-        <Billboard key={`lbl-${a}`} position={[corner[a][0] * 1.08, corner[a][1] * 1.08 + (a === "y" ? 0 : 0.2), corner[a][2] * 1.08]}>
-          <Text fontSize={0.6} color={ink} anchorX="center" anchorY="middle">{axisLabels[a]}</Text>
-        </Billboard>
+        <Html key={`lbl-${a}`} position={[corner[a][0] * 1.08, corner[a][1] * 1.08 + (a === "y" ? 0.3 : 0.2), corner[a][2] * 1.08]} center style={{ pointerEvents: "none" }}>
+          <div style={{ fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap", fontWeight: 600 }}>{axisLabels[a]}</div>
+        </Html>
       ))}
       {/* points + drop lines to the floor */}
       {pts.map((p, i) => (

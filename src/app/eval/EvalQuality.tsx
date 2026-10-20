@@ -194,6 +194,11 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
             {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 
             {scores.length > 0 && (
+              <div>
+                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "4px 0 8px" }}>
+                  Per-item results · <strong style={{ color: "var(--text2)", textTransform: "none" }}>{latest.gen_model ?? "—"}</strong> · {latest.golden_version} · {when(latest.ts)}
+                  <span style={{ textTransform: "none" }}> &nbsp;(C correct · F faithful · R relevant · Grnd groundedness)</span>
+                </p>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead><tr><th style={th}>Question</th><th style={th} title="Correct">C</th><th style={th} title="Faithful">F</th><th style={th} title="Relevant">R</th><th style={th} title="Groundedness">Grnd</th><th style={th}>Judge note</th></tr></thead>
@@ -210,6 +215,7 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
                     ))}
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
           </>

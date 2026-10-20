@@ -126,28 +126,31 @@ function Radar({ models, latest, colorOf }: { models: string[]; latest: Map<stri
 }
 
 function Lines({ done, models, colorOf }: { done: Run[]; models: string[]; colorOf: (m: string, i: number) => string }) {
-  const W = 520, H = 150, pad = 12;
-  // Oldest→newest per model.
-  const series = models.map((m) => done.filter((r) => r.gen_model === m).slice().reverse());
+  const W = 760, H = 220, pad = 18;
+  const series = models.map((m) => done.filter((r) => r.gen_model === m).slice().reverse()); // oldest→newest
   const maxLen = Math.max(...series.map((s) => s.length), 1);
-  const x = (i: number) => pad + (maxLen <= 1 ? (W - 2 * pad) / 2 : (i / (maxLen - 1)) * (W - 2 * pad));
+  const single = maxLen < 2; // no trend possible — spread each model's one point out so they don't pile up
+  const xMulti = (i: number) => pad + (maxLen <= 1 ? 0.5 : i / (maxLen - 1)) * (W - 2 * pad);
+  const xSpread = (mi: number) => pad + (models.length <= 1 ? 0.5 : mi / (models.length - 1)) * (W - 2 * pad);
   const y = (v: number) => pad + (1 - v) * (H - 2 * pad);
   return (
     <>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="Pass rate per model over runs" preserveAspectRatio="none">
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="var(--border2)" strokeWidth={1} />
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Pass rate per model over runs" style={{ width: "100%", maxWidth: W, display: "block", margin: "0 auto" }}>
+        {[0, 0.5, 1].map((q) => <line key={q} x1={pad} y1={y(q)} x2={W - pad} y2={y(q)} stroke="var(--border)" strokeWidth={1} />)}
         {series.map((s, mi) => {
           const c = colorOf(models[mi], mi);
-          const pts = s.map((r, i) => `${x(i).toFixed(1)},${y(r.pass_rate ?? 0).toFixed(1)}`).join(" ");
+          const xs = (i: number) => (single ? xSpread(mi) : xMulti(i));
+          const pts = s.map((r, i) => `${xs(i).toFixed(1)},${y(r.pass_rate ?? 0).toFixed(1)}`).join(" ");
           return (
             <g key={models[mi]}>
-              {s.length > 1 && <polyline points={pts} fill="none" stroke={c} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />}
-              {s.map((r, i) => <circle key={r.id} cx={x(i)} cy={y(r.pass_rate ?? 0)} r={3} fill={c}><title>{`${models[mi]} · run ${i + 1}: ${pct(r.pass_rate)}`}</title></circle>)}
+              {!single && s.length > 1 && <polyline points={pts} fill="none" stroke={c} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />}
+              {s.map((r, i) => <circle key={r.id} cx={xs(i)} cy={y(r.pass_rate ?? 0)} r={5} fill={c}><title>{`${models[mi]}: ${pct(r.pass_rate)}`}</title></circle>)}
+              {single && <text x={xSpread(mi)} y={y(s[0]?.pass_rate ?? 0) - 11} fontSize={11.5} fill="var(--text2)" textAnchor="middle">{pct(s[0]?.pass_rate ?? null)}</text>}
             </g>
           );
         })}
       </svg>
-      {maxLen < 2 && <p style={{ fontSize: 12, color: "var(--text3)", margin: "6px 0 0" }}>One run per model so far — run a model again to draw its trend line.</p>}
+      {single && <p style={{ fontSize: 12, color: "var(--text3)", margin: "6px 0 0" }}>One run per model so far — showing each model&apos;s latest pass rate. Run a model again to draw its trend line.</p>}
     </>
   );
 }
@@ -161,7 +164,9 @@ function Scatter({ models, latest, perf, colorOf }: { models: string[]; latest: 
   if (pts.length === 0)
     return <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No per-model latency yet — needs calls in <code>llm_calls</code> for these models.</p>;
 
-  const W = 520, H = 250, padL = 46, padR = 16, padB = 36, padT = 14;
+  // viewBox sized close to the rendered width (capped) so text is ~literal px,
+  // not magnified by a full-width stretch.
+  const W = 820, H = 340, padL = 48, padR = 24, padB = 42, padT = 18;
   const maxLat = Math.max(...pts.map((p) => p.lat)) * 1.12 || 1;
   const x = (lat: number) => padL + (lat / maxLat) * (W - padL - padR);
   const y = (q: number) => padT + (1 - q) * (H - padT - padB);
@@ -169,25 +174,23 @@ function Scatter({ models, latest, perf, colorOf }: { models: string[]; latest: 
 
   return (
     <>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Quality vs speed by model">
-        {/* y gridlines + labels (pass rate) */}
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Quality vs speed by model" style={{ width: "100%", maxWidth: W, display: "block", margin: "0 auto" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((q) => (
           <g key={q}>
             <line x1={padL} y1={y(q)} x2={W - padR} y2={y(q)} stroke="var(--border)" strokeWidth={1} />
-            <text x={padL - 6} y={y(q)} fontSize={10} fill="var(--text3)" textAnchor="end" dominantBaseline="middle">{Math.round(q * 100)}%</text>
+            <text x={padL - 7} y={y(q)} fontSize={11} fill="var(--text3)" textAnchor="end" dominantBaseline="middle">{Math.round(q * 100)}%</text>
           </g>
         ))}
-        {/* x labels (latency) */}
         {[0, maxLat / 2, maxLat].map((lat, i) => (
-          <text key={i} x={x(lat)} y={H - padB + 16} fontSize={10} fill="var(--text3)" textAnchor="middle">{ms(lat)}</text>
+          <text key={i} x={x(lat)} y={H - padB + 16} fontSize={11} fill="var(--text3)" textAnchor="middle">{ms(lat)}</text>
         ))}
-        <text x={(padL + W - padR) / 2} y={H - 2} fontSize={10.5} fill="var(--text3)" textAnchor="middle">p95 latency → (faster is left)</text>
+        <text x={(padL + W - padR) / 2} y={H - 4} fontSize={11} fill="var(--text3)" textAnchor="middle">p95 latency → (faster is left)</text>
         {pts.map((p) => (
           <g key={p.m}>
-            <circle cx={x(p.lat)} cy={y(p.q)} r={6} fill={p.color} stroke="var(--bg)" strokeWidth={1.5}>
+            <circle cx={x(p.lat)} cy={y(p.q)} r={7} fill={p.color} stroke="var(--bg)" strokeWidth={1.5}>
               <title>{`${p.m}: ${Math.round(p.q * 100)}% pass · p95 ${ms(p.lat)}${p.cost != null ? ` · $${p.cost.toFixed(4)}/call` : ""}`}</title>
             </circle>
-            <text x={x(p.lat)} y={y(p.q) - 10} fontSize={10.5} fill="var(--text2)" textAnchor="middle">{p.m.replace(/-latest$|-03-2025$/, "")}</text>
+            <text x={x(p.lat)} y={y(p.q) - 12} fontSize={12} fontWeight={600} fill="var(--text2)" textAnchor="middle">{p.m.replace(/-latest$|-03-2025$/, "")}</text>
           </g>
         ))}
       </svg>
