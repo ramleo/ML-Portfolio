@@ -25,6 +25,24 @@ interface Me {
  * from the client effect, so it never holds cross-request data on the server. */
 let cachedMe: Me | null | undefined;
 
+/** A FULL page load resets `cachedMe`, so the avatar used to blank until the
+ * client /api/me round-trip returned. Persisting the last-known identity lets a
+ * returning visitor paint their avatar (or "Sign in") immediately on first load,
+ * then /api/me revalidates in the background. Per-device convenience only, wrapped
+ * in try/catch — a private window or blocked storage just falls back to the fetch. */
+const STORAGE_KEY = "airaml_me_v1";
+
+function readStored(): Me | null | undefined {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Me) : undefined;
+  } catch { return undefined; }
+}
+
+function writeStored(me: Me): void {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(me)); } catch { /* ignore */ }
+}
+
 function initials(email: string): string {
   const local = email.split("@")[0].replace(/[^a-zA-Z]/g, "");
   return (local.slice(0, 2) || email.slice(0, 2)).toUpperCase();
@@ -93,6 +111,7 @@ export default function NavAuth() {
       const res = await fetch("/api/me", { cache: "no-store" });
       const data: Me = res.ok ? await res.json() : { email: null };
       cachedMe = data;
+      writeStored(data);
       setMe(data);
     } catch {
       cachedMe = { email: null };
@@ -101,7 +120,15 @@ export default function NavAuth() {
   }, []);
 
   useEffect(() => {
-    (async () => { await refresh(); })();
+    (async () => {
+      // Seed from last-known identity so the avatar / "Sign in" paints at once on
+      // a fresh load, before /api/me returns. Then revalidate over the network.
+      if (cachedMe === undefined) {
+        const stored = readStored();
+        if (stored !== undefined) { cachedMe = stored; setMe(stored); }
+      }
+      await refresh();
+    })();
     const supabase = createClient();
     const { data: sub } = supabase.auth.onAuthStateChange(() => { void refresh(); });
     const onAvatar = () => { void refresh(); };
@@ -129,7 +156,16 @@ export default function NavAuth() {
     };
   }, [open]);
 
-  if (me === undefined) return null; // resolving — avoid a flash
+  // First-ever visit (no cache yet): show a neutral placeholder circle in the
+  // avatar's exact footprint — no blank gap and no layout shift while resolving.
+  if (me === undefined) {
+    return (
+      <span aria-hidden="true" style={{
+        display: "inline-block", width: 34, height: 34, borderRadius: "50%",
+        background: "var(--border)", opacity: 0.55,
+      }} />
+    );
+  }
 
   if (!me || !me.email) {
     return (
@@ -215,6 +251,7 @@ export default function NavAuth() {
             <button
               type="submit"
               role="menuitem"
+              onClick={() => { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}
               style={linkStyle}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text2)"; }}
