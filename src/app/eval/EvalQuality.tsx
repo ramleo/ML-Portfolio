@@ -40,17 +40,35 @@ function Mark({ v }: { v: boolean | null }) {
 }
 
 function PassTrend({ runs }: { runs: Run[] }) {
-  const done = runs.filter((r) => r.status === "done" && r.pass_rate != null).slice().reverse();
+  // Only trend runs of the SAME golden version — different versions aren't
+  // comparable, so connecting them would be a meaningless line. Need >=2 points.
+  const doneAll = runs.filter((r) => r.status === "done" && r.pass_rate != null);
+  const ver = doneAll[0]?.golden_version;
+  const done = doneAll.filter((r) => r.golden_version === ver).slice().reverse();
   if (done.length < 2) return null;
-  const W = 240, H = 40;
-  const x = (i: number) => (i / (done.length - 1)) * W;
-  const y = (v: number) => H - v * H;
+
+  const W = 520, H = 60, pad = 10;
+  const x = (i: number) => pad + (i / (done.length - 1)) * (W - 2 * pad);
+  const y = (v: number) => pad + (1 - v) * (H - 2 * pad);   // pass rate is already 0..1
   const pts = done.map((r, i) => `${x(i).toFixed(1)},${y(r.pass_rate!).toFixed(1)}`).join(" ");
+  const last = done[done.length - 1];
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label="Pass-rate trend" style={{ overflow: "visible" }}>
-      <polyline points={pts} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={x(done.length - 1)} cy={y(done[done.length - 1].pass_rate!)} r={3} fill={ACCENT} />
-    </svg>
+    <div style={{ margin: "0 0 16px", padding: "10px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
+      <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "0 0 6px" }}>
+        Pass-rate trend <span style={{ textTransform: "none" }}>· {ver} · {done.length} runs</span>
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="Pass-rate trend" preserveAspectRatio="none">
+        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="var(--border2)" strokeWidth={1} />
+        <polyline points={pts} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        {done.map((r, i) => (
+          <circle key={r.id} cx={x(i)} cy={y(r.pass_rate!)} r={i === done.length - 1 ? 3.5 : 2} fill={ACCENT}>
+            <title>{`${r.ts.slice(0, 10)} · ${r.gen_model ?? "—"} · ${pct(r.pass_rate)}`}</title>
+          </circle>
+        ))}
+      </svg>
+      <div style={{ fontSize: 11.5, color: "var(--text3)", marginTop: 2 }}>latest {pct(last.pass_rate)}</div>
+    </div>
   );
 }
 
@@ -149,8 +167,9 @@ export default function EvalQuality() {
                   {latest.status === "error" && <span style={{ color: ERR }}> · error: {latest.error}</span>}
                 </div>
               </div>
-              <div style={{ marginLeft: "auto" }}><PassTrend runs={data.runs} /></div>
             </div>
+
+            <PassTrend runs={data.runs} />
 
             {byModel.length >= 2 && (
               <div style={{ margin: "0 0 16px", padding: "10px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
