@@ -197,21 +197,22 @@ jobs:
           # Opt out of standalone output: the Playwright web server runs
           # `next start`, which cannot serve a standalone build.
           NEXT_E2E: "1"
-          # Dummy Supabase env so SSR can CONSTRUCT a client without the real
-          # project (CI never sees Vercel's env). The phase-1 smoke tests assert
-          # only on page-owned markup, so no real backend is exercised. The
-          # service-role key is deliberately NOT a real secret.
+          # Placeholder Supabase env so SSR can CONSTRUCT a client without the
+          # real project (CI never sees Vercel's env). The phase-1 smoke tests
+          # assert only on page-owned markup, so no real backend is exercised.
+          # Values are intentionally short, non-secret tokens — a longer
+          # key-shaped string trips the secret-scan job (gitleaks generic-api-key).
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-e2e
-          SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key-for-e2e
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e
+          SUPABASE_SERVICE_ROLE_KEY: e2e
 
       - name: Run end-to-end tests
         run: npm run test:e2e
         env:
           NEXT_E2E: "1"
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-e2e
-          SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key-for-e2e
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e
+          SUPABASE_SERVICE_ROLE_KEY: e2e
 
       - name: Upload report on failure
         if: failure()

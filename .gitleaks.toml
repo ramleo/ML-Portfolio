@@ -1,0 +1,14 @@
+# gitleaks config — keeps the full default ruleset and only adds a narrow
+# allowlist for placeholder values the CI e2e job uses. These are NOT real
+# secrets: they exist so SSR can construct a Supabase client in CI (which never
+# sees Vercel's env). One such value shipped in git history (commit c62c1b1)
+# before it was shortened, so the history scan would flag it forever without this.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "CI e2e placeholder Supabase values (fake, never real secrets)"
+regexes = [
+  '''dummy-anon-key-for-e2e''',
+  '''dummy-service-role-key-for-e2e''',
+]
