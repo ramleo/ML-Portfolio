@@ -103,6 +103,13 @@ export default function EvalRagHealth({ days }: { days: number }) {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      <p style={{ fontSize: 12.5, color: "var(--text2)", margin: 0, lineHeight: 1.5 }}>
+        Every time anyone asks the site chat a question, one content-free row is logged (no question or answer text) — this fills in as the chat is used.
+        {" "}<strong>Cache hit rate</strong>: share answered from cache with no LLM call.
+        {" "}<strong>Avg groundedness</strong>: how well answers are backed by the retrieved context (higher = less made up).
+        {" "}<strong>Low confidence</strong> / <strong>web fallback</strong>: share of queries the retriever was unsure about or had to answer from the web.
+        {" "}<strong>Answer source</strong>: where answers came from (knowledge base / web / dataset).
+      </p>
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
         <Stat label="RAG queries" value={data.total.toLocaleString()} />
         <Stat label="Cache hit rate" value={pct(data.cache_hit_rate)} sub="answered without an LLM call" />

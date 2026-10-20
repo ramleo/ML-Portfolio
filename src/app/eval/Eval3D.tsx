@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Html, Line, Instances, Instance } from "@react-three/drei";
+
+type Controls = React.ComponentRef<typeof OrbitControls>;
 
 /** Q4 — interactive 3D scatter of recent LLM calls. Three continuous measures at
  * once (latency × tokens × cost) is exactly the case 3D earns its keep, and only
@@ -39,7 +41,7 @@ function providerColor(p: string | null): string {
 
 interface Pt { call: Call; x: number; y: number; z: number; color: string }
 
-function Scene({ pts, axisLabels, ink }: { pts: Pt[]; axisLabels: Record<"x" | "y" | "z", string>; ink: string }) {
+function Scene({ pts, axisLabels, ink, controls }: { pts: Pt[]; axisLabels: Record<"x" | "y" | "z", string>; ink: string; controls: React.Ref<Controls> }) {
   const [hover, setHover] = useState<Pt | null>(null);
   const corner: Record<"x" | "y" | "z", [number, number, number]> = {
     x: [S, 0, 0], y: [0, S, 0], z: [0, 0, S],
@@ -91,7 +93,7 @@ function Scene({ pts, axisLabels, ink }: { pts: Pt[]; axisLabels: Record<"x" | "
           </div>
         </Html>
       )}
-      <OrbitControls enablePan={false} minDistance={8} maxDistance={40} target={[S / 2, S / 2, S / 2]} />
+      <OrbitControls ref={controls} enablePan={false} minDistance={8} maxDistance={40} target={[S / 2, S / 2, S / 2]} />
     </>
   );
 }
@@ -102,6 +104,7 @@ export default function Eval3D({ days }: { days: number }) {
   const [calls, setCalls] = useState<Call[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [ax, setAx] = useState<Record<"x" | "y" | "z", MetricKey>>({ x: "latency_ms", y: "tokens", z: "cost_usd" });
+  const controls = useRef<Controls>(null);
 
   useEffect(() => {
     let active = true;
@@ -116,7 +119,7 @@ export default function Eval3D({ days }: { days: number }) {
     return () => { active = false; };
   }, [days]);
 
-  const { pts, axisLabels } = useMemo(() => {
+  const { pts, axisLabels, insight } = useMemo(() => {
     const rows = calls ?? [];
     const scale = (key: MetricKey) => {
       const vals = rows.map((c) => METRICS[key].get(c)).filter((v): v is number => typeof v === "number");
@@ -132,7 +135,23 @@ export default function Eval3D({ days }: { days: number }) {
         color: c.status !== "ok" ? ERR : providerColor(c.provider),
       }));
     const lab = (k: MetricKey, s: { lo: number; hi: number }) => `${METRICS[k].label} (${METRICS[k].fmt(s.lo)}–${METRICS[k].fmt(s.hi)})`;
-    return { pts: points, axisLabels: { x: lab(ax.x, sx), y: lab(ax.y, sy), z: lab(ax.z, sz) } };
+
+    // Data-driven read of the plot so the user doesn't have to interpret it.
+    let insight = "";
+    if (rows.length) {
+      const prov = new Map<string, number>();
+      rows.forEach((c) => { if (c.status === "ok") prov.set(c.provider ?? "?", (prov.get(c.provider ?? "?") ?? 0) + 1); });
+      const top = [...prov.entries()].sort((a, b) => b[1] - a[1])[0];
+      const errs = rows.filter((c) => c.status !== "ok").length;
+      let peak: { v: number; who: string } | null = null;
+      rows.forEach((c) => { const v = METRICS[ax.y].get(c); if (v != null && (!peak || v > peak.v)) peak = { v, who: c.provider ?? "?" }; });
+      const parts = [`${points.length} calls plotted.`];
+      if (top) parts.push(`${top[0]} runs the most (${top[1]}).`);
+      if (peak) parts.push(`Highest ${METRICS[ax.y].label.toLowerCase()}: a ${(peak as { who: string }).who} call at ${METRICS[ax.y].fmt((peak as { v: number }).v)}.`);
+      parts.push(errs ? `${errs} errored (red).` : "No errors.");
+      insight = parts.join(" ");
+    }
+    return { pts: points, axisLabels: { x: lab(ax.x, sx), y: lab(ax.y, sy), z: lab(ax.z, sz) }, insight };
   }, [calls, ax]);
 
   const providersPresent = useMemo(() => {
@@ -157,7 +176,13 @@ export default function Eval3D({ days }: { days: number }) {
         <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>
           Call explorer <span style={{ color: "var(--text3)", fontWeight: 400 }}>· drag to rotate, scroll to zoom</span>
         </h3>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>{sel("x")}{sel("y")}{sel("z")}</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          {sel("x")}{sel("y")}{sel("z")}
+          <button type="button" onClick={() => controls.current?.reset()}
+            style={{ padding: "0.25rem 0.7rem", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: "transparent", color: "var(--text2)" }}>
+            Reset view
+          </button>
+        </div>
       </div>
 
       <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "0 0 12px", lineHeight: 1.5 }}>
@@ -167,6 +192,7 @@ export default function Eval3D({ days }: { days: number }) {
         {" "}<strong>Near→far:</strong> {METRICS[ax.z].label.toLowerCase()}.
         {" "}Dots toward the far-upper-right are high on all three; lone dots away from the pack are outliers. Hover a dot for its model.
       </p>
+      {insight && <p style={{ fontSize: 12.5, color: "var(--text)", margin: "0 0 12px", fontWeight: 500 }}>{insight}</p>}
 
       {failed ? <p style={{ fontSize: 13, color: ERR, margin: 0 }}>Couldn&apos;t load calls.</p>
         : !calls ? <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading…</p>
@@ -175,7 +201,7 @@ export default function Eval3D({ days }: { days: number }) {
           <>
             <div style={{ height: 440, borderRadius: 10, overflow: "hidden", background: "var(--bg)" }}>
               <Canvas camera={{ position: [S * 1.9, S * 1.5, S * 1.9], fov: 60 }} dpr={[1, 2]}>
-                <Scene pts={pts} axisLabels={axisLabels} ink="#8b93a7" />
+                <Scene pts={pts} axisLabels={axisLabels} ink="#8b93a7" controls={controls} />
               </Canvas>
             </div>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, fontSize: 12, color: "var(--text2)" }}>
