@@ -26,22 +26,32 @@ const METRICS: Record<MetricKey, { label: string; get: (c: Call) => number | nul
   output_tokens: { label: "Output tokens", get: (c) => c.output_tokens, fmt: (v) => Math.round(v).toLocaleString() },
 };
 
-// Fixed categorical order (dataviz: assign, never cycle); error is the reserved red.
-const PROVIDER_COLORS: Record<string, string> = {
-  cohere: "#6366f1", gemini: "#0ea5e9", mistral: "#f59e0b", groq: "#10b981",
-  claude: "#a855f7", openai: "#14b8a6",
-};
-const ERR = "#f87171";
+// Provider → categorical slot (fixed order; error is the reserved red). three.js
+// needs real hex, so we resolve the eval CSS tokens for the CURRENT theme at runtime.
+const PROVIDER_SLOT: Record<string, number> = { cohere: 0, gemini: 1, mistral: 2, groq: 3, claude: 4, openai: 2 };
+const FALLBACK = { s: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"], err: "#d64545", ink: "#8b93a7", muted: "#94a3b8" };
+type Palette = typeof FALLBACK;
 const S = 10; // cube edge in world units
 const AXES: ("x" | "y" | "z")[] = ["x", "y", "z"];
 
-function providerColor(p: string | null): string {
-  return PROVIDER_COLORS[(p ?? "").toLowerCase()] ?? "#94a3b8";
+function readPalette(): Palette {
+  if (typeof window === "undefined") return FALLBACK;
+  const el = (document.querySelector(".eval-root") ?? document.documentElement) as Element;
+  const cs = getComputedStyle(el);
+  const g = (v: string, f: string) => cs.getPropertyValue(v).trim() || f;
+  return {
+    s: [g("--ev-1", FALLBACK.s[0]), g("--ev-2", FALLBACK.s[1]), g("--ev-3", FALLBACK.s[2]), g("--ev-4", FALLBACK.s[3]), g("--ev-5", FALLBACK.s[4])],
+    err: g("--ev-err", FALLBACK.err), ink: g("--text3", FALLBACK.ink), muted: g("--text3", FALLBACK.muted),
+  };
+}
+function providerColor(p: string | null, pal: Palette): string {
+  const slot = PROVIDER_SLOT[(p ?? "").toLowerCase()];
+  return slot == null ? pal.muted : pal.s[slot % pal.s.length];
 }
 
 interface Pt { call: Call; x: number; y: number; z: number; color: string }
 
-function Scene({ pts, axisLabels, ink, controls }: { pts: Pt[]; axisLabels: Record<"x" | "y" | "z", string>; ink: string; controls: React.Ref<Controls> }) {
+function Scene({ pts, axisLabels, ink, err, controls }: { pts: Pt[]; axisLabels: Record<"x" | "y" | "z", string>; ink: string; err: string; controls: React.Ref<Controls> }) {
   const [hover, setHover] = useState<Pt | null>(null);
   const corner: Record<"x" | "y" | "z", [number, number, number]> = {
     x: [S, 0, 0], y: [0, S, 0], z: [0, 0, S],
@@ -89,7 +99,7 @@ function Scene({ pts, axisLabels, ink, controls }: { pts: Pt[]; axisLabels: Reco
       {hover && (
         <Html position={[hover.x, hover.y + 0.4, hover.z]} center style={{ pointerEvents: "none" }}>
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: 8, padding: "6px 9px", fontSize: 11.5, whiteSpace: "nowrap", boxShadow: "0 6px 18px rgba(0,0,0,0.3)", color: "var(--text)" }}>
-            <strong>{hover.call.provider ?? "—"}</strong> {hover.call.model ?? ""}{hover.call.status !== "ok" && <span style={{ color: ERR }}> · error</span>}
+            <strong>{hover.call.provider ?? "—"}</strong> {hover.call.model ?? ""}{hover.call.status !== "ok" && <span style={{ color: err }}> · error</span>}
           </div>
         </Html>
       )}
@@ -104,7 +114,19 @@ export default function Eval3D({ days }: { days: number }) {
   const [calls, setCalls] = useState<Call[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [ax, setAx] = useState<Record<"x" | "y" | "z", MetricKey>>({ x: "latency_ms", y: "tokens", z: "cost_usd" });
+  const [pal, setPal] = useState<Palette>(FALLBACK);
   const controls = useRef<Controls>(null);
+
+  // Resolve the eval palette for the live theme, and re-read when the theme changes.
+  useEffect(() => {
+    const update = () => setPal(readPalette());
+    update();
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", update);
+    const mo = new MutationObserver(update);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class", "style"] });
+    return () => { mq.removeEventListener("change", update); mo.disconnect(); };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -132,7 +154,7 @@ export default function Eval3D({ days }: { days: number }) {
       .filter((c) => [ax.x, ax.y, ax.z].every((k) => typeof METRICS[k].get(c) === "number"))
       .map((c) => ({
         call: c, x: sx.to(METRICS[ax.x].get(c)), y: sy.to(METRICS[ax.y].get(c)), z: sz.to(METRICS[ax.z].get(c)),
-        color: c.status !== "ok" ? ERR : providerColor(c.provider),
+        color: c.status !== "ok" ? pal.err : providerColor(c.provider, pal),
       }));
     const lab = (k: MetricKey, s: { lo: number; hi: number }) => `${METRICS[k].label} (${METRICS[k].fmt(s.lo)}–${METRICS[k].fmt(s.hi)})`;
 
@@ -152,7 +174,7 @@ export default function Eval3D({ days }: { days: number }) {
       insight = parts.join(" ");
     }
     return { pts: points, axisLabels: { x: lab(ax.x, sx), y: lab(ax.y, sy), z: lab(ax.z, sz) }, insight };
-  }, [calls, ax]);
+  }, [calls, ax, pal]);
 
   const providersPresent = useMemo(() => {
     const set = new Map<string, string>();
@@ -194,14 +216,14 @@ export default function Eval3D({ days }: { days: number }) {
       </p>
       {insight && <p style={{ fontSize: 12.5, color: "var(--text)", margin: "0 0 12px", fontWeight: 500 }}>{insight}</p>}
 
-      {failed ? <p style={{ fontSize: 13, color: ERR, margin: 0 }}>Couldn&apos;t load calls.</p>
+      {failed ? <p style={{ fontSize: 13, color: pal.err, margin: 0 }}>Couldn&apos;t load calls.</p>
         : !calls ? <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading…</p>
         : pts.length === 0 ? <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No calls with these three measures in the window.</p>
         : (
           <>
             <div style={{ height: 440, borderRadius: 10, overflow: "hidden", background: "var(--bg)" }}>
               <Canvas camera={{ position: [S * 1.9, S * 1.5, S * 1.9], fov: 60 }} dpr={[1, 2]}>
-                <Scene pts={pts} axisLabels={axisLabels} ink="#8b93a7" controls={controls} />
+                <Scene pts={pts} axisLabels={axisLabels} ink={pal.ink} err={pal.err} controls={controls} />
               </Canvas>
             </div>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, fontSize: 12, color: "var(--text2)" }}>
@@ -212,7 +234,7 @@ export default function Eval3D({ days }: { days: number }) {
                 </span>
               ))}
               <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: ERR, display: "inline-block" }} />error
+                <span style={{ width: 9, height: 9, borderRadius: "50%", background: pal.err, display: "inline-block" }} />error
               </span>
             </div>
           </>

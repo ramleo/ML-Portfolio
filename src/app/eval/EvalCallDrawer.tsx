@@ -23,7 +23,7 @@ interface Call {
   run_id: string | null;
 }
 
-const ERR = "#f87171";
+const ERR = "var(--ev-err)";
 const ms = (x: number | null) => (x == null ? "—" : x >= 1000 ? `${(x / 1000).toFixed(1)}s` : `${Math.round(x)}ms`);
 const usd = (x: number | null) => (x == null ? "—" : x < 0.01 ? `$${x.toFixed(4)}` : `$${x.toFixed(2)}`);
 const when = (ts: string | null) => (ts ? ts.slice(0, 16).replace("T", " ") : "—");

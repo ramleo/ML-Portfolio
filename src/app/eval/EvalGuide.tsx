@@ -11,7 +11,7 @@ type Block = { h: string; p?: string; bullets?: [string, string][] };
 const GUIDE: Block[] = [
   {
     h: "What this is",
-    p: "An owner-only view of how the site's LLM calls and RAG chat are performing. Everything is built from content-free logs — counts, timings, tokens, cost, categorical signals and judge scores — never a visitor's question or an answer's text. Use the 7 / 30 / 90-day toggle at the top to set the window; every section follows it.",
+    p: "An owner-only view of how the site's LLM calls and RAG chat are performing. Everything is built from content-free logs — counts, timings, tokens, cost, categorical signals and judge scores — never a visitor's question or an answer's text. Use the 7 / 30 / 90-day toggle at the top to set the window; every section follows it. Hover any bar, line or dot for its exact value, and click the small \"i\" on a panel for a one-line explanation.",
   },
   {
     h: "Overview tiles",
@@ -70,7 +70,7 @@ const GUIDE: Block[] = [
   },
   {
     h: "User feedback",
-    p: "Visitors rate chat answers 👍 / 👎. The panel shows overall satisfaction, up/down counts and a per-model split — a live quality signal alongside the golden-set score. Content-free (rating + tool/provider/model/session only).",
+    p: "Visitors rate chat answers thumbs-up / thumbs-down. The panel shows overall satisfaction, up/down counts and a thumbs-up rate per model — a live quality signal alongside the golden-set score. Content-free (rating + tool/provider/model/session only).",
   },
   {
     h: "Errors",

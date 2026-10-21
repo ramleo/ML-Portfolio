@@ -10,16 +10,21 @@ import EvalBudget from "./EvalBudget";
 import EvalFeedback from "./EvalFeedback";
 import EvalGuide from "./EvalGuide";
 import Eval3DBoundary from "./Eval3DBoundary";
+import { Section, StatTile, DeltaChip, Panel, Legend } from "./charts/Panel";
+import { BarList, type BarDatum } from "./charts/Bars";
+import ColumnChart from "./charts/ColumnChart";
+import { C, PRIMARY, EVAL_TOKENS_CSS, n, usd, ms, pct, mmdd } from "./charts/format";
 
 // three.js needs the browser — load the 3D explorer client-only.
 const Eval3D = dynamic(() => import("./Eval3D"), {
   ssr: false,
-  loading: () => <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "18px 20px", fontSize: 13, color: "var(--text2)" }}>Loading 3D…</div>,
+  loading: () => <Panel title="3D call explorer"><p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading 3D…</p></Panel>,
 });
 
-/** Q4 M1 — owner LLM performance & cost dashboard over llm_calls (via /api/eval).
- * Content-free: counts, timings, tokens, cost — never prompt text. Breakdown bars
- * and error clusters drill down into the individual calls (feature A). */
+/** Q4 — owner LLM performance, cost & quality dashboard over llm_calls (via /api/eval).
+ * Content-free: counts, timings, tokens, cost, categorical signals and judge scores —
+ * never prompt or answer text. Every chart is built from the shared, palette-validated
+ * primitives in ./charts so the whole section reads as one system. */
 
 interface Bucket { name: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
 interface Day { date: string; calls: number; errors: number; cost_usd: number; p95_ms: number | null }
@@ -35,94 +40,37 @@ interface Data {
   errorClusters: Cluster[]; prev?: Prev;
 }
 
-const ACCENT = "var(--accent)";
-const ERR = "#f87171"; // reserved for the error/failure state only
-
-const n = (x: number) => x.toLocaleString();
-const usd = (x: number) => (x < 0.01 ? `$${x.toFixed(4)}` : `$${x.toFixed(2)}`);
-const ms = (x: number | null) => (x == null ? "—" : x >= 1000 ? `${(x / 1000).toFixed(1)}s` : `${Math.round(x)}ms`);
-const pct = (x: number | null) => (x == null ? "—" : `${(x * 100).toFixed(1)}%`);
-
-const card: React.CSSProperties = {
-  background: "var(--bg-card)", border: "1px solid var(--border2)",
-  borderRadius: "var(--radius-card)", padding: "18px 20px",
-};
-
-/** Period-over-period chip. Neutral by design — a change here is informational,
- * not good/bad, so it never borrows the error red (dataviz: reserve status color).
- * `pp` shows a percentage-point difference (for rates); otherwise a % change. */
-function DeltaChip({ cur, prev, pp = false }: { cur: number | null; prev: number | null | undefined; pp?: boolean }) {
-  if (cur == null || prev == null) return null;
-  const diff = pp ? (cur - prev) * 100 : (prev === 0 ? null : ((cur - prev) / prev) * 100);
-  if (diff == null) return prev === 0 && cur > 0 ? <span style={{ color: "var(--text3)", fontSize: 12 }}>new</span> : null;
-  if (Math.abs(diff) < 0.05) return <span style={{ color: "var(--text3)", fontSize: 12 }}>· flat</span>;
-  const up = diff > 0;
-  const mag = pp ? `${Math.abs(diff).toFixed(1)}pp` : `${Math.abs(diff).toFixed(0)}%`;
-  return (
-    <span style={{ color: "var(--text3)", fontSize: 12, fontVariantNumeric: "tabular-nums" }} title="vs the previous equal period">
-      {up ? "↑" : "↓"}{mag}
-    </span>
-  );
-}
-
-function Tile({ label, value, sub, delta }: { label: string; value: string; sub?: string; delta?: React.ReactNode }) {
-  return (
-    <div style={card}>
-      <p style={{ fontSize: 12, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text3)", margin: "0 0 6px" }}>{label}</p>
-      <p style={{ fontFamily: "var(--type-display)", fontSize: 26, fontWeight: 700, color: "var(--text)", margin: 0, fontVariantNumeric: "tabular-nums" }}>{value}</p>
-      <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "4px 0 0", display: "flex", gap: 6, alignItems: "baseline" }}>
-        {sub && <span>{sub}</span>}
-        {delta}
-      </p>
-    </div>
-  );
-}
-
-function Breakdown({ title, items, filterKey, days, onPick }:
-  { title: string; items: Bucket[]; filterKey: FilterKey; days: number; onPick: (f: CallFilter) => void }) {
+/** One breakdown card — click a bar to drill into the calls behind it. */
+function Breakdown({ title, info, items, filterKey, days, onPick }:
+  { title: string; info: string; items: Bucket[]; filterKey: FilterKey; days: number; onPick: (f: CallFilter) => void }) {
   const max = Math.max(1, ...items.map((i) => i.calls));
+  const data: BarDatum[] = items.slice(0, 8).map((i) => ({
+    key: i.name, label: i.name, max,
+    segs: [{ value: i.calls - i.errors, color: PRIMARY }, { value: i.errors, color: C.err }],
+    value: <>{n(i.calls)}{i.errors > 0 && <span style={{ color: C.err }}> · {i.errors}</span>}</>,
+    onClick: () => onPick({ key: filterKey, value: i.name, days, title: `${title}: ${i.name}` }),
+    tip: (
+      <div style={{ display: "grid", gap: 3 }}>
+        <strong style={{ color: "var(--text)" }}>{i.name}</strong>
+        <span>{n(i.calls)} calls{i.errors > 0 && <span style={{ color: C.err }}> · {i.errors} errors</span>}</span>
+        <span>p95 {ms(i.p95_ms)} · {usd(i.cost_usd)}</span>
+        <span style={{ color: "var(--text3)" }}>click to drill into these calls →</span>
+      </div>
+    ),
+  }));
   return (
-    <div style={card}>
-      <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: "0 0 14px", color: "var(--text)" }}>{title}</h3>
-      {items.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No data.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 10 }}>
-          {items.slice(0, 8).map((i) => (
-            <button key={i.name} type="button"
-              onClick={() => onPick({ key: filterKey, value: i.name, days, title: `${title}: ${i.name}` })}
-              title={`${i.name}: ${n(i.calls)} calls, ${i.errors} errors, p95 ${ms(i.p95_ms)}, ${usd(i.cost_usd)} — click to drill in`}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none", padding: 0, cursor: "pointer" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
-                <span style={{ color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "60%" }}>{i.name}</span>
-                <span style={{ color: "var(--text2)", fontVariantNumeric: "tabular-nums" }}>
-                  {n(i.calls)}{i.errors > 0 && <span style={{ color: ERR }}> · {i.errors} err</span>}
-                  {i.p95_ms != null && <span style={{ color: "var(--text3)" }}> · {ms(i.p95_ms)}</span>}
-                </span>
-              </div>
-              <div style={{ height: 8, background: "var(--bg)", borderRadius: 4, overflow: "hidden", display: "flex" }}>
-                <div style={{ width: `${((i.calls - i.errors) / max) * 100}%`, background: ACCENT, borderRadius: "4px 0 0 4px" }} />
-                {i.errors > 0 && <div style={{ width: `${(i.errors / max) * 100}%`, background: ERR, marginLeft: 2 }} />}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <Panel title={title} info={info}>
+      <BarList items={data} />
+    </Panel>
   );
 }
 
 function TopErrors({ clusters, days, onPick }:
   { clusters: Cluster[]; days: number; onPick: (f: CallFilter) => void }) {
   return (
-    <div style={{ ...card, borderColor: clusters.length ? ERR : "var(--border2)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-        <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Top errors</h3>
-        <button type="button" onClick={() => onPick({ onlyErrors: true, days, title: "All failures" })}
-          style={{ background: "transparent", border: "1px solid var(--border2)", borderRadius: 8, cursor: "pointer", color: "var(--text2)", padding: "3px 10px", fontSize: 12 }}>
-          View all failures
-        </button>
-      </div>
+    <Panel title="Failures" info="Errors grouped by provider + reason, worst first. Click to see the individual failing calls." danger={clusters.length > 0}
+      right={<button type="button" onClick={() => onPick({ onlyErrors: true, days, title: "All failures" })}
+        style={{ background: "transparent", border: "1px solid var(--border2)", borderRadius: 8, cursor: "pointer", color: "var(--text2)", padding: "3px 10px", fontSize: 12 }}>View all failures</button>}>
       {clusters.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No failures in this window.</p>
       ) : (
@@ -134,62 +82,15 @@ function TopErrors({ clusters, days, onPick }:
               style={{ display: "flex", justifyContent: "space-between", gap: 12, width: "100%", textAlign: "left", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 11px", cursor: "pointer" }}>
               <span style={{ minWidth: 0 }}>
                 <span style={{ color: "var(--text)", fontSize: 12.5, fontWeight: 600 }}>{c.provider}</span>
-                <span style={{ color: ERR, fontSize: 12.5 }}> · {c.reason}</span>
+                <span style={{ color: C.err, fontSize: 12.5 }}> · {c.reason}</span>
                 {c.sample && <div style={{ color: "var(--text3)", fontSize: 11.5, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.sample}</div>}
               </span>
-              <span style={{ color: ERR, fontWeight: 700, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{n(c.count)}</span>
+              <span style={{ color: C.err, fontWeight: 700, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{n(c.count)}</span>
             </button>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function DailyChart({ daily }: { daily: Day[] }) {
-  const max = Math.max(1, ...daily.map((d) => d.calls));
-  return (
-    <div style={card}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-        <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Calls per day</h3>
-        <span style={{ fontSize: 12, color: "var(--text2)" }}>
-          <span style={{ display: "inline-block", width: 9, height: 9, background: ACCENT, borderRadius: 2, marginRight: 4 }} />ok
-          <span style={{ display: "inline-block", width: 9, height: 9, background: ERR, borderRadius: 2, margin: "0 4px 0 12px" }} />error
-        </span>
-      </div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 120 }}>
-        {daily.map((d) => {
-          const okH = (d.calls - d.errors) / max * 100;
-          const errH = d.errors / max * 100;
-          return (
-            <div key={d.date} title={`${d.date}: ${n(d.calls)} calls, ${d.errors} errors, ${usd(d.cost_usd)}`}
-              style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%" }}>
-              {errH > 0 && <div style={{ height: `${errH}%`, background: ERR, borderRadius: "2px 2px 0 0" }} />}
-              <div style={{ height: `${okH}%`, background: ACCENT, borderRadius: errH > 0 ? 0 : "2px 2px 0 0", marginTop: errH > 0 ? 1 : 0 }} />
-            </div>
-          );
-        })}
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11, color: "var(--text3)" }}>
-        <span>{daily[0]?.date.slice(5)}</span>
-        <span>{daily[daily.length - 1]?.date.slice(5)}</span>
-      </div>
-    </div>
-  );
-}
-
-/** A titled band of the dashboard — gives each group of panels room to breathe
- * and a clear heading, instead of one long stack of cards. */
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
-        <h2 style={{ fontFamily: "var(--type-display)", fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text3)", margin: 0 }}>{title}</h2>
-        {hint && <span style={{ fontSize: 12, color: "var(--text3)" }}>{hint}</span>}
-        <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
-      </div>
-      {children}
-    </section>
+    </Panel>
   );
 }
 
@@ -198,7 +99,7 @@ export default function EvalDashboard() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawer, setDrawer] = useState<CallFilter | null>(null);
-  const [show3d, setShow3d] = useState(false); // three.js is ~1.6 MB — load on demand only
+  const [show3d, setShow3d] = useState(false); // three.js is ~1.1 MB — load on demand only
   const [guide, setGuide] = useState(false);
 
   useEffect(() => {
@@ -218,10 +119,20 @@ export default function EvalDashboard() {
 
   if (loading && !data) return <p style={{ color: "var(--text2)", fontSize: 14 }}>Loading…</p>;
   if (data?.needs_setup) return <p style={{ color: "var(--text2)", fontSize: 14 }}>No LLM-call data yet (the <code>llm_calls</code> table is empty or not set up).</p>;
-  if (!data) return <p style={{ color: ERR, fontSize: 14 }}>Couldn&apos;t load metrics.</p>;
+  if (!data) return <p style={{ color: C.err, fontSize: 14 }}>Couldn&apos;t load metrics.</p>;
+
+  const cols = data.daily.map((d) => ({
+    label: mmdd(d.date),
+    segs: [
+      { value: d.calls - d.errors, color: PRIMARY, name: "ok" },
+      { value: d.errors, color: C.err, name: "error" },
+    ],
+  }));
 
   return (
-    <div style={{ display: "grid", gap: 28 }}>
+    <div className="eval-root" style={{ display: "grid", gap: 28 }}>
+      <style>{EVAL_TOKENS_CSS}</style>
+
       {/* Range selector + guide */}
       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
         {[7, 30, 90].map((d) => (
@@ -242,45 +153,50 @@ export default function EvalDashboard() {
       </div>
       {guide && <EvalGuide onClose={() => setGuide(false)} />}
 
-      <Section title="Overview" hint={`last ${days} days · vs previous ${days}`}>
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
-          <Tile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`}
+      <Section title="Overview" hint={`last ${days} days · change vs the previous ${days}`}>
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(168px, 1fr))" }}>
+          <StatTile label="Calls" value={n(data.total)} sub={`${n(data.errors)} errors`}
             delta={<DeltaChip cur={data.total} prev={data.prev?.calls} />} />
-          <Tile label="Success rate" value={pct(data.success_rate)}
+          <StatTile label="Success rate" value={pct(data.success_rate)}
             delta={<DeltaChip cur={data.success_rate} prev={data.prev?.success_rate} pp />} />
-          <Tile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)} · p99 ${ms(data.p99_ms)}`}
+          <StatTile label="p95 latency" value={ms(data.p95_ms)} sub={`p50 ${ms(data.p50_ms)} · p99 ${ms(data.p99_ms)}`}
             delta={<DeltaChip cur={data.p95_ms} prev={data.prev?.p95_ms} />} />
-          <Tile label="Cost" value={usd(data.cost_usd)}
+          <StatTile label="Cost" value={usd(data.cost_usd)} sub="estimated"
             delta={<DeltaChip cur={data.cost_usd} prev={data.prev?.cost_usd} />} />
-          <Tile label="Tokens" value={n(data.tokens)} sub={`in ${n(data.tokens_in)} · out ${n(data.tokens_out)}`}
+          <StatTile label="Tokens" value={n(data.tokens)} sub={`in ${n(data.tokens_in)} · out ${n(data.tokens_out)}`}
             delta={<DeltaChip cur={data.tokens} prev={data.prev?.tokens} />} />
         </div>
       </Section>
 
-      <Section title="Volume & cost">
+      <Section title="Volume & cost" hint="how busy the site's LLM usage has been, and what it cost">
         <EvalBudget />
-        <DailyChart daily={data.daily} />
+        <Panel title="Calls per day" info="Daily LLM calls over the window, split into successful (blue) and failed (red) — spot error spikes and volume changes."
+          right={<Legend items={[{ label: "ok", color: PRIMARY }, { label: "error", color: C.err }]} />}>
+          <ColumnChart cols={cols} height={150} />
+        </Panel>
         <EvalTrends daily={data.daily} />
       </Section>
 
       <Section title="3D call explorer" hint="latency × tokens × cost — rotate to find clusters & outliers">
         {show3d ? <Eval3DBoundary><Eval3D days={days} /></Eval3DBoundary> : (
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "22px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "var(--text2)" }}>An interactive 3D scatter of recent calls. It pulls in a ~1.6 MB 3D engine, so it loads only when you ask.</span>
-            <button type="button" onClick={() => setShow3d(true)}
-              style={{ padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--accent)", color: "#fff", whiteSpace: "nowrap" }}>
-              Load 3D view
-            </button>
-          </div>
+          <Panel title="3D call explorer" info="An interactive 3D scatter — one dot per call — for spotting clusters and outliers across three measures at once.">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 13, color: "var(--text2)" }}>Loads a ~1.1 MB 3D engine, so it opens only when you ask.</span>
+              <button type="button" onClick={() => setShow3d(true)}
+                style={{ padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--accent)", color: "#fff", whiteSpace: "nowrap" }}>
+                Load 3D view
+              </button>
+            </div>
+          </Panel>
         )}
       </Section>
 
-      <Section title="Breakdowns" hint="click a bar to drill into the calls">
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-          <Breakdown title="By provider" items={data.byProvider} filterKey="provider" days={days} onPick={setDrawer} />
-          <Breakdown title="By model" items={data.byModel} filterKey="model" days={days} onPick={setDrawer} />
-          <Breakdown title="By tool" items={data.byTool} filterKey="tool" days={days} onPick={setDrawer} />
-          <Breakdown title="By status" items={data.byStatus} filterKey="status" days={days} onPick={setDrawer} />
+      <Section title="Breakdowns" hint="click any bar to drill into the individual calls">
+        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))" }}>
+          <Breakdown title="By provider" info="Calls routed to each LLM provider. Bar length = call volume; the red tail = failures." items={data.byProvider} filterKey="provider" days={days} onPick={setDrawer} />
+          <Breakdown title="By model" info="Calls per specific model. Compare volume, error share and (on hover) latency and cost." items={data.byModel} filterKey="model" days={days} onPick={setDrawer} />
+          <Breakdown title="By tool" info="Which site feature made the call (chat, eval judge, public API…). Older rows logged before tool-tagging show 'unknown'." items={data.byTool} filterKey="tool" days={days} onPick={setDrawer} />
+          <Breakdown title="By status" info="Successful vs failed calls overall." items={data.byStatus} filterKey="status" days={days} onPick={setDrawer} />
         </div>
       </Section>
 
@@ -289,7 +205,7 @@ export default function EvalDashboard() {
         <EvalFeedback days={days} />
       </Section>
 
-      <Section title="Live RAG health" hint="per-query signals from the chat">
+      <Section title="Live RAG health" hint="per-query signals from the real chat">
         <EvalRagHealth days={days} />
       </Section>
 

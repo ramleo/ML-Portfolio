@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ModelCompare, { type ModelPerf } from "./ModelCompare";
+import EvalItemTable, { type Score, itemPass } from "./EvalItemTable";
+import { Panel } from "./charts/Panel";
+import LineChart from "./charts/LineChart";
+import { C, PRIMARY, pct, pct0, when } from "./charts/format";
 
-/** Q4 M2 — quality scoring section: pass-rate trend over runs, the latest run's
- * per-item verdicts (worst-first), and an owner "Run evaluation" button that
- * triggers a run and polls until it lands. Content here is the owner's own golden
- * set + the system's answers to it — owner-only. */
+/** Q4 M2 — answer-quality section: pass-rate trend across runs, model comparison, the
+ * latest run's per-item verdicts (worst-first) and an owner "Run evaluation" button
+ * that triggers a run and polls until it lands. Owner-only. */
 
 interface Run {
   id: string; ts: string; golden_version: string; judge_model: string | null;
@@ -14,6 +17,7 @@ interface Run {
   status: string; n: number; n_scored: number; pass_rate: number | null;
   avg_correct: number | null; avg_faithful: number | null; avg_relevant: number | null; error: string | null;
 }
+interface Quality { needs_setup?: boolean; runs: Run[]; latest: Run | null; scores: Score[] }
 
 /** The app's generation models the eval can score (mirrors the server allowlist). */
 const MODELS = [
@@ -21,31 +25,13 @@ const MODELS = [
   { key: "gemini/gemini-3.6-flash", label: "Gemini · 3.6-flash" },
   { key: "mistral/mistral-small-latest", label: "Mistral · small" },
 ];
-interface Score {
-  item_id: string; question: string; answer: string | null;
-  correct: boolean | null; faithful: boolean | null; relevant: boolean | null;
-  groundedness: number | null; rationale: string | null;
-}
-interface Quality { needs_setup?: boolean; runs: Run[]; latest: Run | null; scores: Score[] }
 
-const ACCENT = "var(--accent)";
-const ERR = "#f87171";
-const card: React.CSSProperties = { background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-card)", padding: "18px 20px" };
-const pct = (x: number | null) => (x == null ? "—" : `${Math.round(x * 100)}%`);
-const when = (ts: string) => ts.slice(0, 16).replace("T", " ");
-const itemPass = (s: Score) => s.correct === true && s.faithful === true && s.relevant === true;
+const INFO = "A fixed golden set of questions is run through the real RAG pipeline and scored by an LLM judge (Gemini — a different family from the Cohere generator, to limit self-preference). Each answer is judged Correct / Faithful / Relevant; Pass = all three. Running a model spends a few cents (one judge call per item).";
 
-function Mark({ v }: { v: boolean | null }) {
-  if (v == null) return <span style={{ color: "var(--text3)" }}>—</span>;
-  return <span style={{ color: v ? "var(--text2)" : ERR, fontWeight: 600 }}>{v ? "✓" : "✗"}</span>;
-}
-
-/** Shown the instant a run is in flight. Indeterminate (animated) until the first
- * item is scored — a real item takes ~10s (RAG answer + judge), so a static 0%
- * bar would look stuck; determinate (n_scored/n) once progress arrives. */
+/** Shown the instant a run is in flight. Indeterminate until the first item scores
+ * (a real item takes ~10s), determinate (n_scored/n) once progress arrives. */
 function ScoringBar({ row }: { row: Run | undefined }) {
-  const total = row?.n ?? 0;
-  const done = row?.n_scored ?? 0;
+  const total = row?.n ?? 0, done = row?.n_scored ?? 0;
   const determinate = total > 0 && done > 0;
   return (
     <div style={{ margin: "0 0 16px" }}>
@@ -56,42 +42,29 @@ function ScoringBar({ row }: { row: Run | undefined }) {
       </div>
       <div style={{ height: 8, background: "var(--bg)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
         {determinate
-          ? <div style={{ width: `${Math.round((done / total) * 100)}%`, height: "100%", background: ACCENT, transition: "width .4s ease" }} />
-          : <div style={{ position: "absolute", top: 0, bottom: 0, width: "40%", background: ACCENT, borderRadius: 4, animation: "evalIndet 1.1s ease-in-out infinite" }} />}
+          ? <div style={{ width: `${Math.round((done / total) * 100)}%`, height: "100%", background: PRIMARY, transition: "width .4s ease" }} />
+          : <div style={{ position: "absolute", top: 0, bottom: 0, width: "40%", background: PRIMARY, borderRadius: 4, animation: "evalIndet 1.1s ease-in-out infinite" }} />}
       </div>
     </div>
   );
 }
 
+/** Pass-rate trend across runs of the SAME golden version (different versions aren't
+ * comparable). Needs ≥2 points — a single run is covered by the model comparison. */
 function PassTrend({ runs }: { runs: Run[] }) {
-  // Only trend runs of the SAME golden version — different versions aren't
-  // comparable, so connecting them would be a meaningless line. Need >=2 points.
   const doneAll = runs.filter((r) => r.status === "done" && r.pass_rate != null);
   const ver = doneAll[0]?.golden_version;
   const done = doneAll.filter((r) => r.golden_version === ver).slice().reverse();
   if (done.length < 2) return null;
-
-  const W = 520, H = 60, pad = 10;
-  const x = (i: number) => pad + (i / (done.length - 1)) * (W - 2 * pad);
-  const y = (v: number) => pad + (1 - v) * (H - 2 * pad);   // pass rate is already 0..1
-  const pts = done.map((r, i) => `${x(i).toFixed(1)},${y(r.pass_rate!).toFixed(1)}`).join(" ");
   const last = done[done.length - 1];
-
   return (
-    <div style={{ margin: "0 0 16px", padding: "10px 12px", background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
-      <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "0 0 6px" }}>
-        Pass-rate trend <span style={{ textTransform: "none" }}>· {ver} · {done.length} runs</span>
-      </p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="Pass-rate trend" preserveAspectRatio="none">
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="var(--border2)" strokeWidth={1} />
-        <polyline points={pts} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        {done.map((r, i) => (
-          <circle key={r.id} cx={x(i)} cy={y(r.pass_rate!)} r={i === done.length - 1 ? 3.5 : 2} fill={ACCENT}>
-            <title>{`${r.ts.slice(0, 10)} · ${r.gen_model ?? "—"} · ${pct(r.pass_rate)}`}</title>
-          </circle>
-        ))}
-      </svg>
-      <div style={{ fontSize: 11.5, color: "var(--text3)", marginTop: 2 }}>latest {pct(last.pass_rate)}</div>
+    <div style={{ margin: "0 0 18px", padding: "12px 14px", background: "var(--bg)", borderRadius: 10, border: "1px solid var(--border)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+        <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: 0 }}>Pass rate across runs <span style={{ textTransform: "none" }}>· {ver}</span></p>
+        <span style={{ fontSize: 11.5, color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>latest {pct0(last.pass_rate)}</span>
+      </div>
+      <LineChart series={[{ name: "pass rate", color: PRIMARY, values: done.map((r) => r.pass_rate) }]}
+        xLabels={done.map((r) => r.ts.slice(5, 10))} yFormat={(v) => pct0(v)} yMax={1} area height={120} />
     </div>
   );
 }
@@ -102,7 +75,7 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [model, setModel] = useState(MODELS[0].key);
   const [startedId, setStartedId] = useState<string | null>(null);
-  const [pickedModel, setPickedModel] = useState<string | null>(null); // which model's run the per-item table shows
+  const [pickedModel, setPickedModel] = useState<string | null>(null);
   const [extraScores, setExtraScores] = useState<Record<string, Score[]>>({});
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -118,10 +91,6 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
     return () => { if (poll.current) clearInterval(poll.current); };
   }, [load]);
 
-  // A run I just started counts as in-flight until the data shows that run_id
-  // finished — this keeps the button/message honest during the gap before the
-  // first poll reflects the new row (otherwise the button says "Run evaluation"
-  // while the message says "Scoring…").
   const startedRow = startedId ? data?.runs?.find((r) => r.id === startedId) : undefined;
   const inflight = startedId !== null && startedRow?.status !== "done" && startedRow?.status !== "error";
   const running = data?.latest?.status === "running";
@@ -135,9 +104,7 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   const run = async () => {
     setBusy(true); setMsg(null);
     try {
-      const res = await fetch("/api/eval/run", {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model }),
-      });
+      const res = await fetch("/api/eval/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model }) });
       const d = await res.json();
       if (!res.ok) setMsg(d.error ?? "Could not start the run.");
       else { setStartedId(d.run_id); setMsg(null); await load(); }
@@ -146,8 +113,6 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
   };
 
   const latest = data?.latest;
-
-  // Per-item table can show any model's latest run, not just the overall latest.
   const doneRuns = (data?.runs ?? []).filter((r) => r.status === "done" && r.gen_model && r.pass_rate != null);
   const latestRunByModel = new Map<string, Run>();
   for (const r of doneRuns) if (!latestRunByModel.has(r.gen_model as string)) latestRunByModel.set(r.gen_model as string, r);
@@ -170,25 +135,29 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
 
   const rawScores: Score[] | null = usingLatest ? (data?.scores ?? []) : (shownRun ? extraScores[shownRun.id] ?? null : null);
   const scores = (rawScores ?? []).slice().sort((a, b) => Number(itemPass(a)) - Number(itemPass(b)));
-  const th: React.CSSProperties = { textAlign: "left", padding: "6px 9px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)" };
-  const td: React.CSSProperties = { padding: "6px 9px", fontSize: 12.5, borderTop: "1px solid var(--border)", verticalAlign: "top" };
+
+  const controls = (
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <select value={model} onChange={(e) => setModel(e.target.value)} disabled={busy || active} aria-label="Model to evaluate"
+        style={{ padding: "0.35rem 0.6rem", fontSize: 13, borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: busy || active ? "default" : "pointer" }}>
+        {MODELS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+      </select>
+      <button type="button" onClick={run} disabled={busy || active}
+        style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || active ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || active ? "var(--bg)" : "var(--accent)", color: busy || active ? "var(--text3)" : "#fff" }}>
+        {active ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
+      </button>
+    </div>
+  );
+
+  const picker = modelsWithRuns.length > 1 ? (
+    <select value={activeModel ?? ""} onChange={(e) => setPickedModel(e.target.value)} aria-label="Model to view per-item results for"
+      style={{ fontSize: 12.5, fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: "pointer" }}>
+      {modelsWithRuns.map((m) => <option key={m} value={m}>{m}</option>)}
+    </select>
+  ) : <strong style={{ fontSize: 12.5, color: "var(--text2)" }}>{shownRun?.gen_model ?? "—"}</strong>;
 
   return (
-    <div style={card}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
-        <h3 style={{ fontFamily: "var(--type-display)", fontSize: 15, margin: 0, color: "var(--text)" }}>Answer quality <span style={{ color: "var(--text3)", fontWeight: 400 }}>· golden set + LLM judge</span></h3>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <select value={model} onChange={(e) => setModel(e.target.value)} disabled={busy || active} aria-label="Model to evaluate"
-            style={{ padding: "0.35rem 0.6rem", fontSize: 13, borderRadius: 9999, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: busy || active ? "default" : "pointer" }}>
-            {MODELS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
-          </select>
-          <button type="button" onClick={run} disabled={busy || active}
-            style={{ padding: "0.35rem 0.9rem", fontSize: 13, fontWeight: 600, cursor: busy || active ? "default" : "pointer", borderRadius: 9999, border: "1px solid var(--border2)", background: busy || active ? "var(--bg)" : ACCENT, color: busy || active ? "var(--text3)" : "#fff" }}>
-            {active ? "Scoring…" : busy ? "Starting…" : "Run evaluation"}
-          </button>
-        </div>
-      </div>
-
+    <Panel title="Answer quality · golden set + LLM judge" info={INFO} right={controls}>
       {msg && <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "0 0 12px" }}>{msg}</p>}
 
       {!data ? <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading…</p>
@@ -196,66 +165,30 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
         : !latest ? <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No runs yet. Click <strong>Run evaluation</strong> to score the golden set.</p>
         : (
           <>
-            <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center", marginBottom: 18 }}>
               <div>
                 <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)", margin: "0 0 4px" }}>Pass rate</p>
-                <p style={{ fontFamily: "var(--type-display)", fontSize: 26, fontWeight: 700, margin: 0, color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{pct(latest.pass_rate)}</p>
+                <p style={{ fontFamily: "var(--type-display)", fontSize: 30, fontWeight: 700, margin: 0, color: "var(--text)" }}>{pct(latest.pass_rate)}</p>
               </div>
               <div style={{ fontSize: 12.5, color: "var(--text2)", lineHeight: 1.7 }}>
-                <div>correct {pct(latest.avg_correct)} · faithful {pct(latest.avg_faithful)} · relevant {pct(latest.avg_relevant)}</div>
+                <div>correct {pct0(latest.avg_correct)} · faithful {pct0(latest.avg_faithful)} · relevant {pct0(latest.avg_relevant)}</div>
                 <div style={{ color: "var(--text3)" }}>
                   model <strong style={{ color: "var(--text2)" }}>{latest.gen_model ?? "—"}</strong> · {latest.status === "running" ? "running…" : `${latest.n_scored}/${latest.n} scored`} · {when(latest.ts)} · judge {latest.judge_model ?? "—"} · {latest.golden_version}
-                  {latest.status === "error" && <span style={{ color: ERR }}> · error: {latest.error}</span>}
+                  {latest.status === "error" && <span style={{ color: C.err }}> · error: {latest.error}</span>}
                 </div>
               </div>
             </div>
 
             <PassTrend runs={data.runs} />
-
-            <div style={{ margin: "0 0 16px" }}>
-              <ModelCompare runs={data.runs} perf={perf} />
-            </div>
-
+            <div style={{ margin: "0 0 18px" }}><ModelCompare runs={data.runs} perf={perf} /></div>
             {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 
             {shownRun && (
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", margin: "4px 0 8px" }}>
-                  <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text3)" }}>Per-item results</span>
-                  {modelsWithRuns.length > 1 ? (
-                    <select value={activeModel ?? ""} onChange={(e) => setPickedModel(e.target.value)} aria-label="Model to view per-item results for"
-                      style={{ fontSize: 12.5, fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--bg-card)", color: "var(--text)", cursor: "pointer" }}>
-                      {modelsWithRuns.map((m) => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  ) : (
-                    <strong style={{ fontSize: 12.5, color: "var(--text2)" }}>{shownRun.gen_model ?? "—"}</strong>
-                  )}
-                  <span style={{ fontSize: 11.5, color: "var(--text3)" }}>{shownRun.golden_version} · {when(shownRun.ts)} · C correct · F faithful · R relevant · Grnd groundedness</span>
-                </div>
-              {rawScores === null ? <p style={{ fontSize: 13, color: "var(--text2)", margin: "0 0 4px" }}>Loading {activeModel}…</p> :
-              scores.length === 0 ? <p style={{ fontSize: 13, color: "var(--text3)", margin: "0 0 4px" }}>No per-item scores for this run.</p> : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead><tr><th style={th}>Question</th><th style={th} title="Correct">C</th><th style={th} title="Faithful">F</th><th style={th} title="Relevant">R</th><th style={th} title="Groundedness">Grnd</th><th style={th}>Judge note</th></tr></thead>
-                  <tbody>
-                    {scores.map((s) => (
-                      <tr key={s.item_id} style={{ background: itemPass(s) ? "transparent" : "color-mix(in srgb, #f87171 7%, transparent)" }}>
-                        <td style={{ ...td, maxWidth: 260 }}>{s.question}</td>
-                        <td style={td}><Mark v={s.correct} /></td>
-                        <td style={td}><Mark v={s.faithful} /></td>
-                        <td style={td}><Mark v={s.relevant} /></td>
-                        <td style={{ ...td, color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>{s.groundedness == null ? "—" : `${Math.round(s.groundedness * 100)}%`}</td>
-                        <td style={{ ...td, color: "var(--text3)", maxWidth: 320 }}>{s.rationale}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              )}
-              </div>
+              <EvalItemTable scores={scores} loading={rawScores === null} picker={picker}
+                meta={`${shownRun.golden_version} · ${when(shownRun.ts)} · judge ${shownRun.judge_model ?? "—"} · worst-first`} />
             )}
           </>
         )}
-    </div>
+    </Panel>
   );
 }
