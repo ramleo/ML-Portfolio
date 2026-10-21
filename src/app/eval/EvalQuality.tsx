@@ -160,6 +160,10 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
     <Panel title="Answer quality · golden set + LLM judge" info={INFO} right={controls}>
       {msg && <p style={{ fontSize: 12.5, color: "var(--text2)", margin: "0 0 12px" }}>{msg}</p>}
 
+      {/* Progress sits directly under the header, beside the Scoring… button —
+          not buried further down the panel. */}
+      {active && <ScoringBar row={startedRow ?? (running ? latest ?? undefined : undefined)} />}
+
       {!data ? <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>Loading…</p>
         : data.needs_setup ? <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>Not set up yet — run <code>supabase/eval.sql</code>, then start a run.</p>
         : !latest ? <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>No runs yet. Click <strong>Run evaluation</strong> to score the golden set.</p>
@@ -181,7 +185,6 @@ export default function EvalQuality({ perf = [] }: { perf?: ModelPerf[] }) {
 
             <PassTrend runs={data.runs} />
             <div style={{ margin: "0 0 18px" }}><ModelCompare runs={data.runs} perf={perf} /></div>
-            {active && <ScoringBar row={startedRow ?? (running ? latest : undefined)} />}
 
             {shownRun && (
               <EvalItemTable scores={scores} loading={rawScores === null} picker={picker}
