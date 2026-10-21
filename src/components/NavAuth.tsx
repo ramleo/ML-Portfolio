@@ -226,6 +226,7 @@ export default function NavAuth() {
               <Item href="/portfolio" onNavigate={() => setOpen(false)}>My portfolio</Item>
               <Item href="/portfolio/share" onNavigate={() => setOpen(false)}>Share links</Item>
               <Item href="/portfolio/keys" onNavigate={() => setOpen(false)}>API keys</Item>
+              <Item href="/portfolio/chatbots" onNavigate={() => setOpen(false)}>Chatbots</Item>
               <Item href="/eval" onNavigate={() => setOpen(false)}>LLM metrics</Item>
               <div style={{ height: 1, background: "var(--border)", margin: "0.3rem 0.4rem" }} />
             </>

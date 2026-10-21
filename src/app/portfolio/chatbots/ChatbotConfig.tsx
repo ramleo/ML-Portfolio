@@ -1,0 +1,76 @@
+"use client";
+
+import { useState } from "react";
+import { PROVIDERS, sanitizeConfig } from "@/lib/tenant/config";
+import { input, btn, labelStyle, type Tenant } from "./ui";
+
+/** Configure a chatbot's persona + model. Saves name + config via
+ * PATCH /api/tenants/[id]; the query path applies it (grounding is enforced on top
+ * of the persona, server-side). */
+export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const cfg = sanitizeConfig(tenant.config);
+  const [name, setName] = useState(tenant.name);
+  const [provider, setProvider] = useState(cfg.provider);
+  const [model, setModel] = useState(cfg.model);
+  const [systemPrompt, setSystemPrompt] = useState(cfg.system_prompt);
+  const [greeting, setGreeting] = useState(cfg.greeting);
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const models = PROVIDERS.find((p) => p.id === provider)?.models ?? [];
+  function onProvider(p: string) {
+    setProvider(p);
+    setModel(PROVIDERS.find((x) => x.id === p)?.models[0] ?? model);
+  }
+
+  async function save() {
+    setBusy(true); setSaved(false);
+    try {
+      const res = await fetch(`/api/tenants/${tenant.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() || tenant.name, config: { system_prompt: systemPrompt, provider, model, greeting } }),
+      });
+      if (res.ok) { setSaved(true); onSaved(); setTimeout(() => setSaved(false), 1800); }
+    } catch { /* ignore */ }
+    setBusy(false);
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 14, maxWidth: 620 }}>
+      <label style={labelStyle}>Name
+        <input style={{ ...input, marginTop: 4 }} value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <label style={{ ...labelStyle, flex: "1 1 180px" }}>Provider
+          <select style={{ ...input, marginTop: 4 }} value={provider} onChange={(e) => onProvider(e.target.value)}>
+            {PROVIDERS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+        </label>
+        <label style={{ ...labelStyle, flex: "1 1 180px" }}>Model
+          <select style={{ ...input, marginTop: 4 }} value={model} onChange={(e) => setModel(e.target.value)}>
+            {models.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <label style={labelStyle}>Persona / system prompt
+        <textarea style={{ ...input, marginTop: 4, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
+          placeholder="e.g. You are Acme's friendly support assistant. Be concise and polite."
+          value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} />
+      </label>
+      <p style={{ fontSize: 11.5, color: "var(--text3)", margin: "-6px 0 0" }}>
+        Sets the bot&apos;s voice. Grounding (&ldquo;answer only from the knowledge base&rdquo;) is always enforced on top.
+      </p>
+
+      <label style={labelStyle}>Greeting (shown first in the widget)
+        <input style={{ ...input, marginTop: 4 }} value={greeting} onChange={(e) => setGreeting(e.target.value)} />
+      </label>
+
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <button style={btn} onClick={save} disabled={busy}>{busy ? "Saving…" : "Save"}</button>
+        {saved && <span style={{ fontSize: 13, color: "var(--accent)" }}>Saved</span>}
+      </div>
+    </div>
+  );
+}
