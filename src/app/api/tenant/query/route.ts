@@ -45,10 +45,19 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const chunks = (matches ?? []) as Array<{ content: string; source: string; similarity: number }>;
+
+  // Does this bot have ANY knowledge base? (vs matched nothing for this query) — so the
+  // answer never claims a KB was searched when none is attached.
+  let hasKb = chunks.length > 0;
+  if (!hasKb) {
+    const { count } = await admin.from("tenant_chunks").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId);
+    hasKb = (count ?? 0) > 0;
+  }
+
   let result: Awaited<ReturnType<typeof answerFromContext>>;
   try {
     result = await answerFromContext(question, chunks.map((c) => c.content),
-      { system_prompt: cfg.system_prompt, provider: cfg.provider, model: cfg.model, web_search: cfg.web_search });
+      { system_prompt: cfg.system_prompt, provider: cfg.provider, model: cfg.model, web_search: cfg.web_search, has_kb: hasKb });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }

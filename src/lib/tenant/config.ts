@@ -8,6 +8,7 @@ export interface TenantConfig {
   model: string;           // model within that provider (allowlisted)
   greeting: string;        // first message shown in the widget/test (UI-only)
   web_search: boolean;     // allow a live web search when answering (costs per query)
+  autosuggest: boolean;    // show suggestion chips + typeahead in the chat
 }
 
 /** Free-tier-friendly set the backend already supports. First model = default. */
@@ -24,6 +25,7 @@ export const DEFAULT_CONFIG: TenantConfig = {
   model: "command-a-03-2025",
   greeting: "Hi! Ask me anything about us.",
   web_search: false,
+  autosuggest: true,
 };
 
 /** Coerce an untrusted config object into a valid TenantConfig (allowlist-checked,
@@ -34,10 +36,11 @@ export function sanitizeConfig(raw: unknown): TenantConfig {
   const model = provider.models.includes(String(r.model)) ? String(r.model) : provider.models[0];
   const str = (v: unknown, max: number) => (typeof v === "string" ? v : "").slice(0, max);
   return {
-    system_prompt: str(r.system_prompt, 8000).trim(),
+    system_prompt: str(r.system_prompt, 16000).trim(),
     provider: provider.id,
     model,
     greeting: str(r.greeting, 300).trim() || DEFAULT_CONFIG.greeting,
     web_search: r.web_search === true,
+    autosuggest: r.autosuggest !== false,   // default on
   };
 }

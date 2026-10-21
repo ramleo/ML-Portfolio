@@ -29,7 +29,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   return data.embeddings;
 }
 
-export interface TenantAnswerConfig { system_prompt?: string; provider?: string; model?: string; web_search?: boolean }
+export interface TenantAnswerConfig { system_prompt?: string; provider?: string; model?: string; web_search?: boolean; has_kb?: boolean }
 export interface TenantAnswer { answer: string; web_used: boolean; sources: string[] }
 
 export async function answerFromContext(question: string, contexts: string[], config: TenantAnswerConfig = {}): Promise<TenantAnswer> {
@@ -39,8 +39,20 @@ export async function answerFromContext(question: string, contexts: string[], co
     provider: config.provider ?? "cohere",
     model: config.model ?? "",
     web_search: config.web_search ?? false,
+    has_kb: config.has_kb ?? false,
   });
   return { answer: data.answer, web_used: !!data.web_used, sources: data.sources ?? [] };
+}
+
+/** Starter-question suggestions generated from a sample of the tenant's KB (for the
+ * chat's suggestion chips + typeahead). Best-effort — returns [] on any failure. */
+export async function suggestQuestions(chunks: string[], persona = ""): Promise<string[]> {
+  try {
+    const data = await callSpace<{ questions: string[] }>("/internal/tenant/suggest", { chunks, persona });
+    return data.questions ?? [];
+  } catch {
+    return [];
+  }
 }
 
 /** Split plain text into overlapping word-window chunks. Simple on purpose for M1;

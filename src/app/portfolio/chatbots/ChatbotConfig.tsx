@@ -15,6 +15,7 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
   const [systemPrompt, setSystemPrompt] = useState(cfg.system_prompt);
   const [greeting, setGreeting] = useState(cfg.greeting);
   const [webSearch, setWebSearch] = useState(cfg.web_search);
+  const [autosuggest, setAutosuggest] = useState(cfg.autosuggest);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -29,7 +30,7 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
     try {
       const res = await fetch(`/api/tenants/${tenant.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() || tenant.name, config: { system_prompt: systemPrompt, provider, model, greeting, web_search: webSearch } }),
+        body: JSON.stringify({ name: name.trim() || tenant.name, config: { system_prompt: systemPrompt, provider, model, greeting, web_search: webSearch, autosuggest } }),
       });
       if (res.ok) { setSaved(true); onSaved(); setTimeout(() => setSaved(false), 1800); }
     } catch { /* ignore */ }
@@ -74,6 +75,16 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
           Allow web search
           <span style={{ display: "block", fontSize: 11.5, color: "var(--text3)" }}>
             Lets the bot search the web for current info and cite sources when its own documents don&apos;t answer. Costs a little per query — leave off for KB-only bots.
+          </span>
+        </span>
+      </label>
+
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text)", cursor: "pointer" }}>
+        <input type="checkbox" checked={autosuggest} onChange={(e) => setAutosuggest(e.target.checked)} style={{ marginTop: 2 }} />
+        <span>
+          Auto-suggestions
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--text3)" }}>
+            Show suggested-question chips and typeahead in the chat, generated from the bot&apos;s knowledge base (or its persona if it has none).
           </span>
         </span>
       </label>
