@@ -7,8 +7,9 @@ export interface TenantConfig {
   provider: string;        // generation provider (allowlisted)
   model: string;           // model within that provider (allowlisted)
   greeting: string;        // first message shown in the widget/test (UI-only)
-  web_search: boolean;     // allow a live web search when answering (costs per query)
-  autosuggest: boolean;    // show suggestion chips + typeahead in the chat
+  web_search: boolean;       // allow a live web search when answering (costs per query)
+  autosuggest: boolean;      // show suggestion chips + dropdown in the chat (cheap)
+  ghost_completion: boolean; // LLM inline ghost-text completion as you type (costs per pause)
 }
 
 /** Free-tier-friendly set the backend already supports. First model = default. */
@@ -26,6 +27,7 @@ export const DEFAULT_CONFIG: TenantConfig = {
   greeting: "Hi! Ask me anything about us.",
   web_search: false,
   autosuggest: true,
+  ghost_completion: false,
 };
 
 /** Coerce an untrusted config object into a valid TenantConfig (allowlist-checked,
@@ -41,6 +43,7 @@ export function sanitizeConfig(raw: unknown): TenantConfig {
     model,
     greeting: str(r.greeting, 300).trim() || DEFAULT_CONFIG.greeting,
     web_search: r.web_search === true,
-    autosuggest: r.autosuggest !== false,   // default on
+    autosuggest: r.autosuggest !== false,     // default on (cheap)
+    ghost_completion: r.ghost_completion === true,  // default off (per-pause LLM cost)
   };
 }

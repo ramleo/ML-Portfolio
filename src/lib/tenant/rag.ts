@@ -55,6 +55,16 @@ export async function suggestQuestions(chunks: string[], persona = ""): Promise<
   }
 }
 
+/** Inline ghost-text completion of a partial question (as-you-type). Best-effort. */
+export async function completeQuery(prefix: string, persona = ""): Promise<string> {
+  try {
+    const data = await callSpace<{ completion: string }>("/internal/tenant/complete", { prefix, persona });
+    return data.completion ?? "";
+  } catch {
+    return "";
+  }
+}
+
 /** Split plain text into overlapping word-window chunks. Simple on purpose for M1;
  * richer chunking (sentence-aware, PDF/table extraction) comes with the engine
  * reuse in a later milestone. */

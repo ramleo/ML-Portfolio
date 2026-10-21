@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sanitizeConfig } from "@/lib/tenant/config";
+import ChatMarkdown from "./ChatMarkdown";
 import { input, btn, type Tenant } from "./ui";
 
-/** Test the bot against its own knowledge base (owner-side), using this tenant's
- * saved config. Suggestion chips (from the KB) show on open; typing filters them as
- * typeahead. Each turn calls /api/tenant/query; matches + web citations are shown. */
+/** Test the bot against its own knowledge base (owner-side), using this tenant's saved
+ * config. Starter chips + a typeahead dropdown (from the KB/persona) help before/while
+ * typing; Smart completion adds inline ghost-text prediction (Tab to accept). Bot
+ * answers render as markdown. Each turn calls /api/tenant/query. */
 interface Msg { role: "bot" | "user"; text: string; sources?: string[]; webSources?: string[] }
 
 export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
@@ -15,6 +17,9 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [ghost, setGhost] = useState("");
+  const qRef = useRef("");
+  const ghostTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!cfg.autosuggest) return;
@@ -22,15 +27,33 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       try {
         const res = await fetch(`/api/tenants/${tenant.id}/suggestions`, { cache: "no-store" });
         if (res.ok) setSuggestions((await res.json()).suggestions ?? []);
-      } catch { /* suggestions are optional */ }
+      } catch { /* optional */ }
     })();
   }, [tenant.id, cfg.autosuggest]);
+
+  function onChange(v: string) {
+    qRef.current = v; setQ(v); setGhost("");
+    if (ghostTimer.current) clearTimeout(ghostTimer.current);
+    if (!cfg.ghost_completion || v.trim().length < 4 || v.length > 80) return;
+    ghostTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/tenants/${tenant.id}/complete`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prefix: v }),
+        });
+        if (res.ok && qRef.current === v) setGhost((await res.json()).completion ?? "");
+      } catch { /* optional */ }
+    }, 400);
+  }
+
+  function accept() {
+    const nv = q + ghost; qRef.current = nv; setQ(nv); setGhost("");
+  }
 
   async function send(text?: string) {
     const question = (text ?? q).trim();
     if (!question || busy) return;
     setMsgs((m) => [...m, { role: "user", text: question }]);
-    setQ(""); setBusy(true);
+    setQ(""); qRef.current = ""; setGhost(""); setBusy(true);
     try {
       const res = await fetch("/api/tenant/query", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -49,7 +72,6 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
     setBusy(false);
   }
 
-  // Typeahead: filter suggestions by what's typed (cheap — no LLM per keystroke).
   const typed = q.trim().toLowerCase();
   const matches = typed ? suggestions.filter((s) => s.toLowerCase().includes(typed) && s.toLowerCase() !== typed).slice(0, 5) : [];
   const showChips = msgs.length <= 1 && suggestions.length > 0;
@@ -63,7 +85,7 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
               background: m.role === "user" ? "var(--accent)" : "var(--bg-card)",
               color: m.role === "user" ? "#fff" : "var(--text)",
               border: m.role === "user" ? "none" : "1px solid var(--border2)" }}>
-              <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>
+              {m.role === "bot" ? <ChatMarkdown text={m.text} /> : <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>}
               {m.sources && m.sources.length > 0 && (
                 <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>sources: {m.sources.join(", ")}</div>
               )}
@@ -80,7 +102,6 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
         {busy && <div style={{ fontSize: 13, color: "var(--text3)" }}>Thinking…</div>}
       </div>
 
-      {/* Suggestion chips — shown before the first question */}
       {showChips && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {suggestions.map((s) => (
@@ -93,7 +114,6 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       )}
 
       <div style={{ position: "relative" }}>
-        {/* Typeahead dropdown */}
         {matches.length > 0 && (
           <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0, background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-sm)", boxShadow: "0 8px 24px rgba(0,0,0,0.18)", overflow: "hidden", zIndex: 5 }}>
             {matches.map((s) => (
@@ -105,8 +125,24 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
           </div>
         )}
         <div style={{ display: "flex", gap: 8 }}>
-          <input style={input} placeholder="Ask the bot a question…" value={q}
-            onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} />
+          <div style={{ position: "relative", flex: 1 }}>
+            {ghost && (
+              <div aria-hidden style={{ position: "absolute", inset: 0, padding: "9px 11px", border: "1px solid transparent", boxSizing: "border-box", fontSize: 14, display: "flex", alignItems: "center", whiteSpace: "pre", overflow: "hidden", pointerEvents: "none", borderRadius: "var(--radius-sm)" }}>
+                <span style={{ color: "transparent" }}>{q}</span><span style={{ color: "var(--text3)" }}>{ghost}</span>
+              </div>
+            )}
+            <input style={{ ...input, background: "transparent", position: "relative" }} placeholder="Ask the bot a question…" value={q}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (ghost && e.key === "Tab") { e.preventDefault(); accept(); return; }
+                if (ghost && e.key === "ArrowRight") {
+                  const el = e.currentTarget;
+                  if (el.selectionStart === q.length && el.selectionEnd === q.length) { e.preventDefault(); accept(); return; }
+                }
+                if (ghost && e.key === "Escape") { setGhost(""); return; }
+                if (e.key === "Enter") send();
+              }} />
+          </div>
           <button style={btn} onClick={() => send()} disabled={busy || !q.trim()}>Send</button>
         </div>
       </div>

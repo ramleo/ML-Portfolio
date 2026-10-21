@@ -16,6 +16,7 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
   const [greeting, setGreeting] = useState(cfg.greeting);
   const [webSearch, setWebSearch] = useState(cfg.web_search);
   const [autosuggest, setAutosuggest] = useState(cfg.autosuggest);
+  const [ghostCompletion, setGhostCompletion] = useState(cfg.ghost_completion);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -30,7 +31,7 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
     try {
       const res = await fetch(`/api/tenants/${tenant.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() || tenant.name, config: { system_prompt: systemPrompt, provider, model, greeting, web_search: webSearch, autosuggest } }),
+        body: JSON.stringify({ name: name.trim() || tenant.name, config: { system_prompt: systemPrompt, provider, model, greeting, web_search: webSearch, autosuggest, ghost_completion: ghostCompletion } }),
       });
       if (res.ok) { setSaved(true); onSaved(); setTimeout(() => setSaved(false), 1800); }
     } catch { /* ignore */ }
@@ -84,7 +85,17 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
         <span>
           Auto-suggestions
           <span style={{ display: "block", fontSize: 11.5, color: "var(--text3)" }}>
-            Show suggested-question chips and typeahead in the chat, generated from the bot&apos;s knowledge base (or its persona if it has none).
+            Show suggested-question chips and a matching dropdown in the chat, generated from the bot&apos;s knowledge base (or its persona if it has none). Cheap — one call when the chat opens.
+          </span>
+        </span>
+      </label>
+
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text)", cursor: "pointer" }}>
+        <input type="checkbox" checked={ghostCompletion} onChange={(e) => setGhostCompletion(e.target.checked)} style={{ marginTop: 2 }} />
+        <span>
+          Smart completion
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--text3)" }}>
+            Inline grey ghost-text that predicts the rest of the question as you type (press Tab to accept). Costs a small LLM call each time you pause — leave off to save calls.
           </span>
         </span>
       </label>
