@@ -10,6 +10,9 @@ const MODELS: Record<string, { provider: string; model: string }> = {
   "cohere/command-a-03-2025": { provider: "cohere", model: "command-a-03-2025" },
   "gemini/gemini-3.6-flash": { provider: "gemini", model: "gemini-3.6-flash" },
   "mistral/mistral-small-latest": { provider: "mistral", model: "mistral-small-latest" },
+  // Groq free tier (OpenAI-compatible; no new provider integration needed).
+  "groq/gpt-oss-20b": { provider: "groq", model: "openai/gpt-oss-20b" },
+  "groq/gpt-oss-120b": { provider: "groq", model: "openai/gpt-oss-120b" },
 };
 const DEFAULT_KEY = "cohere/command-a-03-2025";
 

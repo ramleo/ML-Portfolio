@@ -24,6 +24,8 @@ const MODELS = [
   { key: "cohere/command-a-03-2025", label: "Cohere · command-a" },
   { key: "gemini/gemini-3.6-flash", label: "Gemini · 3.6-flash" },
   { key: "mistral/mistral-small-latest", label: "Mistral · small" },
+  { key: "groq/gpt-oss-20b", label: "Groq · gpt-oss-20b (free)" },
+  { key: "groq/gpt-oss-120b", label: "Groq · gpt-oss-120b (free)" },
 ];
 
 const INFO = "A fixed golden set of questions is run through the real RAG pipeline and scored by an LLM judge (Gemini — a different family from the Cohere generator, to limit self-preference). Each answer is judged Correct / Faithful / Relevant; Pass = all three. Running a model spends a few cents (one judge call per item).";
