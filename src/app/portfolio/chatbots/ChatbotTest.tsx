@@ -18,6 +18,7 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [ghost, setGhost] = useState("");
+  const [hideDropdown, setHideDropdown] = useState(false);
   const qRef = useRef("");
   const ghostTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,9 +33,10 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   }, [tenant.id, cfg.autosuggest]);
 
   function onChange(v: string) {
-    qRef.current = v; setQ(v); setGhost("");
+    qRef.current = v; setQ(v); setGhost(""); setHideDropdown(false);
     if (ghostTimer.current) clearTimeout(ghostTimer.current);
-    if (!cfg.ghost_completion || v.trim().length < 4 || v.length > 80) return;
+    // Don't suggest a continuation once the question is already complete.
+    if (!cfg.ghost_completion || v.trim().length < 4 || v.length > 80 || /[?.!]\s*$/.test(v)) return;
     ghostTimer.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/tenants/${tenant.id}/complete`, {
@@ -114,7 +116,7 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       )}
 
       <div style={{ position: "relative" }}>
-        {matches.length > 0 && (
+        {matches.length > 0 && !hideDropdown && (
           <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0, background: "var(--bg-card)", border: "1px solid var(--border2)", borderRadius: "var(--radius-sm)", boxShadow: "0 8px 24px rgba(0,0,0,0.18)", overflow: "hidden", zIndex: 5 }}>
             {matches.map((s) => (
               <button key={s} type="button" onMouseDown={(e) => { e.preventDefault(); send(s); }}
@@ -133,13 +135,14 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
             )}
             <input style={{ ...input, background: "transparent", position: "relative" }} placeholder="Ask the bot a question…" value={q}
               onChange={(e) => onChange(e.target.value)}
+              onBlur={() => setHideDropdown(true)}
               onKeyDown={(e) => {
                 if (ghost && e.key === "Tab") { e.preventDefault(); accept(); return; }
                 if (ghost && e.key === "ArrowRight") {
                   const el = e.currentTarget;
                   if (el.selectionStart === q.length && el.selectionEnd === q.length) { e.preventDefault(); accept(); return; }
                 }
-                if (ghost && e.key === "Escape") { setGhost(""); return; }
+                if (e.key === "Escape") { setGhost(""); setHideDropdown(true); return; }
                 if (e.key === "Enter") send();
               }} />
           </div>
