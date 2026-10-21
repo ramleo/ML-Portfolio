@@ -29,8 +29,15 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   return data.embeddings;
 }
 
-export async function answerFromContext(question: string, contexts: string[]): Promise<string> {
-  const data = await callSpace<{ answer: string }>("/internal/tenant/answer", { question, contexts });
+export interface TenantAnswerConfig { system_prompt?: string; provider?: string; model?: string }
+
+export async function answerFromContext(question: string, contexts: string[], config: TenantAnswerConfig = {}): Promise<string> {
+  const data = await callSpace<{ answer: string }>("/internal/tenant/answer", {
+    question, contexts,
+    system_prompt: config.system_prompt ?? "",
+    provider: config.provider ?? "cohere",
+    model: config.model ?? "",
+  });
   return data.answer;
 }
 

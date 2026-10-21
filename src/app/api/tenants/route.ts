@@ -26,7 +26,8 @@ export async function GET() {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("tenants")
-    .select("id, name, slug, created_at")
+    .select("id, name, slug, config, created_at")
+    .eq("owner_id", owner.id)                 // platform-ready: scope to the owner
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ tenants: data ?? [] });

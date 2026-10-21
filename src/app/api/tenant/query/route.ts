@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isOwnerEmail } from "@/lib/auth/owner";
 import { embedTexts, answerFromContext } from "@/lib/tenant/rag";
+import { sanitizeConfig } from "@/lib/tenant/config";
 
 /** Q3 M1 — answer a question from ONE tenant's knowledge base.
  * embed question (Space) → match_tenant_chunks(tenant_id, …) (pgvector, filters on
@@ -11,7 +12,7 @@ import { embedTexts, answerFromContext } from "@/lib/tenant/rag";
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!isOwnerEmail(user?.email))
+  if (!user || !isOwnerEmail(user.email))
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
@@ -22,6 +23,12 @@ export async function POST(req: NextRequest) {
   if (!question) return NextResponse.json({ error: "question required" }, { status: 400 });
 
   const admin = createAdminClient();
+
+  // Load this owner's tenant + its bot config (the answer path uses it).
+  const { data: tenant } = await admin
+    .from("tenants").select("config").eq("id", tenantId).eq("owner_id", user.id).single();
+  if (!tenant) return NextResponse.json({ error: "tenant not found" }, { status: 404 });
+  const cfg = sanitizeConfig(tenant.config);
 
   let queryVec: number[][];
   try {
@@ -40,7 +47,8 @@ export async function POST(req: NextRequest) {
   const chunks = (matches ?? []) as Array<{ content: string; source: string; similarity: number }>;
   let answer: string;
   try {
-    answer = await answerFromContext(question, chunks.map((c) => c.content));
+    answer = await answerFromContext(question, chunks.map((c) => c.content),
+      { system_prompt: cfg.system_prompt, provider: cfg.provider, model: cfg.model });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }

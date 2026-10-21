@@ -11,7 +11,7 @@ import { embedTexts, chunkText } from "@/lib/tenant/rag";
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!isOwnerEmail(user?.email))
+  if (!user || !isOwnerEmail(user.email))
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient();
 
-  // Confirm the tenant exists (and scope writes to a real tenant id).
+  // Confirm the tenant exists AND belongs to this owner (the isolation boundary).
   const { data: tenant, error: tErr } = await admin
-    .from("tenants").select("id").eq("id", tenantId).single();
+    .from("tenants").select("id").eq("id", tenantId).eq("owner_id", user.id).single();
   if (tErr || !tenant) return NextResponse.json({ error: "tenant not found" }, { status: 404 });
 
   const chunks = chunkText(text);
