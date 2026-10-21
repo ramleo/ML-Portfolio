@@ -11,6 +11,19 @@ import { input, btn, type Tenant } from "./ui";
  * answers render as markdown. Each turn calls /api/tenant/query. */
 interface Msg { role: "bot" | "user"; text: string; sources?: string[]; webSources?: string[] }
 
+/** A small copy-to-clipboard control shown under each message. */
+function CopyBtn({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button type="button" aria-label="Copy message"
+      onClick={() => { navigator.clipboard?.writeText(text); setDone(true); setTimeout(() => setDone(false), 1200); }}
+      style={{ marginTop: 3, background: "transparent", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 2px" }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+      {done ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
 export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   const cfg = sanitizeConfig(tenant.config);
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "bot", text: cfg.greeting }]);
@@ -83,21 +96,24 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       <div style={{ display: "grid", gap: 10, padding: 14, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", minHeight: 160 }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-            <div style={{ maxWidth: "85%", padding: "8px 12px", borderRadius: 12, fontSize: 14, lineHeight: 1.5,
-              background: m.role === "user" ? "var(--accent)" : "var(--bg-card)",
-              color: m.role === "user" ? "#fff" : "var(--text)",
-              border: m.role === "user" ? "none" : "1px solid var(--border2)" }}>
-              {m.role === "bot" ? <ChatMarkdown text={m.text} /> : <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>}
-              {m.sources && m.sources.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>sources: {m.sources.join(", ")}</div>
-              )}
-              {m.webSources && m.webSources.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
-                  web: {m.webSources.map((u, j) => (
-                    <span key={j}>{j > 0 ? ", " : ""}<a href={u} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>{(() => { try { return new URL(u).hostname; } catch { return u; } })()}</a></span>
-                  ))}
-                </div>
-              )}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%" }}>
+              <div style={{ padding: "8px 12px", borderRadius: 12, fontSize: 14, lineHeight: 1.5, userSelect: "text",
+                background: m.role === "user" ? "var(--accent)" : "var(--bg-card)",
+                color: m.role === "user" ? "#fff" : "var(--text)",
+                border: m.role === "user" ? "none" : "1px solid var(--border2)" }}>
+                {m.role === "bot" ? <ChatMarkdown text={m.text} /> : <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>}
+                {m.sources && m.sources.length > 0 && (
+                  <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>sources: {m.sources.join(", ")}</div>
+                )}
+                {m.webSources && m.webSources.length > 0 && (
+                  <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
+                    web: {m.webSources.map((u, j) => (
+                      <span key={j}>{j > 0 ? ", " : ""}<a href={u} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>{(() => { try { return new URL(u).hostname; } catch { return u; } })()}</a></span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <CopyBtn text={m.text} />
             </div>
           </div>
         ))}
