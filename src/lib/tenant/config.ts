@@ -7,6 +7,7 @@ export interface TenantConfig {
   provider: string;        // generation provider (allowlisted)
   model: string;           // model within that provider (allowlisted)
   greeting: string;        // first message shown in the widget/test (UI-only)
+  web_search: boolean;     // allow a live web search when answering (costs per query)
 }
 
 /** Free-tier-friendly set the backend already supports. First model = default. */
@@ -22,6 +23,7 @@ export const DEFAULT_CONFIG: TenantConfig = {
   provider: "cohere",
   model: "command-a-03-2025",
   greeting: "Hi! Ask me anything about us.",
+  web_search: false,
 };
 
 /** Coerce an untrusted config object into a valid TenantConfig (allowlist-checked,
@@ -32,9 +34,10 @@ export function sanitizeConfig(raw: unknown): TenantConfig {
   const model = provider.models.includes(String(r.model)) ? String(r.model) : provider.models[0];
   const str = (v: unknown, max: number) => (typeof v === "string" ? v : "").slice(0, max);
   return {
-    system_prompt: str(r.system_prompt, 2000).trim(),
+    system_prompt: str(r.system_prompt, 8000).trim(),
     provider: provider.id,
     model,
     greeting: str(r.greeting, 300).trim() || DEFAULT_CONFIG.greeting,
+    web_search: r.web_search === true,
   };
 }

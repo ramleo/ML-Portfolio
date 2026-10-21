@@ -7,7 +7,7 @@ import { input, btn, type Tenant } from "./ui";
 /** Test the bot against its own knowledge base (owner-side), using this tenant's
  * saved config. Each turn calls /api/tenant/query; matches are shown so you can see
  * which sources it used. */
-interface Msg { role: "bot" | "user"; text: string; sources?: string[] }
+interface Msg { role: "bot" | "user"; text: string; sources?: string[]; webSources?: string[] }
 
 export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   const cfg = sanitizeConfig(tenant.config);
@@ -28,7 +28,7 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       const d = await res.json().catch(() => ({}));
       if (res.ok) {
         const srcs = [...new Set((d.matches ?? []).map((m: { source: string }) => m.source))] as string[];
-        setMsgs((m) => [...m, { role: "bot", text: d.answer || "(no answer)", sources: srcs }]);
+        setMsgs((m) => [...m, { role: "bot", text: d.answer || "(no answer)", sources: srcs, webSources: (d.web_sources ?? []) as string[] }]);
       } else {
         setMsgs((m) => [...m, { role: "bot", text: `Error: ${d.error ?? res.status}` }]);
       }
@@ -50,6 +50,13 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
               <div style={{ whiteSpace: "pre-wrap" }}>{m.text}</div>
               {m.sources && m.sources.length > 0 && (
                 <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>sources: {m.sources.join(", ")}</div>
+              )}
+              {m.webSources && m.webSources.length > 0 && (
+                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
+                  web: {m.webSources.map((u, j) => (
+                    <span key={j}>{j > 0 ? ", " : ""}<a href={u} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>{(() => { try { return new URL(u).hostname; } catch { return u; } })()}</a></span>
+                  ))}
+                </div>
               )}
             </div>
           </div>

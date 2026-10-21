@@ -29,16 +29,18 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   return data.embeddings;
 }
 
-export interface TenantAnswerConfig { system_prompt?: string; provider?: string; model?: string }
+export interface TenantAnswerConfig { system_prompt?: string; provider?: string; model?: string; web_search?: boolean }
+export interface TenantAnswer { answer: string; web_used: boolean; sources: string[] }
 
-export async function answerFromContext(question: string, contexts: string[], config: TenantAnswerConfig = {}): Promise<string> {
-  const data = await callSpace<{ answer: string }>("/internal/tenant/answer", {
+export async function answerFromContext(question: string, contexts: string[], config: TenantAnswerConfig = {}): Promise<TenantAnswer> {
+  const data = await callSpace<{ answer: string; web_used?: boolean; sources?: string[] }>("/internal/tenant/answer", {
     question, contexts,
     system_prompt: config.system_prompt ?? "",
     provider: config.provider ?? "cohere",
     model: config.model ?? "",
+    web_search: config.web_search ?? false,
   });
-  return data.answer;
+  return { answer: data.answer, web_used: !!data.web_used, sources: data.sources ?? [] };
 }
 
 /** Split plain text into overlapping word-window chunks. Simple on purpose for M1;

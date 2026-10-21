@@ -45,16 +45,18 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const chunks = (matches ?? []) as Array<{ content: string; source: string; similarity: number }>;
-  let answer: string;
+  let result: Awaited<ReturnType<typeof answerFromContext>>;
   try {
-    answer = await answerFromContext(question, chunks.map((c) => c.content),
-      { system_prompt: cfg.system_prompt, provider: cfg.provider, model: cfg.model });
+    result = await answerFromContext(question, chunks.map((c) => c.content),
+      { system_prompt: cfg.system_prompt, provider: cfg.provider, model: cfg.model, web_search: cfg.web_search });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }
 
   return NextResponse.json({
-    answer,
+    answer: result.answer,
+    web_used: result.web_used,
+    web_sources: result.sources,
     matches: chunks.map((c) => ({ source: c.source, similarity: c.similarity })),
   });
 }
