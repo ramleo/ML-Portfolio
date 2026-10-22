@@ -6,6 +6,7 @@ import EvalCallDrawer, { type CallFilter } from "./EvalCallDrawer";
 import EvalTrends from "./EvalTrends";
 import EvalQuality from "./EvalQuality";
 import EvalRagHealth from "./EvalRagHealth";
+import EvalOnline from "./EvalOnline";
 import EvalBudget from "./EvalBudget";
 import EvalFeedback from "./EvalFeedback";
 import EvalGuide from "./EvalGuide";
@@ -207,6 +208,10 @@ export default function EvalDashboard() {
 
       <Section title="Live RAG health" hint="per-query signals from the real chat">
         <EvalRagHealth days={days} />
+      </Section>
+
+      <Section title="Online quality" hint="LLM judge on a sample of real answers (faithful + relevant)">
+        <EvalOnline days={days} />
       </Section>
 
       <Section title="Errors">
