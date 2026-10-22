@@ -30,6 +30,7 @@ from handbook_sources import (
     read_capabilities, read_domains, read_guide, read_deep, read_platforms,
 )
 from handbook_render import TINTED_SECTIONS, wrap_sections, where_it_runs, slugify  # noqa: F401
+from handbook_platform_chapters import developer_access_part, chatbot_builder_part
 
 # When the first edition was set, stated once. It used to be date.today(),
 # which is not a fact about the book — it is a fact about when the generator
@@ -163,95 +164,13 @@ def main():
     body.append("</div>")
     body.append("")
 
-    # ── Part 2 · Developer access (API & MCP) ──
-    # Hand-authored rather than drawn from capabilities.ts: programmatic access is a
-    # feature for developers, not a tool card, but it belongs in the handbook all the
-    # same. Kept here (not in the sources) because it describes the platform's own
-    # endpoints, which no single tool owns.
-    part += 1
-    part_no["Developer access"] = part
-    pslug = f"part-{part}"
-    toc_add(("part", f"Part {part} · Developer access", pslug))
-    body.append(f'<div class="bk-part bk-part-{part}">')
-    body.append("")
-    body.append(f'<div class="bk-partpage" id="{pslug}">')
-    body.append("")
-    body.append(f"# Part {part}")
-    body.append("")
-    body.append("## Developer access")
-    body.append("")
-    body.append("Beyond the interactive tools, a curated subset can be called "
-                "programmatically — over a REST API and over the Model Context Protocol "
-                "(MCP) for AI clients. Both use the same API key.")
-    body.append("")
-    body.append("</div>")
-    body.append("")
-
-    chapter += 1
-    cslug = f"ch-{chapter}-public-api-and-mcp"
-    toc_add(("chapter", f"{chapter}. Public API & MCP", cslug))
-    body.append(f'<h1 class="bk-chapter" id="{cslug}">'
-                f'<span class="bk-chnum">Chapter {chapter}</span>Public API &amp; MCP</h1>')
-    body.append("")
-    body.append("> Call a stable subset of the tools from your own code, or from an AI "
-                "client, authenticated with an API key.")
-    body.append("")
-    body.append("## At a glance")
-    body.append("")
-    body.append('<div class="bk-facts">')
-    body.append("")
-    body.append("| | |")
-    body.append("|---|---|")
-    body.append("| **Auth** | an API key — `X-API-Key` header (REST) or Bearer token (MCP) |")
-    body.append("| **REST base** | `https://wram1708-ml-unified.hf.space/v1` |")
-    body.append("| **MCP endpoint** | `https://wram1708-ml-unified.hf.space/mcp/` |")
-    body.append("| **Spec** | `https://wram1708-ml-unified.hf.space/v1/openapi.json` |")
-    body.append("| **Limits** | per-key monthly request quota + spend budget |")
-    body.append("")
-    body.append("</div>")
-    body.append("")
-    body.append("## Getting a key")
-    body.append("")
-    body.append("Keys are issued on request — contact the site owner. Each key carries a "
-                "tier, a monthly request quota, and a spend budget, and can be revoked at "
-                "any time. Only a hash of the key is ever stored.")
-    body.append("")
-    body.append("## The REST API")
-    body.append("")
-    body.append("Three endpoints are available today, all `POST` with JSON in and out:")
-    body.append("")
-    body.append("- `POST /v1/tls-headers/check` — TLS & security-header scan. Body: `{ \"host\": \"example.com\" }`")
-    body.append("- `POST /v1/email-auth/check` — SPF/DKIM/DMARC analysis. Body: `{ \"headers\": \"<raw email headers>\" }`")
-    body.append("- `POST /v1/anomaly-detection/score` — anomaly scores. Body: `{ \"baseline\": [...], \"events\": [...] }`")
-    body.append("")
-    body.append("```bash")
-    body.append("curl -X POST https://wram1708-ml-unified.hf.space/v1/tls-headers/check \\")
-    body.append('  -H "X-API-Key: ak_live_…" \\')
-    body.append('  -H "Content-Type: application/json" \\')
-    body.append("  -d '{\"host\":\"example.com\"}'")
-    body.append("```")
-    body.append("")
-    body.append("A missing or invalid key returns `401`; over the quota or rate limit "
-                "returns `429`. Import `/v1/openapi.json` into Postman or a client "
-                "generator for the full schema.")
-    body.append("")
-    body.append("## MCP (for AI clients)")
-    body.append("")
-    body.append("The same tools are exposed over the Model Context Protocol (Streamable "
-                "HTTP), so clients such as Claude Desktop and Cursor can use them. Point "
-                "the client at the MCP endpoint and pass your key as a Bearer token:")
-    body.append("")
-    body.append("```json")
-    body.append("{")
-    body.append('  "mcpServers": {')
-    body.append('    "airaml": {')
-    body.append('      "url": "https://wram1708-ml-unified.hf.space/mcp/",')
-    body.append('      "headers": { "Authorization": "Bearer ak_live_…" }')
-    body.append("    }")
-    body.append("  }")
-    body.append("}")
-    body.append("```")
-    body.append("")
+    # ── Part · Developer access (API & MCP), then Part · Chatbot builder ──
+    # Two hand-authored platform chapters (see handbook_platform_chapters.py): they
+    # describe platform-level features that no single tool card owns, so they are
+    # written out rather than drawn from capabilities.ts. Kept in their own module so
+    # this builder stays under the line limit.
+    part, chapter = developer_access_part(body, toc, part, chapter, part_no)
+    part, chapter = chatbot_builder_part(body, toc, part, chapter, part_no)
 
     for d in detailed:
         mine = sorted([c for c in caps if c["domain"] == d["name"]], key=lambda x: x["title"])
