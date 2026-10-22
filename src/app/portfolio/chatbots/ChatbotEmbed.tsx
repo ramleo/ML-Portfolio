@@ -92,8 +92,8 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
               {hint && <span style={{ fontSize: 11.5, color: "var(--text3)" }}>{hint}</span>}
               <button
-                style={{ ...(st.embed_enabled ? btnGhost : btn), ...(disabled ? { opacity: 0.55, cursor: "not-allowed" } : {}) }}
-                disabled={disabled} title={hint || undefined}
+                style={{ ...(st.embed_enabled ? btnGhost : btn), ...(disabled ? { opacity: 0.55, cursor: "default" } : {}) }}
+                disabled={disabled}
                 onClick={() => patch(st.embed_enabled
                   ? { embed_enabled: false }
                   // Publishing also persists the current form, so you can't go live with an
