@@ -24,6 +24,7 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [canPub, setCanPub] = useState(true); // plan allows publishing (owner/paid)
   const base = typeof window !== "undefined" ? window.location.origin : "";
 
   function apply(e: EmbedState) {
@@ -37,7 +38,7 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
     (async () => {
       try {
         const res = await fetch(`/api/tenants/${tenant.id}/embed`, { cache: "no-store" });
-        if (res.ok) apply((await res.json()).embed as EmbedState);
+        if (res.ok) { const j = await res.json(); apply(j.embed as EmbedState); setCanPub(j.can_publish !== false); }
       } catch { /* shown as not-loaded */ }
     })();
   }, [tenant.id]);
@@ -59,10 +60,18 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
   const snippet = st.public_key
     ? `<script src="${base}/embed/v1.js" data-bot="${st.public_key}" async></script>`
     : "";
-  const canPublish = originList.length > 0;
+  const hasOrigins = originList.length > 0;
 
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 640 }}>
+      {/* Plan gate: free users can build + test but not publish live. */}
+      {!canPub && (
+        <div style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border2)", background: "color-mix(in srgb, var(--accent) 8%, transparent)", fontSize: 12.5, color: "var(--text2)" }}>
+          Publishing a bot live is a paid feature. You can build, add knowledge, and test it
+          freely — upgrade your plan to embed it on a website.
+        </div>
+      )}
+
       {/* Publish toggle (kill switch) */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10, justifyContent: "space-between" }}>
         <div>
@@ -70,10 +79,12 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
           <p style={{ fontSize: 11.5, color: "var(--text3)", margin: "2px 0 0" }}>
             {st.embed_enabled
               ? "Live on your allowed sites. Turn off to disable the widget everywhere instantly."
-              : "Add at least one allowed site, then publish to embed this bot."}
+              : canPub
+                ? "Add at least one allowed site, then publish to embed this bot."
+                : "Upgrade to a paid plan to publish this bot live."}
           </p>
         </div>
-        <button style={st.embed_enabled ? btnGhost : btn} disabled={busy || (!st.embed_enabled && !canPublish)}
+        <button style={st.embed_enabled ? btnGhost : btn} disabled={busy || (!st.embed_enabled && (!hasOrigins || !canPub))}
           onClick={() => patch(st.embed_enabled
             ? { embed_enabled: false }
             // Publishing also persists the current form, so you can't go live with an

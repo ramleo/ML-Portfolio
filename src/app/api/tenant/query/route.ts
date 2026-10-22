@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
 import { answerTenantQuestion } from "@/lib/tenant/answer";
 import { sanitizeConfig } from "@/lib/tenant/config";
 
-/** Q3 M1 — answer a question from ONE tenant's knowledge base (owner Test path).
- * Owner-gated + scoped to owner_id; the public embed path (/api/embed/query) shares
- * the same answer core via answerTenantQuestion. */
+/** Q3 M4a — answer a question from ONE tenant's knowledge base (owner-side Test path).
+ * Any signed-in user, scoped to their own owner_id; the public embed path
+ * (/api/embed/query) shares the same answer core via answerTenantQuestion. */
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !isOwnerEmail(user.email))
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const user = await getAuthedUser();
+  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   const tenantId = String(body.tenantId ?? "").trim();

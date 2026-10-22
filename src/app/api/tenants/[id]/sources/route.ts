@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
 
-/** Q3 M2 — a chatbot's knowledge sources: list them (with chunk counts) and delete
- * one. Owner-gated and scoped to owner_id. The chunk store is the tenant's KB. */
-
-async function requireOwner() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user && isOwnerEmail(user.email) ? user : null;
-}
+/** Q3 M4a — a chatbot's knowledge sources: list them (with chunk counts) and delete
+ * one. Any signed-in user, scoped to their own owner_id (ownsTenant is the boundary). */
 
 async function ownsTenant(admin: ReturnType<typeof createAdminClient>, id: string, ownerId: string) {
   const { data } = await admin.from("tenants").select("id").eq("id", id).eq("owner_id", ownerId).single();
@@ -18,7 +11,7 @@ async function ownsTenant(admin: ReturnType<typeof createAdminClient>, id: strin
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 
@@ -37,7 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 

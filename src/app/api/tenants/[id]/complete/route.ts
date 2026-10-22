@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
 import { completeQuery } from "@/lib/tenant/rag";
 import { sanitizeConfig } from "@/lib/tenant/config";
 
-/** Q3 — inline ghost-text completion for a chatbot's chat input. Owner-gated +
+/** Q3 — inline ghost-text completion for a chatbot's chat input. Any signed-in user,
  * owner_id-scoped. Off unless the bot's ghost_completion toggle is on (LLM cost). */
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !isOwnerEmail(user.email))
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const user = await getAuthedUser();
+  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 
   const body = await req.json().catch(() => ({}));

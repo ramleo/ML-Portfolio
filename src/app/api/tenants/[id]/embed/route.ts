@@ -1,36 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
+import { getPlan, canPublish } from "@/lib/auth/plan";
 import { normalizeOrigin } from "@/lib/tenant/embedServer";
 
-/** Q3 M3 — read/update one chatbot's embed settings (owner-gated + owner_id-scoped):
- * the publish kill switch, the publishable key, the origin allowlist, and the rate +
- * daily-cap controls. The public embed endpoints read these; only the owner writes. */
+/** Q3 M4a — read/update one chatbot's embed settings, scoped to the signed-in user's
+ * own owner_id: the publish kill switch, the publishable key, the origin allowlist, and
+ * the rate + daily-cap controls. PUBLISHING a bot live requires a paid plan (the owner
+ * is exempt) — the cost guard that stops free signups from spending our LLM budget. */
 
 const FIELDS = "id, public_key, embed_enabled, allowed_origins, embed_rate_per_min, embed_daily_cap, embed_day_count";
-
-async function requireOwner() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user && isOwnerEmail(user.email) ? user : null;
-}
 
 const newKey = () => `pk_live_${randomBytes(18).toString("hex")}`;
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
   const admin = createAdminClient();
   const { data } = await admin.from("tenants").select(FIELDS).eq("id", id).eq("owner_id", owner.id).maybeSingle();
   if (!data) return NextResponse.json({ error: "tenant not found" }, { status: 404 });
-  return NextResponse.json({ embed: data });
+  // The UI uses can_publish to show an "upgrade to publish" state; the PATCH enforces it.
+  const can_publish = canPublish(await getPlan(admin, owner.id), owner.email);
+  return NextResponse.json({ embed: data, can_publish });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 
@@ -53,6 +50,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "nothing to update" }, { status: 400 });
 
   const admin = createAdminClient();
+
+  // Publishing a bot live requires a paid plan (owner exempt) — the cost guard that
+  // keeps free signups from spending our LLM budget on public traffic.
+  if (patch.embed_enabled === true && !canPublish(await getPlan(admin, owner.id), owner.email))
+    return NextResponse.json(
+      { error: "Publishing requires a paid plan. Upgrade to put this bot live." },
+      { status: 403 },
+    );
 
   // A bot can't be published without a key — generate one on first publish.
   if (patch.embed_enabled === true && patch.public_key === undefined) {

@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
 import { sanitizeConfig } from "@/lib/tenant/config";
 
-/** Q3 M2 — update (name + bot config) or delete one chatbot. Owner-gated and scoped
- * to owner_id (platform-ready). Deleting a tenant cascades its chunks (FK). */
-
-async function requireOwner() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user && isOwnerEmail(user.email) ? user : null;
-}
+/** Q3 M4a — update (name + bot config) or delete one chatbot. Any signed-in user, scoped
+ * to their own owner_id (the isolation boundary). Deleting a tenant cascades its chunks. */
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 
@@ -35,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const owner = await requireOwner();
+  const owner = await getAuthedUser();
   if (!owner) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { id } = await params;
 

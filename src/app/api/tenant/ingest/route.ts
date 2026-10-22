@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isOwnerEmail } from "@/lib/auth/owner";
+import { getAuthedUser } from "@/lib/auth/user";
 import { embedTexts, chunkText } from "@/lib/tenant/rag";
 
-/** Q3 M1 — ingest a document into ONE tenant's knowledge base.
- * chunk (here) → embed (Space) → store tagged with tenant_id (pgvector, service
- * role). The tenant_id tag is the isolation boundary enforced at query time. */
+/** Q3 M4a — ingest a document into ONE tenant's knowledge base. chunk (here) → embed
+ * (Space) → store tagged with tenant_id. Any signed-in user, scoped to their own
+ * owner_id; the ownership check below is the isolation boundary. */
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !isOwnerEmail(user.email))
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const user = await getAuthedUser();
+  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   const tenantId = String(body.tenantId ?? "").trim();
