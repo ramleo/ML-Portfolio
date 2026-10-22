@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PROVIDERS, sanitizeConfig } from "@/lib/tenant/config";
+import { PROVIDERS, sanitizeConfig, SYSTEM_PROMPT_MAX } from "@/lib/tenant/config";
 import { input, btn, labelStyle, type Tenant } from "./ui";
 
 /** Configure a chatbot's persona + model. Saves name + config via
@@ -60,11 +60,18 @@ export default function ChatbotConfig({ tenant, onSaved }: { tenant: Tenant; onS
       <label style={labelStyle}>Persona / system prompt
         <textarea style={{ ...input, marginTop: 4, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
           placeholder="e.g. You are Acme's friendly support assistant. Be concise and polite."
+          maxLength={SYSTEM_PROMPT_MAX}
           value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} />
       </label>
-      <p style={{ fontSize: 11.5, color: "var(--text3)", margin: "-6px 0 0" }}>
-        Sets the bot&apos;s voice. Grounding (&ldquo;answer only from the knowledge base&rdquo;) is always enforced on top.
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, margin: "-6px 0 0" }}>
+        <p style={{ fontSize: 11.5, color: "var(--text3)", margin: 0 }}>
+          Sets the bot&apos;s voice. Grounding (&ldquo;answer only from the knowledge base&rdquo;) is always enforced on top.
+        </p>
+        <span style={{ fontSize: 11.5, flexShrink: 0, fontVariantNumeric: "tabular-nums",
+          color: systemPrompt.length >= SYSTEM_PROMPT_MAX ? "#f87171" : "var(--text3)" }}>
+          {systemPrompt.length.toLocaleString()} / {SYSTEM_PROMPT_MAX.toLocaleString()}
+        </span>
+      </div>
 
       <label style={labelStyle}>Greeting (shown first in the widget)
         <input style={{ ...input, marginTop: 4 }} value={greeting} onChange={(e) => setGreeting(e.target.value)} />

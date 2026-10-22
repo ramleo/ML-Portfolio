@@ -2,6 +2,10 @@
  * allowlist of providers/models a tenant bot may use. Shared by the config API and
  * the query path so an owner can't point a bot at an arbitrary provider/model. */
 
+/** Max length of a bot's persona/system prompt. Shared by the UI (counter + maxLength)
+ * and the server (sanitizeConfig) so both agree on the cap. */
+export const SYSTEM_PROMPT_MAX = 16000;
+
 export interface TenantConfig {
   system_prompt: string;   // bot persona (grounding is always enforced on top)
   provider: string;        // generation provider (allowlisted)
@@ -38,7 +42,7 @@ export function sanitizeConfig(raw: unknown): TenantConfig {
   const model = provider.models.includes(String(r.model)) ? String(r.model) : provider.models[0];
   const str = (v: unknown, max: number) => (typeof v === "string" ? v : "").slice(0, max);
   return {
-    system_prompt: str(r.system_prompt, 16000).trim(),
+    system_prompt: str(r.system_prompt, SYSTEM_PROMPT_MAX).trim(),
     provider: provider.id,
     model,
     greeting: str(r.greeting, 300).trim() || DEFAULT_CONFIG.greeting,

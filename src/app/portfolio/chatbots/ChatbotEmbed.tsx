@@ -126,10 +126,15 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
         {saved && <span style={{ fontSize: 13, color: "var(--accent)" }}>Saved</span>}
       </div>
 
-      {/* Install snippet */}
+      {/* Install snippet — only once the plan allows publishing. The snippet is useless
+          until the bot is published, so showing it to a free user would just mislead. */}
       <div style={{ borderTop: "1px solid var(--border2)", paddingTop: 16, display: "grid", gap: 8 }}>
         <strong style={{ fontSize: 13, color: "var(--text)" }}>Install</strong>
-        {st.public_key ? (
+        {!canPub ? (
+          <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>
+            Your embed snippet appears here once you upgrade to a paid plan and publish the bot.
+          </p>
+        ) : st.public_key ? (
           <>
             <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>Paste this once into your site, just before <code style={{ fontFamily: "var(--type-data, monospace)" }}>&lt;/body&gt;</code>:</p>
             <textarea readOnly value={snippet} onFocus={(e) => e.currentTarget.select()}
