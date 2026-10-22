@@ -84,14 +84,26 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
                 : "Upgrade to a paid plan to publish this bot live."}
           </p>
         </div>
-        <button style={st.embed_enabled ? btnGhost : btn} disabled={busy || (!st.embed_enabled && (!hasOrigins || !canPub))}
-          onClick={() => patch(st.embed_enabled
-            ? { embed_enabled: false }
-            // Publishing also persists the current form, so you can't go live with an
-            // unsaved (empty) allowlist.
-            : { embed_enabled: true, allowed_origins: originList, embed_rate_per_min: rate, embed_daily_cap: cap })}>
-          {st.embed_enabled ? "Unpublish" : "Publish"}
-        </button>
+        {(() => {
+          const disabled = busy || (!st.embed_enabled && (!hasOrigins || !canPub));
+          // Tell the user WHY Publish is disabled instead of it silently doing nothing.
+          const hint = st.embed_enabled ? "" : !canPub ? "Upgrade to publish" : !hasOrigins ? "Add an allowed site first" : "";
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+              {hint && <span style={{ fontSize: 11.5, color: "var(--text3)" }}>{hint}</span>}
+              <button
+                style={{ ...(st.embed_enabled ? btnGhost : btn), ...(disabled ? { opacity: 0.55, cursor: "not-allowed" } : {}) }}
+                disabled={disabled} title={hint || undefined}
+                onClick={() => patch(st.embed_enabled
+                  ? { embed_enabled: false }
+                  // Publishing also persists the current form, so you can't go live with an
+                  // unsaved (empty) allowlist.
+                  : { embed_enabled: true, allowed_origins: originList, embed_rate_per_min: rate, embed_daily_cap: cap })}>
+                {st.embed_enabled ? "Unpublish" : "Publish"}
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Allowed origins */}

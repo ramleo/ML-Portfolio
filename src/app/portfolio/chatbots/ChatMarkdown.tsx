@@ -18,6 +18,17 @@ const MD = {
   code: ({ children }: React.PropsWithChildren) => (
     <code style={{ background: "var(--bg)", padding: "1px 5px", borderRadius: 4, fontSize: "0.9em", fontFamily: "var(--type-data, monospace)" }}>{children}</code>
   ),
+  table: ({ children }: React.PropsWithChildren) => (
+    <div style={{ overflowX: "auto", margin: "0 0 8px" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.92em" }}>{children}</table>
+    </div>
+  ),
+  th: ({ children }: React.PropsWithChildren) => (
+    <th style={{ border: "1px solid var(--border2, #e4e7ec)", padding: "5px 9px", textAlign: "left", fontWeight: 700, background: "var(--bg-card, #f6f7f9)" }}>{children}</th>
+  ),
+  td: ({ children }: React.PropsWithChildren) => (
+    <td style={{ border: "1px solid var(--border2, #e4e7ec)", padding: "5px 9px", verticalAlign: "top" }}>{children}</td>
+  ),
   h1: ({ children }: React.PropsWithChildren) => <p style={{ fontWeight: 700, margin: "0 0 6px" }}>{children}</p>,
   h2: ({ children }: React.PropsWithChildren) => <p style={{ fontWeight: 700, margin: "0 0 6px" }}>{children}</p>,
   h3: ({ children }: React.PropsWithChildren) => <p style={{ fontWeight: 700, margin: "0 0 6px" }}>{children}</p>,

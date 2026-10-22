@@ -26,7 +26,9 @@ function CopyBtn({ text }: { text: string }) {
 
 export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
   const cfg = sanitizeConfig(tenant.config);
+  const storageKey = `airaml-botchat-${tenant.id}`;
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "bot", text: cfg.greeting }]);
+  const [restored, setRestored] = useState(false);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -44,6 +46,30 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
       } catch { /* optional */ }
     })();
   }, [tenant.id, cfg.autosuggest]);
+
+  // Keep the test conversation across tab switches (and remounts) within the builder.
+  // sessionStorage is per-tab and cheap; wrapped so it degrades if unavailable.
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = sessionStorage.getItem(storageKey);
+        const saved = raw ? JSON.parse(raw) : null;
+        if (Array.isArray(saved) && saved.length) setMsgs(saved as Msg[]);
+      } catch { /* no stored chat */ }
+      setRestored(true);
+    })();
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!restored) return; // don't clobber the stored chat before it's restored
+    try { sessionStorage.setItem(storageKey, JSON.stringify(msgs)); } catch { /* ignore */ }
+  }, [msgs, restored, storageKey]);
+
+  function clearChat() {
+    setMsgs([{ role: "bot", text: cfg.greeting }]);
+    setQ(""); qRef.current = ""; setGhost("");
+    try { sessionStorage.removeItem(storageKey); } catch { /* ignore */ }
+  }
 
   function onChange(v: string) {
     qRef.current = v; setQ(v); setGhost(""); setHideDropdown(false);
@@ -93,6 +119,13 @@ export default function ChatbotTest({ tenant }: { tenant: Tenant }) {
 
   return (
     <div style={{ display: "grid", gap: 12, maxWidth: 680 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button type="button" onClick={clearChat} disabled={msgs.length <= 1}
+          style={{ background: "transparent", border: "none", cursor: msgs.length <= 1 ? "default" : "pointer", color: "var(--text3)", fontSize: 12, opacity: msgs.length <= 1 ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 4, padding: 2 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+          Clear chat
+        </button>
+      </div>
       <div style={{ display: "grid", gap: 10, padding: 14, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", minHeight: 160 }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
