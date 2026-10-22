@@ -158,9 +158,17 @@ export default function EmbedWidget() {
 
 /** Self-contained palette so the widget looks consistent on any host site, independent
  * of whatever CSS the embedding page loads. Also supplies the var() names ChatMarkdown
- * uses. (Light, neutral — safe on both light and dark host pages.) */
+ * uses. (Light, neutral — safe on both light and dark host pages.)
+ *
+ * Anchored to the iframe viewport with fixed/inset:0 (not height:100%) so it always
+ * fills the frame regardless of the host app's layout height chain, and paints its own
+ * white ground over the site's (dark) <body> — otherwise the page background shows
+ * through below the chat. */
 const rootVars: React.CSSProperties = {
-  height: "100%",
+  position: "fixed",
+  inset: 0,
+  overflow: "hidden",
+  background: "#ffffff",
   ["--bg" as string]: "#ffffff",
   ["--bg-card" as string]: "#f6f7f9",
   ["--text" as string]: "#15181d",
