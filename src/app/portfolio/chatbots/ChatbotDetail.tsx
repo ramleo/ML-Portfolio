@@ -4,15 +4,17 @@ import { useState } from "react";
 import ChatbotConfig from "./ChatbotConfig";
 import ChatbotKnowledge from "./ChatbotKnowledge";
 import ChatbotTest from "./ChatbotTest";
+import ChatbotEmbed from "./ChatbotEmbed";
 import { btnDanger, type Tenant } from "./ui";
 
 /** One chatbot's workspace: Configure (persona + model), Knowledge (its documents),
- * Test (chat against its KB), plus delete. */
-type Tab = "config" | "knowledge" | "test";
+ * Test (chat against its KB), Embed (publish as a widget), plus delete. */
+type Tab = "config" | "knowledge" | "test" | "embed";
 const TABS: { id: Tab; label: string }[] = [
   { id: "config", label: "Configure" },
   { id: "knowledge", label: "Knowledge" },
   { id: "test", label: "Test" },
+  { id: "embed", label: "Embed" },
 ];
 
 export default function ChatbotDetail({ tenant, onChanged, onDeleted }:
@@ -56,6 +58,7 @@ export default function ChatbotDetail({ tenant, onChanged, onDeleted }:
       {tab === "config" && <ChatbotConfig tenant={tenant} onSaved={onChanged} />}
       {tab === "knowledge" && <ChatbotKnowledge tenant={tenant} />}
       {tab === "test" && <ChatbotTest tenant={tenant} />}
+      {tab === "embed" && <ChatbotEmbed tenant={tenant} />}
     </div>
   );
 }

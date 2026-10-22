@@ -14,32 +14,43 @@ import type { NextConfig } from "next";
 // microphone for this origin (not blocks) since several real tools
 // (face-liveness, pose-vj-visuals, video-keystroke-inference, etc.)
 // genuinely need them.
+const CSP_DIRECTIVES = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  "style-src 'self' 'unsafe-inline' https:",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob: https:",
+  "connect-src 'self' https: http: wss: ws:",
+  "worker-src 'self' blob:",
+  // Turnstile renders its challenge in an iframe. Without this, framing
+  // falls back to default-src 'self' and the widget is blocked outright —
+  // which is exactly what happened: the script loaded, the API object
+  // existed, and no token was ever produced, so every upload silently
+  // stopped being logged. Scoped to Cloudflare alone rather than opening
+  // framing to https: generally.
+  "frame-src 'self' https://challenges.cloudflare.com",
+];
+
 const SECURITY_HEADERS = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()" },
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-      "style-src 'self' 'unsafe-inline' https:",
-      "img-src 'self' data: blob: https:",
-      "media-src 'self' data: blob: https:",
-      "connect-src 'self' https: http: wss: ws:",
-      "worker-src 'self' blob:",
-      // Turnstile renders its challenge in an iframe. Without this, framing
-      // falls back to default-src 'self' and the widget is blocked outright —
-      // which is exactly what happened: the script loaded, the API object
-      // existed, and no token was ever produced, so every upload silently
-      // stopped being logged. Scoped to Cloudflare alone rather than opening
-      // framing to https: generally.
-      "frame-src 'self' https://challenges.cloudflare.com",
-      "frame-ancestors 'self'",
-    ].join("; "),
-  },
+  { key: "Content-Security-Policy", value: [...CSP_DIRECTIVES, "frame-ancestors 'self'"].join("; ") },
+];
+
+// The embeddable chat widget (Q3 M3) is MEANT to be framed by third-party sites, so it
+// must not carry X-Frame-Options and its frame-ancestors must be open. WHICH sites may
+// embed a given bot is enforced at session mint (the per-bot origin allowlist) — a frame
+// on a non-allowlisted site simply gets no session and shows "unavailable". All the other
+// hardening headers still apply.
+const EMBED_WIDGET_HEADERS = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+  { key: "Content-Security-Policy", value: [...CSP_DIRECTIVES, "frame-ancestors *"].join("; ") },
 ];
 
 const nextConfig: NextConfig = {
@@ -51,7 +62,12 @@ const nextConfig: NextConfig = {
   // which does not serve a standalone build — so it opts out of standalone too.
   output: process.env.VERCEL || process.env.NEXT_E2E ? undefined : "standalone",
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      // Everything EXCEPT the embed widget gets the standard (frame-denying) headers.
+      { source: "/((?!embed/widget).*)", headers: SECURITY_HEADERS },
+      // The embed widget is framable cross-origin (see EMBED_WIDGET_HEADERS).
+      { source: "/embed/widget/:path*", headers: EMBED_WIDGET_HEADERS },
+    ];
   },
 };
 
