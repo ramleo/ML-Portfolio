@@ -232,8 +232,9 @@ export default function NavAuth() {
             </>
           )}
 
-          {/* Self-serve chatbots for everyone else (the owner's own entry is above). */}
+          {/* Self-serve chatbots + billing for everyone else (owner entries are above). */}
           {!me.isOwner && <Item href="/app/chatbots" onNavigate={() => setOpen(false)}>Chatbots</Item>}
+          {!me.isOwner && <Item href="/app/billing" onNavigate={() => setOpen(false)}>Billing</Item>}
 
           <Item href="/account" onNavigate={() => setOpen(false)}>Account</Item>
           <Item href="/settings" onNavigate={() => setOpen(false)}>Settings</Item>

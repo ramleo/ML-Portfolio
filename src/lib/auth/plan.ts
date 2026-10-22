@@ -11,7 +11,7 @@ export type Plan = "free" | "pro";
 type Admin = ReturnType<typeof createAdminClient>;
 
 /** Max bots a plan may create. Owner is unlimited (handled by callers). */
-export const PLAN_MAX_BOTS: Record<Plan, number> = { free: 2, pro: 100 };
+export const PLAN_MAX_BOTS: Record<Plan, number> = { free: 2, pro: 10 };
 
 /** Read a user's plan (defaults to 'free' if the row/column is missing). */
 export async function getPlan(admin: Admin, userId: string): Promise<Plan> {

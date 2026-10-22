@@ -68,7 +68,7 @@ export default function ChatbotEmbed({ tenant }: { tenant: Tenant }) {
       {!canPub && (
         <div style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border2)", background: "color-mix(in srgb, var(--accent) 8%, transparent)", fontSize: 12.5, color: "var(--text2)" }}>
           Publishing a bot live is a paid feature. You can build, add knowledge, and test it
-          freely — upgrade your plan to embed it on a website.
+          freely — <a href="/app/billing" style={{ color: "var(--accent)", fontWeight: 600 }}>upgrade to Pro</a> to embed it on a website.
         </div>
       )}
 
