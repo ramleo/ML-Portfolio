@@ -88,7 +88,7 @@ def developer_access_part(body, toc, part, chapter, part_no):
     body.append("")
     body.append("## MCP (for AI clients)")
     body.append("")
-    body.append("The same tools are exposed over the Model Context Protocol (Streamable "
+    body.append("The tools are exposed over the Model Context Protocol (Streamable "
                 "HTTP), so clients such as Claude Desktop and Cursor can use them. Point "
                 "the client at the MCP endpoint and pass your key as a Bearer token:")
     body.append("")
@@ -102,6 +102,18 @@ def developer_access_part(body, toc, part, chapter, part_no):
     body.append("  }")
     body.append("}")
     body.append("```")
+    body.append("")
+    body.append("MCP exposes a little more than the REST API:")
+    body.append("")
+    body.append("- **Tools** — the three REST endpoints above, plus **attack-surface "
+                "check** (passive recon of a host), **prompt-injection check** (screen "
+                "untrusted text before acting on it), and **YARA malware scan** (signature "
+                "scan of file content).")
+    body.append("- **Resources** — read-only context a client can pull: `airaml://tools` "
+                "(the tool catalog) and `airaml://handbook` (this handbook, section by "
+                "section).")
+    body.append("- **Prompts** — ready-made workflows: *scan-host*, *check-email-headers* "
+                "and *check-untrusted-text*.")
     body.append("")
     return part, chapter
 
