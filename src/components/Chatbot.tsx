@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { trackedFetch } from "@/lib/trackedFetch";
 
 import { ChatIcon, CloseIcon, SendIcon, SparkIcon } from "./ChatbotIcons";
-import { PROVIDERS, SECTION_IDS, SECTION_HINTS, STARTER_QUESTIONS, type Provider } from "./chatbotConfig";
+import { PROVIDERS, SECTION_IDS, SECTION_HINTS, type Provider } from "./chatbotConfig";
+import { useStarterChips } from "./useStarterChips";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -93,6 +94,7 @@ export default function Chatbot() {
 
   const hint = SECTION_HINTS[currentSection] ?? "Ask me anything";
   const hasMessages = messages.length > 0;
+  const starterChips = useStarterChips(open, currentSection);
 
   return (
     <>
@@ -220,7 +222,7 @@ export default function Chatbot() {
                     {hint}
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", justifyContent: "center", marginTop: "0.35rem" }}>
-                    {(STARTER_QUESTIONS[currentSection] ?? STARTER_QUESTIONS.hero).map((q) => (
+                    {starterChips.map((q) => (
                       <button
                         key={q}
                         onClick={() => sendText(q)}
