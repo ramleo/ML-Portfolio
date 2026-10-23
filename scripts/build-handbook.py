@@ -94,6 +94,26 @@ def main():
     add("</div>")
     add("")
 
+    add('<div class="bk-colophon">')
+    add("")
+    add("## Finding your way around")
+    add("")
+    add("Two quick ways to get where you need — both answer only about this website:")
+    add("")
+    add("- **Search** (the Search box in the top bar, or press ⌘K / Ctrl-K). Type what "
+        "you want: ask for something structured like “list tools” and it "
+        "answers from the real catalog as a table of links; type a tool or page name "
+        "for instant matches; or ask a full question and the site assistant answers "
+        "from this handbook.")
+    add("")
+    add("- **The AIRaML Assistant** (the chat bubble, bottom-right). Ask anything about "
+        "the tools or the work in plain language; its answers are grounded in this "
+        "site's content. If you are not sure what to ask, it offers starter questions "
+        "you can click.")
+    add("")
+    add("</div>")
+    add("")
+
     body = []
     part = 0
     part_no: dict = {}          # area name -> its part number, for the appendix

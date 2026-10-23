@@ -20,6 +20,18 @@ A chapter is given to any tool that ships a written guide inside its own interfa
 
 </div>
 
+<div class="bk-colophon">
+
+## Finding your way around
+
+Two quick ways to get where you need — both answer only about this website:
+
+- **Search** (the Search box in the top bar, or press ⌘K / Ctrl-K). Type what you want: ask for something structured like “list tools” and it answers from the real catalog as a table of links; type a tool or page name for instant matches; or ask a full question and the site assistant answers from this handbook.
+
+- **The AIRaML Assistant** (the chat bubble, bottom-right). Ask anything about the tools or the work in plain language; its answers are grounded in this site's content. If you are not sure what to ask, it offers starter questions you can click.
+
+</div>
+
 <nav class="bk-toc" id="contents">
 
 # Contents
