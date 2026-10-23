@@ -21,7 +21,7 @@ function renderRich(text: string) {
     const href = m[2] || m[3];
     const label = m[1] || m[3];
     out.push(
-      <a key={m.index} href={href} style={{ color: "var(--accent-from)", fontWeight: 600, textDecoration: "underline" }}>
+      <a key={m.index} href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-from)", fontWeight: 600, textDecoration: "underline" }}>
         {label}
       </a>
     );

@@ -99,8 +99,15 @@ export default function AddContentControls({ removedBboxes, filledIndices, aiFil
             </div>
           )}
           {tab === "image" && (
-            <input type="file" accept="image/*" className="text-[9px]" style={{ color: "var(--text2)" }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) { onAddImage(activeIndex, f); close(); } }} />
+            <label className="flex items-center gap-1.5 text-[10px] rounded px-2 py-1.5 cursor-pointer justify-center"
+              style={{ background: ACCENT, color: "#fff", fontWeight: 600 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Choose an image
+              <input type="file" accept="image/*" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) { onAddImage(activeIndex, f); close(); } }} />
+            </label>
           )}
           {tab === "ai" && (
             <div className="flex items-center gap-1.5">

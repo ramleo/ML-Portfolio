@@ -46,6 +46,7 @@ export default function EdaRunner({ onResult }: { onResult: (r: EdaResult | null
   const [result, setResult] = useState<EdaResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function analyze(chosen: File) {
@@ -99,15 +100,43 @@ export default function EdaRunner({ onResult }: { onResult: (r: EdaResult | null
           correlations, and a verdict on whether each column is fit to model on. The
           file is analysed in memory and never stored.
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.7rem", alignItems: "center" }}>
-          <input
-            ref={inputRef}
-            data-wt="eda-upload"
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(e) => choose(e.target.files?.[0] ?? null)}
-            style={{ fontSize: "0.82rem", color: "var(--text2)" }}
-          />
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Upload a CSV file — click to browse or drop a file here"
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); choose(e.dataTransfer.files?.[0] ?? null); }}
+          style={{
+            border: `2px dashed ${dragging ? "var(--accent-from)" : "var(--border2)"}`,
+            borderRadius: 14, padding: "2rem 1.5rem",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem",
+            cursor: "pointer", textAlign: "center",
+            background: dragging ? "color-mix(in srgb, var(--accent-from) 6%, transparent)" : "var(--bg-glass)",
+            transition: "border-color 0.15s, background 0.15s",
+          }}
+        >
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--accent-from)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <div>
+            <div style={{ fontWeight: 600, color: "var(--text)", fontSize: "0.95rem" }}>Drop your CSV here</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text3)", marginTop: "0.2rem" }}>or click to browse</div>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>Supports any labeled CSV file · max 10 MB</div>
+        </div>
+        <input
+          ref={inputRef}
+          data-wt="eda-upload"
+          type="file"
+          accept=".csv,text/csv"
+          onChange={(e) => choose(e.target.files?.[0] ?? null)}
+          style={{ display: "none" }}
+        />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.7rem", alignItems: "center", marginTop: "0.8rem" }}>
           <button
             data-wt="eda-sample"
             onClick={useSample}
