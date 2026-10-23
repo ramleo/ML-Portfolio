@@ -4,7 +4,34 @@ import { useState } from "react";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-function CopyButton({ text }: { text: string }) {
+// Turn internal site paths (bare or in `backticks`) and [label](/path) markdown into
+// clickable links, so a reply that mentions /tools/preprocessing is a link the user can
+// click — no need to retype a path (case/spelling no longer matters). External URLs are
+// left as plain text; the homepage assistant is website-only.
+const RICH_RE =
+  /\[([^\]]+)\]\((\/[^)\s]+)\)|`?(\/(?:tools|platforms|qa|audit|eval|docs|api|dashboard)\/[A-Za-z0-9/_-]+)`?/g;
+
+function renderRich(text: string) {
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  RICH_RE.lastIndex = 0;
+  while ((m = RICH_RE.exec(text)) !== null) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const href = m[2] || m[3];
+    const label = m[1] || m[3];
+    out.push(
+      <a key={m.index} href={href} style={{ color: "var(--accent-from)", fontWeight: 600, textDecoration: "underline" }}>
+        {label}
+      </a>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+function CopyButton({ text, align }: { text: string; align: "flex-start" | "flex-end" }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -13,7 +40,7 @@ function CopyButton({ text }: { text: string }) {
       }}
       aria-label="Copy message"
       style={{
-        marginTop: 3, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "0.25rem",
+        marginTop: 3, alignSelf: align, display: "inline-flex", alignItems: "center", gap: "0.25rem",
         background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.66rem", padding: "2px 2px",
       }}
     >
@@ -48,9 +75,9 @@ export default function ChatMessages({ messages, loading }: { messages: Message[
             whiteSpace: "pre-wrap",
             userSelect: "text",
           }}>
-            {msg.content}
+            {msg.role === "assistant" ? renderRich(msg.content) : msg.content}
           </div>
-          {msg.role === "assistant" && <CopyButton text={msg.content} />}
+          <CopyButton text={msg.content} align={msg.role === "user" ? "flex-end" : "flex-start"} />
         </div>
       ))}
 

@@ -35,14 +35,18 @@ type RagResult = { answer: string; grounded: boolean };
 const isSiteSource = (s: unknown): boolean =>
   typeof s === 'string' && s.length > 0 && !s.startsWith('web:');
 
-async function askRag(query: string, provider: string): Promise<RagResult> {
+type Turn = { role: string; content: string };
+
+async function askRag(query: string, provider: string, history: Turn[]): Promise<RagResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 55_000);
   try {
     const res = await fetch(`${ML_API}/rag/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-      body: JSON.stringify({ query, provider, model: PROVIDER_MODEL[provider] }),
+      // Pass prior turns so follow-ups resolve ("give me the link to go" must point at
+      // the tool just discussed, not a random one). The RAG appends `query` itself.
+      body: JSON.stringify({ query, provider, model: PROVIDER_MODEL[provider], history }),
       signal: controller.signal,
     });
     if (!res.ok || !res.body) throw new Error(`RAG ${res.status}`);
@@ -91,12 +95,27 @@ export async function POST(req: NextRequest) {
   if ('error' in bounded) return NextResponse.json({ reply: bounded.error }, { status: bounded.status });
   const { messages } = bounded;
 
-  const lastUser = [...messages].reverse().find((m: { role: string }) => m.role === 'user');
-  if (!lastUser) return NextResponse.json({ reply: 'Ask me anything about this website.' });
+  const lastUserIdx = messages.map((m: Turn) => m.role).lastIndexOf('user');
+  if (lastUserIdx < 0) return NextResponse.json({ reply: 'Ask me anything about this website.' });
+  const lastUser = messages[lastUserIdx];
+  // Prior turns (bounded) give the RAG context for follow-ups; the query is appended by it.
+  const history: Turn[] = messages
+    .slice(0, lastUserIdx)
+    .slice(-6)
+    .map((m: Turn) => ({ role: m.role, content: m.content }));
+
+  // A short/referential follow-up ("give me the link to go", "open it") has no keywords
+  // to retrieve on, so the RAG pulls the wrong chunks and invents a path. Resolve it into
+  // a standalone retrieval query by prefixing the most recent prior question.
+  const priorUser = [...history].reverse().find((m) => m.role === 'user');
+  const referential = /\b(it|that|this|there|the link|link|go|open|show|which|where)\b/i;
+  const q = lastUser.content as string;
+  const query =
+    priorUser && (q.length < 40 || referential.test(q)) ? `${priorUser.content} — ${q}` : q;
 
   const t0 = Date.now();
   try {
-    const { answer, grounded } = await askRag(lastUser.content, provider);
+    const { answer, grounded } = await askRag(query, provider, history);
     await recordLlmCall({ tool: 'chat', provider, status: 'ok', latencyMs: Date.now() - t0,
       runId: traceId, operation: 'chat' });
     // Website-only: if the answer isn't grounded in a real site source (the RAG
