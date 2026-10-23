@@ -18,6 +18,7 @@ import { ResultsPanel }   from "@/components/PreprocessingPanels/ResultsPanel";
 import { PipelineProvider, usePipeline } from "@/context/PipelineContext";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
+import RunsInBrowserBadge from "@/components/RunsInBrowserBadge";
 import ToolGuideModal from "@/components/ToolGuideModal";
 import { PREPROCESSING_GUIDE } from "./userGuide";
 import { buildPreprocessingContext } from "./preprocessingContext";
@@ -193,7 +194,7 @@ function PreprocessingPageInner() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
               <span style={{ fontSize: "0.65rem", fontWeight: 600, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 9999, background: `${ACCENT}14`, border: `1px solid ${ACCENT}30` }}>ML Capabilities</span>
               <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>Data Preprocessing</span>
-              <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
+              <RunsInBrowserBadge />
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

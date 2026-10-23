@@ -12,6 +12,7 @@ function Badge({ label, color }: BadgeProps) {
       textTransform: "uppercase", letterSpacing: "0.08em",
       padding: "2px 8px", borderRadius: 9999,
       background: `${color}14`, border: `1px solid ${color}30`,
+      whiteSpace: "nowrap", flexShrink: 0,
     }}>{label}</span>
   );
 }

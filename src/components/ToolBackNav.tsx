@@ -29,14 +29,20 @@ export default function ToolBackNav({ toolId, flush }: { toolId: string; flush?:
   return (
     // `flush` drops the bottom margin when the nav sits inside a centred header
     // row (pipeline-builder / pipeline-cinema), where the margin would offset it.
+    // A horizontal breadcrumb TRAIL (one back chevron, then Home › Area) rather
+    // than two stacked back-links — it reads as navigation and stays one line even
+    // when a busy tool header squeezes it (see .tool-back-nav: nowrap, no shrink).
     <nav aria-label="Breadcrumb" className="tool-back-nav" style={flush ? { marginBottom: 0 } : undefined}>
       <Link href="/" className="tool-back-link">
         <Chevron /> Home
       </Link>
       {showArea && (
-        <Link href={areaHref} className="tool-back-link">
-          <Chevron /> {areaLabel}
-        </Link>
+        <>
+          <span className="tool-back-sep" aria-hidden="true">›</span>
+          <Link href={areaHref} className="tool-back-link">
+            {areaLabel}
+          </Link>
+        </>
       )}
     </nav>
   );

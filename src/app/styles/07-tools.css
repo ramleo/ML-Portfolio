@@ -1,17 +1,36 @@
 /* ── Tool page back navigation (Home + area), shared via <ToolBackNav> ── */
 .tool-back-nav {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1rem;
+  /* A single-line breadcrumb trail. nowrap + no-shrink keep "Home › Area" on one
+     line even inside a busy tool header that would otherwise squeeze it into a
+     two-line stack of back-buttons. */
+  display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; margin-bottom: 1rem;
+  white-space: nowrap; flex-shrink: 0;
 }
 .tool-back-link {
-  display: inline-flex; align-items: center; gap: 0.4rem;
+  display: inline-flex; align-items: center; gap: 0.3rem;
   min-height: 24px;               /* WCAG 2.5.8 touch target */
   color: var(--text3); font-size: 0.875rem; text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease; flex-shrink: 0;
 }
 .tool-back-link:hover { color: var(--text); }
+.tool-back-sep { color: var(--text3); font-size: 0.875rem; user-select: none; }
 /* Inside the fixed-height sticky tool header (ML-pipeline family), the nav sits
    in a centred row next to a divider + title, so it takes no bottom margin. */
 .tool-header-row .tool-back-nav { margin-bottom: 0; }
+
+/* Busy multi-step tool headers (Feature Engineering, Preprocessing, …) cram the
+   breadcrumb, title, "runs in browser" pill, stepper and buttons into one fixed
+   60px row. When that overflows, flexbox shrank the individual atoms until the
+   breadcrumb stacked and the title/pill wrapped mid-word. Instead: let the ROW
+   wrap and grow (overriding the pages' inline height:60), and keep each atom on
+   one line — so a tight header breaks BETWEEN controls, never inside them. */
+.tool-header-row {
+  height: auto !important;
+  min-height: 60px;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+.tool-header-row h1 { white-space: nowrap; }
 
 /* ── ML Capabilities: search/filter bar + domain clusters + flip cards ── */
 .cap-search-bar {

@@ -27,6 +27,7 @@ import ToolGuideModal from "@/components/ToolGuideModal";
 import { FEATURE_ENGINEERING_GUIDE } from "./userGuide";
 import { toolBackHref, toolBackLabel } from "@/lib/toolNav";
 import ToolBackNav from "@/components/ToolBackNav";
+import RunsInBrowserBadge from "@/components/RunsInBrowserBadge";
 import { EV } from "@/lib/logEvents";
 
 const ACCENT = "#3e7c98";
@@ -204,7 +205,7 @@ function FeatureEngineeringPageInner() {
           <div style={{ width: 1, height: 18, background: "var(--border2)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
             <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>Feature Engineering</h1>
-            <span style={{ fontSize: "0.7rem", color: "#34d399", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 9999, padding: "1px 8px" }}>runs in browser</span>
+            <RunsInBrowserBadge />
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" }}>
             {step === "configure" && (
