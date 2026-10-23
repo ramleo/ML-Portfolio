@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import PalettePicker from "./PalettePicker";
 import NavAuth from "./NavAuth";
+import SiteSearch from "./SiteSearch";
 
 // Seven links plus the logo, resume, theme and palette controls made for a
 // crowded bar with no clear priority. Trimmed to the five a visitor actually
@@ -105,6 +106,9 @@ export default function Navbar() {
             </a>
           )}
         </div>
+
+        {/* Site search — grounded, website-only (⌘K) */}
+        <SiteSearch />
 
         {/* Sign in / account — always visible */}
         <NavAuth />
