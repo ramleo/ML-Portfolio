@@ -5,31 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { trackedFetch } from "@/lib/trackedFetch";
 
 import { ChatIcon, CloseIcon, SendIcon, SparkIcon } from "./ChatbotIcons";
+import { PROVIDERS, SECTION_IDS, SECTION_HINTS, STARTER_QUESTIONS, type Provider } from "./chatbotConfig";
 
 type Message = { role: "user" | "assistant"; content: string };
-type Provider = "cohere" | "gemini" | "claude" | "groq";
-
-const PROVIDERS: { id: Provider; label: string; color: string }[] = [
-  // Cohere leads because it is free; Gemini is the one paid provider on this
-  // route, so it is an explicit pick rather than what a visitor gets by default.
-  { id: "cohere", label: "Cohere", color: "#a78bfa" },
-  { id: "gemini", label: "Gemini", color: "#38bdf8" },
-  { id: "claude", label: "Claude", color: "#f59e0b" },
-  { id: "groq",   label: "Groq",   color: "#34d399" },
-];
-
-const SECTION_IDS = ["hero", "about", "skills", "projects", "pipeline", "news", "timeline", "contact"];
-
-const SECTION_HINTS: Record<string, string> = {
-  hero:     "Ask me about Ramakrishnasai's ML experience",
-  about:    "Ask about background, education, or availability",
-  skills:   "Ask how XGBoost, CNNs, RAG, or any skill is used",
-  projects: "Ask about tech stack, accuracy, or how a project was built",
-  pipeline: "Curious about any stage of the ML pipeline?",
-  news:     "Ask anything about his work or AI/ML in general",
-  timeline: "Ask about career milestones or education",
-  contact:  "Ask about availability, roles, or collaboration",
-};
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -78,8 +56,8 @@ export default function Chatbot() {
     if (open) setTimeout(() => inputRef.current?.focus(), 200);
   }, [open]);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
+  const sendText = useCallback(async (raw: string) => {
+    const text = raw.trim();
     if (!text || loading) return;
 
     const userMsg: Message = { role: "user", content: text };
@@ -105,7 +83,9 @@ export default function Chatbot() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages, currentSection]);
+  }, [loading, messages, currentSection, provider]);
+
+  const send = useCallback(() => sendText(input), [sendText, input]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -239,6 +219,25 @@ export default function Chatbot() {
                   <p style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.6, margin: 0 }}>
                     {hint}
                   </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", justifyContent: "center", marginTop: "0.35rem" }}>
+                    {(STARTER_QUESTIONS[currentSection] ?? STARTER_QUESTIONS.hero).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => sendText(q)}
+                        disabled={loading}
+                        style={{
+                          padding: "0.35rem 0.7rem", borderRadius: 999,
+                          border: "1px solid var(--border2)", background: "var(--bg-card)",
+                          color: "var(--text2)", fontSize: "0.72rem", cursor: "pointer",
+                          lineHeight: 1.3, transition: "all 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent-from)"; e.currentTarget.style.color = "var(--text)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.color = "var(--text2)"; }}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
