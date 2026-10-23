@@ -7,6 +7,7 @@ import { trackedFetch } from "@/lib/trackedFetch";
 import { ChatIcon, CloseIcon, SendIcon, SparkIcon } from "./ChatbotIcons";
 import { PROVIDERS, SECTION_IDS, SECTION_HINTS, type Provider } from "./chatbotConfig";
 import { useStarterChips } from "./useStarterChips";
+import ChatMessages from "./ChatMessages";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -243,51 +244,7 @@ export default function Chatbot() {
                 </div>
               )}
 
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                  }}
-                >
-                  <div style={{
-                    maxWidth: "82%",
-                    padding: "0.55rem 0.8rem",
-                    borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    fontSize: "0.82rem",
-                    lineHeight: 1.55,
-                    background: msg.role === "user"
-                      ? "linear-gradient(135deg, var(--accent), var(--accent-via))"
-                      : "var(--bg-card)",
-                    color: msg.role === "user" ? "#fff" : "var(--text2)",
-                    border: msg.role === "user" ? "none" : "1px solid var(--border)",
-                  }}>
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                  <div style={{
-                    padding: "0.55rem 0.8rem",
-                    borderRadius: "14px 14px 14px 4px",
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    display: "flex", gap: "0.3rem", alignItems: "center",
-                  }}>
-                    {[0, 1, 2].map((d) => (
-                      <span key={d} style={{
-                        width: 6, height: 6, borderRadius: "50%",
-                        background: "var(--text3)",
-                        animation: `bounce 1.2s ease-in-out ${d * 0.2}s infinite`,
-                        display: "inline-block",
-                      }} />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ChatMessages messages={messages} loading={loading} />
 
               <div ref={bottomRef} />
             </div>
