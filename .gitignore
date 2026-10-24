@@ -50,3 +50,6 @@ scripts/__pycache__/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local-only internal reference — not published to this public repo
+docs/ACCESS_AND_AUTH.md
