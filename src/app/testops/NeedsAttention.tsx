@@ -24,6 +24,7 @@ function build(cases: CaseRow[]): Item[] {
   const unknown = cases.filter((c) => c.lane === "UNKNOWN");
   const readyNotBuilt = browser.filter((c) => c.target_url && !c.spec_path);
   const regressed = cases.filter((c) => (c.fail_count ?? 0) > 0 && c.last_verdict === "PASS");
+  const parked = cases.filter((c) => c.quarantined);
 
   return ([
     {
@@ -43,6 +44,10 @@ function build(cases: CaseRow[]): Item[] {
       key: "unknown", label: "Unclassified", n: unknown.length, color: laneColor("UNKNOWN"),
       lane: "UNKNOWN",
       why: "The classifier could not place these. Left honest rather than force-assigned.",
+    },
+    {
+      key: "parked", label: "Quarantined", n: parked.length, color: "#a78bfa",
+      why: "Knowingly parked. Review these — a quarantine with no exit date is just a hidden failure.",
     },
     {
       key: "flaky", label: "Passed after failing", n: regressed.length, color: "#38bdf8",

@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { laneColor, VERDICT_COLOR } from "./testopsCharts";
+import { laneColor, VERDICT_COLOR, age } from "./testopsCharts";
 import type { CaseRow, EventRow } from "./types";
 
 /** The registry itself: every documented case, filterable, with a drill-down
@@ -72,6 +72,13 @@ function Detail({ row, events, onClose }:
           {row.lane_locked && <Chip text="LOCKED" color="#a78bfa" title="Classification corrected by hand — sync will not change it" />}
         </div>
 
+        {row.quarantined && (
+          <Field label="Quarantined">
+            <span style={{ color: "#a78bfa" }}>{row.quarantined.why || "no reason recorded"}</span>
+            {row.quarantined.until && <> · exits when: {row.quarantined.until}</>}
+          </Field>
+        )}
+
         <Field label="Test name">{row.test_name}</Field>
         <Field label="Steps">{row.steps}</Field>
         <Field label="Expected result">{row.expected}</Field>
@@ -125,15 +132,18 @@ function Detail({ row, events, onClose }:
   );
 }
 
-export default function CaseTable({ cases, events, lane, setLane, day }: {
+export default function CaseTable({ cases, events, lane, setLane, day, now }: {
   cases: CaseRow[]; events: EventRow[];
   /** Controlled by the dashboard so clicking a lane bar above filters here. */
   lane: string; setLane: (l: string) => void;
   /** Set when a day in the trend is clicked — shows only cases that ran then. */
   day?: string;
+  /** The server's read time, so age is computed without Date.now() in render. */
+  now?: string;
 }) {
   const [q, setQ] = useState("");
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
+  const [onlyQuarantined, setOnlyQuarantined] = useState(false);
   const [open, setOpen] = useState<CaseRow | null>(null);
   const [limit, setLimit] = useState(60);
 
@@ -143,6 +153,7 @@ export default function CaseTable({ cases, events, lane, setLane, day }: {
       if (lane && c.lane !== lane) return false;
       if (day && (c.last_run_at ?? "").slice(0, 10) !== day) return false;
       if (onlyUnresolved && c.target_url) return false;
+      if (onlyQuarantined && !c.quarantined) return false;
       if (!needle) return true;
       // Search the case BODY too — "upload" or "sidebar" finds the relevant
       // cases even when the title does not contain the word.
@@ -153,7 +164,7 @@ export default function CaseTable({ cases, events, lane, setLane, day }: {
         || (c.expected ?? "").toLowerCase().includes(needle)
         || (c.hint ?? "").toLowerCase().includes(needle);
     });
-  }, [cases, lane, q, onlyUnresolved, day]);
+  }, [cases, lane, q, onlyUnresolved, onlyQuarantined, day]);
 
   /** Export what is filtered, not the whole table — the point is to take a
    *  working subset (say, the browser cases with a target) into a plan. */
@@ -195,6 +206,9 @@ export default function CaseTable({ cases, events, lane, setLane, day }: {
         <button style={btn(onlyUnresolved)} onClick={() => setOnlyUnresolved((v) => !v)}>
           Unresolved only
         </button>
+        <button style={btn(onlyQuarantined)} onClick={() => setOnlyQuarantined((v) => !v)}>
+          Quarantined
+        </button>
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, margin: "0 0 10px" }}>
@@ -222,6 +236,7 @@ export default function CaseTable({ cases, events, lane, setLane, day }: {
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>Lane</th>
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>Target</th>
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>Verdict</th>
+              <th style={{ padding: "6px 8px", fontWeight: 600 }}>Age</th>
             </tr>
           </thead>
           <tbody>
@@ -235,10 +250,18 @@ export default function CaseTable({ cases, events, lane, setLane, day }: {
                 <td style={{ padding: "8px", fontSize: 12, color: c.target_url ? "var(--text2)" : "var(--text3)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {c.target_url ? c.target_url.replace(/^https?:\/\//, "") : "unresolved"}
                 </td>
-                <td style={{ padding: "8px" }}>
+                <td style={{ padding: "8px", whiteSpace: "nowrap" }}>
                   {c.last_verdict
                     ? <Chip text={c.last_verdict} color={VERDICT_COLOR[c.last_verdict] ?? "#64748b"} />
                     : <span style={{ color: "var(--text3)", fontSize: 12 }}>never run</span>}
+                  {c.quarantined && <> <Chip text="QUARANTINED" color="#a78bfa" title={c.quarantined.why} /></>}
+                </td>
+                <td style={{
+                  padding: "8px", fontSize: 12, whiteSpace: "nowrap",
+                  fontVariantNumeric: "tabular-nums",
+                  color: c.red_since ? VERDICT_COLOR.BUG : "var(--text3)",
+                }} title={c.red_since ? "how long this has been failing" : "last run"}>
+                  {age(c.red_since ?? c.last_run_at, now) ?? "—"}
                 </td>
               </tr>
             ))}

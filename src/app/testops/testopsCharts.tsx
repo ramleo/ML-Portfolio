@@ -26,6 +26,39 @@ export const VERDICT_COLOR: Record<string, string> = {
 
 export const laneColor = (k: string) => LANE_COLOR[k] ?? "#64748b";
 
+/** "3d" / "2h" / "new" — how long ago `iso` was, measured against `now` so the
+ *  caller can pass the server's read time and keep the render pure. */
+export function age(iso: string | null | undefined, now: string | undefined): string | null {
+  if (!iso || !now) return null;
+  const mins = Math.round((Date.parse(now) - Date.parse(iso)) / 60000);
+  if (!Number.isFinite(mins) || mins < 0) return null;
+  if (mins < 60) return "new";
+  const h = Math.round(mins / 60);
+  return h < 48 ? `${h}h` : `${Math.round(h / 24)}d`;
+}
+
+/** Coverage per source file — which file is least automated, at a glance. */
+export function CoverageByFile({ rows }: {
+  rows: { file: string; total: number; automated: number; pct: number }[];
+}) {
+  if (!rows.length) return null;
+  return (
+    <div style={{ display: "grid", gap: 9 }}>
+      {rows.map((r) => (
+        <div key={r.file} style={{ display: "grid", gridTemplateColumns: "140px 1fr 104px", gap: 10, alignItems: "center" }}>
+          <span style={{ fontSize: 12.5, color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.file}>{r.file}</span>
+          <div style={{ height: 9, borderRadius: 5, background: "rgba(127,127,127,.14)", overflow: "hidden" }}>
+            <div style={{ width: `${Math.max(r.pct, r.pct > 0 ? 1 : 0)}%`, height: "100%", borderRadius: 5, background: VERDICT_COLOR.PASS }} />
+          </div>
+          <span style={{ fontSize: 12, color: "var(--text3)", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+            {r.automated}/{r.total} · {r.pct}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const card: React.CSSProperties = {
   background: "var(--bg-card)",
   border: "1px solid var(--border)",

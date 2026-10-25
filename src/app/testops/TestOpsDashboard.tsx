@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Card, Stat, Bars, Trend, Legend, CoverageMeter, laneColor, LANE_COLOR, VERDICT_COLOR }
-  from "./testopsCharts";
+import { Card, Stat, Bars, Trend, Legend, CoverageMeter, CoverageByFile, laneColor,
+  LANE_COLOR, VERDICT_COLOR } from "./testopsCharts";
 import CaseTable from "./CaseTable";
 import EventFeed from "./EventFeed";
 import NeedsAttention from "./NeedsAttention";
@@ -155,8 +155,9 @@ export default function TestOpsDashboard() {
             <Legend items={[["passed", VERDICT_COLOR.PASS], ["failed", VERDICT_COLOR.BUG]]} />
           </Card>
 
-          <Card title="Source files" hint="Where the cases come from.">
-            <Bars data={sorted(data.byFile).slice(0, 12)} total={t.documented} />
+          <Card title="Coverage by source file" scroll={300}
+            hint="Which file is least automated. Counts alone hid this — a big file with no specs looked the same as a small one that is done.">
+            <CoverageByFile rows={data.coverageByFile ?? []} />
           </Card>
 
           <Card title="Activity" scroll={420}
@@ -175,7 +176,7 @@ export default function TestOpsDashboard() {
                   }}>Clear {[lane, day].filter(Boolean).join(" + ")} filter</button>
                 : undefined}>
               <CaseTable cases={cases} events={data.events ?? []}
-                lane={lane} setLane={setLane} day={day} />
+                lane={lane} setLane={setLane} day={day} now={data.generatedAt} />
             </Card>
           </div>
         </div>

@@ -21,6 +21,10 @@ export interface CaseRow {
   last_run_at: string | null;
   run_count: number | null;
   fail_count: number | null;
+  /** Derived in the API from quarantine/unquarantine events, not a column. */
+  quarantined?: { since: string; why: string; until?: string } | null;
+  /** Oldest consecutive failing run since the last pass. */
+  red_since?: string | null;
 }
 
 export interface EventRow {
@@ -54,6 +58,8 @@ export interface TestOpsPayload {
   byVerdict?: Record<string, number>;
   byResolve?: Record<string, number>;
   byFile?: Record<string, number>;
+  coverageByFile?: { file: string; total: number; automated: number; pct: number }[];
+  quarantined?: number;
   series?: { day: string; pass: number; fail: number }[];
   events?: EventRow[];
   cases?: CaseRow[];

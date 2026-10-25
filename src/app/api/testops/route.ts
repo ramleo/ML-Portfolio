@@ -28,6 +28,8 @@ export interface CaseRow {
   hint: string | null; source_part: string | null;
   lane: string | null; ready: string | null; lane_origin: string | null;
   lane_locked: boolean | null;
+  quarantined?: { since: string; why: string; until?: string } | null;
+  red_since?: string | null;
   target_url: string | null; resolve_method: string | null; spec_path: string | null;
   last_verdict: string | null; last_run_at: string | null;
   run_count: number | null; fail_count: number | null;
@@ -124,6 +126,64 @@ export async function GET(req: NextRequest) {
   const rows = cases;
   const evs = (events ?? []) as unknown as EventRow[];
 
+  // --- Quarantine, derived from events, no schema change ---------------------
+  // A `quarantine` event parks a known-bad case; `unquarantine` releases it.
+  // Latest event per case wins. Keeping this in the log rather than a column is
+  // the whole point of the kind+payload design.
+  const quarantine = new Map<string, { since: string; why: string; until?: string }>();
+  for (const e of [...evs].reverse()) {           // oldest first, so latest wins
+    if (!e.tc_id) continue;
+    if (e.kind === "quarantine") {
+      const p = (e.payload ?? {}) as { why?: string; exit_criteria?: string };
+      quarantine.set(e.tc_id, {
+        since: e.ts ?? "", why: p.why ?? "", until: p.exit_criteria,
+      });
+    } else if (e.kind === "unquarantine") {
+      quarantine.delete(e.tc_id);
+    }
+  }
+
+  // --- How long each case has been red --------------------------------------
+  // The oldest consecutive failing verdict since its last pass. A two-day red
+  // and a six-month red should not look identical.
+  const redSince = new Map<string, string>();
+  const byCase = new Map<string, EventRow[]>();
+  for (const e of evs) {
+    if (e.kind !== "run_verdict" || !e.tc_id) continue;
+    (byCase.get(e.tc_id) ?? byCase.set(e.tc_id, []).get(e.tc_id)!).push(e);
+  }
+  for (const [tc, list] of byCase) {
+    // `evs` is newest-first, so walk until the first pass and keep the last red.
+    let oldestRed: string | null = null;
+    for (const e of list) {
+      const v = String((e.payload as { verdict?: string } | null)?.verdict ?? "");
+      if (v === "PASS" || v === "HEALED") break;
+      if (e.ts) oldestRed = e.ts;
+    }
+    if (oldestRed) redSince.set(tc, oldestRed);
+  }
+
+  for (const r of rows) {
+    const q = quarantine.get(r.tc_id);
+    r.quarantined = q ? { since: q.since, why: q.why, until: q.until } : null;
+    r.red_since = redSince.get(r.tc_id) ?? null;
+  }
+
+  // --- Coverage per source file ---------------------------------------------
+  // Counts per file existed; the useful number is what share of each file is
+  // actually automated, so the least-covered file is visible at a glance.
+  const perFile = new Map<string, { total: number; automated: number }>();
+  for (const r of rows) {
+    const k = r.source_file ?? "—";
+    const slot = perFile.get(k) ?? { total: 0, automated: 0 };
+    slot.total += 1;
+    if (r.spec_path) slot.automated += 1;
+    perFile.set(k, slot);
+  }
+  const coverageByFile = [...perFile.entries()]
+    .map(([file, v]) => ({ file, ...v, pct: Math.round((v.automated / v.total) * 1000) / 10 }))
+    .sort((a, b) => b.total - a.total);
+
   const automated = rows.filter((r) => r.spec_path).length;
   const passing = rows.filter((r) => r.last_verdict === "PASS").length;
   const healed = rows.filter((r) => r.last_verdict === "HEALED").length;
@@ -151,6 +211,8 @@ export async function GET(req: NextRequest) {
     byVerdict: tally(rows.filter((r) => r.last_verdict), (r) => r.last_verdict),
     byResolve: tally(rows, (r) => r.resolve_method),
     byFile: tally(rows, (r) => r.source_file),
+    coverageByFile,
+    quarantined: quarantine.size,
     series: dailySeries(evs),
     events: evs,
     cases: rows,
