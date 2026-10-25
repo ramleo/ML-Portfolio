@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { laneColor, VERDICT_COLOR, age } from "./testopsCharts";
 import type { CaseRow, EventRow } from "./types";
 
@@ -145,7 +145,17 @@ export default function CaseTable({ cases, events, lane, setLane, day, now }: {
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [onlyQuarantined, setOnlyQuarantined] = useState(false);
   const [open, setOpen] = useState<CaseRow | null>(null);
-  const [limit, setLimit] = useState(60);
+  const [limit, setLimit] = useState(120);
+  const sentinel = useRef<HTMLTableRowElement>(null);
+
+  // Reset the window when the filters change, the React-documented way: adjust
+  // state during render rather than in an effect, so there is no extra pass.
+  const filterSig = `${lane}|${q}|${onlyUnresolved}|${onlyQuarantined}|${day ?? ""}`;
+  const [prevSig, setPrevSig] = useState(filterSig);
+  if (filterSig !== prevSig) {
+    setPrevSig(filterSig);
+    setLimit(120);
+  }
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -165,6 +175,20 @@ export default function CaseTable({ cases, events, lane, setLane, day, now }: {
         || (c.hint ?? "").toLowerCase().includes(needle);
     });
   }, [cases, lane, q, onlyUnresolved, onlyQuarantined, day]);
+
+  // Grow the window as the last row comes into view, instead of making the
+  // reader scroll to the bottom and then click. The DOM still never holds all
+  // 1,795 rows at once.
+
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setLimit((n) => n + 200);
+    }, { rootMargin: "400px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [rows.length, limit]);
 
   /** Export what is filtered, not the whole table — the point is to take a
    *  working subset (say, the browser cases with a target) into a plan. */
@@ -265,16 +289,19 @@ export default function CaseTable({ cases, events, lane, setLane, day, now }: {
                 </td>
               </tr>
             ))}
+            {rows.length > limit && (
+              <tr ref={sentinel}>
+                <td colSpan={6} style={{
+                  padding: "14px 8px", textAlign: "center", fontSize: 12.5,
+                  color: "var(--text3)",
+                }}>
+                  loading {Math.min(200, rows.length - limit)} more…
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
-      {rows.length > limit && (
-        <button onClick={() => setLimit((n) => n + 120)} style={{
-          marginTop: 14, padding: "7px 16px", borderRadius: 999, cursor: "pointer",
-          border: "1px solid var(--border)", background: "transparent", color: "var(--text2)", fontSize: 13,
-        }}>Show more</button>
-      )}
 
       {open && <Detail row={open} events={events} onClose={() => setOpen(null)} />}
     </>
