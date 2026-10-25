@@ -38,6 +38,7 @@ export default function TestOpsDashboard() {
   // Lane filter lives here so clicking a bar above filters the registry below —
   // a chart you can act on beats a chart you can only read.
   const [lane, setLane] = useState("");
+  const [day, setDay] = useState("");
   const registry = useRef<HTMLDivElement>(null);
   const focusLane = (l: string) => {
     setLane((cur) => (cur === l ? "" : l));
@@ -56,6 +57,20 @@ export default function TestOpsDashboard() {
   const t = data?.totals;
   const cases = useMemo(() => data?.cases ?? [], [data]);
 
+  /** How long ago the registry was last synced from the TC files. A dashboard
+   *  that can be stale has to say so rather than look authoritative. */
+  const lastSync = useMemo(() => {
+    const ev = data?.events?.find((e) => e.kind === "sync");
+    if (!ev?.ts || !data?.generatedAt) return null;
+    // Measured against the server's read time, not Date.now(): a render must be
+    // pure, and the gap the reader cares about is sync-to-read anyway.
+    const mins = Math.round((Date.parse(data.generatedAt) - Date.parse(ev.ts)) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const h = Math.round(mins / 60);
+    return h < 48 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+  }, [data]);
+
   return (
     <>
       <header style={{ marginBottom: 26 }}>
@@ -70,6 +85,7 @@ export default function TestOpsDashboard() {
         {data?.generatedAt && (
           <p style={{ fontSize: 12, color: "var(--text3)", margin: "8px 0 0" }}>
             Read at {data.generatedAt.slice(0, 16).replace("T", " ")} UTC
+            {lastSync && <> · registry synced {lastSync}</>}
           </p>
         )}
       </header>
@@ -131,7 +147,11 @@ export default function TestOpsDashboard() {
 
           <Card title="Outcomes over time"
             hint="Pass and fail per day. A single snapshot hides regressions.">
-            <Trend series={data.series ?? []} />
+            <Trend series={data.series ?? []} selectedDay={day}
+              onSelectDay={(d) => {
+                setDay((cur) => (cur === d ? "" : d));
+                registry.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }} />
             <Legend items={[["passed", VERDICT_COLOR.PASS], ["failed", VERDICT_COLOR.BUG]]} />
           </Card>
 
@@ -147,15 +167,15 @@ export default function TestOpsDashboard() {
           <div ref={registry} style={{ scrollMarginTop: 90 }}>
             <Card title="Registry"
               hint="Every case. Click a row for its full text, target and history."
-              action={lane
-                ? <button onClick={() => setLane("")} style={{
+              action={(lane || day)
+                ? <button onClick={() => { setLane(""); setDay(""); }} style={{
                     background: "transparent", border: "1px solid var(--border)",
                     borderRadius: 999, color: "var(--text2)", cursor: "pointer",
                     padding: "3px 10px", fontSize: 12,
-                  }}>Clear {lane} filter</button>
+                  }}>Clear {[lane, day].filter(Boolean).join(" + ")} filter</button>
                 : undefined}>
               <CaseTable cases={cases} events={data.events ?? []}
-                lane={lane} setLane={setLane} />
+                lane={lane} setLane={setLane} day={day} />
             </Card>
           </div>
         </div>

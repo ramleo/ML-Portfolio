@@ -152,7 +152,13 @@ export function Bars({ data, color, total, onSelect, selected }: {
 
 /** Pass/fail per day. A single snapshot hides regressions, so outcomes are
  *  always plotted over time. Empty until runs are recorded — stated, not faked. */
-export function Trend({ series }: { series: { day: string; pass: number; fail: number }[] }) {
+export function Trend({ series, onSelectDay, selectedDay }: {
+  series: { day: string; pass: number; fail: number }[];
+  /** Clicking a bar drills into that day — a spike you can only look at is
+   *  half a chart. */
+  onSelectDay?: (day: string) => void;
+  selectedDay?: string;
+}) {
   if (!series.length) {
     return (
       <p style={{ fontSize: 13, color: "var(--text3)", margin: "18px 0", lineHeight: 1.6 }}>
@@ -174,9 +180,16 @@ export function Trend({ series }: { series: { day: string; pass: number; fail: n
           const t = d.pass + d.fail;
           const hAll = ((H - pad * 2) * t) / max;
           const hPass = t ? hAll * (d.pass / t) : 0;
+          const dim = selectedDay && selectedDay !== d.day;
           return (
-            <g key={d.day}>
+            <g key={d.day} onClick={onSelectDay ? () => onSelectDay(d.day) : undefined}
+              style={{ cursor: onSelectDay ? "pointer" : undefined, opacity: dim ? 0.4 : 1 }}>
               <title>{`${d.day} — ${d.pass} passed, ${d.fail} failed`}</title>
+              {/* a hit target wider than the bar, so a 6px bar is still clickable */}
+              {onSelectDay && (
+                <rect x={x - 2} y={pad - 10} width={bw + 4} height={H - pad * 2 + 20}
+                  fill="transparent" />
+              )}
               <rect x={x} y={H - pad - hAll} width={bw} height={hAll - hPass}
                 fill={VERDICT_COLOR.BUG} rx="2" />
               <rect x={x} y={H - pad - hPass} width={bw} height={hPass}

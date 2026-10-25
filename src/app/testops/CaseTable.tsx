@@ -83,6 +83,18 @@ function Detail({ row, events, onClose }:
         </Field>
         <Field label="Spec">{row.spec_path ?? <span style={{ color: "var(--text3)" }}>not authored yet</span>}</Field>
 
+        {(() => {
+          const latest = mine.find((e) => e.kind === "run_verdict");
+          const reason = (latest?.payload as { reason?: string } | undefined)?.reason;
+          if (!reason) return null;
+          const bad = row.last_verdict !== "PASS" && row.last_verdict !== "HEALED";
+          return (
+            <Field label={bad ? "Why it failed" : "Why it is skipped"}>
+              <span style={{ color: bad ? VERDICT_COLOR.BUG : "var(--text2)" }}>{reason}</span>
+            </Field>
+          );
+        })()}
+
         <div style={{
           fontSize: 11, letterSpacing: ".05em", textTransform: "uppercase",
           color: "var(--text3)", fontWeight: 600, margin: "22px 0 8px",
@@ -113,10 +125,12 @@ function Detail({ row, events, onClose }:
   );
 }
 
-export default function CaseTable({ cases, events, lane, setLane }: {
+export default function CaseTable({ cases, events, lane, setLane, day }: {
   cases: CaseRow[]; events: EventRow[];
   /** Controlled by the dashboard so clicking a lane bar above filters here. */
   lane: string; setLane: (l: string) => void;
+  /** Set when a day in the trend is clicked — shows only cases that ran then. */
+  day?: string;
 }) {
   const [q, setQ] = useState("");
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
@@ -127,13 +141,35 @@ export default function CaseTable({ cases, events, lane, setLane }: {
     const needle = q.trim().toLowerCase();
     return cases.filter((c) => {
       if (lane && c.lane !== lane) return false;
+      if (day && (c.last_run_at ?? "").slice(0, 10) !== day) return false;
       if (onlyUnresolved && c.target_url) return false;
       if (!needle) return true;
+      // Search the case BODY too — "upload" or "sidebar" finds the relevant
+      // cases even when the title does not contain the word.
       return c.tc_id.toLowerCase().includes(needle)
         || (c.test_name ?? "").toLowerCase().includes(needle)
-        || (c.source_file ?? "").toLowerCase().includes(needle);
+        || (c.source_file ?? "").toLowerCase().includes(needle)
+        || (c.steps ?? "").toLowerCase().includes(needle)
+        || (c.expected ?? "").toLowerCase().includes(needle)
+        || (c.hint ?? "").toLowerCase().includes(needle);
     });
-  }, [cases, lane, q, onlyUnresolved]);
+  }, [cases, lane, q, onlyUnresolved, day]);
+
+  /** Export what is filtered, not the whole table — the point is to take a
+   *  working subset (say, the browser cases with a target) into a plan. */
+  const exportCsv = () => {
+    const cols = ["tc_id", "source_file", "lane", "ready", "target_url",
+      "resolve_method", "spec_path", "last_verdict", "test_name"] as const;
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))]
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `testops-${lane || "all"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const btn = (active: boolean): React.CSSProperties => ({
     padding: "5px 11px", borderRadius: 999, fontSize: 12.5, cursor: "pointer",
@@ -146,7 +182,7 @@ export default function CaseTable({ cases, events, lane, setLane }: {
     <>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
         <input value={q} onChange={(e) => setQ(e.target.value)} id="testops-q"
-          placeholder="Search id, name or file…" style={{
+          placeholder="Search id, name, file, steps…" style={{
             flex: "1 1 220px", minWidth: 0, padding: "7px 12px", fontSize: 13,
             borderRadius: 999, border: "1px solid var(--border)",
             background: "var(--bg-glass, transparent)", color: "var(--text)",
@@ -161,10 +197,17 @@ export default function CaseTable({ cases, events, lane, setLane }: {
         </button>
       </div>
 
-      <p style={{ fontSize: 12.5, color: "var(--text3)", margin: "0 0 10px" }}>
-        {rows.length.toLocaleString()} case{rows.length === 1 ? "" : "s"}
-        {rows.length > limit ? ` · showing ${limit}` : ""}
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, margin: "0 0 10px" }}>
+        <p style={{ fontSize: 12.5, color: "var(--text3)", margin: 0 }}>
+          {rows.length.toLocaleString()} case{rows.length === 1 ? "" : "s"}
+          {rows.length > limit ? ` · showing ${limit}` : ""}
+        </p>
+        <button onClick={exportCsv} disabled={!rows.length} style={{
+          background: "transparent", border: "1px solid var(--border)", borderRadius: 999,
+          color: "var(--text2)", cursor: rows.length ? "pointer" : "default",
+          padding: "4px 12px", fontSize: 12, whiteSpace: "nowrap",
+        }}>Export CSV</button>
+      </div>
 
       <div style={{ overflowX: "auto", maxHeight: 560, overflowY: "auto", overscrollBehavior: "contain" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
