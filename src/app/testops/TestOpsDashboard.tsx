@@ -37,7 +37,10 @@ export default function TestOpsDashboard() {
   const [err, setErr] = useState<string | null>(null);
   // Lane filter lives here so clicking a bar above filters the registry below —
   // a chart you can act on beats a chart you can only read.
-  const [lane, setLane] = useState("");
+  // lane is owned here (the bars above set it) so it must also be restored
+  // from the URL here, or a shared link would lose it.
+  const [lane, setLane] = useState(() => typeof window === "undefined" ? ""
+    : new URLSearchParams(window.location.search).get("lane") ?? "");
   const [day, setDay] = useState("");
   const registry = useRef<HTMLDivElement>(null);
   const focusLane = (l: string) => {
