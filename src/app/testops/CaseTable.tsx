@@ -113,8 +113,11 @@ function Detail({ row, events, onClose }:
   );
 }
 
-export default function CaseTable({ cases, events }: { cases: CaseRow[]; events: EventRow[] }) {
-  const [lane, setLane] = useState<string>("");
+export default function CaseTable({ cases, events, lane, setLane }: {
+  cases: CaseRow[]; events: EventRow[];
+  /** Controlled by the dashboard so clicking a lane bar above filters here. */
+  lane: string; setLane: (l: string) => void;
+}) {
   const [q, setQ] = useState("");
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [open, setOpen] = useState<CaseRow | null>(null);
@@ -163,10 +166,14 @@ export default function CaseTable({ cases, events }: { cases: CaseRow[]; events:
         {rows.length > limit ? ` · showing ${limit}` : ""}
       </p>
 
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", maxHeight: 560, overflowY: "auto", overscrollBehavior: "contain" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
-            <tr style={{ textAlign: "left", color: "var(--text3)", fontSize: 11.5, textTransform: "uppercase", letterSpacing: ".04em" }}>
+            <tr style={{
+              textAlign: "left", color: "var(--text3)", fontSize: 11.5,
+              textTransform: "uppercase", letterSpacing: ".04em",
+              position: "sticky", top: 0, background: "var(--bg-card)", zIndex: 1,
+            }}>
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>ID</th>
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>Test name</th>
               <th style={{ padding: "6px 8px", fontWeight: 600 }}>Lane</th>

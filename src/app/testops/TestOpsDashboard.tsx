@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Stat, Bars, Trend, Legend, CoverageMeter, laneColor, LANE_COLOR, VERDICT_COLOR }
   from "./testopsCharts";
 import CaseTable from "./CaseTable";
 import EventFeed from "./EventFeed";
+import NeedsAttention from "./NeedsAttention";
 import type { TestOpsPayload } from "./types";
 
 const sorted = (o: Record<string, number> | undefined): [string, number][] =>
@@ -34,6 +35,14 @@ function Setup({ hint }: { hint?: string }) {
 export default function TestOpsDashboard() {
   const [data, setData] = useState<TestOpsPayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // Lane filter lives here so clicking a bar above filters the registry below —
+  // a chart you can act on beats a chart you can only read.
+  const [lane, setLane] = useState("");
+  const registry = useRef<HTMLDivElement>(null);
+  const focusLane = (l: string) => {
+    setLane((cur) => (cur === l ? "" : l));
+    registry.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     let alive = true;
@@ -45,6 +54,7 @@ export default function TestOpsDashboard() {
   }, []);
 
   const t = data?.totals;
+  const cases = useMemo(() => data?.cases ?? [], [data]);
 
   return (
     <>
@@ -86,6 +96,8 @@ export default function TestOpsDashboard() {
               sub={t.everRun ? "of cases that ran" : "nothing has run yet"} />
           </div>
 
+          <NeedsAttention cases={cases} onFocusLane={focusLane} />
+
           <Card title="Coverage"
             hint="The number this page exists to move — documented cases that have a runnable spec.">
             <CoverageMeter automated={t.automated} documented={t.documented} />
@@ -93,7 +105,8 @@ export default function TestOpsDashboard() {
 
           <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))" }}>
             <Card title="By lane" hint="What kind of test each case needs. Classification is regex over prose and measured at 67% — treat as a starting point.">
-              <Bars data={sorted(data.byLane)} color={laneColor} total={t.documented} />
+              <Bars data={sorted(data.byLane)} color={laneColor} total={t.documented}
+                onSelect={focusLane} selected={lane} />
               <Legend items={Object.entries(LANE_COLOR)} />
             </Card>
 
@@ -126,14 +139,25 @@ export default function TestOpsDashboard() {
             <Bars data={sorted(data.byFile).slice(0, 12)} total={t.documented} />
           </Card>
 
-          <Card title="Activity"
+          <Card title="Activity" scroll={420}
             hint="Everything recorded: run verdicts, findings, cost and quota, decisions. New record kinds need no migration.">
             <EventFeed events={data.events ?? []} />
           </Card>
 
-          <Card title="Registry" hint="Every case. Click a row for its full text, target and history.">
-            <CaseTable cases={data.cases ?? []} events={data.events ?? []} />
-          </Card>
+          <div ref={registry} style={{ scrollMarginTop: 90 }}>
+            <Card title="Registry"
+              hint="Every case. Click a row for its full text, target and history."
+              action={lane
+                ? <button onClick={() => setLane("")} style={{
+                    background: "transparent", border: "1px solid var(--border)",
+                    borderRadius: 999, color: "var(--text2)", cursor: "pointer",
+                    padding: "3px 10px", fontSize: 12,
+                  }}>Clear {lane} filter</button>
+                : undefined}>
+              <CaseTable cases={cases} events={data.events ?? []}
+                lane={lane} setLane={setLane} />
+            </Card>
+          </div>
         </div>
       )}
     </>

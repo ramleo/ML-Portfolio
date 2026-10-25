@@ -33,17 +33,25 @@ const card: React.CSSProperties = {
   padding: "18px 20px",
 };
 
-export function Card({ title, hint, children, span }:
-  { title: string; hint?: string; children: React.ReactNode; span?: number }) {
+export function Card({ title, hint, children, span, scroll, action }: {
+  title: string; hint?: string; children: React.ReactNode; span?: number;
+  /** Max height in px for the body; beyond it the body scrolls on its own. */
+  scroll?: number; action?: React.ReactNode;
+}) {
   return (
     <section style={{ ...card, gridColumn: span ? `span ${span}` : undefined, minWidth: 0 }}>
-      <h2 style={{
-        font: "600 13px/1.3 var(--type-body, inherit)", letterSpacing: ".04em",
-        textTransform: "uppercase", color: "var(--text3)", margin: "0 0 2px",
-      }}>{title}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{
+          font: "600 13px/1.3 var(--type-body, inherit)", letterSpacing: ".04em",
+          textTransform: "uppercase", color: "var(--text3)", margin: "0 0 2px",
+        }}>{title}</h2>
+        {action}
+      </div>
       {hint && <p style={{ fontSize: 12.5, color: "var(--text3)", margin: "0 0 14px" }}>{hint}</p>}
       {!hint && <div style={{ height: 12 }} />}
-      {children}
+      {scroll
+        ? <div style={{ maxHeight: scroll, overflowY: "auto", overscrollBehavior: "contain", paddingRight: 4 }}>{children}</div>
+        : children}
     </section>
   );
 }
@@ -103,15 +111,26 @@ export function CoverageMeter({ automated, documented }:
 
 /** Horizontal bars for a categorical breakdown. Every bar is labelled with its
  *  real count, so the chart never depends on reading a pixel length. */
-export function Bars({ data, color, total }: {
+export function Bars({ data, color, total, onSelect, selected }: {
   data: [string, number][]; color?: (k: string) => string; total?: number;
+  /** When given, each row becomes a button that filters the registry below. */
+  onSelect?: (key: string) => void; selected?: string;
 }) {
   const max = Math.max(1, ...data.map(([, v]) => v));
   const sum = total ?? data.reduce((a, [, v]) => a + v, 0);
   return (
     <div style={{ display: "grid", gap: 9 }}>
       {data.map(([k, v]) => (
-        <div key={k} style={{ display: "grid", gridTemplateColumns: "104px 1fr 92px", gap: 10, alignItems: "center" }}>
+        <div key={k} role={onSelect ? "button" : undefined} tabIndex={onSelect ? 0 : undefined}
+          onClick={onSelect ? () => onSelect(k) : undefined}
+          onKeyDown={onSelect ? (e) => { if (e.key === "Enter") onSelect(k); } : undefined}
+          title={onSelect ? `Show ${k} in the registry below` : undefined}
+          style={{
+            display: "grid", gridTemplateColumns: "104px 1fr 92px", gap: 10, alignItems: "center",
+            cursor: onSelect ? "pointer" : undefined, borderRadius: 6,
+            outline: selected === k ? "1px solid var(--accent)" : undefined,
+            outlineOffset: 3, opacity: selected && selected !== k ? 0.5 : 1,
+          }}>
           <span style={{ fontSize: 12.5, color: "var(--text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={k}>{k}</span>
           <div style={{ height: 9, borderRadius: 5, background: "rgba(127,127,127,.14)", overflow: "hidden" }}>
             <div style={{

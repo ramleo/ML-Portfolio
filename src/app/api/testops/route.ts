@@ -79,19 +79,32 @@ export async function GET(req: NextRequest) {
   const verdict = url.searchParams.get("verdict");
   const q = (url.searchParams.get("q") || "").trim();
 
-  // The whole registry: ~1,795 narrow rows is one cheap read, and having it all
-  // client-side makes filtering instant with no round trip per keystroke.
-  let query = admin.from("testops_cases")
-    .select("tc_id,source_file,category,test_name,steps,expected,hint,source_part,"
-      + "lane,ready,lane_origin,lane_locked,target_url,resolve_method,spec_path,"
-      + "last_verdict,last_run_at,run_count,fail_count")
-    .order("tc_id", { ascending: true })
-    .limit(5000);
-  if (lane) query = query.eq("lane", lane);
-  if (verdict) query = query.eq("last_verdict", verdict);
-  if (q) query = query.or(`tc_id.ilike.%${q}%,test_name.ilike.%${q}%`);
+  const COLUMNS = "tc_id,source_file,category,test_name,steps,expected,hint,source_part,"
+    + "lane,ready,lane_origin,lane_locked,target_url,resolve_method,spec_path,"
+    + "last_verdict,last_run_at,run_count,fail_count";
 
-  const { data: cases, error } = await query;
+  // PostgREST caps a response at db-max-rows (1000 here) and silently truncates —
+  // a plain .limit(5000) returned only the first 1000 of 1795 cases. Page through
+  // with explicit ranges instead. The whole registry is narrow enough to send in
+  // one payload, and having it client-side makes filtering instant.
+  const PAGE = 1000;
+  const all: CaseRow[] = [];
+  let error: { code?: string; message?: string } | null = null;
+  for (let from = 0; from < 20000; from += PAGE) {
+    let query = admin.from("testops_cases").select(COLUMNS)
+      .order("tc_id", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (lane) query = query.eq("lane", lane);
+    if (verdict) query = query.eq("last_verdict", verdict);
+    if (q) query = query.or(`tc_id.ilike.%${q}%,test_name.ilike.%${q}%`);
+    const page = await query;
+    if (page.error) { error = page.error; break; }
+    const got = (page.data ?? []) as unknown as CaseRow[];
+    all.push(...got);
+    if (got.length < PAGE) break;
+  }
+
+  const cases = all;
   if (error) {
     if (isMissingSchema(error)) {
       return NextResponse.json({
@@ -108,8 +121,7 @@ export async function GET(req: NextRequest) {
     .order("ts", { ascending: false })
     .limit(400);
 
-  // PostgREST's generic widens to GenericStringError[] on a long select string.
-  const rows = (cases ?? []) as unknown as CaseRow[];
+  const rows = cases;
   const evs = (events ?? []) as unknown as EventRow[];
 
   const automated = rows.filter((r) => r.spec_path).length;
